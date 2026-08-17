@@ -1,0 +1,31 @@
+{
+  "name": "tsumo",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "prepare:provider-references": "bash scripts/prepare-provider-references.sh",
+    "build": "npm run prepare:provider-references && npm run build:tsonic && npm run build:dotnet",
+    "build:tsonic": "bash scripts/build-tsonic.sh",
+    "build:dotnet": "bash scripts/build-dotnet.sh",
+    "test": "node --test \"test/**/*.test.mjs\"",
+    "test:dotnet": "TSUMO_TEST_ROOT=$PWD/.temp/test-runs/dotnet dotnet test packages/tests/Tsumo.Tests.csproj",
+    "verify-all": "bash scripts/verify-all.sh"
+  },
+  "devDependencies": {
+    "@tsonic/cli": "file:../tsonic/packages/cli",
+    "@tsonic/csharp-js": "file:../csharp-js",
+    "@tsonic/csharp-nodejs": "file:../csharp-nodejs",
+    "@tsonic/csharp-runtime": "file:../csharp-runtime",
+    "@tsonic/host": "file:../tsonic/packages/host",
+    "@tsonic/source-core": "file:../tsonic/packages/source-core",
+    "@tsonic/target-api": "file:../tsonic/packages/target-api",
+    "@tsonic/target-csharp": "file:../tsonic-csharp",
+    "@tsonic/tsts": "file:../tsonic/packages/tsts"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

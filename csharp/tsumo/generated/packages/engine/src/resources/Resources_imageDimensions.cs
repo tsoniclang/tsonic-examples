@@ -1,0 +1,179 @@
+using System;
+
+namespace Tsumo.Engine
+{
+    public static class Resources_imageDimensions
+    {
+        public static int shift2
+        {
+            get;
+            private set;
+        } = default(int)!;
+        public static int shift6
+        {
+            get;
+            private set;
+        } = default(int)!;
+        public static int shift8
+        {
+            get;
+            private set;
+        } = default(int)!;
+        public static int shift10
+        {
+            get;
+            private set;
+        } = default(int)!;
+        public static int shift16
+        {
+            get;
+            private set;
+        } = default(int)!;
+        public static int shift24
+        {
+            get;
+            private set;
+        } = default(int)!;
+        public static Func<Tsonic.CSharp.Node.Buffer, ImageDimensions?> parsePngDimensions
+        {
+            get;
+            private set;
+        } = default(Func<Tsonic.CSharp.Node.Buffer, ImageDimensions?>)!;
+        public static Func<Tsonic.CSharp.Node.Buffer, ImageDimensions?> parseJpegDimensions
+        {
+            get;
+            private set;
+        } = default(Func<Tsonic.CSharp.Node.Buffer, ImageDimensions?>)!;
+        public static Func<Tsonic.CSharp.Node.Buffer, ImageDimensions?> parseGifDimensions
+        {
+            get;
+            private set;
+        } = default(Func<Tsonic.CSharp.Node.Buffer, ImageDimensions?>)!;
+        public static Func<Tsonic.CSharp.Node.Buffer, ImageDimensions?> parseWebpDimensions
+        {
+            get;
+            private set;
+        } = default(Func<Tsonic.CSharp.Node.Buffer, ImageDimensions?>)!;
+        public static Func<Tsonic.CSharp.Node.Buffer, ImageDimensions?> parseImageDimensions
+        {
+            get;
+            private set;
+        } = default(Func<Tsonic.CSharp.Node.Buffer, ImageDimensions?>)!;
+        private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
+        private static object? __tsonic_module_init_core()
+        {
+            Resources_models.__tsonic_module_init();
+            shift2 = 2;
+            shift6 = 6;
+            shift8 = 8;
+            shift10 = 10;
+            shift16 = 16;
+            shift24 = 24;
+            parsePngDimensions = (Tsonic.CSharp.Node.Buffer bytes) =>
+            {
+                if (bytes.length < 24)
+                {
+                    return null;
+                }
+                if (bytes.readUInt8(0) != 137 || bytes.readUInt8(1) != 80 || bytes.readUInt8(2) != 78 || bytes.readUInt8(3) != 71)
+                {
+                    return null;
+                }
+                int width = (bytes.readUInt8(16) << shift24) | (bytes.readUInt8(17) << shift16) | (bytes.readUInt8(18) << shift8) | bytes.readUInt8(19);
+                int height = (bytes.readUInt8(20) << shift24) | (bytes.readUInt8(21) << shift16) | (bytes.readUInt8(22) << shift8) | bytes.readUInt8(23);
+                return new ImageDimensions(width, height);
+            };
+            parseJpegDimensions = (Tsonic.CSharp.Node.Buffer bytes) =>
+            {
+                if (bytes.length < 2 || bytes.readUInt8(0) != 255 || bytes.readUInt8(1) != 216)
+                {
+                    return null;
+                }
+                double index = 2;
+                while (index < bytes.length - 1)
+                {
+                    if (bytes.readUInt8(System.Convert.ToInt32(index)) != 255)
+                    {
+                        index++;
+                        continue;
+                    }
+                    byte marker = bytes.readUInt8(System.Convert.ToInt32(index + 1));
+                    if (marker == 192 || marker == 194)
+                    {
+                        if (index + 9 >= bytes.length)
+                        {
+                            return null;
+                        }
+                        int height = (bytes.readUInt8(System.Convert.ToInt32(index + 5)) << shift8) | bytes.readUInt8(System.Convert.ToInt32(index + 6));
+                        int width = (bytes.readUInt8(System.Convert.ToInt32(index + 7)) << shift8) | bytes.readUInt8(System.Convert.ToInt32(index + 8));
+                        return new ImageDimensions(width, height);
+                    }
+                    if (marker == 216 || marker == 217 || marker == 1 || (marker >= 208 && marker <= 215))
+                    {
+                        index += 2;
+                        continue;
+                    }
+                    if (index + 4 >= bytes.length)
+                    {
+                        return null;
+                    }
+                    int length = (bytes.readUInt8(System.Convert.ToInt32(index + 2)) << shift8) | bytes.readUInt8(System.Convert.ToInt32(index + 3));
+                    if (length < 2)
+                    {
+                        return null;
+                    }
+                    index += 2 + length;
+                }
+                return null;
+            };
+            parseGifDimensions = (Tsonic.CSharp.Node.Buffer bytes) =>
+            {
+                if (bytes.length < 10)
+                {
+                    return null;
+                }
+                if (bytes.readUInt8(0) != 71 || bytes.readUInt8(1) != 73 || bytes.readUInt8(2) != 70)
+                {
+                    return null;
+                }
+                int width = bytes.readUInt8(6) | (bytes.readUInt8(7) << shift8);
+                int height = bytes.readUInt8(8) | (bytes.readUInt8(9) << shift8);
+                return new ImageDimensions(width, height);
+            };
+            parseWebpDimensions = (Tsonic.CSharp.Node.Buffer bytes) =>
+            {
+                if (bytes.length < 25)
+                {
+                    return null;
+                }
+                if (bytes.readUInt8(0) != 82 || bytes.readUInt8(1) != 73 || bytes.readUInt8(2) != 70 || bytes.readUInt8(3) != 70 || bytes.readUInt8(8) != 87 || bytes.readUInt8(9) != 69 || bytes.readUInt8(10) != 66 || bytes.readUInt8(11) != 80)
+                {
+                    return null;
+                }
+                if (bytes.length >= 30 && bytes.readUInt8(12) == 86 && bytes.readUInt8(13) == 80 && bytes.readUInt8(14) == 56 && bytes.readUInt8(15) == 32)
+                {
+                    int width = (bytes.readUInt8(26) | (bytes.readUInt8(27) << shift8)) & 16383;
+                    int height = (bytes.readUInt8(28) | (bytes.readUInt8(29) << shift8)) & 16383;
+                    return new ImageDimensions(width, height);
+                }
+                if (bytes.readUInt8(12) == 86 && bytes.readUInt8(13) == 80 && bytes.readUInt8(14) == 56 && bytes.readUInt8(15) == 76)
+                {
+                    int byte0 = bytes.readUInt8(21);
+                    int byte1 = bytes.readUInt8(22);
+                    int byte2 = bytes.readUInt8(23);
+                    int byte3 = bytes.readUInt8(24);
+                    int width_1 = ((byte0 | (byte1 << shift8)) & 16383) + 1;
+                    int height_1 = (((byte1 >> shift6) | (byte2 << shift2) | (byte3 << shift10)) & 16383) + 1;
+                    return new ImageDimensions(width_1, height_1);
+                }
+                return null;
+            };
+            parseImageDimensions = (Tsonic.CSharp.Node.Buffer bytes) => parsePngDimensions(bytes) ?? parseJpegDimensions(bytes) ?? parseGifDimensions(bytes) ?? parseWebpDimensions(bytes);
+            return null;
+        }
+        public static void __tsonic_module_init()
+        {
+            _ = __tsonic_module_initialization.Value;
+        }
+    }
+}

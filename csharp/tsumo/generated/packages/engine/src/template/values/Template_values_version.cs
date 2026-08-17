@@ -1,0 +1,87 @@
+using System;
+
+namespace Tsumo.Engine
+{
+    public static class Template_values_version
+    {
+        private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
+        private static object? __tsonic_module_init_core()
+        {
+            Template_values_base.__tsonic_module_init();
+            Utils_strings.__tsonic_module_init();
+            return null;
+        }
+        public static void __tsonic_module_init()
+        {
+            _ = __tsonic_module_initialization.Value;
+        }
+    }
+    public class VersionStringValue : TemplateValue
+    {
+        public string value;
+        public VersionStringValue(string value) : base()
+        {
+            this.value = value;
+        }
+        public static int compare(string a, string b)
+        {
+            Tsonic.CSharp.Js.JSArray<int> aParts = VersionStringValue.parseVersion(a);
+            Tsonic.CSharp.Js.JSArray<int> bParts = VersionStringValue.parseVersion(b);
+            int aLen = aParts.length;
+            int bLen = bParts.length;
+            int maxLen = aLen > bLen ? aLen : bLen;
+            for (int i = 0; i < maxLen; i++)
+            {
+                int av = i < aLen ? aParts[i] : 0;
+                int bv = i < bLen ? bParts[i] : 0;
+                if (av < bv)
+                {
+                    return -1;
+                }
+                if (av > bv)
+                {
+                    return 1;
+                }
+            }
+            return 0;
+        }
+        public static Tsonic.CSharp.Js.JSArray<int> parseVersion(string v)
+        {
+            string cleaned = v;
+            if (Tsonic.CSharp.Js.String.startsWith(cleaned, "v") || Tsonic.CSharp.Js.String.startsWith(cleaned, "V"))
+            {
+                cleaned = Utils_strings.substringFrom(cleaned, 1);
+            }
+            Tsonic.CSharp.Js.JSArray<string> parts = Tsonic.CSharp.Js.String.split(cleaned, ".");
+            Tsonic.CSharp.Js.JSArray<int> result = new Tsonic.CSharp.Js.JSArray<int>(new int[] { });
+            for (int i = 0; i < parts.length; i++)
+            {
+                string part = parts[i];
+                int num = VersionStringValue.extractLeadingNumber(part);
+                result.push(num);
+            }
+            return result;
+        }
+        public static int extractLeadingNumber(string s)
+        {
+            string numStr = "";
+            for (int i = 0; i < s.Length; i++)
+            {
+                string ch = Utils_strings.substringCount(s, i, 1);
+                if (Utils_strings.compareText(ch, "0") >= 0 && Utils_strings.compareText(ch, "9") <= 0)
+                {
+                    numStr = numStr + ch;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            if (numStr == "")
+            {
+                return 0;
+            }
+            return System.Int32.Parse(numStr);
+        }
+    }
+}

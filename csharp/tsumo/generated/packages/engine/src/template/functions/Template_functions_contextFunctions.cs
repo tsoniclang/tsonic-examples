@@ -1,0 +1,240 @@
+using System;
+
+namespace Tsumo.Engine
+{
+    public static class Template_functions_contextFunctions
+    {
+        public static string hugoCompatibilityVersion
+        {
+            get;
+            private set;
+        } = default(string)!;
+        public static Func<string, string, Tsonic.CSharp.Js.JSArray<TemplateValue>, TemplateFunctionContext, TemplateValue?> callContextFunction
+        {
+            get;
+            private set;
+        } = default(Func<string, string, Tsonic.CSharp.Js.JSArray<TemplateValue>, TemplateFunctionContext, TemplateValue?>)!;
+        private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
+        private static object? __tsonic_module_init_core()
+        {
+            Diagnostics.__tsonic_module_init();
+            Utils_html.__tsonic_module_init();
+            Utils_strings.__tsonic_module_init();
+            Utils_int32.__tsonic_module_init();
+            Template_values.__tsonic_module_init();
+            Template_evaluation_returnSignal.__tsonic_module_init();
+            Template_evaluation_expressionSemantics.__tsonic_module_init();
+            Template_evaluation_scalarSemantics.__tsonic_module_init();
+            Template_evaluation_propertySupport.__tsonic_module_init();
+            Template_runtimeHelpers.__tsonic_module_init();
+            Template_functions_functionContext.__tsonic_module_init();
+            hugoCompatibilityVersion = "0.146.2";
+            callContextFunction = (string nameRaw, string name, Tsonic.CSharp.Js.JSArray<TemplateValue> args, TemplateFunctionContext context) =>
+            {
+                RenderScope scope = context.scope;
+                TemplateEnvironment env = context.environment;
+                Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> overrides = context.overrides;
+                if (name == "site.store.get" && args.length >= 1)
+                {
+                    ScratchStore store = Template_evaluation_propertySupport.getSiteStore(scope.site);
+                    return store.get(Template_runtimeHelpers.toPlainString(args[0]));
+                }
+                if (name == "site.store.set" && args.length >= 2)
+                {
+                    ScratchStore store_1 = Template_evaluation_propertySupport.getSiteStore(scope.site);
+                    store_1.set(Template_runtimeHelpers.toPlainString(args[0]), args[1]);
+                    return Template_runtimeHelpers.nil;
+                }
+                if (name == "site.store.add" && args.length >= 2)
+                {
+                    ScratchStore store_2 = Template_evaluation_propertySupport.getSiteStore(scope.site);
+                    store_2.add(Template_runtimeHelpers.toPlainString(args[0]), args[1]);
+                    return Template_runtimeHelpers.nil;
+                }
+                if (name == "site.store.delete" && args.length >= 1)
+                {
+                    ScratchStore store_3 = Template_evaluation_propertySupport.getSiteStore(scope.site);
+                    store_3.delete(Template_runtimeHelpers.toPlainString(args[0]));
+                    return Template_runtimeHelpers.nil;
+                }
+                if (name == "site.store.setinmap" && args.length >= 3)
+                {
+                    ScratchStore store_4 = Template_evaluation_propertySupport.getSiteStore(scope.site);
+                    string mapName = Template_runtimeHelpers.toPlainString(args[0]);
+                    string key = Template_runtimeHelpers.toPlainString(args[1]);
+                    TemplateValue value = args[2];
+                    store_4.setInMap(mapName, key, value);
+                    return Template_runtimeHelpers.nil;
+                }
+                if (name == "site.store.deleteinmap" && args.length >= 2)
+                {
+                    ScratchStore store_5 = Template_evaluation_propertySupport.getSiteStore(scope.site);
+                    store_5.deleteInMap(Template_runtimeHelpers.toPlainString(args[0]), Template_runtimeHelpers.toPlainString(args[1]));
+                    return Template_runtimeHelpers.nil;
+                }
+                string trimmedName = Tsonic.CSharp.Js.String.trim(nameRaw);
+                int lastDot = Tsonic.CSharp.Js.String.lastIndexOf(trimmedName, ".");
+                string lowerName = Tsonic.CSharp.Js.String.toLowerCase(trimmedName);
+                bool startsWithDot = Tsonic.CSharp.Js.String.startsWith(trimmedName, ".");
+                bool startsWithDollar = Tsonic.CSharp.Js.String.startsWith(trimmedName, "$");
+                bool startsWithSite = Tsonic.CSharp.Js.String.startsWith(lowerName, "site.");
+                bool startsWithPage = Tsonic.CSharp.Js.String.startsWith(lowerName, "page.");
+                bool startsWithHugoStore = Tsonic.CSharp.Js.String.startsWith(lowerName, "hugo.store.");
+                string? receiverToken = null;
+                string? methodName = null;
+                if (lastDot > 0)
+                {
+                    if (startsWithDot || startsWithDollar || startsWithSite || startsWithPage || startsWithHugoStore)
+                    {
+                        receiverToken = Utils_strings.substringCount(trimmedName, 0, lastDot);
+                        methodName = Tsonic.CSharp.Js.String.trim(Utils_strings.substringFrom(trimmedName, lastDot + 1));
+                    }
+                }
+                else
+                {
+                    if (startsWithDot && lastDot == 0)
+                    {
+                        receiverToken = ".";
+                        methodName = Tsonic.CSharp.Js.String.trim(Utils_strings.substringFrom(trimmedName, 1));
+                    }
+                }
+                if (receiverToken is not null && methodName is not null && Tsonic.CSharp.Js.String.trim(methodName) != "")
+                {
+                    TemplateValue receiverValue = Template_evaluation_expressionSemantics.evalToken(receiverToken, scope);
+                    return Template_evaluation_expressionSemantics.callMethod(receiverValue, methodName, args, scope, env, overrides, context.defines);
+                }
+                if (name == "return")
+                {
+                    TemplateValue v = args.length >= 1 ? args[0] : Template_runtimeHelpers.nil;
+                    throw new TemplateReturnSignal(v);
+                }
+                if (name == "hugo.ismultilingual")
+                {
+                    return new BoolValue(false);
+                }
+                if (name == "hugo.ismultihost")
+                {
+                    return new BoolValue(false);
+                }
+                if (name == "hugo.workingdir")
+                {
+                    return new StringValue(System.Environment.CurrentDirectory);
+                }
+                if (name == "hugo.version")
+                {
+                    return new VersionStringValue(hugoCompatibilityVersion);
+                }
+                if (name == "hugo.generator")
+                {
+                    return new HtmlValue(new HtmlString($"<meta name=\"generator\" content=\"Hugo {hugoCompatibilityVersion}\">"));
+                }
+                if (name == "hugo.isproduction")
+                {
+                    return new BoolValue(env.isProduction);
+                }
+                if (name == "hugo.isextended")
+                {
+                    return new BoolValue(true);
+                }
+                if (name == "hugo.isserver")
+                {
+                    return new BoolValue(!env.isProduction);
+                }
+                if (name == "hugo.isdevelopment")
+                {
+                    return new BoolValue(!env.isProduction);
+                }
+                if (name == "hugo.environment")
+                {
+                    return new StringValue(env.isProduction ? "production" : "development");
+                }
+                if (name == "now.year")
+                {
+                    int? year = Utils_int32.parseInt32(Utils_strings.substringCount(env.buildTime.toISOString(), 0, 4));
+                    return new NumberValue(year ?? 0);
+                }
+                if (name == "now.format" && args.length >= 1)
+                {
+                    string? rendered = Template_evaluation_scalarSemantics.formatDateTime(env.buildTime.toISOString(), Template_runtimeHelpers.toPlainString(args[0]));
+                    return rendered is not null ? new StringValue(rendered) : Template_runtimeHelpers.nil;
+                }
+                if (name == "now.unix")
+                {
+                    double buildMilliseconds = env.buildTime.getTime();
+                    double unixSeconds = Tsonic.CSharp.Js.Math.floor(buildMilliseconds / 1000);
+                    int? seconds = Utils_int32.toInt32(unixSeconds);
+                    if (seconds is null)
+                    {
+                        throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_TIME_RANGE_UNSUPPORTED", "now.Unix is outside the template integer range");
+                    }
+                    return new NumberValue(seconds.Value);
+                }
+                if (name == "now.unixnano")
+                {
+                    double buildMilliseconds_1 = env.buildTime.getTime();
+                    double milliseconds = Tsonic.CSharp.Js.Math.floor(buildMilliseconds_1);
+                    if (!Tsonic.CSharp.Js.Number.isSafeInteger(milliseconds))
+                    {
+                        throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_TIME_RANGE_UNSUPPORTED", "now.UnixNano requires an exact millisecond timestamp");
+                    }
+                    return new StringValue($"{milliseconds}000000");
+                }
+                if (name == "getenv" && args.length >= 1)
+                {
+                    string? value_1 = env.getEnvironmentVariable(Template_runtimeHelpers.toPlainString(args[0]));
+                    return value_1 is not null ? new StringValue(value_1) : new StringValue("");
+                }
+                if (name == "fileexists" && args.length >= 1)
+                {
+                    return new BoolValue(env.sourceFileExists(Template_runtimeHelpers.toPlainString(args[0])));
+                }
+                if (name == "i18n" && args.length >= 1)
+                {
+                    string key_1 = Template_runtimeHelpers.toPlainString(args[0]);
+                    string lang = scope.site.Language.Lang;
+                    TemplateValue argument = args.length >= 2 ? args[1] : Template_runtimeHelpers.nil;
+                    int? count = null;
+                    TemplateValue renderContext = argument;
+                    if (argument is NumberValue)
+                    {
+                        count = ((NumberValue)argument).value;
+                        Tsonic.CSharp.Js.Map<string, TemplateValue> fields = new Tsonic.CSharp.Js.Map<string, TemplateValue>();
+                        fields.set("Count", (NumberValue)argument);
+                        renderContext = new DictValue(fields);
+                    }
+                    else
+                    {
+                        if (argument is DictValue)
+                        {
+                            foreach (string field in ((DictValue)argument).value.keys())
+                            {
+                                if (Tsonic.CSharp.Js.String.toLowerCase(field) != "count")
+                                {
+                                    continue;
+                                }
+                                TemplateValue? value_2 = Tsonic.CSharp.Js.Map.getReference<string, TemplateValue>(((DictValue)argument).value, field);
+                                if (value_2 is NumberValue)
+                                {
+                                    count = ((NumberValue)value_2).value;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    string translated = env.getI18n(lang, key_1, count);
+                    if (translated == key_1)
+                    {
+                        return new StringValue(key_1);
+                    }
+                    return new StringValue(env.renderTextTemplateSource(translated, renderContext, scope.site, overrides, scope.state));
+                }
+                return null;
+            };
+            return null;
+        }
+        public static void __tsonic_module_init()
+        {
+            _ = __tsonic_module_initialization.Value;
+        }
+    }
+}

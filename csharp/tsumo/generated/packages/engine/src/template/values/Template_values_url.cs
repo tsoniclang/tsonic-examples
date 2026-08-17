@@ -1,0 +1,46 @@
+using System;
+
+namespace Tsumo.Engine
+{
+    public static class Template_values_url
+    {
+        private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
+        private static object? __tsonic_module_init_core()
+        {
+            Template_values_base.__tsonic_module_init();
+            return null;
+        }
+        public static void __tsonic_module_init()
+        {
+            _ = __tsonic_module_initialization.Value;
+        }
+    }
+    public class UrlParts
+    {
+        public string path;
+        public string rawQuery;
+        public string fragment;
+        public UrlParts(string path, string rawQuery, string fragment)
+        {
+            this.path = path;
+            this.rawQuery = rawQuery;
+            this.fragment = fragment;
+        }
+    }
+    public class UrlValue : TemplateValue
+    {
+        public System.Uri value;
+        public UrlValue(System.Uri value) : base()
+        {
+            this.value = value;
+        }
+    }
+    public class UrlQueryValue : TemplateValue
+    {
+        public Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<string>> value;
+        public UrlQueryValue(Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<string>> value) : base()
+        {
+            this.value = value;
+        }
+    }
+}

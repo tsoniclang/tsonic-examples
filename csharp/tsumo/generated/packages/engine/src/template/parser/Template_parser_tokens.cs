@@ -1,0 +1,290 @@
+using System;
+
+namespace Tsumo.Engine
+{
+    public static class Template_parser_tokens
+    {
+        public static Func<IndexedSourceText, Tsonic.CSharp.Js.JSArray<int>, int, TemplatePosition> positionAt
+        {
+            get;
+            private set;
+        } = default(Func<IndexedSourceText, Tsonic.CSharp.Js.JSArray<int>, int, TemplatePosition>)!;
+        public static Func<IndexedSourceText, string, string, int, int> findDelimiter
+        {
+            get;
+            private set;
+        } = default(Func<IndexedSourceText, string, string, int, int>)!;
+        public static Func<string, string?> parseStringLiteral
+        {
+            get;
+            private set;
+        } = default(Func<string, string?>)!;
+        public static Func<Tsonic.CSharp.Js.JSArray<string>, int, Tsonic.CSharp.Js.JSArray<string>> sliceTokens
+        {
+            get;
+            private set;
+        } = default(Func<Tsonic.CSharp.Js.JSArray<string>, int, Tsonic.CSharp.Js.JSArray<string>>)!;
+        public static Func<string, string?, Tsonic.CSharp.Js.JSArray<TemplateSegment>> scanTemplateSegments
+        {
+            get;
+            private set;
+        } = default(Func<string, string?, Tsonic.CSharp.Js.JSArray<TemplateSegment>>)!;
+        public static Func<string, int?, int?, string?, Tsonic.CSharp.Js.JSArray<string>> tokenizeTemplateAction
+        {
+            get;
+            private set;
+        } = default(Func<string, int?, int?, string?, Tsonic.CSharp.Js.JSArray<string>>)!;
+        private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
+        private static object? __tsonic_module_init_core()
+        {
+            Diagnostics.__tsonic_module_init();
+            Utils_indexedSourceText.__tsonic_module_init();
+            Template_parser_stringLiterals.__tsonic_module_init();
+            positionAt = (IndexedSourceText source, Tsonic.CSharp.Js.JSArray<int> lineStarts, int offset) =>
+            {
+                int low = 0;
+                int high = lineStarts.length;
+                while (low < high)
+                {
+                    int middle = (int)(low + Tsonic.CSharp.Js.Math.floor((high - low) / 2));
+                    if (lineStarts[middle] <= offset)
+                    {
+                        low = middle + 1;
+                    }
+                    else
+                    {
+                        high = middle;
+                    }
+                }
+                int lineIndex = low - 1;
+                return new TemplatePosition(lineIndex + 1, source.utf16OffsetAt(offset) - source.utf16OffsetAt(lineStarts[lineIndex]) + 1);
+            };
+            findDelimiter = (IndexedSourceText source, string first, string second, int start) =>
+            {
+                for (int index = start; index + 1 < source.length; index++)
+                {
+                    if (source.characterAt(index) == first && source.characterAt(index + 1) == second)
+                    {
+                        return index;
+                    }
+                }
+                return -1;
+            };
+            parseStringLiteral = (string token) => Template_parser_stringLiterals.decodeTemplateStringLiteral(token);
+            sliceTokens = (Tsonic.CSharp.Js.JSArray<string> tokens, int startIndex) =>
+            {
+                Tsonic.CSharp.Js.JSArray<string> result = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                for (int index = startIndex; index < tokens.length; index++)
+                {
+                    result.push(tokens[index]);
+                }
+                return result;
+            };
+            scanTemplateSegments = (string template, string? sourcePath) =>
+            {
+                IndexedSourceText source = new IndexedSourceText(template);
+                Tsonic.CSharp.Js.JSArray<int> lineStarts = new Tsonic.CSharp.Js.JSArray<int>(new int[] { 0 });
+                for (int index = 0; index < source.length; index++)
+                {
+                    if (source.characterAt(index) == "\n")
+                    {
+                        lineStarts.push(index + 1);
+                    }
+                }
+                Tsonic.CSharp.Js.JSArray<TemplateSegment> segments = new Tsonic.CSharp.Js.JSArray<TemplateSegment>(new TemplateSegment[] { });
+                int offset = 0;
+                TemplateSegment? lastSegment = null;
+                while (offset < source.length)
+                {
+                    int start = findDelimiter(source, "{", "{", offset);
+                    if (start < 0)
+                    {
+                        TemplatePosition position = positionAt(source, lineStarts, offset);
+                        TemplateSegment segment = new TemplateSegment(false, source.slice(offset, source.length), position.line, position.column);
+                        segments.push(segment);
+                        break;
+                    }
+                    if (start > offset)
+                    {
+                        TemplatePosition position_1 = positionAt(source, lineStarts, offset);
+                        TemplateSegment segment_1 = new TemplateSegment(false, source.slice(offset, start), position_1.line, position_1.column);
+                        segments.push(segment_1);
+                        lastSegment = segment_1;
+                    }
+                    TemplatePosition position_2 = positionAt(source, lineStarts, start);
+                    int end = findDelimiter(source, "}", "}", start + 2);
+                    if (end < 0)
+                    {
+                        throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_ACTION_UNCLOSED", "Template action opened with '{{' but has no closing '}}'", sourcePath, position_2.line, position_2.column);
+                    }
+                    string action = source.slice(start + 2, end);
+                    bool leftTrim = false;
+                    bool rightTrim = false;
+                    if (Tsonic.CSharp.Js.String.startsWith(action, "-"))
+                    {
+                        leftTrim = true;
+                        action = Tsonic.CSharp.Js.String.substring(action, 1);
+                    }
+                    if (Tsonic.CSharp.Js.String.endsWith(action, "-"))
+                    {
+                        rightTrim = true;
+                        action = Tsonic.CSharp.Js.String.substring(action, 0, action.Length - 1);
+                    }
+                    action = Tsonic.CSharp.Js.String.trim(action);
+                    if (leftTrim && lastSegment is not null && !lastSegment.isAction)
+                    {
+                        Tsonic.CSharp.Js.Array.popReference(segments);
+                        TemplateSegment trimmed = new TemplateSegment(false, Tsonic.CSharp.Js.String.trimEnd(lastSegment.text), lastSegment.line, lastSegment.column);
+                        segments.push(trimmed);
+                        lastSegment = trimmed;
+                    }
+                    TemplateSegment actionSegment = new TemplateSegment(true, action, position_2.line, position_2.column);
+                    segments.push(actionSegment);
+                    lastSegment = actionSegment;
+                    offset = end + 2;
+                    if (rightTrim)
+                    {
+                        while (offset < source.length)
+                        {
+                            string character = source.characterAt(offset);
+                            if (character != " " && character != "\t" && character != "\r" && character != "\n")
+                            {
+                                break;
+                            }
+                            offset++;
+                        }
+                    }
+                }
+                return segments;
+            };
+            tokenizeTemplateAction = (string action, int? line, int? column, string? sourcePath) =>
+            {
+                IndexedSourceText source = new IndexedSourceText(action);
+                Tsonic.CSharp.Js.JSArray<string> tokens = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                int offset = 0;
+                while (offset < source.length)
+                {
+                    string character = source.characterAt(offset);
+                    int nextOffset = offset + 1;
+                    if (character == " " || character == "\t" || character == "\r" || character == "\n")
+                    {
+                        offset = nextOffset;
+                        continue;
+                    }
+                    if (character == ")")
+                    {
+                        int tokenStart = offset;
+                        offset = nextOffset;
+                        if (offset < source.length && source.characterAt(offset) == ".")
+                        {
+                            offset++;
+                            while (offset < source.length)
+                            {
+                                string current = source.characterAt(offset);
+                                if (current == " " || current == "\t" || current == "\r" || current == "\n" || current == "|" || current == "(" || current == ")" || current == "," || current == "=")
+                                {
+                                    break;
+                                }
+                                if (current == ":" && offset + 1 < source.length && source.characterAt(offset + 1) == "=")
+                                {
+                                    break;
+                                }
+                                offset++;
+                            }
+                        }
+                        tokens.push(source.slice(tokenStart, offset));
+                        continue;
+                    }
+                    if (character == "|" || character == "(" || character == "," || character == "=")
+                    {
+                        tokens.push(character);
+                        offset = nextOffset;
+                        continue;
+                    }
+                    if (character == ":" && offset + 1 < source.length && source.characterAt(offset + 1) == "=")
+                    {
+                        tokens.push(":=");
+                        offset += 2;
+                        continue;
+                    }
+                    if (character == "\"" || character == "'" || character == "`")
+                    {
+                        string quote = character;
+                        int tokenStart_1 = offset;
+                        offset = nextOffset;
+                        bool escaped = false;
+                        while (offset < source.length)
+                        {
+                            string current_1 = source.characterAt(offset);
+                            if ((quote == "`" || !escaped) && current_1 == quote)
+                            {
+                                break;
+                            }
+                            if (quote != "`")
+                            {
+                                escaped = !escaped && current_1 == "\\";
+                                if (current_1 != "\\")
+                                {
+                                    escaped = false;
+                                }
+                            }
+                            offset++;
+                        }
+                        if (offset >= source.length)
+                        {
+                            throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_STRING_UNCLOSED", $"Template string opened with {quote} but is not closed", sourcePath, line, column);
+                        }
+                        offset++;
+                        tokens.push(source.slice(tokenStart_1, offset));
+                        continue;
+                    }
+                    int tokenStart_2 = offset;
+                    while (offset < source.length)
+                    {
+                        string current_2 = source.characterAt(offset);
+                        if (current_2 == " " || current_2 == "\t" || current_2 == "\r" || current_2 == "\n" || current_2 == "|" || current_2 == "(" || current_2 == ")" || current_2 == "," || current_2 == "=")
+                        {
+                            break;
+                        }
+                        if (current_2 == ":" && offset + 1 < source.length && source.characterAt(offset + 1) == "=")
+                        {
+                            break;
+                        }
+                        offset++;
+                    }
+                    tokens.push(source.slice(tokenStart_2, offset));
+                }
+                return tokens;
+            };
+            return null;
+        }
+        public static void __tsonic_module_init()
+        {
+            _ = __tsonic_module_initialization.Value;
+        }
+    }
+    public class TemplateSegment
+    {
+        public bool isAction;
+        public string text;
+        public int line;
+        public int column;
+        public TemplateSegment(bool isAction, string text, int line, int column)
+        {
+            this.isAction = isAction;
+            this.text = text;
+            this.line = line;
+            this.column = column;
+        }
+    }
+    public class TemplatePosition
+    {
+        public int line;
+        public int column;
+        public TemplatePosition(int line, int column)
+        {
+            this.line = line;
+            this.column = column;
+        }
+    }
+}

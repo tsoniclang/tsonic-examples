@@ -1,0 +1,150 @@
+using System;
+
+namespace Tsumo.Engine
+{
+    public static class Template_parser_parsePipeline
+    {
+        public static Func<string, bool> isRightParenToken
+        {
+            get;
+            private set;
+        } = default(Func<string, bool>)!;
+        public static Func<Tsonic.CSharp.Js.JSArray<string>, string?, int?, int?, Pipeline> parsePipeline
+        {
+            get;
+            private set;
+        } = default(Func<Tsonic.CSharp.Js.JSArray<string>, string?, int?, int?, Pipeline>)!;
+        private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
+        private static object? __tsonic_module_init_core()
+        {
+            Diagnostics.__tsonic_module_init();
+            Utils_strings.__tsonic_module_init();
+            Template_syntax_expressions.__tsonic_module_init();
+            isRightParenToken = (string token) => token == ")" || Tsonic.CSharp.Js.String.startsWith(token, ").");
+            parsePipeline = (Tsonic.CSharp.Js.JSArray<string> tokens, string? sourcePath, int? line, int? column) =>
+            {
+                if (tokens.length == 0)
+                {
+                    return new Pipeline(new Tsonic.CSharp.Js.JSArray<Command>(new Command[] { }));
+                }
+                PipelineParser parser = new PipelineParser(tokens, sourcePath, line, column);
+                Pipeline pipeline = parser.parse(false);
+                if (parser.index != tokens.length)
+                {
+                    throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_TOKEN_UNEXPECTED", $"Unexpected template token: {tokens[parser.index]}", sourcePath, line, column);
+                }
+                return pipeline;
+            };
+            return null;
+        }
+        public static void __tsonic_module_init()
+        {
+            _ = __tsonic_module_initialization.Value;
+        }
+    }
+    public class PipelineParser
+    {
+        public Tsonic.CSharp.Js.JSArray<string> tokens;
+        public int index;
+        public string? sourcePath;
+        public int? line;
+        public int? column;
+        public PipelineParser(Tsonic.CSharp.Js.JSArray<string> tokens, string? sourcePath = null, int? line = null, int? column = null)
+        {
+            this.tokens = tokens;
+            this.index = 0;
+            this.sourcePath = sourcePath;
+            this.line = line;
+            this.column = column;
+        }
+        public TsumoError error(string code, string message)
+        {
+            return Diagnostics.createTsumoError(code, message, this.sourcePath, this.line, this.column);
+        }
+        public Pipeline parse(bool stopOnRightParen)
+        {
+            Tsonic.CSharp.Js.JSArray<Command> stages = new Tsonic.CSharp.Js.JSArray<Command>(new Command[] { });
+            while (this.index < this.tokens.length)
+            {
+                string token = this.tokens[this.index];
+                if (stopOnRightParen && Template_parser_parsePipeline.isRightParenToken(token))
+                {
+                    break;
+                }
+                if (token == "|")
+                {
+                    throw this.error("TSUMO_TEMPLATE_PIPELINE_EMPTY_STAGE", "Template pipeline contains an empty stage");
+                }
+                stages.push(this.parseCommand());
+                if (this.index < this.tokens.length && this.tokens[this.index] == "|")
+                {
+                    this.index++;
+                    if (this.index >= this.tokens.length)
+                    {
+                        throw this.error("TSUMO_TEMPLATE_PIPELINE_EMPTY_STAGE", "Template pipeline ends with an empty stage");
+                    }
+                }
+            }
+            return new Pipeline(stages);
+        }
+        public Command parseCommand()
+        {
+            Expr head = this.parseExpression();
+            if (head is TokenExpr && Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Js.String.trim(((TokenExpr)head).token)) == "return")
+            {
+                if (this.index >= this.tokens.length || this.tokens[this.index] == "|" || this.tokens[this.index] == ")")
+                {
+                    return new Command((TokenExpr)head, new Tsonic.CSharp.Js.JSArray<Expr>(new Expr[] { }));
+                }
+                return new Command((TokenExpr)head, new Tsonic.CSharp.Js.JSArray<Expr>(new Expr[] { new CommandExpr(this.parseCommand()) }));
+            }
+            Tsonic.CSharp.Js.JSArray<Expr> args = new Tsonic.CSharp.Js.JSArray<Expr>(new Expr[] { });
+            while (this.index < this.tokens.length)
+            {
+                string token = this.tokens[this.index];
+                if (token == "|" || Template_parser_parsePipeline.isRightParenToken(token))
+                {
+                    break;
+                }
+                args.push(this.parseExpression());
+            }
+            return new Command(head, args);
+        }
+        public Expr parseExpression()
+        {
+            if (this.index >= this.tokens.length)
+            {
+                throw this.error("TSUMO_TEMPLATE_EXPRESSION_MISSING", "Template command is missing an expression");
+            }
+            string token = this.tokens[this.index];
+            if (Template_parser_parsePipeline.isRightParenToken(token))
+            {
+                throw this.error("TSUMO_TEMPLATE_PAREN_UNEXPECTED", "Template expression contains an unexpected ')'");
+            }
+            if (token == "(")
+            {
+                this.index++;
+                Pipeline inner = this.parse(true);
+                if (this.index >= this.tokens.length || !Template_parser_parsePipeline.isRightParenToken(this.tokens[this.index]))
+                {
+                    throw this.error("TSUMO_TEMPLATE_PAREN_UNCLOSED", "Template expression opened with '(' but has no closing ')'");
+                }
+                string closingToken = this.tokens[this.index];
+                this.index++;
+                Expr expression = new PipelineExpr(inner);
+                if (closingToken.Length > 1)
+                {
+                    string selector = Utils_strings.substringFrom(closingToken, 2);
+                    if (selector == "")
+                    {
+                        throw this.error("TSUMO_TEMPLATE_SELECTOR_MISSING", "Parenthesized template expression has an empty selector");
+                    }
+                    expression = new AccessExpr(expression, Tsonic.CSharp.Js.String.split(selector, "."));
+                }
+                return expression;
+            }
+            this.index++;
+            return new TokenExpr(token);
+        }
+    }
+}

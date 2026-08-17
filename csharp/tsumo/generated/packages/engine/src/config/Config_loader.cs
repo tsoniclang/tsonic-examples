@@ -1,0 +1,210 @@
+using System;
+
+namespace Tsumo.Engine
+{
+    public static class Config_loader
+    {
+        public static Func<string, SiteConfig> loadSplitConfig
+        {
+            get;
+            private set;
+        } = default(Func<string, SiteConfig>)!;
+        public static Func<string, LoadedConfig> loadSiteConfig
+        {
+            get;
+            private set;
+        } = default(Func<string, LoadedConfig>)!;
+        private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
+        private static object? __tsonic_module_init_core()
+        {
+            Diagnostics.__tsonic_module_init();
+            Models.__tsonic_module_init();
+            Fs.__tsonic_module_init();
+            Config_loadedConfig.__tsonic_module_init();
+            Config_helpers.__tsonic_module_init();
+            Config_toml.__tsonic_module_init();
+            Config_yaml.__tsonic_module_init();
+            Config_json.__tsonic_module_init();
+            loadSplitConfig = (string configDir) =>
+            {
+                Fs.rejectFilesystemLink(configDir);
+                SiteConfig config = new SiteConfig("Tsumo Site", "", "en-us", null, null);
+                string[] entries = Tsonic.CSharp.Node.fs.readdirSync(configDir);
+                Tsonic.CSharp.Js.JSArray<string> files = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                for (int i = 0; i < entries.Length; i++)
+                {
+                    string path = Tsonic.CSharp.Node.path.join(configDir, entries[i]);
+                    Fs.rejectFilesystemLink(path);
+                    if (!Tsonic.CSharp.Node.fs.statSync(path).IsFile())
+                    {
+                        throw Diagnostics.createTsumoError("TSUMO_CONFIG_ENTRY_INVALID", $"Split configuration entry is not a file: {path}", path);
+                    }
+                    files.push(path);
+                }
+                Tsonic.CSharp.Js.JSArray<string> sortedFiles = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                Tsonic.CSharp.Js.JSArray<string> baseFiles = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                Tsonic.CSharp.Js.JSArray<string> paramFiles = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                Tsonic.CSharp.Js.JSArray<string> langFiles = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                Tsonic.CSharp.Js.JSArray<string> menuFiles = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                Tsonic.CSharp.Js.JSArray<string> moduleFiles = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                Tsonic.CSharp.Js.JSArray<string> otherFiles = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                Tsonic.CSharp.Js.Set<string> fileNames = new Tsonic.CSharp.Js.Set<string>();
+                for (int i_1 = 0; i_1 < files.length; i_1++)
+                {
+                    string filePath = files[i_1];
+                    string name = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Node.path.basename(filePath));
+                    if (fileNames.has(name))
+                    {
+                        throw Diagnostics.createTsumoError("TSUMO_CONFIG_FILE_AMBIGUOUS", $"Split configuration file name '{name}' is not unique", configDir);
+                    }
+                    fileNames.add(name);
+                    if (name == "hugo.toml" || name == "hugo.yaml" || name == "hugo.yml" || name == "config.toml" || name == "config.yaml" || name == "config.yml")
+                    {
+                        baseFiles.push(filePath);
+                    }
+                    else
+                    {
+                        if (name == "params.toml" || name == "params.yaml" || name == "params.yml")
+                        {
+                            paramFiles.push(filePath);
+                        }
+                        else
+                        {
+                            if (Tsonic.CSharp.Js.String.startsWith(name, "languages."))
+                            {
+                                langFiles.push(filePath);
+                            }
+                            else
+                            {
+                                if (Tsonic.CSharp.Js.String.startsWith(name, "menus."))
+                                {
+                                    menuFiles.push(filePath);
+                                }
+                                else
+                                {
+                                    if (name == "module.toml")
+                                    {
+                                        moduleFiles.push(filePath);
+                                    }
+                                    else
+                                    {
+                                        otherFiles.push(filePath);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                baseFiles.sort();
+                paramFiles.sort();
+                langFiles.sort();
+                menuFiles.sort();
+                moduleFiles.sort();
+                otherFiles.sort();
+                if (baseFiles.length > 1)
+                {
+                    throw Diagnostics.createTsumoError("TSUMO_CONFIG_FILE_AMBIGUOUS", "Split configuration accepts at most one base configuration file", configDir);
+                }
+                if (paramFiles.length > 1)
+                {
+                    throw Diagnostics.createTsumoError("TSUMO_CONFIG_FILE_AMBIGUOUS", "Split configuration accepts at most one params configuration file", configDir);
+                }
+                if (moduleFiles.length > 1)
+                {
+                    throw Diagnostics.createTsumoError("TSUMO_CONFIG_FILE_AMBIGUOUS", "Split configuration accepts at most one module configuration file", configDir);
+                }
+                double aggregateLanguageFiles = 0;
+                for (int i_2 = 0; i_2 < langFiles.length; i_2++)
+                {
+                    if (Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Node.path.basename(langFiles[i_2])) == "languages.toml")
+                    {
+                        aggregateLanguageFiles++;
+                    }
+                }
+                if (aggregateLanguageFiles > 1)
+                {
+                    throw Diagnostics.createTsumoError("TSUMO_CONFIG_FILE_AMBIGUOUS", "Split configuration accepts at most one aggregate language configuration file", configDir);
+                }
+                for (int i_3 = 0; i_3 < baseFiles.length; i_3++)
+                {
+                    sortedFiles.push(baseFiles[i_3]);
+                }
+                for (int i_4 = 0; i_4 < paramFiles.length; i_4++)
+                {
+                    sortedFiles.push(paramFiles[i_4]);
+                }
+                for (int i_5 = 0; i_5 < langFiles.length; i_5++)
+                {
+                    if (Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Node.path.basename(langFiles[i_5])) == "languages.toml")
+                    {
+                        sortedFiles.push(langFiles[i_5]);
+                    }
+                }
+                for (int i_6 = 0; i_6 < langFiles.length; i_6++)
+                {
+                    if (Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Node.path.basename(langFiles[i_6])) != "languages.toml")
+                    {
+                        sortedFiles.push(langFiles[i_6]);
+                    }
+                }
+                for (int i_7 = 0; i_7 < menuFiles.length; i_7++)
+                {
+                    sortedFiles.push(menuFiles[i_7]);
+                }
+                for (int i_8 = 0; i_8 < moduleFiles.length; i_8++)
+                {
+                    sortedFiles.push(moduleFiles[i_8]);
+                }
+                for (int i_9 = 0; i_9 < otherFiles.length; i_9++)
+                {
+                    sortedFiles.push(otherFiles[i_9]);
+                }
+                for (int i_10 = 0; i_10 < sortedFiles.length; i_10++)
+                {
+                    string filePath_1 = sortedFiles[i_10];
+                    string fileName = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Node.path.basename(filePath_1));
+                    string text = Fs.readTextFile(filePath_1);
+                    if (Tsonic.CSharp.Js.String.endsWith(fileName, ".toml"))
+                    {
+                        config = Config_toml.mergeTomlIntoConfig(config, text, fileName, filePath_1);
+                    }
+                    else
+                    {
+                        if (Tsonic.CSharp.Js.String.endsWith(fileName, ".yaml") || Tsonic.CSharp.Js.String.endsWith(fileName, ".yml"))
+                        {
+                            config = Config_yaml.mergeYamlIntoConfig(config, text, fileName, filePath_1);
+                        }
+                        else
+                        {
+                            throw Diagnostics.createTsumoError("TSUMO_CONFIG_FILE_UNSUPPORTED", $"Unsupported split configuration file '{fileName}'", filePath_1);
+                        }
+                    }
+                }
+                return config;
+            };
+            loadSiteConfig = (string siteDir) =>
+            {
+                string splitConfigDir = Tsonic.CSharp.Node.path.join(siteDir, "config", "_default");
+                if (Fs.dirExists(splitConfigDir))
+                {
+                    return new LoadedConfig(splitConfigDir, loadSplitConfig(splitConfigDir));
+                }
+                Tsonic.CSharp.Js.JSArray<string> candidates = new Tsonic.CSharp.Js.JSArray<string>(new string[] { Tsonic.CSharp.Node.path.join(siteDir, "hugo.toml"), Tsonic.CSharp.Node.path.join(siteDir, "hugo.yaml"), Tsonic.CSharp.Node.path.join(siteDir, "hugo.yml"), Tsonic.CSharp.Node.path.join(siteDir, "hugo.json"), Tsonic.CSharp.Node.path.join(siteDir, "config.toml"), Tsonic.CSharp.Node.path.join(siteDir, "config.yaml"), Tsonic.CSharp.Node.path.join(siteDir, "config.yml"), Tsonic.CSharp.Node.path.join(siteDir, "config.json") });
+                string? path = Config_helpers.tryGetFirstExisting(candidates);
+                if (path is null)
+                {
+                    return new LoadedConfig(null, new SiteConfig("Tsumo Site", "", "en-us", null, null));
+                }
+                string text = Fs.readTextFile(path);
+                string lower = Tsonic.CSharp.Js.String.toLowerCase(path);
+                SiteConfig parsedConfig = Tsonic.CSharp.Js.String.endsWith(lower, ".toml") ? Config_toml.parseTomlConfig(text, path) : Tsonic.CSharp.Js.String.endsWith(lower, ".json") ? Config_json.parseJsonConfig(text, path) : Config_yaml.parseYamlConfig(text, path);
+                return new LoadedConfig(path, parsedConfig);
+            };
+            return null;
+        }
+        public static void __tsonic_module_init()
+        {
+            _ = __tsonic_module_initialization.Value;
+        }
+    }
+}

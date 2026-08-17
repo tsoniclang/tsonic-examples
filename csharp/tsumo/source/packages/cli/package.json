@@ -1,0 +1,19 @@
+{
+  "name": "tsumo-cli",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "dependencies": {
+    "@tsumo/engine": "0.0.0"
+  },
+  "scripts": {
+    "build": "tsonic build --project tsonic.json",
+    "build:dotnet": "dotnet build Tsumo.Cli.csproj",
+    "publish:aot": "dotnet publish Tsumo.Cli.csproj -c Release"
+  },
+  "devDependencies": {
+    "@tsonic/cli": "file:../../../tsonic/packages/cli",
+    "@tsonic/csharp-nodejs": "file:../../../csharp-nodejs",
+    "@tsonic/target-csharp": "file:../../../tsonic-csharp"
+  }
+}

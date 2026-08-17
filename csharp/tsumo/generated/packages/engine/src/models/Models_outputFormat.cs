@@ -1,0 +1,30 @@
+using System;
+
+namespace Tsumo.Engine
+{
+    public static class Models_outputFormat
+    {
+        private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
+        private static object? __tsonic_module_init_core()
+        {
+            Models_mediaType.__tsonic_module_init();
+            return null;
+        }
+        public static void __tsonic_module_init()
+        {
+            _ = __tsonic_module_initialization.Value;
+        }
+    }
+    public class OutputFormat
+    {
+        public string Rel;
+        public MediaType MediaType;
+        public string Permalink;
+        public OutputFormat(string rel, string mediaType, string permalink)
+        {
+            this.Rel = rel;
+            this.MediaType = new MediaType(mediaType);
+            this.Permalink = permalink;
+        }
+    }
+}

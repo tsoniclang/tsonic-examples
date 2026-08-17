@@ -1,0 +1,83 @@
+using System;
+
+namespace Tsumo.Engine
+{
+    public static class Template_evaluation_menuSemantics
+    {
+        public static Func<MenuEntry, PageContext, bool> menuEntryRepresentsPage
+        {
+            get;
+            private set;
+        } = default(Func<MenuEntry, PageContext, bool>)!;
+        public static Func<MenuEntry, string, bool> menuEntryBelongsToMenu
+        {
+            get;
+            private set;
+        } = default(Func<MenuEntry, string, bool>)!;
+        public static Func<PageContext, string, MenuEntry, bool> isMenuCurrent
+        {
+            get;
+            private set;
+        } = default(Func<PageContext, string, MenuEntry, bool>)!;
+        public static Func<PageContext, string, MenuEntry, bool> hasMenuCurrent
+        {
+            get;
+            private set;
+        } = default(Func<PageContext, string, MenuEntry, bool>)!;
+        private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
+        private static object? __tsonic_module_init_core()
+        {
+            Models.__tsonic_module_init();
+            Template_evaluation_serialization.__tsonic_module_init();
+            menuEntryRepresentsPage = (MenuEntry entry, PageContext page) =>
+            {
+                PageContext? linkedPage = entry.page;
+                if (linkedPage is not null && Template_evaluation_serialization.trimEndCharacter(linkedPage.relPermalink, "/") == Template_evaluation_serialization.trimEndCharacter(page.relPermalink, "/"))
+                {
+                    return true;
+                }
+                if (entry.url == "")
+                {
+                    return false;
+                }
+                return Template_evaluation_serialization.trimEndCharacter(entry.url, "/") == Template_evaluation_serialization.trimEndCharacter(page.relPermalink, "/");
+            };
+            menuEntryBelongsToMenu = (MenuEntry entry, string menuName) => entry.menu == menuName;
+            isMenuCurrent = (PageContext page, string menuName, MenuEntry entry) => menuEntryBelongsToMenu(entry, menuName) && menuEntryRepresentsPage(entry, page);
+            hasMenuCurrent = (PageContext page, string menuName, MenuEntry entry) =>
+            {
+                if (!menuEntryBelongsToMenu(entry, menuName))
+                {
+                    return false;
+                }
+                Tsonic.CSharp.Js.JSArray<MenuEntry> pending = new Tsonic.CSharp.Js.JSArray<MenuEntry>(new MenuEntry[] { });
+                for (int index = 0; index < entry.children.length; index++)
+                {
+                    pending.push(entry.children[index]);
+                }
+                while (pending.length > 0)
+                {
+                    MenuEntry? candidate = Tsonic.CSharp.Js.Array.popReference(pending);
+                    if (candidate is null)
+                    {
+                        break;
+                    }
+                    if (menuEntryRepresentsPage(candidate, page))
+                    {
+                        return true;
+                    }
+                    for (int index_1 = 0; index_1 < candidate.children.length; index_1++)
+                    {
+                        pending.push(candidate.children[index_1]);
+                    }
+                }
+                return false;
+            };
+            return null;
+        }
+        public static void __tsonic_module_init()
+        {
+            _ = __tsonic_module_initialization.Value;
+        }
+    }
+}

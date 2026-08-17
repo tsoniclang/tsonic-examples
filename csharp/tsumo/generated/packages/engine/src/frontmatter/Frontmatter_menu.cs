@@ -1,0 +1,39 @@
+using System;
+
+namespace Tsumo.Engine
+{
+    public static class Frontmatter_menu
+    {
+        private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
+        private static object? __tsonic_module_init_core()
+        {
+            return null;
+        }
+        public static void __tsonic_module_init()
+        {
+            _ = __tsonic_module_initialization.Value;
+        }
+    }
+    public class FrontMatterMenu
+    {
+        public string menu;
+        public string name;
+        public int weight;
+        public string parent;
+        public string identifier;
+        public string pre;
+        public string post;
+        public string title;
+        public FrontMatterMenu(string menu)
+        {
+            this.menu = menu;
+            this.name = "";
+            this.weight = 0;
+            this.parent = "";
+            this.identifier = "";
+            this.pre = "";
+            this.post = "";
+            this.title = "";
+        }
+    }
+}

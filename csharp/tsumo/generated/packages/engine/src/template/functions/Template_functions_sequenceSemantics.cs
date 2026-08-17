@@ -1,0 +1,157 @@
+using System;
+
+namespace Tsumo.Engine
+{
+    public static class Template_functions_sequenceSemantics
+    {
+        public static int maxSequenceSize
+        {
+            get;
+            private set;
+        } = default(int)!;
+        public static Func<TemplateValue, int, int> sequenceArgument
+        {
+            get;
+            private set;
+        } = default(Func<TemplateValue, int, int>)!;
+        public static Func<Tsonic.CSharp.Js.JSArray<TemplateValue>, AnyArrayValue> createIntegerSequence
+        {
+            get;
+            private set;
+        } = default(Func<Tsonic.CSharp.Js.JSArray<TemplateValue>, AnyArrayValue>)!;
+        public static Func<TemplateValue, TemplateValue?> reverseTemplateCollection
+        {
+            get;
+            private set;
+        } = default(Func<TemplateValue, TemplateValue?>)!;
+        private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
+        private static object? __tsonic_module_init_core()
+        {
+            Diagnostics.__tsonic_module_init();
+            Models.__tsonic_module_init();
+            Utils_int32.__tsonic_module_init();
+            Template_values.__tsonic_module_init();
+            maxSequenceSize = 1000000;
+            sequenceArgument = (TemplateValue value, int position) =>
+            {
+                if (value is NumberValue)
+                {
+                    return ((NumberValue)value).value;
+                }
+                if (value is StringValue)
+                {
+                    int? parsed = Utils_int32.parseInt32(((StringValue)value).value);
+                    if (parsed is not null)
+                    {
+                        return parsed.Value;
+                    }
+                }
+                throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_SEQUENCE_ARGUMENT_INVALID", $"seq argument {position} must be a 32-bit integer");
+            };
+            createIntegerSequence = (Tsonic.CSharp.Js.JSArray<TemplateValue> args) =>
+            {
+                if (args.length < 1 || args.length > 3)
+                {
+                    throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_SEQUENCE_ARGUMENT_INVALID", "seq requires one, two, or three integer arguments");
+                }
+                int first = sequenceArgument(args[0], 1);
+                int increment = 1;
+                double last = first;
+                if (args.length == 1)
+                {
+                    if (last == 0)
+                    {
+                        return new AnyArrayValue(new Tsonic.CSharp.Js.JSArray<TemplateValue>(new TemplateValue[] { }));
+                    }
+                    if (last > 0)
+                    {
+                        first = 1;
+                    }
+                    else
+                    {
+                        first = -1;
+                        increment = -1;
+                    }
+                }
+                else
+                {
+                    last = sequenceArgument(args[args.length - 1], args.length);
+                    if (args.length == 2)
+                    {
+                        if (last < first)
+                        {
+                            increment = -1;
+                        }
+                    }
+                    else
+                    {
+                        increment = sequenceArgument(args[1], 2);
+                        if (increment == 0 || (first < last && increment < 0) || (first > last && increment > 0))
+                        {
+                            throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_SEQUENCE_INCREMENT_INVALID", "seq increment must be non-zero and move from the first value toward the last value");
+                        }
+                    }
+                }
+                double difference = last - first;
+                double sizeValue = Tsonic.CSharp.Js.Math.floor(difference / increment) + 1;
+                int? size = Utils_int32.toInt32(sizeValue);
+                if (size is null || size.Value <= 0 || size.Value > maxSequenceSize)
+                {
+                    throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_SEQUENCE_SIZE_UNSUPPORTED", $"seq cannot produce more than {maxSequenceSize} values");
+                }
+                Tsonic.CSharp.Js.JSArray<TemplateValue> values = new Tsonic.CSharp.Js.JSArray<TemplateValue>(new TemplateValue[] { });
+                int value = first;
+                for (int index = 0; index < size.Value; index++)
+                {
+                    values.push(new NumberValue(value));
+                    if (index + 1 < size.Value)
+                    {
+                        int? next = Utils_int32.toInt32(value + increment);
+                        if (next is null)
+                        {
+                            throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_SEQUENCE_SIZE_UNSUPPORTED", "seq result exceeds the supported 32-bit integer range");
+                        }
+                        value = next.Value;
+                    }
+                }
+                return new AnyArrayValue(values);
+            };
+            reverseTemplateCollection = (TemplateValue collection) =>
+            {
+                if (collection is AnyArrayValue)
+                {
+                    Tsonic.CSharp.Js.JSArray<TemplateValue> result = new Tsonic.CSharp.Js.JSArray<TemplateValue>(new TemplateValue[] { });
+                    for (int index = ((AnyArrayValue)collection).value.length - 1; index >= 0; index--)
+                    {
+                        result.push(((AnyArrayValue)collection).value[index]);
+                    }
+                    return new AnyArrayValue(result);
+                }
+                if (collection is StringArrayValue)
+                {
+                    Tsonic.CSharp.Js.JSArray<string> result_1 = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                    for (int index_1 = ((StringArrayValue)collection).value.length - 1; index_1 >= 0; index_1--)
+                    {
+                        result_1.push(((StringArrayValue)collection).value[index_1]);
+                    }
+                    return new StringArrayValue(result_1);
+                }
+                if (collection is PageArrayValue)
+                {
+                    Tsonic.CSharp.Js.JSArray<PageContext> result_2 = new Tsonic.CSharp.Js.JSArray<PageContext>(new PageContext[] { });
+                    for (int index_2 = ((PageArrayValue)collection).value.length - 1; index_2 >= 0; index_2--)
+                    {
+                        result_2.push(((PageArrayValue)collection).value[index_2]);
+                    }
+                    return new PageArrayValue(result_2);
+                }
+                return null;
+            };
+            return null;
+        }
+        public static void __tsonic_module_init()
+        {
+            _ = __tsonic_module_initialization.Value;
+        }
+    }
+}

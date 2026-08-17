@@ -1,0 +1,276 @@
+using System;
+
+namespace Tsumo.Engine
+{
+    public static class Template_functions_templateFunctions
+    {
+        public static Func<PartialTemplateResolution, TemplateValue, TemplateFunctionContext, string> renderPartialResolution
+        {
+            get;
+            private set;
+        } = default(Func<PartialTemplateResolution, TemplateValue, TemplateFunctionContext, string>)!;
+        public static Func<string, Tsonic.CSharp.Js.JSArray<TemplateValue>, TemplateFunctionContext, TemplateValue?> callTemplateFunctionFamily
+        {
+            get;
+            private set;
+        } = default(Func<string, Tsonic.CSharp.Js.JSArray<TemplateValue>, TemplateFunctionContext, TemplateValue?>)!;
+        private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
+        private static object? __tsonic_module_init_core()
+        {
+            Diagnostics.__tsonic_module_init();
+            Utils_html.__tsonic_module_init();
+            Utils_strings.__tsonic_module_init();
+            Template_environment.__tsonic_module_init();
+            Template_values.__tsonic_module_init();
+            Template_evaluation_returnSignal.__tsonic_module_init();
+            Template_evaluation_pageSemantics.__tsonic_module_init();
+            Template_evaluation_scalarSemantics.__tsonic_module_init();
+            Template_evaluation_serialization.__tsonic_module_init();
+            Template_evaluation_structuredData.__tsonic_module_init();
+            Template_runtimeHelpers.__tsonic_module_init();
+            Template_functions_functionContext.__tsonic_module_init();
+            renderPartialResolution = (PartialTemplateResolution selected, TemplateValue contextValue, TemplateFunctionContext context) =>
+            {
+                TemplateEnvironment environment = context.environment;
+                RenderScope scope = context.scope;
+                if (selected.kind == "definition")
+                {
+                    Tsonic.CSharp.Js.JSArray<TemplateNode>? definition = selected.definition;
+                    if (definition is null)
+                    {
+                        throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_PARTIAL_RESOLUTION_INVALID", "Template partial definition has no body");
+                    }
+                    return environment.renderTemplateDefinition(definition, context.defines, selected.sourcePath, contextValue, scope.site, context.overrides, scope.state);
+                }
+                if (selected.kind == "template")
+                {
+                    Template? template = selected.template;
+                    if (template is null)
+                    {
+                        throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_PARTIAL_RESOLUTION_INVALID", "Template partial file has no template");
+                    }
+                    return environment.renderTemplate(template, contextValue, scope.site, context.overrides, scope.state);
+                }
+                throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_PARTIAL_RESOLUTION_INVALID", "Template partial resolution is invalid");
+            };
+            callTemplateFunctionFamily = (string name, Tsonic.CSharp.Js.JSArray<TemplateValue> args, TemplateFunctionContext context) =>
+            {
+                RenderScope scope = context.scope;
+                TemplateEnvironment env = context.environment;
+                if (name == "templates.defer" && args.length == 1 && args[0] is DictValue)
+                {
+                    Tsonic.CSharp.Js.Map<string, TemplateValue> options = ((DictValue)args[0]).value;
+                    foreach (string optionName in options.keys())
+                    {
+                        if (optionName != "key" && optionName != "data")
+                        {
+                            throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_DEFER_OPTION_INVALID", $"templates.Defer does not support option '{optionName}'");
+                        }
+                    }
+                    TemplateValue? keyValue = Tsonic.CSharp.Js.Map.getReference<string, TemplateValue>(options, "key");
+                    if (keyValue is not null && !(keyValue is StringValue))
+                    {
+                        throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_DEFER_KEY_INVALID", "templates.Defer key must be a string");
+                    }
+                    string? key = (StringValue?)keyValue is not null ? ((StringValue)(StringValue)keyValue).value : null;
+                    return new DeferredTemplateValue(key, Tsonic.CSharp.Js.Map.getReference<string, TemplateValue>(options, "data") ?? Template_runtimeHelpers.nil);
+                }
+                if (name == "partial" && args.length >= 1)
+                {
+                    string nameArg = Template_runtimeHelpers.toPlainString(args[0]);
+                    TemplateValue ctx = args.length >= 2 ? args[1] : scope.dot;
+                    PartialTemplateResolution? selected = env.resolvePartialTemplate(nameArg, scope.templateSourcePath, context.defines);
+                    if (selected is null)
+                    {
+                        throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_PARTIAL_MISSING", $"Template partial '{nameArg}' was not found");
+                    }
+                    try
+                    {
+                        string rendered = renderPartialResolution(selected, ctx, context);
+                        return new HtmlValue(new HtmlString(rendered));
+                    }
+                    catch (System.Exception e)
+                    {
+                        if (e is TemplateReturnSignal)
+                        {
+                            return ((TemplateReturnSignal)e).value;
+                        }
+                        throw;
+                    }
+                }
+                if (name == "partialcached" && args.length >= 1)
+                {
+                    string nameArg_1 = Template_runtimeHelpers.toPlainString(args[0]);
+                    TemplateValue ctx_1 = args.length >= 2 ? args[1] : scope.dot;
+                    PartialTemplateResolution? selected_1 = env.resolvePartialTemplate(nameArg_1, scope.templateSourcePath, context.defines);
+                    if (selected_1 is null)
+                    {
+                        throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_PARTIAL_MISSING", $"Template partial '{nameArg_1}' was not found");
+                    }
+                    try
+                    {
+                        string rendered_1 = renderPartialResolution(selected_1, ctx_1, context);
+                        return new HtmlValue(new HtmlString(rendered_1));
+                    }
+                    catch (System.Exception e_1)
+                    {
+                        if (e_1 is TemplateReturnSignal)
+                        {
+                            return ((TemplateReturnSignal)e_1).value;
+                        }
+                        throw;
+                    }
+                }
+                if (name == "unmarshal")
+                {
+                    return Template_evaluation_structuredData.unmarshalTemplateData(args);
+                }
+                if (name == "templates.exists" && args.length >= 1)
+                {
+                    string templatePath = Template_runtimeHelpers.toPlainString(args[0]);
+                    Template? tpl = env.getTemplate(templatePath);
+                    return new BoolValue(tpl is not null);
+                }
+                if (name == "errorf" && args.length >= 1)
+                {
+                    string format = Template_runtimeHelpers.toPlainString(args[0]);
+                    string message = format;
+                    for (int index = 1; index < args.length; index++)
+                    {
+                        message = Tsonic.CSharp.Js.String.replaceAll(message, "%s", Template_runtimeHelpers.toPlainString(args[index]));
+                        message = Tsonic.CSharp.Js.String.replaceAll(message, "%v", Template_runtimeHelpers.toPlainString(args[index]));
+                        message = Tsonic.CSharp.Js.String.replaceAll(message, "%d", Template_runtimeHelpers.toPlainString(args[index]));
+                    }
+                    throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_ERRORF", message);
+                }
+                if (name == "warnf" && args.length >= 1)
+                {
+                    string format_1 = Template_runtimeHelpers.toPlainString(args[0]);
+                    string message_1 = format_1;
+                    for (int i = 1; i < args.length; i++)
+                    {
+                        message_1 = Tsonic.CSharp.Js.String.replaceAll(message_1, "%s", Template_runtimeHelpers.toPlainString(args[i]));
+                        message_1 = Tsonic.CSharp.Js.String.replaceAll(message_1, "%v", Template_runtimeHelpers.toPlainString(args[i]));
+                        message_1 = Tsonic.CSharp.Js.String.replaceAll(message_1, "%d", Template_runtimeHelpers.toPlainString(args[i]));
+                    }
+                    System.Console.Error.WriteLine("WARN: {0}", message_1);
+                    return Template_runtimeHelpers.nil;
+                }
+                if (name == "safehtml" && args.length >= 1)
+                {
+                    TemplateValue v = args[0];
+                    if (v is HtmlValue)
+                    {
+                        return (HtmlValue)v;
+                    }
+                    return new HtmlValue(new HtmlString(Template_runtimeHelpers.toPlainString(v)));
+                }
+                if (name == "safehtmlattr" && args.length >= 1)
+                {
+                    TemplateValue v_1 = args[0];
+                    if (v_1 is HtmlValue)
+                    {
+                        return (HtmlValue)v_1;
+                    }
+                    return new HtmlValue(new HtmlString(Template_runtimeHelpers.toPlainString(v_1)));
+                }
+                if (name == "safejs" && args.length >= 1)
+                {
+                    TemplateValue v_2 = args[0];
+                    return new HtmlValue(new HtmlString(Template_runtimeHelpers.toPlainString(v_2)));
+                }
+                if (name == "safeurl" && args.length >= 1)
+                {
+                    TemplateValue v_3 = args[0];
+                    return new HtmlValue(new HtmlString(Utils_html.escapeHtml(Template_runtimeHelpers.toPlainString(v_3))));
+                }
+                if (name == "safecss" && args.length >= 1)
+                {
+                    TemplateValue v_4 = args[0];
+                    return new HtmlValue(new HtmlString(Template_runtimeHelpers.toPlainString(v_4)));
+                }
+                if (name == "htmlescape" && args.length >= 1)
+                {
+                    TemplateValue v_5 = args[0];
+                    return new StringValue(Utils_html.escapeHtml(Template_runtimeHelpers.toPlainString(v_5)));
+                }
+                if (name == "htmlunescape" && args.length >= 1)
+                {
+                    TemplateValue v_6 = args[0];
+                    return new StringValue(System.Net.WebUtility.HtmlDecode(Template_runtimeHelpers.toPlainString(v_6)) ?? "");
+                }
+                if (name == "time.format" && args.length >= 2)
+                {
+                    string layout = Template_runtimeHelpers.toPlainString(args[0]);
+                    string input = Template_runtimeHelpers.toPlainString(args[1]);
+                    return new StringValue(Template_evaluation_scalarSemantics.formatDateTime(input, layout) ?? "");
+                }
+                if (name == "path.base" && args.length >= 1)
+                {
+                    string raw = Template_runtimeHelpers.toPlainString(args[0]);
+                    string normalized = Template_evaluation_serialization.trimEndCharacter(Utils_strings.replaceText(raw, "\\", "/"), "/");
+                    if (normalized == "")
+                    {
+                        return new StringValue("");
+                    }
+                    int idx = Tsonic.CSharp.Js.String.lastIndexOf(normalized, "/");
+                    return idx >= 0 ? new StringValue(Utils_strings.substringFrom(normalized, idx + 1)) : new StringValue(normalized);
+                }
+                if (name == "path.ext" && args.length >= 1)
+                {
+                    return new StringValue(Template_evaluation_serialization.getPathExtension(Template_runtimeHelpers.toPlainString(args[0])));
+                }
+                if (name == "path.join" && args.length >= 1)
+                {
+                    Tsonic.CSharp.Js.JSArray<string> segments = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                    bool rooted = false;
+                    for (int argumentIndex = 0; argumentIndex < args.length; argumentIndex++)
+                    {
+                        string value = Utils_strings.replaceText(Template_runtimeHelpers.toPlainString(args[argumentIndex]), "\\", "/");
+                        if (argumentIndex == 0 && Tsonic.CSharp.Js.String.startsWith(value, "/"))
+                        {
+                            rooted = true;
+                        }
+                        Tsonic.CSharp.Js.JSArray<string> parts = Tsonic.CSharp.Js.String.split(value, "/");
+                        for (int partIndex = 0; partIndex < parts.length; partIndex++)
+                        {
+                            string part = parts[partIndex];
+                            if (part == "" || part == ".")
+                            {
+                                continue;
+                            }
+                            if (part == "..")
+                            {
+                                if (segments.length > 0 && segments[segments.length - 1] != "..")
+                                {
+                                    Tsonic.CSharp.Js.Array.popReference(segments);
+                                }
+                                else
+                                {
+                                    if (!rooted)
+                                    {
+                                        segments.push(part);
+                                    }
+                                }
+                                continue;
+                            }
+                            segments.push(part);
+                        }
+                    }
+                    string joined = Tsonic.CSharp.Js.Array.join(segments, "/");
+                    return new StringValue(rooted ? "/" + joined : joined == "" ? "." : joined);
+                }
+                if (name == "title" && args.length >= 1)
+                {
+                    return new StringValue(Template_evaluation_pageSemantics.toTitleCase(Template_runtimeHelpers.toPlainString(args[0])));
+                }
+                return null;
+            };
+            return null;
+        }
+        public static void __tsonic_module_init()
+        {
+            _ = __tsonic_module_initialization.Value;
+        }
+    }
+}
