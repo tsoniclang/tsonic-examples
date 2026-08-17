@@ -1,0 +1,21 @@
+{
+  "$schema": "https://tsonic.org/schema/v1.json",
+  "entryPoint": "cli-main.ts",
+  "rootDir": "src",
+  "outDir": "out",
+  "targets": [
+    {
+      "id": "csharp",
+      "surfaces": ["js"],
+      "options": {
+        "namespace": "Tsumo.Cli",
+        "assemblyName": "tsumo",
+        "outputType": "Exe",
+        "projectFile": "Tsumo.Cli.csproj",
+        "providerReferences": {
+          "directories": ["../../.temp/active-provider-references/product"]
+        }
+      }
+    }
+  ]
+}

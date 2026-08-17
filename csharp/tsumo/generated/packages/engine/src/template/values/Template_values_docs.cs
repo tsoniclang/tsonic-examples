@@ -1,0 +1,50 @@
+using System;
+
+namespace Tsumo.Engine
+{
+    public static class Template_values_docs
+    {
+        private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
+        private static object? __tsonic_module_init_core()
+        {
+            Template_values_base.__tsonic_module_init();
+            return null;
+        }
+        public static void __tsonic_module_init()
+        {
+            _ = __tsonic_module_initialization.Value;
+        }
+    }
+    public class DocsMountValue : TemplateValue
+    {
+        public DocsMountContext value;
+        public DocsMountValue(DocsMountContext value) : base()
+        {
+            this.value = value;
+        }
+    }
+    public class DocsMountArrayValue : TemplateValue
+    {
+        public Tsonic.CSharp.Js.JSArray<DocsMountContext> value;
+        public DocsMountArrayValue(Tsonic.CSharp.Js.JSArray<DocsMountContext> value) : base()
+        {
+            this.value = value;
+        }
+    }
+    public class NavItemValue : TemplateValue
+    {
+        public NavItem value;
+        public NavItemValue(NavItem value) : base()
+        {
+            this.value = value;
+        }
+    }
+    public class NavArrayValue : TemplateValue
+    {
+        public Tsonic.CSharp.Js.JSArray<NavItem> value;
+        public NavArrayValue(Tsonic.CSharp.Js.JSArray<NavItem> value) : base()
+        {
+            this.value = value;
+        }
+    }
+}

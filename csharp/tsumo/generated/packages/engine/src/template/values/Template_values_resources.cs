@@ -1,0 +1,43 @@
+using System;
+
+namespace Tsumo.Engine
+{
+    public static class Template_values_resources
+    {
+        private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
+        private static object? __tsonic_module_init_core()
+        {
+            Resources.__tsonic_module_init();
+            Template_values_base.__tsonic_module_init();
+            return null;
+        }
+        public static void __tsonic_module_init()
+        {
+            _ = __tsonic_module_initialization.Value;
+        }
+    }
+    public class ResourceNamespaceValue : TemplateValue
+    {
+        public ResourceNamespaceValue() : base()
+        {
+        }
+    }
+    public class ResourceDataValue : TemplateValue
+    {
+        public ResourceData value;
+        public ResourceDataValue(ResourceData value) : base()
+        {
+            this.value = value;
+        }
+    }
+    public class ResourceValue : TemplateValue
+    {
+        public Resource value;
+        public ResourceManager manager;
+        public ResourceValue(ResourceManager manager, Resource value) : base()
+        {
+            this.manager = manager;
+            this.value = value;
+        }
+    }
+}

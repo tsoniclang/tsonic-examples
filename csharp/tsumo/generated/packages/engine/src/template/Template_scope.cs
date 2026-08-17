@@ -1,0 +1,108 @@
+using System;
+
+namespace Tsumo.Engine
+{
+    public static class Template_scope
+    {
+        private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
+        private static object? __tsonic_module_init_core()
+        {
+            Models.__tsonic_module_init();
+            Diagnostics.__tsonic_module_init();
+            Template_values.__tsonic_module_init();
+            return null;
+        }
+        public static void __tsonic_module_init()
+        {
+            _ = __tsonic_module_initialization.Value;
+        }
+    }
+    public class RenderScope
+    {
+        public TemplateValue root;
+        public TemplateValue dot;
+        public SiteContext site;
+        public TemplateEnvironment env;
+        public RenderScope? parent;
+        public Tsonic.CSharp.Js.Map<string, TemplateValue> vars;
+        public RenderState state;
+        public string? templateSourcePath;
+        public RenderScope(TemplateValue root, TemplateValue dot, SiteContext site, TemplateEnvironment env, RenderScope? parent, RenderState? state = null, string? templateSourcePath = null)
+        {
+            this.root = root;
+            this.dot = dot;
+            this.site = site;
+            this.env = env;
+            this.parent = parent;
+            this.vars = new Tsonic.CSharp.Js.Map<string, TemplateValue>();
+            this.state = parent?.state ?? state ?? new RenderState(1);
+            if (this.state.currentPage is null && root is PageValue)
+            {
+                this.state.currentPage = ((PageValue)root).value;
+            }
+            this.templateSourcePath = templateSourcePath ?? parent?.templateSourcePath;
+        }
+        public TemplateValue? getVar(string name)
+        {
+            RenderScope? cur = this;
+            while (cur is not null)
+            {
+                TemplateValue? value = Tsonic.CSharp.Js.Map.getReference<string, TemplateValue>(cur.vars, name);
+                if (value is not null)
+                {
+                    return value;
+                }
+                cur = cur.parent;
+            }
+            return null;
+        }
+        public void declareVar(string name, TemplateValue value)
+        {
+            this.vars.set(name, value);
+        }
+        public void assignVar(string name, TemplateValue value)
+        {
+            RenderScope? cur = this;
+            while (cur is not null)
+            {
+                if (cur.vars.has(name))
+                {
+                    cur.vars.set(name, value);
+                    return;
+                }
+                cur = cur.parent;
+            }
+            this.declareVar(name, value);
+        }
+        public PaginatorValue? getPaginator()
+        {
+            return this.state.selectedPaginator;
+        }
+        public PaginatorValue selectPaginator(PaginatorValue paginator)
+        {
+            PaginatorValue? existing = this.state.selectedPaginator;
+            if (existing is not null)
+            {
+                if (!existing.hasSameSource(paginator))
+                {
+                    throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_PAGINATION_CONFLICT", "A rendered page cannot select more than one pagination source");
+                }
+                return existing;
+            }
+            this.state.selectedPaginator = paginator;
+            return paginator;
+        }
+    }
+    public class RenderState
+    {
+        public int paginationPageNumber;
+        public PaginatorValue? selectedPaginator;
+        public PageContext? currentPage;
+        public RenderState(int paginationPageNumber)
+        {
+            this.paginationPageNumber = paginationPageNumber > 0 ? paginationPageNumber : 1;
+            this.selectedPaginator = null;
+            this.currentPage = null;
+        }
+    }
+}

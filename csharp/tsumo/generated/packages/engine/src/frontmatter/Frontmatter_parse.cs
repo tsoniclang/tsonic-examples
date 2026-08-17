@@ -1,0 +1,138 @@
+using System;
+
+namespace Tsumo.Engine
+{
+    public static class Frontmatter_parse
+    {
+        public static Func<string, string?, ParsedContent?> tryParseJsonFrontMatter
+        {
+            get;
+            private set;
+        } = default(Func<string, string?, ParsedContent?>)!;
+        public static Func<Tsonic.CSharp.Js.JSArray<string>, string, string, string?, ParsedContent> parseDelimitedFrontMatter
+        {
+            get;
+            private set;
+        } = default(Func<Tsonic.CSharp.Js.JSArray<string>, string, string, string?, ParsedContent>)!;
+        public static Func<string, string?, ParsedContent> parseContent
+        {
+            get;
+            private set;
+        } = default(Func<string, string?, ParsedContent>)!;
+        private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
+        private static object? __tsonic_module_init_core()
+        {
+            Diagnostics.__tsonic_module_init();
+            Utils_strings.__tsonic_module_init();
+            Frontmatter_data.__tsonic_module_init();
+            Frontmatter_json.__tsonic_module_init();
+            Frontmatter_parsedContent.__tsonic_module_init();
+            Frontmatter_toml.__tsonic_module_init();
+            Frontmatter_yaml.__tsonic_module_init();
+            tryParseJsonFrontMatter = (string text, string? sourcePath) =>
+            {
+                int start = 0;
+                if (text.Length == 0 || text.Substring(start, 1) != "{")
+                {
+                    return null;
+                }
+                int depth = 0;
+                bool inString = false;
+                bool escaped = false;
+                int end = -1;
+                for (int index = start; index < text.Length; index++)
+                {
+                    string current = text.Substring(index, 1);
+                    if (inString && escaped)
+                    {
+                        escaped = false;
+                        continue;
+                    }
+                    if (inString && current == "\\")
+                    {
+                        escaped = true;
+                        continue;
+                    }
+                    if (current == "\"")
+                    {
+                        inString = !inString;
+                        continue;
+                    }
+                    if (inString)
+                    {
+                        continue;
+                    }
+                    if (current == "{")
+                    {
+                        depth++;
+                    }
+                    else
+                    {
+                        if (current == "}")
+                        {
+                            depth--;
+                            if (depth == 0)
+                            {
+                                end = index + 1;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (end < 0)
+                {
+                    throw Diagnostics.createTsumoError("TSUMO_FRONTMATTER_JSON_UNCLOSED", "JSON front matter has no closing object delimiter", sourcePath, 1, 1);
+                }
+                string input = Utils_strings.substringCount(text, start, end - start);
+                string body = Tsonic.CSharp.Js.String.trimStart(Utils_strings.substringFrom(text, end));
+                return new ParsedContent(Frontmatter_json.parseJsonFrontMatter(input, sourcePath), body);
+            };
+            parseDelimitedFrontMatter = (Tsonic.CSharp.Js.JSArray<string> lines, string delimiter, string format, string? sourcePath) =>
+            {
+                Tsonic.CSharp.Js.JSArray<string> frontMatterLines = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                int bodyStart = lines.length;
+                for (int index = 1; index < lines.length; index++)
+                {
+                    if (Tsonic.CSharp.Js.String.trim(lines[index]) == delimiter)
+                    {
+                        bodyStart = index + 1;
+                        string body = Tsonic.CSharp.Js.String.trimStart(Tsonic.CSharp.Js.Array.join(Tsonic.CSharp.Js.Array.slice(lines, bodyStart), "\n"));
+                        FrontMatter frontMatter = format == "yaml" ? Frontmatter_yaml.parseYamlFrontMatter(frontMatterLines, sourcePath) : Frontmatter_toml.parseTomlFrontMatter(frontMatterLines, sourcePath);
+                        return new ParsedContent(frontMatter, body);
+                    }
+                    frontMatterLines.push(lines[index]);
+                }
+                throw Diagnostics.createTsumoError("TSUMO_FRONTMATTER_DELIMITER_UNCLOSED", $"{(format == "yaml" ? "YAML" : "TOML")} front matter is missing its closing {delimiter} delimiter", sourcePath, 1, 1);
+            };
+            parseContent = (string text, string? sourcePath) =>
+            {
+                ParsedContent? json = tryParseJsonFrontMatter(text, sourcePath);
+                if (json is not null)
+                {
+                    return json;
+                }
+                string normalized = Utils_strings.replaceLineEndings(text, "\n");
+                Tsonic.CSharp.Js.JSArray<string> lines = Tsonic.CSharp.Js.String.split(normalized, "\n");
+                if (lines.length == 0)
+                {
+                    return new ParsedContent(new FrontMatter(), "");
+                }
+                string firstLine = Tsonic.CSharp.Js.String.trim(lines[0]);
+                if (firstLine == "---")
+                {
+                    return parseDelimitedFrontMatter(lines, "---", "yaml", sourcePath);
+                }
+                if (firstLine == "+++")
+                {
+                    return parseDelimitedFrontMatter(lines, "+++", "toml", sourcePath);
+                }
+                return new ParsedContent(new FrontMatter(), text);
+            };
+            return null;
+        }
+        public static void __tsonic_module_init()
+        {
+            _ = __tsonic_module_initialization.Value;
+        }
+    }
+}

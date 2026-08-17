@@ -1,0 +1,142 @@
+using System;
+
+namespace Tsumo.Engine
+{
+    public static class Template_nodes
+    {
+        private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
+        private static object? __tsonic_module_init_core()
+        {
+            return null;
+        }
+        public static void __tsonic_module_init()
+        {
+            _ = __tsonic_module_initialization.Value;
+        }
+    }
+    public class TemplateNode
+    {
+    }
+    public class BreakNode : TemplateNode
+    {
+        public BreakNode() : base()
+        {
+        }
+    }
+    public class ContinueNode : TemplateNode
+    {
+        public ContinueNode() : base()
+        {
+        }
+    }
+    public class TextNode : TemplateNode
+    {
+        public string text;
+        public TextNode(string text) : base()
+        {
+            this.text = text;
+        }
+    }
+    public class OutputNode : TemplateNode
+    {
+        public Pipeline pipeline;
+        public bool escape;
+        public OutputNode(Pipeline pipeline, bool escape) : base()
+        {
+            this.pipeline = pipeline;
+            this.escape = escape;
+        }
+    }
+    public class AssignmentNode : TemplateNode
+    {
+        public string name;
+        public Pipeline pipeline;
+        public bool declare;
+        public AssignmentNode(string name, Pipeline pipeline, bool declare) : base()
+        {
+            this.name = name;
+            this.pipeline = pipeline;
+            this.declare = declare;
+        }
+    }
+    public class TemplateInvokeNode : TemplateNode
+    {
+        public string name;
+        public Pipeline context;
+        public TemplateInvokeNode(string name, Pipeline context) : base()
+        {
+            this.name = name;
+            this.context = context;
+        }
+    }
+    public class TemplateVariableBinding
+    {
+        public string name;
+        public bool declare;
+        public TemplateVariableBinding(string name, bool declare)
+        {
+            this.name = name;
+            this.declare = declare;
+        }
+    }
+    public class IfNode : TemplateNode
+    {
+        public Pipeline condition;
+        public TemplateVariableBinding? binding;
+        public Tsonic.CSharp.Js.JSArray<TemplateNode> thenNodes;
+        public Tsonic.CSharp.Js.JSArray<TemplateNode> elseNodes;
+        public IfNode(Pipeline condition, TemplateVariableBinding? binding, Tsonic.CSharp.Js.JSArray<TemplateNode> thenNodes, Tsonic.CSharp.Js.JSArray<TemplateNode> elseNodes) : base()
+        {
+            this.condition = condition;
+            this.binding = binding;
+            this.thenNodes = thenNodes;
+            this.elseNodes = elseNodes;
+        }
+    }
+    public class RangeNode : TemplateNode
+    {
+        public Pipeline expr;
+        public string? keyVar;
+        public string? valueVar;
+        public Tsonic.CSharp.Js.JSArray<TemplateNode> body;
+        public Tsonic.CSharp.Js.JSArray<TemplateNode> elseBody;
+        public RangeNode(Pipeline expr, string? keyVar, string? valueVar, Tsonic.CSharp.Js.JSArray<TemplateNode> body, Tsonic.CSharp.Js.JSArray<TemplateNode> elseBody) : base()
+        {
+            this.expr = expr;
+            this.keyVar = keyVar;
+            this.valueVar = valueVar;
+            this.body = body;
+            this.elseBody = elseBody;
+        }
+    }
+    public class WithNode : TemplateNode
+    {
+        public Pipeline expr;
+        public TemplateVariableBinding? binding;
+        public Tsonic.CSharp.Js.JSArray<TemplateNode> body;
+        public Tsonic.CSharp.Js.JSArray<TemplateNode> elseBody;
+        public string sourceText;
+        public int sourceSegmentIndex;
+        public WithNode(Pipeline expr, TemplateVariableBinding? binding, Tsonic.CSharp.Js.JSArray<TemplateNode> body, Tsonic.CSharp.Js.JSArray<TemplateNode> elseBody, string sourceText, int sourceSegmentIndex) : base()
+        {
+            this.expr = expr;
+            this.binding = binding;
+            this.body = body;
+            this.elseBody = elseBody;
+            this.sourceText = sourceText;
+            this.sourceSegmentIndex = sourceSegmentIndex;
+        }
+    }
+    public class BlockNode : TemplateNode
+    {
+        public string name;
+        public Pipeline context;
+        public Tsonic.CSharp.Js.JSArray<TemplateNode> fallback;
+        public BlockNode(string name, Pipeline context, Tsonic.CSharp.Js.JSArray<TemplateNode> fallback) : base()
+        {
+            this.name = name;
+            this.context = context;
+            this.fallback = fallback;
+        }
+    }
+}

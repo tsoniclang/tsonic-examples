@@ -1,0 +1,51 @@
+using System;
+
+namespace Tsumo.Engine
+{
+    public static class Template_values_primitives
+    {
+        private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
+        private static object? __tsonic_module_init_core()
+        {
+            Utils_html.__tsonic_module_init();
+            Template_values_base.__tsonic_module_init();
+            return null;
+        }
+        public static void __tsonic_module_init()
+        {
+            _ = __tsonic_module_initialization.Value;
+        }
+    }
+    public class StringValue : TemplateValue
+    {
+        public string value;
+        public StringValue(string value) : base()
+        {
+            this.value = value;
+        }
+    }
+    public class BoolValue : TemplateValue
+    {
+        public bool value;
+        public BoolValue(bool value) : base()
+        {
+            this.value = value;
+        }
+    }
+    public class NumberValue : TemplateValue
+    {
+        public int value;
+        public NumberValue(int value) : base()
+        {
+            this.value = value;
+        }
+    }
+    public class HtmlValue : TemplateValue
+    {
+        public HtmlString value;
+        public HtmlValue(HtmlString value) : base()
+        {
+            this.value = value;
+        }
+    }
+}

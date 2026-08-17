@@ -1,0 +1,222 @@
+using System;
+
+namespace Tsumo.Engine
+{
+    public static class Frontmatter_scalars
+    {
+        public static Func<string, string, string?, int?, ParamValue> parseFrontMatterParam
+        {
+            get;
+            private set;
+        } = default(Func<string, string, string?, int?, ParamValue>)!;
+        public static Func<string, string, string, string?, int?, string> parseFrontMatterString
+        {
+            get;
+            private set;
+        } = default(Func<string, string, string, string?, int?, string>)!;
+        public static Action<Tsonic.CSharp.Js.Set<string>, string, string, string?, int?> recordFrontMatterField
+        {
+            get;
+            private set;
+        } = default(Action<Tsonic.CSharp.Js.Set<string>, string, string, string?, int?>)!;
+        public static Func<string, string, string, string?, int?, int> parseFrontMatterInt
+        {
+            get;
+            private set;
+        } = default(Func<string, string, string, string?, int?, int>)!;
+        public static Func<string, string, string, string?, int?, Tsonic.CSharp.Js.JSArray<string>> parseFrontMatterStringArray
+        {
+            get;
+            private set;
+        } = default(Func<string, string, string, string?, int?, Tsonic.CSharp.Js.JSArray<string>>)!;
+        public static Action<FrontMatter, string, string, string, string?, int?> applyFrontMatterScalar
+        {
+            get;
+            private set;
+        } = default(Action<FrontMatter, string, string, string, string?, int?>)!;
+        private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
+        private static object? __tsonic_module_init_core()
+        {
+            Diagnostics.__tsonic_module_init();
+            Params.__tsonic_module_init();
+            Utils_strings.__tsonic_module_init();
+            Utils_structuredScalars.__tsonic_module_init();
+            Frontmatter_data.__tsonic_module_init();
+            parseFrontMatterParam = (string value, string format, string? sourcePath, int? line) => Utils_structuredScalars.parseStructuredScalar(value, format, (string message) => Diagnostics.createTsumoError("TSUMO_FRONTMATTER_SCALAR_INVALID", message, sourcePath, line, 1));
+            parseFrontMatterString = (string value, string field, string format, string? sourcePath, int? line) =>
+            {
+                ParamValue parsed = parseFrontMatterParam(value, format, sourcePath, line);
+                if (parsed.kind == ParamKind.String)
+                {
+                    return parsed.stringValue;
+                }
+                throw Diagnostics.createTsumoError("TSUMO_FRONTMATTER_FIELD_INVALID", $"Front matter field '{field}' requires a string", sourcePath, line, 1);
+            };
+            recordFrontMatterField = (Tsonic.CSharp.Js.Set<string> fields, string field, string context, string? sourcePath, int? line) =>
+            {
+                string normalized = Tsonic.CSharp.Js.String.toLowerCase(field);
+                if (fields.has(normalized))
+                {
+                    throw Diagnostics.createTsumoError("TSUMO_FRONTMATTER_FIELD_DUPLICATE", $"{context} field '{field}' is declared more than once", sourcePath, line, 1);
+                }
+                fields.add(normalized);
+            };
+            parseFrontMatterInt = (string value, string field, string format, string? sourcePath, int? line) =>
+            {
+                ParamValue parsed = parseFrontMatterParam(value, format, sourcePath, line);
+                if (parsed.kind != ParamKind.Number)
+                {
+                    throw Diagnostics.createTsumoError("TSUMO_FRONTMATTER_INVALID_INTEGER", $"Front matter field '{field}' requires a 32-bit integer", sourcePath, line, 1);
+                }
+                return parsed.numberValue;
+            };
+            parseFrontMatterStringArray = (string value, string field, string format, string? sourcePath, int? line) =>
+            {
+                string trimmed = Tsonic.CSharp.Js.String.trim(value);
+                if (!Tsonic.CSharp.Js.String.startsWith(trimmed, "[") || !Tsonic.CSharp.Js.String.endsWith(trimmed, "]"))
+                {
+                    throw Diagnostics.createTsumoError("TSUMO_FRONTMATTER_INVALID_STRING_ARRAY", $"Front matter field '{field}' requires a string array", sourcePath, line, 1);
+                }
+                string inner = Utils_strings.substringCount(trimmed, 1, trimmed.Length - 2);
+                if (Tsonic.CSharp.Js.String.trim(inner) == "")
+                {
+                    return new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                }
+                Tsonic.CSharp.Js.JSArray<string> values = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                int start = 0;
+                string quote = "";
+                bool escaped = false;
+                for (int index = 0; index <= inner.Length; index++)
+                {
+                    string current = index < inner.Length ? inner.Substring(index, 1) : ",";
+                    if (escaped)
+                    {
+                        escaped = false;
+                        continue;
+                    }
+                    if (quote == "\"" && current == "\\")
+                    {
+                        escaped = true;
+                        continue;
+                    }
+                    if (current == "\"" || current == "'")
+                    {
+                        if (quote == "")
+                        {
+                            quote = current;
+                        }
+                        else
+                        {
+                            if (quote == current)
+                            {
+                                quote = "";
+                            }
+                        }
+                        continue;
+                    }
+                    if (current != "," || quote != "")
+                    {
+                        continue;
+                    }
+                    string item = Tsonic.CSharp.Js.String.trim(Utils_strings.substringCount(inner, start, index - start));
+                    if (item == "")
+                    {
+                        throw Diagnostics.createTsumoError("TSUMO_FRONTMATTER_INVALID_STRING_ARRAY", $"Front matter field '{field}' contains an empty array item", sourcePath, line, 1);
+                    }
+                    values.push(parseFrontMatterString(item, field, format, sourcePath, line));
+                    start = index + 1;
+                }
+                if (quote != "")
+                {
+                    throw Diagnostics.createTsumoError("TSUMO_FRONTMATTER_STRING_INVALID", $"Front matter field '{field}' contains an unterminated string", sourcePath, line, 1);
+                }
+                return values;
+            };
+            applyFrontMatterScalar = (FrontMatter frontMatter, string keyRaw, string valueRaw, string format, string? sourcePath, int? line) =>
+            {
+                string key = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Js.String.trim(keyRaw));
+                string value = Tsonic.CSharp.Js.String.trim(valueRaw);
+                if (key == "title")
+                {
+                    frontMatter.title = parseFrontMatterString(value, Tsonic.CSharp.Js.String.trim(keyRaw), format, sourcePath, line);
+                }
+                else
+                {
+                    if (key == "date")
+                    {
+                        string authored = parseFrontMatterString(value, Tsonic.CSharp.Js.String.trim(keyRaw), format, sourcePath, line);
+                        double milliseconds = Tsonic.CSharp.Js.Date.parse(authored);
+                        if (Tsonic.CSharp.Js.Number.isNaN(milliseconds))
+                        {
+                            throw Diagnostics.createTsumoError("TSUMO_FRONTMATTER_INVALID_DATE", $"Invalid front matter date: {authored}", sourcePath, line, 1);
+                        }
+                        frontMatter.date = new Tsonic.CSharp.Js.Date(milliseconds);
+                    }
+                    else
+                    {
+                        if (key == "draft")
+                        {
+                            ParamValue parsed = parseFrontMatterParam(value, format, sourcePath, line);
+                            if (parsed.kind != ParamKind.Bool)
+                            {
+                                throw Diagnostics.createTsumoError("TSUMO_FRONTMATTER_INVALID_BOOL", $"Front matter field '{Tsonic.CSharp.Js.String.trim(keyRaw)}' requires true or false", sourcePath, line, 1);
+                            }
+                            frontMatter.draft = parsed.boolValue;
+                        }
+                        else
+                        {
+                            if (key == "description")
+                            {
+                                frontMatter.description = parseFrontMatterString(value, Tsonic.CSharp.Js.String.trim(keyRaw), format, sourcePath, line);
+                            }
+                            else
+                            {
+                                if (key == "slug")
+                                {
+                                    frontMatter.slug = parseFrontMatterString(value, Tsonic.CSharp.Js.String.trim(keyRaw), format, sourcePath, line);
+                                }
+                                else
+                                {
+                                    if (key == "layout")
+                                    {
+                                        frontMatter.layout = parseFrontMatterString(value, Tsonic.CSharp.Js.String.trim(keyRaw), format, sourcePath, line);
+                                    }
+                                    else
+                                    {
+                                        if (key == "type")
+                                        {
+                                            frontMatter.type = parseFrontMatterString(value, Tsonic.CSharp.Js.String.trim(keyRaw), format, sourcePath, line);
+                                        }
+                                        else
+                                        {
+                                            if (key == "tags")
+                                            {
+                                                frontMatter.tags = parseFrontMatterStringArray(value, "tags", format, sourcePath, line);
+                                            }
+                                            else
+                                            {
+                                                if (key == "categories")
+                                                {
+                                                    frontMatter.categories = parseFrontMatterStringArray(value, "categories", format, sourcePath, line);
+                                                }
+                                                else
+                                                {
+                                                    frontMatter.Params.set(Tsonic.CSharp.Js.String.trim(keyRaw), parseFrontMatterParam(value, format, sourcePath, line));
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+            return null;
+        }
+        public static void __tsonic_module_init()
+        {
+            _ = __tsonic_module_initialization.Value;
+        }
+    }
+}
