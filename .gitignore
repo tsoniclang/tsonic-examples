@@ -141,3 +141,10 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Tsonic's generated application source preserves logical dependency paths.
+# These two public snapshots intentionally track that source, not installations.
+!rust/tsumo/generated/**/node_modules/
+!rust/tsumo/generated/**/node_modules/**
+!csharp/tsumo/generated/**/node_modules/
+!csharp/tsumo/generated/**/node_modules/**
