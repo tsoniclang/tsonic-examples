@@ -6,32 +6,32 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct PipelineParserState {
-    pub(crate) tokens: js_abi::JsArray<String>,
-    pub(crate) index: i32,
-    pub(crate) source_path: Option<String>,
-    pub(crate) line: Option<i32>,
-    pub(crate) column: Option<i32>,
+pub struct PipelineParserState {
+    pub tokens: js_abi::JsArray<String>,
+    pub index: i32,
+    pub source_path: Option<String>,
+    pub line: Option<i32>,
+    pub column: Option<i32>,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct PipelineParser {
-    pub(crate) state: rt::ObjectHandle<PipelineParserState>,
+pub struct PipelineParser {
+    #[doc(hidden)]
+    pub state: rt::ObjectHandle<PipelineParserState>,
 }
 
 impl PipelineParser {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new(
         tokens: js_abi::JsArray<String>,
         source_path: Option<String>,
         line: Option<i32>,
         column: Option<i32>,
     ) -> PipelineParser {
-        let field_tokens: js_abi::JsArray<String> = tokens.clone();
+        let field_tokens: js_abi::JsArray<String> = tokens;
         let field_index: i32 = 0;
-        let field_source_path: Option<String> = source_path.clone();
+        let field_source_path: Option<String> = source_path;
         let field_line: Option<i32> = line;
         let field_column: Option<i32> = column;
         PipelineParser {
@@ -48,15 +48,13 @@ impl PipelineParser {
     #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn error(&self, code: String, message: String) -> crate::diagnostics::TsumoError {
         crate::diagnostics::create_tsumo_error(
-            code.clone(),
-            message.clone(),
+            code,
+            message,
             self.state.with(|state| state.source_path.clone()),
-            self
-                .state
+            self.state
                 .with(|state| state.line)
                 .map(tsonic_rust_runtime::conversions::i32_to_f64),
-            self
-                .state
+            self.state
                 .with(|state| state.column)
                 .map(tsonic_rust_runtime::conversions::i32_to_f64),
         )
@@ -66,7 +64,7 @@ impl PipelineParser {
     pub fn parse(
         &self,
         stop_on_right_paren: bool,
-    ) -> rt::TsonicResult<crate::template::syntax::expressions::Pipeline> {
+    ) -> Result<crate::template::syntax::expressions::Pipeline, rt::TsonicError> {
         let stages: js_abi::JsArray<crate::template::syntax::expressions::Command> =
             js_abi::JsArray::from_dense(vec![]);
         'loop_value: while self.state.with(|state| state.index)
@@ -74,13 +72,13 @@ impl PipelineParser {
                 self.state.with(|state| state.tokens.clone()).len(),
             )?
         {
-            let token: String = match self
-                .state
-                .with(|state| state.tokens.clone())
-                .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
+            let token: String = match {
+                let operation_input_0 = self.state.with(|state| state.tokens.clone());
+                operation_input_0.get_number(tsonic_rust_runtime::conversions::i32_to_f64(
                     self.state.with(|state| state.index),
                 ))
-                .as_ref()
+            }
+            .as_ref()
             {
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
@@ -94,30 +92,26 @@ impl PipelineParser {
             }
             if token == "|" {
                 return Err(
-                    rt::TsonicError::from(self.error(
+                    rt::TsonicError::TsumoError(self.error(
                         String::from("TSUMO_TEMPLATE_PIPELINE_EMPTY_STAGE"),
                         String::from("Template pipeline contains an empty stage"),
                     )),
                 );
             }
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                stages.push_many([self.parse_command()?]),
-            )?;
+            {
+                let operation_input_0_2 = stages.clone();
+                operation_input_0_2.push_many_discard([self.parse_command()?])
+            };
             if self.state.with(|state| state.index)
                 < tsonic_rust_runtime::conversions::usize_to_i32(
                     self.state.with(|state| state.tokens.clone()).len(),
                 )?
-                && (match self
-                    .state
-                    .with(|state| state.tokens.clone())
-                    .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
+                && {
+                    let operation_input_0_3 = self.state.with(|state| state.tokens.clone());
+                    operation_input_0_3.get_number(tsonic_rust_runtime::conversions::i32_to_f64(
                         self.state.with(|state| state.index),
                     ))
-                    .as_ref()
-                {
-                    Some(flow_value_2) => flow_value_2.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }) == "|"
+                } == Some(String::from("|"))
             {
                 {
                     let update_receiver = self;
@@ -137,7 +131,7 @@ impl PipelineParser {
                     )?
                 {
                     return Err(
-                        rt::TsonicError::from(self.error(
+                        rt::TsonicError::TsumoError(self.error(
                             String::from("TSUMO_TEMPLATE_PIPELINE_EMPTY_STAGE"),
                             String::from("Template pipeline ends with an empty stage"),
                         )),
@@ -145,13 +139,13 @@ impl PipelineParser {
                 }
             }
         }
-        Ok(crate::template::syntax::expressions::Pipeline::new(
-            stages.clone(),
-        ))
+        Ok(crate::template::syntax::expressions::Pipeline::new(stages.clone()))
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn parse_command(&self) -> rt::TsonicResult<crate::template::syntax::expressions::Command> {
+    pub fn parse_command(
+        &self,
+    ) -> Result<crate::template::syntax::expressions::Command, rt::TsonicError> {
         let head: crate::template::syntax::expressions::Expr = self.parse_expression()?;
         if head
             .dispatch
@@ -177,28 +171,18 @@ impl PipelineParser {
                 >= tsonic_rust_runtime::conversions::usize_to_i32(
                     self.state.with(|state| state.tokens.clone()).len(),
                 )?
-                || (match self
-                    .state
-                    .with(|state| state.tokens.clone())
-                    .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
+                || {
+                    let operation_input_0 = self.state.with(|state| state.tokens.clone());
+                    operation_input_0.get_number(tsonic_rust_runtime::conversions::i32_to_f64(
                         self.state.with(|state| state.index),
                     ))
-                    .as_ref()
-                {
-                    Some(flow_value) => flow_value.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }) == "|"
-                || (match self
-                    .state
-                    .with(|state| state.tokens.clone())
-                    .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
+                } == Some(String::from("|"))
+                || {
+                    let operation_input_0_2 = self.state.with(|state| state.tokens.clone());
+                    operation_input_0_2.get_number(tsonic_rust_runtime::conversions::i32_to_f64(
                         self.state.with(|state| state.index),
                     ))
-                    .as_ref()
-                {
-                    Some(flow_value_2) => flow_value_2.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }) == ")"
+                } == Some(String::from(")"))
             {
                 return Ok(crate::template::syntax::expressions::Command::new(
                     head.clone(),
@@ -225,15 +209,15 @@ impl PipelineParser {
                 self.state.with(|state| state.tokens.clone()).len(),
             )?
         {
-            let token: String = match self
-                .state
-                .with(|state| state.tokens.clone())
-                .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
+            let token: String = match {
+                let operation_input_0_3 = self.state.with(|state| state.tokens.clone());
+                operation_input_0_3.get_number(tsonic_rust_runtime::conversions::i32_to_f64(
                     self.state.with(|state| state.index),
                 ))
-                .as_ref()
+            }
+            .as_ref()
             {
-                Some(flow_value_3) => flow_value_3.clone(),
+                Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if token == "|"
@@ -243,37 +227,37 @@ impl PipelineParser {
             {
                 break 'loop_value;
             }
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                args.push_many([self.parse_expression()?]),
-            )?;
+            {
+                let operation_input_0_4 = args.clone();
+                operation_input_0_4.push_many_discard([self.parse_expression()?])
+            };
         }
-        Ok(crate::template::syntax::expressions::Command::new(
-            head.clone(),
-            args.clone(),
-        ))
+        Ok(crate::template::syntax::expressions::Command::new(head.clone(), args.clone()))
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn parse_expression(&self) -> rt::TsonicResult<crate::template::syntax::expressions::Expr> {
+    pub fn parse_expression(
+        &self,
+    ) -> Result<crate::template::syntax::expressions::Expr, rt::TsonicError> {
         if self.state.with(|state| state.index)
             >= tsonic_rust_runtime::conversions::usize_to_i32(
                 self.state.with(|state| state.tokens.clone()).len(),
             )?
         {
             return Err(
-                rt::TsonicError::from(self.error(
+                rt::TsonicError::TsumoError(self.error(
                     String::from("TSUMO_TEMPLATE_EXPRESSION_MISSING"),
                     String::from("Template command is missing an expression"),
                 )),
             );
         }
-        let token: String = match self
-            .state
-            .with(|state| state.tokens.clone())
-            .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
+        let token: String = match {
+            let operation_input_0 = self.state.with(|state| state.tokens.clone());
+            operation_input_0.get_number(tsonic_rust_runtime::conversions::i32_to_f64(
                 self.state.with(|state| state.index),
             ))
-            .as_ref()
+        }
+        .as_ref()
         {
             Some(flow_value) => flow_value.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
@@ -283,7 +267,7 @@ impl PipelineParser {
             .call((token.clone(),))?
         {
             return Err(
-                rt::TsonicError::from(self.error(
+                rt::TsonicError::TsumoError(self.error(
                     String::from("TSUMO_TEMPLATE_PAREN_UNEXPECTED"),
                     String::from("Template expression contains an unexpected ')'"),
                 )),
@@ -309,32 +293,32 @@ impl PipelineParser {
                 )?
                 || !IS_RIGHT_PAREN_TOKEN
                     .with(|module_binding| module_binding.load())
-                    .call((match self
-                        .state
-                        .with(|state| state.tokens.clone())
-                        .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
+                    .call((match {
+                        let operation_input_0_2 = self.state.with(|state| state.tokens.clone());
+                        operation_input_0_2.get_number(tsonic_rust_runtime::conversions::i32_to_f64(
                             self.state.with(|state| state.index),
                         ))
-                        .as_ref()
+                    }
+                    .as_ref()
                     {
                         Some(flow_value_2) => flow_value_2.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     },))?
             {
                 return Err(
-                    rt::TsonicError::from(self.error(
+                    rt::TsonicError::TsumoError(self.error(
                         String::from("TSUMO_TEMPLATE_PAREN_UNCLOSED"),
                         String::from("Template expression opened with '(' but has no closing ')'"),
                     )),
                 );
             }
-            let closing_token: String = match self
-                .state
-                .with(|state| state.tokens.clone())
-                .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
+            let closing_token: String = match {
+                let operation_input_0_3 = self.state.with(|state| state.tokens.clone());
+                operation_input_0_3.get_number(tsonic_rust_runtime::conversions::i32_to_f64(
                     self.state.with(|state| state.index),
                 ))
-                .as_ref()
+            }
+            .as_ref()
             {
                 Some(flow_value_3) => flow_value_3.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
@@ -352,8 +336,7 @@ impl PipelineParser {
                 })
             };
             let mut expression: crate::template::syntax::expressions::Expr = {
-                let upcast_value =
-                    crate::template::syntax::expressions::PipelineExpr::new(inner.clone());
+                let upcast_value = crate::template::syntax::expressions::PipelineExpr::new(inner);
                 crate::template::syntax::expressions::Expr {
                     identity: upcast_value.identity.clone(),
                     dispatch: upcast_value.dispatch.clone(),
@@ -365,7 +348,7 @@ impl PipelineParser {
                 let selector: String = crate::utils::strings::substring_from(&closing_token, 2)?;
                 if selector.is_empty() {
                     return Err(
-                        rt::TsonicError::from(self.error(
+                        rt::TsonicError::TsumoError(self.error(
                             String::from("TSUMO_TEMPLATE_SELECTOR_MISSING"),
                             String::from("Parenthesized template expression has an empty selector"),
                         )),
@@ -374,8 +357,7 @@ impl PipelineParser {
                 expression = {
                     let upcast_value_2 = crate::template::syntax::expressions::AccessExpr::new(
                         expression.clone(),
-                        js_string::split_all(&selector, ".")
-                            .map_err(tsonic_rust_runtime::TsonicError::from)?,
+                        js_string::split_all(&selector, ".")?,
                     );
                     crate::template::syntax::expressions::Expr {
                         identity: upcast_value_2.identity.clone(),
@@ -383,7 +365,7 @@ impl PipelineParser {
                     }
                 };
             }
-            return Ok(expression.clone());
+            return Ok(expression);
         }
         {
             let update_receiver_3 = self;
@@ -408,25 +390,52 @@ impl PipelineParser {
     }
 }
 
-type IsRightParenTokenCallable = rt::Callable<(String,), rt::TsonicResult<bool>>;
+pub type IsRightParenTokenCallable = rt::Callable<(String,), rt::TsonicResult<bool>>;
 
 std::thread_local! {
-    pub(crate) static IS_RIGHT_PAREN_TOKEN: rt::ModuleCell<IsRightParenTokenCallable> = const { rt::ModuleCell::new() };
+    pub static IS_RIGHT_PAREN_TOKEN: rt::ModuleCell<IsRightParenTokenCallable> = const { rt::ModuleCell::new() };
 }
 
-pub type ParsePipelineCallable =
-    rt::Callable<
-        (
-            js_abi::JsArray<String>,
-            Option<String>,
-            Option<i32>,
-            Option<i32>,
-        ),
-        rt::TsonicResult<crate::template::syntax::expressions::Pipeline>,
-    >;
-
-std::thread_local! {
-    pub static PARSE_PIPELINE: rt::ModuleCell<ParsePipelineCallable> = const { rt::ModuleCell::new() };
+pub fn parse_pipeline(
+    tokens: js_abi::JsArray<String>,
+    source_path: Option<String>,
+    line: Option<i32>,
+    column: Option<i32>,
+) -> Result<crate::template::syntax::expressions::Pipeline, rt::TsonicError> {
+    if tsonic_rust_runtime::conversions::usize_to_i32(tokens.len())? == 0 {
+        return Ok(crate::template::syntax::expressions::Pipeline::new(js_abi::JsArray::from_dense(
+            vec![],
+        )));
+    }
+    let parser: PipelineParser =
+        PipelineParser::new(tokens.clone(), source_path.clone(), line, column);
+    let pipeline: crate::template::syntax::expressions::Pipeline = parser.parse(false)?;
+    if parser.state.with(|state| state.index)
+        != tsonic_rust_runtime::conversions::usize_to_i32(tokens.len())?
+    {
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_TEMPLATE_TOKEN_UNEXPECTED"),
+            format!(
+                "{}{}",
+                String::from("Unexpected template token: "),
+                match {
+                    let operation_input_0 = tokens.clone();
+                    operation_input_0.get_number(tsonic_rust_runtime::conversions::i32_to_f64(
+                        parser.state.with(|state| state.index),
+                    ))
+                }
+                .as_ref()
+                {
+                    Some(flow_value) => flow_value.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                },
+            ),
+            source_path.clone(),
+            line.map(tsonic_rust_runtime::conversions::i32_to_f64),
+            column.map(tsonic_rust_runtime::conversions::i32_to_f64),
+        )));
+    }
+    Ok(pipeline)
 }
 
 #[doc(hidden)]
@@ -440,57 +449,5 @@ pub fn module_init() {
                 )
             });
         IS_RIGHT_PAREN_TOKEN.with(|module_binding| module_binding.initialize(module_value))
-    };
-    {
-        let module_value_2 = rt::Callable::<
-            (
-                js_abi::JsArray<String>,
-                Option<String>,
-                Option<i32>,
-                Option<i32>,
-            ),
-            rt::TsonicResult<crate::template::syntax::expressions::Pipeline>,
-        >::new(move |callable_arguments_2| {
-            let tokens = callable_arguments_2.0;
-            let source_path = callable_arguments_2.1;
-            let line = callable_arguments_2.2;
-            let column = callable_arguments_2.3;
-            if tsonic_rust_runtime::conversions::usize_to_i32(tokens.len())? == 0 {
-                return Ok::<_, rt::TsonicError>(
-                    crate::template::syntax::expressions::Pipeline::new(
-                        js_abi::JsArray::from_dense(vec![]),
-                    ),
-                );
-            }
-            let parser: PipelineParser =
-                PipelineParser::new(tokens.clone(), source_path.clone(), line, column);
-            let pipeline: crate::template::syntax::expressions::Pipeline = parser.parse(false)?;
-            if parser.state.with(|state| state.index)
-                != tsonic_rust_runtime::conversions::usize_to_i32(tokens.len())?
-            {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                    String::from("TSUMO_TEMPLATE_TOKEN_UNEXPECTED"),
-                    format!(
-                        "{}{}{}",
-                        String::from("Unexpected template token: "),
-                        rt::source_string(&match tokens
-                            .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
-                                parser.state.with(|state| state.index),
-                            ))
-                            .as_ref()
-                        {
-                            Some(flow_value) => flow_value.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },),
-                        String::from(""),
-                    ),
-                    source_path.clone(),
-                    line.map(tsonic_rust_runtime::conversions::i32_to_f64),
-                    column.map(tsonic_rust_runtime::conversions::i32_to_f64),
-                )));
-            }
-            Ok::<_, rt::TsonicError>(pipeline.clone())
-        });
-        PARSE_PIPELINE.with(|module_binding_2| module_binding_2.initialize(module_value_2))
     };
 }

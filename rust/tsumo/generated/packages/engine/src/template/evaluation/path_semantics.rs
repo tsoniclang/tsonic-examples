@@ -6,11 +6,10 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-pub fn normalize_rel_path(raw: String) -> rt::TsonicResult<String> {
+pub fn normalize_rel_path(raw: String) -> Result<String, rt::TsonicError> {
     let normalized: String =
         crate::utils::strings::replace_text(&raw, String::from("\\"), String::from("/"))?;
-    let parts: js_abi::JsArray<String> =
-        js_string::split_all(&normalized, "/").map_err(tsonic_rust_runtime::TsonicError::from)?;
+    let parts: js_abi::JsArray<String> = js_string::split_all(&normalized, "/")?;
     let out_parts: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     {
         let mut i: f64 = 0.0;
@@ -30,29 +29,26 @@ pub fn normalize_rel_path(raw: String) -> rt::TsonicResult<String> {
                 i += 1.0;
                 continue 'loop_value;
             }
-            tsonic_rust_runtime::conversions::usize_to_i32(out_parts.push_many([p.clone()]))?;
+            out_parts.push_many_discard([p.clone()]);
             i += 1.0;
         }
     }
     let arr: js_abi::JsArray<String> = out_parts.clone();
     let mut out: String = String::from("");
-    {
-        let mut i: f64 = 0.0;
-        while i < (tsonic_rust_runtime::conversions::usize_to_i32(arr.len())? as f64) {
-            out = if out.is_empty() { match arr.get_number(i).as_ref() {
+    for i_range in 0..tsonic_rust_runtime::conversions::usize_to_i32(arr.len())? {
+        let i = i_range as f64;
+        out = if out.is_empty() { match arr.get_number(i).as_ref() {
     Some(flow_value_2) => flow_value_2.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
 } } else { format!("{}{}{}", out, String::from("/"), match arr.get_number(i).as_ref() {
     Some(flow_value_3) => flow_value_3.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
 }) };
-            i += 1.0;
-        }
     }
-    Ok(out.clone())
+    Ok(out)
 }
 
-pub fn segment_match(pattern: String, segment: String) -> rt::TsonicResult<bool> {
+pub fn segment_match(pattern: String, segment: String) -> Result<bool, rt::TsonicError> {
     if pattern == "*" {
         return Ok(true);
     }
@@ -62,8 +58,7 @@ pub fn segment_match(pattern: String, segment: String) -> rt::TsonicResult<bool>
     if star < 0 {
         return Ok(pattern == segment);
     }
-    let parts: js_abi::JsArray<String> =
-        js_string::split_all(&pattern, "*").map_err(tsonic_rust_runtime::TsonicError::from)?;
+    let parts: js_abi::JsArray<String> = js_string::split_all(&pattern, "*")?;
     let mut pos: f64 = 0.0;
     {
         let mut i: f64 = 0.0;
@@ -100,7 +95,7 @@ pub fn segment_match(pattern: String, segment: String) -> rt::TsonicResult<bool>
     Ok(true)
 }
 
-pub fn split_glob_segments(raw: &str) -> rt::TsonicResult<js_abi::JsArray<String>> {
+pub fn split_glob_segments(raw: &str) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
     let slash: String = String::from("/");
     let normalized: String = crate::template::evaluation::serialization::trim_start_character(
         crate::utils::strings::replace_text(
@@ -108,13 +103,13 @@ pub fn split_glob_segments(raw: &str) -> rt::TsonicResult<js_abi::JsArray<String
             String::from("\\"),
             String::from("/"),
         )?,
-        slash.clone(),
+        slash,
     )?;
     if normalized.is_empty() {
         let empty: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-        return Ok(empty.clone());
+        return Ok(empty);
     }
-    Ok(js_string::split_all(&normalized, "/").map_err(tsonic_rust_runtime::TsonicError::from)?)
+    js_string::split_all(&normalized, "/").map_err(rt::TsonicError::from)
 }
 
 pub fn glob_match_at(
@@ -122,7 +117,7 @@ pub fn glob_match_at(
     path_segs: js_abi::JsArray<String>,
     pi: i32,
     si: i32,
-) -> rt::TsonicResult<bool> {
+) -> Result<bool, rt::TsonicError> {
     if pi >= tsonic_rust_runtime::conversions::usize_to_i32(pat_segs.len())? {
         return Ok(si >= tsonic_rust_runtime::conversions::usize_to_i32(path_segs.len())?);
     }
@@ -161,16 +156,16 @@ pub fn glob_match_at(
     glob_match_at(pat_segs.clone(), path_segs.clone(), pi + 1, si + 1)
 }
 
-pub fn glob_match(pattern_raw: String, path_raw: String) -> rt::TsonicResult<bool> {
+pub fn glob_match(pattern_raw: String, path_raw: String) -> Result<bool, rt::TsonicError> {
     let pat_segs: js_abi::JsArray<String> = split_glob_segments(&pattern_raw)?;
     let path_segs: js_abi::JsArray<String> = split_glob_segments(&path_raw)?;
-    glob_match_at(pat_segs.clone(), path_segs.clone(), 0, 0)
+    glob_match_at(pat_segs, path_segs, 0, 0)
 }
 
 pub fn resolve_page_ref(
     page: crate::models::page_context::PageContext,
     r#ref: &str,
-) -> rt::TsonicResult<String> {
+) -> Result<String, rt::TsonicError> {
     let raw: String = js_string::trim(r#ref);
     if raw.is_empty() || raw == "/" {
         return Ok(String::from(""));
@@ -178,19 +173,23 @@ pub fn resolve_page_ref(
     if js_string::starts_with_from_start(&raw, "/") {
         return crate::template::evaluation::serialization::trim_slashes(raw.clone());
     }
-    let page_file: Option<crate::models::page_file::PageFile> =
-        page.state.with(|state| state.file.clone());
+    let page_file: Option<crate::models::page_file::PageFile> = {
+        let dispatch_receiver = &page;
+        dispatch_receiver.dispatch.read_page_context_file()
+    };
     let base: String = if page_file.is_some() {
-        match page_file.as_ref() {
+        let dispatch_receiver_2 = &match page_file.as_ref() {
             Some(flow_value) => flow_value.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
-        }
-        .state
-        .with(|state| state.dir.clone())
+        };
+        dispatch_receiver_2.dispatch.read_page_file_dir()
     } else {
-        crate::template::evaluation::serialization::trim_slashes(
-            page.state.with(|state| state.rel_permalink.clone()),
-        )?
+        crate::template::evaluation::serialization::trim_slashes({
+            let dispatch_receiver_3 = &page;
+            dispatch_receiver_3
+                .dispatch
+                .read_page_context_rel_permalink()
+        })?
     };
     let combined: String = if base.is_empty() {
         raw.clone()
@@ -208,28 +207,44 @@ pub fn resolve_page_ref(
             )?,
         )
     };
-    normalize_rel_path(combined.clone())
+    normalize_rel_path(combined)
 }
 
 pub fn try_get_page(
     site: crate::models::site_context::SiteContext,
     path_raw: &str,
-) -> rt::TsonicResult<Option<crate::models::page_context::PageContext>> {
+) -> Result<Option<crate::models::page_context::PageContext>, rt::TsonicError> {
     let trimmed: String = js_string::trim(path_raw);
     if trimmed.is_empty() || trimmed == "/" {
-        return Ok(site.state.with(|state| state.home.clone()));
+        return Ok({
+            let dispatch_receiver = &site;
+            dispatch_receiver.dispatch.read_site_context_home()
+        });
     }
-    let needle: String = crate::template::evaluation::serialization::trim_slashes(trimmed.clone())?;
+    let needle: String =
+        crate::template::evaluation::serialization::trim_slashes(trimmed.clone())?;
     if needle.is_empty() {
-        return Ok(site.state.with(|state| state.home.clone()));
+        return Ok({
+            let dispatch_receiver_2 = &site;
+            dispatch_receiver_2.dispatch.read_site_context_home()
+        });
     }
-    let mut candidates: js_abi::JsArray<crate::models::page_context::PageContext> =
-        site.state.with(|state| state.pages.clone());
+    let mut candidates: js_abi::JsArray<crate::models::page_context::PageContext> = {
+        let dispatch_receiver_3 = &site;
+        dispatch_receiver_3.dispatch.read_site_context_pages()
+    };
     if tsonic_rust_runtime::conversions::usize_to_i32(
-        site.state.with(|state| state.all_pages.clone()).len(),
+        {
+            let dispatch_receiver_4 = &site;
+            dispatch_receiver_4.dispatch.read_site_context_all_pages()
+        }
+        .len(),
     )? > 0
     {
-        candidates = site.state.with(|state| state.all_pages.clone());
+        candidates = {
+            let dispatch_receiver_5 = &site;
+            dispatch_receiver_5.dispatch.read_site_context_all_pages()
+        };
     }
     {
         let mut i: f64 = 0.0;
@@ -241,13 +256,20 @@ pub fn try_get_page(
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            if crate::template::evaluation::serialization::trim_slashes(
-                p.state.with(|state| state.rel_permalink.clone()),
-            )? == needle
+            if crate::template::evaluation::serialization::trim_slashes({
+                let dispatch_receiver_6 = &p;
+                dispatch_receiver_6
+                    .dispatch
+                    .read_page_context_rel_permalink()
+            })? == needle
             {
                 return Ok(Some(p.clone()));
             }
-            if p.state.with(|state| state.slug.clone()) == needle {
+            if {
+                let dispatch_receiver_7 = &p;
+                dispatch_receiver_7.dispatch.read_page_context_slug()
+            } == needle
+            {
                 return Ok(Some(p.clone()));
             }
             i += 1.0;

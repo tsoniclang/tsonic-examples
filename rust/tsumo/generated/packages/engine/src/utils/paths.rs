@@ -2,20 +2,16 @@
 
 use tsonic_rust_js::string as js_string;
 
-use crate::program as rt;
-
 pub fn path_contains_or_equals(root: String, candidate: String) -> bool {
     let rel: String = tsonic_rust_node::path::relative(&root, &candidate);
     rel.is_empty()
         || !tsonic_rust_node::path::is_absolute(&rel)
             && rel != ".."
-            && !js_string::starts_with_from_start(
-                &rel,
-                &format!(
-                    "{}{}{}",
-                    String::from(".."),
-                    rt::source_string(&String::from(tsonic_rust_node::path::sep())),
-                    String::from(""),
-                ),
-            )
+            && !{
+                let operation_input_0 = rel.clone();
+                js_string::starts_with_from_start(
+                    &operation_input_0,
+                    &format!("{}{}", String::from(".."), tsonic_rust_node::path::sep()),
+                )
+            }
 }

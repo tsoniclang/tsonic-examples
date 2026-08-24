@@ -81,11 +81,11 @@ namespace Tsumo.Tests
         public void css_build_applies_its_closed_resource_options()
         {
             string root = TestRoot.createTestDirectory("template-css-build");
-            string siteDirectory = System.IO.Path.Combine(root, "site");
-            string outputDirectory = System.IO.Path.Combine(root, "output");
+            string siteDirectory = Tsonic.CSharp.Node.path.join(root, "site");
+            string outputDirectory = Tsonic.CSharp.Node.path.join(root, "output");
             try
             {
-                System.IO.Directory.CreateDirectory(siteDirectory);
+                TestRoot.createDirectory(siteDirectory);
                 ResourceManager manager = new ResourceManager(siteDirectory, null, outputDirectory);
                 TestTemplateEnvironment environment = new TestTemplateEnvironment(manager);
                 SiteContext site = TemplateTestHarness.createSite();
@@ -104,15 +104,15 @@ namespace Tsumo.Tests
         public void i18n_layers_parse_structured_formats_and_render_plural_context()
         {
             string root = TestRoot.createTestDirectory("template-i18n");
-            string themeDirectory = System.IO.Path.Combine(root, "theme");
-            string siteDirectory = System.IO.Path.Combine(root, "site");
+            string themeDirectory = Tsonic.CSharp.Node.path.join(root, "theme");
+            string siteDirectory = Tsonic.CSharp.Node.path.join(root, "site");
             try
             {
-                System.IO.Directory.CreateDirectory(themeDirectory);
-                System.IO.Directory.CreateDirectory(siteDirectory);
-                System.IO.File.WriteAllText(System.IO.Path.Combine(themeDirectory, "en.toml"), "toggleMenu = \"Theme Menu\"\n" + "[footer]\n" + "builtWith = \"Built with {{ .Generator }}\"\n" + "[list.page]\n" + "one = \"{{ .Count }} page\"\n" + "other = \"{{ .Count }} pages\"\n");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(themeDirectory, "fr.json"), "{\"local\":\"Locale française\"}");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(siteDirectory, "en.yaml"), "- id: toggleMenu # site override\n" + "  translation: Site Menu\n" + "- id: legacy\n" + "  translation: Legacy {{ .Name }}\n" + "- id: continued\n" + "  translation:\n" + "    \"Continued scalar\"\n" + "- id: folded\n" + "  translation: >-\n" + "    Folded\n" + "    scalar\n" + "- id: literal\n" + "  translation: |\n" + "    Literal\n" + "    scalar\n" + "- id: escapedQuoted\n" + "  translation:\n" + "    \"Generated with " + "\\" + "\n" + "    exact continuity.\"\n" + "- id: foldedQuoted\n" + "  translation: \"Folded\n" + "  quoted scalar\"\n" + "- id: singleQuoted\n" + "  translation:\n" + "    'Single\n" + "    quoted ''value'''\n" + "- id: plainWithQuotes\n" + "  translation: Tagged '{{ . }}'\n");
+                TestRoot.createDirectory(themeDirectory);
+                TestRoot.createDirectory(siteDirectory);
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(themeDirectory, "en.toml"), "toggleMenu = \"Theme Menu\"\n" + "[footer]\n" + "builtWith = \"Built with {{ .Generator }}\"\n" + "[list.page]\n" + "one = \"{{ .Count }} page\"\n" + "other = \"{{ .Count }} pages\"\n");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(themeDirectory, "fr.json"), "{\"local\":\"Locale française\"}");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(siteDirectory, "en.yaml"), "- id: toggleMenu # site override\n" + "  translation: Site Menu\n" + "- id: legacy\n" + "  translation: Legacy {{ .Name }}\n" + "- id: continued\n" + "  translation:\n" + "    \"Continued scalar\"\n" + "- id: folded\n" + "  translation: >-\n" + "    Folded\n" + "    scalar\n" + "- id: literal\n" + "  translation: |\n" + "    Literal\n" + "    scalar\n" + "- id: escapedQuoted\n" + "  translation:\n" + "    \"Generated with " + "\\" + "\n" + "    exact continuity.\"\n" + "- id: foldedQuoted\n" + "  translation: \"Folded\n" + "  quoted scalar\"\n" + "- id: singleQuoted\n" + "  translation:\n" + "    'Single\n" + "    quoted ''value'''\n" + "- id: plainWithQuotes\n" + "  translation: Tagged '{{ . }}'\n");
                 I18nStore store = new I18nStore();
                 store.loadFromDir(themeDirectory);
                 store.loadFromDir(siteDirectory);
@@ -153,7 +153,7 @@ namespace Tsumo.Tests
                 string? result = Tsonic.CSharp.Js.Map.getReference<string, string>(results, token);
                 if (result is null)
                 {
-                    throw new System.Exception("Expected a finalized deferred-template result");
+                    throw new Tsonic.CSharp.Runtime.Error("Expected a finalized deferred-template result");
                 }
                 first = Tsonic.CSharp.Js.String.replaceAll(first, token, result);
                 second = Tsonic.CSharp.Js.String.replaceAll(second, token, result);
@@ -177,7 +177,7 @@ namespace Tsumo.Tests
                 string? result = Tsonic.CSharp.Js.Map.getReference<string, string>(results, token);
                 if (result is null)
                 {
-                    throw new System.Exception("Expected a finalized deferred-template result");
+                    throw new Tsonic.CSharp.Runtime.Error("Expected a finalized deferred-template result");
                 }
                 output = Tsonic.CSharp.Js.String.replaceAll(output, token, result);
             }
@@ -217,8 +217,21 @@ namespace Tsumo.Tests
         public void template_regular_expression_functions_preserve_matches_groups_and_limits()
         {
             Xunit.Assert.Equal("ab,ac", TemplateTestHarness.render("{{ delimit (findRE `a.` `ab ac ad` 2) `,` }}"));
+            Xunit.Assert.Equal("ab,ac,ad", TemplateTestHarness.render("{{ delimit (findRE `a.` `ab ac ad`) `,` }}"));
+            Xunit.Assert.Equal("", TemplateTestHarness.render("{{ delimit (findRE `a.` `ab ac ad` 0) `,` }}"));
+            Xunit.Assert.Equal(",,", TemplateTestHarness.render("{{ delimit (findRE `(?:)` `ab`) `,` }}"));
             Xunit.Assert.Equal("item42|item|42|item|42", TemplateTestHarness.render("{{ range findRESubmatch `([a-z]+)([0-9]+)` `item42` }}" + "{{ delimit . `|` }}|{{ index . 1 }}|{{ index . 2 }}{{ end }}"));
+            Xunit.Assert.Equal("b|", TemplateTestHarness.render("{{ range findRESubmatch `(a)?b` `b` }}{{ delimit . `|` }}{{ end }}"));
             Xunit.Assert.Equal("x2 item3", TemplateTestHarness.render("{{ replaceRE `item` `x` `item2 item3` 1 }}"));
+            Xunit.Assert.Equal("x2 x3", TemplateTestHarness.render("{{ replaceRE `item` `x` `item2 item3` }}"));
+            Xunit.Assert.Equal("item2 item3", TemplateTestHarness.render("{{ replaceRE `item` `x` `item2 item3` 0 }}"));
+            Xunit.Assert.Equal("&lt;&gt;a2", TemplateTestHarness.render("{{ replaceRE `(a)?b` `<$1>` `b` 1 }}{{ replaceRE `(a)` `$12` `a` 1 }}"));
+            Xunit.Assert.Equal("a|$00", TemplateTestHarness.render("{{ replaceRE `(a)` `$01` `a` 1 }}|{{ replaceRE `(a)` `$00` `a` 1 }}"));
+            Xunit.Assert.Equal("item-42-$-item42", TemplateTestHarness.render("{{ replaceRE `(?<word>[a-z]+)([0-9]+)` `$<word>-$2-$$-$&` `item42` 1 }}"));
+            Xunit.Assert.Equal("TSUMO_TEMPLATE_REGEXP_INVALID", TemplateTestHarness.captureDiagnosticCode(() =>
+            {
+                TemplateTestHarness.render("{{ findRE `(` `value` }}");
+            }));
         }
         [Xunit.FactAttribute]
         public void template_scanning_preserves_unicode_scalars_and_utf16_locations()

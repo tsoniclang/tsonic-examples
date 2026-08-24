@@ -6,16 +6,18 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct DocsContentRouteState {
-    pub(crate) route: crate::docs::routes::DocsMarkdownRoute,
-    pub(crate) parsed: crate::frontmatter::parsed_content::ParsedContent,
-    pub(crate) modified_at: js_abi::JsDate,
+pub struct DocsContentRouteState {
+    pub route: crate::docs::routes::DocsMarkdownRoute,
+    pub parsed: crate::frontmatter::parsed_content::ParsedContent,
+    pub modified_at: js_abi::JsDate,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct DocsContentRoute {
-    pub(crate) state: rt::ObjectHandle<DocsContentRouteState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<DocsContentRouteState>,
 }
 
 impl DocsContentRoute {
@@ -24,11 +26,11 @@ impl DocsContentRoute {
         parsed: crate::frontmatter::parsed_content::ParsedContent,
         modified_at: js_abi::JsDate,
     ) -> DocsContentRoute {
-        let field_route: crate::docs::routes::DocsMarkdownRoute = route.clone();
-        let field_parsed: crate::frontmatter::parsed_content::ParsedContent = parsed.clone();
-        let field_modified_at: js_abi::JsDate = modified_at.clone();
+        let field_route: crate::docs::routes::DocsMarkdownRoute = route;
+        let field_parsed: crate::frontmatter::parsed_content::ParsedContent = parsed;
+        let field_modified_at: js_abi::JsDate = modified_at;
         DocsContentRoute {
-            state: rt::ObjectHandle::new(DocsContentRouteState {
+            state: rt::ObjectRef::new(DocsContentRouteState {
                 route: field_route,
                 parsed: field_parsed,
                 modified_at: field_modified_at,
@@ -37,16 +39,18 @@ impl DocsContentRoute {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct DocsContentInventoryState {
-    pub(crate) index_by_directory: js_abi::JsMap<String, DocsContentRoute>,
-    pub(crate) leaves: js_abi::JsArray<DocsContentRoute>,
-    pub(crate) permalink_by_relative_path: js_abi::JsMap<String, String>,
+pub struct DocsContentInventoryState {
+    pub index_by_directory: js_abi::JsMap<String, DocsContentRoute>,
+    pub leaves: js_abi::JsArray<DocsContentRoute>,
+    pub permalink_by_relative_path: js_abi::JsMap<String, String>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct DocsContentInventory {
-    pub(crate) state: rt::ObjectHandle<DocsContentInventoryState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<DocsContentInventoryState>,
 }
 
 impl DocsContentInventory {
@@ -55,13 +59,12 @@ impl DocsContentInventory {
         leaves: js_abi::JsArray<DocsContentRoute>,
         permalink_by_relative_path: js_abi::JsMap<String, String>,
     ) -> DocsContentInventory {
-        let field_index_by_directory: js_abi::JsMap<String, DocsContentRoute> =
-            index_by_directory.clone();
-        let field_leaves: js_abi::JsArray<DocsContentRoute> = leaves.clone();
+        let field_index_by_directory: js_abi::JsMap<String, DocsContentRoute> = index_by_directory;
+        let field_leaves: js_abi::JsArray<DocsContentRoute> = leaves;
         let field_permalink_by_relative_path: js_abi::JsMap<String, String> =
-            permalink_by_relative_path.clone();
+            permalink_by_relative_path;
         DocsContentInventory {
-            state: rt::ObjectHandle::new(DocsContentInventoryState {
+            state: rt::ObjectRef::new(DocsContentInventoryState {
                 index_by_directory: field_index_by_directory,
                 leaves: field_leaves,
                 permalink_by_relative_path: field_permalink_by_relative_path,
@@ -70,103 +73,78 @@ impl DocsContentInventory {
     }
 }
 
-pub type LoadDocsContentCallable =
-    rt::Callable<
-        (
-            js_abi::JsArray<crate::docs::routes::DocsMarkdownRoute>,
-            bool,
-        ),
-        rt::TsonicResult<DocsContentInventory>,
-    >;
-
-std::thread_local! {
-    pub static LOAD_DOCS_CONTENT: rt::ModuleCell<LoadDocsContentCallable> = const { rt::ModuleCell::new() };
-}
-
-#[doc(hidden)]
-pub fn module_init() {
+pub fn load_docs_content(
+    routes: js_abi::JsArray<crate::docs::routes::DocsMarkdownRoute>,
+    build_drafts: bool,
+) -> Result<DocsContentInventory, rt::TsonicError> {
+    let index_by_directory: js_abi::JsMap<String, DocsContentRoute> = js_abi::JsMap::new();
+    let leaves: js_abi::JsArray<DocsContentRoute> = js_abi::JsArray::from_dense(vec![]);
+    let permalink_by_relative_path: js_abi::JsMap<String, String> = js_abi::JsMap::new();
     {
-        let module_value = rt::Callable::<
-            (
-                js_abi::JsArray<crate::docs::routes::DocsMarkdownRoute>,
-                bool,
-            ),
-            rt::TsonicResult<DocsContentInventory>,
-        >::new(move |callable_arguments| {
-            let routes = callable_arguments.0;
-            let build_drafts = callable_arguments.1;
-            let index_by_directory: js_abi::JsMap<String, DocsContentRoute> = js_abi::JsMap::new();
-            let leaves: js_abi::JsArray<DocsContentRoute> = js_abi::JsArray::from_dense(vec![]);
-            let permalink_by_relative_path: js_abi::JsMap<String, String> = js_abi::JsMap::new();
+        let mut index: f64 = 0.0;
+        'loop_value: while index < (tsonic_rust_runtime::conversions::usize_to_i32(routes.len())? as f64) {
+            let route: crate::docs::routes::DocsMarkdownRoute = match routes
+                .get_number(index)
+                .as_ref()
             {
-                let mut index: f64 = 0.0;
-                'loop_value: while index < (tsonic_rust_runtime::conversions::usize_to_i32(routes.len())? as f64)
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
+            let parsed: crate::frontmatter::parsed_content::ParsedContent =
+                crate::frontmatter::parse::parse_content(
+                    crate::fs::read_text_file(route.state.with(|state| state.source_path.clone()))?,
+                    Some(route.state.with(|state| state.source_path.clone())),
+                )?;
+            let content: DocsContentRoute = DocsContentRoute::new(
+                route.clone(),
+                parsed.clone(),
+                js_abi::JsDate::from_millis(tsonic_rust_node::fs::stat_sync(&route.state.with(
+                    |state| state.source_path.clone(),
+                ))?
+                .mtime_ms()),
+            );
+            if route.state.with(|state| state.is_index) {
                 {
-                    let route: crate::docs::routes::DocsMarkdownRoute = match routes
-                        .get_number(index)
-                        .as_ref()
-                    {
-                        Some(flow_value) => flow_value.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    };
-                    let parsed: crate::frontmatter::parsed_content::ParsedContent =
-                        crate::frontmatter::parse::parse_content(
-                            crate::fs::READ_TEXT_FILE
-                                .with(|module_binding| module_binding.load())
-                                .call((route.state.with(|state| state.source_path.clone()),))?,
-                            Some(route.state.with(|state| state.source_path.clone())),
-                        )?;
-                    let content: DocsContentRoute = DocsContentRoute::new(
-                        route.clone(),
-                        parsed.clone(),
-                        js_abi::JsDate::from_millis(
-                            tsonic_rust_node::fs::stat_sync(&route
-                                .state
-                                .with(|state| state.source_path.clone()))
-                            .map_err(tsonic_rust_runtime::TsonicError::from)?
-                            .mtime_ms(),
-                        ),
-                    );
-                    if route.state.with(|state| state.is_index) {
-                        index_by_directory.set(
-                            route.state.with(|state| state.dir_key.clone()),
-                            content.clone(),
-                        );
-                        permalink_by_relative_path.set(
-                            js_string::to_lower_case(&route
-                                .state
-                                .with(|state| state.rel_path.clone())),
-                            route.state.with(|state| state.rel_permalink.clone()),
-                        );
-                        index += 1.0;
-                        continue 'loop_value;
-                    }
-                    if parsed
-                        .state
-                        .with(|state| state.front_matter.clone())
-                        .state
-                        .with(|state| state.draft)
-                        && !build_drafts
-                    {
-                        index += 1.0;
-                        continue 'loop_value;
-                    }
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        leaves.push_many([content.clone()]),
-                    )?;
-                    permalink_by_relative_path.set(
+                    let operation_input_0 = index_by_directory.clone();
+                    operation_input_0.set_discard(
+                        route.state.with(|state| state.dir_key.clone()),
+                        content.clone(),
+                    )
+                };
+                {
+                    let operation_input_0_2 = permalink_by_relative_path.clone();
+                    operation_input_0_2.set_discard(
                         js_string::to_lower_case(&route.state.with(|state| state.rel_path.clone())),
                         route.state.with(|state| state.rel_permalink.clone()),
-                    );
-                    index += 1.0;
-                }
+                    )
+                };
+                index += 1.0;
+                continue 'loop_value;
             }
-            Ok::<_, rt::TsonicError>(DocsContentInventory::new(
-                index_by_directory.clone(),
-                leaves.clone(),
-                permalink_by_relative_path.clone(),
-            ))
-        });
-        LOAD_DOCS_CONTENT.with(|module_binding| module_binding.initialize(module_value))
-    };
+            if parsed
+                .state
+                .with(|state| state.front_matter.clone())
+                .state
+                .with(|state| state.draft)
+                && !build_drafts
+            {
+                index += 1.0;
+                continue 'loop_value;
+            }
+            leaves.push_many_discard([content.clone()]);
+            {
+                let operation_input_0_3 = permalink_by_relative_path.clone();
+                operation_input_0_3.set_discard(
+                    js_string::to_lower_case(&route.state.with(|state| state.rel_path.clone())),
+                    route.state.with(|state| state.rel_permalink.clone()),
+                )
+            };
+            index += 1.0;
+        }
+    }
+    Ok(DocsContentInventory::new(
+        index_by_directory.clone(),
+        leaves.clone(),
+        permalink_by_relative_path.clone(),
+    ))
 }

@@ -83,21 +83,21 @@ namespace Tsumo.Tests
         public void site_data_layers_are_structured_deterministic_and_conflict_checked()
         {
             string root = TestRoot.createTestDirectory("theme-data-layers");
-            string siteDirectory = System.IO.Path.Combine(root, "site");
-            string themeDirectory = System.IO.Path.Combine(root, "theme");
-            string mountDirectory = System.IO.Path.Combine(root, "module-data");
+            string siteDirectory = Tsonic.CSharp.Node.path.join(root, "site");
+            string themeDirectory = Tsonic.CSharp.Node.path.join(root, "theme");
+            string mountDirectory = Tsonic.CSharp.Node.path.join(root, "module-data");
             try
             {
-                System.IO.Directory.CreateDirectory(System.IO.Path.Combine(siteDirectory, "data"));
-                System.IO.Directory.CreateDirectory(System.IO.Path.Combine(themeDirectory, "data", "nested"));
-                System.IO.Directory.CreateDirectory(mountDirectory);
-                System.IO.File.WriteAllText(System.IO.Path.Combine(themeDirectory, "data", "theme.toml"), "value = \"theme\"\n");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(themeDirectory, "data", "shared.toml"), "value = \"theme\"\n");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(themeDirectory, "data", "nested", "entry.json"), "{\"value\":\"nested\"}");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(mountDirectory, "module.json"), "{\"value\":\"module\"}");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(mountDirectory, "shared.json"), "{\"value\":\"module\"}");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(siteDirectory, "data", "site.yaml"), "value: site\n");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(siteDirectory, "data", "shared.yaml"), "value: site\n");
+                TestRoot.createDirectory(Tsonic.CSharp.Node.path.join(siteDirectory, "data"));
+                TestRoot.createDirectory(Tsonic.CSharp.Node.path.join(themeDirectory, "data", "nested"));
+                TestRoot.createDirectory(mountDirectory);
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(themeDirectory, "data", "theme.toml"), "value = \"theme\"\n");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(themeDirectory, "data", "shared.toml"), "value = \"theme\"\n");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(themeDirectory, "data", "nested", "entry.json"), "{\"value\":\"nested\"}");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(mountDirectory, "module.json"), "{\"value\":\"module\"}");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(mountDirectory, "shared.json"), "{\"value\":\"module\"}");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(siteDirectory, "data", "site.yaml"), "value: site\n");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(siteDirectory, "data", "shared.yaml"), "value: site\n");
                 DictValue data = Node_modules_Tsumo_engine_src_template_dataLoader.loadSiteData(siteDirectory, themeDirectory, new Tsonic.CSharp.Js.JSArray<ModuleMount>(new ModuleMount[] { new ModuleMount(mountDirectory, "data") }));
                 TestTemplateEnvironment environment = new TestTemplateEnvironment();
                 environment.setSiteData(data);
@@ -105,7 +105,7 @@ namespace Tsumo.Tests
                 PageContext page = TemplateTestHarness.createPage(site, "Home", "", "home");
                 Template template = Node_modules_Tsumo_engine_src_template_parser_parseTemplate.parseTemplate("{{ hugo.Data.theme.value }}|{{ hugo.Data.module.value }}|" + "{{ .Site.Data.shared.value }}|{{ hugo.Data.nested.entry.value }}", null);
                 Xunit.Assert.Equal("theme|module|site|nested", environment.renderTemplate(template, new PageValue(page), site, new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>()));
-                System.IO.File.WriteAllText(System.IO.Path.Combine(siteDirectory, "data", "shared.toml"), "value = \"duplicate\"\n");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(siteDirectory, "data", "shared.toml"), "value = \"duplicate\"\n");
                 Xunit.Assert.Equal("TSUMO_DATA_IDENTITY_CONFLICT", TemplateTestHarness.captureDiagnosticCode(() =>
                 {
                     Node_modules_Tsumo_engine_src_template_dataLoader.loadSiteData(siteDirectory, themeDirectory, new Tsonic.CSharp.Js.JSArray<ModuleMount>(new ModuleMount[] { new ModuleMount(mountDirectory, "data") }));
@@ -120,13 +120,13 @@ namespace Tsumo.Tests
         public void embedded_page_image_partial_selects_published_page_resources()
         {
             string root = TestRoot.createTestDirectory("embedded-page-images");
-            string siteDirectory = System.IO.Path.Combine(root, "site");
-            string bundleDirectory = System.IO.Path.Combine(siteDirectory, "content", "home");
-            string outputDirectory = System.IO.Path.Combine(root, "output");
+            string siteDirectory = Tsonic.CSharp.Node.path.join(root, "site");
+            string bundleDirectory = Tsonic.CSharp.Node.path.join(siteDirectory, "content", "home");
+            string outputDirectory = Tsonic.CSharp.Node.path.join(root, "output");
             try
             {
-                System.IO.Directory.CreateDirectory(bundleDirectory);
-                System.IO.File.WriteAllText(System.IO.Path.Combine(bundleDirectory, "cover.svg"), "<svg></svg>");
+                TestRoot.createDirectory(bundleDirectory);
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(bundleDirectory, "cover.svg"), "<svg></svg>");
                 string? source = Node_modules_Tsumo_engine_src_template_embeddedTemplates.getEmbeddedTemplateSource("_partials/_funcs/get-page-images.html");
                 if (source is null)
                 {

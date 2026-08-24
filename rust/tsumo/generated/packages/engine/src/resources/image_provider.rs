@@ -6,27 +6,27 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ImageResizeRequestState {
-    pub(crate) width: i32,
-    pub(crate) height: i32,
-    pub(crate) format: Option<String>,
+pub struct ImageResizeRequestState {
+    pub width: i32,
+    pub height: i32,
+    pub format: Option<String>,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct ImageResizeRequest {
-    pub(crate) state: rt::ObjectHandle<ImageResizeRequestState>,
+pub struct ImageResizeRequest {
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<ImageResizeRequestState>,
 }
 
 impl ImageResizeRequest {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new(width: i32, height: i32, format: Option<String>) -> ImageResizeRequest {
         let field_width: i32 = width;
         let field_height: i32 = height;
-        let field_format: Option<String> = format.clone();
+        let field_format: Option<String> = format;
         ImageResizeRequest {
-            state: rt::ObjectHandle::new(ImageResizeRequestState {
+            state: rt::ObjectRef::new(ImageResizeRequestState {
                 width: field_width,
                 height: field_height,
                 format: field_format,
@@ -35,396 +35,356 @@ impl ImageResizeRequest {
     }
 }
 
-type ParsePositiveDimensionCallable = rt::Callable<(String, String), rt::TsonicResult<i32>>;
-
-std::thread_local! {
-    pub(crate) static PARSE_POSITIVE_DIMENSION: rt::ModuleCell<ParsePositiveDimensionCallable> = const { rt::ModuleCell::new() };
-}
-
-type ParseImageResizeRequestCallable =
-    rt::Callable<(String,), rt::TsonicResult<ImageResizeRequest>>;
-
-std::thread_local! {
-    pub(crate) static PARSE_IMAGE_RESIZE_REQUEST: rt::ModuleCell<ParseImageResizeRequestCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type ResizeImageResourceCallable =
-    rt::Callable<
-        (crate::resources::models::Resource, String),
-        rt::TsonicResult<crate::resources::models::Resource>,
-    >;
-
-std::thread_local! {
-    pub static RESIZE_IMAGE_RESOURCE: rt::ModuleCell<ResizeImageResourceCallable> = const { rt::ModuleCell::new() };
-}
-
-#[doc(hidden)]
-pub fn module_init() {
+pub fn parse_positive_dimension(value: String, spec: String) -> Result<i32, rt::TsonicError> {
+    if value.is_empty() {
+        return Ok(0);
+    }
+    let parsed: Option<i32> = crate::utils::int32::parse_int32(&value)?;
+    if parsed.is_none()
+        || (match parsed.as_ref() {
+            Some(flow_value) => *flow_value,
+            None => unreachable!("checked flow selected a missing optional value"),
+        }) <= 0
     {
-        let module_value =
-            rt::Callable::<(String, String), rt::TsonicResult<i32>>::new(move |callable_arguments| {
-                let value = callable_arguments.0;
-                let spec = callable_arguments.1;
-                if value.is_empty() {
-                    return Ok::<_, rt::TsonicError>(0);
-                }
-                let parsed: Option<i32> = crate::utils::int32::parse_int32(&value)?;
-                if parsed.is_none()
-                    || (match parsed.as_ref() {
-                        Some(flow_value) => *flow_value,
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }) <= 0
-                {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                        String::from("TSUMO_IMAGE_RESIZE_SPEC_INVALID"),
-                        format!(
-                            "{}{}{}",
-                            String::from("Invalid image resize specification: "),
-                            rt::source_string(&spec),
-                            String::from(""),
-                        ),
-                        None,
-                        None,
-                        None,
-                    )));
-                }
-                Ok::<_, rt::TsonicError>(match parsed.as_ref() {
-                    Some(flow_value_2) => *flow_value_2,
-                    None => unreachable!("checked flow selected a missing optional value"),
-                })
-            });
-        PARSE_POSITIVE_DIMENSION.with(|module_binding| module_binding.initialize(module_value))
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_IMAGE_RESIZE_SPEC_INVALID"),
+            format!("{}{}", String::from("Invalid image resize specification: "), spec),
+            None,
+            None,
+            None,
+        )));
+    }
+    Ok(match parsed.as_ref() {
+        Some(flow_value_2) => *flow_value_2,
+        None => unreachable!("checked flow selected a missing optional value"),
+    })
+}
+
+pub fn parse_image_resize_request(spec: String) -> Result<ImageResizeRequest, rt::TsonicError> {
+    let tokens: js_abi::JsArray<String> =
+        js_string::split_all(&js_string::to_lower_case(&js_string::trim(&spec)), " ")?
+            .filter(|token| !token.is_empty());
+    if tsonic_rust_runtime::conversions::usize_to_i32(tokens.len())? == 0 {
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_IMAGE_RESIZE_SPEC_INVALID"),
+            String::from("Image resize specification cannot be empty"),
+            None,
+            None,
+            None,
+        )));
+    }
+    let dimensions: String = match tokens.get_number(0.0).as_ref() {
+        Some(flow_value) => flow_value.clone(),
+        None => unreachable!("checked flow selected a missing optional value"),
     };
+    let separator: i32 =
+        tsonic_rust_runtime::conversions::isize_to_i32(js_string::index_of_from_start(
+            &dimensions, "x",
+        ))?;
+    let width: i32;
+    let height: i32;
+    if separator < 0 {
+        width = parse_positive_dimension(dimensions.clone(), spec.clone())?;
+        height = 0;
+    } else {
+        width = parse_positive_dimension(
+            js_string::slice_to(
+                &dimensions,
+                0.0,
+                tsonic_rust_runtime::conversions::i32_to_f64(separator),
+            )?,
+            spec.clone(),
+        )?;
+        height = parse_positive_dimension(
+            js_string::slice(
+                &dimensions,
+                tsonic_rust_runtime::conversions::i32_to_f64(separator + 1),
+                None,
+            )?,
+            spec.clone(),
+        )?;
+    }
+    if width == 0 && height == 0 {
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_IMAGE_RESIZE_SPEC_INVALID"),
+            format!("{}{}", String::from("Invalid image resize specification: "), spec),
+            None,
+            None,
+            None,
+        )));
+    }
+    let mut format: Option<String> = Option::<String>::None;
     {
-        let module_value_2 = rt::Callable::<
-            (String,),
-            rt::TsonicResult<ImageResizeRequest>,
-        >::new(move |callable_arguments_2| {
-            let spec = callable_arguments_2.0;
-            let tokens: js_abi::JsArray<String> =
-                js_string::split_all(&js_string::to_lower_case(&js_string::trim(&spec)), " ")
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?
-                    .filter(|token| !token.is_empty());
-            if tsonic_rust_runtime::conversions::usize_to_i32(tokens.len())? == 0 {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                    String::from("TSUMO_IMAGE_RESIZE_SPEC_INVALID"),
-                    String::from("Image resize specification cannot be empty"),
-                    None,
-                    None,
-                    None,
-                )));
-            }
-            let dimensions: String = match tokens.get_number(0.0).as_ref() {
-                Some(flow_value_3) => flow_value_3.clone(),
+        let mut index: f64 = 1.0;
+        'loop_value: while index < (tsonic_rust_runtime::conversions::usize_to_i32(tokens.len())? as f64) {
+            let token: String = match tokens.get_number(index).as_ref() {
+                Some(flow_value_2) => flow_value_2.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let separator: i32 =
-                tsonic_rust_runtime::conversions::isize_to_i32(js_string::index_of_from_start(
-                    &dimensions, "x",
-                ))?;
-            let width: i32;
-            let height: i32;
-            if separator < 0 {
-                width = PARSE_POSITIVE_DIMENSION
-                    .with(|module_binding| module_binding.load())
-                    .call((dimensions.clone(), spec.clone()))?;
-                height = 0;
-            } else {
-                width = PARSE_POSITIVE_DIMENSION
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        js_string::slice_to(
-                            &dimensions,
-                            0.0,
-                            tsonic_rust_runtime::conversions::i32_to_f64(separator),
-                        )
-                        .map_err(tsonic_rust_runtime::TsonicError::from)?,
-                        spec.clone(),
-                    ))?;
-                height = PARSE_POSITIVE_DIMENSION
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        js_string::slice(
-                            &dimensions,
-                            tsonic_rust_runtime::conversions::i32_to_f64(separator + 1),
-                            None,
-                        )
-                        .map_err(tsonic_rust_runtime::TsonicError::from)?,
-                        spec.clone(),
-                    ))?;
-            }
-            if width == 0 && height == 0 {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                    String::from("TSUMO_IMAGE_RESIZE_SPEC_INVALID"),
-                    format!(
-                        "{}{}{}",
-                        String::from("Invalid image resize specification: "),
-                        rt::source_string(&spec),
-                        String::from(""),
-                    ),
-                    None,
-                    None,
-                    None,
-                )));
-            }
-            let mut format: Option<String> = Option::<String>::None;
+            if token == "jpg"
+                || token == "jpeg"
+                || token == "png"
+                || token == "gif"
+                || token == "webp"
             {
-                let mut index: f64 = 1.0;
-                'loop_value: while index < (tsonic_rust_runtime::conversions::usize_to_i32(tokens.len())? as f64)
-                {
-                    let token: String = match tokens.get_number(index).as_ref() {
-                        Some(flow_value_4) => flow_value_4.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    };
-                    if token == "jpg"
-                        || token == "jpeg"
-                        || token == "png"
-                        || token == "gif"
-                        || token == "webp"
-                    {
-                        if format.is_some() {
-                            return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                                String::from("TSUMO_IMAGE_RESIZE_SPEC_INVALID"),
-                                format!(
-                                    "{}{}{}",
-                                    String::from("Image resize format is specified more than once: "),
-                                    rt::source_string(&spec),
-                                    String::from(""),
-                                ),
-                                None,
-                                None,
-                                None,
-                            )));
-                        }
-                        format = if token == "jpeg" {
-                            Some(String::from("jpg"))
-                        } else {
-                            Some(token.clone())
-                        };
-                        index += 1.0;
-                        continue 'loop_value;
-                    }
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                        String::from("TSUMO_IMAGE_RESIZE_OPTION_UNSUPPORTED"),
+                if format.is_some() {
+                    return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+                        String::from("TSUMO_IMAGE_RESIZE_SPEC_INVALID"),
                         format!(
-                            "{}{}{}",
-                            String::from("Unsupported image resize option '"),
-                            rt::source_string(&token),
-                            String::from("'"),
+                            "{}{}",
+                            String::from("Image resize format is specified more than once: "),
+                            spec,
                         ),
                         None,
                         None,
                         None,
                     )));
                 }
+                format = if token == "jpeg" {
+                    Some(String::from("jpg"))
+                } else {
+                    Some(token.clone())
+                };
+                index += 1.0;
+                continue 'loop_value;
             }
-            Ok::<_, rt::TsonicError>(ImageResizeRequest::new(width, height, format.clone()))
-        });
-        PARSE_IMAGE_RESIZE_REQUEST
-            .with(|module_binding_2| module_binding_2.initialize(module_value_2))
-    };
-    {
-        let module_value_3 = rt::Callable::<
-            (crate::resources::models::Resource, String),
-            rt::TsonicResult<crate::resources::models::Resource>,
-        >::new(move |callable_arguments_3| {
-            let resource = callable_arguments_3.0;
-            let specification = callable_arguments_3.1;
-            let request: ImageResizeRequest = PARSE_IMAGE_RESIZE_REQUEST
-                .with(|module_binding| module_binding.load())
-                .call((specification.clone(),))?;
-            let mut width: i32 = request.state.with(|state| state.width);
-            let mut height: i32 = request.state.with(|state| state.height);
-            if width == 0
-                && resource.state.with(|state| state.width) > 0
-                && resource.state.with(|state| state.height) > 0
-            {
-                width =
-                    resource.state.with(|state| state.width) * height
-                        / resource.state.with(|state| state.height);
-            } else {
-                if height == 0
-                    && resource.state.with(|state| state.width) > 0
-                    && resource.state.with(|state| state.height) > 0
-                {
-                    height =
-                        resource.state.with(|state| state.height) * width
-                            / resource.state.with(|state| state.width);
-                }
-            }
-            if width <= 0 || height <= 0 {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                    String::from("TSUMO_IMAGE_DIMENSIONS_UNKNOWN"),
-                    String::from("Image resizing with one automatic dimension requires known source dimensions"),
-                    None,
-                    None,
-                    None,
-                )));
-            }
-            let source_name: String = rt::option_coalesce(
-                rt::option_coalesce(
-                    resource.state.with(|state| state.output_rel_path.clone()),
-                    Some,
-                    || resource.state.with(|state| state.source_path.clone()),
+            return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+                String::from("TSUMO_IMAGE_RESIZE_OPTION_UNSUPPORTED"),
+                format!(
+                    "{}{}{}",
+                    String::from("Unsupported image resize option '"),
+                    token,
+                    String::from("'"),
                 ),
+                None,
+                None,
+                None,
+            )));
+        }
+    }
+    Ok(ImageResizeRequest::new(width, height, format.clone()))
+}
+
+pub fn resize_image_resource(
+    resource: crate::resources::models::Resource,
+    specification: String,
+) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+    let request: ImageResizeRequest = parse_image_resize_request(specification.clone())?;
+    let mut width: i32 = request.state.with(|state| state.width);
+    let mut height: i32 = request.state.with(|state| state.height);
+    if width == 0
+        && {
+            let dispatch_receiver = &resource;
+            dispatch_receiver.dispatch.read_resource_width()
+        } > 0
+        && {
+            let dispatch_receiver_2 = &resource;
+            dispatch_receiver_2.dispatch.read_resource_height()
+        } > 0
+    {
+        width =
+            {
+                let dispatch_receiver_3 = &resource;
+                dispatch_receiver_3.dispatch.read_resource_width()
+            } * height
+                / {
+                    let dispatch_receiver_4 = &resource;
+                    dispatch_receiver_4.dispatch.read_resource_height()
+                };
+    } else {
+        if height == 0
+            && {
+                let dispatch_receiver_5 = &resource;
+                dispatch_receiver_5.dispatch.read_resource_width()
+            } > 0
+            && {
+                let dispatch_receiver_6 = &resource;
+                dispatch_receiver_6.dispatch.read_resource_height()
+            } > 0
+        {
+            height =
+                {
+                    let dispatch_receiver_7 = &resource;
+                    dispatch_receiver_7.dispatch.read_resource_height()
+                } * width
+                    / {
+                        let dispatch_receiver_8 = &resource;
+                        dispatch_receiver_8.dispatch.read_resource_width()
+                    };
+        }
+    }
+    if width <= 0 || height <= 0 {
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_IMAGE_DIMENSIONS_UNKNOWN"),
+            String::from("Image resizing with one automatic dimension requires known source dimensions"),
+            None,
+            None,
+            None,
+        )));
+    }
+    let source_name: String = rt::option_coalesce(
+        rt::option_coalesce(
+            {
+                let dispatch_receiver_9 = &resource;
+                dispatch_receiver_9.dispatch.read_resource_output_rel_path()
+            },
+            Some,
+            || {
+                let dispatch_receiver_10 = &resource;
+                dispatch_receiver_10.dispatch.read_resource_source_path()
+            },
+        ),
+        std::convert::identity,
+        || String::from(""),
+    );
+    let source_extension: String =
+        js_string::to_lower_case(&tsonic_rust_node::path::extname(&source_name));
+    if source_extension.is_empty() {
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_IMAGE_FORMAT_UNKNOWN"),
+            String::from("Image resizing requires a source file format"),
+            None,
+            None,
+            None,
+        )));
+    }
+    let output_extension: String = if request.state.with(|state| state.format.clone()).is_none() {
+        source_extension.clone()
+    } else {
+        format!(
+            "{}{}",
+            String::from("."),
+            match request.state.with(|state| state.format.clone()).as_ref() {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            },
+        )
+    };
+    let work_directory: String = tsonic_rust_node::fs::mkdtemp_sync(&tsonic_rust_node::path::join(
+        &[tsonic_rust_node::os::tmpdir()?.as_str(), "tsumo-image-"],
+    ))?;
+    let try_body: rt::TsonicResult<rt::Completion<crate::resources::models::Resource>> =
+        rt::completion_region(|| {
+            let input_path: String = tsonic_rust_node::path::join(&[
+                work_directory.as_str(),
+                format!("{}{}", String::from("input"), source_extension).as_str(),
+            ]);
+            let output_path: String = tsonic_rust_node::path::join(&[
+                work_directory.as_str(),
+                format!("{}{}", String::from("output"), output_extension).as_str(),
+            ]);
+            {
+                let operation_input_0 = input_path.clone();
+                tsonic_rust_node::fs::write_file_sync_buffer(
+                    &operation_input_0,
+                    &{
+                        let dispatch_receiver_11 = &resource;
+                        dispatch_receiver_11.dispatch.read_resource_bytes()
+                    },
+                )
+            }?;
+            {
+                let operation_input_0_2 = input_path.clone();
+                let operation_input_1 = output_path.clone();
+                tsumo_platform::resize_image(
+                    &operation_input_0_2,
+                    &operation_input_1,
+                    width,
+                    height,
+                    &js_string::slice(&output_extension, 1.0, None)?,
+                )
+            }?;
+            let output_bytes: tsonic_rust_node::buffer::Buffer =
+                tsonic_rust_node::fs::read_file_sync_buffer(&output_path)?;
+            let mut output_width: i32 = width;
+            let mut output_height: i32 = height;
+            let dimensions: Option<crate::resources::models::ImageDimensions> =
+                crate::resources::image_dimensions::parse_image_dimensions(output_bytes.clone())?;
+            if dimensions.is_some() {
+                output_width = (match dimensions.as_ref() {
+    Some(flow_value_2) => flow_value_2.clone(),
+    None => unreachable!("checked flow selected a missing optional value"),
+}).state.with(|state| state.width);
+                output_height = (match dimensions.as_ref() {
+    Some(flow_value_3) => flow_value_3.clone(),
+    None => unreachable!("checked flow selected a missing optional value"),
+}).state.with(|state| state.height);
+            }
+            let output_rel_path: String = rt::option_coalesce(
+                {
+                    let dispatch_receiver_12 = &resource;
+                    dispatch_receiver_12
+                        .dispatch
+                        .read_resource_output_rel_path()
+                },
                 std::convert::identity,
                 || String::from(""),
             );
-            let source_extension: String =
-                js_string::to_lower_case(&tsonic_rust_node::path::extname(&source_name));
-            if source_extension.is_empty() {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                    String::from("TSUMO_IMAGE_FORMAT_UNKNOWN"),
-                    String::from("Image resizing requires a source file format"),
-                    None,
-                    None,
-                    None,
-                )));
-            }
-            let output_extension: String = if request
-                .state
-                .with(|state| state.format.clone())
-                .is_none()
-            {
-                source_extension.clone()
-            } else {
+            let path: crate::resources::paths::ResourcePathParts =
+                crate::resources::paths::split_resource_path(output_rel_path)?;
+            let file: crate::resources::paths::ResourceFileNameParts =
+                crate::resources::paths::split_resource_file_name(
+                    path.state.with(|state| state.file_name.clone()),
+                )?;
+            let output_file: String = format!(
+                "{}{}{}{}{}{}",
+                file.state.with(|state| state.base_name.clone()),
+                String::from("_"),
+                rt::source_string(&output_width),
+                String::from("x"),
+                rt::source_string(&output_height),
+                output_extension,
+            );
+            Ok(rt::Completion::Return(crate::resources::models::Resource::new(
                 format!(
                     "{}{}{}",
-                    String::from("."),
-                    rt::source_string(&match request
-                        .state
-                        .with(|state| state.format.clone())
-                        .as_ref()
                     {
-                        Some(flow_value_5) => flow_value_5.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },),
-                    String::from(""),
-                )
-            };
-            let work_directory: String =
-                tsonic_rust_node::fs::mkdtemp_sync(&tsonic_rust_node::path::join(
-                    &[
-                        tsonic_rust_node::os::tmpdir()
-                            .map_err(tsonic_rust_runtime::TsonicError::from)?
-                            .as_str(),
-                        "tsumo-image-",
-                    ],
-                ))
-                .map_err(tsonic_rust_runtime::TsonicError::from)?;
-            let try_body: rt::TsonicResult<rt::Completion<crate::resources::models::Resource>> =
-                rt::completion_region(|| {
-                    let input_path: String = tsonic_rust_node::path::join(&[
-                        work_directory.as_str(),
-                        format!("{}{}", String::from("input"), source_extension).as_str(),
-                    ]);
-                    let output_path: String = tsonic_rust_node::path::join(&[
-                        work_directory.as_str(),
-                        format!("{}{}", String::from("output"), output_extension).as_str(),
-                    ]);
-                    tsonic_rust_node::fs::write_file_sync_buffer(
-                        &input_path,
-                        &resource.state.with(|state| state.bytes.clone()),
-                    )
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                    tsumo_platform::resize_image(
-                        &input_path,
-                        &output_path,
-                        width,
-                        height,
-                        &js_string::slice(&output_extension, 1.0, None)
-                            .map_err(tsonic_rust_runtime::TsonicError::from)?,
-                    )?;
-                    let output_bytes: tsonic_rust_node::buffer::Buffer =
-                        tsonic_rust_node::fs::read_file_sync_buffer(&output_path)
-                            .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                    let mut output_width: i32 = width;
-                    let mut output_height: i32 = height;
-                    let dimensions: Option<crate::resources::models::ImageDimensions> =
-                        crate::resources::image_dimensions::parse_image_dimensions(
-                            output_bytes.clone(),
-                        )?;
-                    if dimensions.is_some() {
-                        output_width = (match dimensions.as_ref() {
-    Some(flow_value_6) => flow_value_6.clone(),
-    None => unreachable!("checked flow selected a missing optional value"),
-}).state.with(|state| state.width);
-                        output_height = (match dimensions.as_ref() {
-    Some(flow_value_7) => flow_value_7.clone(),
-    None => unreachable!("checked flow selected a missing optional value"),
-}).state.with(|state| state.height);
-                    }
-                    let output_rel_path: String = rt::option_coalesce(
-                        resource.state.with(|state| state.output_rel_path.clone()),
-                        std::convert::identity,
-                        || String::from(""),
-                    );
-                    let path: crate::resources::paths::ResourcePathParts =
-                        crate::resources::paths::SPLIT_RESOURCE_PATH
-                            .with(|module_binding| module_binding.load())
-                            .call((output_rel_path.clone(),))?;
-                    let file: crate::resources::paths::ResourceFileNameParts =
-                        crate::resources::paths::SPLIT_RESOURCE_FILE_NAME
-                            .with(|module_binding| module_binding.load())
-                            .call((path.state.with(|state| state.file_name.clone()),))?;
-                    let output_file: String = format!(
-                        "{}{}{}{}{}{}{}{}{}",
-                        String::from(""),
-                        rt::source_string(&file.state.with(|state| state.base_name.clone())),
-                        String::from("_"),
-                        rt::source_string(&output_width),
-                        String::from("x"),
-                        rt::source_string(&output_height),
-                        String::from(""),
-                        rt::source_string(&output_extension),
-                        String::from(""),
-                    );
-                    Ok(rt::Completion::Return(crate::resources::models::Resource::new(
-                        format!(
-                            "{}{}{}{}{}",
-                            String::from(""),
-                            rt::source_string(&resource.state.with(|state| state.id.clone())),
-                            String::from("|resize:"),
-                            rt::source_string(&specification),
-                            String::from(""),
-                        ),
-                        Option::<String>::None,
-                        true,
-                        Some(format!(
-                            "{}{}",
-                            path.state.with(|state| state.directory.clone()),
-                            output_file,
-                        )),
-                        output_bytes.clone(),
-                        Option::<String>::None,
-                        crate::resources::models::ResourceData::new(String::from("")),
-                        Some(crate::resources::media_types::resource_media_type_for_extension(
-                            &output_extension,
-                        )),
-                        Some(output_width),
-                        Some(output_height),
-                    )))
-                });
-            let try_flow = try_body;
-            let finally_flow: rt::TsonicResult<rt::Completion<crate::resources::models::Resource>> =
-                rt::completion_region(|| {
-                    tsonic_rust_node::fs::rm_sync(&work_directory, true, true)
-                        .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                    Ok(rt::Completion::Normal)
-                });
-            let try_flow: rt::TsonicResult<rt::Completion<crate::resources::models::Resource>> =
-                rt::finish_finally(try_flow, finally_flow);
-            let try_flow = try_flow?;
-            match try_flow {
-                rt::Completion::Normal => {
-                    unreachable!("terminating Tsonic completion scope completed normally")
-                }
-                rt::Completion::Return(value) => Ok(value),
-                rt::Completion::Break(_) | rt::Completion::Continue(_) => {
-                    unreachable!("invalid finalized Tsonic completion target")
-                }
-            }
+                        let dispatch_receiver_13 = &resource;
+                        dispatch_receiver_13.dispatch.read_resource_id()
+                    },
+                    String::from("|resize:"),
+                    specification,
+                ),
+                Option::<String>::None,
+                true,
+                Some(format!(
+                    "{}{}",
+                    path.state.with(|state| state.directory.clone()),
+                    output_file,
+                )),
+                output_bytes.clone(),
+                Option::<String>::None,
+                crate::resources::models::ResourceData::new(String::from("")),
+                Some(crate::resources::media_types::resource_media_type_for_extension(
+                    &output_extension,
+                )),
+                Some(output_width),
+                Some(output_height),
+            )))
         });
-        RESIZE_IMAGE_RESOURCE.with(|module_binding_3| module_binding_3.initialize(module_value_3))
-    };
+    let try_flow = try_body;
+    let finally_flow: rt::TsonicResult<rt::Completion<crate::resources::models::Resource>> =
+        rt::completion_region(|| {
+            tsonic_rust_node::fs::rm_sync_with_options(
+                &work_directory,
+                tsonic_rust_node::fs::RmOptions {
+                    recursive: Some(true),
+                    force: Some(true),
+                    ..Default::default()
+                },
+            )?;
+            Ok(rt::Completion::Normal)
+        });
+    let try_flow: rt::TsonicResult<rt::Completion<crate::resources::models::Resource>> =
+        rt::finish_finally(try_flow, finally_flow);
+    let try_flow = try_flow?;
+    match try_flow {
+        rt::Completion::Normal => {
+            unreachable!("terminating Tsonic completion scope completed normally")
+        }
+        rt::Completion::Return(value) => Ok(value),
+        rt::Completion::Break(_) | rt::Completion::Continue(_) => {
+            unreachable!("invalid finalized Tsonic completion target")
+        }
+    }
 }

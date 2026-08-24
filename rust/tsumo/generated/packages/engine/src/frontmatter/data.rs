@@ -4,24 +4,26 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct FrontMatterState {
-    pub(crate) title: Option<String>,
-    pub(crate) date: Option<js_abi::JsDate>,
-    pub(crate) draft: bool,
-    pub(crate) tags: js_abi::JsArray<String>,
-    pub(crate) categories: js_abi::JsArray<String>,
-    pub(crate) description: Option<String>,
-    pub(crate) slug: Option<String>,
-    pub(crate) layout: Option<String>,
-    pub(crate) r#type: Option<String>,
-    pub(crate) params: js_abi::JsMap<String, crate::params::ParamValue>,
-    pub(crate) menus: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu>,
+pub struct FrontMatterState {
+    pub title: Option<String>,
+    pub date: Option<js_abi::JsDate>,
+    pub draft: bool,
+    pub tags: js_abi::JsArray<String>,
+    pub categories: js_abi::JsArray<String>,
+    pub description: Option<String>,
+    pub slug: Option<String>,
+    pub layout: Option<String>,
+    pub r#type: Option<String>,
+    pub params: js_abi::JsMap<String, crate::params::ParamValue>,
+    pub menus: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct FrontMatter {
-    pub(crate) state: rt::ObjectHandle<FrontMatterState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectHandle<FrontMatterState>,
 }
 
 impl FrontMatter {
@@ -39,8 +41,7 @@ impl FrontMatter {
         let field_params: js_abi::JsMap<String, crate::params::ParamValue> = js_abi::JsMap::new();
         let empty_menus: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu> =
             js_abi::JsArray::from_dense(vec![]);
-        let field_menus: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu> =
-            empty_menus.clone();
+        let field_menus: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu> = empty_menus;
         FrontMatter {
             state: rt::ObjectHandle::new(FrontMatterState {
                 title: field_title,

@@ -4,29 +4,136 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct MenuEntryState {
-    pub(crate) name: String,
-    pub(crate) url: String,
-    pub(crate) page_ref: String,
-    pub(crate) title: String,
-    pub(crate) weight: i32,
-    pub(crate) parent: String,
-    pub(crate) identifier: String,
-    pub(crate) pre: String,
-    pub(crate) post: String,
-    pub(crate) menu: String,
-    pub(crate) params: js_abi::JsMap<String, crate::params::ParamValue>,
-    pub(crate) page: Option<crate::models::page_context::PageContext>,
-    pub(crate) children: js_abi::JsArray<MenuEntry>,
+pub trait MenuEntryDispatch {
+    fn downcast_menu_entry_to_menu_entry(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn MenuEntryDispatch>>;
+    fn read_menu_entry_name(&self) -> String;
+    fn write_menu_entry_name(&self, value: String);
+    fn read_menu_entry_url(&self) -> String;
+    fn write_menu_entry_url(&self, value: String);
+    fn read_menu_entry_page_ref(&self) -> String;
+    fn write_menu_entry_page_ref(&self, value: String);
+    fn read_menu_entry_title(&self) -> String;
+    fn write_menu_entry_title(&self, value: String);
+    fn read_menu_entry_weight(&self) -> i32;
+    fn write_menu_entry_weight(&self, value: i32);
+    fn read_menu_entry_parent(&self) -> String;
+    fn write_menu_entry_parent(&self, value: String);
+    fn read_menu_entry_identifier(&self) -> String;
+    fn write_menu_entry_identifier(&self, value: String);
+    fn read_menu_entry_pre(&self) -> String;
+    fn write_menu_entry_pre(&self, value: String);
+    fn read_menu_entry_post(&self) -> String;
+    fn write_menu_entry_post(&self, value: String);
+    fn read_menu_entry_menu(&self) -> String;
+    fn write_menu_entry_menu(&self, value: String);
+    fn read_menu_entry_params(&self) -> js_abi::JsMap<String, crate::params::ParamValue>;
+    fn write_menu_entry_params(&self, value: js_abi::JsMap<String, crate::params::ParamValue>);
+    fn read_menu_entry_page(&self) -> Option<crate::models::page_context::PageContext>;
+    fn write_menu_entry_page(&self, value: Option<crate::models::page_context::PageContext>);
+    fn read_menu_entry_children(&self) -> js_abi::JsArray<MenuEntry>;
+    fn write_menu_entry_children(&self, value: js_abi::JsArray<MenuEntry>);
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct MenuEntryState {
+    pub name: String,
+    pub url: String,
+    pub page_ref: String,
+    pub title: String,
+    pub weight: i32,
+    pub parent: String,
+    pub identifier: String,
+    pub pre: String,
+    pub post: String,
+    pub menu: String,
+    pub params: js_abi::JsMap<String, crate::params::ParamValue>,
+    pub page: Option<crate::models::page_context::PageContext>,
+    pub children: js_abi::JsArray<MenuEntry>,
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+#[derive(Clone)]
 pub struct MenuEntry {
-    pub(crate) state: rt::ObjectHandle<MenuEntryState>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn MenuEntryDispatch>,
+}
+
+impl std::fmt::Debug for MenuEntry {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("MenuEntry")
+    }
+}
+
+impl PartialEq for MenuEntry {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+    }
+}
+
+impl Eq for MenuEntry {}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub(crate) struct MenuEntryRoot {
+    identity: rt::ObjectIdentity,
+    state: rt::ObjectHandle<MenuEntryState>,
 }
 
 impl MenuEntry {
+    #[doc(hidden)]
+    #[expect(clippy::too_many_arguments, reason = "checked source signature")]
+    pub fn initialize_state(
+        name: String,
+        url: String,
+        page_ref: String,
+        title: String,
+        weight: i32,
+        parent: String,
+        identifier: String,
+        pre: String,
+        post: String,
+        menu: String,
+        params: Option<js_abi::JsMap<String, crate::params::ParamValue>>,
+    ) -> MenuEntryState {
+        let field_name: String = name;
+        let field_url: String = url;
+        let field_page_ref: String = page_ref;
+        let field_title: String = title;
+        let field_weight: i32 = weight;
+        let field_parent: String = parent;
+        let field_identifier: String = identifier;
+        let field_pre: String = pre;
+        let field_post: String = post;
+        let field_menu: String = menu;
+        let field_params: js_abi::JsMap<String, crate::params::ParamValue> =
+            rt::option_coalesce(params, std::convert::identity, js_abi::JsMap::new);
+        let field_page: Option<crate::models::page_context::PageContext> =
+            Option::<crate::models::page_context::PageContext>::None;
+        let empty: js_abi::JsArray<MenuEntry> = js_abi::JsArray::from_dense(vec![]);
+        let field_children: js_abi::JsArray<MenuEntry> = empty;
+        MenuEntryState {
+            name: field_name,
+            url: field_url,
+            page_ref: field_page_ref,
+            title: field_title,
+            weight: field_weight,
+            parent: field_parent,
+            identifier: field_identifier,
+            pre: field_pre,
+            post: field_post,
+            menu: field_menu,
+            params: field_params,
+            page: field_page,
+            children: field_children,
+        }
+    }
+
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     pub fn new(
         name: String,
@@ -41,38 +148,139 @@ impl MenuEntry {
         menu: String,
         params: Option<js_abi::JsMap<String, crate::params::ParamValue>>,
     ) -> MenuEntry {
-        let field_name: String = name.clone();
-        let field_url: String = url.clone();
-        let field_page_ref: String = page_ref.clone();
-        let field_title: String = title.clone();
-        let field_weight: i32 = weight;
-        let field_parent: String = parent.clone();
-        let field_identifier: String = identifier.clone();
-        let field_pre: String = pre.clone();
-        let field_post: String = post.clone();
-        let field_menu: String = menu.clone();
-        let field_params: js_abi::JsMap<String, crate::params::ParamValue> =
-            rt::option_coalesce(params.clone(), std::convert::identity, js_abi::JsMap::new);
-        let field_page: Option<crate::models::page_context::PageContext> =
-            Option::<crate::models::page_context::PageContext>::None;
-        let empty: js_abi::JsArray<MenuEntry> = js_abi::JsArray::from_dense(vec![]);
-        let field_children: js_abi::JsArray<MenuEntry> = empty.clone();
+        let state = MenuEntry::initialize_state(
+            name,
+            url,
+            page_ref,
+            title,
+            weight,
+            parent,
+            identifier,
+            pre,
+            post,
+            menu,
+            params,
+        );
+        let identity = rt::ObjectIdentity::new();
+        let root = std::rc::Rc::new(MenuEntryRoot {
+            identity: identity.clone(),
+            state: rt::ObjectHandle::new(state),
+        });
         MenuEntry {
-            state: rt::ObjectHandle::new(MenuEntryState {
-                name: field_name,
-                url: field_url,
-                page_ref: field_page_ref,
-                title: field_title,
-                weight: field_weight,
-                parent: field_parent,
-                identifier: field_identifier,
-                pre: field_pre,
-                post: field_post,
-                menu: field_menu,
-                params: field_params,
-                page: field_page,
-                children: field_children,
-            }),
+            identity,
+            dispatch: root,
         }
+    }
+}
+
+impl MenuEntryDispatch for MenuEntryRoot {
+    fn downcast_menu_entry_to_menu_entry(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn MenuEntryDispatch>> {
+        Some(self)
+    }
+
+    fn read_menu_entry_name(&self) -> String {
+        self.state.with(|state| state.name.clone())
+    }
+
+    fn write_menu_entry_name(&self, value: String) {
+        self.state.with_mut(|state| state.name = value);
+    }
+
+    fn read_menu_entry_url(&self) -> String {
+        self.state.with(|state| state.url.clone())
+    }
+
+    fn write_menu_entry_url(&self, value: String) {
+        self.state.with_mut(|state| state.url = value);
+    }
+
+    fn read_menu_entry_page_ref(&self) -> String {
+        self.state.with(|state| state.page_ref.clone())
+    }
+
+    fn write_menu_entry_page_ref(&self, value: String) {
+        self.state.with_mut(|state| state.page_ref = value);
+    }
+
+    fn read_menu_entry_title(&self) -> String {
+        self.state.with(|state| state.title.clone())
+    }
+
+    fn write_menu_entry_title(&self, value: String) {
+        self.state.with_mut(|state| state.title = value);
+    }
+
+    fn read_menu_entry_weight(&self) -> i32 {
+        self.state.with(|state| state.weight)
+    }
+
+    fn write_menu_entry_weight(&self, value: i32) {
+        self.state.with_mut(|state| state.weight = value);
+    }
+
+    fn read_menu_entry_parent(&self) -> String {
+        self.state.with(|state| state.parent.clone())
+    }
+
+    fn write_menu_entry_parent(&self, value: String) {
+        self.state.with_mut(|state| state.parent = value);
+    }
+
+    fn read_menu_entry_identifier(&self) -> String {
+        self.state.with(|state| state.identifier.clone())
+    }
+
+    fn write_menu_entry_identifier(&self, value: String) {
+        self.state.with_mut(|state| state.identifier = value);
+    }
+
+    fn read_menu_entry_pre(&self) -> String {
+        self.state.with(|state| state.pre.clone())
+    }
+
+    fn write_menu_entry_pre(&self, value: String) {
+        self.state.with_mut(|state| state.pre = value);
+    }
+
+    fn read_menu_entry_post(&self) -> String {
+        self.state.with(|state| state.post.clone())
+    }
+
+    fn write_menu_entry_post(&self, value: String) {
+        self.state.with_mut(|state| state.post = value);
+    }
+
+    fn read_menu_entry_menu(&self) -> String {
+        self.state.with(|state| state.menu.clone())
+    }
+
+    fn write_menu_entry_menu(&self, value: String) {
+        self.state.with_mut(|state| state.menu = value);
+    }
+
+    fn read_menu_entry_params(&self) -> js_abi::JsMap<String, crate::params::ParamValue> {
+        self.state.with(|state| state.params.clone())
+    }
+
+    fn write_menu_entry_params(&self, value: js_abi::JsMap<String, crate::params::ParamValue>) {
+        self.state.with_mut(|state| state.params = value);
+    }
+
+    fn read_menu_entry_page(&self) -> Option<crate::models::page_context::PageContext> {
+        self.state.with(|state| state.page.clone())
+    }
+
+    fn write_menu_entry_page(&self, value: Option<crate::models::page_context::PageContext>) {
+        self.state.with_mut(|state| state.page = value);
+    }
+
+    fn read_menu_entry_children(&self) -> js_abi::JsArray<MenuEntry> {
+        self.state.with(|state| state.children.clone())
+    }
+
+    fn write_menu_entry_children(&self, value: js_abi::JsArray<MenuEntry>) {
+        self.state.with_mut(|state| state.children = value);
     }
 }

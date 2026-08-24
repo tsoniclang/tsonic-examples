@@ -4,40 +4,57 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 pub mod bundle_resources;
 
+#[doc(hidden)]
 pub mod content_model;
 
+#[doc(hidden)]
 pub mod discover_content;
 
+#[doc(hidden)]
 pub mod layout;
 
+#[doc(hidden)]
 pub mod menu_resolution;
 
+#[doc(hidden)]
 pub mod output_plan;
 
+#[doc(hidden)]
 pub mod plan_content_outputs;
 
+#[doc(hidden)]
 pub mod plan_home_output;
 
+#[doc(hidden)]
 pub mod plan_list_outputs;
 
+#[doc(hidden)]
 pub mod plan_taxonomy_outputs;
 
+#[doc(hidden)]
 pub mod render_page_content;
 
+#[doc(hidden)]
 pub mod site_routes;
 
+#[doc(hidden)]
 pub mod standard_page_graph;
 
+#[doc(hidden)]
 pub mod standard_site;
 
+#[doc(hidden)]
 pub mod standard_taxonomies;
 
+#[doc(hidden)]
 pub mod standard_templates;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait BuildRequestDispatch {
+pub trait BuildRequestDispatch {
     fn downcast_build_request_to_build_request(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn BuildRequestDispatch>>;
@@ -60,22 +77,31 @@ pub(crate) trait BuildRequestDispatch {
     fn write_build_request_build_time(&self, value: js_abi::JsDate);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct BuildRequestState {
-    pub(crate) site_dir: String,
-    pub(crate) destination_dir: String,
-    pub(crate) base_url: Option<String>,
-    pub(crate) themes_dir: Option<String>,
-    pub(crate) build_drafts: bool,
-    pub(crate) clean_destination_dir: bool,
-    pub(crate) build_time: js_abi::JsDate,
+pub struct BuildRequestState {
+    pub site_dir: String,
+    pub destination_dir: String,
+    pub base_url: Option<String>,
+    pub themes_dir: Option<String>,
+    pub build_drafts: bool,
+    pub clean_destination_dir: bool,
+    pub build_time: js_abi::JsDate,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct BuildRequest {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn BuildRequestDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn BuildRequestDispatch>,
+}
+
+impl std::fmt::Debug for BuildRequest {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("BuildRequest")
+    }
 }
 
 impl PartialEq for BuildRequest {
@@ -93,8 +119,9 @@ pub(crate) struct BuildRequestRoot {
 }
 
 impl BuildRequest {
-    pub(crate) fn initialize_state(site_dir: String) -> BuildRequestState {
-        let field_site_dir: String = site_dir.clone();
+    #[doc(hidden)]
+    pub fn initialize_state(site_dir: String) -> BuildRequestState {
+        let field_site_dir: String = site_dir;
         let field_destination_dir: String = String::from("public");
         let field_base_url: Option<String> = Option::<String>::None;
         let field_themes_dir: Option<String> = Option::<String>::None;
@@ -184,8 +211,7 @@ impl BuildRequestDispatch for BuildRequestRoot {
     }
 
     fn write_build_request_clean_destination_dir(&self, value: bool) {
-        self
-            .state
+        self.state
             .with_mut(|state| state.clean_destination_dir = value);
     }
 
@@ -198,8 +224,9 @@ impl BuildRequestDispatch for BuildRequestRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait ServeRequestDispatch: BuildRequestDispatch {
+pub trait ServeRequestDispatch: BuildRequestDispatch {
     fn downcast_serve_request_to_serve_request(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn ServeRequestDispatch>>;
@@ -211,19 +238,29 @@ pub(crate) trait ServeRequestDispatch: BuildRequestDispatch {
     fn write_serve_request_watch(&self, value: bool);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ServeRequestState {
-    pub(crate) base: BuildRequestState,
-    pub(crate) host: String,
-    pub(crate) port: i32,
-    pub(crate) watch: bool,
+pub struct ServeRequestState {
+    #[doc(hidden)]
+    pub base: BuildRequestState,
+    pub host: String,
+    pub port: i32,
+    pub watch: bool,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct ServeRequest {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn ServeRequestDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn ServeRequestDispatch>,
+}
+
+impl std::fmt::Debug for ServeRequest {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("ServeRequest")
+    }
 }
 
 impl PartialEq for ServeRequest {
@@ -241,8 +278,9 @@ pub(crate) struct ServeRequestRoot {
 }
 
 impl ServeRequest {
-    pub(crate) fn initialize_state(site_dir: String) -> ServeRequestState {
-        let base_state = BuildRequest::initialize_state(site_dir.clone());
+    #[doc(hidden)]
+    pub fn initialize_state(site_dir: String) -> ServeRequestState {
+        let base_state = BuildRequest::initialize_state(site_dir);
         let field_host: String = String::from("localhost");
         let field_port: i32 = 1313;
         let field_watch: bool = true;
@@ -294,8 +332,7 @@ impl BuildRequestDispatch for ServeRequestRoot {
     }
 
     fn write_build_request_destination_dir(&self, value: String) {
-        self
-            .state
+        self.state
             .with_mut(|state| state.base.destination_dir = value);
     }
 
@@ -328,8 +365,7 @@ impl BuildRequestDispatch for ServeRequestRoot {
     }
 
     fn write_build_request_clean_destination_dir(&self, value: bool) {
-        self
-            .state
+        self.state
             .with_mut(|state| state.base.clean_destination_dir = value);
     }
 
@@ -374,26 +410,99 @@ impl ServeRequestDispatch for ServeRequestRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct BuildResultState {
-    pub(crate) output_dir: String,
-    pub(crate) pages_built: i32,
+pub trait BuildResultDispatch {
+    fn downcast_build_result_to_build_result(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn BuildResultDispatch>>;
+    fn read_build_result_output_dir(&self) -> String;
+    fn write_build_result_output_dir(&self, value: String);
+    fn read_build_result_pages_built(&self) -> i32;
+    fn write_build_result_pages_built(&self, value: i32);
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct BuildResultState {
+    pub output_dir: String,
+    pub pages_built: i32,
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+#[derive(Clone)]
 pub struct BuildResult {
-    pub(crate) state: rt::ObjectHandle<BuildResultState>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn BuildResultDispatch>,
+}
+
+impl std::fmt::Debug for BuildResult {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("BuildResult")
+    }
+}
+
+impl PartialEq for BuildResult {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+    }
+}
+
+impl Eq for BuildResult {}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub(crate) struct BuildResultRoot {
+    identity: rt::ObjectIdentity,
+    state: rt::ObjectHandle<BuildResultState>,
 }
 
 impl BuildResult {
-    pub fn new(output_dir: String, pages_built: i32) -> BuildResult {
-        let field_output_dir: String = output_dir.clone();
+    #[doc(hidden)]
+    pub fn initialize_state(output_dir: String, pages_built: i32) -> BuildResultState {
+        let field_output_dir: String = output_dir;
         let field_pages_built: i32 = pages_built;
-        BuildResult {
-            state: rt::ObjectHandle::new(BuildResultState {
-                output_dir: field_output_dir,
-                pages_built: field_pages_built,
-            }),
+        BuildResultState {
+            output_dir: field_output_dir,
+            pages_built: field_pages_built,
         }
+    }
+
+    pub fn new(output_dir: String, pages_built: i32) -> BuildResult {
+        let state = BuildResult::initialize_state(output_dir, pages_built);
+        let identity = rt::ObjectIdentity::new();
+        let root = std::rc::Rc::new(BuildResultRoot {
+            identity: identity.clone(),
+            state: rt::ObjectHandle::new(state),
+        });
+        BuildResult {
+            identity,
+            dispatch: root,
+        }
+    }
+}
+
+impl BuildResultDispatch for BuildResultRoot {
+    fn downcast_build_result_to_build_result(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn BuildResultDispatch>> {
+        Some(self)
+    }
+
+    fn read_build_result_output_dir(&self) -> String {
+        self.state.with(|state| state.output_dir.clone())
+    }
+
+    fn write_build_result_output_dir(&self, value: String) {
+        self.state.with_mut(|state| state.output_dir = value);
+    }
+
+    fn read_build_result_pages_built(&self) -> i32 {
+        self.state.with(|state| state.pages_built)
+    }
+
+    fn write_build_result_pages_built(&self, value: i32) {
+        self.state.with_mut(|state| state.pages_built = value);
     }
 }

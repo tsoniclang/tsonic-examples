@@ -4,9 +4,9 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
-pub fn handle_serve(args: js_abi::JsArray<String>) -> rt::TsonicResult<()> {
-    let mut serve_source_dir: String =
-        tsonic_rust_node::process::cwd().map_err(tsonic_rust_runtime::TsonicError::from)?;
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError> {
+    let mut serve_source_dir: String = tsonic_rust_node::process::cwd()?;
     let mut serve_destination_dir: String = String::from("public");
     let mut serve_base_url: Option<String> = Option::<String>::None;
     let mut serve_themes_dir: Option<String> = Option::<String>::None;
@@ -25,10 +25,9 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> rt::TsonicResult<()> {
             if a == "--source" || a == "-s" {
                 if i + 1.0 >= (tsonic_rust_runtime::conversions::usize_to_i32(args.len())? as f64) {
                     crate::report_usage_error::report_usage_error(format!(
-                        "{}{}{}",
+                        "{}{}",
                         String::from("Missing value for "),
-                        rt::source_string(&a),
-                        String::from(""),
+                        a,
                     ));
                     return Ok(());
                 }
@@ -43,10 +42,9 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> rt::TsonicResult<()> {
                         >= (tsonic_rust_runtime::conversions::usize_to_i32(args.len())? as f64)
                     {
                         crate::report_usage_error::report_usage_error(format!(
-                            "{}{}{}",
+                            "{}{}",
                             String::from("Missing value for "),
-                            rt::source_string(&a),
-                            String::from(""),
+                            a,
                         ));
                         return Ok(());
                     }
@@ -61,10 +59,9 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> rt::TsonicResult<()> {
                             >= (tsonic_rust_runtime::conversions::usize_to_i32(args.len())? as f64)
                         {
                             crate::report_usage_error::report_usage_error(format!(
-                                "{}{}{}",
+                                "{}{}",
                                 String::from("Missing value for "),
-                                rt::source_string(&a),
-                                String::from(""),
+                                a,
                             ));
                             return Ok(());
                         }
@@ -79,10 +76,9 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> rt::TsonicResult<()> {
                                 >= (tsonic_rust_runtime::conversions::usize_to_i32(args.len())? as f64)
                             {
                                 crate::report_usage_error::report_usage_error(format!(
-                                    "{}{}{}",
+                                    "{}{}",
                                     String::from("Missing value for "),
-                                    rt::source_string(&a),
-                                    String::from(""),
+                                    a,
                                 ));
                                 return Ok(());
                             }
@@ -97,10 +93,9 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> rt::TsonicResult<()> {
                                     >= (tsonic_rust_runtime::conversions::usize_to_i32(args.len())? as f64)
                                 {
                                     crate::report_usage_error::report_usage_error(format!(
-                                        "{}{}{}",
+                                        "{}{}",
                                         String::from("Missing value for "),
-                                        rt::source_string(&a),
-                                        String::from(""),
+                                        a,
                                     ));
                                     return Ok(());
                                 }
@@ -115,10 +110,9 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> rt::TsonicResult<()> {
                                         >= (tsonic_rust_runtime::conversions::usize_to_i32(args.len())? as f64)
                                     {
                                         crate::report_usage_error::report_usage_error(format!(
-                                            "{}{}{}",
+                                            "{}{}",
                                             String::from("Missing value for "),
-                                            rt::source_string(&a),
-                                            String::from(""),
+                                            a,
                                         ));
                                         return Ok(());
                                     }
@@ -152,10 +146,9 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> rt::TsonicResult<()> {
                                         }) > 65535
                                     {
                                         crate::report_usage_error::report_usage_error(format!(
-                                            "{}{}{}",
+                                            "{}{}",
                                             String::from("Invalid port: "),
-                                            rt::source_string(&port_text),
-                                            String::from(""),
+                                            port_text,
                                         ));
                                         return Ok(());
                                     }
@@ -181,10 +174,9 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> rt::TsonicResult<()> {
                                                         serve_clean = true;
                                                     } else {
                                                         crate::report_usage_error::report_usage_error(format!(
-                                                            "{}{}{}",
+                                                            "{}{}",
                                                             String::from("Unknown server option: "),
-                                                            rt::source_string(&a),
-                                                            String::from(""),
+                                                            a,
                                                         ));
                                                         return Ok(());
                                                     }
@@ -201,8 +193,8 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> rt::TsonicResult<()> {
             i += 1.0;
         }
     }
-    let serve_req: crate::node_modules::tsumo::engine::src::build::ServeRequest =
-        crate::node_modules::tsumo::engine::src::build::ServeRequest::new(serve_source_dir.clone());
+    let serve_req: tsumo_engine::ServeRequest =
+        tsumo_engine::ServeRequest::new(serve_source_dir.clone());
     {
         let receiver = &serve_req;
         let value = serve_destination_dir.clone();
@@ -300,6 +292,6 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> rt::TsonicResult<()> {
                 .write_build_request_build_time(value_9)
         }
     };
-    crate::node_modules::tsumo::engine::src::serve_site::serve_site(serve_req.clone())?;
+    tsumo_engine::serve_site(serve_req.clone())?;
     Ok(())
 }

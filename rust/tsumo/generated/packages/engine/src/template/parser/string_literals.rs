@@ -4,17 +4,17 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-pub(crate) fn invalid_string_literal(message: String) -> crate::diagnostics::TsumoError {
+pub fn invalid_string_literal(message: String) -> crate::diagnostics::TsumoError {
     crate::diagnostics::create_tsumo_error(
         String::from("TSUMO_TEMPLATE_STRING_ESCAPE_INVALID"),
-        message.clone(),
+        message,
         None,
         None,
         None,
     )
 }
 
-pub(crate) fn digit_value(character: &str, radix: i32) -> rt::TsonicResult<i32> {
+pub fn digit_value(character: &str, radix: i32) -> Result<i32, rt::TsonicError> {
     let value: i32 = crate::utils::strings::index_of_text(
         "0123456789abcdef",
         js_string::to_lower_case(character),
@@ -26,20 +26,19 @@ pub(crate) fn digit_value(character: &str, radix: i32) -> rt::TsonicResult<i32> 
     })
 }
 
-pub(crate) fn decode_fixed_escape(
+pub fn decode_fixed_escape(
     source: String,
     start: i32,
     count: i32,
     radix: i32,
     maximum: i32,
     description: String,
-) -> rt::TsonicResult<String> {
+) -> Result<String, rt::TsonicError> {
     if start + count > tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&source))? {
-        return Err(rt::TsonicError::from(invalid_string_literal(
+        return Err(rt::TsonicError::TsumoError(invalid_string_literal(
             format!(
-                "{}{}{}{}{}",
-                String::from(""),
-                rt::source_string(&description),
+                "{}{}{}{}",
+                description,
                 String::from(" requires exactly "),
                 rt::source_string(&count),
                 String::from(" digits"),
@@ -47,170 +46,145 @@ pub(crate) fn decode_fixed_escape(
         )));
     }
     let mut value: i32 = 0;
-    {
-        let mut offset: i32 = 0;
-        while offset < count {
-            let digit: i32 = digit_value(
-                &crate::utils::strings::code_point_at_text(&source, start + offset)?,
-                radix,
-            )?;
-            if digit < 0 {
-                return Err(rt::TsonicError::from(invalid_string_literal(
-                    format!(
-                        "{}{}{}",
-                        String::from(""),
-                        rt::source_string(&description),
-                        String::from(" contains an invalid digit"),
-                    ),
-                )));
-            }
-            let maximum_before_digit: i32 = tsonic_rust_runtime::conversions::f64_to_i32(
-                tsonic_rust_runtime::conversions::i32_to_f64((maximum - digit) / radix).floor(),
-            )?;
-            if value > maximum_before_digit {
-                return Err(rt::TsonicError::from(invalid_string_literal(
-                    format!(
-                        "{}{}{}",
-                        String::from(""),
-                        rt::source_string(&description),
-                        String::from(" is outside its valid range"),
-                    ),
-                )));
-            }
-            value = value * radix + digit;
-            offset += 1;
+    for offset in 0..count {
+        let digit: i32 = digit_value(
+            &crate::utils::strings::code_point_at_text(&source, start + offset)?,
+            radix,
+        )?;
+        if digit < 0 {
+            return Err(rt::TsonicError::TsumoError(invalid_string_literal(
+                format!("{}{}", description, String::from(" contains an invalid digit")),
+            )));
         }
+        let maximum_before_digit: i32 = tsonic_rust_runtime::conversions::f64_to_i32(
+            tsonic_rust_runtime::conversions::i32_to_f64((maximum - digit) / radix).floor(),
+        )?;
+        if value > maximum_before_digit {
+            return Err(rt::TsonicError::TsumoError(invalid_string_literal(
+                format!("{}{}", description, String::from(" is outside its valid range")),
+            )));
+        }
+        value = value * radix + digit;
     }
     if (55296..=57343).contains(&value) {
-        return Err(rt::TsonicError::from(invalid_string_literal(
+        return Err(rt::TsonicError::TsumoError(invalid_string_literal(
             format!(
-                "{}{}{}",
-                String::from(""),
-                rt::source_string(&description),
+                "{}{}",
+                description,
                 String::from(" does not name a Unicode scalar value"),
             ),
         )));
     }
-    Ok(
-        js_string::from_code_point(&[tsonic_rust_runtime::conversions::i32_to_f64(value)])
-            .map_err(tsonic_rust_runtime::TsonicError::from)?,
-    )
+    js_string::from_code_point(&[tsonic_rust_runtime::conversions::i32_to_f64(value)])
+        .map_err(rt::TsonicError::from)
 }
 
-pub(crate) fn decode_interpreted_string(inner: String, quote: String) -> rt::TsonicResult<String> {
+pub fn decode_interpreted_string(inner: String, quote: String) -> Result<String, rt::TsonicError> {
     let mut result: String = String::from("");
     let mut index: i32 = 0;
     'loop_value: while index < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&inner))? {
         let current: String = crate::utils::strings::code_point_at_text(&inner, index)?;
         if current == "\n" || current == "\r" {
-            return Err(rt::TsonicError::from(invalid_string_literal(String::from(
-                "Interpreted template strings cannot contain unescaped line breaks",
-            ))));
+            return Err(rt::TsonicError::TsumoError(invalid_string_literal(
+                String::from("Interpreted template strings cannot contain unescaped line breaks"),
+            )));
         }
         if current != "\\" {
-            {
-                let current_2 = result.clone();
-                result = format!("{}{}", current_2, current.clone())
-            };
-            index = crate::utils::strings::next_code_point_index(&inner, index)?;
+            result.push_str(&current);
+            index = crate::utils::strings::next_code_point_index(inner.clone(), index)?;
             continue 'loop_value;
         }
-        let escape_index: i32 = crate::utils::strings::next_code_point_index(&inner, index)?;
+        let escape_index: i32 =
+            crate::utils::strings::next_code_point_index(inner.clone(), index)?;
         if escape_index
             >= tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&inner))?
         {
-            return Err(rt::TsonicError::from(invalid_string_literal(String::from(
-                "Template string ends with an incomplete escape",
-            ))));
+            return Err(rt::TsonicError::TsumoError(invalid_string_literal(
+                String::from("Template string ends with an incomplete escape"),
+            )));
         }
         let escaped: String = crate::utils::strings::code_point_at_text(&inner, escape_index)?;
         if escaped == quote || escaped == "\\" {
-            {
-                let current_3 = result.clone();
-                result = format!("{}{}", current_3, escaped.clone())
-            };
-            index = crate::utils::strings::next_code_point_index(&inner, escape_index)?;
+            result.push_str(&escaped);
+            index = crate::utils::strings::next_code_point_index(inner.clone(), escape_index)?;
             continue 'loop_value;
         }
         if escaped == "a" {
-            {
-                let current_4 = result.clone();
-                result = format!("{}{}", current_4, String::from(""))
-            };
+            result.push('');
         } else {
             if escaped == "b" {
-                {
-                    let current_5 = result.clone();
-                    result = format!("{}{}", current_5, String::from(""))
-                };
+                result.push('');
             } else {
                 if escaped == "f" {
-                    {
-                        let current_6 = result.clone();
-                        result = format!("{}{}", current_6, String::from(""))
-                    };
+                    result.push('');
                 } else {
                     if escaped == "n" {
-                        {
-                            let current_7 = result.clone();
-                            result = format!("{}{}", current_7, String::from("\n"))
-                        };
+                        result.push('\n');
                     } else {
                         if escaped == "r" {
-                            {
-                                let current_8 = result.clone();
-                                result = format!("{}{}", current_8, String::from("\r"))
-                            };
+                            result.push('\r');
                         } else {
                             if escaped == "t" {
-                                {
-                                    let current_9 = result.clone();
-                                    result = format!("{}{}", current_9, String::from("\t"))
-                                };
+                                result.push('\t');
                             } else {
                                 if escaped == "v" {
-                                    {
-                                        let current_10 = result.clone();
-                                        result = format!("{}{}", current_10, String::from(""))
-                                    };
+                                    result.push('');
                                 } else {
                                     if digit_value(&escaped, 8)? >= 0 {
-                                        {
-                                            let current_11 = result.clone();
-                                            result = format!("{}{}", current_11, decode_fixed_escape(inner.clone(), escape_index, 3, 8, 255, String::from("Octal template string escape"))?)
-                                        };
+                                        result.push_str(&decode_fixed_escape(
+                                            inner.clone(),
+                                            escape_index,
+                                            3,
+                                            8,
+                                            255,
+                                            String::from("Octal template string escape"),
+                                        )?);
                                         index = escape_index + 3;
                                         continue 'loop_value;
                                     } else {
                                         if escaped == "x" {
-                                            {
-                                                let current_12 = result.clone();
-                                                result = format!("{}{}", current_12, decode_fixed_escape(inner.clone(), escape_index + 1, 2, 16, 255, String::from("Hexadecimal template string escape"))?)
-                                            };
+                                            result.push_str(&decode_fixed_escape(
+                                                inner.clone(),
+                                                escape_index + 1,
+                                                2,
+                                                16,
+                                                255,
+                                                String::from("Hexadecimal template string escape"),
+                                            )?);
                                             index = escape_index + 3;
                                             continue 'loop_value;
                                         } else {
                                             if escaped == "u" {
-                                                {
-                                                    let current_13 = result.clone();
-                                                    result = format!("{}{}", current_13, decode_fixed_escape(inner.clone(), escape_index + 1, 4, 16, 1114111, String::from("Unicode template string escape"))?)
-                                                };
+                                                result.push_str(&decode_fixed_escape(
+                                                    inner.clone(),
+                                                    escape_index + 1,
+                                                    4,
+                                                    16,
+                                                    1114111,
+                                                    String::from("Unicode template string escape"),
+                                                )?);
                                                 index = escape_index + 5;
                                                 continue 'loop_value;
                                             } else {
                                                 if escaped == "U" {
-                                                    {
-                                                        let current_14 = result.clone();
-                                                        result = format!("{}{}", current_14, decode_fixed_escape(inner.clone(), escape_index + 1, 8, 16, 1114111, String::from("Unicode template string escape"))?)
-                                                    };
+                                                    result.push_str(
+                                                        &decode_fixed_escape(
+                                                            inner.clone(),
+                                                            escape_index + 1,
+                                                            8,
+                                                            16,
+                                                            1114111,
+                                                            String::from("Unicode template string escape"),
+                                                        )?,
+                                                    );
                                                     index = escape_index + 9;
                                                     continue 'loop_value;
                                                 } else {
-                                                    return Err(rt::TsonicError::from(invalid_string_literal(
+                                                    return Err(rt::TsonicError::TsumoError(invalid_string_literal(
                                                         format!(
                                                             "{}{}{}",
                                                             String::from("Unsupported template string escape '\\"),
-                                                            rt::source_string(&escaped),
+                                                            escaped,
                                                             String::from("'"),
                                                         ),
                                                     )));
@@ -225,12 +199,12 @@ pub(crate) fn decode_interpreted_string(inner: String, quote: String) -> rt::Tso
                 }
             }
         }
-        index = crate::utils::strings::next_code_point_index(&inner, escape_index)?;
+        index = crate::utils::strings::next_code_point_index(inner.clone(), escape_index)?;
     }
-    Ok(result.clone())
+    Ok(result)
 }
 
-pub fn decode_template_string_literal(token: &str) -> rt::TsonicResult<Option<String>> {
+pub fn decode_template_string_literal(token: &str) -> Result<Option<String>, rt::TsonicError> {
     let value: String = js_string::trim(token);
     if tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&value))? < 2 {
         return Ok(Option::<String>::None);
@@ -248,10 +222,7 @@ pub fn decode_template_string_literal(token: &str) -> rt::TsonicResult<Option<St
         tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&value))? - 2,
     )?;
     Ok(if quote == "`" {
-        Some(
-            js_string::replace_all(&inner, "\r", "")
-                .map_err(tsonic_rust_runtime::TsonicError::from)?,
-        )
+        Some(js_string::replace_all(&inner, "\r", "")?)
     } else {
         Some(decode_interpreted_string(inner.clone(), quote.clone())?)
     })

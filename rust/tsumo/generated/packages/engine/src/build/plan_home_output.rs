@@ -10,28 +10,42 @@ pub fn plan_home_output(
     templates: crate::build::standard_templates::StandardTemplates,
     output_plan: crate::build::output_plan::SiteOutputPlan,
     sitemap_urls: js_abi::JsMap<String, bool>,
-) -> rt::TsonicResult<()> {
-    output_plan.add_text(
-        String::from("index.html"),
-        crate::build::layout::render_with_base(
-            {
-                let upcast_value = environment.clone();
-                crate::layouts::LayoutEnvironment {
-                    identity: upcast_value.identity.clone(),
-                    dispatch: upcast_value.dispatch.clone(),
-                }
-            },
-            templates.state.with(|state| state.base.clone()),
-            templates.state.with(|state| state.home.clone()),
-            graph.state.with(|state| state.home.clone()),
-        )?,
-        String::from("home page"),
-    )?;
-    sitemap_urls.set(String::from("/"), true);
-    let bundle_source: Option<String> = graph
-        .state
-        .with(|state| state.bundle_source_by_page.clone())
-        .get_eq(&graph.state.with(|state| state.home.clone()));
+) -> Result<(), rt::TsonicError> {
+    {
+        let dispatch_receiver_2 = output_plan.clone();
+        dispatch_receiver_2.dispatch.clone().dispatch_site_output_plan_add_text(
+            String::from("index.html"),
+            crate::build::layout::render_with_base(
+                {
+                    let upcast_value = environment;
+                    crate::layouts::LayoutEnvironment {
+                        identity: upcast_value.identity.clone(),
+                        dispatch: upcast_value.dispatch.clone(),
+                    }
+                },
+                templates.state.with(|state| state.base.clone()),
+                templates.state.with(|state| state.home.clone()),
+                {
+                    let dispatch_receiver = &graph;
+                    dispatch_receiver.dispatch.read_standard_page_graph_home()
+                },
+            )?,
+            String::from("home page"),
+        )
+    }?;
+    sitemap_urls.set_discard(String::from("/"), true);
+    let bundle_source: Option<String> = {
+        let operation_input_0 = {
+            let dispatch_receiver_3 = &graph;
+            dispatch_receiver_3
+                .dispatch
+                .read_standard_page_graph_bundle_source_by_page()
+        };
+        operation_input_0.get_eq(&{
+            let dispatch_receiver_4 = &graph;
+            dispatch_receiver_4.dispatch.read_standard_page_graph_home()
+        })
+    };
     if bundle_source.is_some() {
         crate::build::bundle_resources::add_bundle_resources(
             match bundle_source.as_ref() {

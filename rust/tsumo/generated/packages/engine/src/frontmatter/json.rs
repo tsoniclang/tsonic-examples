@@ -6,7 +6,7 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-pub(crate) fn invalid_shape(
+pub fn invalid_shape(
     field: String,
     expected: String,
     value: crate::utils::json::JsonValue,
@@ -15,14 +15,13 @@ pub(crate) fn invalid_shape(
     crate::diagnostics::create_tsumo_error(
         String::from("TSUMO_FRONTMATTER_FIELD_INVALID"),
         format!(
-            "{}{}{}{}{}",
+            "{}{}{}{}",
             String::from("Front matter field '"),
-            rt::source_string(&field),
+            field,
             String::from("' requires "),
-            rt::source_string(&expected),
-            String::from(""),
+            expected,
         ),
-        source_path.clone(),
+        source_path,
         Some(tsonic_rust_runtime::conversions::i32_to_f64({
             let dispatch_receiver = &value;
             dispatch_receiver.dispatch.read_json_value_line()
@@ -34,11 +33,11 @@ pub(crate) fn invalid_shape(
     )
 }
 
-pub(crate) fn require_string(
+pub fn require_string(
     field: String,
     value: crate::utils::json::JsonValue,
     source_path: Option<String>,
-) -> rt::TsonicResult<String> {
+) -> Result<String, rt::TsonicError> {
     if value
         .dispatch
         .clone()
@@ -60,19 +59,19 @@ pub(crate) fn require_string(
             dispatch_receiver.dispatch.read_json_string_value()
         });
     }
-    Err(rt::TsonicError::from(invalid_shape(
-        field.clone(),
+    Err(rt::TsonicError::TsumoError(invalid_shape(
+        field,
         String::from("a string"),
         value.clone(),
-        source_path.clone(),
+        source_path,
     )))
 }
 
-pub(crate) fn require_int(
+pub fn require_int(
     field: String,
     value: crate::utils::json::JsonValue,
     source_path: Option<String>,
-) -> rt::TsonicResult<i32> {
+) -> Result<i32, rt::TsonicError> {
     if value
         .dispatch
         .clone()
@@ -100,26 +99,26 @@ pub(crate) fn require_int(
             });
         }
     }
-    Err(rt::TsonicError::from(invalid_shape(
-        field.clone(),
+    Err(rt::TsonicError::TsumoError(invalid_shape(
+        field,
         String::from("a 32-bit integer"),
         value.clone(),
-        source_path.clone(),
+        source_path,
     )))
 }
 
-pub(crate) fn require_string_array(
+pub fn require_string_array(
     field: String,
     value: crate::utils::json::JsonValue,
     source_path: Option<String>,
-) -> rt::TsonicResult<js_abi::JsArray<String>> {
+) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
     if value
         .dispatch
         .clone()
         .downcast_json_value_to_json_array()
         .is_none()
     {
-        return Err(rt::TsonicError::from(invalid_shape(
+        return Err(rt::TsonicError::TsumoError(invalid_shape(
             field.clone(),
             String::from("an array of strings"),
             value.clone(),
@@ -159,22 +158,25 @@ pub(crate) fn require_string_array(
                 .downcast_json_value_to_json_string()
                 .is_some()
             {
-                tsonic_rust_runtime::conversions::usize_to_i32(result.push_many([{
-                    let dispatch_receiver_3 = &{
-                        let downcast_value_2 = &item;
-                        crate::utils::json::JsonString {
-                            identity: downcast_value_2.identity.clone(),
-                            dispatch: downcast_value_2
-                                .dispatch
-                                .clone()
-                                .downcast_json_value_to_json_string()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_3.dispatch.read_json_string_value()
-                }]))?;
+                {
+                    let operation_input_0 = result.clone();
+                    operation_input_0.push_many_discard([{
+                        let dispatch_receiver_3 = &{
+                            let downcast_value_2 = &item;
+                            crate::utils::json::JsonString {
+                                identity: downcast_value_2.identity.clone(),
+                                dispatch: downcast_value_2
+                                    .dispatch
+                                    .clone()
+                                    .downcast_json_value_to_json_string()
+                                    .unwrap(),
+                            }
+                        };
+                        dispatch_receiver_3.dispatch.read_json_string_value()
+                    }])
+                };
             } else {
-                return Err(rt::TsonicError::from(invalid_shape(
+                return Err(rt::TsonicError::TsumoError(invalid_shape(
                     field.clone(),
                     String::from("an array containing only strings"),
                     item.clone(),
@@ -184,14 +186,14 @@ pub(crate) fn require_string_array(
             index += 1.0;
         }
     }
-    Ok(result.clone())
+    Ok(result)
 }
 
-pub(crate) fn to_param(
+pub fn to_param(
     field: String,
     value: crate::utils::json::JsonValue,
     source_path: Option<String>,
-) -> rt::TsonicResult<crate::params::ParamValue> {
+) -> Result<crate::params::ParamValue, rt::TsonicError> {
     if value
         .dispatch
         .clone()
@@ -240,13 +242,11 @@ pub(crate) fn to_param(
         .downcast_json_value_to_json_number()
         .is_some()
     {
-        return Ok(crate::params::ParamValue::number(require_int(
-            field.clone(),
-            value.clone(),
-            source_path.clone(),
-        )?));
+        return Ok(crate::params::ParamValue::number(
+            require_int(field.clone(), value.clone(), source_path.clone())?,
+        ));
     }
-    Err(rt::TsonicError::from(invalid_shape(
+    Err(rt::TsonicError::TsumoError(invalid_shape(
         field.clone(),
         String::from("a string, boolean, or 32-bit integer"),
         value.clone(),
@@ -254,11 +254,11 @@ pub(crate) fn to_param(
     )))
 }
 
-pub(crate) fn assert_case_insensitive_keys_unique(
+pub fn assert_case_insensitive_keys_unique(
     value: crate::utils::json::JsonObject,
     context: String,
     source_path: Option<String>,
-) -> rt::TsonicResult<()> {
+) -> Result<(), rt::TsonicError> {
     let keys: js_abi::JsSet<String> = js_abi::JsSet::new();
     {
         let mut index: f64 = 0.0;
@@ -278,14 +278,13 @@ pub(crate) fn assert_case_insensitive_keys_unique(
             let key: String =
                 js_string::to_lower_case(&property.state.with(|state| state.key.clone()));
             if keys.has(&key) {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                     String::from("TSUMO_FRONTMATTER_FIELD_DUPLICATE"),
                     format!(
-                        "{}{}{}{}{}",
-                        String::from(""),
-                        rt::source_string(&context),
+                        "{}{}{}{}",
+                        context,
                         String::from(" field '"),
-                        rt::source_string(&property.state.with(|state| state.key.clone())),
+                        property.state.with(|state| state.key.clone()),
                         String::from("' is declared more than once"),
                     ),
                     source_path.clone(),
@@ -297,32 +296,42 @@ pub(crate) fn assert_case_insensitive_keys_unique(
                     )),
                 )));
             }
-            keys.add(key.clone());
+            keys.add_discard(key.clone());
             index += 1.0;
         }
     }
     Ok(())
 }
 
-pub(crate) fn apply_menu_property(
+pub fn apply_menu_property(
     entry: crate::frontmatter::menu::FrontMatterMenu,
     key_raw: String,
     value: crate::utils::json::JsonValue,
     source_path: Option<String>,
-) -> rt::TsonicResult<()> {
+) -> Result<(), rt::TsonicError> {
     let key: String = js_string::to_lower_case(&key_raw);
     if key == "weight" {
         {
             let receiver = &entry;
             let value_2 = require_int(key_raw.clone(), value.clone(), source_path.clone())?;
-            receiver.state.with_mut(|state| state.weight = value_2)
+            {
+                let dispatch_receiver = receiver;
+                dispatch_receiver
+                    .dispatch
+                    .write_front_matter_menu_weight(value_2)
+            }
         };
     } else {
         if key == "name" {
             {
                 let receiver_2 = &entry;
                 let value_3 = require_string(key_raw.clone(), value.clone(), source_path.clone())?;
-                receiver_2.state.with_mut(|state| state.name = value_3)
+                {
+                    let dispatch_receiver_2 = receiver_2;
+                    dispatch_receiver_2
+                        .dispatch
+                        .write_front_matter_menu_name(value_3)
+                }
             };
         } else {
             if key == "parent" {
@@ -330,7 +339,12 @@ pub(crate) fn apply_menu_property(
                     let receiver_3 = &entry;
                     let value_4 =
                         require_string(key_raw.clone(), value.clone(), source_path.clone())?;
-                    receiver_3.state.with_mut(|state| state.parent = value_4)
+                    {
+                        let dispatch_receiver_3 = receiver_3;
+                        dispatch_receiver_3
+                            .dispatch
+                            .write_front_matter_menu_parent(value_4)
+                    }
                 };
             } else {
                 if key == "identifier" {
@@ -338,9 +352,12 @@ pub(crate) fn apply_menu_property(
                         let receiver_4 = &entry;
                         let value_5 =
                             require_string(key_raw.clone(), value.clone(), source_path.clone())?;
-                        receiver_4
-                            .state
-                            .with_mut(|state| state.identifier = value_5)
+                        {
+                            let dispatch_receiver_4 = receiver_4;
+                            dispatch_receiver_4
+                                .dispatch
+                                .write_front_matter_menu_identifier(value_5)
+                        }
                     };
                 } else {
                     if key == "pre" {
@@ -351,7 +368,12 @@ pub(crate) fn apply_menu_property(
                                 value.clone(),
                                 source_path.clone(),
                             )?;
-                            receiver_5.state.with_mut(|state| state.pre = value_6)
+                            {
+                                let dispatch_receiver_5 = receiver_5;
+                                dispatch_receiver_5
+                                    .dispatch
+                                    .write_front_matter_menu_pre(value_6)
+                            }
                         };
                     } else {
                         if key == "post" {
@@ -362,7 +384,12 @@ pub(crate) fn apply_menu_property(
                                     value.clone(),
                                     source_path.clone(),
                                 )?;
-                                receiver_6.state.with_mut(|state| state.post = value_7)
+                                {
+                                    let dispatch_receiver_6 = receiver_6;
+                                    dispatch_receiver_6
+                                        .dispatch
+                                        .write_front_matter_menu_post(value_7)
+                                }
                             };
                         } else {
                             if key == "title" {
@@ -373,25 +400,30 @@ pub(crate) fn apply_menu_property(
                                         value.clone(),
                                         source_path.clone(),
                                     )?;
-                                    receiver_7.state.with_mut(|state| state.title = value_8)
+                                    {
+                                        let dispatch_receiver_7 = receiver_7;
+                                        dispatch_receiver_7
+                                            .dispatch
+                                            .write_front_matter_menu_title(value_8)
+                                    }
                                 };
                             } else {
-                                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                                     String::from("TSUMO_FRONTMATTER_MENU_FIELD_UNKNOWN"),
                                     format!(
                                         "{}{}{}",
                                         String::from("Unknown front matter menu field '"),
-                                        rt::source_string(&key_raw),
+                                        key_raw,
                                         String::from("'"),
                                     ),
                                     source_path.clone(),
                                     Some(tsonic_rust_runtime::conversions::i32_to_f64({
-                                        let dispatch_receiver = &value;
-                                        dispatch_receiver.dispatch.read_json_value_line()
+                                        let dispatch_receiver_8 = &value;
+                                        dispatch_receiver_8.dispatch.read_json_value_line()
                                     })),
                                     Some(tsonic_rust_runtime::conversions::i32_to_f64({
-                                        let dispatch_receiver_2 = &value;
-                                        dispatch_receiver_2.dispatch.read_json_value_column()
+                                        let dispatch_receiver_9 = &value;
+                                        dispatch_receiver_9.dispatch.read_json_value_column()
                                     })),
                                 )));
                             }
@@ -407,17 +439,16 @@ pub(crate) fn apply_menu_property(
 pub fn parse_json_front_matter(
     text: String,
     source_path: Option<String>,
-) -> rt::TsonicResult<crate::frontmatter::data::FrontMatter> {
-    let root_value: crate::utils::json::JsonValue = crate::utils::json::PARSE_JSON
-        .with(|module_binding| module_binding.load())
-        .call((text.clone(), source_path.clone()))?;
+) -> Result<crate::frontmatter::data::FrontMatter, rt::TsonicError> {
+    let root_value: crate::utils::json::JsonValue =
+        crate::utils::json::parse_json(text, source_path.clone())?;
     if root_value
         .dispatch
         .clone()
         .downcast_json_value_to_json_object()
         .is_none()
     {
-        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_FRONTMATTER_ROOT_INVALID"),
             String::from("JSON front matter requires an object"),
             source_path.clone(),
@@ -466,8 +497,9 @@ pub fn parse_json_front_matter(
             };
             let key: String =
                 js_string::to_lower_case(&property.state.with(|state| state.key.clone()));
-            let value: crate::utils::json::JsonValue =
-                property.state.with(|state| state.value.clone());
+            let value: crate::utils::json::JsonValue = property
+                .state
+                .with(|state| state.value.clone());
             if key == "title" {
                 {
                     let receiver = &front_matter;
@@ -551,7 +583,7 @@ pub fn parse_json_front_matter(
                                             receiver_6.state.with_mut(|state| state.draft = value_7)
                                         };
                                     } else {
-                                        return Err(rt::TsonicError::from(invalid_shape(
+                                        return Err(rt::TsonicError::TsumoError(invalid_shape(
                                             property.state.with(|state| state.key.clone()),
                                             String::from("a boolean"),
                                             value.clone(),
@@ -567,13 +599,12 @@ pub fn parse_json_front_matter(
                                         )?;
                                         let milliseconds: f64 = js_abi::JsDate::parse(&authored);
                                         if js_abi::number_is_nan(milliseconds) {
-                                            return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                                            return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                                                 String::from("TSUMO_FRONTMATTER_INVALID_DATE"),
                                                 format!(
-                                                    "{}{}{}",
+                                                    "{}{}",
                                                     String::from("Invalid front matter date: "),
-                                                    rt::source_string(&authored),
-                                                    String::from(""),
+                                                    authored,
                                                 ),
                                                 source_path.clone(),
                                                 Some(tsonic_rust_runtime::conversions::i32_to_f64({
@@ -632,7 +663,7 @@ pub fn parse_json_front_matter(
                                                         .downcast_json_value_to_json_object()
                                                         .is_none()
                                                     {
-                                                        return Err(rt::TsonicError::from(invalid_shape(
+                                                        return Err(rt::TsonicError::TsumoError(invalid_shape(
                                                             property
                                                                 .state
                                                                 .with(|state| state.key.clone()),
@@ -684,10 +715,14 @@ pub fn parse_json_front_matter(
                                                                         )
                                                                     }
                                                                 };
-                                                            front_matter
-                                                                .state
-                                                                .with(|state| state.params.clone())
-                                                                .set(
+                                                            {
+                                                                let operation_input_0 =
+                                                                    front_matter
+                                                                        .state
+                                                                        .with(|state| {
+                                                                            state.params.clone()
+                                                                        });
+                                                                operation_input_0.set_discard(
                                                                     parameter.state.with(|state| {
                                                                         state.key.clone()
                                                                     }),
@@ -704,7 +739,8 @@ pub fn parse_json_front_matter(
                                                                             }),
                                                                         source_path.clone(),
                                                                     )?,
-                                                                );
+                                                                )
+                                                            };
                                                             param_index += 1.0;
                                                         }
                                                     }
@@ -716,10 +752,12 @@ pub fn parse_json_front_matter(
                                                             .downcast_json_value_to_json_object()
                                                             .is_none()
                                                         {
-                                                            return Err(rt::TsonicError::from(invalid_shape(
+                                                            return Err(rt::TsonicError::TsumoError(invalid_shape(
                                                                 property
                                                                     .state
-                                                                    .with(|state| state.key.clone()),
+                                                                    .with(|state| {
+                                                                        state.key.clone()
+                                                                    }),
                                                                 String::from("an object"),
                                                                 value.clone(),
                                                                 source_path.clone(),
@@ -769,8 +807,7 @@ pub fn parse_json_front_matter(
                                                                             )
                                                                         }
                                                                     };
-                                                                if menu
-                                                                    .state
+                                                                if menu.state
                                                                     .with(|state| {
                                                                         state.value.clone()
                                                                     })
@@ -779,7 +816,7 @@ pub fn parse_json_front_matter(
                                                                     .downcast_json_value_to_json_object()
                                                                     .is_none()
                                                                 {
-                                                                    return Err(rt::TsonicError::from(invalid_shape(
+                                                                    return Err(rt::TsonicError::TsumoError(invalid_shape(
                                                                         menu.state.with(|state| {
                                                                             state.key.clone()
                                                                         }),
@@ -793,8 +830,7 @@ pub fn parse_json_front_matter(
                                                                 let menu_fields: crate::utils::json::JsonObject =
                                                                     {
                                                                         let downcast_value_5 =
-                                                                            &menu
-                                                                                .state
+                                                                            &menu.state
                                                                                 .with(|state| {
                                                                                     state
                                                                                         .value
@@ -816,11 +852,9 @@ pub fn parse_json_front_matter(
                                                                     format!(
                                                                         "{}{}{}",
                                                                         String::from("Front matter menu '"),
-                                                                        rt::source_string(&menu
-                                                                            .state
-                                                                            .with(|state| {
-                                                                                state.key.clone()
-                                                                            }),),
+                                                                        menu.state.with(|state| {
+                                                                            state.key.clone()
+                                                                        }),
                                                                         String::from("'"),
                                                                     ),
                                                                     source_path.clone(),
@@ -880,25 +914,29 @@ pub fn parse_json_front_matter(
                                                                         field_index += 1.0;
                                                                     }
                                                                 }
-                                                                tsonic_rust_runtime::conversions::usize_to_i32(
-                                                                    front_matter
-                                                                        .state
-                                                                        .with(|state| {
-                                                                            state.menus.clone()
-                                                                        })
-                                                                        .push_many([entry.clone()]),
-                                                                )?;
+                                                                front_matter
+                                                                    .state
+                                                                    .with(|state| {
+                                                                        state.menus.clone()
+                                                                    })
+                                                                    .push_many_discard([
+                                                                        entry.clone(),
+                                                                    ]);
                                                                 menu_index += 1.0;
                                                             }
                                                         }
                                                     } else {
-                                                        front_matter
-                                                            .state
-                                                            .with(|state| state.params.clone())
-                                                            .set(
+                                                        {
+                                                            let operation_input_0_2 =
+                                                                front_matter.state.with(|state| {
+                                                                    state.params.clone()
+                                                                });
+                                                            operation_input_0_2.set_discard(
                                                                 property
                                                                     .state
-                                                                    .with(|state| state.key.clone()),
+                                                                    .with(|state| {
+                                                                        state.key.clone()
+                                                                    }),
                                                                 to_param(
                                                                     property.state.with(|state| {
                                                                         state.key.clone()
@@ -906,7 +944,8 @@ pub fn parse_json_front_matter(
                                                                     value.clone(),
                                                                     source_path.clone(),
                                                                 )?,
-                                                            );
+                                                            )
+                                                        };
                                                     }
                                                 }
                                             }
@@ -921,5 +960,5 @@ pub fn parse_json_front_matter(
             index += 1.0;
         }
     }
-    Ok(front_matter.clone())
+    Ok(front_matter)
 }

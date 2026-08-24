@@ -6,16 +6,18 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct OutputPublicationState {
-    pub(crate) destination_dir: String,
-    pub(crate) staging_dir: String,
-    pub(crate) backup_dir: String,
+pub struct OutputPublicationState {
+    pub destination_dir: String,
+    pub staging_dir: String,
+    pub backup_dir: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct OutputPublication {
-    pub(crate) state: rt::ObjectHandle<OutputPublicationState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<OutputPublicationState>,
 }
 
 impl OutputPublication {
@@ -24,11 +26,11 @@ impl OutputPublication {
         staging_dir: String,
         backup_dir: String,
     ) -> OutputPublication {
-        let field_destination_dir: String = destination_dir.clone();
-        let field_staging_dir: String = staging_dir.clone();
-        let field_backup_dir: String = backup_dir.clone();
+        let field_destination_dir: String = destination_dir;
+        let field_staging_dir: String = staging_dir;
+        let field_backup_dir: String = backup_dir;
         OutputPublication {
-            state: rt::ObjectHandle::new(OutputPublicationState {
+            state: rt::ObjectRef::new(OutputPublicationState {
                 destination_dir: field_destination_dir,
                 staging_dir: field_staging_dir,
                 backup_dir: field_backup_dir,
@@ -36,42 +38,46 @@ impl OutputPublication {
         }
     }
 
-    pub fn publish(&self) -> rt::TsonicResult<()> {
+    pub fn publish(&self) -> Result<(), rt::TsonicError> {
         let mut previous_output_moved: bool = false;
-        if crate::fs::DIR_EXISTS
-            .with(|module_binding| module_binding.load())
-            .call((self.state.with(|state| state.destination_dir.clone()),))?
-        {
-            tsonic_rust_node::fs::rename_sync(
-                &self.state.with(|state| state.destination_dir.clone()),
-                &self.state.with(|state| state.backup_dir.clone()),
-            )
-            .map_err(tsonic_rust_runtime::TsonicError::from)?;
+        if crate::fs::dir_exists(self.state.with(|state| state.destination_dir.clone()))? {
+            {
+                let operation_input_0 = self.state.with(|state| state.destination_dir.clone());
+                tsonic_rust_node::fs::rename_sync(
+                    &operation_input_0,
+                    &self.state.with(|state| state.backup_dir.clone()),
+                )
+            }?;
             previous_output_moved = true;
         }
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            tsonic_rust_node::fs::rename_sync(
-                &self.state.with(|state| state.staging_dir.clone()),
-                &self.state.with(|state| state.destination_dir.clone()),
-            )
-            .map_err(tsonic_rust_runtime::TsonicError::from)?;
+            {
+                let operation_input_0_2 = self.state.with(|state| state.staging_dir.clone());
+                tsonic_rust_node::fs::rename_sync(
+                    &operation_input_0_2,
+                    &self.state.with(|state| state.destination_dir.clone()),
+                )
+            }?;
             Ok(rt::Completion::Normal)
         });
         let try_flow: rt::TsonicResult<rt::Completion<()>> = match try_body {
             Ok(completion) => Ok(completion),
             Err(error) => rt::completion_region(|| {
                 if previous_output_moved
-                    && !tsonic_rust_node::fs::exists_sync(&self
-                        .state
-                        .with(|state| state.destination_dir.clone()))
+                    && !tsonic_rust_node::fs::exists_sync(&self.state.with(|state| {
+                        state.destination_dir.clone()
+                    }))
                 {
-                    tsonic_rust_node::fs::rename_sync(
-                        &self.state.with(|state| state.backup_dir.clone()),
-                        &self.state.with(|state| state.destination_dir.clone()),
-                    )
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?;
+                    {
+                        let operation_input_0_3 =
+                            self.state.with(|state| state.backup_dir.clone());
+                        tsonic_rust_node::fs::rename_sync(
+                            &operation_input_0_3,
+                            &self.state.with(|state| state.destination_dir.clone()),
+                        )
+                    }?;
                 }
-                Err(error.clone())
+                Err(error)
             }),
         };
         let try_flow = try_flow?;
@@ -82,284 +88,217 @@ impl OutputPublication {
             }
         }
         if previous_output_moved
-            && crate::fs::DIR_EXISTS
-                .with(|module_binding| module_binding.load())
-                .call((self.state.with(|state| state.backup_dir.clone()),))?
+            && crate::fs::dir_exists(self.state.with(|state| state.backup_dir.clone()))?
         {
-            tsonic_rust_node::fs::rm_sync(
+            tsonic_rust_node::fs::rm_sync_with_options(
                 &self.state.with(|state| state.backup_dir.clone()),
-                true,
-                true,
-            )
-            .map_err(tsonic_rust_runtime::TsonicError::from)?;
+                tsonic_rust_node::fs::RmOptions {
+                    recursive: Some(true),
+                    force: Some(true),
+                    ..Default::default()
+                },
+            )?;
         }
         Ok(())
     }
 
-    pub fn abort(&self) -> rt::TsonicResult<()> {
-        if crate::fs::DIR_EXISTS
-            .with(|module_binding| module_binding.load())
-            .call((self.state.with(|state| state.staging_dir.clone()),))?
-        {
-            tsonic_rust_node::fs::rm_sync(
+    pub fn abort(&self) -> Result<(), rt::TsonicError> {
+        if crate::fs::dir_exists(self.state.with(|state| state.staging_dir.clone()))? {
+            tsonic_rust_node::fs::rm_sync_with_options(
                 &self.state.with(|state| state.staging_dir.clone()),
-                true,
-                true,
-            )
-            .map_err(tsonic_rust_runtime::TsonicError::from)?;
+                tsonic_rust_node::fs::RmOptions {
+                    recursive: Some(true),
+                    force: Some(true),
+                    ..Default::default()
+                },
+            )?;
         }
-        if !crate::fs::DIR_EXISTS
-            .with(|module_binding| module_binding.load())
-            .call((self.state.with(|state| state.backup_dir.clone()),))?
-        {
+        if !crate::fs::dir_exists(self.state.with(|state| state.backup_dir.clone()))? {
             return Ok(());
         }
-        if crate::fs::DIR_EXISTS
-            .with(|module_binding| module_binding.load())
-            .call((self.state.with(|state| state.destination_dir.clone()),))?
-        {
-            tsonic_rust_node::fs::rm_sync(
+        if crate::fs::dir_exists(self.state.with(|state| state.destination_dir.clone()))? {
+            tsonic_rust_node::fs::rm_sync_with_options(
                 &self.state.with(|state| state.backup_dir.clone()),
-                true,
-                true,
-            )
-            .map_err(tsonic_rust_runtime::TsonicError::from)?;
+                tsonic_rust_node::fs::RmOptions {
+                    recursive: Some(true),
+                    force: Some(true),
+                    ..Default::default()
+                },
+            )?;
         } else {
-            tsonic_rust_node::fs::rename_sync(
-                &self.state.with(|state| state.backup_dir.clone()),
-                &self.state.with(|state| state.destination_dir.clone()),
-            )
-            .map_err(tsonic_rust_runtime::TsonicError::from)?;
+            {
+                let operation_input_0 = self.state.with(|state| state.backup_dir.clone());
+                tsonic_rust_node::fs::rename_sync(
+                    &operation_input_0,
+                    &self.state.with(|state| state.destination_dir.clone()),
+                )
+            }?;
         }
         Ok(())
     }
 }
 
-pub type BeginOutputPublicationCallable =
-    rt::Callable<(String, String, bool), rt::TsonicResult<OutputPublication>>;
-
-std::thread_local! {
-    pub static BEGIN_OUTPUT_PUBLICATION: rt::ModuleCell<BeginOutputPublicationCallable> = const { rt::ModuleCell::new() };
+pub fn begin_output_publication(
+    site_dir: String,
+    requested_destination_dir: String,
+    preserve_existing_output: bool,
+) -> Result<OutputPublication, rt::TsonicError> {
+    let site_root: String = tsonic_rust_node::path::resolve(&[site_dir.as_str()])?;
+    let destination_dir: String = if tsonic_rust_node::path::is_absolute(
+        &requested_destination_dir,
+    )
+    {
+        tsonic_rust_node::path::resolve(&[requested_destination_dir.as_str()])?
+    } else {
+        tsonic_rust_node::path::resolve(&[site_root.as_str(), requested_destination_dir.as_str()])?
+    };
+    if !tsonic_rust_node::path::is_absolute(&requested_destination_dir)
+        && !crate::utils::paths::path_contains_or_equals(site_root.clone(), destination_dir.clone())
+    {
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_OUTPUT_DESTINATION_ESCAPES_SITE"),
+            format!(
+                "{}{}",
+                String::from("Relative output directory escapes the site root: "),
+                requested_destination_dir,
+            ),
+            None,
+            None,
+            None,
+        )));
+    }
+    if crate::utils::paths::path_contains_or_equals(destination_dir.clone(), site_root.clone()) {
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_OUTPUT_DESTINATION_CONTAINS_SITE"),
+            format!(
+                "{}{}",
+                String::from("Output directory cannot contain the source site: "),
+                destination_dir,
+            ),
+            None,
+            None,
+            None,
+        )));
+    }
+    let parent: String = tsonic_rust_node::path::dirname(&destination_dir);
+    if parent == destination_dir {
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_OUTPUT_DESTINATION_IS_ROOT"),
+            format!(
+                "{}{}",
+                String::from("Output directory cannot be a filesystem root: "),
+                destination_dir,
+            ),
+            None,
+            None,
+            None,
+        )));
+    }
+    if crate::fs::file_exists(destination_dir.clone())? {
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_OUTPUT_DESTINATION_IS_FILE"),
+            format!(
+                "{}{}",
+                String::from("Output directory path names an existing file: "),
+                destination_dir,
+            ),
+            None,
+            None,
+            None,
+        )));
+    }
+    crate::fs::ensure_dir(parent.clone())?;
+    let key: String = js_string::slice_to(
+        &tsonic_rust_node::crypto::create_hash("sha256")?
+            .update_str_owned(&destination_dir)?
+            .digest_string("hex")?,
+        0.0,
+        24.0,
+    )?;
+    let scratch_prefix: String = format!("{}{}", String::from(".tsumo-output-"), key);
+    let backup_dir: String = {
+        let operation_input_0 = parent.clone();
+        tsonic_rust_node::path::resolve(&[
+            operation_input_0.as_str(),
+            format!("{}{}", scratch_prefix, String::from(".backup")).as_str(),
+        ])
+    }?;
+    let stage_prefix: String = {
+        let operation_input_0_2 = parent.clone();
+        tsonic_rust_node::path::resolve(&[
+            operation_input_0_2.as_str(),
+            format!("{}{}", scratch_prefix, String::from(".stage-")).as_str(),
+        ])
+    }?;
+    RECOVER_OUTPUT_PUBLICATION
+        .with(|module_binding| module_binding.load())
+        .call((
+            destination_dir.clone(),
+            backup_dir.clone(),
+            parent.clone(),
+            format!("{}{}", scratch_prefix, String::from(".stage-")),
+        ))?;
+    let staging_dir: String = tsonic_rust_node::fs::mkdtemp_sync(&stage_prefix)?;
+    if preserve_existing_output && crate::fs::dir_exists(destination_dir.clone())? {
+        crate::fs::copy_dir_recursive(
+            destination_dir.clone(),
+            staging_dir.clone(),
+        )?;
+    }
+    Ok(OutputPublication::new(
+        destination_dir.clone(),
+        staging_dir.clone(),
+        backup_dir.clone(),
+    ))
 }
 
-type RecoverOutputPublicationCallable =
+pub type RecoverOutputPublicationCallable =
     rt::Callable<(String, String, String, String), rt::TsonicResult<()>>;
 
 std::thread_local! {
-    pub(crate) static RECOVER_OUTPUT_PUBLICATION: rt::ModuleCell<RecoverOutputPublicationCallable> = const { rt::ModuleCell::new() };
+    pub static RECOVER_OUTPUT_PUBLICATION: rt::ModuleCell<RecoverOutputPublicationCallable> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
 pub fn module_init() {
     {
         let module_value = rt::Callable::<
-            (String, String, bool),
-            rt::TsonicResult<OutputPublication>,
-        >::new(move |callable_arguments| {
-            let site_dir = callable_arguments.0;
-            let requested_destination_dir = callable_arguments.1;
-            let preserve_existing_output = callable_arguments.2;
-            let site_root: String = tsonic_rust_node::path::resolve(&[site_dir.as_str()])
-                .map_err(tsonic_rust_runtime::TsonicError::from)?;
-            let destination_dir: String = if tsonic_rust_node::path::is_absolute(
-                &requested_destination_dir,
-            )
-            {
-                tsonic_rust_node::path::resolve(&[requested_destination_dir.as_str()])
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?
-            } else {
-                tsonic_rust_node::path::resolve(&[
-                    site_root.as_str(),
-                    requested_destination_dir.as_str(),
-                ])
-                .map_err(tsonic_rust_runtime::TsonicError::from)?
-            };
-            if !tsonic_rust_node::path::is_absolute(&requested_destination_dir)
-                && !crate::utils::paths::path_contains_or_equals(
-                    site_root.clone(),
-                    destination_dir.clone(),
-                )
-            {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                    String::from("TSUMO_OUTPUT_DESTINATION_ESCAPES_SITE"),
-                    format!(
-                        "{}{}{}",
-                        String::from("Relative output directory escapes the site root: "),
-                        rt::source_string(&requested_destination_dir),
-                        String::from(""),
-                    ),
-                    None,
-                    None,
-                    None,
-                )));
-            }
-            if crate::utils::paths::path_contains_or_equals(
-                destination_dir.clone(),
-                site_root.clone(),
-            )
-            {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                    String::from("TSUMO_OUTPUT_DESTINATION_CONTAINS_SITE"),
-                    format!(
-                        "{}{}{}",
-                        String::from("Output directory cannot contain the source site: "),
-                        rt::source_string(&destination_dir),
-                        String::from(""),
-                    ),
-                    None,
-                    None,
-                    None,
-                )));
-            }
-            let parent: String = tsonic_rust_node::path::dirname(&destination_dir);
-            if parent == destination_dir {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                    String::from("TSUMO_OUTPUT_DESTINATION_IS_ROOT"),
-                    format!(
-                        "{}{}{}",
-                        String::from("Output directory cannot be a filesystem root: "),
-                        rt::source_string(&destination_dir),
-                        String::from(""),
-                    ),
-                    None,
-                    None,
-                    None,
-                )));
-            }
-            if crate::fs::FILE_EXISTS
-                .with(|module_binding| module_binding.load())
-                .call((destination_dir.clone(),))?
-            {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                    String::from("TSUMO_OUTPUT_DESTINATION_IS_FILE"),
-                    format!(
-                        "{}{}{}",
-                        String::from("Output directory path names an existing file: "),
-                        rt::source_string(&destination_dir),
-                        String::from(""),
-                    ),
-                    None,
-                    None,
-                    None,
-                )));
-            }
-            crate::fs::ENSURE_DIR
-                .with(|module_binding| module_binding.load())
-                .call((parent.clone(),))?;
-            let key: String = js_string::slice_to(
-                &tsonic_rust_node::crypto::create_hash("sha256")
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?
-                    .update_str_owned(&destination_dir)
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?
-                    .digest_string("hex")
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?,
-                0.0,
-                24.0,
-            )
-            .map_err(tsonic_rust_runtime::TsonicError::from)?;
-            let scratch_prefix: String = format!(
-                "{}{}{}",
-                String::from(".tsumo-output-"),
-                rt::source_string(&key),
-                String::from(""),
-            );
-            let backup_dir: String = tsonic_rust_node::path::resolve(&[
-                parent.as_str(),
-                format!(
-                    "{}{}{}",
-                    String::from(""),
-                    rt::source_string(&scratch_prefix),
-                    String::from(".backup"),
-                )
-                .as_str(),
-            ])
-            .map_err(tsonic_rust_runtime::TsonicError::from)?;
-            let stage_prefix: String = tsonic_rust_node::path::resolve(&[
-                parent.as_str(),
-                format!(
-                    "{}{}{}",
-                    String::from(""),
-                    rt::source_string(&scratch_prefix),
-                    String::from(".stage-"),
-                )
-                .as_str(),
-            ])
-            .map_err(tsonic_rust_runtime::TsonicError::from)?;
-            RECOVER_OUTPUT_PUBLICATION
-                .with(|module_binding| module_binding.load())
-                .call((
-                    destination_dir.clone(),
-                    backup_dir.clone(),
-                    parent.clone(),
-                    format!(
-                        "{}{}{}",
-                        String::from(""),
-                        rt::source_string(&scratch_prefix),
-                        String::from(".stage-"),
-                    ),
-                ))?;
-            let staging_dir: String = tsonic_rust_node::fs::mkdtemp_sync(&stage_prefix)
-                .map_err(tsonic_rust_runtime::TsonicError::from)?;
-            if preserve_existing_output
-                && crate::fs::DIR_EXISTS
-                    .with(|module_binding| module_binding.load())
-                    .call((destination_dir.clone(),))?
-            {
-                crate::fs::COPY_DIR_RECURSIVE
-                    .with(|module_binding| module_binding.load())
-                    .call((destination_dir.clone(), staging_dir.clone()))?;
-            }
-            Ok::<_, rt::TsonicError>(OutputPublication::new(
-                destination_dir.clone(),
-                staging_dir.clone(),
-                backup_dir.clone(),
-            ))
-        });
-        BEGIN_OUTPUT_PUBLICATION.with(|module_binding| module_binding.initialize(module_value))
-    };
-    {
-        let module_value_2 = rt::Callable::<
             (String, String, String, String),
             rt::TsonicResult<()>,
-        >::new(move |callable_arguments_2| {
-            let destination_dir = callable_arguments_2.0;
-            let backup_dir = callable_arguments_2.1;
-            let parent_dir = callable_arguments_2.2;
-            let stage_name_prefix = callable_arguments_2.3;
-            if crate::fs::FILE_EXISTS
-                .with(|module_binding| module_binding.load())
-                .call((backup_dir.clone(),))?
-            {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+        >::new(move |callable_arguments| {
+            let destination_dir = callable_arguments.0;
+            let backup_dir = callable_arguments.1;
+            let parent_dir = callable_arguments.2;
+            let stage_name_prefix = callable_arguments.3;
+            if crate::fs::file_exists(backup_dir.clone())? {
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                     String::from("TSUMO_OUTPUT_BACKUP_IS_FILE"),
                     format!(
-                        "{}{}{}",
+                        "{}{}",
                         String::from("Output publication backup path names an existing file: "),
-                        rt::source_string(&backup_dir),
-                        String::from(""),
+                        backup_dir,
                     ),
                     None,
                     None,
                     None,
                 )));
             }
-            if crate::fs::DIR_EXISTS
-                .with(|module_binding| module_binding.load())
-                .call((backup_dir.clone(),))?
-            {
-                if crate::fs::DIR_EXISTS
-                    .with(|module_binding| module_binding.load())
-                    .call((destination_dir.clone(),))?
-                {
-                    tsonic_rust_node::fs::rm_sync(&backup_dir, true, true)
-                        .map_err(tsonic_rust_runtime::TsonicError::from)?;
+            if crate::fs::dir_exists(backup_dir.clone())? {
+                if crate::fs::dir_exists(destination_dir.clone())? {
+                    tsonic_rust_node::fs::rm_sync_with_options(
+                        &backup_dir,
+                        tsonic_rust_node::fs::RmOptions {
+                            recursive: Some(true),
+                            force: Some(true),
+                            ..Default::default()
+                        },
+                    )?;
                 } else {
-                    tsonic_rust_node::fs::rename_sync(&backup_dir, &destination_dir)
-                        .map_err(tsonic_rust_runtime::TsonicError::from)?;
+                    tsonic_rust_node::fs::rename_sync(&backup_dir, &destination_dir)?;
                 }
             }
-            let entries: js_abi::JsArray<String> = tsonic_rust_node::fs::readdir_sync(&parent_dir)
-                .map_err(tsonic_rust_runtime::TsonicError::from)?;
+            let entries: js_abi::JsArray<String> =
+                tsonic_rust_node::fs::readdir_sync(&parent_dir)?;
             {
                 let mut index: f64 = 0.0;
                 while index
@@ -370,23 +309,22 @@ pub fn module_init() {
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     if js_string::starts_with_from_start(&entry, &stage_name_prefix) {
-                        tsonic_rust_node::fs::rm_sync(
-                            &tsonic_rust_node::path::resolve(&[
-                                parent_dir.as_str(),
-                                entry.as_str(),
-                            ])
-                            .map_err(tsonic_rust_runtime::TsonicError::from)?,
-                            true,
-                            true,
-                        )
-                        .map_err(tsonic_rust_runtime::TsonicError::from)?;
+                        tsonic_rust_node::fs::rm_sync_with_options(
+                            &tsonic_rust_node::path::resolve(
+                                &[parent_dir.as_str(), entry.as_str()],
+                            )?,
+                            tsonic_rust_node::fs::RmOptions {
+                                recursive: Some(true),
+                                force: Some(true),
+                                ..Default::default()
+                            },
+                        )?;
                     }
                     index += 1.0;
                 }
             }
             Ok::<_, rt::TsonicError>(())
         });
-        RECOVER_OUTPUT_PUBLICATION
-            .with(|module_binding_2| module_binding_2.initialize(module_value_2))
+        RECOVER_OUTPUT_PUBLICATION.with(|module_binding| module_binding.initialize(module_value))
     };
 }

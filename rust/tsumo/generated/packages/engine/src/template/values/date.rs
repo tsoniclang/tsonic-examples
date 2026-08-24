@@ -2,10 +2,9 @@
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait DateValueDispatch:
-    crate::template::values::base::TemplateValueDispatch
-{
+pub trait DateValueDispatch: crate::template::values::base::TemplateValueDispatch {
     fn downcast_date_value_to_date_value(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn DateValueDispatch>>;
@@ -13,17 +12,27 @@ pub(crate) trait DateValueDispatch:
     fn write_date_value_value(&self, value: String);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct DateValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: String,
+pub struct DateValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: String,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct DateValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn DateValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn DateValueDispatch>,
+}
+
+impl std::fmt::Debug for DateValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("DateValue")
+    }
 }
 
 impl PartialEq for DateValue {
@@ -41,9 +50,10 @@ pub(crate) struct DateValueRoot {
 }
 
 impl DateValue {
-    pub(crate) fn initialize_state(value: String) -> DateValueState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: String) -> DateValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: String = value.clone();
+        let field_value: String = value;
         DateValueState {
             base: base_state,
             value: field_value,

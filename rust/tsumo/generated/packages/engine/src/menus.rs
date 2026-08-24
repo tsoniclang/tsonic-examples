@@ -6,21 +6,46 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-pub(crate) fn menu_entry_identity(entry: crate::models::menu_entry::MenuEntry) -> String {
-    if !js_string::trim(&entry.state.with(|state| state.identifier.clone())).is_empty() {
-        js_string::trim(&entry.state.with(|state| state.identifier.clone()))
-    } else {
-        js_string::trim(&entry.state.with(|state| state.name.clone()))
+pub fn menu_entry_identity(entry: crate::models::menu_entry::MenuEntry) -> String {
+    {
+        let conditional_test = !js_string::trim(&{
+            let dispatch_receiver = &entry;
+            dispatch_receiver.dispatch.read_menu_entry_identifier()
+        })
+        .is_empty();
+        if conditional_test {
+            js_string::trim(&{
+                let dispatch_receiver_2 = &entry;
+                dispatch_receiver_2.dispatch.read_menu_entry_identifier()
+            })
+        } else {
+            js_string::trim(&{
+                let dispatch_receiver_3 = &entry;
+                dispatch_receiver_3.dispatch.read_menu_entry_name()
+            })
+        }
     }
 }
 
-pub(crate) fn compare_menu_entries(
+pub fn compare_menu_entries(
     left: crate::models::menu_entry::MenuEntry,
     right: crate::models::menu_entry::MenuEntry,
 ) -> f64 {
-    if left.state.with(|state| state.weight) != right.state.with(|state| state.weight) {
+    if {
+        let dispatch_receiver = &left;
+        dispatch_receiver.dispatch.read_menu_entry_weight()
+    } != {
+        let dispatch_receiver_2 = &right;
+        dispatch_receiver_2.dispatch.read_menu_entry_weight()
+    } {
         return tsonic_rust_runtime::conversions::i32_to_f64(
-            left.state.with(|state| state.weight) - right.state.with(|state| state.weight),
+            {
+                let dispatch_receiver_3 = &left;
+                dispatch_receiver_3.dispatch.read_menu_entry_weight()
+            } - {
+                let dispatch_receiver_4 = &right;
+                dispatch_receiver_4.dispatch.read_menu_entry_weight()
+            },
         );
     }
     let identity: i32 = crate::utils::strings::compare_text(
@@ -31,23 +56,35 @@ pub(crate) fn compare_menu_entries(
         return tsonic_rust_runtime::conversions::i32_to_f64(identity);
     }
     let name: i32 = crate::utils::strings::compare_text(
-        left.state.with(|state| state.name.clone()),
-        right.state.with(|state| state.name.clone()),
+        {
+            let dispatch_receiver_5 = &left;
+            dispatch_receiver_5.dispatch.read_menu_entry_name()
+        },
+        {
+            let dispatch_receiver_6 = &right;
+            dispatch_receiver_6.dispatch.read_menu_entry_name()
+        },
     );
     if name != 0 {
         tsonic_rust_runtime::conversions::i32_to_f64(name)
     } else {
         tsonic_rust_runtime::conversions::i32_to_f64(crate::utils::strings::compare_text(
-            left.state.with(|state| state.url.clone()),
-            right.state.with(|state| state.url.clone()),
+            {
+                let dispatch_receiver_7 = &left;
+                dispatch_receiver_7.dispatch.read_menu_entry_url()
+            },
+            {
+                let dispatch_receiver_8 = &right;
+                dispatch_receiver_8.dispatch.read_menu_entry_url()
+            },
         ))
     }
 }
 
-pub(crate) fn sort_hierarchy(
+pub fn sort_hierarchy(
     entries: js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
-) -> rt::TsonicResult<js_abi::JsArray<crate::models::menu_entry::MenuEntry>> {
-    entries.sort(|left, right| compare_menu_entries(left.clone(), right.clone()));
+) -> Result<js_abi::JsArray<crate::models::menu_entry::MenuEntry>, rt::TsonicError> {
+    entries.sort(compare_menu_entries);
     {
         let mut index: f64 = 0.0;
         while index < (tsonic_rust_runtime::conversions::usize_to_i32(entries.len())? as f64) {
@@ -60,19 +97,27 @@ pub(crate) fn sort_hierarchy(
             };
             {
                 let receiver = &entry;
-                let value = sort_hierarchy(entry.state.with(|state| state.children.clone()))?;
-                receiver.state.with_mut(|state| state.children = value)
+                let value = sort_hierarchy({
+                    let dispatch_receiver = &entry;
+                    dispatch_receiver.dispatch.read_menu_entry_children()
+                })?;
+                {
+                    let dispatch_receiver_2 = receiver;
+                    dispatch_receiver_2
+                        .dispatch
+                        .write_menu_entry_children(value)
+                }
             };
             index += 1.0;
         }
     }
-    Ok(entries.clone())
+    Ok(entries)
 }
 
-pub(crate) fn assert_acyclic_parents(
+pub fn assert_acyclic_parents(
     entries: js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
     by_identity: js_abi::JsMap<String, crate::models::menu_entry::MenuEntry>,
-) -> rt::TsonicResult<()> {
+) -> Result<(), rt::TsonicError> {
     {
         let mut index: f64 = 0.0;
         while index < (tsonic_rust_runtime::conversions::usize_to_i32(entries.len())? as f64) {
@@ -84,15 +129,20 @@ pub(crate) fn assert_acyclic_parents(
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            while !js_string::trim(&current.state.with(|state| state.parent.clone())).is_empty() {
+            while !js_string::trim(&{
+                let dispatch_receiver = &current;
+                dispatch_receiver.dispatch.read_menu_entry_parent()
+            })
+            .is_empty()
+            {
                 let identity: String = menu_entry_identity(current.clone());
                 if visited.has(&identity) {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                    return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                         String::from("TSUMO_MENU_PARENT_CYCLE"),
                         format!(
                             "{}{}{}",
                             String::from("Menu parent cycle includes '"),
-                            rt::source_string(&identity),
+                            identity,
                             String::from("'"),
                         ),
                         None,
@@ -100,19 +150,28 @@ pub(crate) fn assert_acyclic_parents(
                         None,
                     )));
                 }
-                visited.set(identity.clone(), true);
-                let parent: Option<crate::models::menu_entry::MenuEntry> = by_identity.get(
-                    &js_string::trim(&current.state.with(|state| state.parent.clone())),
-                );
+                visited.set_discard(identity.clone(), true);
+                let parent: Option<crate::models::menu_entry::MenuEntry> = {
+                    let operation_input_0 = by_identity.clone();
+                    operation_input_0.get(&js_string::trim(
+                        &{
+                            let dispatch_receiver_2 = &current;
+                            dispatch_receiver_2.dispatch.read_menu_entry_parent()
+                        },
+                    ))
+                };
                 if parent.is_none() {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                    return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                         String::from("TSUMO_MENU_PARENT_NOT_FOUND"),
                         format!(
                             "{}{}{}{}{}",
                             String::from("Menu entry '"),
-                            rt::source_string(&identity),
+                            identity,
                             String::from("' names missing parent '"),
-                            rt::source_string(&current.state.with(|state| state.parent.clone())),
+                            {
+                                let dispatch_receiver_3 = &current;
+                                dispatch_receiver_3.dispatch.read_menu_entry_parent()
+                            },
                             String::from("'"),
                         ),
                         None,
@@ -133,7 +192,7 @@ pub(crate) fn assert_acyclic_parents(
 
 pub fn build_menu_hierarchy(
     entries: js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
-) -> rt::TsonicResult<js_abi::JsArray<crate::models::menu_entry::MenuEntry>> {
+) -> Result<js_abi::JsArray<crate::models::menu_entry::MenuEntry>, rt::TsonicError> {
     let by_identity: js_abi::JsMap<String, crate::models::menu_entry::MenuEntry> =
         js_abi::JsMap::new();
     {
@@ -149,11 +208,14 @@ pub fn build_menu_hierarchy(
             {
                 let receiver = &entry;
                 let value = js_abi::JsArray::from_dense(vec![]);
-                receiver.state.with_mut(|state| state.children = value)
+                {
+                    let dispatch_receiver = receiver;
+                    dispatch_receiver.dispatch.write_menu_entry_children(value)
+                }
             };
             let identity: String = menu_entry_identity(entry.clone());
             if identity.is_empty() {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                     String::from("TSUMO_MENU_IDENTITY_REQUIRED"),
                     String::from("Every menu entry requires an identifier or name"),
                     None,
@@ -162,20 +224,15 @@ pub fn build_menu_hierarchy(
                 )));
             }
             if by_identity.has(&identity) {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                     String::from("TSUMO_MENU_IDENTITY_DUPLICATE"),
-                    format!(
-                        "{}{}{}",
-                        String::from("Duplicate menu entry identity: "),
-                        rt::source_string(&identity),
-                        String::from(""),
-                    ),
+                    format!("{}{}", String::from("Duplicate menu entry identity: "), identity),
                     None,
                     None,
                     None,
                 )));
             }
-            by_identity.set(identity.clone(), entry.clone());
+            by_identity.set_discard(identity.clone(), entry.clone());
             index += 1.0;
         }
     }
@@ -192,24 +249,24 @@ pub fn build_menu_hierarchy(
                 Some(flow_value_2) => flow_value_2.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let parent_name: String =
-                js_string::trim(&entry.state.with(|state| state.parent.clone()));
+            let parent_name: String = js_string::trim(&{
+                let dispatch_receiver_2 = &entry;
+                dispatch_receiver_2.dispatch.read_menu_entry_parent()
+            });
             if parent_name.is_empty() {
-                tsonic_rust_runtime::conversions::usize_to_i32(
-                    top_level.push_many([entry.clone()]),
-                )?;
+                top_level.push_many_discard([entry.clone()]);
             } else {
                 let parent: Option<crate::models::menu_entry::MenuEntry> =
                     by_identity.get(&parent_name);
                 if parent.is_none() {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                    return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                         String::from("TSUMO_MENU_PARENT_NOT_FOUND"),
                         format!(
                             "{}{}{}{}{}",
                             String::from("Menu entry '"),
-                            rt::source_string(&menu_entry_identity(entry.clone())),
+                            menu_entry_identity(entry.clone()),
                             String::from("' names missing parent '"),
-                            rt::source_string(&parent_name),
+                            parent_name,
                             String::from("'"),
                         ),
                         None,
@@ -217,15 +274,12 @@ pub fn build_menu_hierarchy(
                         None,
                     )));
                 }
-                tsonic_rust_runtime::conversions::usize_to_i32(
-                    match parent.as_ref() {
-                        Some(flow_value_3) => flow_value_3.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }
-                    .state
-                    .with(|state| state.children.clone())
-                    .push_many([entry.clone()]),
-                )?;
+                { let dispatch_receiver_3 = &match parent.as_ref() {
+    Some(flow_value_3) => flow_value_3.clone(),
+    None => unreachable!("checked flow selected a missing optional value"),
+}; dispatch_receiver_3.dispatch.read_menu_entry_children() }.push_many_discard([
+                    entry.clone(),
+                ]);
             }
             index += 1.0;
         }
@@ -233,10 +287,10 @@ pub fn build_menu_hierarchy(
     sort_hierarchy(top_level.clone())
 }
 
-pub(crate) fn append_flat_menu_entries(
+pub fn append_flat_menu_entries(
     entries: js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
     result: js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
-) -> rt::TsonicResult<()> {
+) -> Result<(), rt::TsonicError> {
     {
         let mut index: f64 = 0.0;
         while index < (tsonic_rust_runtime::conversions::usize_to_i32(entries.len())? as f64) {
@@ -249,26 +303,68 @@ pub(crate) fn append_flat_menu_entries(
             };
             let clone: crate::models::menu_entry::MenuEntry =
                 crate::models::menu_entry::MenuEntry::new(
-                    entry.state.with(|state| state.name.clone()),
-                    entry.state.with(|state| state.url.clone()),
-                    entry.state.with(|state| state.page_ref.clone()),
-                    entry.state.with(|state| state.title.clone()),
-                    entry.state.with(|state| state.weight),
-                    entry.state.with(|state| state.parent.clone()),
-                    entry.state.with(|state| state.identifier.clone()),
-                    entry.state.with(|state| state.pre.clone()),
-                    entry.state.with(|state| state.post.clone()),
-                    entry.state.with(|state| state.menu.clone()),
-                    Some(entry.state.with(|state| state.params.clone())),
+                    {
+                        let dispatch_receiver = &entry;
+                        dispatch_receiver.dispatch.read_menu_entry_name()
+                    },
+                    {
+                        let dispatch_receiver_2 = &entry;
+                        dispatch_receiver_2.dispatch.read_menu_entry_url()
+                    },
+                    {
+                        let dispatch_receiver_3 = &entry;
+                        dispatch_receiver_3.dispatch.read_menu_entry_page_ref()
+                    },
+                    {
+                        let dispatch_receiver_4 = &entry;
+                        dispatch_receiver_4.dispatch.read_menu_entry_title()
+                    },
+                    {
+                        let dispatch_receiver_5 = &entry;
+                        dispatch_receiver_5.dispatch.read_menu_entry_weight()
+                    },
+                    {
+                        let dispatch_receiver_6 = &entry;
+                        dispatch_receiver_6.dispatch.read_menu_entry_parent()
+                    },
+                    {
+                        let dispatch_receiver_7 = &entry;
+                        dispatch_receiver_7.dispatch.read_menu_entry_identifier()
+                    },
+                    {
+                        let dispatch_receiver_8 = &entry;
+                        dispatch_receiver_8.dispatch.read_menu_entry_pre()
+                    },
+                    {
+                        let dispatch_receiver_9 = &entry;
+                        dispatch_receiver_9.dispatch.read_menu_entry_post()
+                    },
+                    {
+                        let dispatch_receiver_10 = &entry;
+                        dispatch_receiver_10.dispatch.read_menu_entry_menu()
+                    },
+                    Some({
+                        let dispatch_receiver_11 = &entry;
+                        dispatch_receiver_11.dispatch.read_menu_entry_params()
+                    }),
                 );
             {
                 let receiver = &clone;
-                let value = entry.state.with(|state| state.page.clone());
-                receiver.state.with_mut(|state| state.page = value)
+                let value = {
+                    let dispatch_receiver_12 = &entry;
+                    dispatch_receiver_12.dispatch.read_menu_entry_page()
+                };
+                {
+                    let dispatch_receiver_13 = receiver;
+                    dispatch_receiver_13.dispatch.write_menu_entry_page(value)
+                }
             };
-            tsonic_rust_runtime::conversions::usize_to_i32(result.push_many([clone.clone()]))?;
+            result.push_many_discard([clone.clone()]);
             append_flat_menu_entries(
-                entry.state.with(|state| state.children.clone()),
+                {
+                    let dispatch_receiver_14 = &entry;
+                    dispatch_receiver_14.dispatch.read_menu_entry_children()
+                },
                 result.clone(),
             )?;
             index += 1.0;
@@ -279,9 +375,9 @@ pub(crate) fn append_flat_menu_entries(
 
 pub fn flatten_menu_entries(
     entries: js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
-) -> rt::TsonicResult<js_abi::JsArray<crate::models::menu_entry::MenuEntry>> {
+) -> Result<js_abi::JsArray<crate::models::menu_entry::MenuEntry>, rt::TsonicError> {
     let result: js_abi::JsArray<crate::models::menu_entry::MenuEntry> =
         js_abi::JsArray::from_dense(vec![]);
-    append_flat_menu_entries(entries.clone(), result.clone())?;
-    Ok(result.clone())
+    append_flat_menu_entries(entries, result.clone())?;
+    Ok(result)
 }

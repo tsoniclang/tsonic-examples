@@ -30,15 +30,16 @@ namespace Tsumo.Tests
                 {
                     operation();
                 }
-                catch (System.Exception error)
+                catch (System.Exception __tsonic_catch0)
                 {
-                    if (error is TsumoError)
+                    Tsonic.CSharp.Runtime.TsValue error = Tsonic.CSharp.Runtime.TsThrownValueException.toValue(__tsonic_catch0);
+                    if (Tsonic.CSharp.Runtime.TsValue.IsDynamicInstanceOf<TsumoError>(error))
                     {
-                        return ((TsumoError)error).diagnostic;
+                        return Tsonic.CSharp.Runtime.TsValue.CastDynamic<TsumoError>(error).diagnostic;
                     }
                     throw;
                 }
-                throw new System.Exception("Expected a Tsumo diagnostic");
+                throw new Tsonic.CSharp.Runtime.Error("Expected a Tsumo diagnostic");
             };
             assertFrontMatterModel = (string source) =>
             {
@@ -79,13 +80,13 @@ namespace Tsumo.Tests
             Xunit.Assert.True(value is JsonObject);
             if (!(value is JsonObject))
             {
-                throw new System.Exception("Expected JSON object");
+                throw new Tsonic.CSharp.Runtime.Error("Expected JSON object");
             }
             JsonValue? title = ((JsonObject)value).get("title");
             Xunit.Assert.True(title is JsonString);
             if (!(title is JsonString))
             {
-                throw new System.Exception("Expected JSON string");
+                throw new Tsonic.CSharp.Runtime.Error("Expected JSON string");
             }
             Xunit.Assert.Equal("Café 🚀", ((JsonString)title).value);
             Xunit.Assert.Equal<double>(2, ((JsonString)title).line);
@@ -103,7 +104,7 @@ namespace Tsumo.Tests
             Xunit.Assert.True(value is JsonArray);
             if (!(value is JsonArray))
             {
-                throw new System.Exception("Expected JSON array");
+                throw new Tsonic.CSharp.Runtime.Error("Expected JSON array");
             }
             Xunit.Assert.Equal<double>(27000, ((JsonArray)value).items.length);
         }
@@ -192,7 +193,7 @@ namespace Tsumo.Tests
             Xunit.Assert.True(tomlMenu is not null && yamlMenu is not null && jsonMenu is not null);
             if (tomlMenu is null || yamlMenu is null || jsonMenu is null)
             {
-                throw new System.Exception("Expected main menus");
+                throw new Tsonic.CSharp.Runtime.Error("Expected main menus");
             }
             InputBoundariesTest.assertConfigModel(toml.title, toml.baseURL, tomlFeatured is not null && tomlFeatured.boolValue, tomlMenu[0].name);
             InputBoundariesTest.assertConfigModel(yaml.title, yaml.baseURL, yamlFeatured is not null && yamlFeatured.boolValue, yamlMenu[0].name);
@@ -256,13 +257,13 @@ namespace Tsumo.Tests
             string site = TestRoot.createTestDirectory("split-config");
             try
             {
-                string configDir = System.IO.Path.Combine(site, "config", "_default");
-                System.IO.Directory.CreateDirectory(configDir);
-                System.IO.File.WriteAllText(System.IO.Path.Combine(configDir, "hugo.toml"), "title = 'Example'\nbaseURL = 'https://example.test'");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(configDir, "params.yaml"), "message: \"Hello # retained\" # removed");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(configDir, "languages.toml"), Tsonic.CSharp.Js.Array.join(new Tsonic.CSharp.Js.JSArray<string>(new string[] { "[en]", "languageName = 'English'", "languageDirection = 'rtl'", "contentDir = 'content/custom'", "weight = 4" }), "\n"));
-                System.IO.File.WriteAllText(System.IO.Path.Combine(configDir, "languages.en.toml"), "weight = 1");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(configDir, "module.toml"), Tsonic.CSharp.Js.Array.join(new Tsonic.CSharp.Js.JSArray<string>(new string[] { "[[mounts]]", "source = 'shared'", "target = 'content'" }), "\n"));
+                string configDir = Tsonic.CSharp.Node.path.join(site, "config", "_default");
+                TestRoot.createDirectory(configDir);
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(configDir, "hugo.toml"), "title = 'Example'\nbaseURL = 'https://example.test'");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(configDir, "params.yaml"), "message: \"Hello # retained\" # removed");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(configDir, "languages.toml"), Tsonic.CSharp.Js.Array.join(new Tsonic.CSharp.Js.JSArray<string>(new string[] { "[en]", "languageName = 'English'", "languageDirection = 'rtl'", "contentDir = 'content/custom'", "weight = 4" }), "\n"));
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(configDir, "languages.en.toml"), "weight = 1");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(configDir, "module.toml"), Tsonic.CSharp.Js.Array.join(new Tsonic.CSharp.Js.JSArray<string>(new string[] { "[[mounts]]", "source = 'shared'", "target = 'content'" }), "\n"));
                 SiteConfig loaded = Node_modules_Tsumo_engine_src_config_loader.loadSiteConfig(site).config;
                 Xunit.Assert.Equal("Example", loaded.title);
                 Xunit.Assert.Equal("https://example.test/", loaded.baseURL);
@@ -274,13 +275,13 @@ namespace Tsumo.Tests
                 Xunit.Assert.Equal<double>(1, loaded.languages[0].weight);
                 Xunit.Assert.Equal<double>(1, loaded.moduleMounts.length);
                 Xunit.Assert.Equal("shared", loaded.moduleMounts[0].source);
-                System.IO.File.WriteAllText(System.IO.Path.Combine(configDir, "params.yaml"), "message: first\nMessage: second");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(configDir, "params.yaml"), "message: first\nMessage: second");
                 Xunit.Assert.Equal("TSUMO_CONFIG_DUPLICATE_FIELD", InputBoundariesTest.captureDiagnostic(() =>
                 {
                     Node_modules_Tsumo_engine_src_config_loader.loadSiteConfig(site);
                 }).code);
-                System.IO.File.WriteAllText(System.IO.Path.Combine(configDir, "params.yaml"), "message: first");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(configDir, "config.yaml"), "title: Other");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(configDir, "params.yaml"), "message: first");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(configDir, "config.yaml"), "title: Other");
                 Xunit.Assert.Equal("TSUMO_CONFIG_FILE_AMBIGUOUS", InputBoundariesTest.captureDiagnostic(() =>
                 {
                     Node_modules_Tsumo_engine_src_config_loader.loadSiteConfig(site);

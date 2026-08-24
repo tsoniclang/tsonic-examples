@@ -42,10 +42,10 @@ namespace Tsumo.Engine
                 SiteOutputPlan outputPlan = new SiteOutputPlan();
                 if (themeDir is not null)
                 {
-                    outputPlan.addDirectory(System.IO.Path.Combine(themeDir, "static"), "", "theme static files", "theme-static");
+                    outputPlan.addDirectory(Tsonic.CSharp.Node.path.join(themeDir, "static"), "", "theme static files", "theme-static");
                 }
-                outputPlan.addDirectory(System.IO.Path.Combine(siteDir, "static"), "", "site static files", "site-static");
-                ContentInventory inventory = Build_discoverContent.discoverContent(System.IO.Path.Combine(siteDir, config.contentDir), request.buildDrafts);
+                outputPlan.addDirectory(Tsonic.CSharp.Node.path.join(siteDir, "static"), "", "site static files", "site-static");
+                ContentInventory inventory = Build_discoverContent.discoverContent(Tsonic.CSharp.Node.path.join(siteDir, config.contentDir), request.buildDrafts);
                 StandardPageGraph pageGraph = Build_standardPageGraph.createStandardPageGraph(config, inventory);
                 StandardTaxonomyGraph taxonomies = Build_standardTaxonomies.createStandardTaxonomies(pageGraph);
                 Build_renderPageContent.renderStandardPageContent(pageGraph, environment);

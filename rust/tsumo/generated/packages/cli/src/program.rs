@@ -6,8 +6,7 @@ pub use tsonic_rust_runtime::*;
 #[derive(Clone)]
 pub enum TsonicError {
     Runtime(tsonic_rust_runtime::TsonicError),
-    Project0(crate::node_modules::tsumo::engine::src::diagnostics::TsumoError),
-    Project1(crate::node_modules::tsumo::engine::src::template::evaluation::return_signal::TemplateReturnSignal),
+    TsumoEngineError(tsumo_engine::program::TsonicError),
     Suppressed(Box<TsonicError>, Box<TsonicError>),
 }
 
@@ -25,17 +24,15 @@ impl std::convert::From<tsonic_rust_runtime::JsError> for TsonicError {
     }
 }
 
-impl std::convert::From<crate::node_modules::tsumo::engine::src::diagnostics::TsumoError> for TsonicError {
-    fn from(value: crate::node_modules::tsumo::engine::src::diagnostics::TsumoError) -> Self {
-        Self::Project0(value)
+impl std::convert::From<tsonic_rust_node::NodeError> for TsonicError {
+    fn from(value: tsonic_rust_node::NodeError) -> Self {
+        Self::Runtime(tsonic_rust_runtime::TsonicError::from(value))
     }
 }
 
-impl std::convert::From<crate::node_modules::tsumo::engine::src::template::evaluation::return_signal::TemplateReturnSignal> for TsonicError {
-    fn from(
-        value: crate::node_modules::tsumo::engine::src::template::evaluation::return_signal::TemplateReturnSignal,
-    ) -> Self {
-        Self::Project1(value)
+impl std::convert::From<tsumo_engine::program::TsonicError> for TsonicError {
+    fn from(value: tsumo_engine::program::TsonicError) -> Self {
+        Self::TsumoEngineError(value)
     }
 }
 
@@ -43,8 +40,7 @@ impl std::fmt::Display for TsonicError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Runtime(value) => std::fmt::Display::fmt(value, formatter),
-            Self::Project0(value) => std::fmt::Display::fmt(value, formatter),
-            Self::Project1(value) => std::fmt::Display::fmt(value, formatter),
+            Self::TsumoEngineError(value) => std::fmt::Display::fmt(value, formatter),
             Self::Suppressed(error, suppressed) => {
                 write!(
                     formatter,

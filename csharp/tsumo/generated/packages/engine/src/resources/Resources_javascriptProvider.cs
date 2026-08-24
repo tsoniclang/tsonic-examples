@@ -28,6 +28,7 @@ namespace Tsumo.Engine
         private static object? __tsonic_module_init_core()
         {
             Diagnostics.__tsonic_module_init();
+            Fs.__tsonic_module_init();
             Resources_models.__tsonic_module_init();
             Resources_externalProcess.__tsonic_module_init();
             Resources_paths.__tsonic_module_init();
@@ -57,23 +58,22 @@ namespace Tsumo.Engine
                 {
                     throw Diagnostics.createTsumoError("TSUMO_JAVASCRIPT_SOURCE_MAP_UNSUPPORTED", "js.Build currently supports only sourceMap 'none'");
                 }
-                string? configuredExecutable = System.Environment.GetEnvironmentVariable("TSUMO_ESBUILD");
+                string? configuredExecutable = Tsonic.CSharp.Node.process.env["TSUMO_ESBUILD"];
                 string executable = configuredExecutable is not null && Tsonic.CSharp.Js.String.trim(configuredExecutable) != "" ? Tsonic.CSharp.Js.String.trim(configuredExecutable) : "esbuild";
-                string workDirectory = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"tsumo-esbuild-{System.Guid.NewGuid().ToString("n")}");
-                System.IO.Directory.CreateDirectory(workDirectory);
+                string workDirectory = Tsonic.CSharp.Node.fs.mkdtempSync(Tsonic.CSharp.Node.path.join(Tsonic.CSharp.Node.os.tmpdir(), "tsumo-esbuild-"));
                 try
                 {
-                    string inputPath = System.IO.Path.Combine(workDirectory, "input" + sourceExtension(resource));
+                    string inputPath = Tsonic.CSharp.Node.path.join(workDirectory, "input" + sourceExtension(resource));
                     string? sourcePath = resource.sourcePath;
-                    if (sourcePath is not null && System.IO.File.Exists(sourcePath) && System.IO.File.ReadAllText(sourcePath) == sourceText)
+                    if (sourcePath is not null && Fs.fileExists(sourcePath) && Fs.readTextFile(sourcePath) == sourceText)
                     {
                         inputPath = sourcePath;
                     }
                     else
                     {
-                        System.IO.File.WriteAllText(inputPath, sourceText);
+                        Tsonic.CSharp.Node.fs.writeFileSync(inputPath, sourceText, "utf8");
                     }
-                    string outputPath = System.IO.Path.Combine(workDirectory, "output.js");
+                    string outputPath = Tsonic.CSharp.Node.path.join(workDirectory, "output.js");
                     Tsonic.CSharp.Js.JSArray<string> argumentsList = new Tsonic.CSharp.Js.JSArray<string>(new string[] { inputPath, "--bundle", $"--outfile={outputPath}", $"--format={options.format}", $"--target={options.target}", $"--platform={options.platform}", "--charset=utf8", "--log-level=warning" });
                     if (options.minify)
                     {
@@ -87,8 +87,8 @@ namespace Tsumo.Engine
                     string? paramsJson = options.paramsJson;
                     if (paramsJson is not null)
                     {
-                        string paramsPath = System.IO.Path.Combine(workDirectory, "params.json");
-                        System.IO.File.WriteAllText(paramsPath, paramsJson);
+                        string paramsPath = Tsonic.CSharp.Node.path.join(workDirectory, "params.json");
+                        Tsonic.CSharp.Node.fs.writeFileSync(paramsPath, paramsJson, "utf8");
                         argumentsList.push($"--alias:@params={paramsPath}");
                     }
                     ExternalProcessResult process = Resources_externalProcess.runExternalProcess(executable, argumentsList, "esbuild", "TSUMO_ESBUILD_START_FAILED");
@@ -96,19 +96,20 @@ namespace Tsumo.Engine
                     {
                         throw Diagnostics.createTsumoError("TSUMO_ESBUILD_FAILED", process.standardError == "" ? $"esbuild failed with exit code {process.exitCode}" : process.standardError);
                     }
-                    if (!System.IO.File.Exists(outputPath))
+                    if (!Tsonic.CSharp.Node.fs.existsSync(outputPath))
                     {
                         throw Diagnostics.createTsumoError("TSUMO_ESBUILD_OUTPUT_MISSING", "esbuild completed without producing JavaScript");
                     }
-                    string text = System.IO.File.ReadAllText(outputPath);
+                    string text = Tsonic.CSharp.Node.fs.readFileSync(outputPath, "utf8");
                     return new Resource($"{resource.id}|js-build:{options.cacheKey()}", resource.sourcePath, true, outputRelativePath(resource, options), Tsonic.CSharp.Node.Buffer.from(text, "utf8"), text, resource.Data, "application/javascript");
                 }
                 finally
                 {
-                    if (System.IO.Directory.Exists(workDirectory))
+                    Tsonic.CSharp.Node.fs.rmSync(workDirectory, new Tsonic.CSharp.Node.RmOptions
                     {
-                        System.IO.Directory.Delete(workDirectory, true);
-                    }
+                        recursive = true,
+                        force = true,
+                    });
                 }
             };
             return null;

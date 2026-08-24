@@ -2,15 +2,17 @@
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct LoadedConfigState {
-    pub(crate) path: Option<String>,
-    pub(crate) config: crate::models::site_config::SiteConfig,
+pub struct LoadedConfigState {
+    pub path: Option<String>,
+    pub config: crate::models::site_config::SiteConfig,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct LoadedConfig {
-    pub(crate) state: rt::ObjectHandle<LoadedConfigState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<LoadedConfigState>,
 }
 
 impl LoadedConfig {
@@ -18,10 +20,10 @@ impl LoadedConfig {
         path: Option<String>,
         config: crate::models::site_config::SiteConfig,
     ) -> LoadedConfig {
-        let field_path: Option<String> = path.clone();
-        let field_config: crate::models::site_config::SiteConfig = config.clone();
+        let field_path: Option<String> = path;
+        let field_config: crate::models::site_config::SiteConfig = config;
         LoadedConfig {
-            state: rt::ObjectHandle::new(LoadedConfigState {
+            state: rt::ObjectRef::new(LoadedConfigState {
                 path: field_path,
                 config: field_config,
             }),

@@ -47,7 +47,7 @@ namespace Tsumo.Engine
             Build_siteRoutes.__tsonic_module_init();
             isBranchIndexFile = (string name) => Tsonic.CSharp.Js.String.toLowerCase(name) == "_index.md";
             isLeafBundleIndexFile = (string name) => Tsonic.CSharp.Js.String.toLowerCase(name) == "index.md";
-            createPageFile = (string directory, string fileName, string filePath) => new PageFile(System.IO.Path.GetFullPath(filePath), directory == "" ? "" : directory + "/", Build_siteRoutes.withoutMarkdownExtension(fileName));
+            createPageFile = (string directory, string fileName, string filePath) => new PageFile(Tsonic.CSharp.Node.path.resolve(filePath), directory == "" ? "" : directory + "/", Build_siteRoutes.withoutMarkdownExtension(fileName));
             compareContentPages = (ContentPageSource left, ContentPageSource right) =>
             {
                 double leftTime = left.dateUtc.getTime();
@@ -83,7 +83,7 @@ namespace Tsumo.Engine
                 for (int fileIndex = 0; fileIndex < files.length; fileIndex++)
                 {
                     string filePath = files[fileIndex];
-                    string relativePath = Build_siteRoutes.normalizeSitePath(System.IO.Path.GetRelativePath(contentDir, filePath));
+                    string relativePath = Build_siteRoutes.normalizeSitePath(Tsonic.CSharp.Node.path.relative(contentDir, filePath));
                     if (relativePath == "" || relativePath == ".." || Tsonic.CSharp.Js.String.startsWith(relativePath, "../"))
                     {
                         throw Diagnostics.createTsumoError("TSUMO_CONTENT_SOURCE_PATH_INVALID", $"Content source is outside its content root: {filePath}", filePath);
@@ -111,7 +111,7 @@ namespace Tsumo.Engine
                             throw Diagnostics.createTsumoError("TSUMO_CONTENT_ROUTE_CONFLICT", $"Multiple branch indexes map to '{directory}'", filePath);
                         }
                         assertUniqueOutput(outputs, Build_siteRoutes.siteOutputPath(directorySegments), filePath);
-                        listPagesByRoute.set(directory, new ListPageSource(frontMatter.title, parsed.body, frontMatter.description ?? "", frontMatter.type, frontMatter.layout, frontMatter.Params, System.IO.Path.GetDirectoryName(filePath) ?? contentDir, file));
+                        listPagesByRoute.set(directory, new ListPageSource(frontMatter.title, parsed.body, frontMatter.description ?? "", frontMatter.type, frontMatter.layout, frontMatter.Params, Tsonic.CSharp.Node.path.dirname(filePath), file));
                         continue;
                     }
                     string section = directorySegments.length > 0 ? directorySegments[0] : "";

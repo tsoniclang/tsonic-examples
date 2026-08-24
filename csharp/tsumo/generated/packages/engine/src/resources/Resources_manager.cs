@@ -85,8 +85,8 @@ namespace Tsumo.Engine
             this.siteDir = siteDir;
             this.themeDir = themeDir;
             this.outputDir = outputDir;
-            this.siteAssetsDir = System.IO.Path.Combine(siteDir, "assets");
-            this.themeAssetsDir = themeDir is null ? null : System.IO.Path.Combine(themeDir, "assets");
+            this.siteAssetsDir = Tsonic.CSharp.Node.path.join(siteDir, "assets");
+            this.themeAssetsDir = themeDir is null ? null : Tsonic.CSharp.Node.path.join(themeDir, "assets");
             this.cache = new Tsonic.CSharp.Js.Map<string, Resource>();
             this.siteAssetFiles = Fs.listFilesRecursive(this.siteAssetsDir, "*");
             Resources_manager.sortResourcePaths(this.siteAssetFiles);
@@ -102,7 +102,7 @@ namespace Tsumo.Engine
                 return null;
             }
             string sitePath = Resources_paths.resolveContainedResourcePath(this.siteAssetsDir, normalized);
-            if (System.IO.File.Exists(sitePath))
+            if (Fs.fileExists(sitePath))
             {
                 return sitePath;
             }
@@ -112,7 +112,7 @@ namespace Tsumo.Engine
                 return null;
             }
             string themePath = Resources_paths.resolveContainedResourcePath(themeAssetsDir, normalized);
-            return System.IO.File.Exists(themePath) ? themePath : null;
+            return Fs.fileExists(themePath) ? themePath : null;
         }
         public Resource? get(string relativePath)
         {
@@ -136,12 +136,12 @@ namespace Tsumo.Engine
             {
                 return cached;
             }
-            if (!System.IO.File.Exists(fullPath))
+            if (!Fs.fileExists(fullPath))
             {
                 throw Diagnostics.createTsumoError("TSUMO_RESOURCE_SOURCE_MISSING", $"Resource source file does not exist: {fullPath}");
             }
             Tsonic.CSharp.Node.Buffer bytes = Fs.readBinaryFile(fullPath);
-            string extension = Tsonic.CSharp.Js.String.toLowerCase((System.IO.Path.GetExtension(fullPath) ?? ""));
+            string extension = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Node.path.extname(fullPath));
             string mediaType = Resources_mediaTypes.resourceMediaTypeForExtension(extension);
             int width = 0;
             int height = 0;
@@ -172,7 +172,7 @@ namespace Tsumo.Engine
             for (int index = 0; index < this.siteAssetFiles.length; index++)
             {
                 string fullPath = this.siteAssetFiles[index];
-                string relativePath = Resources_paths.normalizeResourceSlashes(System.IO.Path.GetRelativePath(this.siteAssetsDir, fullPath));
+                string relativePath = Resources_paths.normalizeResourceSlashes(Tsonic.CSharp.Node.path.relative(this.siteAssetsDir, fullPath));
                 if (Resources_glob.resourceGlobMatches(normalized, relativePath))
                 {
                     return this.get(relativePath);
@@ -184,7 +184,7 @@ namespace Tsumo.Engine
                 for (int index_1 = 0; index_1 < this.themeAssetFiles.length; index_1++)
                 {
                     string fullPath_1 = this.themeAssetFiles[index_1];
-                    string relativePath_1 = Resources_paths.normalizeResourceSlashes(System.IO.Path.GetRelativePath(themeAssetsDir, fullPath_1));
+                    string relativePath_1 = Resources_paths.normalizeResourceSlashes(Tsonic.CSharp.Node.path.relative(themeAssetsDir, fullPath_1));
                     if (Resources_glob.resourceGlobMatches(normalized, relativePath_1))
                     {
                         return this.get(relativePath_1);
@@ -205,7 +205,7 @@ namespace Tsumo.Engine
             for (int index = 0; index < this.siteAssetFiles.length; index++)
             {
                 string fullPath = this.siteAssetFiles[index];
-                string relativePath = Resources_paths.normalizeResourceSlashes(System.IO.Path.GetRelativePath(this.siteAssetsDir, fullPath));
+                string relativePath = Resources_paths.normalizeResourceSlashes(Tsonic.CSharp.Node.path.relative(this.siteAssetsDir, fullPath));
                 if (!Resources_glob.resourceGlobMatches(normalized, relativePath))
                 {
                     continue;
@@ -224,7 +224,7 @@ namespace Tsumo.Engine
                 for (int index_1 = 0; index_1 < this.themeAssetFiles.length; index_1++)
                 {
                     string fullPath_1 = this.themeAssetFiles[index_1];
-                    string relativePath_1 = Resources_paths.normalizeResourceSlashes(System.IO.Path.GetRelativePath(themeAssetsDir, fullPath_1));
+                    string relativePath_1 = Resources_paths.normalizeResourceSlashes(Tsonic.CSharp.Node.path.relative(themeAssetsDir, fullPath_1));
                     if (selected.has(relativePath_1) || !Resources_glob.resourceGlobMatches(normalized, relativePath_1))
                     {
                         continue;
@@ -246,7 +246,7 @@ namespace Tsumo.Engine
             for (int index = 0; index < this.siteAssetFiles.length; index++)
             {
                 string fullPath = this.siteAssetFiles[index];
-                string relativePath = Resources_paths.normalizeResourceSlashes(System.IO.Path.GetRelativePath(this.siteAssetsDir, fullPath));
+                string relativePath = Resources_paths.normalizeResourceSlashes(Tsonic.CSharp.Node.path.relative(this.siteAssetsDir, fullPath));
                 Resource? resource = this.get(relativePath);
                 if (resource is null || !Resources_mediaTypes.resourceMatchesMediaType(resource.mediaType, mediaType))
                 {
@@ -261,7 +261,7 @@ namespace Tsumo.Engine
                 for (int index_1 = 0; index_1 < this.themeAssetFiles.length; index_1++)
                 {
                     string fullPath_1 = this.themeAssetFiles[index_1];
-                    string relativePath_1 = Resources_paths.normalizeResourceSlashes(System.IO.Path.GetRelativePath(themeAssetsDir, fullPath_1));
+                    string relativePath_1 = Resources_paths.normalizeResourceSlashes(Tsonic.CSharp.Node.path.relative(themeAssetsDir, fullPath_1));
                     if (selected.has(relativePath_1))
                     {
                         continue;
@@ -308,11 +308,7 @@ namespace Tsumo.Engine
             string? sourcePath = resource.sourcePath;
             if (sourcePath is not null)
             {
-                string? sourceDirectory = System.IO.Path.GetDirectoryName(sourcePath);
-                if (sourceDirectory is not null && sourceDirectory != "")
-                {
-                    loadPaths.push(sourceDirectory);
-                }
+                loadPaths.push(Tsonic.CSharp.Node.path.dirname(sourcePath));
             }
             loadPaths.push(this.siteAssetsDir);
             string? themeAssetsDir = this.themeAssetsDir;
@@ -359,10 +355,10 @@ namespace Tsumo.Engine
                 throw Diagnostics.createTsumoError("TSUMO_RESOURCE_OUTPUT_PATH_MISSING", "Publishable resource has an empty output path");
             }
             string destination = Resources_paths.resolveContainedResourcePath(this.outputDir, normalized);
-            string? directory = System.IO.Path.GetDirectoryName(destination);
-            if (directory is not null && directory != "")
+            string directory = Tsonic.CSharp.Node.path.dirname(destination);
+            if (directory != "")
             {
-                System.IO.Directory.CreateDirectory(directory);
+                Fs.ensureDir(directory);
             }
             Tsonic.CSharp.Node.fs.writeFileSync(destination, resource.bytes);
         }

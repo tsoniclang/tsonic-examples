@@ -6,20 +6,22 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct IndexedSourceTextState {
-    pub(crate) characters: js_abi::JsArray<String>,
-    pub(crate) utf16_offsets: js_abi::JsArray<i32>,
-    pub(crate) length: i32,
+pub struct IndexedSourceTextState {
+    pub characters: js_abi::JsArray<String>,
+    pub utf16_offsets: js_abi::JsArray<i32>,
+    pub length: i32,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct IndexedSourceText {
-    pub(crate) state: rt::ObjectHandle<IndexedSourceTextState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<IndexedSourceTextState>,
 }
 
 impl IndexedSourceText {
-    pub fn new(source: String) -> rt::TsonicResult<IndexedSourceText> {
+    pub fn new(source: String) -> Result<IndexedSourceText, rt::TsonicError> {
         let field_characters: js_abi::JsArray<String> = js_abi::array_from_string(&source);
         let field_utf16_offsets: js_abi::JsArray<i32> = js_abi::JsArray::from_dense(vec![0]);
         let mut utf16_offset: i32 = 0;
@@ -35,16 +37,14 @@ impl IndexedSourceText {
                         None => unreachable!("checked flow selected a missing optional value"),
                     }),
                 )?;
-                tsonic_rust_runtime::conversions::usize_to_i32(
-                    field_utf16_offsets.push_many([utf16_offset]),
-                )?;
+                field_utf16_offsets.push_many_discard([utf16_offset]);
                 index += 1;
             }
         }
         let field_length: i32 =
             tsonic_rust_runtime::conversions::usize_to_i32(field_characters.len())?;
         Ok(IndexedSourceText {
-            state: rt::ObjectHandle::new(IndexedSourceTextState {
+            state: rt::ObjectRef::new(IndexedSourceTextState {
                 characters: field_characters,
                 utf16_offsets: field_utf16_offsets,
                 length: field_length,
@@ -56,8 +56,7 @@ impl IndexedSourceText {
         if index < 0 || index >= self.state.with(|state| state.length) {
             return String::from("");
         }
-        match self
-            .state
+        match self.state
             .with(|state| state.characters.clone())
             .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
             .as_ref()
@@ -68,8 +67,7 @@ impl IndexedSourceText {
     }
 
     pub fn slice(&self, start: i32, end: i32) -> String {
-        self
-            .state
+        self.state
             .with(|state| state.characters.clone())
             .slice_to(
                 tsonic_rust_runtime::conversions::i32_to_f64(start),
@@ -79,8 +77,7 @@ impl IndexedSourceText {
     }
 
     pub fn utf16_offset_at(&self, index: i32) -> i32 {
-        match self
-            .state
+        match self.state
             .with(|state| state.utf16_offsets.clone())
             .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
             .as_ref()

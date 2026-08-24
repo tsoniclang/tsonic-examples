@@ -35,15 +35,16 @@ namespace Tsumo.Tests
                 {
                     operation();
                 }
-                catch (System.Exception error)
+                catch (System.Exception __tsonic_catch0)
                 {
-                    if (error is TsumoError)
+                    Tsonic.CSharp.Runtime.TsValue error = Tsonic.CSharp.Runtime.TsThrownValueException.toValue(__tsonic_catch0);
+                    if (Tsonic.CSharp.Runtime.TsValue.IsDynamicInstanceOf<TsumoError>(error))
                     {
-                        return ((TsumoError)error).diagnostic.code;
+                        return Tsonic.CSharp.Runtime.TsValue.CastDynamic<TsumoError>(error).diagnostic.code;
                     }
                     throw;
                 }
-                throw new System.Exception("Expected a content or menu diagnostic");
+                throw new Tsonic.CSharp.Runtime.Error("Expected a content or menu diagnostic");
             };
             createMenuEntry = (string identity, string parent, int weight, string pageRef) => new MenuEntry(identity, "", pageRef, "", weight, parent, identity, "", "", "main");
             createPage = (SiteContext site, string route, string slug) =>
@@ -73,10 +74,10 @@ namespace Tsumo.Tests
             string root = TestRoot.createTestDirectory("content-discovery");
             try
             {
-                System.IO.File.WriteAllText(System.IO.Path.Combine(root, "z.md"), "---\ntitle: Z\ndate: 2026-01-01T00:00:00Z\n---\nZ");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(root, "a.md"), "---\ntitle: A\ndate: 2026-01-01T00:00:00Z\n---\nA");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(root, "published.md"), "---\ntitle: Published\ndate: 2025-01-01T00:00:00Z\nslug: shared\n---\nPublished");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(root, "draft.md"), "---\ntitle: Draft\ndate: 2025-01-01T00:00:00Z\nslug: shared\ndraft: true\n---\nDraft");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "z.md"), "---\ntitle: Z\ndate: 2026-01-01T00:00:00Z\n---\nZ");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "a.md"), "---\ntitle: A\ndate: 2026-01-01T00:00:00Z\n---\nA");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "published.md"), "---\ntitle: Published\ndate: 2025-01-01T00:00:00Z\nslug: shared\n---\nPublished");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "draft.md"), "---\ntitle: Draft\ndate: 2025-01-01T00:00:00Z\nslug: shared\ndraft: true\n---\nDraft");
                 ContentInventory production = Node_modules_Tsumo_engine_src_build_discoverContent.discoverContent(root, false);
                 Xunit.Assert.Equal<double>(3, production.pages.length);
                 Xunit.Assert.True(production.pages[0].relPermalink == "/a/");
@@ -99,14 +100,14 @@ namespace Tsumo.Tests
             string conflictRoot = TestRoot.createTestDirectory("content-route-conflict");
             try
             {
-                System.IO.File.WriteAllText(System.IO.Path.Combine(escapeRoot, "bad.md"), "---\ntitle: Bad\nslug: ../outside\n---\nBad");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(escapeRoot, "bad.md"), "---\ntitle: Bad\nslug: ../outside\n---\nBad");
                 Xunit.Assert.Equal("TSUMO_CONTENT_ROUTE_SEGMENT_INVALID", ContentAndMenuTest.captureContentDiagnostic(() =>
                 {
                     Node_modules_Tsumo_engine_src_build_discoverContent.discoverContent(escapeRoot, false);
                 }));
-                System.IO.Directory.CreateDirectory(System.IO.Path.Combine(conflictRoot, "guide"));
-                System.IO.File.WriteAllText(System.IO.Path.Combine(conflictRoot, "guide.md"), "---\ntitle: Guide\n---\nPage");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(conflictRoot, "guide", "_index.md"), "---\ntitle: Guide index\n---\nList");
+                TestRoot.createDirectory(Tsonic.CSharp.Node.path.join(conflictRoot, "guide"));
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(conflictRoot, "guide.md"), "---\ntitle: Guide\n---\nPage");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(conflictRoot, "guide", "_index.md"), "---\ntitle: Guide index\n---\nList");
                 Xunit.Assert.Equal("TSUMO_CONTENT_ROUTE_CONFLICT", ContentAndMenuTest.captureContentDiagnostic(() =>
                 {
                     Node_modules_Tsumo_engine_src_build_discoverContent.discoverContent(conflictRoot, false);
@@ -156,7 +157,7 @@ namespace Tsumo.Tests
             Xunit.Assert.True(resolvedPage is not null);
             if (resolvedPage is null)
             {
-                throw new System.Exception("Expected exact menu page resolution");
+                throw new Tsonic.CSharp.Runtime.Error("Expected exact menu page resolution");
             }
             Xunit.Assert.Equal("/articles/post/", resolvedPage.relPermalink);
             site.Menus.set("main", new Tsonic.CSharp.Js.JSArray<MenuEntry>(new MenuEntry[] { ContentAndMenuTest.createMenuEntry("shorthand", "", 0, "post") }));
@@ -171,10 +172,10 @@ namespace Tsumo.Tests
             string root = TestRoot.createTestDirectory("standard-page-graph");
             try
             {
-                System.IO.Directory.CreateDirectory(System.IO.Path.Combine(root, "posts", "series"));
-                System.IO.File.WriteAllText(System.IO.Path.Combine(root, "posts", "_index.md"), "---\ntitle: Posts\n---\nPosts");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(root, "posts", "series", "_index.md"), "---\ntitle: Series\n---\nSeries");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(root, "posts", "series", "part.md"), "---\ntitle: Part\ndate: 2026-01-01T00:00:00Z\ntags: [alpha]\ncategories: [guides]\n---\nPart");
+                TestRoot.createDirectory(Tsonic.CSharp.Node.path.join(root, "posts", "series"));
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "posts", "_index.md"), "---\ntitle: Posts\n---\nPosts");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "posts", "series", "_index.md"), "---\ntitle: Series\n---\nSeries");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "posts", "series", "part.md"), "---\ntitle: Part\ndate: 2026-01-01T00:00:00Z\ntags: [alpha]\ncategories: [guides]\n---\nPart");
                 SiteConfig config = new SiteConfig("Test", "https://example.invalid/", "en", null, null);
                 StandardPageGraph graph = Node_modules_Tsumo_engine_src_build_standardPageGraph.createStandardPageGraph(config, Node_modules_Tsumo_engine_src_build_discoverContent.discoverContent(root, false));
                 StandardTaxonomyGraph taxonomies = Node_modules_Tsumo_engine_src_build_standardTaxonomies.createStandardTaxonomies(graph);
@@ -183,7 +184,7 @@ namespace Tsumo.Tests
                 Xunit.Assert.True(parent is not null);
                 if (parent is null)
                 {
-                    throw new System.Exception("Expected page parent");
+                    throw new Tsonic.CSharp.Runtime.Error("Expected page parent");
                 }
                 Xunit.Assert.Equal("/posts/series/", parent.relPermalink);
                 Xunit.Assert.Equal<double>(3, page.ancestors.length);
@@ -194,7 +195,7 @@ namespace Tsumo.Tests
                 Xunit.Assert.True(home is not null);
                 if (home is null)
                 {
-                    throw new System.Exception("Expected site home");
+                    throw new Tsonic.CSharp.Runtime.Error("Expected site home");
                 }
                 Xunit.Assert.Equal("/", home.relPermalink);
                 Xunit.Assert.Equal<double>(1, home.pages.length);
@@ -203,7 +204,7 @@ namespace Tsumo.Tests
                 Xunit.Assert.True(tags is not null);
                 if (tags is null)
                 {
-                    throw new System.Exception("Expected tags taxonomy");
+                    throw new Tsonic.CSharp.Runtime.Error("Expected tags taxonomy");
                 }
                 Tsonic.CSharp.Js.JSArray<PageContext>? tagPages = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<PageContext>>(tags, "alpha");
                 Xunit.Assert.True(tagPages is not null);

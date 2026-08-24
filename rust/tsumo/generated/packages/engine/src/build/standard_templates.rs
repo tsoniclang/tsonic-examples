@@ -4,17 +4,19 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct StandardTemplatesState {
-    pub(crate) base: Option<String>,
-    pub(crate) home: String,
-    pub(crate) list: String,
-    pub(crate) single: String,
+pub struct StandardTemplatesState {
+    pub base: Option<String>,
+    pub home: String,
+    pub list: String,
+    pub single: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct StandardTemplates {
-    pub(crate) state: rt::ObjectHandle<StandardTemplatesState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<StandardTemplatesState>,
 }
 
 impl StandardTemplates {
@@ -24,12 +26,12 @@ impl StandardTemplates {
         list: String,
         single: String,
     ) -> StandardTemplates {
-        let field_base: Option<String> = base.clone();
-        let field_home: String = home.clone();
-        let field_list: String = list.clone();
-        let field_single: String = single.clone();
+        let field_base: Option<String> = base;
+        let field_home: String = home;
+        let field_list: String = list;
+        let field_single: String = single;
         StandardTemplates {
-            state: rt::ObjectHandle::new(StandardTemplatesState {
+            state: rt::ObjectRef::new(StandardTemplatesState {
                 base: field_base,
                 home: field_home,
                 list: field_list,
@@ -39,106 +41,91 @@ impl StandardTemplates {
     }
 }
 
-pub type SelectStandardTemplatesCallable =
-    rt::Callable<(crate::env::BuildEnvironment,), rt::TsonicResult<StandardTemplates>>;
-
-std::thread_local! {
-    pub static SELECT_STANDARD_TEMPLATES: rt::ModuleCell<SelectStandardTemplatesCallable> = const { rt::ModuleCell::new() };
-}
-
-#[doc(hidden)]
-pub fn module_init() {
-    {
-        let module_value = rt::Callable::<
-            (crate::env::BuildEnvironment,),
-            rt::TsonicResult<StandardTemplates>,
-        >::new(move |callable_arguments| {
-            let environment = callable_arguments.0;
-            let base_candidates: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
-                String::from("_default/baseof.html"),
-                String::from("baseof.html"),
-            ]);
-            let home_candidates: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
-                String::from("index.html"),
-                String::from("home.html"),
-                String::from("_default/home.html"),
-                String::from("_default/list.html"),
-                String::from("list.html"),
-            ]);
-            let list_candidates: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
-                String::from("list.html"),
-                String::from("_default/list.html"),
-            ]);
-            let single_candidates: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
-                String::from("single.html"),
-                String::from("_default/single.html"),
-            ]);
-            let list: String = rt::option_coalesce(
-                crate::build::layout::select_template(
-                    {
-                        let upcast_value = environment.clone();
-                        crate::layouts::LayoutEnvironment {
-                            identity: upcast_value.identity.clone(),
-                            dispatch: upcast_value.dispatch.clone(),
-                        }
-                    },
-                    list_candidates.clone(),
-                )?,
-                std::convert::identity,
-                || {
-                    match list_candidates.get_number(0.0).as_ref() {
-                        Some(flow_value) => flow_value.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
+pub fn select_standard_templates(
+    environment: crate::env::BuildEnvironment,
+) -> Result<StandardTemplates, rt::TsonicError> {
+    let base_candidates: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
+        String::from("_default/baseof.html"),
+        String::from("baseof.html"),
+    ]);
+    let home_candidates: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
+        String::from("index.html"),
+        String::from("home.html"),
+        String::from("_default/home.html"),
+        String::from("_default/list.html"),
+        String::from("list.html"),
+    ]);
+    let list_candidates: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
+        String::from("list.html"),
+        String::from("_default/list.html"),
+    ]);
+    let single_candidates: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
+        String::from("single.html"),
+        String::from("_default/single.html"),
+    ]);
+    let list: String = rt::option_coalesce(
+        crate::build::layout::select_template(
+            {
+                let upcast_value = environment.clone();
+                crate::layouts::LayoutEnvironment {
+                    identity: upcast_value.identity.clone(),
+                    dispatch: upcast_value.dispatch.clone(),
+                }
+            },
+            list_candidates.clone(),
+        )?,
+        std::convert::identity,
+        || {
+            match list_candidates.get_number(0.0).as_ref() {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            }
+        },
+    );
+    Ok(StandardTemplates::new(
+        crate::build::layout::select_template(
+            {
+                let upcast_value_2 = environment.clone();
+                crate::layouts::LayoutEnvironment {
+                    identity: upcast_value_2.identity.clone(),
+                    dispatch: upcast_value_2.dispatch.clone(),
+                }
+            },
+            base_candidates,
+        )?,
+        rt::option_coalesce(
+            crate::build::layout::select_template(
+                {
+                    let upcast_value_3 = environment.clone();
+                    crate::layouts::LayoutEnvironment {
+                        identity: upcast_value_3.identity.clone(),
+                        dispatch: upcast_value_3.dispatch.clone(),
                     }
                 },
-            );
-            Ok::<_, rt::TsonicError>(StandardTemplates::new(
-                crate::build::layout::select_template(
-                    {
-                        let upcast_value_2 = environment.clone();
-                        crate::layouts::LayoutEnvironment {
-                            identity: upcast_value_2.identity.clone(),
-                            dispatch: upcast_value_2.dispatch.clone(),
-                        }
-                    },
-                    base_candidates.clone(),
-                )?,
-                rt::option_coalesce(
-                    crate::build::layout::select_template(
-                        {
-                            let upcast_value_3 = environment.clone();
-                            crate::layouts::LayoutEnvironment {
-                                identity: upcast_value_3.identity.clone(),
-                                dispatch: upcast_value_3.dispatch.clone(),
-                            }
-                        },
-                        home_candidates.clone(),
-                    )?,
-                    std::convert::identity,
-                    || list.clone(),
-                ),
-                list.clone(),
-                rt::option_coalesce(
-                    crate::build::layout::select_template(
-                        {
-                            let upcast_value_4 = environment.clone();
-                            crate::layouts::LayoutEnvironment {
-                                identity: upcast_value_4.identity.clone(),
-                                dispatch: upcast_value_4.dispatch.clone(),
-                            }
-                        },
-                        single_candidates.clone(),
-                    )?,
-                    std::convert::identity,
-                    || {
-                        match single_candidates.get_number(0.0).as_ref() {
-                            Some(flow_value_2) => flow_value_2.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        }
-                    },
-                ),
-            ))
-        });
-        SELECT_STANDARD_TEMPLATES.with(|module_binding| module_binding.initialize(module_value))
-    };
+                home_candidates,
+            )?,
+            std::convert::identity,
+            || list.clone(),
+        ),
+        list.clone(),
+        rt::option_coalesce(
+            crate::build::layout::select_template(
+                {
+                    let upcast_value_4 = environment.clone();
+                    crate::layouts::LayoutEnvironment {
+                        identity: upcast_value_4.identity.clone(),
+                        dispatch: upcast_value_4.dispatch.clone(),
+                    }
+                },
+                single_candidates.clone(),
+            )?,
+            std::convert::identity,
+            || {
+                match single_candidates.get_number(0.0).as_ref() {
+                    Some(flow_value_2) => flow_value_2.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }
+            },
+        ),
+    ))
 }

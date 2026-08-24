@@ -2,8 +2,9 @@
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait TemplateValueDispatch {
+pub trait TemplateValueDispatch {
     fn downcast_template_value_to_heading_hook_value(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn crate::template::contexts::HeadingHookValueDispatch>>;
@@ -153,14 +154,23 @@ pub(crate) trait TemplateValueDispatch {
     ) -> Option<std::rc::Rc<dyn crate::template::values::version::VersionStringValueDispatch>>;
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct TemplateValueState {}
+pub struct TemplateValueState {}
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct TemplateValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn TemplateValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn TemplateValueDispatch>,
+}
+
+impl std::fmt::Debug for TemplateValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("TemplateValue")
+    }
 }
 
 impl PartialEq for TemplateValue {
@@ -178,7 +188,8 @@ pub(crate) struct TemplateValueRoot {
 }
 
 impl TemplateValue {
-    pub(crate) fn initialize_state() -> TemplateValueState {
+    #[doc(hidden)]
+    pub fn initialize_state() -> TemplateValueState {
         TemplateValueState {}
     }
 
@@ -494,23 +505,34 @@ impl TemplateValueDispatch for TemplateValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait NilValueDispatch: TemplateValueDispatch {
+pub trait NilValueDispatch: TemplateValueDispatch {
     fn downcast_nil_value_to_nil_value(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn NilValueDispatch>>;
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct NilValueState {
-    pub(crate) base: TemplateValueState,
+pub struct NilValueState {
+    #[doc(hidden)]
+    pub base: TemplateValueState,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct NilValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn NilValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn NilValueDispatch>,
+}
+
+impl std::fmt::Debug for NilValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("NilValue")
+    }
 }
 
 impl PartialEq for NilValue {
@@ -528,7 +550,8 @@ pub(crate) struct NilValueRoot {
 }
 
 impl NilValue {
-    pub(crate) fn initialize_state() -> NilValueState {
+    #[doc(hidden)]
+    pub fn initialize_state() -> NilValueState {
         let base_state = TemplateValue::initialize_state();
         NilValueState { base: base_state }
     }

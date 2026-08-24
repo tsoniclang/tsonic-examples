@@ -78,7 +78,7 @@ namespace Tsumo.Engine
                 {
                     throw invalidShape(field, "an array of strings", value, sourcePath);
                 }
-                JsonArray array = (JsonArray)(JsonArray)value;
+                JsonArray array = (JsonArray)value;
                 Tsonic.CSharp.Js.JSArray<string> result = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
                 for (int index = 0; index < array.items.length; index++)
                 {
@@ -185,7 +185,7 @@ namespace Tsumo.Engine
                 {
                     throw Diagnostics.createTsumoError("TSUMO_FRONTMATTER_ROOT_INVALID", "JSON front matter requires an object", sourcePath, rootValue.line, rootValue.column);
                 }
-                JsonObject root = (JsonObject)(JsonObject)rootValue;
+                JsonObject root = (JsonObject)rootValue;
                 assertCaseInsensitiveKeysUnique(root, "Front matter", sourcePath);
                 FrontMatter frontMatter = new FrontMatter();
                 for (int index = 0; index < root.properties.length; index++)
@@ -266,7 +266,7 @@ namespace Tsumo.Engine
                                                             {
                                                                 throw invalidShape(property.key, "an object of scalar values", value, sourcePath);
                                                             }
-                                                            JsonObject @params = (JsonObject)(JsonObject)value;
+                                                            JsonObject @params = (JsonObject)value;
                                                             assertCaseInsensitiveKeysUnique(@params, "Front matter params", sourcePath);
                                                             for (int paramIndex = 0; paramIndex < @params.properties.length; paramIndex++)
                                                             {
@@ -282,7 +282,7 @@ namespace Tsumo.Engine
                                                                 {
                                                                     throw invalidShape(property.key, "an object", value, sourcePath);
                                                                 }
-                                                                JsonObject menuObject = (JsonObject)(JsonObject)value;
+                                                                JsonObject menuObject = (JsonObject)value;
                                                                 assertCaseInsensitiveKeysUnique(menuObject, "Front matter menu", sourcePath);
                                                                 for (int menuIndex = 0; menuIndex < menuObject.properties.length; menuIndex++)
                                                                 {

@@ -7,50 +7,49 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 std::thread_local! {
+    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub(crate) static COMPLETED_TESTS: rt::ModuleCell<f64> = const { rt::ModuleCell::new() };
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) struct AssertState {}
 
+#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Assert {
-    pub(crate) state: rt::ObjectHandle<AssertState>,
+    pub(crate) state: rt::ObjectRef<AssertState>,
 }
 
 impl Assert {
+    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new() -> Assert {
         Assert {
-            state: rt::ObjectHandle::new(AssertState {}),
+            state: rt::ObjectRef::new(AssertState {}),
         }
     }
 
-    pub fn string_equal(expected: String, actual: Option<String>) -> rt::TsonicResult<()> {
+    pub fn string_equal(expected: String, actual: Option<String>) -> Result<(), rt::TsonicError> {
         if actual.is_none() {
             return Err(rt::TsonicError::from(rt::JsError::error(
                 &format!(
                     "{}{}{}",
                     String::from("Expected '"),
-                    rt::source_string(&expected),
+                    expected,
                     String::from("', received <undefined>"),
                 ),
             )));
         }
-        if (match actual.as_ref() {
-            Some(flow_value) => flow_value.clone(),
-            None => unreachable!("checked flow selected a missing optional value"),
-        }) != expected
-        {
+        if actual != Some(expected.clone()) {
             return Err(rt::TsonicError::from(rt::JsError::error(
                 &format!(
                     "{}{}{}{}{}",
                     String::from("Expected '"),
-                    rt::source_string(&expected),
+                    expected,
                     String::from("', received '"),
-                    rt::source_string(&match actual.as_ref() {
-                        Some(flow_value_2) => flow_value_2.clone(),
+                    match actual.as_ref() {
+                        Some(flow_value) => flow_value.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
-                    },),
+                    },
                     String::from("'"),
                 ),
             )));
@@ -58,7 +57,7 @@ impl Assert {
         Ok(())
     }
 
-    pub fn number_equal(expected: f64, actual: Option<f64>) -> rt::TsonicResult<()> {
+    pub fn number_equal(expected: f64, actual: Option<f64>) -> Result<(), rt::TsonicError> {
         if actual.is_none() {
             return Err(rt::TsonicError::from(rt::JsError::error(
                 &format!(
@@ -69,29 +68,26 @@ impl Assert {
                 ),
             )));
         }
-        if (match actual.as_ref() {
-            Some(flow_value) => *flow_value,
-            None => unreachable!("checked flow selected a missing optional value"),
-        }) != expected
-        {
+        if actual != Some(expected) {
             return Err(rt::TsonicError::from(rt::JsError::error(
                 &format!(
-                    "{}{}{}{}{}",
+                    "{}{}{}{}",
                     String::from("Expected "),
                     rt::source_string(&expected),
                     String::from(", received "),
-                    rt::source_string(&match actual.as_ref() {
-                        Some(flow_value_2) => *flow_value_2,
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },),
-                    String::from(""),
+                    rt::source_string(
+                        &match actual.as_ref() {
+                            Some(flow_value) => *flow_value,
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        },
+                    ),
                 ),
             )));
         }
         Ok(())
     }
 
-    pub fn r#true(value: bool) -> rt::TsonicResult<()> {
+    pub fn r#true(value: bool) -> Result<(), rt::TsonicError> {
         if !value {
             return Err(rt::TsonicError::from(rt::JsError::error(
                 "Expected value to be true",
@@ -100,7 +96,7 @@ impl Assert {
         Ok(())
     }
 
-    pub fn r#false(value: bool) -> rt::TsonicResult<()> {
+    pub fn r#false(value: bool) -> Result<(), rt::TsonicError> {
         if value {
             return Err(rt::TsonicError::from(rt::JsError::error(
                 "Expected value to be false",
@@ -112,7 +108,7 @@ impl Assert {
     pub fn string_array_equal(
         expected: js_abi::JsArray<String>,
         actual: js_abi::JsArray<String>,
-    ) -> rt::TsonicResult<()> {
+    ) -> Result<(), rt::TsonicError> {
         if tsonic_rust_runtime::conversions::usize_to_i32(actual.len())?
             != tsonic_rust_runtime::conversions::usize_to_i32(expected.len())?
         {
@@ -123,13 +119,7 @@ impl Assert {
         {
             let mut index: f64 = 0.0;
             while index < (tsonic_rust_runtime::conversions::usize_to_i32(expected.len())? as f64) {
-                if (match actual.get_number(index).as_ref() {
-                    Some(flow_value) => flow_value.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }) != (match expected.get_number(index).as_ref() {
-                    Some(flow_value_2) => flow_value_2.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }) {
+                if actual.get_number(index) != expected.get_number(index) {
                     return Err(rt::TsonicError::from(rt::JsError::error(
                         "Expected arrays to contain equal values",
                     )));
@@ -147,71 +137,165 @@ impl Default for Assert {
     }
 }
 
-pub type CreateTestDirectoryCallable = rt::Callable<(String,), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub static CREATE_TEST_DIRECTORY: rt::ModuleCell<CreateTestDirectoryCallable> = const { rt::ModuleCell::new() };
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn create_test_directory(name: String) -> Result<String, rt::TsonicError> {
+    let configured_root: Option<String> = tsonic_rust_node::process::env_get("TSUMO_TEST_ROOT");
+    if configured_root.is_none()
+        || js_string::trim(&match configured_root.as_ref() {
+    Some(flow_value) => flow_value.clone(),
+    None => unreachable!("checked flow selected a missing optional value"),
+}).is_empty()
+    {
+        return Err(rt::TsonicError::from(rt::JsError::error(
+            "TSUMO_TEST_ROOT must name the test-owned scratch directory",
+        )));
+    }
+    let root: String = tsonic_rust_node::path::resolve(&[(match configured_root.as_ref() {
+    Some(flow_value_2) => flow_value_2.clone(),
+    None => unreachable!("checked flow selected a missing optional value"),
+}).as_str()])?;
+    tsonic_rust_node::fs::mkdir_sync_with_options(
+        &root,
+        tsonic_rust_node::fs::MakeDirectoryOptions {
+            recursive: Some(true),
+            ..Default::default()
+        },
+    )?;
+    tsonic_rust_node::fs::mkdtemp_sync(&{
+        let operation_input_0 = root.clone();
+        tsonic_rust_node::path::join(&[
+            operation_input_0.as_str(),
+            format!("{}{}", name, String::from("-")).as_str(),
+        ])
+    })
+    .map_err(rt::TsonicError::from)
 }
 
-pub type CreateDirectoryCallable = rt::Callable<(String,), rt::TsonicResult<()>>;
-
-std::thread_local! {
-    pub static CREATE_DIRECTORY: rt::ModuleCell<CreateDirectoryCallable> = const { rt::ModuleCell::new() };
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn create_directory(path: String) -> Result<(), rt::TsonicError> {
+    tsonic_rust_node::fs::mkdir_sync_with_options(
+        &path,
+        tsonic_rust_node::fs::MakeDirectoryOptions {
+            recursive: Some(true),
+            ..Default::default()
+        },
+    )?;
+    Ok(())
 }
 
-pub type WriteTextFileCallable = rt::Callable<(String, String), rt::TsonicResult<()>>;
-
-std::thread_local! {
-    pub static WRITE_TEXT_FILE: rt::ModuleCell<WriteTextFileCallable> = const { rt::ModuleCell::new() };
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn write_text_file(path: String, content: String) -> Result<(), rt::TsonicError> {
+    tsonic_rust_node::fs::write_file_sync_string(&path, &content, "utf-8")?;
+    Ok(())
 }
 
-pub type ReadTextFileCallable = rt::Callable<(String,), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub static READ_TEXT_FILE: rt::ModuleCell<ReadTextFileCallable> = const { rt::ModuleCell::new() };
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn read_text_file(path: String) -> Result<String, rt::TsonicError> {
+    tsonic_rust_node::fs::read_file_sync_string(&path, "utf-8").map_err(rt::TsonicError::from)
 }
 
-pub type PathExistsCallable = rt::Callable<(String,), rt::TsonicResult<bool>>;
-
-std::thread_local! {
-    pub static PATH_EXISTS: rt::ModuleCell<PathExistsCallable> = const { rt::ModuleCell::new() };
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn path_exists(path: String) -> bool {
+    tsonic_rust_node::fs::exists_sync(&path)
 }
 
-pub type DirectoryExistsCallable = rt::Callable<(String,), rt::TsonicResult<bool>>;
-
-std::thread_local! {
-    pub static DIRECTORY_EXISTS: rt::ModuleCell<DirectoryExistsCallable> = const { rt::ModuleCell::new() };
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn directory_exists(path: String) -> Result<bool, rt::TsonicError> {
+    Ok(
+        tsonic_rust_node::fs::exists_sync(&path)
+            && tsonic_rust_node::fs::stat_sync(&path)?.is_directory(),
+    )
 }
 
-pub type FileExistsCallable = rt::Callable<(String,), rt::TsonicResult<bool>>;
-
-std::thread_local! {
-    pub static FILE_EXISTS: rt::ModuleCell<FileExistsCallable> = const { rt::ModuleCell::new() };
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn file_exists(path: String) -> Result<bool, rt::TsonicError> {
+    Ok(
+        tsonic_rust_node::fs::exists_sync(&path)
+            && tsonic_rust_node::fs::stat_sync(&path)?.is_file(),
+    )
 }
 
-pub type CreateSymbolicLinkCallable = rt::Callable<(String, String), rt::TsonicResult<()>>;
-
-std::thread_local! {
-    pub static CREATE_SYMBOLIC_LINK: rt::ModuleCell<CreateSymbolicLinkCallable> = const { rt::ModuleCell::new() };
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn create_symbolic_link(target: String, path: String) -> Result<(), rt::TsonicError> {
+    tsonic_rust_node::fs::symlink_sync(&target, &path)?;
+    Ok(())
 }
 
-pub type DeleteTestDirectoryCallable = rt::Callable<(String,), rt::TsonicResult<()>>;
-
-std::thread_local! {
-    pub static DELETE_TEST_DIRECTORY: rt::ModuleCell<DeleteTestDirectoryCallable> = const { rt::ModuleCell::new() };
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn delete_test_directory(path: String) -> Result<(), rt::TsonicError> {
+    tsonic_rust_node::fs::rm_sync_with_options(
+        &path,
+        tsonic_rust_node::fs::RmOptions {
+            recursive: Some(true),
+            force: Some(true),
+            ..Default::default()
+        },
+    )?;
+    Ok(())
 }
 
-pub type RunTestCallable =
-    rt::Callable<(String, rt::Callable<(), rt::TsonicResult<()>>), rt::TsonicResult<()>>;
-
-std::thread_local! {
-    pub static RUN_TEST: rt::ModuleCell<RunTestCallable> = const { rt::ModuleCell::new() };
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn run_test(
+    name: String,
+    operation: rt::Callable<(), rt::TsonicResult<()>>,
+) -> Result<(), rt::TsonicError> {
+    let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
+        operation.call(())?;
+        Ok(rt::Completion::Normal)
+    });
+    let try_flow: rt::TsonicResult<rt::Completion<()>> = match try_body {
+        Ok(completion) => Ok(completion),
+        Err(error) => rt::completion_region(|| {
+            Err(rt::TsonicError::from(rt::JsError::error(
+                &format!("{}{}{}", name, String::from(": "), rt::source_string(&error)),
+            )))
+        }),
+    };
+    let try_flow = try_flow?;
+    match try_flow {
+        rt::Completion::Normal => {}
+        rt::Completion::Return(_) | rt::Completion::Break(_) | rt::Completion::Continue(_) => {
+            unreachable!("invalid finalized Tsonic completion target")
+        }
+    }
+    {
+        let update_location = COMPLETED_TESTS
+            .with(|module_binding| module_binding.location())
+            .clone();
+        let update_previous = update_location.load();
+        let update_next = update_previous + 1.0;
+        {
+            update_location.store(update_next);
+            update_next
+        }
+    };
+    js_abi::console_log(&[
+        tsonic_rust_js::abi::js_value_from_string(&format!("{}{}", String::from("PASS "), name)),
+    ]);
+    Ok(())
 }
 
-pub type CompleteTestsCallable = rt::Callable<(f64,), rt::TsonicResult<()>>;
-
-std::thread_local! {
-    pub static COMPLETE_TESTS: rt::ModuleCell<CompleteTestsCallable> = const { rt::ModuleCell::new() };
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn complete_tests(expected_tests: f64) -> Result<(), rt::TsonicError> {
+    if COMPLETED_TESTS.with(|module_binding| module_binding.load()) != expected_tests {
+        return Err(rt::TsonicError::from(rt::JsError::error(
+            "Test inventory did not execute completely",
+        )));
+    }
+    js_abi::console_log(&[
+        tsonic_rust_js::abi::js_value_from_string(
+            &format!(
+                "{}{}{}{}",
+                rt::source_string(&COMPLETED_TESTS.with(
+                    |module_binding| module_binding.load()
+                )),
+                String::from("/"),
+                rt::source_string(&expected_tests),
+                String::from(" tests passed"),
+            ),
+        ),
+    ]);
+    Ok(())
 }
 
 #[doc(hidden)]
@@ -219,225 +303,5 @@ pub fn module_init() {
     {
         let module_value = 0.0;
         COMPLETED_TESTS.with(|module_binding| module_binding.initialize(module_value))
-    };
-    {
-        let module_value_2 =
-            rt::Callable::<(String,), rt::TsonicResult<String>>::new(move |callable_arguments| {
-                let name = callable_arguments.0;
-                let configured_root: Option<String> =
-                    tsonic_rust_node::process::env_get("TSUMO_TEST_ROOT");
-                if configured_root.is_none()
-                    || js_string::trim(&match configured_root.as_ref() {
-    Some(flow_value) => flow_value.clone(),
-    None => unreachable!("checked flow selected a missing optional value"),
-}).is_empty()
-                {
-                    return Err(rt::TsonicError::from(rt::JsError::error(
-                        "TSUMO_TEST_ROOT must name the test-owned scratch directory",
-                    )));
-                }
-                let root: String = tsonic_rust_node::path::resolve(&[match configured_root.as_ref()
-                {
-                    Some(flow_value_2) => flow_value_2.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }
-                .as_str()])
-                .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                tsonic_rust_node::fs::mkdir_sync(&root, true)
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                Ok::<_, rt::TsonicError>(
-                    tsonic_rust_node::fs::mkdtemp_sync(&tsonic_rust_node::path::join(
-                        &[
-                            root.as_str(),
-                            format!(
-                                "{}{}{}",
-                                String::from(""),
-                                rt::source_string(&name),
-                                String::from("-"),
-                            )
-                            .as_str(),
-                        ],
-                    ))
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?,
-                )
-            });
-        CREATE_TEST_DIRECTORY.with(|module_binding_2| module_binding_2.initialize(module_value_2))
-    };
-    {
-        let module_value_3 =
-            rt::Callable::<(String,), rt::TsonicResult<()>>::new(move |callable_arguments_2| {
-                let path = callable_arguments_2.0;
-                tsonic_rust_node::fs::mkdir_sync(&path, true)
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                Ok::<_, rt::TsonicError>(())
-            });
-        CREATE_DIRECTORY.with(|module_binding_3| module_binding_3.initialize(module_value_3))
-    };
-    {
-        let module_value_4 = rt::Callable::<(String, String), rt::TsonicResult<()>>::new(
-            move |callable_arguments_3| {
-                let path = callable_arguments_3.0;
-                let content = callable_arguments_3.1;
-                tsonic_rust_node::fs::write_file_sync_string(&path, &content, "utf-8")
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                Ok::<_, rt::TsonicError>(())
-            },
-        );
-        WRITE_TEXT_FILE.with(|module_binding_4| module_binding_4.initialize(module_value_4))
-    };
-    {
-        let module_value_5 =
-            rt::Callable::<(String,), rt::TsonicResult<String>>::new(move |callable_arguments_4| {
-                let path = callable_arguments_4.0;
-                Ok::<_, rt::TsonicError>(
-                    tsonic_rust_node::fs::read_file_sync_string(&path, "utf-8")
-                        .map_err(tsonic_rust_runtime::TsonicError::from)?,
-                )
-            });
-        READ_TEXT_FILE.with(|module_binding_5| module_binding_5.initialize(module_value_5))
-    };
-    {
-        let module_value_6 =
-            rt::Callable::<(String,), rt::TsonicResult<bool>>::new(move |callable_arguments_5| {
-                let path = callable_arguments_5.0;
-                Ok::<_, rt::TsonicError>(tsonic_rust_node::fs::exists_sync(&path))
-            });
-        PATH_EXISTS.with(|module_binding_6| module_binding_6.initialize(module_value_6))
-    };
-    {
-        let module_value_7 =
-            rt::Callable::<(String,), rt::TsonicResult<bool>>::new(move |callable_arguments_6| {
-                let path = callable_arguments_6.0;
-                Ok::<_, rt::TsonicError>(
-                    tsonic_rust_node::fs::exists_sync(&path)
-                        && tsonic_rust_node::fs::stat_sync(&path)
-                            .map_err(tsonic_rust_runtime::TsonicError::from)?
-                            .is_directory(),
-                )
-            });
-        DIRECTORY_EXISTS.with(|module_binding_7| module_binding_7.initialize(module_value_7))
-    };
-    {
-        let module_value_8 =
-            rt::Callable::<(String,), rt::TsonicResult<bool>>::new(move |callable_arguments_7| {
-                let path = callable_arguments_7.0;
-                Ok::<_, rt::TsonicError>(
-                    tsonic_rust_node::fs::exists_sync(&path)
-                        && tsonic_rust_node::fs::stat_sync(&path)
-                            .map_err(tsonic_rust_runtime::TsonicError::from)?
-                            .is_file(),
-                )
-            });
-        FILE_EXISTS.with(|module_binding_8| module_binding_8.initialize(module_value_8))
-    };
-    {
-        let module_value_9 = rt::Callable::<(String, String), rt::TsonicResult<()>>::new(
-            move |callable_arguments_8| {
-                let target = callable_arguments_8.0;
-                let path = callable_arguments_8.1;
-                tsonic_rust_node::fs::symlink_sync(&target, &path)
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                Ok::<_, rt::TsonicError>(())
-            },
-        );
-        CREATE_SYMBOLIC_LINK.with(|module_binding_9| module_binding_9.initialize(module_value_9))
-    };
-    {
-        let module_value_10 =
-            rt::Callable::<(String,), rt::TsonicResult<()>>::new(move |callable_arguments_9| {
-                let path = callable_arguments_9.0;
-                tsonic_rust_node::fs::rm_sync(&path, true, true)
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                Ok::<_, rt::TsonicError>(())
-            });
-        DELETE_TEST_DIRECTORY
-            .with(|module_binding_10| module_binding_10.initialize(module_value_10))
-    };
-    {
-        let module_value_11 = rt::Callable::<
-            (String, rt::Callable<(), rt::TsonicResult<()>>),
-            rt::TsonicResult<()>,
-        >::new(move |callable_arguments_10| {
-            let name = callable_arguments_10.0;
-            let operation = callable_arguments_10.1;
-            let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-                operation.call(())?;
-                Ok(rt::Completion::Normal)
-            });
-            let try_flow: rt::TsonicResult<rt::Completion<()>> = match try_body {
-                Ok(completion) => Ok(completion),
-                Err(error) => rt::completion_region(|| {
-                    Err(rt::TsonicError::from(rt::JsError::error(
-                        &format!(
-                            "{}{}{}{}{}",
-                            String::from(""),
-                            rt::source_string(&name),
-                            String::from(": "),
-                            rt::source_string(&error),
-                            String::from(""),
-                        ),
-                    )))
-                }),
-            };
-            let try_flow = try_flow?;
-            match try_flow {
-                rt::Completion::Normal => {}
-                rt::Completion::Return(_)
-                | rt::Completion::Break(_)
-                | rt::Completion::Continue(_) => {
-                    unreachable!("invalid finalized Tsonic completion target")
-                }
-            }
-            {
-                let update_location = COMPLETED_TESTS
-                    .with(|module_binding| module_binding.location())
-                    .clone();
-                let update_previous = update_location.load();
-                let update_next = update_previous + 1.0;
-                {
-                    update_location.store(update_next);
-                    update_next
-                }
-            };
-            js_abi::console_log(&[
-                tsonic_rust_js::abi::js_value_from_string(
-                    &format!(
-                        "{}{}{}",
-                        String::from("PASS "),
-                        rt::source_string(&name),
-                        String::from(""),
-                    ),
-                ),
-            ]);
-            Ok::<_, rt::TsonicError>(())
-        });
-        RUN_TEST.with(|module_binding_11| module_binding_11.initialize(module_value_11))
-    };
-    {
-        let module_value_12 =
-            rt::Callable::<(f64,), rt::TsonicResult<()>>::new(move |callable_arguments_11| {
-                let expected_tests = callable_arguments_11.0;
-                if COMPLETED_TESTS.with(|module_binding| module_binding.load()) != expected_tests {
-                    return Err(rt::TsonicError::from(rt::JsError::error(
-                        "Test inventory did not execute completely",
-                    )));
-                }
-                js_abi::console_log(&[
-                    tsonic_rust_js::abi::js_value_from_string(
-                        &format!(
-                            "{}{}{}{}{}",
-                            String::from(""),
-                            rt::source_string(&COMPLETED_TESTS.with(
-                                |module_binding| module_binding.load()
-                            )),
-                            String::from("/"),
-                            rt::source_string(&expected_tests),
-                            String::from(" tests passed"),
-                        ),
-                    ),
-                ]);
-                Ok::<_, rt::TsonicError>(())
-            });
-        COMPLETE_TESTS.with(|module_binding_12| module_binding_12.initialize(module_value_12))
     };
 }

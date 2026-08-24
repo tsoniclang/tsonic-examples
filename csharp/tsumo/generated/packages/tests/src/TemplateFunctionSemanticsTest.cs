@@ -26,6 +26,10 @@ namespace Tsumo.Tests
             Xunit.Assert.Equal("c,b,a|a,b", TemplateTestHarness.render("{{ delimit (collections.Reverse (slice \"a\" \"b\" \"c\")) `,` }}|{{ delimit (strings.Split \"a,b\" `,`) `,` }}"));
             Xunit.Assert.Equal("string|bool|int|map[string]interface {}|&quot;quoted&quot;|true|3", TemplateTestHarness.render("{{ printf \"%T|%T|%T|%T|%q|%t|%v\" \"value\" true 3 (dict \"key\" \"value\") \"quoted\" true 3 }}"));
             Xunit.Assert.Equal("<meta name=\"generator\" content=\"Hugo 0.146.2\">", TemplateTestHarness.render("{{ hugo.Generator }}"));
+            Xunit.Assert.Equal("TSUMO_TEMPLATE_VERSION_COMPONENT_OUT_OF_RANGE", TemplateTestHarness.captureDiagnosticCode(() =>
+            {
+                TemplateTestHarness.render("{{ lt hugo.Version \"2147483648.0\" }}");
+            }));
             Xunit.Assert.Equal("TSUMO_TEMPLATE_STRING_REPEAT_INVALID", TemplateTestHarness.captureDiagnosticCode(() =>
             {
                 TemplateTestHarness.render("{{ strings.Repeat -1 \"=\" }}");
@@ -44,6 +48,8 @@ namespace Tsumo.Tests
             Xunit.Assert.Equal("2026|42", TemplateTestHarness.render("{{ int \"2026\" }}|{{ string 42 }}"));
             Xunit.Assert.Equal("true|false", TemplateTestHarness.render("{{ collections.In (collections.Slice \"first\" \"second\") \"second\" }}|{{ collections.In (collections.Slice \"first\") \"second\" }}"));
             Xunit.Assert.Equal("one two|first|one two|url.Values", TemplateTestHarness.render("{{ $url := urls.Parse \"/page?classes=one+two&name=first&name=second\" }}" + "{{ $url.Query.Get \"classes\" }}|{{ $url.Query.Get \"name\" }}|{{ $url.Query.classes }}|{{ printf \"%T\" $url.Query }}"));
+            Xunit.Assert.Equal("false|||/page|name=value|top", TemplateTestHarness.render("{{ $url := urls.Parse \"/page?name=value#top\" }}" + "{{ $url.IsAbs }}|{{ $url.Scheme }}|{{ $url.Host }}|{{ $url.Path }}|{{ $url.RawQuery }}|{{ $url.Fragment }}"));
+            Xunit.Assert.Equal("true|https|example.test:8443|/page|name=value|top", TemplateTestHarness.render("{{ $url := urls.Parse \"https://example.test:8443/page?name=value#top\" }}" + "{{ $url.IsAbs }}|{{ $url.Scheme }}|{{ $url.Host }}|{{ $url.Path }}|{{ $url.RawQuery }}|{{ $url.Fragment }}"));
             Xunit.Assert.Equal("", TemplateTestHarness.render("{{ $url := urls.Parse \"/page?name=value\" }}{{ $url.Query.Get \"missing\" }}"));
             Xunit.Assert.Equal("🙂", TemplateTestHarness.render("{{ $url := urls.Parse \"/page?name=%F0%9F%99%82\" }}{{ $url.Query.Get \"name\" }}"));
             Xunit.Assert.Equal("TSUMO_TEMPLATE_URL_QUERY_INVALID", TemplateTestHarness.captureDiagnosticCode(() =>

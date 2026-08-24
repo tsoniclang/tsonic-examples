@@ -2,8 +2,9 @@
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait TemplateReturnSignalDispatch {
+pub trait TemplateReturnSignalDispatch {
     fn downcast_template_return_signal_to_template_return_signal(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn TemplateReturnSignalDispatch>>;
@@ -20,20 +21,29 @@ pub(crate) trait TemplateReturnSignalDispatch {
     );
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct TemplateReturnSignalState {
-    pub(crate) name: String,
-    pub(crate) message: String,
-    pub(crate) stack: Option<String>,
-    pub(crate) value: crate::template::values::base::TemplateValue,
+pub struct TemplateReturnSignalState {
+    pub name: String,
+    pub message: String,
+    pub stack: Option<String>,
+    pub value: crate::template::values::base::TemplateValue,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[doc(hidden)]
 #[derive(Clone)]
 pub struct TemplateReturnSignal {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn TemplateReturnSignalDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn TemplateReturnSignalDispatch>,
+}
+
+impl std::fmt::Debug for TemplateReturnSignal {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("TemplateReturnSignal")
+    }
 }
 
 impl PartialEq for TemplateReturnSignal {
@@ -51,7 +61,8 @@ pub(crate) struct TemplateReturnSignalRoot {
 }
 
 impl TemplateReturnSignal {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         value: crate::template::values::base::TemplateValue,
     ) -> TemplateReturnSignalState {
         let external_base = rt::JsError::error("template return");
@@ -60,7 +71,7 @@ impl TemplateReturnSignal {
         let field_message: String = external_base.message().to_string();
         let field_stack: Option<String> = None;
         field_name = String::from("TemplateReturnSignal");
-        let field_value: crate::template::values::base::TemplateValue = value.clone();
+        let field_value: crate::template::values::base::TemplateValue = value;
         TemplateReturnSignalState {
             name: field_name,
             message: field_message,

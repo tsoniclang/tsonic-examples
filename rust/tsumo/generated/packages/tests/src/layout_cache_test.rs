@@ -4,9 +4,10 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn require_template(
-    template: Option<crate::node_modules::tsumo::engine::src::template::template_2::Template>,
-) -> rt::TsonicResult<crate::node_modules::tsumo::engine::src::template::template_2::Template> {
+    template: Option<tsumo_engine::testing::Template>,
+) -> Result<tsumo_engine::testing::Template, rt::TsonicError> {
     if template.is_none() {
         return Err(rt::TsonicError::from(rt::JsError::error(
             "Expected template to exist",
@@ -18,96 +19,81 @@ pub(crate) fn require_template(
     })
 }
 
+#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn render(
-    environment: crate::node_modules::tsumo::engine::src::layouts::LayoutEnvironment,
-    template: crate::node_modules::tsumo::engine::src::template::template_2::Template,
-) -> rt::TsonicResult<String> {
-    let site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext =
-        crate::template_test_harness::CREATE_SITE
-            .with(|module_binding| module_binding.load())
-            .call(())?;
-    let page: crate::node_modules::tsumo::engine::src::models::page_context::PageContext =
-        crate::template_test_harness::CREATE_PAGE
-            .with(|module_binding| module_binding.load())
-            .call((
-                site.clone(),
-                String::from("Cache"),
-                String::from(""),
-                String::from("page"),
-            ))?;
+    environment: tsumo_engine::testing::LayoutEnvironment,
+    template: tsumo_engine::testing::Template,
+) -> Result<String, rt::TsonicError> {
+    let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
+    let page: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
+        site.clone(),
+        String::from("Cache"),
+        String::from(""),
+        String::from("page"),
+    );
     {
-        let dispatch_receiver = environment.clone();
-        dispatch_receiver
-            .dispatch
-            .clone()
-            .dispatch_layout_environment_render_template(
-                template.clone(),
-                {
-                    let upcast_value =
-                        crate::node_modules::tsumo::engine::src::template::values::page::PageValue::new(
-                            page.clone(),
-                        );
-                    crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue {
-                        identity: upcast_value.identity.clone(),
-                        dispatch: upcast_value.dispatch.clone(),
-                    }
-                },
-                site.clone(),
-                js_abi::JsMap::new(),
-                None,
-            )
+        let dispatch_receiver = environment;
+        dispatch_receiver.dispatch.clone().dispatch_layout_environment_render_template(
+            template,
+            {
+                let upcast_value = tsumo_engine::testing::PageValue::new(page);
+                tsumo_engine::testing::TemplateValue {
+                    identity: upcast_value.identity.clone(),
+                    dispatch: upcast_value.dispatch.clone(),
+                }
+            },
+            site.clone(),
+            js_abi::JsMap::new(),
+            None,
+        )
     }
+    .map_err(rt::TsonicError::from)
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) struct LayoutCacheTestsState {}
 
+#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct LayoutCacheTests {
-    pub(crate) state: rt::ObjectHandle<LayoutCacheTestsState>,
+    pub(crate) state: rt::ObjectRef<LayoutCacheTestsState>,
 }
 
 impl LayoutCacheTests {
+    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new() -> LayoutCacheTests {
         LayoutCacheTests {
-            state: rt::ObjectHandle::new(LayoutCacheTestsState {}),
+            state: rt::ObjectRef::new(LayoutCacheTestsState {}),
         }
     }
 
     pub fn logical_results_are_stable_within_one_build_and_refreshed_between_builds(
         &self,
-    ) -> rt::TsonicResult<()> {
-        let root: String = crate::test_root::CREATE_TEST_DIRECTORY
-            .with(|module_binding| module_binding.load())
-            .call((String::from("layout-cache"),))?;
+    ) -> Result<(), rt::TsonicError> {
+        let root: String = crate::test_root::create_test_directory(String::from("layout-cache"))?;
         let site: String = tsonic_rust_node::path::join(&[root.as_str(), "site"]);
         let layouts: String = tsonic_rust_node::path::join(&[site.as_str(), "layouts"]);
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::CREATE_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((layouts.clone(),))?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[layouts.as_str(), "single.html"]),
-                    String::from("first"),
-                ))?;
-            let first_build: crate::node_modules::tsumo::engine::src::layouts::LayoutEnvironment =
-                crate::node_modules::tsumo::engine::src::layouts::LayoutEnvironment::new(
+            crate::test_root::create_directory(layouts.clone())?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[layouts.as_str(), "single.html"]),
+                String::from("first"),
+            )?;
+            let first_build: tsumo_engine::testing::LayoutEnvironment =
+                tsumo_engine::testing::LayoutEnvironment::new(
                     site.clone(),
                     Option::<String>::None,
                     None,
                     None,
                     None,
                 )?;
-            let first_template: crate::node_modules::tsumo::engine::src::template::template_2::Template =
-                require_template({
-                    let dispatch_receiver = first_build.clone();
-                    dispatch_receiver
-                        .dispatch
-                        .clone()
-                        .dispatch_layout_environment_get_template(String::from("single.html"))
-                }?)?;
+            let first_template: tsumo_engine::testing::Template = require_template({
+                let dispatch_receiver = first_build.clone();
+                dispatch_receiver
+                    .dispatch
+                    .clone()
+                    .dispatch_layout_environment_get_template(String::from("single.html"))
+            }?)?;
             crate::test_root::Assert::string_equal(
                 String::from("first"),
                 Some(render(first_build.clone(), first_template.clone())?),
@@ -131,18 +117,14 @@ impl LayoutCacheTests {
                 }?
                 .is_none(),
             )?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[layouts.as_str(), "single.html"]),
-                    String::from("second"),
-                ))?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[layouts.as_str(), "late.html"]),
-                    String::from("late"),
-                ))?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[layouts.as_str(), "single.html"]),
+                String::from("second"),
+            )?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[layouts.as_str(), "late.html"]),
+                String::from("late"),
+            )?;
             crate::test_root::Assert::string_equal(
                 String::from("first"),
                 Some(render(
@@ -166,8 +148,8 @@ impl LayoutCacheTests {
                 }?
                 .is_none(),
             )?;
-            let second_build: crate::node_modules::tsumo::engine::src::layouts::LayoutEnvironment =
-                crate::node_modules::tsumo::engine::src::layouts::LayoutEnvironment::new(
+            let second_build: tsumo_engine::testing::LayoutEnvironment =
+                tsumo_engine::testing::LayoutEnvironment::new(
                     site.clone(),
                     Option::<String>::None,
                     None,
@@ -204,9 +186,7 @@ impl LayoutCacheTests {
         });
         let try_flow = try_body;
         let finally_flow: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::DELETE_TEST_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((root.clone(),))?;
+            crate::test_root::delete_test_directory(root.clone())?;
             Ok(rt::Completion::Normal)
         });
         let try_flow: rt::TsonicResult<rt::Completion<()>> =
@@ -228,36 +208,19 @@ impl Default for LayoutCacheTests {
     }
 }
 
-pub type RunLayoutCacheTestsCallable = rt::Callable<(), rt::TsonicResult<()>>;
-
-std::thread_local! {
-    pub static RUN_LAYOUT_CACHE_TESTS: rt::ModuleCell<RunLayoutCacheTestsCallable> = const { rt::ModuleCell::new() };
-}
-
-#[doc(hidden)]
-pub fn module_init() {
-    {
-        let module_value = rt::Callable::<(), rt::TsonicResult<()>>::new(
-            move |_callable_arguments| {
-                let tests: LayoutCacheTests = LayoutCacheTests::new();
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("logical template results are stable per build and refreshed between builds"),
-                        {
-                            let capture_tests = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_2| {
-                                    capture_tests
-                                        .logical_results_are_stable_within_one_build_and_refreshed_between_builds()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn run_layout_cache_tests() -> Result<(), rt::TsonicError> {
+    let tests: LayoutCacheTests = LayoutCacheTests::new();
+    crate::test_root::run_test(
+        String::from("logical template results are stable per build and refreshed between builds"),
+        {
+            let capture_tests = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
+                capture_tests
+                    .logical_results_are_stable_within_one_build_and_refreshed_between_builds()?;
                 Ok::<_, rt::TsonicError>(())
-            },
-        );
-        RUN_LAYOUT_CACHE_TESTS.with(|module_binding| module_binding.initialize(module_value))
-    };
+            })
+        },
+    )?;
+    Ok(())
 }

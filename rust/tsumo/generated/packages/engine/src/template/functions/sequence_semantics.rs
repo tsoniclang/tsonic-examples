@@ -4,12 +4,12 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
-pub(crate) const MAX_SEQUENCE_SIZE: i32 = 1000000;
+pub const MAX_SEQUENCE_SIZE: i32 = 1000000;
 
-pub(crate) fn sequence_argument(
+pub fn sequence_argument(
     value: crate::template::values::base::TemplateValue,
     position: i32,
-) -> rt::TsonicResult<i32> {
+) -> Result<i32, rt::TsonicError> {
     if value
         .dispatch
         .clone()
@@ -60,7 +60,7 @@ pub(crate) fn sequence_argument(
             });
         }
     }
-    Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+    Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
         String::from("TSUMO_TEMPLATE_SEQUENCE_ARGUMENT_INVALID"),
         format!(
             "{}{}{}",
@@ -76,11 +76,11 @@ pub(crate) fn sequence_argument(
 
 pub fn create_integer_sequence(
     args: js_abi::JsArray<crate::template::values::base::TemplateValue>,
-) -> rt::TsonicResult<crate::template::values::arrays::AnyArrayValue> {
+) -> Result<crate::template::values::arrays::AnyArrayValue, rt::TsonicError> {
     if tsonic_rust_runtime::conversions::usize_to_i32(args.len())? < 1
         || tsonic_rust_runtime::conversions::usize_to_i32(args.len())? > 3
     {
-        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_TEMPLATE_SEQUENCE_ARGUMENT_INVALID"),
             String::from("seq requires one, two, or three integer arguments"),
             None,
@@ -110,11 +110,13 @@ pub fn create_integer_sequence(
             increment = -1;
         }
     } else {
-        last = sequence_argument(match args
-    .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
+        last = sequence_argument(match {
+    let operation_input_0 = args.clone();
+    operation_input_0.get_number(tsonic_rust_runtime::conversions::i32_to_f64(
         tsonic_rust_runtime::conversions::usize_to_i32(args.len())? - 1,
     ))
-    .as_ref()
+}
+.as_ref()
 {
     Some(flow_value_2) => flow_value_2.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
@@ -129,7 +131,7 @@ pub fn create_integer_sequence(
     None => unreachable!("checked flow selected a missing optional value"),
 }, 2)?;
             if increment == 0 || first < last && increment < 0 || first > last && increment > 0 {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                     String::from("TSUMO_TEMPLATE_SEQUENCE_INCREMENT_INVALID"),
                     String::from("seq increment must be non-zero and move from the first value toward the last value"),
                     None,
@@ -152,7 +154,7 @@ pub fn create_integer_sequence(
             None => unreachable!("checked flow selected a missing optional value"),
         }) > MAX_SEQUENCE_SIZE
     {
-        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_TEMPLATE_SEQUENCE_SIZE_UNSUPPORTED"),
             format!(
                 "{}{}{}",
@@ -174,24 +176,30 @@ pub fn create_integer_sequence(
             < (match size.as_ref() {
                 Some(flow_value_6) => *flow_value_6,
                 None => unreachable!("checked flow selected a missing optional value"),
-            }) {
-            tsonic_rust_runtime::conversions::usize_to_i32(values.push_many([{
-                let upcast_value = crate::template::values::primitives::NumberValue::new(value);
-                crate::template::values::base::TemplateValue {
-                    identity: upcast_value.identity.clone(),
-                    dispatch: upcast_value.dispatch.clone(),
-                }
-            }]))?;
+            })
+        {
+            {
+                let operation_input_0_2 = values.clone();
+                operation_input_0_2.push_many_discard([{
+                    let upcast_value =
+                        crate::template::values::primitives::NumberValue::new(value);
+                    crate::template::values::base::TemplateValue {
+                        identity: upcast_value.identity.clone(),
+                        dispatch: upcast_value.dispatch.clone(),
+                    }
+                }])
+            };
             if index + 1
                 < (match size.as_ref() {
                     Some(flow_value_7) => *flow_value_7,
                     None => unreachable!("checked flow selected a missing optional value"),
-                }) {
+                })
+            {
                 let next: Option<i32> = crate::utils::int32::to_int32(
                     tsonic_rust_runtime::conversions::i32_to_f64(value + increment),
                 )?;
                 if next.is_none() {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                    return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                         String::from("TSUMO_TEMPLATE_SEQUENCE_SIZE_UNSUPPORTED"),
                         String::from("seq result exceeds the supported 32-bit integer range"),
                         None,
@@ -207,14 +215,12 @@ pub fn create_integer_sequence(
             index += 1;
         }
     }
-    Ok(crate::template::values::arrays::AnyArrayValue::new(
-        values.clone(),
-    ))
+    Ok(crate::template::values::arrays::AnyArrayValue::new(values.clone()))
 }
 
 pub fn reverse_template_collection(
     collection: crate::template::values::base::TemplateValue,
-) -> rt::TsonicResult<Option<crate::template::values::base::TemplateValue>> {
+) -> Result<Option<crate::template::values::base::TemplateValue>, rt::TsonicError> {
     if collection
         .dispatch
         .clone()
@@ -242,26 +248,29 @@ pub fn reverse_template_collection(
                 .len(),
             )? - 1;
             while index >= 0 {
-                tsonic_rust_runtime::conversions::usize_to_i32(result.push_many([match {
-                    let dispatch_receiver_2 = &{
-                        let downcast_value_2 = &collection;
-                        crate::template::values::arrays::AnyArrayValue {
-                            identity: downcast_value_2.identity.clone(),
-                            dispatch: downcast_value_2
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_any_array_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_2.dispatch.read_any_array_value_value()
-                }
-                .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
-                .as_ref()
                 {
-                    Some(flow_value) => flow_value.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }]))?;
+                    let operation_input_0 = result.clone();
+                    operation_input_0.push_many_discard([match {
+                        let dispatch_receiver_2 = &{
+                            let downcast_value_2 = &collection;
+                            crate::template::values::arrays::AnyArrayValue {
+                                identity: downcast_value_2.identity.clone(),
+                                dispatch: downcast_value_2
+                                    .dispatch
+                                    .clone()
+                                    .downcast_template_value_to_any_array_value()
+                                    .unwrap(),
+                            }
+                        };
+                        dispatch_receiver_2.dispatch.read_any_array_value_value()
+                    }
+                    .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
+                    .as_ref()
+                    {
+                        Some(flow_value) => flow_value.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }])
+                };
                 index -= 1;
             }
         }
@@ -299,26 +308,29 @@ pub fn reverse_template_collection(
                 .len(),
             )? - 1;
             while index >= 0 {
-                tsonic_rust_runtime::conversions::usize_to_i32(result.push_many([match {
-                    let dispatch_receiver_4 = &{
-                        let downcast_value_4 = &collection;
-                        crate::template::values::arrays::StringArrayValue {
-                            identity: downcast_value_4.identity.clone(),
-                            dispatch: downcast_value_4
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_string_array_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_4.dispatch.read_string_array_value_value()
-                }
-                .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
-                .as_ref()
                 {
-                    Some(flow_value_2) => flow_value_2.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }]))?;
+                    let operation_input_0_2 = result.clone();
+                    operation_input_0_2.push_many_discard([match {
+                        let dispatch_receiver_4 = &{
+                            let downcast_value_4 = &collection;
+                            crate::template::values::arrays::StringArrayValue {
+                                identity: downcast_value_4.identity.clone(),
+                                dispatch: downcast_value_4
+                                    .dispatch
+                                    .clone()
+                                    .downcast_template_value_to_string_array_value()
+                                    .unwrap(),
+                            }
+                        };
+                        dispatch_receiver_4.dispatch.read_string_array_value_value()
+                    }
+                    .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
+                    .as_ref()
+                    {
+                        Some(flow_value_2) => flow_value_2.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }])
+                };
                 index -= 1;
             }
         }
@@ -358,31 +370,35 @@ pub fn reverse_template_collection(
                 .len(),
             )? - 1;
             while index >= 0 {
-                tsonic_rust_runtime::conversions::usize_to_i32(result.push_many([match {
-                    let dispatch_receiver_6 = &{
-                        let downcast_value_6 = &collection;
-                        crate::template::values::page::PageArrayValue {
-                            identity: downcast_value_6.identity.clone(),
-                            dispatch: downcast_value_6
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_page_array_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_6.dispatch.read_page_array_value_value()
-                }
-                .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
-                .as_ref()
                 {
-                    Some(flow_value_3) => flow_value_3.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }]))?;
+                    let operation_input_0_3 = result.clone();
+                    operation_input_0_3.push_many_discard([match {
+                        let dispatch_receiver_6 = &{
+                            let downcast_value_6 = &collection;
+                            crate::template::values::page::PageArrayValue {
+                                identity: downcast_value_6.identity.clone(),
+                                dispatch: downcast_value_6
+                                    .dispatch
+                                    .clone()
+                                    .downcast_template_value_to_page_array_value()
+                                    .unwrap(),
+                            }
+                        };
+                        dispatch_receiver_6.dispatch.read_page_array_value_value()
+                    }
+                    .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
+                    .as_ref()
+                    {
+                        Some(flow_value_3) => flow_value_3.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }])
+                };
                 index -= 1;
             }
         }
         return Ok(Some({
-            let upcast_value_3 = crate::template::values::page::PageArrayValue::new(result.clone());
+            let upcast_value_3 =
+                crate::template::values::page::PageArrayValue::new(result.clone());
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_3.identity.clone(),
                 dispatch: upcast_value_3.dispatch.clone(),

@@ -4,19 +4,19 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct TemplateFunctionContextState {
-    pub(crate) scope: crate::template::scope::RenderScope,
-    pub(crate) environment: crate::template::environment::TemplateEnvironment,
-    pub(crate) overrides:
-        js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    pub(crate) defines:
-        js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+pub struct TemplateFunctionContextState {
+    pub scope: crate::template::scope::RenderScope,
+    pub environment: crate::template::environment::TemplateEnvironment,
+    pub overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+    pub defines: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct TemplateFunctionContext {
-    pub(crate) state: rt::ObjectHandle<TemplateFunctionContextState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<TemplateFunctionContextState>,
 }
 
 impl TemplateFunctionContext {
@@ -26,19 +26,18 @@ impl TemplateFunctionContext {
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         defines: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
     ) -> TemplateFunctionContext {
-        let field_scope: crate::template::scope::RenderScope = scope.clone();
-        let field_environment: crate::template::environment::TemplateEnvironment =
-            environment.clone();
+        let field_scope: crate::template::scope::RenderScope = scope;
+        let field_environment: crate::template::environment::TemplateEnvironment = environment;
         let field_overrides: js_abi::JsMap<
             String,
             js_abi::JsArray<crate::template::nodes::TemplateNode>,
-        > = overrides.clone();
+        > = overrides;
         let field_defines: js_abi::JsMap<
             String,
             js_abi::JsArray<crate::template::nodes::TemplateNode>,
-        > = defines.clone();
+        > = defines;
         TemplateFunctionContext {
-            state: rt::ObjectHandle::new(TemplateFunctionContextState {
+            state: rt::ObjectRef::new(TemplateFunctionContextState {
                 scope: field_scope,
                 environment: field_environment,
                 overrides: field_overrides,

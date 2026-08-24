@@ -25,15 +25,16 @@ namespace Tsumo.Tests
                 {
                     operation();
                 }
-                catch (System.Exception error)
+                catch (System.Exception __tsonic_catch0)
                 {
-                    if (error is TsumoError)
+                    Tsonic.CSharp.Runtime.TsValue error = Tsonic.CSharp.Runtime.TsThrownValueException.toValue(__tsonic_catch0);
+                    if (Tsonic.CSharp.Runtime.TsValue.IsDynamicInstanceOf<TsumoError>(error))
                     {
-                        return ((TsumoError)error).diagnostic.code;
+                        return Tsonic.CSharp.Runtime.TsValue.CastDynamic<TsumoError>(error).diagnostic.code;
                     }
                     throw;
                 }
-                throw new System.Exception("Expected a docs diagnostic");
+                throw new Tsonic.CSharp.Runtime.Error("Expected a docs diagnostic");
             };
             createMount = (string sourceDir, string prefix) => new DocsMountConfig("Docs", sourceDir, prefix, null, "main", null, null);
             return null;
@@ -51,21 +52,21 @@ namespace Tsumo.Tests
             string root = TestRoot.createTestDirectory("docs-routes");
             try
             {
-                string source = System.IO.Path.Combine(root, "source");
-                System.IO.Directory.CreateDirectory(System.IO.Path.Combine(source, "nested"));
-                System.IO.File.WriteAllText(System.IO.Path.Combine(source, "z.md"), "# Z");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(source, "a.md"), "# A");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(source, "nested", "asset.txt"), "asset");
+                string source = Tsonic.CSharp.Node.path.join(root, "source");
+                TestRoot.createDirectory(Tsonic.CSharp.Node.path.join(source, "nested"));
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(source, "z.md"), "# Z");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(source, "a.md"), "# A");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(source, "nested", "asset.txt"), "asset");
                 DocsMountRoutes routes = Node_modules_Tsumo_engine_src_docs_routes.discoverDocsMountRoutes(DocsDomainTest.createMount(source, "/docs/"));
                 Xunit.Assert.Equal<double>(2, routes.markdown.length);
                 Xunit.Assert.True(routes.markdown[0].relPath == "a.md");
                 Xunit.Assert.True(routes.markdown[1].relPath == "z.md");
                 Xunit.Assert.Equal<double>(1, routes.assets.length);
                 Xunit.Assert.True(routes.assets[0].outputRelPath == "docs/nested/asset.txt");
-                string conflicting = System.IO.Path.Combine(root, "conflicting");
-                System.IO.Directory.CreateDirectory(System.IO.Path.Combine(conflicting, "guide"));
-                System.IO.File.WriteAllText(System.IO.Path.Combine(conflicting, "guide.md"), "# Guide");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(conflicting, "guide", "index.md"), "# Other guide");
+                string conflicting = Tsonic.CSharp.Node.path.join(root, "conflicting");
+                TestRoot.createDirectory(Tsonic.CSharp.Node.path.join(conflicting, "guide"));
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(conflicting, "guide.md"), "# Guide");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(conflicting, "guide", "index.md"), "# Other guide");
                 Xunit.Assert.Equal("TSUMO_DOCS_ROUTE_CONFLICT", DocsDomainTest.captureDocsDiagnostic(() =>
                 {
                     Node_modules_Tsumo_engine_src_docs_routes.discoverDocsMountRoutes(DocsDomainTest.createMount(conflicting, "/docs/"));
@@ -82,8 +83,8 @@ namespace Tsumo.Tests
             string root = TestRoot.createTestDirectory("docs-content");
             try
             {
-                System.IO.File.WriteAllText(System.IO.Path.Combine(root, "published.md"), "---\ntitle: Published\n---\nBody");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(root, "draft.md"), "---\ntitle: Draft\ndraft: true\n---\nHidden");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "published.md"), "---\ntitle: Published\n---\nBody");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "draft.md"), "---\ntitle: Draft\ndraft: true\n---\nHidden");
                 Tsonic.CSharp.Js.JSArray<DocsMarkdownRoute> routes = Node_modules_Tsumo_engine_src_docs_routes.discoverDocsMountRoutes(DocsDomainTest.createMount(root, "/docs/")).markdown;
                 DocsContentInventory production = Node_modules_Tsumo_engine_src_docs_content.loadDocsContent(routes, false);
                 Xunit.Assert.Equal<double>(1, production.leaves.length);
@@ -104,18 +105,18 @@ namespace Tsumo.Tests
             string root = TestRoot.createTestDirectory("docs-config");
             try
             {
-                System.IO.Directory.CreateDirectory(System.IO.Path.Combine(root, "content"));
-                string configPath = System.IO.Path.Combine(root, "tsumo.docs.json");
-                System.IO.File.WriteAllText(configPath, "{\"siteName\":\"Contract\",\"mounts\":[{\"name\":\"Main\",\"source\":\"./content\",\"prefix\":\"/docs/\"}]}");
+                TestRoot.createDirectory(Tsonic.CSharp.Node.path.join(root, "content"));
+                string configPath = Tsonic.CSharp.Node.path.join(root, "tsumo.docs.json");
+                TestRoot.writeTextFile(configPath, "{\"siteName\":\"Contract\",\"mounts\":[{\"name\":\"Main\",\"source\":\"./content\",\"prefix\":\"/docs/\"}]}");
                 LoadedDocsConfig? loaded = Node_modules_Tsumo_engine_src_docs_config.loadDocsConfig(root);
                 Xunit.Assert.True(loaded is not null && loaded.config.mounts.length == 1);
                 Xunit.Assert.True(loaded is not null && loaded.config.mounts[0].urlPrefix == "/docs/");
-                System.IO.File.WriteAllText(configPath, "{\"mounts\":[{\"source\":\"./content\",\"prefix\":\"/docs/\",\"repo\":\"https://example.invalid\"}]}");
+                TestRoot.writeTextFile(configPath, "{\"mounts\":[{\"source\":\"./content\",\"prefix\":\"/docs/\",\"repo\":\"https://example.invalid\"}]}");
                 Xunit.Assert.Equal("TSUMO_DOCS_CONFIG_UNKNOWN_PROPERTY", DocsDomainTest.captureDocsDiagnostic(() =>
                 {
                     Node_modules_Tsumo_engine_src_docs_config.loadDocsConfig(root);
                 }));
-                System.IO.File.WriteAllText(configPath, "{\"search\":\"yes\",\"mounts\":[{\"source\":\"./content\",\"prefix\":\"/docs/\"}]}");
+                TestRoot.writeTextFile(configPath, "{\"search\":\"yes\",\"mounts\":[{\"source\":\"./content\",\"prefix\":\"/docs/\"}]}");
                 Xunit.Assert.Equal("TSUMO_DOCS_CONFIG_TYPE", DocsDomainTest.captureDocsDiagnostic(() =>
                 {
                     Node_modules_Tsumo_engine_src_docs_config.loadDocsConfig(root);

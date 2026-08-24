@@ -6,20 +6,21 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-pub(crate) fn output_directory(relative_path: String) -> rt::TsonicResult<String> {
+pub fn output_directory(relative_path: String) -> Result<String, rt::TsonicError> {
     let segments: js_abi::JsArray<String> =
-        crate::build::site_routes::split_site_path(relative_path.clone())?;
+        crate::build::site_routes::split_site_path(relative_path)?;
     let directory_segments: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     {
         let mut index: f64 = 0.0;
         while index < ((tsonic_rust_runtime::conversions::usize_to_i32(segments.len())? - 1) as f64)
         {
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                directory_segments.push_many([match segments.get_number(index).as_ref() {
+            {
+                let operation_input_0 = directory_segments.clone();
+                operation_input_0.push_many_discard([match segments.get_number(index).as_ref() {
                     Some(flow_value) => flow_value.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
-                }]),
-            )?;
+                }])
+            };
             index += 1.0;
         }
     }
@@ -34,129 +35,154 @@ pub fn plan_content_outputs(
     templates: crate::build::standard_templates::StandardTemplates,
     output_plan: crate::build::output_plan::SiteOutputPlan,
     sitemap_urls: js_abi::JsMap<String, bool>,
-) -> rt::TsonicResult<()> {
+) -> Result<(), rt::TsonicError> {
     {
         let mut index: f64 = 0.0;
         while index
-            < (tsonic_rust_runtime::conversions::usize_to_i32(graph.state.with(|state| state.page_sources.clone()).len())? as f64)
+            < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver = &graph; dispatch_receiver.dispatch.read_standard_page_graph_page_sources() }.len())? as f64)
         {
-            let source: crate::build::content_model::ContentPageSource = match graph
-                .state
-                .with(|state| state.page_sources.clone())
-                .get_number(index)
-                .as_ref()
+            let source: crate::build::content_model::ContentPageSource = match {
+                let dispatch_receiver_2 = &graph;
+                dispatch_receiver_2
+                    .dispatch
+                    .read_standard_page_graph_page_sources()
+            }
+            .get_number(index)
+            .as_ref()
             {
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let page: crate::models::page_context::PageContext = match graph
-                .state
-                .with(|state| state.content_pages.clone())
-                .get_number(index)
-                .as_ref()
+            let page: crate::models::page_context::PageContext = match {
+                let dispatch_receiver_3 = &graph;
+                dispatch_receiver_3
+                    .dispatch
+                    .read_standard_page_graph_content_pages()
+            }
+            .get_number(index)
+            .as_ref()
             {
                 Some(flow_value_2) => flow_value_2.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let template_type: String = if !source
-                .state
-                .with(|state| state.r#type.clone())
-                .is_empty()
-            {
-                source.state.with(|state| state.r#type.clone())
-            } else {
-                source.state.with(|state| state.section.clone())
+            let template_type: String = {
+                let conditional_test = !{
+                    let dispatch_receiver_4 = &source;
+                    dispatch_receiver_4.dispatch.read_content_page_source_type()
+                }
+                .is_empty();
+                if conditional_test {
+                    let dispatch_receiver_5 = &source;
+                    dispatch_receiver_5.dispatch.read_content_page_source_type()
+                } else {
+                    let dispatch_receiver_6 = &source;
+                    dispatch_receiver_6
+                        .dispatch
+                        .read_content_page_source_section()
+                }
             };
-            let layout: Option<String> = source.state.with(|state| state.layout.clone());
+            let layout: Option<String> = {
+                let dispatch_receiver_7 = &source;
+                dispatch_receiver_7
+                    .dispatch
+                    .read_content_page_source_layout()
+            };
             let candidates: js_abi::JsArray<String> = {
-                let conditional_test = layout.is_some()
+                let conditional_test_3 = layout.is_some()
                     && !js_string::trim(&match layout.as_ref() {
     Some(flow_value_3) => flow_value_3.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
 }).is_empty();
-                if conditional_test {
+                if conditional_test_3 {
                     js_abi::JsArray::from_dense(vec![
                         format!(
-                            "{}{}{}{}{}",
-                            String::from(""),
-                            rt::source_string(&template_type),
+                            "{}{}{}{}",
+                            template_type,
                             String::from("/"),
-                            rt::source_string(&match layout.as_ref() {
+                            match layout.as_ref() {
                                 Some(flow_value_4) => flow_value_4.clone(),
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
-                            },),
+                            },
                             String::from(".html"),
                         ),
                         format!(
-                            "{}{}{}{}{}",
-                            String::from(""),
-                            rt::source_string(&source.state.with(|state| state.section.clone())),
+                            "{}{}{}{}",
+                            {
+                                let dispatch_receiver_8 = &source;
+                                dispatch_receiver_8
+                                    .dispatch
+                                    .read_content_page_source_section()
+                            },
                             String::from("/"),
-                            rt::source_string(&match layout.as_ref() {
+                            match layout.as_ref() {
                                 Some(flow_value_5) => flow_value_5.clone(),
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
-                            },),
+                            },
                             String::from(".html"),
                         ),
                         format!(
                             "{}{}{}",
                             String::from("_default/"),
-                            rt::source_string(&match layout.as_ref() {
+                            match layout.as_ref() {
                                 Some(flow_value_6) => flow_value_6.clone(),
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
-                            },),
+                            },
                             String::from(".html"),
                         ),
                         format!(
-                            "{}{}{}",
-                            String::from(""),
-                            rt::source_string(&match layout.as_ref() {
+                            "{}{}",
+                            match layout.as_ref() {
                                 Some(flow_value_7) => flow_value_7.clone(),
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
-                            },),
+                            },
                             String::from(".html"),
                         ),
+                        format!("{}{}", template_type, String::from("/single.html")),
                         format!(
-                            "{}{}{}",
-                            String::from(""),
-                            rt::source_string(&template_type),
-                            String::from("/single.html"),
-                        ),
-                        format!(
-                            "{}{}{}",
-                            String::from(""),
-                            rt::source_string(&source.state.with(|state| state.section.clone())),
+                            "{}{}",
+                            {
+                                let dispatch_receiver_9 = &source;
+                                dispatch_receiver_9
+                                    .dispatch
+                                    .read_content_page_source_section()
+                            },
                             String::from("/single.html"),
                         ),
                         String::from("_default/single.html"),
                     ])
                 } else {
                     js_abi::JsArray::from_dense(vec![
-                        format!(
-                            "{}{}{}",
-                            String::from(""),
-                            rt::source_string(&template_type),
-                            String::from("/single.html"),
-                        ),
-                        if !source.state.with(|state| state.section.clone()).is_empty() {
-                            format!(
-                                "{}{}{}",
-                                String::from(""),
-                                rt::source_string(&source.state.with(
-                                    |state| state.section.clone()
-                                )),
-                                String::from("/single.html"),
-                            )
-                        } else {
-                            String::from("_default/single.html")
+                        format!("{}{}", template_type, String::from("/single.html")),
+                        {
+                            let conditional_test_2 = !{
+                                let dispatch_receiver_10 = &source;
+                                dispatch_receiver_10
+                                    .dispatch
+                                    .read_content_page_source_section()
+                            }
+                            .is_empty();
+                            if conditional_test_2 {
+                                format!(
+                                    "{}{}",
+                                    {
+                                        let dispatch_receiver_11 = &source;
+                                        dispatch_receiver_11
+                                            .dispatch
+                                            .read_content_page_source_section()
+                                    },
+                                    String::from("/single.html"),
+                                )
+                            } else {
+                                String::from("_default/single.html")
+                            }
                         },
                         String::from("_default/single.html"),
                     ])
@@ -187,18 +213,15 @@ pub fn plan_content_outputs(
                     },
                     if !template_type.is_empty() {
                         js_abi::JsArray::from_dense(vec![
+                            format!("{}{}", template_type, String::from("/baseof.html")),
                             format!(
-                                "{}{}{}",
-                                String::from(""),
-                                rt::source_string(&template_type),
-                                String::from("/baseof.html"),
-                            ),
-                            format!(
-                                "{}{}{}",
-                                String::from(""),
-                                rt::source_string(&source.state.with(
-                                    |state| state.section.clone()
-                                )),
+                                "{}{}",
+                                {
+                                    let dispatch_receiver_12 = &source;
+                                    dispatch_receiver_12
+                                        .dispatch
+                                        .read_content_page_source_section()
+                                },
                                 String::from("/baseof.html"),
                             ),
                             String::from("_default/baseof.html"),
@@ -214,44 +237,80 @@ pub fn plan_content_outputs(
                 Some,
                 || templates.state.with(|state| state.base.clone()),
             );
-            output_plan.add_text(
-                source.state.with(|state| state.output_rel_path.clone()),
-                crate::build::layout::render_with_base(
+            {
+                let dispatch_receiver_15 = output_plan.clone();
+                dispatch_receiver_15.dispatch.clone().dispatch_site_output_plan_add_text(
                     {
-                        let upcast_value_3 = environment.clone();
-                        crate::layouts::LayoutEnvironment {
-                            identity: upcast_value_3.identity.clone(),
-                            dispatch: upcast_value_3.dispatch.clone(),
-                        }
+                        let dispatch_receiver_13 = &source;
+                        dispatch_receiver_13
+                            .dispatch
+                            .read_content_page_source_output_rel_path()
                     },
-                    base.clone(),
-                    main.clone(),
-                    page.clone(),
-                )?,
-                format!(
-                    "{}{}{}",
-                    String::from("content page '"),
-                    rt::source_string(&source.state.with(|state| state.source_path.clone())),
-                    String::from("'"),
-                ),
-            )?;
-            sitemap_urls
-                .set(page.state.with(|state| state.rel_permalink.clone()), true);
-            let bundle_source: Option<String> = graph
-                .state
-                .with(|state| state.bundle_source_by_page.clone())
-                .get_eq(&page);
+                    crate::build::layout::render_with_base(
+                        {
+                            let upcast_value_3 = environment.clone();
+                            crate::layouts::LayoutEnvironment {
+                                identity: upcast_value_3.identity.clone(),
+                                dispatch: upcast_value_3.dispatch.clone(),
+                            }
+                        },
+                        base.clone(),
+                        main.clone(),
+                        page.clone(),
+                    )?,
+                    format!(
+                        "{}{}{}",
+                        String::from("content page '"),
+                        {
+                            let dispatch_receiver_14 = &source;
+                            dispatch_receiver_14
+                                .dispatch
+                                .read_content_page_source_source_path()
+                        },
+                        String::from("'"),
+                    ),
+                )
+            }?;
+            {
+                let operation_input_0 = sitemap_urls.clone();
+                operation_input_0.set_discard(
+                    {
+                        let dispatch_receiver_16 = &page;
+                        dispatch_receiver_16
+                            .dispatch
+                            .read_page_context_rel_permalink()
+                    },
+                    true,
+                )
+            };
+            let bundle_source: Option<String> = {
+                let dispatch_receiver_17 = &graph;
+                dispatch_receiver_17
+                    .dispatch
+                    .read_standard_page_graph_bundle_source_by_page()
+            }
+            .get_eq(&page);
             if bundle_source.is_some() {
                 crate::build::bundle_resources::add_bundle_resources(
                     match bundle_source.as_ref() {
                         Some(flow_value_8) => flow_value_8.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
-                    output_directory(source.state.with(|state| state.output_rel_path.clone()))?,
+                    output_directory({
+                        let dispatch_receiver_18 = &source;
+                        dispatch_receiver_18
+                            .dispatch
+                            .read_content_page_source_output_rel_path()
+                    })?,
                     format!(
                         "{}{}{}",
                         String::from("leaf bundle '"),
-                        rt::source_string(&source.state.with(|state| state.source_path.clone())),
+                        {
+                            let dispatch_receiver_19 = &source;
+                            dispatch_receiver_19
+                                .dispatch
+                                .read_content_page_source_source_path()
+                        },
                         String::from("'"),
                     ),
                     output_plan.clone(),

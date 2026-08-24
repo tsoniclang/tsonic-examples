@@ -4,19 +4,15 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-pub fn escape_html_text(text: String) -> rt::TsonicResult<String> {
-    let mut result: String = text.clone();
-    result = js_string::replace_all(&result, "&", "&amp;")
-        .map_err(tsonic_rust_runtime::TsonicError::from)?;
-    result = js_string::replace_all(&result, "<", "&lt;")
-        .map_err(tsonic_rust_runtime::TsonicError::from)?;
-    result = js_string::replace_all(&result, ">", "&gt;")
-        .map_err(tsonic_rust_runtime::TsonicError::from)?;
-    result = js_string::replace_all(&result, "\"", "&quot;")
-        .map_err(tsonic_rust_runtime::TsonicError::from)?;
-    Ok(result.clone())
+pub fn escape_html_text(text: String) -> Result<String, rt::TsonicError> {
+    let mut result: String = text;
+    result = js_string::replace_all(&result, "&", "&amp;")?;
+    result = js_string::replace_all(&result, "<", "&lt;")?;
+    result = js_string::replace_all(&result, ">", "&gt;")?;
+    result = js_string::replace_all(&result, "\"", "&quot;")?;
+    Ok(result)
 }
 
 pub fn generate_table_of_contents(markdown: String) -> String {
-    crate::markdown::platform::render_markdown_table_of_contents(markdown.clone())
+    crate::markdown::platform::render_markdown_table_of_contents(markdown)
 }

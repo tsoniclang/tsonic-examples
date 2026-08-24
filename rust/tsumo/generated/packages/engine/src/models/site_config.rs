@@ -4,50 +4,224 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ModuleMountState {
-    pub(crate) source: String,
-    pub(crate) target: String,
+pub trait ModuleMountDispatch {
+    fn downcast_module_mount_to_module_mount(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn ModuleMountDispatch>>;
+    fn read_module_mount_source(&self) -> String;
+    fn write_module_mount_source(&self, value: String);
+    fn read_module_mount_target(&self) -> String;
+    fn write_module_mount_target(&self, value: String);
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct ModuleMountState {
+    pub source: String,
+    pub target: String,
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+#[derive(Clone)]
 pub struct ModuleMount {
-    pub(crate) state: rt::ObjectHandle<ModuleMountState>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn ModuleMountDispatch>,
+}
+
+impl std::fmt::Debug for ModuleMount {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("ModuleMount")
+    }
+}
+
+impl PartialEq for ModuleMount {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+    }
+}
+
+impl Eq for ModuleMount {}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub(crate) struct ModuleMountRoot {
+    identity: rt::ObjectIdentity,
+    state: rt::ObjectHandle<ModuleMountState>,
 }
 
 impl ModuleMount {
+    #[doc(hidden)]
+    pub fn initialize_state(source: String, target: String) -> ModuleMountState {
+        let field_source: String = source;
+        let field_target: String = target;
+        ModuleMountState {
+            source: field_source,
+            target: field_target,
+        }
+    }
+
     pub fn new(source: String, target: String) -> ModuleMount {
-        let field_source: String = source.clone();
-        let field_target: String = target.clone();
+        let state = ModuleMount::initialize_state(source, target);
+        let identity = rt::ObjectIdentity::new();
+        let root = std::rc::Rc::new(ModuleMountRoot {
+            identity: identity.clone(),
+            state: rt::ObjectHandle::new(state),
+        });
         ModuleMount {
-            state: rt::ObjectHandle::new(ModuleMountState {
-                source: field_source,
-                target: field_target,
-            }),
+            identity,
+            dispatch: root,
         }
     }
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct SiteConfigState {
-    pub(crate) title: String,
-    pub(crate) base_url: String,
-    pub(crate) language_code: String,
-    pub(crate) content_dir: String,
-    pub(crate) languages: js_abi::JsArray<crate::models::language::LanguageConfig>,
-    pub(crate) theme: Option<String>,
-    pub(crate) copyright: Option<String>,
-    pub(crate) params: js_abi::JsMap<String, crate::params::ParamValue>,
-    pub(crate) menus: js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>>,
-    pub(crate) module_mounts: js_abi::JsArray<ModuleMount>,
+impl ModuleMountDispatch for ModuleMountRoot {
+    fn downcast_module_mount_to_module_mount(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn ModuleMountDispatch>> {
+        Some(self)
+    }
+
+    fn read_module_mount_source(&self) -> String {
+        self.state.with(|state| state.source.clone())
+    }
+
+    fn write_module_mount_source(&self, value: String) {
+        self.state.with_mut(|state| state.source = value);
+    }
+
+    fn read_module_mount_target(&self) -> String {
+        self.state.with(|state| state.target.clone())
+    }
+
+    fn write_module_mount_target(&self, value: String) {
+        self.state.with_mut(|state| state.target = value);
+    }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub trait SiteConfigDispatch {
+    fn downcast_site_config_to_site_config(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn SiteConfigDispatch>>;
+    fn read_site_config_title(&self) -> String;
+    fn write_site_config_title(&self, value: String);
+    fn read_site_config_base_url(&self) -> String;
+    fn write_site_config_base_url(&self, value: String);
+    fn read_site_config_language_code(&self) -> String;
+    fn write_site_config_language_code(&self, value: String);
+    fn read_site_config_content_dir(&self) -> String;
+    fn write_site_config_content_dir(&self, value: String);
+    fn read_site_config_languages(
+        &self,
+    ) -> js_abi::JsArray<crate::models::language::LanguageConfig>;
+    fn write_site_config_languages(
+        &self,
+        value: js_abi::JsArray<crate::models::language::LanguageConfig>,
+    );
+    fn read_site_config_theme(&self) -> Option<String>;
+    fn write_site_config_theme(&self, value: Option<String>);
+    fn read_site_config_copyright(&self) -> Option<String>;
+    fn write_site_config_copyright(&self, value: Option<String>);
+    fn read_site_config_params(&self) -> js_abi::JsMap<String, crate::params::ParamValue>;
+    fn write_site_config_params(&self, value: js_abi::JsMap<String, crate::params::ParamValue>);
+    fn read_site_config_menus(
+        &self,
+    ) -> js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>>;
+    fn write_site_config_menus(
+        &self,
+        value: js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>>,
+    );
+    fn read_site_config_module_mounts(&self) -> js_abi::JsArray<ModuleMount>;
+    fn write_site_config_module_mounts(&self, value: js_abi::JsArray<ModuleMount>);
+}
+
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct SiteConfigState {
+    pub title: String,
+    pub base_url: String,
+    pub language_code: String,
+    pub content_dir: String,
+    pub languages: js_abi::JsArray<crate::models::language::LanguageConfig>,
+    pub theme: Option<String>,
+    pub copyright: Option<String>,
+    pub params: js_abi::JsMap<String, crate::params::ParamValue>,
+    pub menus: js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>>,
+    pub module_mounts: js_abi::JsArray<ModuleMount>,
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+#[derive(Clone)]
 pub struct SiteConfig {
-    pub(crate) state: rt::ObjectHandle<SiteConfigState>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn SiteConfigDispatch>,
+}
+
+impl std::fmt::Debug for SiteConfig {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("SiteConfig")
+    }
+}
+
+impl PartialEq for SiteConfig {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+    }
+}
+
+impl Eq for SiteConfig {}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub(crate) struct SiteConfigRoot {
+    identity: rt::ObjectIdentity,
+    state: rt::ObjectHandle<SiteConfigState>,
 }
 
 impl SiteConfig {
+    #[doc(hidden)]
+    pub fn initialize_state(
+        title: String,
+        base_url: String,
+        language_code: String,
+        theme: Option<String>,
+        copyright: Option<String>,
+    ) -> SiteConfigState {
+        let field_title: String = title;
+        let field_base_url: String = base_url;
+        let field_language_code: String = language_code;
+        let field_content_dir: String = String::from("content");
+        let empty: js_abi::JsArray<crate::models::language::LanguageConfig> =
+            js_abi::JsArray::from_dense(vec![]);
+        let field_languages: js_abi::JsArray<crate::models::language::LanguageConfig> = empty;
+        let field_theme: Option<String> = theme;
+        let field_copyright: Option<String> = copyright;
+        let field_params: js_abi::JsMap<String, crate::params::ParamValue> = js_abi::JsMap::new();
+        let field_menus: js_abi::JsMap<
+            String,
+            js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
+        > = js_abi::JsMap::new();
+        let empty_mounts: js_abi::JsArray<ModuleMount> = js_abi::JsArray::from_dense(vec![]);
+        let field_module_mounts: js_abi::JsArray<ModuleMount> = empty_mounts;
+        SiteConfigState {
+            title: field_title,
+            base_url: field_base_url,
+            language_code: field_language_code,
+            content_dir: field_content_dir,
+            languages: field_languages,
+            theme: field_theme,
+            copyright: field_copyright,
+            params: field_params,
+            menus: field_menus,
+            module_mounts: field_module_mounts,
+        }
+    }
+
     pub fn new(
         title: String,
         base_url: String,
@@ -55,36 +229,113 @@ impl SiteConfig {
         theme: Option<String>,
         copyright: Option<String>,
     ) -> SiteConfig {
-        let field_title: String = title.clone();
-        let field_base_url: String = base_url.clone();
-        let field_language_code: String = language_code.clone();
-        let field_content_dir: String = String::from("content");
-        let empty: js_abi::JsArray<crate::models::language::LanguageConfig> =
-            js_abi::JsArray::from_dense(vec![]);
-        let field_languages: js_abi::JsArray<crate::models::language::LanguageConfig> =
-            empty.clone();
-        let field_theme: Option<String> = theme.clone();
-        let field_copyright: Option<String> = copyright.clone();
-        let field_params: js_abi::JsMap<String, crate::params::ParamValue> = js_abi::JsMap::new();
-        let field_menus: js_abi::JsMap<
-            String,
-            js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
-        > = js_abi::JsMap::new();
-        let empty_mounts: js_abi::JsArray<ModuleMount> = js_abi::JsArray::from_dense(vec![]);
-        let field_module_mounts: js_abi::JsArray<ModuleMount> = empty_mounts.clone();
+        let state = SiteConfig::initialize_state(title, base_url, language_code, theme, copyright);
+        let identity = rt::ObjectIdentity::new();
+        let root = std::rc::Rc::new(SiteConfigRoot {
+            identity: identity.clone(),
+            state: rt::ObjectHandle::new(state),
+        });
         SiteConfig {
-            state: rt::ObjectHandle::new(SiteConfigState {
-                title: field_title,
-                base_url: field_base_url,
-                language_code: field_language_code,
-                content_dir: field_content_dir,
-                languages: field_languages,
-                theme: field_theme,
-                copyright: field_copyright,
-                params: field_params,
-                menus: field_menus,
-                module_mounts: field_module_mounts,
-            }),
+            identity,
+            dispatch: root,
         }
+    }
+}
+
+impl SiteConfigDispatch for SiteConfigRoot {
+    fn downcast_site_config_to_site_config(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn SiteConfigDispatch>> {
+        Some(self)
+    }
+
+    fn read_site_config_title(&self) -> String {
+        self.state.with(|state| state.title.clone())
+    }
+
+    fn write_site_config_title(&self, value: String) {
+        self.state.with_mut(|state| state.title = value);
+    }
+
+    fn read_site_config_base_url(&self) -> String {
+        self.state.with(|state| state.base_url.clone())
+    }
+
+    fn write_site_config_base_url(&self, value: String) {
+        self.state.with_mut(|state| state.base_url = value);
+    }
+
+    fn read_site_config_language_code(&self) -> String {
+        self.state.with(|state| state.language_code.clone())
+    }
+
+    fn write_site_config_language_code(&self, value: String) {
+        self.state.with_mut(|state| state.language_code = value);
+    }
+
+    fn read_site_config_content_dir(&self) -> String {
+        self.state.with(|state| state.content_dir.clone())
+    }
+
+    fn write_site_config_content_dir(&self, value: String) {
+        self.state.with_mut(|state| state.content_dir = value);
+    }
+
+    fn read_site_config_languages(
+        &self,
+    ) -> js_abi::JsArray<crate::models::language::LanguageConfig> {
+        self.state.with(|state| state.languages.clone())
+    }
+
+    fn write_site_config_languages(
+        &self,
+        value: js_abi::JsArray<crate::models::language::LanguageConfig>,
+    ) {
+        self.state.with_mut(|state| state.languages = value);
+    }
+
+    fn read_site_config_theme(&self) -> Option<String> {
+        self.state.with(|state| state.theme.clone())
+    }
+
+    fn write_site_config_theme(&self, value: Option<String>) {
+        self.state.with_mut(|state| state.theme = value);
+    }
+
+    fn read_site_config_copyright(&self) -> Option<String> {
+        self.state.with(|state| state.copyright.clone())
+    }
+
+    fn write_site_config_copyright(&self, value: Option<String>) {
+        self.state.with_mut(|state| state.copyright = value);
+    }
+
+    fn read_site_config_params(&self) -> js_abi::JsMap<String, crate::params::ParamValue> {
+        self.state.with(|state| state.params.clone())
+    }
+
+    fn write_site_config_params(&self, value: js_abi::JsMap<String, crate::params::ParamValue>) {
+        self.state.with_mut(|state| state.params = value);
+    }
+
+    fn read_site_config_menus(
+        &self,
+    ) -> js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>> {
+        self.state.with(|state| state.menus.clone())
+    }
+
+    fn write_site_config_menus(
+        &self,
+        value: js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>>,
+    ) {
+        self.state.with_mut(|state| state.menus = value);
+    }
+
+    fn read_site_config_module_mounts(&self) -> js_abi::JsArray<ModuleMount> {
+        self.state.with(|state| state.module_mounts.clone())
+    }
+
+    fn write_site_config_module_mounts(&self, value: js_abi::JsArray<ModuleMount>) {
+        self.state.with_mut(|state| state.module_mounts = value);
     }
 }

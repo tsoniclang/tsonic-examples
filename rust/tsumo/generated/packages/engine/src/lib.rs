@@ -6,98 +6,123 @@ pub mod program;
 #[doc(hidden)]
 pub mod shapes;
 
+#[doc(hidden)]
+pub mod initializers;
+
+#[doc(hidden)]
 pub mod build;
 
+#[doc(hidden)]
 pub mod build_site;
 
+#[doc(hidden)]
 pub mod config;
 
+#[doc(hidden)]
 pub mod diagnostics;
 
+#[doc(hidden)]
 pub mod docs;
 
+#[doc(hidden)]
 pub mod env;
 
+#[doc(hidden)]
 pub mod frontmatter;
 
+#[doc(hidden)]
 pub mod fs;
 
+#[doc(hidden)]
 pub mod i18n;
 
+#[doc(hidden)]
 pub mod index;
 
+#[doc(hidden)]
 pub mod layouts;
 
+#[doc(hidden)]
 pub mod markdown;
 
+#[doc(hidden)]
 pub mod menus;
 
+#[doc(hidden)]
 pub mod models;
 
+#[doc(hidden)]
 pub mod output_publication;
 
+#[doc(hidden)]
 pub mod outputs;
 
+#[doc(hidden)]
 pub mod params;
 
+#[doc(hidden)]
 pub mod resources;
 
+#[doc(hidden)]
 pub mod scaffold;
 
+#[doc(hidden)]
 pub mod serve_site;
 
+#[doc(hidden)]
 pub mod shortcode;
 
+#[doc(hidden)]
 pub mod template;
 
+pub mod testing;
+
+#[doc(hidden)]
 pub mod utils;
 
+#[doc(hidden)]
 pub mod watch_snapshot;
+
+pub use crate::build::BuildRequest;
+
+pub use crate::build::BuildResult;
+
+pub use crate::build::ServeRequest;
+
+pub use crate::build_site::build_site;
+
+pub use crate::diagnostics::TsumoDiagnostic;
+
+pub use crate::diagnostics::TsumoError;
+
+pub use crate::diagnostics::create_tsumo_error;
+
+pub use crate::scaffold::init_site::init_site;
+
+pub use crate::scaffold::new_content::new_content;
+
+pub use crate::serve_site::serve_site;
 
 #[doc(hidden)]
 pub fn initialize() {
     crate::fs::module_init();
     crate::utils::text::module_init();
     crate::params::module_init();
-    crate::utils::json::module_init();
-    crate::docs::config::module_init();
-    crate::resources::paths::module_init();
-    crate::resources::image_provider::module_init();
-    crate::resources::javascript_provider::module_init();
-    crate::shortcode::module_init();
     crate::template::runtime_helpers::module_init();
-    crate::template::parser::tokens::module_init();
-    crate::markdown::render_hooks::module_init();
     crate::markdown::shortcodes::module_init();
-    crate::markdown::render_with_shortcodes::module_init();
+    crate::template::evaluation::serialization::module_init();
     crate::template::evaluation::scalar_semantics::module_init();
-    crate::resources::page_bundle::module_init();
     crate::template::evaluation::page_resource_semantics::module_init();
     crate::template::evaluation::page_semantics::module_init();
     crate::template::evaluation::property_support::module_init();
     crate::template::functions::context_functions::module_init();
     crate::template::functions::function_registry::module_init();
+    crate::utils::regular_expressions::module_init();
     crate::template::functions::text_compatibility::module_init();
-    crate::template::evaluation::toml_data::module_init();
-    crate::template::evaluation::structured_data::module_init();
     crate::template::evaluation::render::module_init();
     crate::template::parser::parse_pipeline::module_init();
-    crate::template::parser::parse_template::module_init();
     crate::i18n::module_init();
     crate::template::embedded_templates::module_init();
     crate::layouts::module_init();
-    crate::build::output_plan::module_init();
-    crate::template::data_loader::module_init();
-    crate::docs::routes::module_init();
-    crate::docs::content::module_init();
-    crate::docs::url::module_init();
-    crate::docs::markdown::module_init();
-    crate::docs::nav::module_init();
-    crate::docs::output::module_init();
-    crate::docs::search_index::module_init();
     crate::output_publication::module_init();
-    crate::build::standard_page_graph::module_init();
-    crate::build::standard_templates::module_init();
-    crate::build::standard_taxonomies::module_init();
-    crate::watch_snapshot::module_init();
 }

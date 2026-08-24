@@ -71,14 +71,14 @@ namespace Tsumo.Engine
                 {
                     throw invalid("String escape does not name a Unicode scalar value");
                 }
-                return System.Char.ConvertFromUtf32(value);
+                return Tsonic.CSharp.Js.String.fromCodePoint(value);
             };
             decodeSingleQuoted = (string inner, string format, Func<string, TsumoError> invalid) =>
             {
                 string result = "";
-                for (int index = 0; index < inner.Length; index++)
+                for (int index = 0; index < inner.Length; index = Utils_strings.nextCodePointIndex(inner, index))
                 {
-                    string current = inner.Substring(index, 1);
+                    string current = Utils_strings.codePointAtText(inner, index);
                     if (current != "'")
                     {
                         result += current;
@@ -97,9 +97,9 @@ namespace Tsumo.Engine
             decodeDoubleQuoted = (string inner, Func<string, TsumoError> invalid) =>
             {
                 string result = "";
-                for (int index = 0; index < inner.Length; index++)
+                for (int index = 0; index < inner.Length; index = Utils_strings.nextCodePointIndex(inner, index))
                 {
-                    string current = inner.Substring(index, 1);
+                    string current = Utils_strings.codePointAtText(inner, index);
                     if (current == "\"")
                     {
                         throw invalid("Double-quoted string contains an unescaped quote");
@@ -113,7 +113,8 @@ namespace Tsumo.Engine
                     {
                         throw invalid("String ends with an incomplete escape");
                     }
-                    string escaped = inner.Substring(++index, 1);
+                    index = Utils_strings.nextCodePointIndex(inner, index);
+                    string escaped = Utils_strings.codePointAtText(inner, index);
                     if (escaped == "\"" || escaped == "\\" || escaped == "/")
                     {
                         result += escaped;
@@ -178,10 +179,12 @@ namespace Tsumo.Engine
             };
             decodeQuoted = (string value, string format, Func<string, TsumoError> invalid) =>
             {
-                string first = value.Length == 0 ? "" : value.Substring(0, 1);
-                string last = value.Length == 0 ? "" : value.Substring(value.Length - 1, 1);
-                bool startsQuoted = first == "\"" || first == "'";
-                bool endsQuoted = last == "\"" || last == "'";
+                bool startsDoubleQuoted = Tsonic.CSharp.Js.String.startsWith(value, "\"");
+                bool startsSingleQuoted = Tsonic.CSharp.Js.String.startsWith(value, "'");
+                bool endsDoubleQuoted = Tsonic.CSharp.Js.String.endsWith(value, "\"");
+                bool endsSingleQuoted = Tsonic.CSharp.Js.String.endsWith(value, "'");
+                bool startsQuoted = startsDoubleQuoted || startsSingleQuoted;
+                bool endsQuoted = endsDoubleQuoted || endsSingleQuoted;
                 if (!startsQuoted && !endsQuoted)
                 {
                     return null;
@@ -194,12 +197,12 @@ namespace Tsumo.Engine
                     }
                     throw invalid("String has mismatched quotes");
                 }
-                if (first != last || value.Length < 2)
+                if ((startsDoubleQuoted && !endsDoubleQuoted) || (startsSingleQuoted && !endsSingleQuoted) || value.Length < 2)
                 {
                     throw invalid("String has mismatched quotes");
                 }
                 string inner = Utils_strings.substringCount(value, 1, value.Length - 2);
-                return first == "'" ? decodeSingleQuoted(inner, format, invalid) : decodeDoubleQuoted(inner, invalid);
+                return startsSingleQuoted ? decodeSingleQuoted(inner, format, invalid) : decodeDoubleQuoted(inner, invalid);
             };
             parseInteger = (string value, Func<string, TsumoError> invalid) =>
             {
@@ -270,17 +273,20 @@ namespace Tsumo.Engine
             {
                 string quote = "";
                 bool escaped = false;
-                for (int index = 0; index < line.Length; index++)
+                bool previousWasWhitespace = false;
+                for (int index = 0; index < line.Length; index = Utils_strings.nextCodePointIndex(line, index))
                 {
-                    string current = line.Substring(index, 1);
+                    string current = Utils_strings.codePointAtText(line, index);
                     if (escaped)
                     {
                         escaped = false;
+                        previousWasWhitespace = new Tsonic.CSharp.Js.RegExp("\\s", "").test(current);
                         continue;
                     }
                     if (quote == "\"" && current == "\\")
                     {
                         escaped = true;
+                        previousWasWhitespace = false;
                         continue;
                     }
                     if (current == "\"" || current == "'")
@@ -303,13 +309,15 @@ namespace Tsumo.Engine
                                 }
                             }
                         }
+                        previousWasWhitespace = false;
                         continue;
                     }
-                    bool yamlComment = format == "yaml" && current == "#" && (index == 0 || new Tsonic.CSharp.Js.RegExp("\\s", "").test(line.Substring(index - 1, 1)));
+                    bool yamlComment = format == "yaml" && current == "#" && (index == 0 || previousWasWhitespace);
                     if ((format == "toml" && current == "#" && quote == "") || (yamlComment && quote == ""))
                     {
                         return Tsonic.CSharp.Js.String.trimEnd(Utils_strings.substringCount(line, 0, index));
                     }
+                    previousWasWhitespace = new Tsonic.CSharp.Js.RegExp("\\s", "").test(current);
                 }
                 return line;
             };

@@ -16,18 +16,20 @@ std::thread_local! {
     pub(crate) static PARAM_KIND_NUMBER: rt::ModuleCell<i32> = const { rt::ModuleCell::new() };
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ParamKindState {}
+pub struct ParamKindState {}
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ParamKind {
-    pub(crate) state: rt::ObjectHandle<ParamKindState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<ParamKindState>,
 }
 
 impl ParamKind {
     pub fn new() -> ParamKind {
         ParamKind {
-            state: rt::ObjectHandle::new(ParamKindState {}),
+            state: rt::ObjectRef::new(ParamKindState {}),
         }
     }
 }
@@ -38,39 +40,97 @@ impl Default for ParamKind {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ParamValueState {
-    pub(crate) kind: i32,
-    pub(crate) string_value: String,
-    pub(crate) bool_value: bool,
-    pub(crate) number_value: i32,
+pub trait ParamValueDispatch {
+    fn downcast_param_value_to_param_value(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn ParamValueDispatch>>;
+    fn read_param_value_kind(&self) -> i32;
+    fn write_param_value_kind(&self, value: i32);
+    fn read_param_value_string_value(&self) -> String;
+    fn write_param_value_string_value(&self, value: String);
+    fn read_param_value_bool_value(&self) -> bool;
+    fn write_param_value_bool_value(&self, value: bool);
+    fn read_param_value_number_value(&self) -> i32;
+    fn write_param_value_number_value(&self, value: i32);
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct ParamValueState {
+    pub kind: i32,
+    pub string_value: String,
+    pub bool_value: bool,
+    pub number_value: i32,
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+#[derive(Clone)]
 pub struct ParamValue {
-    pub(crate) state: rt::ObjectHandle<ParamValueState>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn ParamValueDispatch>,
+}
+
+impl std::fmt::Debug for ParamValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("ParamValue")
+    }
+}
+
+impl PartialEq for ParamValue {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+    }
+}
+
+impl Eq for ParamValue {}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub(crate) struct ParamValueRoot {
+    identity: rt::ObjectIdentity,
+    state: rt::ObjectHandle<ParamValueState>,
 }
 
 impl ParamValue {
-    pub fn new(kind: i32, string_value: String, bool_value: bool, number_value: i32) -> ParamValue {
+    #[doc(hidden)]
+    pub fn initialize_state(
+        kind: i32,
+        string_value: String,
+        bool_value: bool,
+        number_value: i32,
+    ) -> ParamValueState {
         let field_kind: i32 = kind;
-        let field_string_value: String = string_value.clone();
+        let field_string_value: String = string_value;
         let field_bool_value: bool = bool_value;
         let field_number_value: i32 = number_value;
+        ParamValueState {
+            kind: field_kind,
+            string_value: field_string_value,
+            bool_value: field_bool_value,
+            number_value: field_number_value,
+        }
+    }
+
+    pub fn new(kind: i32, string_value: String, bool_value: bool, number_value: i32) -> ParamValue {
+        let state = ParamValue::initialize_state(kind, string_value, bool_value, number_value);
+        let identity = rt::ObjectIdentity::new();
+        let root = std::rc::Rc::new(ParamValueRoot {
+            identity: identity.clone(),
+            state: rt::ObjectHandle::new(state),
+        });
         ParamValue {
-            state: rt::ObjectHandle::new(ParamValueState {
-                kind: field_kind,
-                string_value: field_string_value,
-                bool_value: field_bool_value,
-                number_value: field_number_value,
-            }),
+            identity,
+            dispatch: root,
         }
     }
 
     pub fn string(value: String) -> ParamValue {
         ParamValue::new(
             PARAM_KIND_STRING.with(|module_binding| module_binding.load()),
-            value.clone(),
+            value,
             false,
             0,
         )
@@ -94,7 +154,7 @@ impl ParamValue {
         )
     }
 
-    pub fn parse_scalar(text: &str) -> rt::TsonicResult<ParamValue> {
+    pub fn parse_scalar(text: &str) -> Result<ParamValue, rt::TsonicError> {
         let trimmed: String = js_string::trim(text);
         let lower: String = js_string::to_lower_case(&trimmed);
         if lower == "true" {
@@ -111,6 +171,46 @@ impl ParamValue {
             }));
         }
         Ok(ParamValue::string(trimmed.clone()))
+    }
+}
+
+impl ParamValueDispatch for ParamValueRoot {
+    fn downcast_param_value_to_param_value(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn ParamValueDispatch>> {
+        Some(self)
+    }
+
+    fn read_param_value_kind(&self) -> i32 {
+        self.state.with(|state| state.kind)
+    }
+
+    fn write_param_value_kind(&self, value: i32) {
+        self.state.with_mut(|state| state.kind = value);
+    }
+
+    fn read_param_value_string_value(&self) -> String {
+        self.state.with(|state| state.string_value.clone())
+    }
+
+    fn write_param_value_string_value(&self, value: String) {
+        self.state.with_mut(|state| state.string_value = value);
+    }
+
+    fn read_param_value_bool_value(&self) -> bool {
+        self.state.with(|state| state.bool_value)
+    }
+
+    fn write_param_value_bool_value(&self, value: bool) {
+        self.state.with_mut(|state| state.bool_value = value);
+    }
+
+    fn read_param_value_number_value(&self) -> i32 {
+        self.state.with(|state| state.number_value)
+    }
+
+    fn write_param_value_number_value(&self, value: i32) {
+        self.state.with_mut(|state| state.number_value = value);
     }
 }
 

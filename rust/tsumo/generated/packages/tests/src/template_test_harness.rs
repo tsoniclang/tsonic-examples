@@ -8,39 +8,30 @@ use crate::program as rt;
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) trait TestTemplateEnvironmentDispatch:
-    crate::node_modules::tsumo::engine::src::template::environment::TemplateEnvironmentDispatch
+    tsumo_engine::template::environment::TemplateEnvironmentDispatch
 {
     fn downcast_test_template_environment_to_test_template_environment(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn TestTemplateEnvironmentDispatch>>;
     fn read_test_template_environment_templates(
         &self,
-    ) -> js_abi::JsMap<
-        String,
-        crate::node_modules::tsumo::engine::src::template::template_2::Template,
-    >;
+    ) -> js_abi::JsMap<String, tsumo_engine::testing::Template>;
     fn write_test_template_environment_templates(
         &self,
-        value: js_abi::JsMap<
-            String,
-            crate::node_modules::tsumo::engine::src::template::template_2::Template,
-        >,
+        value: js_abi::JsMap<String, tsumo_engine::testing::Template>,
     );
     fn read_test_template_environment_resource_manager(
         &self,
-    ) -> Option<crate::node_modules::tsumo::engine::src::resources::manager::ResourceManager>;
+    ) -> Option<tsumo_engine::testing::ResourceManager>;
     fn write_test_template_environment_resource_manager(
         &self,
-        value: Option<
-            crate::node_modules::tsumo::engine::src::resources::manager::ResourceManager,
-        >,
+        value: Option<tsumo_engine::testing::ResourceManager>,
     );
-    fn read_test_template_environment_i18n_store(
-        &self,
-    ) -> Option<crate::node_modules::tsumo::engine::src::i18n::I18nStore>;
+    fn read_test_template_environment_i18n_store(&self)
+        -> Option<tsumo_engine::testing::I18nStore>;
     fn write_test_template_environment_i18n_store(
         &self,
-        value: Option<crate::node_modules::tsumo::engine::src::i18n::I18nStore>,
+        value: Option<tsumo_engine::testing::I18nStore>,
     );
     fn dispatch_test_template_environment_get_environment_variable(
         self: std::rc::Rc<Self>,
@@ -53,199 +44,135 @@ pub(crate) trait TestTemplateEnvironmentDispatch:
     fn dispatch_test_template_environment_source_file_exists(
         self: std::rc::Rc<Self>,
         path: String,
-    ) -> rt::TsonicResult<bool>;
+    ) -> Result<bool, tsumo_engine::program::TsonicError>;
     fn exact_test_template_environment_source_file_exists(
         self: std::rc::Rc<Self>,
         path: String,
-    ) -> rt::TsonicResult<bool>;
+    ) -> Result<bool, tsumo_engine::program::TsonicError>;
     fn dispatch_test_template_environment_get_template(
         self: std::rc::Rc<Self>,
         path: String,
-    ) -> rt::TsonicResult<
-        Option<crate::node_modules::tsumo::engine::src::template::template_2::Template>,
-    >;
+    ) -> Result<Option<tsumo_engine::testing::Template>, tsumo_engine::program::TsonicError>;
     fn exact_test_template_environment_get_template(
         self: std::rc::Rc<Self>,
         path: String,
-    ) -> rt::TsonicResult<
-        Option<crate::node_modules::tsumo::engine::src::template::template_2::Template>,
-    >;
+    ) -> Result<Option<tsumo_engine::testing::Template>, tsumo_engine::program::TsonicError>;
     fn dispatch_test_template_environment_get_template_source_relative_path(
         self: std::rc::Rc<Self>,
         source_path: String,
-    ) -> rt::TsonicResult<Option<String>>;
+    ) -> Result<Option<String>, tsumo_engine::program::TsonicError>;
     fn exact_test_template_environment_get_template_source_relative_path(
         self: std::rc::Rc<Self>,
         source_path: String,
-    ) -> rt::TsonicResult<Option<String>>;
+    ) -> Result<Option<String>, tsumo_engine::program::TsonicError>;
     fn dispatch_test_template_environment_get_resource_manager(
         self: std::rc::Rc<Self>,
-    ) -> Option<crate::node_modules::tsumo::engine::src::resources::manager::ResourceManager>;
+    ) -> Option<tsumo_engine::testing::ResourceManager>;
     fn exact_test_template_environment_get_resource_manager(
         self: std::rc::Rc<Self>,
-    ) -> Option<crate::node_modules::tsumo::engine::src::resources::manager::ResourceManager>;
+    ) -> Option<tsumo_engine::testing::ResourceManager>;
     fn dispatch_test_template_environment_get_i18n(
         self: std::rc::Rc<Self>,
         lang: String,
         key: String,
         count: Option<i32>,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, tsumo_engine::program::TsonicError>;
     fn exact_test_template_environment_get_i18n(
         self: std::rc::Rc<Self>,
         lang: String,
         key: String,
         count: Option<i32>,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, tsumo_engine::program::TsonicError>;
     fn dispatch_test_template_environment_render_text_template_source(
         self: std::rc::Rc<Self>,
         source: String,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError>;
     fn exact_test_template_environment_render_text_template_source(
         self: std::rc::Rc<Self>,
         source: String,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError>;
     fn dispatch_test_template_environment_render_page_view(
         self: std::rc::Rc<Self>,
-        page: crate::node_modules::tsumo::engine::src::models::page_context::PageContext,
+        page: tsumo_engine::testing::PageContext,
         view: String,
-        _state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<Option<String>>;
+        _state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<Option<String>, tsumo_engine::program::TsonicError>;
     fn exact_test_template_environment_render_page_view(
         self: std::rc::Rc<Self>,
-        page: crate::node_modules::tsumo::engine::src::models::page_context::PageContext,
+        page: tsumo_engine::testing::PageContext,
         view: String,
-        _state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<Option<String>>;
+        _state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<Option<String>, tsumo_engine::program::TsonicError>;
     fn dispatch_test_template_environment_render_template(
         self: std::rc::Rc<Self>,
-        template: crate::node_modules::tsumo::engine::src::template::template_2::Template,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+        template: tsumo_engine::testing::Template,
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError>;
     fn exact_test_template_environment_render_template(
         self: std::rc::Rc<Self>,
-        template: crate::node_modules::tsumo::engine::src::template::template_2::Template,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+        template: tsumo_engine::testing::Template,
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError>;
     fn dispatch_test_template_environment_render_text_template(
         self: std::rc::Rc<Self>,
-        template: crate::node_modules::tsumo::engine::src::template::template_2::Template,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+        template: tsumo_engine::testing::Template,
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError>;
     fn exact_test_template_environment_render_text_template(
         self: std::rc::Rc<Self>,
-        template: crate::node_modules::tsumo::engine::src::template::template_2::Template,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+        template: tsumo_engine::testing::Template,
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError>;
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     fn dispatch_test_template_environment_render_template_definition(
         self: std::rc::Rc<Self>,
-        nodes: js_abi::JsArray<
-            crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-        >,
-        definitions: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
+        nodes: js_abi::JsArray<tsumo_engine::testing::TemplateNode>,
+        definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
         source_path: Option<String>,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError>;
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     fn exact_test_template_environment_render_template_definition(
         self: std::rc::Rc<Self>,
-        nodes: js_abi::JsArray<
-            crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-        >,
-        definitions: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
+        nodes: js_abi::JsArray<tsumo_engine::testing::TemplateNode>,
+        definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
         source_path: Option<String>,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError>;
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) struct TestTemplateEnvironmentState {
-    pub(crate) base:
-        crate::node_modules::tsumo::engine::src::template::environment::TemplateEnvironmentState,
-    pub(crate) templates:
-        js_abi::JsMap<
-            String,
-            crate::node_modules::tsumo::engine::src::template::template_2::Template,
-        >,
-    pub(crate) resource_manager:
-        Option<crate::node_modules::tsumo::engine::src::resources::manager::ResourceManager>,
-    pub(crate) i18n_store: Option<crate::node_modules::tsumo::engine::src::i18n::I18nStore>,
+    pub(crate) base: tsumo_engine::template::environment::TemplateEnvironmentState,
+    pub(crate) templates: js_abi::JsMap<String, tsumo_engine::testing::Template>,
+    pub(crate) resource_manager: Option<tsumo_engine::testing::ResourceManager>,
+    pub(crate) i18n_store: Option<tsumo_engine::testing::I18nStore>,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
@@ -253,6 +180,12 @@ pub(crate) struct TestTemplateEnvironmentState {
 pub struct TestTemplateEnvironment {
     pub(crate) identity: rt::ObjectIdentity,
     pub(crate) dispatch: std::rc::Rc<dyn TestTemplateEnvironmentDispatch>,
+}
+
+impl std::fmt::Debug for TestTemplateEnvironment {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("TestTemplateEnvironment")
+    }
 }
 
 impl PartialEq for TestTemplateEnvironment {
@@ -271,24 +204,18 @@ pub(crate) struct TestTemplateEnvironmentRoot {
 
 impl TestTemplateEnvironment {
     pub(crate) fn initialize_state(
-        resource_manager: Option<
-            crate::node_modules::tsumo::engine::src::resources::manager::ResourceManager,
-        >,
+        resource_manager: Option<tsumo_engine::testing::ResourceManager>,
     ) -> TestTemplateEnvironmentState {
-        let base_state =
-            crate::node_modules::tsumo::engine::src::template::environment::TemplateEnvironment::initialize_state(
-                Some(js_abi::JsDate::from_millis(1704067200000.0)),
-                None,
-            );
-        let field_templates: js_abi::JsMap<
-            String,
-            crate::node_modules::tsumo::engine::src::template::template_2::Template,
-        > = js_abi::JsMap::new();
-        let field_resource_manager: Option<
-            crate::node_modules::tsumo::engine::src::resources::manager::ResourceManager,
-        > = resource_manager.clone();
-        let field_i18n_store: Option<crate::node_modules::tsumo::engine::src::i18n::I18nStore> =
-            Option::<crate::node_modules::tsumo::engine::src::i18n::I18nStore>::None;
+        let base_state = tsumo_engine::testing::TemplateEnvironment::initialize_state(
+            Some(js_abi::JsDate::from_millis(1704067200000.0)),
+            None,
+        );
+        let field_templates: js_abi::JsMap<String, tsumo_engine::testing::Template> =
+            js_abi::JsMap::new();
+        let field_resource_manager: Option<tsumo_engine::testing::ResourceManager> =
+            resource_manager;
+        let field_i18n_store: Option<tsumo_engine::testing::I18nStore> =
+            Option::<tsumo_engine::testing::I18nStore>::None;
         TestTemplateEnvironmentState {
             base: base_state,
             templates: field_templates,
@@ -298,9 +225,7 @@ impl TestTemplateEnvironment {
     }
 
     pub fn new(
-        resource_manager: Option<
-            crate::node_modules::tsumo::engine::src::resources::manager::ResourceManager,
-        >,
+        resource_manager: Option<tsumo_engine::testing::ResourceManager>,
     ) -> TestTemplateEnvironment {
         let state = TestTemplateEnvironment::initialize_state(resource_manager);
         let identity = rt::ObjectIdentity::new();
@@ -318,12 +243,11 @@ impl TestTemplateEnvironment {
 impl TestTemplateEnvironmentRoot {
     fn exact_template_environment_finalize_deferred_templates(
         self: std::rc::Rc<Self>,
-    ) -> rt::TsonicResult<js_abi::JsMap<String, String>> {
-        let project_this =
-            crate::node_modules::tsumo::engine::src::template::environment::TemplateEnvironment {
-                identity: self.identity.clone(),
-                dispatch: self.clone(),
-            };
+    ) -> Result<js_abi::JsMap<String, String>, tsumo_engine::program::TsonicError> {
+        let project_this = tsumo_engine::testing::TemplateEnvironment {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
         if {
             let dispatch_receiver = &project_this;
             dispatch_receiver
@@ -331,7 +255,7 @@ impl TestTemplateEnvironmentRoot {
                 .read_template_environment_deferred_phase()
         } == "finalizing"
         {
-            return Err(rt::TsonicError::from(crate::node_modules::tsumo::engine::src::diagnostics::create_tsumo_error(
+            return Err(tsumo_engine::program::TsonicError::TsumoError(tsumo_engine::create_tsumo_error(
                 String::from("TSUMO_TEMPLATE_DEFER_LIFECYCLE_INVALID"),
                 String::from("Deferred-template finalization is already running"),
                 None,
@@ -361,7 +285,7 @@ impl TestTemplateEnvironmentRoot {
                 while index
                     < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_4 = &project_this; dispatch_receiver_4.dispatch.read_template_environment_deferred_requests() }.len())? as f64)
                 {
-                    let request: crate::node_modules::tsumo::engine::src::template::environment::DeferredTemplateRequest =
+                    let request: tsumo_engine::template::environment::DeferredTemplateRequest =
                         match {
                             let dispatch_receiver_5 = &project_this;
                             dispatch_receiver_5
@@ -413,7 +337,7 @@ impl TestTemplateEnvironmentRoot {
             while index
                 < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_8 = &project_this; dispatch_receiver_8.dispatch.read_template_environment_deferred_placements() }.len())? as f64)
             {
-                let placement: crate::node_modules::tsumo::engine::src::template::environment::DeferredTemplatePlacement =
+                let placement: tsumo_engine::template::environment::DeferredTemplatePlacement =
                     match {
                         let dispatch_receiver_9 = &project_this;
                         dispatch_receiver_9
@@ -432,7 +356,7 @@ impl TestTemplateEnvironmentRoot {
                     .state
                     .with(|state| state.result.clone());
                 if result.is_none() {
-                    return Err(rt::TsonicError::from(crate::node_modules::tsumo::engine::src::diagnostics::create_tsumo_error(
+                    return Err(tsumo_engine::program::TsonicError::TsumoError(tsumo_engine::create_tsumo_error(
                         String::from("TSUMO_TEMPLATE_DEFER_LIFECYCLE_INVALID"),
                         String::from("A deferred template has no finalized output"),
                         None,
@@ -440,16 +364,20 @@ impl TestTemplateEnvironmentRoot {
                         None,
                     )));
                 }
-                results.set(placement.state.with(|state| state.token.clone()), match result
-                    .as_ref()
                 {
-                    Some(flow_value_3) => flow_value_3.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                });
+                    let operation_input_0 = results.clone();
+                    operation_input_0.set_discard(
+                        placement.state.with(|state| state.token.clone()),
+                        match result.as_ref() {
+                            Some(flow_value_3) => flow_value_3.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        },
+                    )
+                };
                 index += 1.0;
             }
         }
-        Ok(results.clone())
+        Ok(results)
     }
 
     fn exact_template_environment_get_environment_variable(
@@ -461,12 +389,11 @@ impl TestTemplateEnvironmentRoot {
 
     fn exact_template_environment_get_global_store(
         self: std::rc::Rc<Self>,
-    ) -> crate::node_modules::tsumo::engine::src::template::values::scratch::ScratchStore {
-        let project_this =
-            crate::node_modules::tsumo::engine::src::template::environment::TemplateEnvironment {
-                identity: self.identity.clone(),
-                dispatch: self.clone(),
-            };
+    ) -> tsumo_engine::template::values::scratch::ScratchStore {
+        let project_this = tsumo_engine::testing::TemplateEnvironment {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
         {
             let dispatch_receiver = &project_this;
             dispatch_receiver
@@ -480,42 +407,37 @@ impl TestTemplateEnvironmentRoot {
         _lang: String,
         _key: String,
         _count: Option<i32>,
-    ) -> rt::TsonicResult<String> {
-        Ok(_key.clone())
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
+        Ok(_key)
     }
 
     fn exact_template_environment_get_render_hook_template(
         self: std::rc::Rc<Self>,
         _hook_name: String,
-    ) -> rt::TsonicResult<
-        Option<crate::node_modules::tsumo::engine::src::template::template_2::Template>,
-    > {
-        Ok(Option::<crate::node_modules::tsumo::engine::src::template::template_2::Template>::None)
+    ) -> Result<Option<tsumo_engine::testing::Template>, tsumo_engine::program::TsonicError> {
+        Ok(Option::<tsumo_engine::testing::Template>::None)
     }
 
     fn exact_template_environment_get_resource_manager(
         self: std::rc::Rc<Self>,
-    ) -> Option<crate::node_modules::tsumo::engine::src::resources::manager::ResourceManager> {
-        Option::<crate::node_modules::tsumo::engine::src::resources::manager::ResourceManager>::None
+    ) -> Option<tsumo_engine::testing::ResourceManager> {
+        Option::<tsumo_engine::testing::ResourceManager>::None
     }
 
     fn exact_template_environment_get_shortcode_template(
         self: std::rc::Rc<Self>,
         _name: String,
-    ) -> rt::TsonicResult<
-        Option<crate::node_modules::tsumo::engine::src::template::template_2::Template>,
-    > {
-        Ok(Option::<crate::node_modules::tsumo::engine::src::template::template_2::Template>::None)
+    ) -> Result<Option<tsumo_engine::testing::Template>, tsumo_engine::program::TsonicError> {
+        Ok(Option::<tsumo_engine::testing::Template>::None)
     }
 
     fn exact_template_environment_get_site_data(
         self: std::rc::Rc<Self>,
-    ) -> crate::node_modules::tsumo::engine::src::template::values::dict::DictValue {
-        let project_this =
-            crate::node_modules::tsumo::engine::src::template::environment::TemplateEnvironment {
-                identity: self.identity.clone(),
-                dispatch: self.clone(),
-            };
+    ) -> tsumo_engine::testing::DictValue {
+        let project_this = tsumo_engine::testing::TemplateEnvironment {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
         {
             let dispatch_receiver = &project_this;
             dispatch_receiver
@@ -527,10 +449,8 @@ impl TestTemplateEnvironmentRoot {
     fn exact_template_environment_get_template(
         self: std::rc::Rc<Self>,
         _rel_path: String,
-    ) -> rt::TsonicResult<
-        Option<crate::node_modules::tsumo::engine::src::template::template_2::Template>,
-    > {
-        Err(rt::TsonicError::from(crate::node_modules::tsumo::engine::src::diagnostics::create_tsumo_error(
+    ) -> Result<Option<tsumo_engine::testing::Template>, tsumo_engine::program::TsonicError> {
+        Err(tsumo_engine::program::TsonicError::TsumoError(tsumo_engine::create_tsumo_error(
             String::from("TSUMO_TEMPLATE_ENVIRONMENT_OPERATION_UNAVAILABLE"),
             String::from("TemplateEnvironment.getTemplate is not implemented"),
             None,
@@ -542,40 +462,27 @@ impl TestTemplateEnvironmentRoot {
     fn exact_template_environment_get_template_source_relative_path(
         self: std::rc::Rc<Self>,
         _source_path: String,
-    ) -> rt::TsonicResult<Option<String>> {
+    ) -> Result<Option<String>, tsumo_engine::program::TsonicError> {
         Ok(Option::<String>::None)
     }
 
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     fn exact_template_environment_register_deferred_template(
         self: std::rc::Rc<Self>,
-        value: crate::node_modules::tsumo::engine::src::template::values::deferred::DeferredTemplateValue,
-        body: js_abi::JsArray<
-            crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-        >,
-        definitions: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
+        value: tsumo_engine::template::values::deferred::DeferredTemplateValue,
+        body: js_abi::JsArray<tsumo_engine::testing::TemplateNode>,
+        definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
         source_path: Option<String>,
         source_text: String,
         source_segment_index: i32,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: crate::node_modules::tsumo::engine::src::template::scope::RenderState,
-    ) -> rt::TsonicResult<String> {
-        let project_this =
-            crate::node_modules::tsumo::engine::src::template::environment::TemplateEnvironment {
-                identity: self.identity.clone(),
-                dispatch: self.clone(),
-            };
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: tsumo_engine::testing::RenderState,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
+        let project_this = tsumo_engine::testing::TemplateEnvironment {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
         if {
             let dispatch_receiver = &project_this;
             dispatch_receiver
@@ -583,7 +490,7 @@ impl TestTemplateEnvironmentRoot {
                 .read_template_environment_deferred_phase()
         } != "collecting"
         {
-            return Err(rt::TsonicError::from(crate::node_modules::tsumo::engine::src::diagnostics::create_tsumo_error(
+            return Err(tsumo_engine::program::TsonicError::TsumoError(tsumo_engine::create_tsumo_error(
                 String::from("TSUMO_TEMPLATE_DEFER_LIFECYCLE_INVALID"),
                 String::from("templates.Defer cannot register work after deferred-template finalization begins"),
                 None,
@@ -591,10 +498,8 @@ impl TestTemplateEnvironmentRoot {
                 None,
             )));
         }
-        let mut request: Option<
-            crate::node_modules::tsumo::engine::src::template::environment::DeferredTemplateRequest,
-        > =
-            Option::<crate::node_modules::tsumo::engine::src::template::environment::DeferredTemplateRequest>::None;
+        let mut request: Option<tsumo_engine::template::environment::DeferredTemplateRequest> =
+            Option::<tsumo_engine::template::environment::DeferredTemplateRequest>::None;
         if {
             let dispatch_receiver_2 = &value;
             dispatch_receiver_2
@@ -608,7 +513,7 @@ impl TestTemplateEnvironmentRoot {
                 'loop_value: while index
                     < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_3 = &project_this; dispatch_receiver_3.dispatch.read_template_environment_deferred_requests() }.len())? as f64)
                 {
-                    let candidate: crate::node_modules::tsumo::engine::src::template::environment::DeferredTemplateRequest =
+                    let candidate: tsumo_engine::template::environment::DeferredTemplateRequest =
                         match {
                             let dispatch_receiver_4 = &project_this;
                             dispatch_receiver_4
@@ -621,18 +526,12 @@ impl TestTemplateEnvironmentRoot {
                             Some(flow_value) => flow_value.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         };
-                    if candidate.state.with(|state| state.key.clone()) == Some(match {
-    let dispatch_receiver_5 = &value;
-    dispatch_receiver_5
-        .dispatch
-        .read_deferred_template_value_key()
-}
-.as_ref()
-{
-    Some(flow_value_2) => flow_value_2.clone(),
-    None => unreachable!("checked flow selected a missing optional value"),
-})
-                        && candidate.state.with(|state| state.source_path.clone()) == source_path
+                    if candidate.state.with(|state| state.key.clone()) == {
+                        let dispatch_receiver_5 = &value;
+                        dispatch_receiver_5
+                            .dispatch
+                            .read_deferred_template_value_key()
+                    } && candidate.state.with(|state| state.source_path.clone()) == source_path
                         && candidate.state.with(|state| state.source_text.clone()) == source_text
                         && candidate.state.with(|state| state.source_segment_index)
                             == source_segment_index
@@ -645,28 +544,27 @@ impl TestTemplateEnvironmentRoot {
             }
         }
         if request.is_none() {
-            request =
-                Some(crate::node_modules::tsumo::engine::src::template::environment::DeferredTemplateRequest::new(
-                    value.clone(),
-                    body.clone(),
-                    definitions.clone(),
-                    source_path.clone(),
-                    source_text.clone(),
-                    source_segment_index,
-                    site.clone(),
-                    overrides.clone(),
-                    state.clone(),
-                ));
-            tsonic_rust_runtime::conversions::usize_to_i32({
+            request = Some(tsumo_engine::template::environment::DeferredTemplateRequest::new(
+                value.clone(),
+                body,
+                definitions,
+                source_path.clone(),
+                source_text.clone(),
+                source_segment_index,
+                site,
+                overrides,
+                state,
+            ));
+            {
                 let dispatch_receiver_6 = &project_this;
                 dispatch_receiver_6
                     .dispatch
                     .read_template_environment_deferred_requests()
             }
-            .push_many([match request.as_ref() {
-                    Some(flow_value_3) => flow_value_3.clone(),
+            .push_many_discard([match request.as_ref() {
+                    Some(flow_value_2) => flow_value_2.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
-                }]))?;
+                }]);
         }
         let ordinal: i32 = tsonic_rust_runtime::conversions::usize_to_i32(
             {
@@ -683,47 +581,42 @@ impl TestTemplateEnvironmentRoot {
             rt::source_string(&ordinal),
             String::from("\0"),
         );
-        tsonic_rust_runtime::conversions::usize_to_i32(
-            {
+        {
+            let operation_input_0 = {
                 let dispatch_receiver_8 = &project_this;
                 dispatch_receiver_8
                     .dispatch
                     .read_template_environment_deferred_placements()
-            }
-            .push_many([crate::node_modules::tsumo::engine::src::template::environment::DeferredTemplatePlacement::new(
-                    token.clone(),
-                    match request.as_ref() {
-                        Some(flow_value_4) => flow_value_4.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                )]),
-        )?;
-        Ok(token.clone())
+            };
+            operation_input_0.push_many_discard([tsumo_engine::template::environment::DeferredTemplatePlacement::new(
+                token.clone(),
+                match request.as_ref() {
+                    Some(flow_value_3) => flow_value_3.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                },
+            )])
+        };
+        Ok(token)
     }
 
     fn exact_template_environment_render_page_view(
         self: std::rc::Rc<Self>,
-        _page: crate::node_modules::tsumo::engine::src::models::page_context::PageContext,
+        _page: tsumo_engine::testing::PageContext,
         _view: String,
-        _state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<Option<String>> {
+        _state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<Option<String>, tsumo_engine::program::TsonicError> {
         Ok(Option::<String>::None)
     }
 
     fn exact_template_environment_render_template(
         self: std::rc::Rc<Self>,
-        _template: crate::node_modules::tsumo::engine::src::template::template_2::Template,
-        _context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        _site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        _overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        _state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
-        Err(rt::TsonicError::from(crate::node_modules::tsumo::engine::src::diagnostics::create_tsumo_error(
+        _template: tsumo_engine::testing::Template,
+        _context: tsumo_engine::testing::TemplateValue,
+        _site: tsumo_engine::testing::SiteContext,
+        _overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        _state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
+        Err(tsumo_engine::program::TsonicError::TsumoError(tsumo_engine::create_tsumo_error(
             String::from("TSUMO_TEMPLATE_ENVIRONMENT_OPERATION_UNAVAILABLE"),
             String::from("TemplateEnvironment.renderTemplate is not implemented"),
             None,
@@ -735,27 +628,15 @@ impl TestTemplateEnvironmentRoot {
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     fn exact_template_environment_render_template_definition(
         self: std::rc::Rc<Self>,
-        _nodes: js_abi::JsArray<
-            crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-        >,
-        _definitions: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
+        _nodes: js_abi::JsArray<tsumo_engine::testing::TemplateNode>,
+        _definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
         _source_path: Option<String>,
-        _context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        _site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        _overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        _state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
-        Err(rt::TsonicError::from(crate::node_modules::tsumo::engine::src::diagnostics::create_tsumo_error(
+        _context: tsumo_engine::testing::TemplateValue,
+        _site: tsumo_engine::testing::SiteContext,
+        _overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        _state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
+        Err(tsumo_engine::program::TsonicError::TsumoError(tsumo_engine::create_tsumo_error(
             String::from("TSUMO_TEMPLATE_ENVIRONMENT_OPERATION_UNAVAILABLE"),
             String::from("TemplateEnvironment.renderTemplateDefinition is not implemented"),
             None,
@@ -766,18 +647,13 @@ impl TestTemplateEnvironmentRoot {
 
     fn exact_template_environment_render_text_template(
         self: std::rc::Rc<Self>,
-        _template: crate::node_modules::tsumo::engine::src::template::template_2::Template,
-        _context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        _site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        _overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        _state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
-        Err(rt::TsonicError::from(crate::node_modules::tsumo::engine::src::diagnostics::create_tsumo_error(
+        _template: tsumo_engine::testing::Template,
+        _context: tsumo_engine::testing::TemplateValue,
+        _site: tsumo_engine::testing::SiteContext,
+        _overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        _state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
+        Err(tsumo_engine::program::TsonicError::TsumoError(tsumo_engine::create_tsumo_error(
             String::from("TSUMO_TEMPLATE_ENVIRONMENT_OPERATION_UNAVAILABLE"),
             String::from("TemplateEnvironment.renderTextTemplate is not implemented"),
             None,
@@ -789,17 +665,12 @@ impl TestTemplateEnvironmentRoot {
     fn exact_template_environment_render_text_template_source(
         self: std::rc::Rc<Self>,
         _source: String,
-        _context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        _site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        _overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        _state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
-        Err(rt::TsonicError::from(crate::node_modules::tsumo::engine::src::diagnostics::create_tsumo_error(
+        _context: tsumo_engine::testing::TemplateValue,
+        _site: tsumo_engine::testing::SiteContext,
+        _overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        _state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
+        Err(tsumo_engine::program::TsonicError::TsumoError(tsumo_engine::create_tsumo_error(
             String::from("TSUMO_TEMPLATE_ENVIRONMENT_OPERATION_UNAVAILABLE"),
             String::from("TemplateEnvironment.renderTextTemplateSource is not implemented"),
             None,
@@ -812,22 +683,15 @@ impl TestTemplateEnvironmentRoot {
         self: std::rc::Rc<Self>,
         name: String,
         caller_source_path: Option<String>,
-        definitions: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-    ) -> rt::TsonicResult<
-        Option<
-            crate::node_modules::tsumo::engine::src::template::environment::PartialTemplateResolution,
-        >,
+        definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+    ) -> Result<
+        Option<tsumo_engine::template::environment::PartialTemplateResolution>,
+        tsumo_engine::program::TsonicError,
     > {
-        let project_this =
-            crate::node_modules::tsumo::engine::src::template::environment::TemplateEnvironment {
-                identity: self.identity.clone(),
-                dispatch: self.clone(),
-            };
+        let project_this = tsumo_engine::testing::TemplateEnvironment {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
         let mut caller_relative_path: Option<String> = Option::<String>::None;
         if caller_source_path.is_some() {
             let selected_source_path: String = match caller_source_path.as_ref() {
@@ -840,13 +704,13 @@ impl TestTemplateEnvironmentRoot {
                     .dispatch
                     .clone()
                     .dispatch_template_environment_get_template_source_relative_path(
-                        selected_source_path.clone(),
+                        selected_source_path,
                     )
             }?;
         }
         let candidates: js_abi::JsArray<String> =
-            crate::node_modules::tsumo::engine::src::template::paths::partial_template_candidates(
-                name.clone(),
+            tsumo_engine::template::paths::partial_template_candidates(
+                name,
                 caller_relative_path.clone(),
             )?;
         {
@@ -857,14 +721,11 @@ impl TestTemplateEnvironmentRoot {
                     Some(flow_value_2) => flow_value_2.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-                let definition: Option<
-                    js_abi::JsArray<
-                        crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-                    >,
-                > = definitions.get(&candidate);
+                let definition: Option<js_abi::JsArray<tsumo_engine::testing::TemplateNode>> =
+                    definitions.get(&candidate);
                 if definition.is_some() {
                     return Ok(
-                        Some(crate::node_modules::tsumo::engine::src::template::environment::PartialTemplateResolution::new(
+                        Some(tsumo_engine::template::environment::PartialTemplateResolution::new(
                             String::from("definition"),
                             Some(match definition.as_ref() {
                                 Some(flow_value_3) => flow_value_3.clone(),
@@ -872,14 +733,12 @@ impl TestTemplateEnvironmentRoot {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
                             }),
-                            Option::<crate::node_modules::tsumo::engine::src::template::template_2::Template>::None,
+                            Option::<tsumo_engine::testing::Template>::None,
                             caller_source_path.clone(),
                         )),
                     );
                 }
-                let template: Option<
-                    crate::node_modules::tsumo::engine::src::template::template_2::Template,
-                > = {
+                let template: Option<tsumo_engine::testing::Template> = {
                     let dispatch_receiver_2 = project_this.clone();
                     dispatch_receiver_2
                         .dispatch
@@ -887,40 +746,45 @@ impl TestTemplateEnvironmentRoot {
                         .dispatch_template_environment_get_template(candidate.clone())
                 }?;
                 if template.is_some() {
-                    let selected: crate::node_modules::tsumo::engine::src::template::template_2::Template =
-                        (match template.as_ref() {
-    Some(flow_value_4) => flow_value_4.clone(),
-    None => unreachable!("checked flow selected a missing optional value"),
-}).with_inherited_definitions(definitions.clone())?;
+                    let selected: tsumo_engine::testing::Template = {
+                        let dispatch_receiver_3 = match template.as_ref() {
+                            Some(flow_value_4) => flow_value_4.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        };
+                        dispatch_receiver_3
+                            .dispatch
+                            .clone()
+                            .dispatch_template_with_inherited_definitions(definitions.clone())
+                    }?;
                     return Ok(
-                        Some(crate::node_modules::tsumo::engine::src::template::environment::PartialTemplateResolution::new(
+                        Some(tsumo_engine::template::environment::PartialTemplateResolution::new(
                             String::from("template"),
-                            Option::<js_abi::JsArray<crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode>>::None,
+                            Option::<js_abi::JsArray<tsumo_engine::testing::TemplateNode>>::None,
                             Some(selected.clone()),
-                            selected.state.with(|state| state.source_path.clone()),
+                            {
+                                let dispatch_receiver_4 = &selected;
+                                dispatch_receiver_4.dispatch.read_template_source_path()
+                            },
                         )),
                     );
                 }
                 index += 1.0;
             }
         }
-        Ok(
-            Option::<crate::node_modules::tsumo::engine::src::template::environment::PartialTemplateResolution>::None,
-        )
+        Ok(Option::<tsumo_engine::template::environment::PartialTemplateResolution>::None)
     }
 
     fn exact_template_environment_set_site_data(
         self: std::rc::Rc<Self>,
-        value: crate::node_modules::tsumo::engine::src::template::values::dict::DictValue,
+        value: tsumo_engine::testing::DictValue,
     ) {
-        let project_this =
-            crate::node_modules::tsumo::engine::src::template::environment::TemplateEnvironment {
-                identity: self.identity.clone(),
-                dispatch: self.clone(),
-            };
+        let project_this = tsumo_engine::testing::TemplateEnvironment {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
         {
             let receiver = &project_this;
-            let value_2 = value.clone();
+            let value_2 = value;
             {
                 let dispatch_receiver = receiver;
                 dispatch_receiver
@@ -933,7 +797,7 @@ impl TestTemplateEnvironmentRoot {
     fn exact_template_environment_source_file_exists(
         self: std::rc::Rc<Self>,
         _path: String,
-    ) -> rt::TsonicResult<bool> {
+    ) -> Result<bool, tsumo_engine::program::TsonicError> {
         Ok(false)
     }
 
@@ -953,7 +817,7 @@ impl TestTemplateEnvironmentRoot {
         lang: String,
         key: String,
         count: Option<i32>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         let project_this = TestTemplateEnvironment {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -966,7 +830,13 @@ impl TestTemplateEnvironmentRoot {
                     .read_test_template_environment_i18n_store()
             }
             .as_ref()
-            .map(|optional_receiver| optional_receiver.translate(&lang, key.clone(), count))
+            .map(|optional_receiver| {
+                    let dispatch_receiver_2 = optional_receiver;
+                    dispatch_receiver_2
+                        .dispatch
+                        .clone()
+                        .dispatch_i18n_store_translate(&lang, key.clone(), count)
+                })
             .transpose()?,
             std::convert::identity,
             || key.clone(),
@@ -975,7 +845,7 @@ impl TestTemplateEnvironmentRoot {
 
     fn exact_test_template_environment_get_resource_manager(
         self: std::rc::Rc<Self>,
-    ) -> Option<crate::node_modules::tsumo::engine::src::resources::manager::ResourceManager> {
+    ) -> Option<tsumo_engine::testing::ResourceManager> {
         let project_this = TestTemplateEnvironment {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -991,9 +861,7 @@ impl TestTemplateEnvironmentRoot {
     fn exact_test_template_environment_get_template(
         self: std::rc::Rc<Self>,
         path: String,
-    ) -> rt::TsonicResult<
-        Option<crate::node_modules::tsumo::engine::src::template::template_2::Template>,
-    > {
+    ) -> Result<Option<tsumo_engine::testing::Template>, tsumo_engine::program::TsonicError> {
         let project_this = TestTemplateEnvironment {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -1010,21 +878,24 @@ impl TestTemplateEnvironmentRoot {
     fn exact_test_template_environment_get_template_source_relative_path(
         self: std::rc::Rc<Self>,
         source_path: String,
-    ) -> rt::TsonicResult<Option<String>> {
-        Ok(Some(source_path.clone()))
+    ) -> Result<Option<String>, tsumo_engine::program::TsonicError> {
+        Ok(Some(source_path))
     }
 
     fn exact_test_template_environment_render_page_view(
         self: std::rc::Rc<Self>,
-        page: crate::node_modules::tsumo::engine::src::models::page_context::PageContext,
+        page: tsumo_engine::testing::PageContext,
         view: String,
-        _state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<Option<String>> {
+        _state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<Option<String>, tsumo_engine::program::TsonicError> {
         Ok(if view == "summary" {
             Some(format!(
                 "{}{}{}",
                 String::from("<summary>"),
-                rt::source_string(&page.state.with(|state| state.title.clone())),
+                {
+                    let dispatch_receiver = &page;
+                    dispatch_receiver.dispatch.read_page_context_title()
+                },
                 String::from("</summary>"),
             ))
         } else {
@@ -1034,77 +905,70 @@ impl TestTemplateEnvironmentRoot {
 
     fn exact_test_template_environment_render_template(
         self: std::rc::Rc<Self>,
-        template: crate::node_modules::tsumo::engine::src::template::template_2::Template,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+        template: tsumo_engine::testing::Template,
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         let project_this = TestTemplateEnvironment {
             identity: self.identity.clone(),
             dispatch: self.clone(),
         };
-        let output: crate::node_modules::tsumo::engine::src::utils::text_builder::TextBuilder =
-            crate::node_modules::tsumo::engine::src::utils::text_builder::TextBuilder::new();
-        let scope: crate::node_modules::tsumo::engine::src::template::scope::RenderScope =
-            crate::node_modules::tsumo::engine::src::template::scope::RenderScope::new(
-                context.clone(),
-                context.clone(),
-                site.clone(),
-                {
-                    let upcast_value = project_this.clone();
-                    crate::node_modules::tsumo::engine::src::template::environment::TemplateEnvironment {
-                        identity: upcast_value.identity.clone(),
-                        dispatch: upcast_value.dispatch.clone(),
-                    }
-                },
-                Option::<crate::node_modules::tsumo::engine::src::template::scope::RenderScope>::None,
-                state.clone(),
-                template.state.with(|state| state.source_path.clone()),
-            );
-        template.render_into(
-            output.clone(),
-            scope.clone(),
+        let output: tsumo_engine::testing::TextBuilder = tsumo_engine::testing::TextBuilder::new();
+        let scope: tsumo_engine::testing::RenderScope = tsumo_engine::testing::RenderScope::new(
+            context.clone(),
+            context.clone(),
+            site,
             {
-                let upcast_value_2 = project_this.clone();
-                crate::node_modules::tsumo::engine::src::template::environment::TemplateEnvironment {
-                    identity: upcast_value_2.identity.clone(),
-                    dispatch: upcast_value_2.dispatch.clone(),
+                let upcast_value = project_this.clone();
+                tsumo_engine::testing::TemplateEnvironment {
+                    identity: upcast_value.identity.clone(),
+                    dispatch: upcast_value.dispatch.clone(),
                 }
             },
-            overrides.clone(),
-        )?;
-        Ok(output.to_string())
+            Option::<tsumo_engine::testing::RenderScope>::None,
+            state,
+            {
+                let dispatch_receiver = &template;
+                dispatch_receiver.dispatch.read_template_source_path()
+            },
+        );
+        {
+            let dispatch_receiver_2 = template.clone();
+            dispatch_receiver_2.dispatch.clone().dispatch_template_render_into(
+                output.clone(),
+                scope,
+                {
+                    let upcast_value_2 = project_this.clone();
+                    tsumo_engine::testing::TemplateEnvironment {
+                        identity: upcast_value_2.identity.clone(),
+                        dispatch: upcast_value_2.dispatch.clone(),
+                    }
+                },
+                overrides,
+            )
+        }?;
+        Ok({
+            let dispatch_receiver_3 = output.clone();
+            dispatch_receiver_3
+                .dispatch
+                .clone()
+                .dispatch_text_builder_to_string()
+        })
     }
 
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     fn exact_test_template_environment_render_template_definition(
         self: std::rc::Rc<Self>,
-        nodes: js_abi::JsArray<
-            crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-        >,
-        definitions: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
+        nodes: js_abi::JsArray<tsumo_engine::testing::TemplateNode>,
+        definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
         source_path: Option<String>,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         let project_this = TestTemplateEnvironment {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -1115,82 +979,78 @@ impl TestTemplateEnvironmentRoot {
                 .dispatch
                 .clone()
                 .dispatch_test_template_environment_render_template(
-                    crate::node_modules::tsumo::engine::src::template::template_2::Template::new(
-                        nodes.clone(),
-                        definitions.clone(),
-                        source_path.clone(),
-                    ),
-                    context.clone(),
-                    site.clone(),
-                    overrides.clone(),
-                    state.clone(),
+                    tsumo_engine::testing::Template::new(nodes, definitions, source_path),
+                    context,
+                    site,
+                    overrides,
+                    state,
                 )
         }
     }
 
     fn exact_test_template_environment_render_text_template(
         self: std::rc::Rc<Self>,
-        template: crate::node_modules::tsumo::engine::src::template::template_2::Template,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+        template: tsumo_engine::testing::Template,
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         let project_this = TestTemplateEnvironment {
             identity: self.identity.clone(),
             dispatch: self.clone(),
         };
-        let output: crate::node_modules::tsumo::engine::src::utils::text_builder::TextBuilder =
-            crate::node_modules::tsumo::engine::src::utils::text_builder::TextBuilder::new();
-        let scope: crate::node_modules::tsumo::engine::src::template::scope::RenderScope =
-            crate::node_modules::tsumo::engine::src::template::scope::RenderScope::new(
-                context.clone(),
-                context.clone(),
-                site.clone(),
-                {
-                    let upcast_value = project_this.clone();
-                    crate::node_modules::tsumo::engine::src::template::environment::TemplateEnvironment {
-                        identity: upcast_value.identity.clone(),
-                        dispatch: upcast_value.dispatch.clone(),
-                    }
-                },
-                Option::<crate::node_modules::tsumo::engine::src::template::scope::RenderScope>::None,
-                state.clone(),
-                template.state.with(|state| state.source_path.clone()),
-            );
-        template.render_text_into(
-            output.clone(),
-            scope.clone(),
+        let output: tsumo_engine::testing::TextBuilder = tsumo_engine::testing::TextBuilder::new();
+        let scope: tsumo_engine::testing::RenderScope = tsumo_engine::testing::RenderScope::new(
+            context.clone(),
+            context.clone(),
+            site,
             {
-                let upcast_value_2 = project_this.clone();
-                crate::node_modules::tsumo::engine::src::template::environment::TemplateEnvironment {
-                    identity: upcast_value_2.identity.clone(),
-                    dispatch: upcast_value_2.dispatch.clone(),
+                let upcast_value = project_this.clone();
+                tsumo_engine::testing::TemplateEnvironment {
+                    identity: upcast_value.identity.clone(),
+                    dispatch: upcast_value.dispatch.clone(),
                 }
             },
-            overrides.clone(),
-        )?;
-        Ok(output.to_string())
+            Option::<tsumo_engine::testing::RenderScope>::None,
+            state,
+            {
+                let dispatch_receiver = &template;
+                dispatch_receiver.dispatch.read_template_source_path()
+            },
+        );
+        {
+            let dispatch_receiver_2 = template.clone();
+            dispatch_receiver_2.dispatch.clone().dispatch_template_render_text_into(
+                output.clone(),
+                scope,
+                {
+                    let upcast_value_2 = project_this.clone();
+                    tsumo_engine::testing::TemplateEnvironment {
+                        identity: upcast_value_2.identity.clone(),
+                        dispatch: upcast_value_2.dispatch.clone(),
+                    }
+                },
+                overrides,
+            )
+        }?;
+        Ok({
+            let dispatch_receiver_3 = output.clone();
+            dispatch_receiver_3
+                .dispatch
+                .clone()
+                .dispatch_text_builder_to_string()
+        })
     }
 
     fn exact_test_template_environment_render_text_template_source(
         self: std::rc::Rc<Self>,
         source: String,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         let project_this = TestTemplateEnvironment {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -1201,13 +1061,11 @@ impl TestTemplateEnvironmentRoot {
                 .dispatch
                 .clone()
                 .dispatch_test_template_environment_render_text_template(
-                    crate::node_modules::tsumo::engine::src::template::parser::parse_template::PARSE_TEMPLATE
-                        .with(|module_binding| module_binding.load())
-                        .call((source.clone(), None))?,
-                    context.clone(),
-                    site.clone(),
-                    overrides.clone(),
-                    state.clone(),
+                    tsumo_engine::testing::parse_template(source, None)?,
+                    context,
+                    site,
+                    overrides,
+                    state,
                 )
         }
     }
@@ -1215,43 +1073,29 @@ impl TestTemplateEnvironmentRoot {
     fn exact_test_template_environment_source_file_exists(
         self: std::rc::Rc<Self>,
         path: String,
-    ) -> rt::TsonicResult<bool> {
+    ) -> Result<bool, tsumo_engine::program::TsonicError> {
         Ok(path == "static/existing.css")
     }
 }
 
-impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
+impl tsumo_engine::template::environment::TemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
     fn downcast_template_environment_to_build_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<
-        std::rc::Rc<dyn crate::node_modules::tsumo::engine::src::env::BuildEnvironmentDispatch>,
-    > {
+    ) -> Option<std::rc::Rc<dyn tsumo_engine::env::BuildEnvironmentDispatch>> {
         None
     }
 
     fn downcast_template_environment_to_layout_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<
-        std::rc::Rc<
-            dyn crate::node_modules::tsumo::engine::src::layouts::LayoutEnvironmentDispatch,
-        >,
-    > {
+    ) -> Option<std::rc::Rc<dyn tsumo_engine::layouts::LayoutEnvironmentDispatch>> {
         None
     }
 
     fn downcast_template_environment_to_template_environment(
         self: std::rc::Rc<Self>,
     ) -> Option<
-        std::rc::Rc<
-            dyn crate::node_modules::tsumo::engine::src::template::environment::TemplateEnvironmentDispatch,
-        >,
+        std::rc::Rc<dyn tsumo_engine::template::environment::TemplateEnvironmentDispatch>,
     > {
-        Some(self)
-    }
-
-    fn downcast_template_environment_to_test_template_environment(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TestTemplateEnvironmentDispatch>> {
         Some(self)
     }
 
@@ -1260,8 +1104,7 @@ impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnv
     }
 
     fn write_template_environment_is_production(&self, value: bool) {
-        self
-            .state
+        self.state
             .with_mut(|state| state.base.is_production = value);
     }
 
@@ -1275,43 +1118,31 @@ impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnv
 
     fn read_template_environment_deferred_requests(
         &self,
-    ) -> js_abi::JsArray<
-        crate::node_modules::tsumo::engine::src::template::environment::DeferredTemplateRequest,
-    > {
-        self
-            .state
+    ) -> js_abi::JsArray<tsumo_engine::template::environment::DeferredTemplateRequest> {
+        self.state
             .with(|state| state.base.deferred_requests.clone())
     }
 
     fn write_template_environment_deferred_requests(
         &self,
-        value: js_abi::JsArray<
-            crate::node_modules::tsumo::engine::src::template::environment::DeferredTemplateRequest,
-        >,
+        value: js_abi::JsArray<tsumo_engine::template::environment::DeferredTemplateRequest>,
     ) {
-        self
-            .state
+        self.state
             .with_mut(|state| state.base.deferred_requests = value);
     }
 
     fn read_template_environment_deferred_placements(
         &self,
-    ) -> js_abi::JsArray<
-        crate::node_modules::tsumo::engine::src::template::environment::DeferredTemplatePlacement,
-    > {
-        self
-            .state
+    ) -> js_abi::JsArray<tsumo_engine::template::environment::DeferredTemplatePlacement> {
+        self.state
             .with(|state| state.base.deferred_placements.clone())
     }
 
     fn write_template_environment_deferred_placements(
         &self,
-        value: js_abi::JsArray<
-            crate::node_modules::tsumo::engine::src::template::environment::DeferredTemplatePlacement,
-        >,
+        value: js_abi::JsArray<tsumo_engine::template::environment::DeferredTemplatePlacement>,
     ) {
-        self
-            .state
+        self.state
             .with_mut(|state| state.base.deferred_placements = value);
     }
 
@@ -1320,61 +1151,43 @@ impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnv
     }
 
     fn write_template_environment_deferred_phase(&self, value: String) {
-        self
-            .state
+        self.state
             .with_mut(|state| state.base.deferred_phase = value);
     }
 
-    fn read_template_environment_site_data(
-        &self,
-    ) -> crate::node_modules::tsumo::engine::src::template::values::dict::DictValue {
+    fn read_template_environment_site_data(&self) -> tsumo_engine::testing::DictValue {
         self.state.with(|state| state.base.site_data.clone())
     }
 
-    fn write_template_environment_site_data(
-        &self,
-        value: crate::node_modules::tsumo::engine::src::template::values::dict::DictValue,
-    ) {
+    fn write_template_environment_site_data(&self, value: tsumo_engine::testing::DictValue) {
         self.state.with_mut(|state| state.base.site_data = value);
     }
 
     fn read_template_environment_global_store(
         &self,
-    ) -> crate::node_modules::tsumo::engine::src::template::values::scratch::ScratchStore {
+    ) -> tsumo_engine::template::values::scratch::ScratchStore {
         self.state.with(|state| state.base.global_store.clone())
     }
 
     fn write_template_environment_global_store(
         &self,
-        value: crate::node_modules::tsumo::engine::src::template::values::scratch::ScratchStore,
+        value: tsumo_engine::template::values::scratch::ScratchStore,
     ) {
         self.state.with_mut(|state| state.base.global_store = value);
     }
 
     fn dispatch_template_environment_register_deferred_template(
         self: std::rc::Rc<Self>,
-        value: crate::node_modules::tsumo::engine::src::template::values::deferred::DeferredTemplateValue,
-        body: js_abi::JsArray<
-            crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-        >,
-        definitions: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
+        value: tsumo_engine::template::values::deferred::DeferredTemplateValue,
+        body: js_abi::JsArray<tsumo_engine::testing::TemplateNode>,
+        definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
         source_path: Option<String>,
         source_text: String,
         source_segment_index: i32,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: crate::node_modules::tsumo::engine::src::template::scope::RenderState,
-    ) -> rt::TsonicResult<String> {
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: tsumo_engine::testing::RenderState,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_template_environment_register_deferred_template(
             self,
             value,
@@ -1391,28 +1204,16 @@ impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnv
 
     fn exact_template_environment_register_deferred_template(
         self: std::rc::Rc<Self>,
-        value: crate::node_modules::tsumo::engine::src::template::values::deferred::DeferredTemplateValue,
-        body: js_abi::JsArray<
-            crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-        >,
-        definitions: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
+        value: tsumo_engine::template::values::deferred::DeferredTemplateValue,
+        body: js_abi::JsArray<tsumo_engine::testing::TemplateNode>,
+        definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
         source_path: Option<String>,
         source_text: String,
         source_segment_index: i32,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: crate::node_modules::tsumo::engine::src::template::scope::RenderState,
-    ) -> rt::TsonicResult<String> {
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: tsumo_engine::testing::RenderState,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_template_environment_register_deferred_template(
             self,
             value,
@@ -1429,13 +1230,13 @@ impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnv
 
     fn dispatch_template_environment_finalize_deferred_templates(
         self: std::rc::Rc<Self>,
-    ) -> rt::TsonicResult<js_abi::JsMap<String, String>> {
+    ) -> Result<js_abi::JsMap<String, String>, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_template_environment_finalize_deferred_templates(self)
     }
 
     fn exact_template_environment_finalize_deferred_templates(
         self: std::rc::Rc<Self>,
-    ) -> rt::TsonicResult<js_abi::JsMap<String, String>> {
+    ) -> Result<js_abi::JsMap<String, String>, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_template_environment_finalize_deferred_templates(self)
     }
 
@@ -1461,78 +1262,74 @@ impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnv
 
     fn dispatch_template_environment_set_site_data(
         self: std::rc::Rc<Self>,
-        value: crate::node_modules::tsumo::engine::src::template::values::dict::DictValue,
+        value: tsumo_engine::testing::DictValue,
     ) {
         TestTemplateEnvironmentRoot::exact_template_environment_set_site_data(self, value)
     }
 
     fn exact_template_environment_set_site_data(
         self: std::rc::Rc<Self>,
-        value: crate::node_modules::tsumo::engine::src::template::values::dict::DictValue,
+        value: tsumo_engine::testing::DictValue,
     ) {
         TestTemplateEnvironmentRoot::exact_template_environment_set_site_data(self, value)
     }
 
     fn dispatch_template_environment_get_site_data(
         self: std::rc::Rc<Self>,
-    ) -> crate::node_modules::tsumo::engine::src::template::values::dict::DictValue {
+    ) -> tsumo_engine::testing::DictValue {
         TestTemplateEnvironmentRoot::exact_template_environment_get_site_data(self)
     }
 
     fn exact_template_environment_get_site_data(
         self: std::rc::Rc<Self>,
-    ) -> crate::node_modules::tsumo::engine::src::template::values::dict::DictValue {
+    ) -> tsumo_engine::testing::DictValue {
         TestTemplateEnvironmentRoot::exact_template_environment_get_site_data(self)
     }
 
     fn dispatch_template_environment_get_global_store(
         self: std::rc::Rc<Self>,
-    ) -> crate::node_modules::tsumo::engine::src::template::values::scratch::ScratchStore {
+    ) -> tsumo_engine::template::values::scratch::ScratchStore {
         TestTemplateEnvironmentRoot::exact_template_environment_get_global_store(self)
     }
 
     fn exact_template_environment_get_global_store(
         self: std::rc::Rc<Self>,
-    ) -> crate::node_modules::tsumo::engine::src::template::values::scratch::ScratchStore {
+    ) -> tsumo_engine::template::values::scratch::ScratchStore {
         TestTemplateEnvironmentRoot::exact_template_environment_get_global_store(self)
     }
 
     fn dispatch_template_environment_source_file_exists(
         self: std::rc::Rc<Self>,
         path: String,
-    ) -> rt::TsonicResult<bool> {
+    ) -> Result<bool, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_source_file_exists(self, path)
     }
 
     fn exact_template_environment_source_file_exists(
         self: std::rc::Rc<Self>,
         _path: String,
-    ) -> rt::TsonicResult<bool> {
+    ) -> Result<bool, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_template_environment_source_file_exists(self, _path)
     }
 
     fn dispatch_template_environment_get_template(
         self: std::rc::Rc<Self>,
         path: String,
-    ) -> rt::TsonicResult<
-        Option<crate::node_modules::tsumo::engine::src::template::template_2::Template>,
-    > {
+    ) -> Result<Option<tsumo_engine::testing::Template>, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_get_template(self, path)
     }
 
     fn exact_template_environment_get_template(
         self: std::rc::Rc<Self>,
         _rel_path: String,
-    ) -> rt::TsonicResult<
-        Option<crate::node_modules::tsumo::engine::src::template::template_2::Template>,
-    > {
+    ) -> Result<Option<tsumo_engine::testing::Template>, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_template_environment_get_template(self, _rel_path)
     }
 
     fn dispatch_template_environment_get_template_source_relative_path(
         self: std::rc::Rc<Self>,
         source_path: String,
-    ) -> rt::TsonicResult<Option<String>> {
+    ) -> Result<Option<String>, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_get_template_source_relative_path(
             self,
             source_path,
@@ -1542,7 +1339,7 @@ impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnv
     fn exact_template_environment_get_template_source_relative_path(
         self: std::rc::Rc<Self>,
         _source_path: String,
-    ) -> rt::TsonicResult<Option<String>> {
+    ) -> Result<Option<String>, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_template_environment_get_template_source_relative_path(
             self,
             _source_path,
@@ -1553,16 +1350,10 @@ impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnv
         self: std::rc::Rc<Self>,
         name: String,
         caller_source_path: Option<String>,
-        definitions: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-    ) -> rt::TsonicResult<
-        Option<
-            crate::node_modules::tsumo::engine::src::template::environment::PartialTemplateResolution,
-        >,
+        definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+    ) -> Result<
+        Option<tsumo_engine::template::environment::PartialTemplateResolution>,
+        tsumo_engine::program::TsonicError,
     > {
         TestTemplateEnvironmentRoot::exact_template_environment_resolve_partial_template(
             self,
@@ -1576,16 +1367,10 @@ impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnv
         self: std::rc::Rc<Self>,
         name: String,
         caller_source_path: Option<String>,
-        definitions: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-    ) -> rt::TsonicResult<
-        Option<
-            crate::node_modules::tsumo::engine::src::template::environment::PartialTemplateResolution,
-        >,
+        definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+    ) -> Result<
+        Option<tsumo_engine::template::environment::PartialTemplateResolution>,
+        tsumo_engine::program::TsonicError,
     > {
         TestTemplateEnvironmentRoot::exact_template_environment_resolve_partial_template(
             self,
@@ -1597,10 +1382,10 @@ impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnv
 
     fn dispatch_template_environment_render_page_view(
         self: std::rc::Rc<Self>,
-        page: crate::node_modules::tsumo::engine::src::models::page_context::PageContext,
+        page: tsumo_engine::testing::PageContext,
         view: String,
-        _state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<Option<String>> {
+        _state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<Option<String>, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_render_page_view(
             self,
             page,
@@ -1611,10 +1396,10 @@ impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnv
 
     fn exact_template_environment_render_page_view(
         self: std::rc::Rc<Self>,
-        _page: crate::node_modules::tsumo::engine::src::models::page_context::PageContext,
+        _page: tsumo_engine::testing::PageContext,
         _view: String,
-        _state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<Option<String>> {
+        _state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<Option<String>, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_template_environment_render_page_view(
             self,
             _page,
@@ -1626,27 +1411,21 @@ impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnv
     fn dispatch_template_environment_get_shortcode_template(
         self: std::rc::Rc<Self>,
         _name: String,
-    ) -> rt::TsonicResult<
-        Option<crate::node_modules::tsumo::engine::src::template::template_2::Template>,
-    > {
+    ) -> Result<Option<tsumo_engine::testing::Template>, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_template_environment_get_shortcode_template(self, _name)
     }
 
     fn exact_template_environment_get_shortcode_template(
         self: std::rc::Rc<Self>,
         _name: String,
-    ) -> rt::TsonicResult<
-        Option<crate::node_modules::tsumo::engine::src::template::template_2::Template>,
-    > {
+    ) -> Result<Option<tsumo_engine::testing::Template>, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_template_environment_get_shortcode_template(self, _name)
     }
 
     fn dispatch_template_environment_get_render_hook_template(
         self: std::rc::Rc<Self>,
         _hook_name: String,
-    ) -> rt::TsonicResult<
-        Option<crate::node_modules::tsumo::engine::src::template::template_2::Template>,
-    > {
+    ) -> Result<Option<tsumo_engine::testing::Template>, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_template_environment_get_render_hook_template(
             self,
             _hook_name,
@@ -1656,9 +1435,7 @@ impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnv
     fn exact_template_environment_get_render_hook_template(
         self: std::rc::Rc<Self>,
         _hook_name: String,
-    ) -> rt::TsonicResult<
-        Option<crate::node_modules::tsumo::engine::src::template::template_2::Template>,
-    > {
+    ) -> Result<Option<tsumo_engine::testing::Template>, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_template_environment_get_render_hook_template(
             self,
             _hook_name,
@@ -1667,29 +1444,24 @@ impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnv
 
     fn dispatch_template_environment_get_resource_manager(
         self: std::rc::Rc<Self>,
-    ) -> Option<crate::node_modules::tsumo::engine::src::resources::manager::ResourceManager> {
+    ) -> Option<tsumo_engine::testing::ResourceManager> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_get_resource_manager(self)
     }
 
     fn exact_template_environment_get_resource_manager(
         self: std::rc::Rc<Self>,
-    ) -> Option<crate::node_modules::tsumo::engine::src::resources::manager::ResourceManager> {
+    ) -> Option<tsumo_engine::testing::ResourceManager> {
         TestTemplateEnvironmentRoot::exact_template_environment_get_resource_manager(self)
     }
 
     fn dispatch_template_environment_render_text_template_source(
         self: std::rc::Rc<Self>,
         source: String,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_render_text_template_source(
             self,
             source,
@@ -1703,16 +1475,11 @@ impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnv
     fn exact_template_environment_render_text_template_source(
         self: std::rc::Rc<Self>,
         _source: String,
-        _context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        _site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        _overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        _state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+        _context: tsumo_engine::testing::TemplateValue,
+        _site: tsumo_engine::testing::SiteContext,
+        _overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        _state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_template_environment_render_text_template_source(
             self,
             _source,
@@ -1725,17 +1492,12 @@ impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnv
 
     fn dispatch_template_environment_render_template(
         self: std::rc::Rc<Self>,
-        template: crate::node_modules::tsumo::engine::src::template::template_2::Template,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+        template: tsumo_engine::testing::Template,
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_render_template(
             self,
             template,
@@ -1748,17 +1510,12 @@ impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnv
 
     fn exact_template_environment_render_template(
         self: std::rc::Rc<Self>,
-        _template: crate::node_modules::tsumo::engine::src::template::template_2::Template,
-        _context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        _site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        _overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        _state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+        _template: tsumo_engine::testing::Template,
+        _context: tsumo_engine::testing::TemplateValue,
+        _site: tsumo_engine::testing::SiteContext,
+        _overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        _state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_template_environment_render_template(
             self,
             _template,
@@ -1771,17 +1528,12 @@ impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnv
 
     fn dispatch_template_environment_render_text_template(
         self: std::rc::Rc<Self>,
-        template: crate::node_modules::tsumo::engine::src::template::template_2::Template,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+        template: tsumo_engine::testing::Template,
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_render_text_template(
             self,
             template,
@@ -1794,17 +1546,12 @@ impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnv
 
     fn exact_template_environment_render_text_template(
         self: std::rc::Rc<Self>,
-        _template: crate::node_modules::tsumo::engine::src::template::template_2::Template,
-        _context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        _site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        _overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        _state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+        _template: tsumo_engine::testing::Template,
+        _context: tsumo_engine::testing::TemplateValue,
+        _site: tsumo_engine::testing::SiteContext,
+        _overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        _state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_template_environment_render_text_template(
             self,
             _template,
@@ -1817,26 +1564,14 @@ impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnv
 
     fn dispatch_template_environment_render_template_definition(
         self: std::rc::Rc<Self>,
-        nodes: js_abi::JsArray<
-            crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-        >,
-        definitions: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
+        nodes: js_abi::JsArray<tsumo_engine::testing::TemplateNode>,
+        definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
         source_path: Option<String>,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_render_template_definition(
             self,
             nodes,
@@ -1851,26 +1586,14 @@ impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnv
 
     fn exact_template_environment_render_template_definition(
         self: std::rc::Rc<Self>,
-        _nodes: js_abi::JsArray<
-            crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-        >,
-        _definitions: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
+        _nodes: js_abi::JsArray<tsumo_engine::testing::TemplateNode>,
+        _definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
         _source_path: Option<String>,
-        _context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        _site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        _overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        _state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+        _context: tsumo_engine::testing::TemplateValue,
+        _site: tsumo_engine::testing::SiteContext,
+        _overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        _state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_template_environment_render_template_definition(
             self,
             _nodes,
@@ -1888,7 +1611,7 @@ impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnv
         lang: String,
         key: String,
         count: Option<i32>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_get_i18n(
             self,
             lang,
@@ -1902,7 +1625,7 @@ impl crate::node_modules::tsumo::engine::src::template::environment::TemplateEnv
         _lang: String,
         _key: String,
         _count: Option<i32>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_template_environment_get_i18n(self, _lang, _key, _count)
     }
 }
@@ -1916,47 +1639,39 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
 
     fn read_test_template_environment_templates(
         &self,
-    ) -> js_abi::JsMap<
-        String,
-        crate::node_modules::tsumo::engine::src::template::template_2::Template,
-    > {
+    ) -> js_abi::JsMap<String, tsumo_engine::testing::Template> {
         self.state.with(|state| state.templates.clone())
     }
 
     fn write_test_template_environment_templates(
         &self,
-        value: js_abi::JsMap<
-            String,
-            crate::node_modules::tsumo::engine::src::template::template_2::Template,
-        >,
+        value: js_abi::JsMap<String, tsumo_engine::testing::Template>,
     ) {
         self.state.with_mut(|state| state.templates = value);
     }
 
     fn read_test_template_environment_resource_manager(
         &self,
-    ) -> Option<crate::node_modules::tsumo::engine::src::resources::manager::ResourceManager> {
+    ) -> Option<tsumo_engine::testing::ResourceManager> {
         self.state.with(|state| state.resource_manager.clone())
     }
 
     fn write_test_template_environment_resource_manager(
         &self,
-        value: Option<
-            crate::node_modules::tsumo::engine::src::resources::manager::ResourceManager,
-        >,
+        value: Option<tsumo_engine::testing::ResourceManager>,
     ) {
         self.state.with_mut(|state| state.resource_manager = value);
     }
 
     fn read_test_template_environment_i18n_store(
         &self,
-    ) -> Option<crate::node_modules::tsumo::engine::src::i18n::I18nStore> {
+    ) -> Option<tsumo_engine::testing::I18nStore> {
         self.state.with(|state| state.i18n_store.clone())
     }
 
     fn write_test_template_environment_i18n_store(
         &self,
-        value: Option<crate::node_modules::tsumo::engine::src::i18n::I18nStore>,
+        value: Option<tsumo_engine::testing::I18nStore>,
     ) {
         self.state.with_mut(|state| state.i18n_store = value);
     }
@@ -1984,39 +1699,35 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
     fn dispatch_test_template_environment_source_file_exists(
         self: std::rc::Rc<Self>,
         path: String,
-    ) -> rt::TsonicResult<bool> {
+    ) -> Result<bool, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_source_file_exists(self, path)
     }
 
     fn exact_test_template_environment_source_file_exists(
         self: std::rc::Rc<Self>,
         path: String,
-    ) -> rt::TsonicResult<bool> {
+    ) -> Result<bool, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_source_file_exists(self, path)
     }
 
     fn dispatch_test_template_environment_get_template(
         self: std::rc::Rc<Self>,
         path: String,
-    ) -> rt::TsonicResult<
-        Option<crate::node_modules::tsumo::engine::src::template::template_2::Template>,
-    > {
+    ) -> Result<Option<tsumo_engine::testing::Template>, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_get_template(self, path)
     }
 
     fn exact_test_template_environment_get_template(
         self: std::rc::Rc<Self>,
         path: String,
-    ) -> rt::TsonicResult<
-        Option<crate::node_modules::tsumo::engine::src::template::template_2::Template>,
-    > {
+    ) -> Result<Option<tsumo_engine::testing::Template>, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_get_template(self, path)
     }
 
     fn dispatch_test_template_environment_get_template_source_relative_path(
         self: std::rc::Rc<Self>,
         source_path: String,
-    ) -> rt::TsonicResult<Option<String>> {
+    ) -> Result<Option<String>, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_get_template_source_relative_path(
             self,
             source_path,
@@ -2026,7 +1737,7 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
     fn exact_test_template_environment_get_template_source_relative_path(
         self: std::rc::Rc<Self>,
         source_path: String,
-    ) -> rt::TsonicResult<Option<String>> {
+    ) -> Result<Option<String>, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_get_template_source_relative_path(
             self,
             source_path,
@@ -2035,13 +1746,13 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
 
     fn dispatch_test_template_environment_get_resource_manager(
         self: std::rc::Rc<Self>,
-    ) -> Option<crate::node_modules::tsumo::engine::src::resources::manager::ResourceManager> {
+    ) -> Option<tsumo_engine::testing::ResourceManager> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_get_resource_manager(self)
     }
 
     fn exact_test_template_environment_get_resource_manager(
         self: std::rc::Rc<Self>,
-    ) -> Option<crate::node_modules::tsumo::engine::src::resources::manager::ResourceManager> {
+    ) -> Option<tsumo_engine::testing::ResourceManager> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_get_resource_manager(self)
     }
 
@@ -2050,7 +1761,7 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
         lang: String,
         key: String,
         count: Option<i32>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_get_i18n(
             self,
             lang,
@@ -2064,7 +1775,7 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
         lang: String,
         key: String,
         count: Option<i32>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_get_i18n(
             self,
             lang,
@@ -2076,16 +1787,11 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
     fn dispatch_test_template_environment_render_text_template_source(
         self: std::rc::Rc<Self>,
         source: String,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_render_text_template_source(
             self,
             source,
@@ -2099,16 +1805,11 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
     fn exact_test_template_environment_render_text_template_source(
         self: std::rc::Rc<Self>,
         source: String,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_render_text_template_source(
             self,
             source,
@@ -2121,10 +1822,10 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
 
     fn dispatch_test_template_environment_render_page_view(
         self: std::rc::Rc<Self>,
-        page: crate::node_modules::tsumo::engine::src::models::page_context::PageContext,
+        page: tsumo_engine::testing::PageContext,
         view: String,
-        _state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<Option<String>> {
+        _state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<Option<String>, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_render_page_view(
             self,
             page,
@@ -2135,10 +1836,10 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
 
     fn exact_test_template_environment_render_page_view(
         self: std::rc::Rc<Self>,
-        page: crate::node_modules::tsumo::engine::src::models::page_context::PageContext,
+        page: tsumo_engine::testing::PageContext,
         view: String,
-        _state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<Option<String>> {
+        _state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<Option<String>, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_render_page_view(
             self,
             page,
@@ -2149,17 +1850,12 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
 
     fn dispatch_test_template_environment_render_template(
         self: std::rc::Rc<Self>,
-        template: crate::node_modules::tsumo::engine::src::template::template_2::Template,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+        template: tsumo_engine::testing::Template,
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_render_template(
             self,
             template,
@@ -2172,17 +1868,12 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
 
     fn exact_test_template_environment_render_template(
         self: std::rc::Rc<Self>,
-        template: crate::node_modules::tsumo::engine::src::template::template_2::Template,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+        template: tsumo_engine::testing::Template,
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_render_template(
             self,
             template,
@@ -2195,17 +1886,12 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
 
     fn dispatch_test_template_environment_render_text_template(
         self: std::rc::Rc<Self>,
-        template: crate::node_modules::tsumo::engine::src::template::template_2::Template,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+        template: tsumo_engine::testing::Template,
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_render_text_template(
             self,
             template,
@@ -2218,17 +1904,12 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
 
     fn exact_test_template_environment_render_text_template(
         self: std::rc::Rc<Self>,
-        template: crate::node_modules::tsumo::engine::src::template::template_2::Template,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+        template: tsumo_engine::testing::Template,
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_render_text_template(
             self,
             template,
@@ -2241,26 +1922,14 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
 
     fn dispatch_test_template_environment_render_template_definition(
         self: std::rc::Rc<Self>,
-        nodes: js_abi::JsArray<
-            crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-        >,
-        definitions: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
+        nodes: js_abi::JsArray<tsumo_engine::testing::TemplateNode>,
+        definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
         source_path: Option<String>,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_render_template_definition(
             self,
             nodes,
@@ -2275,26 +1944,14 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
 
     fn exact_test_template_environment_render_template_definition(
         self: std::rc::Rc<Self>,
-        nodes: js_abi::JsArray<
-            crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-        >,
-        definitions: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
+        nodes: js_abi::JsArray<tsumo_engine::testing::TemplateNode>,
+        definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
         source_path: Option<String>,
-        context: crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        overrides: js_abi::JsMap<
-            String,
-            js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::template::nodes::TemplateNode,
-            >,
-        >,
-        state: Option<crate::node_modules::tsumo::engine::src::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+        context: tsumo_engine::testing::TemplateValue,
+        site: tsumo_engine::testing::SiteContext,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
+        state: Option<tsumo_engine::testing::RenderState>,
+    ) -> Result<String, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_render_template_definition(
             self,
             nodes,
@@ -2308,345 +1965,244 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
     }
 }
 
-pub type CreateSiteCallable =
-    rt::Callable<
-        (),
-        rt::TsonicResult<
-            crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-        >,
-    >;
-
-std::thread_local! {
-    pub static CREATE_SITE: rt::ModuleCell<CreateSiteCallable> = const { rt::ModuleCell::new() };
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn create_site() -> Result<tsumo_engine::testing::SiteContext, rt::TsonicError> {
+    let config: tsumo_engine::testing::SiteConfig = tsumo_engine::testing::SiteConfig::new(
+        String::from("Test Site"),
+        String::from("https://example.test/"),
+        String::from("en"),
+        Option::<String>::None,
+        Option::<String>::None,
+    );
+    tsumo_engine::testing::SiteContext::new(
+        config,
+        js_abi::JsArray::from_dense(vec![]),
+        Option::<tsumo_engine::models::language::LanguageConfig>::None,
+        Option::<js_abi::JsArray<tsumo_engine::testing::LanguageContext>>::None,
+    )
+    .map_err(rt::TsonicError::from)
 }
 
-pub type RenderWithRootCallable =
-    rt::Callable<
-        (
-            String,
-            crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        ),
-        rt::TsonicResult<String>,
-    >;
-
-std::thread_local! {
-    pub static RENDER_WITH_ROOT: rt::ModuleCell<RenderWithRootCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type RenderCallable = rt::Callable<(String,), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub static RENDER: rt::ModuleCell<RenderCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type CreatePageCallable =
-    rt::Callable<
-        (
-            crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-            String,
-            String,
-            String,
-        ),
-        rt::TsonicResult<
-            crate::node_modules::tsumo::engine::src::models::page_context::PageContext,
-        >,
-    >;
-
-std::thread_local! {
-    pub static CREATE_PAGE: rt::ModuleCell<CreatePageCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type CaptureDiagnosticCodeCallable =
-    rt::Callable<(rt::Callable<(), rt::TsonicResult<()>>,), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub static CAPTURE_DIAGNOSTIC_CODE: rt::ModuleCell<CaptureDiagnosticCodeCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type CaptureDiagnosticCallable =
-    rt::Callable<
-        (rt::Callable<(), rt::TsonicResult<()>>,),
-        rt::TsonicResult<crate::node_modules::tsumo::engine::src::diagnostics::TsumoDiagnostic>,
-    >;
-
-std::thread_local! {
-    pub static CAPTURE_DIAGNOSTIC: rt::ModuleCell<CaptureDiagnosticCallable> = const { rt::ModuleCell::new() };
-}
-
-#[doc(hidden)]
-pub fn module_init() {
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn render_with_root(
+    source: String,
+    root: tsumo_engine::testing::TemplateValue,
+) -> Result<String, rt::TsonicError> {
+    let template: tsumo_engine::testing::Template =
+        tsumo_engine::testing::parse_template(source, None)?;
+    let environment: TestTemplateEnvironment = TestTemplateEnvironment::new(None);
+    let site: tsumo_engine::testing::SiteContext = create_site()?;
+    let scope: tsumo_engine::testing::RenderScope = tsumo_engine::testing::RenderScope::new(
+        root.clone(),
+        root.clone(),
+        site,
+        {
+            let upcast_value = environment.clone();
+            tsumo_engine::testing::TemplateEnvironment {
+                identity: upcast_value.identity.clone(),
+                dispatch: upcast_value.dispatch.clone(),
+            }
+        },
+        Option::<tsumo_engine::testing::RenderScope>::None,
+        None,
+        None,
+    );
+    let output: tsumo_engine::testing::TextBuilder = tsumo_engine::testing::TextBuilder::new();
     {
-        let module_value = rt::Callable::<
-            (),
-            rt::TsonicResult<
-                crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-            >,
-        >::new(move |_callable_arguments| {
-            let config: crate::node_modules::tsumo::engine::src::models::site_config::SiteConfig =
-                crate::node_modules::tsumo::engine::src::models::site_config::SiteConfig::new(
-                    String::from("Test Site"),
-                    String::from("https://example.test/"),
-                    String::from("en"),
-                    Option::<String>::None,
-                    Option::<String>::None,
-                );
-            crate::node_modules::tsumo::engine::src::models::site_context::SiteContext::new(
-                config.clone(),
-                js_abi::JsArray::from_dense(vec![]),
-                Option::<crate::node_modules::tsumo::engine::src::models::language::LanguageConfig>::None,
-                Option::<js_abi::JsArray<crate::node_modules::tsumo::engine::src::models::language::LanguageContext>>::None,
-            )
-        });
-        CREATE_SITE.with(|module_binding| module_binding.initialize(module_value))
-    };
-    {
-        let module_value_2 = rt::Callable::<
-            (
-                String,
-                crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-            ),
-            rt::TsonicResult<String>,
-        >::new(move |callable_arguments_2| {
-            let source = callable_arguments_2.0;
-            let root = callable_arguments_2.1;
-            let template: crate::node_modules::tsumo::engine::src::template::template_2::Template =
-                crate::node_modules::tsumo::engine::src::template::parser::parse_template::PARSE_TEMPLATE
-                    .with(|module_binding| module_binding.load())
-                    .call((source.clone(), None))?;
-            let environment: TestTemplateEnvironment = TestTemplateEnvironment::new(None);
-            let site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext =
-                CREATE_SITE
-                    .with(|module_binding| module_binding.load())
-                    .call(())?;
-            let scope: crate::node_modules::tsumo::engine::src::template::scope::RenderScope =
-                crate::node_modules::tsumo::engine::src::template::scope::RenderScope::new(
-                    root.clone(),
-                    root.clone(),
-                    site.clone(),
-                    {
-                        let upcast_value = environment.clone();
-                        crate::node_modules::tsumo::engine::src::template::environment::TemplateEnvironment {
-                            identity: upcast_value.identity.clone(),
-                            dispatch: upcast_value.dispatch.clone(),
-                        }
-                    },
-                    Option::<crate::node_modules::tsumo::engine::src::template::scope::RenderScope>::None,
-                    None,
-                    None,
-                );
-            let output: crate::node_modules::tsumo::engine::src::utils::text_builder::TextBuilder =
-                crate::node_modules::tsumo::engine::src::utils::text_builder::TextBuilder::new();
-            template.render_into(
-                output.clone(),
-                scope.clone(),
-                {
-                    let upcast_value_2 = environment.clone();
-                    crate::node_modules::tsumo::engine::src::template::environment::TemplateEnvironment {
-                        identity: upcast_value_2.identity.clone(),
-                        dispatch: upcast_value_2.dispatch.clone(),
-                    }
-                },
-                js_abi::JsMap::new(),
-            )?;
-            Ok::<_, rt::TsonicError>(output.to_string())
-        });
-        RENDER_WITH_ROOT.with(|module_binding_2| module_binding_2.initialize(module_value_2))
-    };
-    {
-        let module_value_3 = rt::Callable::<(String,), rt::TsonicResult<String>>::new(
-            move |callable_arguments_3| {
-                let source = callable_arguments_3.0;
-                RENDER_WITH_ROOT
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        source.clone(),
-                        {
-                            let upcast_value_3 =
-                                crate::node_modules::tsumo::engine::src::template::values::dict::DictValue::new(
-                                    js_abi::JsMap::new(),
-                                );
-                            crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue {
-                                identity: upcast_value_3.identity.clone(),
-                                dispatch: upcast_value_3.dispatch.clone(),
-                            }
-                        },
-                    ))
+        let dispatch_receiver = template;
+        dispatch_receiver.dispatch.clone().dispatch_template_render_into(
+            output.clone(),
+            scope,
+            {
+                let upcast_value_2 = environment.clone();
+                tsumo_engine::testing::TemplateEnvironment {
+                    identity: upcast_value_2.identity.clone(),
+                    dispatch: upcast_value_2.dispatch.clone(),
+                }
             },
-        );
-        RENDER.with(|module_binding_3| module_binding_3.initialize(module_value_3))
-    };
-    {
-        let module_value_4 = rt::Callable::<
-            (
-                crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
-                String,
-                String,
-                String,
-            ),
-            rt::TsonicResult<
-                crate::node_modules::tsumo::engine::src::models::page_context::PageContext,
-            >,
-        >::new(move |callable_arguments_4| {
-            let site = callable_arguments_4.0;
-            let title = callable_arguments_4.1;
-            let date = callable_arguments_4.2;
-            let kind = callable_arguments_4.3;
-            let empty_pages: js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::models::page_context::PageContext,
-            > = js_abi::JsArray::from_dense(vec![]);
-            let empty_strings: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-            let empty_html: crate::node_modules::tsumo::engine::src::utils::html::HtmlString =
-                crate::node_modules::tsumo::engine::src::utils::html::HtmlString::new(
-                    String::from(""),
-                );
-            Ok::<_, rt::TsonicError>(crate::node_modules::tsumo::engine::src::models::page_context::PageContext::new(
-                title.clone(),
-                date.clone(),
-                date.clone(),
-                false,
-                kind.clone(),
-                if kind == "page" {
-                    String::from("posts")
-                } else {
-                    String::from("")
-                },
-                kind.clone(),
-                js_string::to_lower_case(&title),
-                format!(
-                    "{}{}{}",
-                    String::from("/"),
-                    rt::source_string(&js_string::to_lower_case(&title)),
-                    String::from("/"),
-                ),
-                String::from(""),
-                empty_html.clone(),
-                crate::node_modules::tsumo::engine::src::utils::html::HtmlString::new(format!(
-                    "{}{}{}",
-                    String::from("<p>"),
-                    rt::source_string(&title),
-                    String::from("</p>"),
-                )),
-                crate::node_modules::tsumo::engine::src::utils::html::HtmlString::new(format!(
-                    "{}{}{}",
-                    String::from("<p>"),
-                    rt::source_string(&title),
-                    String::from("</p>"),
-                )),
-                String::from(""),
-                empty_strings.clone(),
-                empty_strings.clone(),
-                js_abi::JsMap::new(),
-                Option::<crate::node_modules::tsumo::engine::src::models::page_file::PageFile>::None,
-                site.state.with(|state| state.language.clone()),
-                empty_pages.clone(),
-                Option::<crate::node_modules::tsumo::engine::src::template::values::scratch::ScratchStore>::None,
-                site.clone(),
-                empty_pages.clone(),
-                Option::<crate::node_modules::tsumo::engine::src::models::page_context::PageContext>::None,
-                empty_pages.clone(),
-                Option::<String>::None,
-            ))
-        });
-        CREATE_PAGE.with(|module_binding_4| module_binding_4.initialize(module_value_4))
-    };
-    {
-        let module_value_5 = rt::Callable::<
-            (rt::Callable<(), rt::TsonicResult<()>>,),
-            rt::TsonicResult<String>,
-        >::new(move |callable_arguments_5| {
-            let operation = callable_arguments_5.0;
-            let try_body: rt::TsonicResult<rt::Completion<String>> = rt::completion_region(|| {
-                operation.call(())?;
-                Ok(rt::Completion::Normal)
-            });
-            let try_flow: rt::TsonicResult<rt::Completion<String>> = match try_body {
-                Ok(completion) => Ok(completion),
-                Err(error) => rt::completion_region(|| {
-                    if matches!(error.clone(), rt::TsonicError::Project0(_)) {
-                        return Ok(
-                            rt::Completion::Return(
-                                {
-                                    let dispatch_receiver = &match error {
-                                        rt::TsonicError::Project0(program_error) => program_error,
-                                        _ => {
-                                            unreachable!(
-                                                "checked flow selected a different program-error variant"
-                                            )
-                                        }
-                                    };
-                                    dispatch_receiver.dispatch.read_tsumo_error_diagnostic()
+            js_abi::JsMap::new(),
+        )
+    }?;
+    Ok({
+        let dispatch_receiver_2 = output.clone();
+        dispatch_receiver_2
+            .dispatch
+            .clone()
+            .dispatch_text_builder_to_string()
+    })
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn render(source: String) -> Result<String, rt::TsonicError> {
+    render_with_root(source, {
+        let upcast_value = tsumo_engine::testing::DictValue::new(js_abi::JsMap::new());
+        tsumo_engine::testing::TemplateValue {
+            identity: upcast_value.identity.clone(),
+            dispatch: upcast_value.dispatch.clone(),
+        }
+    })
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn create_page(
+    site: tsumo_engine::testing::SiteContext,
+    title: String,
+    date: String,
+    kind: String,
+) -> tsumo_engine::testing::PageContext {
+    let empty_pages: js_abi::JsArray<tsumo_engine::testing::PageContext> =
+        js_abi::JsArray::from_dense(vec![]);
+    let empty_strings: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    let empty_html: tsumo_engine::testing::HtmlString =
+        tsumo_engine::testing::HtmlString::new(String::from(""));
+    tsumo_engine::testing::PageContext::new(
+        title.clone(),
+        date.clone(),
+        date.clone(),
+        false,
+        kind.clone(),
+        if kind == "page" {
+            String::from("posts")
+        } else {
+            String::from("")
+        },
+        kind.clone(),
+        js_string::to_lower_case(&title),
+        format!(
+            "{}{}{}",
+            String::from("/"),
+            js_string::to_lower_case(&title),
+            String::from("/"),
+        ),
+        String::from(""),
+        empty_html,
+        tsumo_engine::testing::HtmlString::new(format!(
+            "{}{}{}",
+            String::from("<p>"),
+            title,
+            String::from("</p>"),
+        )),
+        tsumo_engine::testing::HtmlString::new(format!(
+            "{}{}{}",
+            String::from("<p>"),
+            title,
+            String::from("</p>"),
+        )),
+        String::from(""),
+        empty_strings.clone(),
+        empty_strings.clone(),
+        js_abi::JsMap::new(),
+        Option::<tsumo_engine::testing::PageFile>::None,
+        {
+            let dispatch_receiver = &site;
+            dispatch_receiver.dispatch.read_site_context_language()
+        },
+        empty_pages.clone(),
+        Option::<tsumo_engine::template::values::scratch::ScratchStore>::None,
+        site.clone(),
+        empty_pages.clone(),
+        Option::<tsumo_engine::testing::PageContext>::None,
+        empty_pages.clone(),
+        Option::<String>::None,
+    )
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn capture_diagnostic_code(
+    operation: rt::Callable<(), rt::TsonicResult<()>>,
+) -> Result<String, rt::TsonicError> {
+    let try_body: rt::TsonicResult<rt::Completion<String>> = rt::completion_region(|| {
+        operation.call(())?;
+        Ok(rt::Completion::Normal)
+    });
+    let try_flow: rt::TsonicResult<rt::Completion<String>> = match try_body {
+        Ok(completion) => Ok(completion),
+        Err(error) => rt::completion_region(|| {
+            if matches!(
+                error.clone(),
+                rt::TsonicError::TsumoEngineError(tsumo_engine::program::TsonicError::TsumoError(_)),
+            )
+            {
+                return Ok(
+                    rt::Completion::Return({
+                        let dispatch_receiver_2 = &{
+                            let dispatch_receiver = &match error {
+                                rt::TsonicError::TsumoEngineError(tsumo_engine::program::TsonicError::TsumoError(program_error)) => {
+                                    program_error
                                 }
-                                .state
-                                .with(|state| state.code.clone()),
-                            ),
-                        );
-                    }
-                    Err(error.clone())
-                }),
-            };
-            let try_flow = try_flow?;
-            match try_flow {
-                rt::Completion::Normal => {}
-                rt::Completion::Return(value) => return Ok(value),
-                rt::Completion::Break(_) | rt::Completion::Continue(_) => {
-                    unreachable!("invalid finalized Tsonic completion target")
-                }
-            }
-            Err(rt::TsonicError::from(rt::JsError::error(
-                "Expected a TsumoError diagnostic",
-            )))
-        });
-        CAPTURE_DIAGNOSTIC_CODE.with(|module_binding_5| module_binding_5.initialize(module_value_5))
-    };
-    {
-        let module_value_6 = rt::Callable::<
-            (rt::Callable<(), rt::TsonicResult<()>>,),
-            rt::TsonicResult<
-                crate::node_modules::tsumo::engine::src::diagnostics::TsumoDiagnostic,
-            >,
-        >::new(move |callable_arguments_6| {
-            let operation = callable_arguments_6.0;
-            let try_body_2: rt::TsonicResult<rt::Completion<crate::node_modules::tsumo::engine::src::diagnostics::TsumoDiagnostic>> =
-                rt::completion_region(|| {
-                    operation.call(())?;
-                    Ok(rt::Completion::Normal)
-                });
-            let try_flow_2: rt::TsonicResult<rt::Completion<crate::node_modules::tsumo::engine::src::diagnostics::TsumoDiagnostic>> =
-                match try_body_2 {
-                    Ok(completion) => Ok(completion),
-                    Err(error) => rt::completion_region(|| {
-                        if matches!(error.clone(), rt::TsonicError::Project0(_)) {
-                            return Ok(
-                                rt::Completion::Return({
-                                    let dispatch_receiver_2 = &match error {
-                                        rt::TsonicError::Project0(program_error_2) => {
-                                            program_error_2
-                                        }
-                                        _ => {
-                                            unreachable!(
-                                                "checked flow selected a different program-error variant"
-                                            )
-                                        }
-                                    };
-                                    dispatch_receiver_2.dispatch.read_tsumo_error_diagnostic()
-                                }),
-                            );
-                        }
-                        Err(error.clone())
+                                _ => {
+                                    unreachable!(
+                                        "checked flow selected a different program-error variant"
+                                    )
+                                }
+                            };
+                            dispatch_receiver.dispatch.read_tsumo_error_diagnostic()
+                        };
+                        dispatch_receiver_2.dispatch.read_tsumo_diagnostic_code()
                     }),
-                };
-            let try_flow_2 = try_flow_2?;
-            match try_flow_2 {
-                rt::Completion::Normal => {}
-                rt::Completion::Return(value) => return Ok(value),
-                rt::Completion::Break(_) | rt::Completion::Continue(_) => {
-                    unreachable!("invalid finalized Tsonic completion target")
-                }
+                );
             }
-            Err(rt::TsonicError::from(rt::JsError::error(
-                "Expected a TsumoError diagnostic",
-            )))
-        });
-        CAPTURE_DIAGNOSTIC.with(|module_binding_6| module_binding_6.initialize(module_value_6))
+            Err(error.clone())
+        }),
     };
+    let try_flow = try_flow?;
+    match try_flow {
+        rt::Completion::Normal => {}
+        rt::Completion::Return(value) => return Ok(value),
+        rt::Completion::Break(_) | rt::Completion::Continue(_) => {
+            unreachable!("invalid finalized Tsonic completion target")
+        }
+    }
+    Err(rt::TsonicError::from(rt::JsError::error(
+        "Expected a TsumoError diagnostic",
+    )))
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn capture_diagnostic(
+    operation: rt::Callable<(), rt::TsonicResult<()>>,
+) -> Result<tsumo_engine::TsumoDiagnostic, rt::TsonicError> {
+    let try_body: rt::TsonicResult<rt::Completion<tsumo_engine::TsumoDiagnostic>> =
+        rt::completion_region(|| {
+            operation.call(())?;
+            Ok(rt::Completion::Normal)
+        });
+    let try_flow: rt::TsonicResult<rt::Completion<tsumo_engine::TsumoDiagnostic>> = match try_body {
+        Ok(completion) => Ok(completion),
+        Err(error) => rt::completion_region(|| {
+            if matches!(
+                error.clone(),
+                rt::TsonicError::TsumoEngineError(tsumo_engine::program::TsonicError::TsumoError(_)),
+            )
+            {
+                return Ok(
+                    rt::Completion::Return({
+                        let dispatch_receiver = &match error {
+                            rt::TsonicError::TsumoEngineError(tsumo_engine::program::TsonicError::TsumoError(program_error)) => {
+                                program_error
+                            }
+                            _ => {
+                                unreachable!(
+                                    "checked flow selected a different program-error variant"
+                                )
+                            }
+                        };
+                        dispatch_receiver.dispatch.read_tsumo_error_diagnostic()
+                    }),
+                );
+            }
+            Err(error.clone())
+        }),
+    };
+    let try_flow = try_flow?;
+    match try_flow {
+        rt::Completion::Normal => {}
+        rt::Completion::Return(value) => return Ok(value),
+        rt::Completion::Break(_) | rt::Completion::Continue(_) => {
+            unreachable!("invalid finalized Tsonic completion target")
+        }
+    }
+    Err(rt::TsonicError::from(rt::JsError::error(
+        "Expected a TsumoError diagnostic",
+    )))
 }

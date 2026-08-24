@@ -2,8 +2,9 @@
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait MediaTypeValueDispatch:
+pub trait MediaTypeValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_media_type_value_to_media_type_value(
@@ -13,17 +14,27 @@ pub(crate) trait MediaTypeValueDispatch:
     fn write_media_type_value_value(&self, value: crate::models::media_type::MediaType);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct MediaTypeValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: crate::models::media_type::MediaType,
+pub struct MediaTypeValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: crate::models::media_type::MediaType,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct MediaTypeValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn MediaTypeValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn MediaTypeValueDispatch>,
+}
+
+impl std::fmt::Debug for MediaTypeValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("MediaTypeValue")
+    }
 }
 
 impl PartialEq for MediaTypeValue {
@@ -41,11 +52,10 @@ pub(crate) struct MediaTypeValueRoot {
 }
 
 impl MediaTypeValue {
-    pub(crate) fn initialize_state(
-        value: crate::models::media_type::MediaType,
-    ) -> MediaTypeValueState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: crate::models::media_type::MediaType) -> MediaTypeValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: crate::models::media_type::MediaType = value.clone();
+        let field_value: crate::models::media_type::MediaType = value;
         MediaTypeValueState {
             base: base_state,
             value: field_value,

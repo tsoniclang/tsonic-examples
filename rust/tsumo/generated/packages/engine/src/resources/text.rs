@@ -2,31 +2,33 @@
 
 use crate::program as rt;
 
-pub(crate) fn byte_in_range(
+pub fn byte_in_range(
     bytes: tsonic_rust_node::buffer::Buffer,
     index: i32,
     minimum: i32,
     maximum: i32,
-) -> rt::TsonicResult<bool> {
+) -> Result<bool, rt::TsonicError> {
     if index >= tsonic_rust_runtime::conversions::usize_to_i32(bytes.len())? {
         return Ok(false);
     }
-    let byte: i32 = tsonic_rust_runtime::conversions::u8_to_i32(
-        bytes
-            .read_u8(tsonic_rust_runtime::conversions::i32_to_usize(index)?)
-            .map_err(tsonic_rust_runtime::TsonicError::from)?,
-    );
+    let byte: i32 = tsonic_rust_runtime::conversions::f64_to_i32(
+        tsonic_rust_node::buffer::read_uint8_number(
+            &bytes,
+            tsonic_rust_runtime::conversions::i32_to_f64(index),
+        )?,
+    )?;
     Ok(byte >= minimum && byte <= maximum)
 }
 
-pub fn is_valid_utf8(bytes: tsonic_rust_node::buffer::Buffer) -> rt::TsonicResult<bool> {
+pub fn is_valid_utf8(bytes: tsonic_rust_node::buffer::Buffer) -> Result<bool, rt::TsonicError> {
     let mut index: i32 = 0;
     'loop_value: while index < tsonic_rust_runtime::conversions::usize_to_i32(bytes.len())? {
-        let first: i32 = tsonic_rust_runtime::conversions::u8_to_i32(
-            bytes
-                .read_u8(tsonic_rust_runtime::conversions::i32_to_usize(index)?)
-                .map_err(tsonic_rust_runtime::TsonicError::from)?,
-        );
+        let first: i32 = tsonic_rust_runtime::conversions::f64_to_i32(
+            tsonic_rust_node::buffer::read_uint8_number(
+                &bytes,
+                tsonic_rust_runtime::conversions::i32_to_f64(index),
+            )?,
+        )?;
         if first <= 127 {
             index += 1;
             continue 'loop_value;
@@ -103,33 +105,34 @@ pub fn is_valid_utf8(bytes: tsonic_rust_node::buffer::Buffer) -> rt::TsonicResul
 pub fn read_resource_text(
     resource: crate::resources::models::Resource,
     operation: String,
-) -> rt::TsonicResult<String> {
-    let text: Option<String> = resource.state.with(|state| state.text.clone());
+) -> Result<String, rt::TsonicError> {
+    let text: Option<String> = {
+        let dispatch_receiver = &resource;
+        dispatch_receiver.dispatch.read_resource_text()
+    };
     if text.is_some() {
         return Ok(match text.as_ref() {
             Some(flow_value) => flow_value.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         });
     }
-    if !is_valid_utf8(resource.state.with(|state| state.bytes.clone()))? {
-        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+    if !is_valid_utf8({
+        let dispatch_receiver_2 = &resource;
+        dispatch_receiver_2.dispatch.read_resource_bytes()
+    })?
+    {
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_RESOURCE_TEXT_ENCODING_INVALID"),
-            format!(
-                "{}{}{}",
-                String::from(""),
-                rt::source_string(&operation),
-                String::from(" requires a UTF-8 resource"),
-            ),
-            resource.state.with(|state| state.source_path.clone()),
+            format!("{}{}", operation, String::from(" requires a UTF-8 resource")),
+            {
+                let dispatch_receiver_3 = &resource;
+                dispatch_receiver_3.dispatch.read_resource_source_path()
+            },
             None,
             None,
         )));
     }
-    Ok(
-        resource
-            .state
-            .with(|state| state.bytes.clone())
-            .to_string_enc("utf8")
-            .map_err(tsonic_rust_runtime::TsonicError::from)?,
-    )
+    { let dispatch_receiver_4 = &resource; dispatch_receiver_4.dispatch.read_resource_bytes() }
+        .to_string_enc("utf8")
+        .map_err(rt::TsonicError::from)
 }

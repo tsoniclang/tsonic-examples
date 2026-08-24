@@ -6,37 +6,48 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-pub(crate) fn is_branch_index_file(name: &str) -> bool {
+pub fn is_branch_index_file(name: &str) -> bool {
     js_string::to_lower_case(name) == "_index.md"
 }
 
-pub(crate) fn is_leaf_bundle_index_file(name: &str) -> bool {
+pub fn is_leaf_bundle_index_file(name: &str) -> bool {
     js_string::to_lower_case(name) == "index.md"
 }
 
-pub(crate) fn create_page_file(
+pub fn create_page_file(
     directory: String,
     file_name: String,
     file_path: String,
-) -> rt::TsonicResult<crate::models::page_file::PageFile> {
+) -> Result<crate::models::page_file::PageFile, rt::TsonicError> {
     Ok(crate::models::page_file::PageFile::new(
-        tsonic_rust_node::path::resolve(&[file_path.as_str()])
-            .map_err(tsonic_rust_runtime::TsonicError::from)?,
+        tsonic_rust_node::path::resolve(&[file_path.as_str()])?,
         if directory.is_empty() {
             String::from("")
         } else {
             format!("{}{}", directory, String::from("/"))
         },
-        crate::build::site_routes::without_markdown_extension(file_name.clone())?,
+        crate::build::site_routes::without_markdown_extension(file_name)?,
     ))
 }
 
-pub(crate) fn compare_content_pages(
+pub fn compare_content_pages(
     left: crate::build::content_model::ContentPageSource,
     right: crate::build::content_model::ContentPageSource,
-) -> rt::TsonicResult<f64> {
-    let left_time: f64 = left.state.with(|state| state.date_utc.clone()).get_time();
-    let right_time: f64 = right.state.with(|state| state.date_utc.clone()).get_time();
+) -> Result<f64, rt::TsonicError> {
+    let left_time: f64 = {
+        let dispatch_receiver = &left;
+        dispatch_receiver
+            .dispatch
+            .read_content_page_source_date_utc()
+    }
+    .get_time();
+    let right_time: f64 = {
+        let dispatch_receiver_2 = &right;
+        dispatch_receiver_2
+            .dispatch
+            .read_content_page_source_date_utc()
+    }
+    .get_time();
     if right_time > left_time {
         return Ok(1.0);
     }
@@ -44,40 +55,60 @@ pub(crate) fn compare_content_pages(
         return Ok(-1.0);
     }
     let route: i32 = crate::utils::strings::compare_text(
-        left.state.with(|state| state.rel_permalink.clone()),
-        right.state.with(|state| state.rel_permalink.clone()),
+        {
+            let dispatch_receiver_3 = &left;
+            dispatch_receiver_3
+                .dispatch
+                .read_content_page_source_rel_permalink()
+        },
+        {
+            let dispatch_receiver_4 = &right;
+            dispatch_receiver_4
+                .dispatch
+                .read_content_page_source_rel_permalink()
+        },
     );
     Ok(if route != 0 {
         tsonic_rust_runtime::conversions::i32_to_f64(route)
     } else {
         crate::build::site_routes::compare_site_paths(
-            left.state.with(|state| state.source_path.clone()),
-            right.state.with(|state| state.source_path.clone()),
+            {
+                let dispatch_receiver_5 = &left;
+                dispatch_receiver_5
+                    .dispatch
+                    .read_content_page_source_source_path()
+            },
+            {
+                let dispatch_receiver_6 = &right;
+                dispatch_receiver_6
+                    .dispatch
+                    .read_content_page_source_source_path()
+            },
         )?
     })
 }
 
-pub(crate) fn assert_unique_output(
+pub fn assert_unique_output(
     outputs: js_abi::JsMap<String, String>,
     output_path: String,
     source_path: String,
-) -> rt::TsonicResult<()> {
+) -> Result<(), rt::TsonicError> {
     let key: String = js_string::to_lower_case(&output_path);
     let previous: Option<String> = outputs.get(&key);
     if previous.is_some() {
-        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_CONTENT_ROUTE_CONFLICT"),
             format!(
                 "{}{}{}{}{}{}{}",
                 String::from("Content sources '"),
-                rt::source_string(&match previous.as_ref() {
+                match previous.as_ref() {
                     Some(flow_value) => flow_value.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
-                },),
+                },
                 String::from("' and '"),
-                rt::source_string(&source_path),
+                source_path,
                 String::from("' both map to '"),
-                rt::source_string(&output_path),
+                output_path,
                 String::from("'"),
             ),
             Some(source_path.clone()),
@@ -85,20 +116,17 @@ pub(crate) fn assert_unique_output(
             None,
         )));
     }
-    outputs.set(key.clone(), source_path.clone());
+    outputs.set_discard(key.clone(), source_path.clone());
     Ok(())
 }
 
 pub fn discover_content(
     content_dir: String,
     build_drafts: bool,
-) -> rt::TsonicResult<crate::build::content_model::ContentInventory> {
-    let files: js_abi::JsArray<String> = crate::fs::LIST_FILES_RECURSIVE
-        .with(|module_binding| module_binding.load())
-        .call((content_dir.clone(), String::from("*.md")))?;
-    files.try_sort(|left, right| {
-        crate::build::site_routes::compare_site_paths(left.clone(), right.clone())
-    })?;
+) -> Result<crate::build::content_model::ContentInventory, rt::TsonicError> {
+    let files: js_abi::JsArray<String> =
+        crate::fs::list_files_recursive(content_dir.clone(), String::from("*.md"))?;
+    files.try_sort(crate::build::site_routes::compare_site_paths)?;
     let pages: js_abi::JsArray<crate::build::content_model::ContentPageSource> =
         js_abi::JsArray::from_dense(vec![]);
     let list_pages_by_route: js_abi::JsMap<String, crate::build::content_model::ListPageSource> =
@@ -118,13 +146,12 @@ pub fn discover_content(
                 || relative_path == ".."
                 || js_string::starts_with_from_start(&relative_path, "../")
             {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                     String::from("TSUMO_CONTENT_SOURCE_PATH_INVALID"),
                     format!(
-                        "{}{}{}",
+                        "{}{}",
                         String::from("Content source is outside its content root: "),
-                        rt::source_string(&file_path),
-                        String::from(""),
+                        file_path,
                     ),
                     Some(file_path.clone()),
                     None,
@@ -148,11 +175,13 @@ pub fn discover_content(
                     index += 1.0;
                 }
             }
-            let file_name: String = match path_segments
-                .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
+            let file_name: String = match {
+                let operation_input_0 = path_segments.clone();
+                operation_input_0.get_number(tsonic_rust_runtime::conversions::i32_to_f64(
                     tsonic_rust_runtime::conversions::usize_to_i32(path_segments.len())? - 1,
                 ))
-                .as_ref()
+            }
+            .as_ref()
             {
                 Some(flow_value_3) => flow_value_3.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
@@ -163,15 +192,16 @@ pub fn discover_content(
                 while index
                     < ((tsonic_rust_runtime::conversions::usize_to_i32(path_segments.len())? - 1) as f64)
                 {
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        directory_segments.push_many([match path_segments
+                    {
+                        let operation_input_0_2 = directory_segments.clone();
+                        operation_input_0_2.push_many_discard([match path_segments
                             .get_number(index)
                             .as_ref()
                         {
                             Some(flow_value_4) => flow_value_4.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
-                        }]),
-                    )?;
+                        }])
+                    };
                     index += 1.0;
                 }
             }
@@ -179,28 +209,25 @@ pub fn discover_content(
                 crate::build::site_routes::join_site_path(directory_segments.clone());
             let parsed: crate::frontmatter::parsed_content::ParsedContent =
                 crate::frontmatter::parse::parse_content(
-                    crate::fs::READ_TEXT_FILE
-                        .with(|module_binding| module_binding.load())
-                        .call((file_path.clone(),))?,
+                    crate::fs::read_text_file(file_path.clone())?,
                     Some(file_path.clone()),
                 )?;
-            let front_matter: crate::frontmatter::data::FrontMatter =
-                parsed.state.with(|state| state.front_matter.clone());
+            let front_matter: crate::frontmatter::data::FrontMatter = parsed
+                .state
+                .with(|state| state.front_matter.clone());
             let modified_at: js_abi::JsDate = js_abi::JsDate::from_millis(
-                tsonic_rust_node::fs::stat_sync(&file_path)
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?
-                    .mtime_ms(),
+                tsonic_rust_node::fs::stat_sync(&file_path)?.mtime_ms(),
             );
             let file: crate::models::page_file::PageFile =
                 create_page_file(directory.clone(), file_name.clone(), file_path.clone())?;
             if is_branch_index_file(&file_name) {
                 if list_pages_by_route.has(&directory) {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                    return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                         String::from("TSUMO_CONTENT_ROUTE_CONFLICT"),
                         format!(
                             "{}{}{}",
                             String::from("Multiple branch indexes map to '"),
-                            rt::source_string(&directory),
+                            directory,
                             String::from("'"),
                         ),
                         Some(file_path.clone()),
@@ -213,23 +240,26 @@ pub fn discover_content(
                     crate::build::site_routes::site_output_path(directory_segments.clone())?,
                     file_path.clone(),
                 )?;
-                list_pages_by_route.set(
-                    directory.clone(),
-                    crate::build::content_model::ListPageSource::new(
-                        front_matter.state.with(|state| state.title.clone()),
-                        parsed.state.with(|state| state.body.clone()),
-                        rt::option_coalesce(
-                            front_matter.state.with(|state| state.description.clone()),
-                            std::convert::identity,
-                            || String::from(""),
+                {
+                    let operation_input_0_3 = list_pages_by_route.clone();
+                    operation_input_0_3.set_discard(
+                        directory.clone(),
+                        crate::build::content_model::ListPageSource::new(
+                            front_matter.state.with(|state| state.title.clone()),
+                            parsed.state.with(|state| state.body.clone()),
+                            rt::option_coalesce(
+                                front_matter.state.with(|state| state.description.clone()),
+                                std::convert::identity,
+                                || String::from(""),
+                            ),
+                            front_matter.state.with(|state| state.r#type.clone()),
+                            front_matter.state.with(|state| state.layout.clone()),
+                            front_matter.state.with(|state| state.params.clone()),
+                            tsonic_rust_node::path::dirname(&file_path),
+                            file.clone(),
                         ),
-                        front_matter.state.with(|state| state.r#type.clone()),
-                        front_matter.state.with(|state| state.layout.clone()),
-                        front_matter.state.with(|state| state.params.clone()),
-                        tsonic_rust_node::path::dirname(&file_path),
-                        file.clone(),
-                    ),
-                );
+                    )
+                };
                 file_index += 1.0;
                 continue 'loop_value;
             }
@@ -244,8 +274,9 @@ pub fn discover_content(
             } else {
                 String::from("")
             };
-            let configured_type: Option<String> =
-                front_matter.state.with(|state| state.r#type.clone());
+            let configured_type: Option<String> = front_matter
+                .state
+                .with(|state| state.r#type.clone());
             let page_type: String = {
                 let conditional_test = configured_type.is_none()
                     || js_string::trim(&match configured_type.as_ref() {
@@ -272,12 +303,14 @@ pub fn discover_content(
             let is_leaf_bundle: bool = is_leaf_bundle_index_file(&file_name)
                 && tsonic_rust_runtime::conversions::usize_to_i32(directory_segments.len())? > 0;
             let default_leaf_name: String = if is_leaf_bundle {
-                match directory_segments
-                    .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
+                match {
+                    let operation_input_0_4 = directory_segments.clone();
+                    operation_input_0_4.get_number(tsonic_rust_runtime::conversions::i32_to_f64(
                         tsonic_rust_runtime::conversions::usize_to_i32(directory_segments.len())?
                             - 1,
                     ))
-                    .as_ref()
+                }
+                .as_ref()
                 {
                     Some(flow_value_8) => flow_value_8.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
@@ -287,7 +320,7 @@ pub fn discover_content(
             };
             let slug: String = rt::option_coalesce(
                 front_matter.state.with(|state| state.slug.clone()),
-                Ok::<_, rt::TsonicError>,
+                Ok,
                 || crate::utils::text::slugify(&default_leaf_name),
             )?;
             crate::build::site_routes::assert_site_route_segment(
@@ -307,21 +340,20 @@ pub fn discover_content(
             {
                 let mut index: f64 = 0.0;
                 while index < directory_count {
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        route_segments.push_many([match directory_segments
+                    {
+                        let operation_input_0_5 = route_segments.clone();
+                        operation_input_0_5.push_many_discard([match directory_segments
                             .get_number(index)
                             .as_ref()
                         {
                             Some(flow_value_9) => flow_value_9.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
-                        }]),
-                    )?;
+                        }])
+                    };
                     index += 1.0;
                 }
             }
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                route_segments.push_many([slug.clone()]),
-            )?;
+            route_segments.push_many_discard([slug.clone()]);
             let output_rel_path: String =
                 crate::build::site_routes::site_output_path(route_segments.clone())?;
             assert_unique_output(
@@ -337,7 +369,7 @@ pub fn discover_content(
                     slug.clone(),
                     rt::option_coalesce(
                         front_matter.state.with(|state| state.title.clone()),
-                        Ok::<_, rt::TsonicError>,
+                        Ok,
                         || crate::utils::text::humanize_slug(default_leaf_name.clone()),
                     )?,
                     rt::option_coalesce(
@@ -350,11 +382,8 @@ pub fn discover_content(
                         std::convert::identity,
                         || modified_at.clone(),
                     )
-                    .to_iso_string()
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?,
-                    modified_at
-                        .to_iso_string()
-                        .map_err(tsonic_rust_runtime::TsonicError::from)?,
+                    .to_iso_string()?,
+                    modified_at.to_iso_string()?,
                     front_matter.state.with(|state| state.draft),
                     is_leaf_bundle,
                     rt::option_coalesce(
@@ -377,11 +406,11 @@ pub fn discover_content(
                     file.clone(),
                     front_matter.state.with(|state| state.menus.clone()),
                 );
-            tsonic_rust_runtime::conversions::usize_to_i32(pages.push_many([page.clone()]))?;
+            pages.push_many_discard([page.clone()]);
             file_index += 1.0;
         }
     }
-    pages.try_sort(|left, right| compare_content_pages(left.clone(), right.clone()))?;
+    pages.try_sort(compare_content_pages)?;
     Ok(crate::build::content_model::ContentInventory::new(
         pages.clone(),
         list_pages_by_route.clone(),

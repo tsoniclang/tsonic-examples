@@ -6,19 +6,16 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-pub fn to_int32(value: f64) -> rt::TsonicResult<Option<i32>> {
+pub fn to_int32(value: f64) -> Result<Option<i32>, rt::TsonicError> {
     if js_abi::number_is_integer(value) && (-2147483648.0..=2147483647.0).contains(&value) {
         return Ok(Some(tsonic_rust_runtime::conversions::f64_to_i32(value)?));
     }
     Ok(Option::<i32>::None)
 }
 
-pub fn parse_int32(value: &str) -> rt::TsonicResult<Option<i32>> {
+pub fn parse_int32(value: &str) -> Result<Option<i32>, rt::TsonicError> {
     let trimmed: String = js_string::trim(value);
-    if !js_abi::JsRegExp::new("^-?\\d+$", "")?
-        .test(&trimmed)
-        .map_err(tsonic_rust_runtime::TsonicError::from)?
-    {
+    if !js_abi::regexp_test_native(&js_abi::regexp_new_native("^-?\\d+$", "")?, &trimmed)? {
         return Ok(Option::<i32>::None);
     }
     to_int32(js_abi::number_parse_int_radix(&trimmed, 10.0))

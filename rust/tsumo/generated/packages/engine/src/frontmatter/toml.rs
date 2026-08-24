@@ -6,13 +6,13 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-pub(crate) fn apply_menu_property(
+pub fn apply_menu_property(
     entry: crate::frontmatter::menu::FrontMatterMenu,
     key_raw: String,
     value_raw: String,
     source_path: Option<String>,
     line: i32,
-) -> rt::TsonicResult<()> {
+) -> Result<(), rt::TsonicError> {
     let key: String = js_string::to_lower_case(&key_raw);
     if key == "weight" {
         {
@@ -24,7 +24,12 @@ pub(crate) fn apply_menu_property(
                 source_path.clone(),
                 Some(line),
             )?;
-            receiver.state.with_mut(|state| state.weight = value)
+            {
+                let dispatch_receiver = receiver;
+                dispatch_receiver
+                    .dispatch
+                    .write_front_matter_menu_weight(value)
+            }
         };
     } else {
         if key == "name" {
@@ -37,7 +42,12 @@ pub(crate) fn apply_menu_property(
                     source_path.clone(),
                     Some(line),
                 )?;
-                receiver_2.state.with_mut(|state| state.name = value_2)
+                {
+                    let dispatch_receiver_2 = receiver_2;
+                    dispatch_receiver_2
+                        .dispatch
+                        .write_front_matter_menu_name(value_2)
+                }
             };
         } else {
             if key == "parent" {
@@ -50,7 +60,12 @@ pub(crate) fn apply_menu_property(
                         source_path.clone(),
                         Some(line),
                     )?;
-                    receiver_3.state.with_mut(|state| state.parent = value_3)
+                    {
+                        let dispatch_receiver_3 = receiver_3;
+                        dispatch_receiver_3
+                            .dispatch
+                            .write_front_matter_menu_parent(value_3)
+                    }
                 };
             } else {
                 if key == "identifier" {
@@ -63,9 +78,12 @@ pub(crate) fn apply_menu_property(
                             source_path.clone(),
                             Some(line),
                         )?;
-                        receiver_4
-                            .state
-                            .with_mut(|state| state.identifier = value_4)
+                        {
+                            let dispatch_receiver_4 = receiver_4;
+                            dispatch_receiver_4
+                                .dispatch
+                                .write_front_matter_menu_identifier(value_4)
+                        }
                     };
                 } else {
                     if key == "pre" {
@@ -78,7 +96,12 @@ pub(crate) fn apply_menu_property(
                                 source_path.clone(),
                                 Some(line),
                             )?;
-                            receiver_5.state.with_mut(|state| state.pre = value_5)
+                            {
+                                let dispatch_receiver_5 = receiver_5;
+                                dispatch_receiver_5
+                                    .dispatch
+                                    .write_front_matter_menu_pre(value_5)
+                            }
                         };
                     } else {
                         if key == "post" {
@@ -92,7 +115,12 @@ pub(crate) fn apply_menu_property(
                                         source_path.clone(),
                                         Some(line),
                                     )?;
-                                receiver_6.state.with_mut(|state| state.post = value_6)
+                                {
+                                    let dispatch_receiver_6 = receiver_6;
+                                    dispatch_receiver_6
+                                        .dispatch
+                                        .write_front_matter_menu_post(value_6)
+                                }
                             };
                         } else {
                             if key == "title" {
@@ -106,15 +134,20 @@ pub(crate) fn apply_menu_property(
                                             source_path.clone(),
                                             Some(line),
                                         )?;
-                                    receiver_7.state.with_mut(|state| state.title = value_7)
+                                    {
+                                        let dispatch_receiver_7 = receiver_7;
+                                        dispatch_receiver_7
+                                            .dispatch
+                                            .write_front_matter_menu_title(value_7)
+                                    }
                                 };
                             } else {
-                                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                                     String::from("TSUMO_FRONTMATTER_MENU_FIELD_UNKNOWN"),
                                     format!(
                                         "{}{}{}",
                                         String::from("Unknown front matter menu field '"),
-                                        rt::source_string(&key_raw),
+                                        key_raw,
                                         String::from("'"),
                                     ),
                                     source_path.clone(),
@@ -134,7 +167,7 @@ pub(crate) fn apply_menu_property(
 pub fn parse_toml_front_matter(
     lines: js_abi::JsArray<String>,
     source_path: Option<String>,
-) -> rt::TsonicResult<crate::frontmatter::data::FrontMatter> {
+) -> Result<crate::frontmatter::data::FrontMatter, rt::TsonicError> {
     let front_matter: crate::frontmatter::data::FrontMatter =
         crate::frontmatter::data::FrontMatter::new();
     let mut table: String = String::from("");
@@ -167,7 +200,7 @@ pub fn parse_toml_front_matter(
             }
             if js_string::starts_with_from_start(&line, "[[") {
                 if !js_string::ends_with_at_end(&line, "]]") {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                    return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                         String::from("TSUMO_FRONTMATTER_TOML_SYNTAX_INVALID"),
                         String::from("Malformed TOML array table"),
                         source_path.clone(),
@@ -189,12 +222,12 @@ pub fn parse_toml_front_matter(
                             "menu.",
                         ))?
                 {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                    return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                         String::from("TSUMO_FRONTMATTER_TOML_TABLE_UNSUPPORTED"),
                         format!(
                             "{}{}{}",
                             String::from("Unsupported front matter TOML array table '"),
-                            rt::source_string(&table),
+                            table,
                             String::from("'"),
                         ),
                         source_path.clone(),
@@ -219,21 +252,19 @@ pub fn parse_toml_front_matter(
                     )?,
                 ));
                 menu_fields = js_abi::JsSet::new();
-                tsonic_rust_runtime::conversions::usize_to_i32(
-                    front_matter
-                        .state
-                        .with(|state| state.menus.clone())
-                        .push_many([match menu_entry.as_ref() {
-                            Some(flow_value_2) => flow_value_2.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        }]),
-                )?;
+                front_matter
+                    .state
+                    .with(|state| state.menus.clone())
+                    .push_many_discard([match menu_entry.as_ref() {
+                        Some(flow_value_2) => flow_value_2.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }]);
                 index += 1;
                 continue 'loop_value;
             }
             if js_string::starts_with_from_start(&line, "[") {
                 if !js_string::ends_with_at_end(&line, "]") {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                    return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                         String::from("TSUMO_FRONTMATTER_TOML_SYNTAX_INVALID"),
                         String::from("Malformed TOML table"),
                         source_path.clone(),
@@ -250,12 +281,12 @@ pub fn parse_toml_front_matter(
                     )?,
                 ));
                 if table != "params" {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                    return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                         String::from("TSUMO_FRONTMATTER_TOML_TABLE_UNSUPPORTED"),
                         format!(
                             "{}{}{}",
                             String::from("Unsupported front matter TOML table '"),
-                            rt::source_string(&table),
+                            table,
                             String::from("'"),
                         ),
                         source_path.clone(),
@@ -264,12 +295,12 @@ pub fn parse_toml_front_matter(
                     )));
                 }
                 if declared_tables.has(&table) {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                    return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                         String::from("TSUMO_FRONTMATTER_FIELD_DUPLICATE"),
                         format!(
                             "{}{}{}",
                             String::from("Front matter table '"),
-                            rt::source_string(&table),
+                            table,
                             String::from("' is declared more than once"),
                         ),
                         source_path.clone(),
@@ -277,7 +308,7 @@ pub fn parse_toml_front_matter(
                         Some(1.0),
                     )));
                 }
-                declared_tables.add(table.clone());
+                declared_tables.add_discard(table.clone());
                 table_fields = js_abi::JsSet::new();
                 menu_entry = Option::<crate::frontmatter::menu::FrontMatterMenu>::None;
                 index += 1;
@@ -288,7 +319,7 @@ pub fn parse_toml_front_matter(
                     &line, "=",
                 ))?;
             if separator <= 0 {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                     String::from("TSUMO_FRONTMATTER_TOML_SYNTAX_INVALID"),
                     String::from("TOML front matter entries require 'key = value' syntax"),
                     source_path.clone(),
@@ -304,12 +335,12 @@ pub fn parse_toml_front_matter(
             let value: String =
                 js_string::trim(&crate::utils::strings::substring_from(&line, separator + 1)?);
             if value.is_empty() {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                     String::from("TSUMO_FRONTMATTER_TOML_SYNTAX_INVALID"),
                     format!(
                         "{}{}{}",
                         String::from("Front matter field '"),
-                        rt::source_string(&key),
+                        key,
                         String::from("' requires a value"),
                     ),
                     source_path.clone(),
@@ -324,12 +355,15 @@ pub fn parse_toml_front_matter(
                     format!(
                         "{}{}{}",
                         String::from("Front matter menu '"),
-                        rt::source_string(&(match menu_entry.as_ref() {
-    Some(flow_value_3) => flow_value_3.clone(),
-    None => unreachable!("checked flow selected a missing optional value"),
-}).state.with(
-                            |state| state.menu.clone()
-                        )),
+                        {
+                            let dispatch_receiver = &match menu_entry.as_ref() {
+                                Some(flow_value_3) => flow_value_3.clone(),
+                                None => {
+                                    unreachable!("checked flow selected a missing optional value")
+                                }
+                            };
+                            dispatch_receiver.dispatch.read_front_matter_menu_menu()
+                        },
                         String::from("'"),
                     ),
                     source_path.clone(),
@@ -354,10 +388,11 @@ pub fn parse_toml_front_matter(
                         source_path.clone(),
                         Some(line_number),
                     )?;
-                    front_matter
-                        .state
-                        .with(|state| state.params.clone())
-                        .set(
+                    {
+                        let operation_input_0 = front_matter
+                            .state
+                            .with(|state| state.params.clone());
+                        operation_input_0.set_discard(
                             key.clone(),
                             crate::frontmatter::scalars::parse_front_matter_param(
                                 value.clone(),
@@ -365,7 +400,8 @@ pub fn parse_toml_front_matter(
                                 source_path.clone(),
                                 Some(line_number),
                             )?,
-                        );
+                        )
+                    };
                 } else {
                     if table.is_empty() {
                         crate::frontmatter::scalars::record_front_matter_field(
@@ -384,12 +420,12 @@ pub fn parse_toml_front_matter(
                             Some(line_number),
                         )?;
                     } else {
-                        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                             String::from("TSUMO_FRONTMATTER_TOML_TABLE_UNSUPPORTED"),
                             format!(
                                 "{}{}{}",
                                 String::from("Unsupported front matter TOML table '"),
-                                rt::source_string(&table),
+                                table,
                                 String::from("'"),
                             ),
                             source_path.clone(),
@@ -402,5 +438,5 @@ pub fn parse_toml_front_matter(
             index += 1;
         }
     }
-    Ok(front_matter.clone())
+    Ok(front_matter)
 }

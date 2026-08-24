@@ -9,6 +9,11 @@ namespace Tsumo.Engine
             get;
             private set;
         } = default(Func<string, string>)!;
+        public static Func<string, string> decodeHtml
+        {
+            get;
+            private set;
+        } = default(Func<string, string>)!;
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
@@ -23,6 +28,7 @@ namespace Tsumo.Engine
                 s = Utils_strings.replaceText(s, "'", "&#39;");
                 return s;
             };
+            decodeHtml = (string input) => System.Net.WebUtility.HtmlDecode(input) ?? "";
             return null;
         }
         public static void __tsonic_module_init()

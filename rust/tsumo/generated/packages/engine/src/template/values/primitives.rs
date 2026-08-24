@@ -2,10 +2,9 @@
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait StringValueDispatch:
-    crate::template::values::base::TemplateValueDispatch
-{
+pub trait StringValueDispatch: crate::template::values::base::TemplateValueDispatch {
     fn downcast_string_value_to_string_value(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn StringValueDispatch>>;
@@ -13,17 +12,27 @@ pub(crate) trait StringValueDispatch:
     fn write_string_value_value(&self, value: String);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct StringValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: String,
+pub struct StringValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: String,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct StringValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn StringValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn StringValueDispatch>,
+}
+
+impl std::fmt::Debug for StringValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("StringValue")
+    }
 }
 
 impl PartialEq for StringValue {
@@ -41,9 +50,10 @@ pub(crate) struct StringValueRoot {
 }
 
 impl StringValue {
-    pub(crate) fn initialize_state(value: String) -> StringValueState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: String) -> StringValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: String = value.clone();
+        let field_value: String = value;
         StringValueState {
             base: base_state,
             value: field_value,
@@ -372,10 +382,9 @@ impl StringValueDispatch for StringValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait BoolValueDispatch:
-    crate::template::values::base::TemplateValueDispatch
-{
+pub trait BoolValueDispatch: crate::template::values::base::TemplateValueDispatch {
     fn downcast_bool_value_to_bool_value(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn BoolValueDispatch>>;
@@ -383,17 +392,27 @@ pub(crate) trait BoolValueDispatch:
     fn write_bool_value_value(&self, value: bool);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct BoolValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: bool,
+pub struct BoolValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: bool,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct BoolValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn BoolValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn BoolValueDispatch>,
+}
+
+impl std::fmt::Debug for BoolValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("BoolValue")
+    }
 }
 
 impl PartialEq for BoolValue {
@@ -411,7 +430,8 @@ pub(crate) struct BoolValueRoot {
 }
 
 impl BoolValue {
-    pub(crate) fn initialize_state(value: bool) -> BoolValueState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: bool) -> BoolValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: bool = value;
         BoolValueState {
@@ -742,10 +762,9 @@ impl BoolValueDispatch for BoolValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait NumberValueDispatch:
-    crate::template::values::base::TemplateValueDispatch
-{
+pub trait NumberValueDispatch: crate::template::values::base::TemplateValueDispatch {
     fn downcast_number_value_to_number_value(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn NumberValueDispatch>>;
@@ -753,17 +772,27 @@ pub(crate) trait NumberValueDispatch:
     fn write_number_value_value(&self, value: i32);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct NumberValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: i32,
+pub struct NumberValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: i32,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct NumberValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn NumberValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn NumberValueDispatch>,
+}
+
+impl std::fmt::Debug for NumberValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("NumberValue")
+    }
 }
 
 impl PartialEq for NumberValue {
@@ -781,7 +810,8 @@ pub(crate) struct NumberValueRoot {
 }
 
 impl NumberValue {
-    pub(crate) fn initialize_state(value: i32) -> NumberValueState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: i32) -> NumberValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: i32 = value;
         NumberValueState {
@@ -1112,10 +1142,9 @@ impl NumberValueDispatch for NumberValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait HtmlValueDispatch:
-    crate::template::values::base::TemplateValueDispatch
-{
+pub trait HtmlValueDispatch: crate::template::values::base::TemplateValueDispatch {
     fn downcast_html_value_to_html_value(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn HtmlValueDispatch>>;
@@ -1123,17 +1152,27 @@ pub(crate) trait HtmlValueDispatch:
     fn write_html_value_value(&self, value: crate::utils::html::HtmlString);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct HtmlValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: crate::utils::html::HtmlString,
+pub struct HtmlValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: crate::utils::html::HtmlString,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct HtmlValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn HtmlValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn HtmlValueDispatch>,
+}
+
+impl std::fmt::Debug for HtmlValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("HtmlValue")
+    }
 }
 
 impl PartialEq for HtmlValue {
@@ -1151,9 +1190,10 @@ pub(crate) struct HtmlValueRoot {
 }
 
 impl HtmlValue {
-    pub(crate) fn initialize_state(value: crate::utils::html::HtmlString) -> HtmlValueState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: crate::utils::html::HtmlString) -> HtmlValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: crate::utils::html::HtmlString = value.clone();
+        let field_value: crate::utils::html::HtmlString = value;
         HtmlValueState {
             base: base_state,
             value: field_value,

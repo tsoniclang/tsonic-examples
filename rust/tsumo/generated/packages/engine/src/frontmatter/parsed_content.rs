@@ -2,23 +2,25 @@
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ParsedContentState {
-    pub(crate) front_matter: crate::frontmatter::data::FrontMatter,
-    pub(crate) body: String,
+pub struct ParsedContentState {
+    pub front_matter: crate::frontmatter::data::FrontMatter,
+    pub body: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ParsedContent {
-    pub(crate) state: rt::ObjectHandle<ParsedContentState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<ParsedContentState>,
 }
 
 impl ParsedContent {
     pub fn new(front_matter: crate::frontmatter::data::FrontMatter, body: String) -> ParsedContent {
-        let field_front_matter: crate::frontmatter::data::FrontMatter = front_matter.clone();
-        let field_body: String = body.clone();
+        let field_front_matter: crate::frontmatter::data::FrontMatter = front_matter;
+        let field_body: String = body;
         ParsedContent {
-            state: rt::ObjectHandle::new(ParsedContentState {
+            state: rt::ObjectRef::new(ParsedContentState {
                 front_matter: field_front_matter,
                 body: field_body,
             }),

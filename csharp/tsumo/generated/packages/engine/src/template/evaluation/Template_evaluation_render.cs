@@ -19,19 +19,20 @@ namespace Tsumo.Engine
             get;
             private set;
         } = default(Func<RenderScope, TemplateValue, TemplateVariableBinding?, TemplateValue, RenderScope>)!;
-        public static Func<Tsonic.CSharp.Js.JSArray<TemplateNode>, System.Text.StringBuilder, RenderScope, TemplateEnvironment, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>, string, string> renderTemplateNodes
+        public static Func<Tsonic.CSharp.Js.JSArray<TemplateNode>, TextBuilder, RenderScope, TemplateEnvironment, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>, string, string> renderTemplateNodes
         {
             get;
             private set;
-        } = default(Func<Tsonic.CSharp.Js.JSArray<TemplateNode>, System.Text.StringBuilder, RenderScope, TemplateEnvironment, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>, string, string>)!;
-        public static Func<TemplateNode, System.Text.StringBuilder, RenderScope, TemplateEnvironment, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>, string, string> renderTemplateNode
+        } = default(Func<Tsonic.CSharp.Js.JSArray<TemplateNode>, TextBuilder, RenderScope, TemplateEnvironment, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>, string, string>)!;
+        public static Func<TemplateNode, TextBuilder, RenderScope, TemplateEnvironment, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>, string, string> renderTemplateNode
         {
             get;
             private set;
-        } = default(Func<TemplateNode, System.Text.StringBuilder, RenderScope, TemplateEnvironment, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>, string, string>)!;
+        } = default(Func<TemplateNode, TextBuilder, RenderScope, TemplateEnvironment, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>, string, string>)!;
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
+            Utils_textBuilder.__tsonic_module_init();
             Diagnostics.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
             Template_nodes.__tsonic_module_init();
@@ -147,7 +148,7 @@ namespace Tsumo.Engine
                 }
                 return scope;
             };
-            renderTemplateNodes = (Tsonic.CSharp.Js.JSArray<TemplateNode> nodes, System.Text.StringBuilder output, RenderScope scope, TemplateEnvironment environment, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> overrides, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> defines, string outputMode) =>
+            renderTemplateNodes = (Tsonic.CSharp.Js.JSArray<TemplateNode> nodes, TextBuilder output, RenderScope scope, TemplateEnvironment environment, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> overrides, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> defines, string outputMode) =>
             {
                 for (int index = 0; index < nodes.length; index++)
                 {
@@ -159,16 +160,16 @@ namespace Tsumo.Engine
                 }
                 return "normal";
             };
-            renderTemplateNode = (TemplateNode node, System.Text.StringBuilder output, RenderScope scope, TemplateEnvironment environment, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> overrides, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> defines, string outputMode) =>
+            renderTemplateNode = (TemplateNode node, TextBuilder output, RenderScope scope, TemplateEnvironment environment, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> overrides, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> defines, string outputMode) =>
             {
                 if (node is TextNode)
                 {
-                    output.Append(((TextNode)node).text);
+                    output.append(((TextNode)node).text);
                     return "normal";
                 }
                 if (node is OutputNode)
                 {
-                    output.Append(Template_runtimeHelpers.stringify(Template_evaluation_evaluate.evaluatePipeline(((OutputNode)node).pipeline, scope, environment, overrides, defines), outputMode == "html" && ((OutputNode)node).escape));
+                    output.append(Template_runtimeHelpers.stringify(Template_evaluation_evaluate.evaluatePipeline(((OutputNode)node).pipeline, scope, environment, overrides, defines), outputMode == "html" && ((OutputNode)node).escape));
                     return "normal";
                 }
                 if (node is AssignmentNode)
@@ -205,7 +206,7 @@ namespace Tsumo.Engine
                             throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_DEFINITION_MISSING", $"Template definition '{((TemplateInvokeNode)node).name}' was not found", scope.templateSourcePath);
                         }
                         Template selected = invokedTemplate.withInheritedDefinitions(defines);
-                        output.Append(outputMode == "html" ? environment.renderTemplate(selected, dot, scope.site, overrides, scope.state) : environment.renderTextTemplate(selected, dot, scope.site, overrides, scope.state));
+                        output.append(outputMode == "html" ? environment.renderTemplate(selected, dot, scope.site, overrides, scope.state) : environment.renderTextTemplate(selected, dot, scope.site, overrides, scope.state));
                         return "normal";
                     }
                     RenderScope invokedScope = new RenderScope(dot, dot, scope.site, scope.env, null, scope.state, scope.templateSourcePath);
@@ -260,8 +261,8 @@ namespace Tsumo.Engine
                     TemplateValue value_2 = Template_evaluation_evaluate.evaluatePipeline(((WithNode)node).expr, scope, environment, overrides, defines);
                     if (value_2 is DeferredTemplateValue)
                     {
-                        DeferredTemplateValue deferred = (DeferredTemplateValue)(DeferredTemplateValue)value_2;
-                        output.Append(environment.registerDeferredTemplate(deferred, ((WithNode)node).body, defines, scope.templateSourcePath, ((WithNode)node).sourceText, ((WithNode)node).sourceSegmentIndex, scope.site, overrides, scope.state));
+                        DeferredTemplateValue deferred = (DeferredTemplateValue)value_2;
+                        output.append(environment.registerDeferredTemplate(deferred, ((WithNode)node).body, defines, scope.templateSourcePath, ((WithNode)node).sourceText, ((WithNode)node).sourceSegmentIndex, scope.site, overrides, scope.state));
                         return "normal";
                     }
                     RenderScope nestedScope = createControlScope(scope, Template_runtimeHelpers.isTruthy(value_2) ? value_2 : scope.dot, ((WithNode)node).binding, value_2);

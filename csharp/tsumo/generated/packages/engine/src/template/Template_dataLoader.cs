@@ -109,7 +109,7 @@ namespace Tsumo.Engine
                     {
                         throw Diagnostics.createTsumoError("TSUMO_DATA_TREE_CONFLICT", $"Data identity '{semanticPath}' conflicts with a data file at '{Tsonic.CSharp.Js.Array.join(Tsonic.CSharp.Js.Array.slice(segments, 0, index + 1), "/")}'", sourcePath);
                     }
-                    current = (DictValue)(DictValue)existing;
+                    current = (DictValue)existing;
                 }
                 string name = segments[segments.length - 1];
                 if (current.value.has(name))

@@ -2,35 +2,98 @@
 
 use crate::program as rt;
 
-pub fn escape_html(input: String) -> rt::TsonicResult<String> {
-    let mut s: String = input.clone();
+pub fn escape_html(input: String) -> Result<String, rt::TsonicError> {
+    let mut s: String = input;
     s = crate::utils::strings::replace_text(&s, String::from("&"), String::from("&amp;"))?;
     s = crate::utils::strings::replace_text(&s, String::from("<"), String::from("&lt;"))?;
     s = crate::utils::strings::replace_text(&s, String::from(">"), String::from("&gt;"))?;
     s = crate::utils::strings::replace_text(&s, String::from("\""), String::from("&quot;"))?;
     s = crate::utils::strings::replace_text(&s, String::from("'"), String::from("&#39;"))?;
-    Ok(s.clone())
+    Ok(s)
 }
 
 pub fn decode_html(input: String) -> String {
     tsumo_platform::decode_html(&input)
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct HtmlStringState {
-    pub(crate) value: String,
+pub trait HtmlStringDispatch {
+    fn downcast_html_string_to_html_string(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn HtmlStringDispatch>>;
+    fn read_html_string_value(&self) -> String;
+    fn write_html_string_value(&self, value: String);
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct HtmlStringState {
+    pub value: String,
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+#[derive(Clone)]
 pub struct HtmlString {
-    pub(crate) state: rt::ObjectHandle<HtmlStringState>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn HtmlStringDispatch>,
+}
+
+impl std::fmt::Debug for HtmlString {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("HtmlString")
+    }
+}
+
+impl PartialEq for HtmlString {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+    }
+}
+
+impl Eq for HtmlString {}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub(crate) struct HtmlStringRoot {
+    identity: rt::ObjectIdentity,
+    state: rt::ObjectHandle<HtmlStringState>,
 }
 
 impl HtmlString {
+    #[doc(hidden)]
+    pub fn initialize_state(value: String) -> HtmlStringState {
+        let field_value: String = value;
+        HtmlStringState { value: field_value }
+    }
+
     pub fn new(value: String) -> HtmlString {
-        let field_value: String = value.clone();
+        let state = HtmlString::initialize_state(value);
+        let identity = rt::ObjectIdentity::new();
+        let root = std::rc::Rc::new(HtmlStringRoot {
+            identity: identity.clone(),
+            state: rt::ObjectHandle::new(state),
+        });
         HtmlString {
-            state: rt::ObjectHandle::new(HtmlStringState { value: field_value }),
+            identity,
+            dispatch: root,
         }
+    }
+}
+
+impl HtmlStringDispatch for HtmlStringRoot {
+    fn downcast_html_string_to_html_string(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn HtmlStringDispatch>> {
+        Some(self)
+    }
+
+    fn read_html_string_value(&self) -> String {
+        self.state.with(|state| state.value.clone())
+    }
+
+    fn write_html_string_value(&self, value: String) {
+        self.state.with_mut(|state| state.value = value);
     }
 }

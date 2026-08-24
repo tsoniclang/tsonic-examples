@@ -10,8 +10,8 @@ pub fn resolve_path(
     value: crate::template::values::base::TemplateValue,
     segments: js_abi::JsArray<String>,
     scope: crate::template::scope::RenderScope,
-) -> rt::TsonicResult<crate::template::values::base::TemplateValue> {
-    let mut cur: crate::template::values::base::TemplateValue = value.clone();
+) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
+    let mut cur: crate::template::values::base::TemplateValue = value;
     {
         let mut i: f64 = 0.0;
         'loop_value: while i < (tsonic_rust_runtime::conversions::usize_to_i32(segments.len())? as f64) {
@@ -25,8 +25,9 @@ pub fn resolve_path(
                 .downcast_template_value_to_nil_value()
                 .is_some()
             {
-                return Ok(crate::template::runtime_helpers::NIL
-                    .with(|module_binding| module_binding.load()));
+                return Ok(crate::template::runtime_helpers::NIL.with(|module_binding| {
+                    module_binding.load()
+                }));
             }
             if cur
                 .dispatch
@@ -51,9 +52,10 @@ pub fn resolve_path(
                 let k: String = js_string::to_lower_case(&seg);
                 if k == "title" {
                     cur = {
-                        let upcast_value = crate::template::values::primitives::StringValue::new(
-                            page.state.with(|state| state.title.clone()),
-                        );
+                        let upcast_value = crate::template::values::primitives::StringValue::new({
+                            let dispatch_receiver_2 = &page;
+                            dispatch_receiver_2.dispatch.read_page_context_title()
+                        });
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value.identity.clone(),
                             dispatch: upcast_value.dispatch.clone(),
@@ -63,9 +65,10 @@ pub fn resolve_path(
                     if k == "content" {
                         cur = {
                             let upcast_value_2 =
-                                crate::template::values::primitives::HtmlValue::new(
-                                    page.state.with(|state| state.content.clone()),
-                                );
+                                crate::template::values::primitives::HtmlValue::new({
+                                    let dispatch_receiver_3 = &page;
+                                    dispatch_receiver_3.dispatch.read_page_context_content()
+                                });
                             crate::template::values::base::TemplateValue {
                                 identity: upcast_value_2.identity.clone(),
                                 dispatch: upcast_value_2.dispatch.clone(),
@@ -75,9 +78,10 @@ pub fn resolve_path(
                         if k == "summary" {
                             cur = {
                                 let upcast_value_3 =
-                                    crate::template::values::primitives::HtmlValue::new(
-                                        page.state.with(|state| state.summary.clone()),
-                                    );
+                                    crate::template::values::primitives::HtmlValue::new({
+                                        let dispatch_receiver_4 = &page;
+                                        dispatch_receiver_4.dispatch.read_page_context_summary()
+                                    });
                                 crate::template::values::base::TemplateValue {
                                     identity: upcast_value_3.identity.clone(),
                                     dispatch: upcast_value_3.dispatch.clone(),
@@ -87,9 +91,10 @@ pub fn resolve_path(
                             if k == "date" || k == "publishdate" {
                                 cur = {
                                     let upcast_value_4 =
-                                        crate::template::values::date::DateValue::new(
-                                            page.state.with(|state| state.date.clone()),
-                                        );
+                                        crate::template::values::date::DateValue::new({
+                                            let dispatch_receiver_5 = &page;
+                                            dispatch_receiver_5.dispatch.read_page_context_date()
+                                        });
                                     crate::template::values::base::TemplateValue {
                                         identity: upcast_value_4.identity.clone(),
                                         dispatch: upcast_value_4.dispatch.clone(),
@@ -99,9 +104,12 @@ pub fn resolve_path(
                                 if k == "lastmod" {
                                     cur = {
                                         let upcast_value_5 =
-                                            crate::template::values::date::DateValue::new(
-                                                page.state.with(|state| state.lastmod.clone()),
-                                            );
+                                            crate::template::values::date::DateValue::new({
+                                                let dispatch_receiver_6 = &page;
+                                                dispatch_receiver_6
+                                                    .dispatch
+                                                    .read_page_context_lastmod()
+                                            });
                                         crate::template::values::base::TemplateValue {
                                             identity: upcast_value_5.identity.clone(),
                                             dispatch: upcast_value_5.dispatch.clone(),
@@ -112,7 +120,12 @@ pub fn resolve_path(
                                         cur = {
                                             let upcast_value_6 =
                                                 crate::template::values::primitives::StringValue::new(
-                                                    page.state.with(|state| state.plain.clone()),
+                                                    {
+                                                        let dispatch_receiver_7 = &page;
+                                                        dispatch_receiver_7
+                                                            .dispatch
+                                                            .read_page_context_plain()
+                                                    },
                                                 );
                                             crate::template::values::base::TemplateValue {
                                                 identity: upcast_value_6.identity.clone(),
@@ -124,9 +137,12 @@ pub fn resolve_path(
                                             cur = {
                                                 let upcast_value_7 =
                                                     crate::template::values::primitives::HtmlValue::new(
-                                                        page.state.with(|state| {
-                                                            state.table_of_contents.clone()
-                                                        }),
+                                                        {
+                                                            let dispatch_receiver_8 = &page;
+                                                            dispatch_receiver_8
+                                                                .dispatch
+                                                                .read_page_context_table_of_contents()
+                                                        },
                                                     );
                                                 crate::template::values::base::TemplateValue {
                                                     identity: upcast_value_7.identity.clone(),
@@ -138,7 +154,12 @@ pub fn resolve_path(
                                                 cur = {
                                                     let upcast_value_8 =
                                                         crate::template::values::primitives::BoolValue::new(
-                                                            page.state.with(|state| state.draft),
+                                                            {
+                                                                let dispatch_receiver_9 = &page;
+                                                                dispatch_receiver_9
+                                                                    .dispatch
+                                                                    .read_page_context_draft()
+                                                            },
                                                         );
                                                     crate::template::values::base::TemplateValue {
                                                         identity: upcast_value_8.identity.clone(),
@@ -168,9 +189,13 @@ pub fn resolve_path(
                                                         cur = {
                                                             let upcast_value_10 =
                                                                 crate::template::values::primitives::StringValue::new(
-                                                                    page.state.with(|state| {
-                                                                        state.kind.clone()
-                                                                    }),
+                                                                    {
+                                                                        let dispatch_receiver_10 =
+                                                                            &page;
+                                                                        dispatch_receiver_10
+                                                                            .dispatch
+                                                                            .read_page_context_kind()
+                                                                    },
                                                                 );
                                                             crate::template::values::base::TemplateValue {
                                                                 identity: upcast_value_10
@@ -186,9 +211,13 @@ pub fn resolve_path(
                                                             cur = {
                                                                 let upcast_value_11 =
                                                                     crate::template::values::primitives::StringValue::new(
-                                                                        page.state.with(|state| {
-                                                                            state.section.clone()
-                                                                        }),
+                                                                        {
+                                                                            let dispatch_receiver_11 =
+                                                                                &page;
+                                                                            dispatch_receiver_11
+                                                                                .dispatch
+                                                                                .read_page_context_section()
+                                                                        },
                                                                     );
                                                                 crate::template::values::base::TemplateValue {
                                                                     identity: upcast_value_11
@@ -204,13 +233,13 @@ pub fn resolve_path(
                                                                 cur = {
                                                                     let upcast_value_12 =
                                                                         crate::template::values::primitives::StringValue::new(
-                                                                            page
-                                                                                .state
-                                                                                .with(|state| {
-                                                                                    state
-                                                                                        .r#type
-                                                                                        .clone()
-                                                                                }),
+                                                                            {
+                                                                                let dispatch_receiver_12 =
+                                                                                    &page;
+                                                                                dispatch_receiver_12
+                                                                                    .dispatch
+                                                                                    .read_page_context_type()
+                                                                            },
                                                                         );
                                                                     crate::template::values::base::TemplateValue {
                                                                         identity: upcast_value_12
@@ -226,13 +255,13 @@ pub fn resolve_path(
                                                                     cur = {
                                                                         let upcast_value_13 =
                                                                             crate::template::values::primitives::StringValue::new(
-                                                                                page
-                                                                                    .state
-                                                                                    .with(|state| {
-                                                                                        state
-                                                                                            .slug
-                                                                                            .clone()
-                                                                                    }),
+                                                                                {
+                                                                                    let dispatch_receiver_13 =
+                                                                                        &page;
+                                                                                    dispatch_receiver_13
+                                                                                        .dispatch
+                                                                                        .read_page_context_slug()
+                                                                                },
                                                                             );
                                                                         crate::template::values::base::TemplateValue {
                                                                             identity: upcast_value_13
@@ -248,15 +277,13 @@ pub fn resolve_path(
                                                                         cur = {
                                                                             let upcast_value_14 =
                                                                                 crate::template::values::primitives::StringValue::new(
-                                                                                    page
-                                                                                        .state
-                                                                                        .with(
-                                                                                            |state| {
-                                                                                                state
-                                                                                                    .rel_permalink
-                                                                                                    .clone()
-                                                                                            },
-                                                                                        ),
+                                                                                    {
+                                                                                        let dispatch_receiver_14 =
+                                                                                            &page;
+                                                                                        dispatch_receiver_14
+                                                                                            .dispatch
+                                                                                            .read_page_context_rel_permalink()
+                                                                                    },
                                                                                 );
                                                                             crate::template::values::base::TemplateValue {
                                                                                 identity: upcast_value_14
@@ -271,13 +298,14 @@ pub fn resolve_path(
                                                                         if k == "layout" {
                                                                             let page_layout: Option<
                                                                                 String,
-                                                                            > = page
-                                                                                .state
-                                                                                .with(|state| {
-                                                                                    state
-                                                                                        .layout
-                                                                                        .clone()
-                                                                                });
+                                                                            > =
+                                                                                {
+                                                                                    let dispatch_receiver_15 =
+                                                                                        &page;
+                                                                                    dispatch_receiver_15
+                                                                                        .dispatch
+                                                                                        .read_page_context_layout()
+                                                                                };
                                                                             cur = {
                                                                                 let conditional_test =
                                                                                     page_layout
@@ -332,13 +360,14 @@ pub fn resolve_path(
                                                                             if k == "file" {
                                                                                 let page_file: Option<
                                                                                     crate::models::page_file::PageFile,
-                                                                                > = page
-                                                                                    .state
-                                                                                    .with(|state| {
-                                                                                        state
-                                                                                            .file
-                                                                                            .clone()
-                                                                                    });
+                                                                                > =
+                                                                                    {
+                                                                                        let dispatch_receiver_16 =
+                                                                                            &page;
+                                                                                        dispatch_receiver_16
+                                                                                            .dispatch
+                                                                                            .read_page_context_file()
+                                                                                    };
                                                                                 cur = if page_file
                                                                                     .is_some()
                                                                                 {
@@ -377,15 +406,12 @@ pub fn resolve_path(
                                                                                     cur = {
                                                                                         let upcast_value_17 =
                                                                                             crate::template::values::site::LanguageValue::new(
-                                                                                                page
-                                                                                                    .state
-                                                                                                    .with(
-                                                                                                        |state| {
-                                                                                                            state
-                                                                                                                .language
-                                                                                                                .clone()
-                                                                                                        },
-                                                                                                    ),
+                                                                                                {
+                                                                                                    let dispatch_receiver_17 = &page;
+                                                                                                    dispatch_receiver_17
+                                                                                                        .dispatch
+                                                                                                        .read_page_context_language()
+                                                                                                },
                                                                                             );
                                                                                         crate::template::values::base::TemplateValue {
                                                                                             identity: upcast_value_17
@@ -403,15 +429,12 @@ pub fn resolve_path(
                                                                                         cur = {
                                                                                             let upcast_value_18 =
                                                                                                 crate::template::values::page::PageArrayValue::new(
-                                                                                                    page
-                                                                                                        .state
-                                                                                                        .with(
-                                                                                                            |state| {
-                                                                                                                state
-                                                                                                                    .translations
-                                                                                                                    .clone()
-                                                                                                            },
-                                                                                                        ),
+                                                                                                    {
+                                                                                                        let dispatch_receiver_18 = &page;
+                                                                                                        dispatch_receiver_18
+                                                                                                            .dispatch
+                                                                                                            .read_page_context_translations()
+                                                                                                    },
                                                                                                 );
                                                                                             crate::template::values::base::TemplateValue {
                                                                                                 identity: upcast_value_18
@@ -431,13 +454,9 @@ pub fn resolve_path(
                                                                                             cur = {
                                                                                                 let upcast_value_19 =
                                                                                                     crate::template::values::scratch::ScratchValue::new(
-                                                                                                        crate::template::evaluation::property_support::GET_PAGE_STORE
-                                                                                                            .with(
-                                                                                                                |module_binding| {
-                                                                                                                    module_binding.load()
-                                                                                                                },
-                                                                                                            )
-                                                                                                            .call((page.clone(),))?,
+                                                                                                        crate::template::evaluation::property_support::get_page_store(
+                                                                                                            page.clone(),
+                                                                                                        ),
                                                                                                     );
                                                                                                 crate::template::values::base::TemplateValue {
                                                                                                     identity: upcast_value_19
@@ -456,15 +475,12 @@ pub fn resolve_path(
                                                                                                     {
                                                                                                         let upcast_value_20 =
                                                                                                             crate::template::values::site::SitesValue::new(
-                                                                                                                scope
-                                                                                                                    .state
-                                                                                                                    .with(
-                                                                                                                        |state| {
-                                                                                                                            state
-                                                                                                                                .site
-                                                                                                                                .clone()
-                                                                                                                        },
-                                                                                                                    ),
+                                                                                                                {
+                                                                                                                    let dispatch_receiver_19 = &scope;
+                                                                                                                    dispatch_receiver_19
+                                                                                                                        .dispatch
+                                                                                                                        .read_render_scope_site()
+                                                                                                                },
                                                                                                             );
                                                                                                         crate::template::values::base::TemplateValue {
                                                                                                             identity: upcast_value_20
@@ -488,15 +504,12 @@ pub fn resolve_path(
                                                                                                         let page_parent: Option<
                                                                                                             crate::models::page_context::PageContext,
                                                                                                         > =
-                                                                                                            page
-                                                                                                                .state
-                                                                                                                .with(
-                                                                                                                    |state| {
-                                                                                                                        state
-                                                                                                                            .parent
-                                                                                                                            .clone()
-                                                                                                                    },
-                                                                                                                );
+                                                                                                            {
+                                                                                                                let dispatch_receiver_20 = &page;
+                                                                                                                dispatch_receiver_20
+                                                                                                                    .dispatch
+                                                                                                                    .read_page_context_parent()
+                                                                                                            };
                                                                                                         cur =
                                                                                                             if page_parent.is_some() {
                                                                                                                 let upcast_value_21 =
@@ -537,15 +550,12 @@ pub fn resolve_path(
                                                                                                                 {
                                                                                                                     let upcast_value_22 =
                                                                                                                         crate::template::values::page::PageArrayValue::new(
-                                                                                                                            page
-                                                                                                                                .state
-                                                                                                                                .with(
-                                                                                                                                    |state| {
-                                                                                                                                        state
-                                                                                                                                            .ancestors
-                                                                                                                                            .clone()
-                                                                                                                                    },
-                                                                                                                                ),
+                                                                                                                            {
+                                                                                                                                let dispatch_receiver_21 = &page;
+                                                                                                                                dispatch_receiver_21
+                                                                                                                                    .dispatch
+                                                                                                                                    .read_page_context_ancestors()
+                                                                                                                            },
                                                                                                                         );
                                                                                                                     crate::template::values::base::TemplateValue {
                                                                                                                         identity: upcast_value_22
@@ -561,66 +571,51 @@ pub fn resolve_path(
                                                                                                                 == "permalink"
                                                                                                             {
                                                                                                                 let rel: String =
-                                                                                                                    if js_string::starts_with_from_start(
-                                                                                                                        &page
-                                                                                                                            .state
-                                                                                                                            .with(
-                                                                                                                                |state| {
-                                                                                                                                    state
-                                                                                                                                        .rel_permalink
-                                                                                                                                        .clone()
-                                                                                                                                },
-                                                                                                                            ),
-                                                                                                                        "/",
-                                                                                                                    )
                                                                                                                     {
-                                                                                                                        crate::utils::strings::substring_from(
-                                                                                                                            &page
-                                                                                                                                .state
-                                                                                                                                .with(
-                                                                                                                                    |state| {
-                                                                                                                                        state
-                                                                                                                                            .rel_permalink
-                                                                                                                                            .clone()
-                                                                                                                                    },
-                                                                                                                                ),
-                                                                                                                            1,
-                                                                                                                        )?
-                                                                                                                    } else {
-                                                                                                                        page
-                                                                                                                            .state
-                                                                                                                            .with(
-                                                                                                                                |state| {
-                                                                                                                                    state
-                                                                                                                                        .rel_permalink
-                                                                                                                                        .clone()
+                                                                                                                        let conditional_test_2 =
+                                                                                                                            js_string::starts_with_from_start(
+                                                                                                                                &{
+                                                                                                                                    let dispatch_receiver_22 = &page;
+                                                                                                                                    dispatch_receiver_22
+                                                                                                                                        .dispatch
+                                                                                                                                        .read_page_context_rel_permalink()
                                                                                                                                 },
-                                                                                                                            )
+                                                                                                                                "/",
+                                                                                                                            );
+                                                                                                                        if conditional_test_2 {
+                                                                                                                            crate::utils::strings::substring_from(
+                                                                                                                                &{
+                                                                                                                                    let dispatch_receiver_23 = &page;
+                                                                                                                                    dispatch_receiver_23
+                                                                                                                                        .dispatch
+                                                                                                                                        .read_page_context_rel_permalink()
+                                                                                                                                },
+                                                                                                                                1,
+                                                                                                                            )?
+                                                                                                                        } else {
+                                                                                                                            let dispatch_receiver_24 = &page;
+                                                                                                                            dispatch_receiver_24
+                                                                                                                                .dispatch
+                                                                                                                                .read_page_context_rel_permalink()
+                                                                                                                        }
                                                                                                                     };
                                                                                                                 cur =
                                                                                                                     {
                                                                                                                         let upcast_value_23 =
                                                                                                                             crate::template::values::primitives::StringValue::new(format!(
                                                                                                                                 "{}{}",
-                                                                                                                                crate::utils::text::ensure_trailing_slash(
-                                                                                                                                    scope
-                                                                                                                                        .state
-                                                                                                                                        .with(
-                                                                                                                                            |state| {
-                                                                                                                                                state
-                                                                                                                                                    .site
-                                                                                                                                                    .clone()
-                                                                                                                                            },
-                                                                                                                                        )
-                                                                                                                                        .state
-                                                                                                                                        .with(
-                                                                                                                                            |state| {
-                                                                                                                                                state
-                                                                                                                                                    .base_url
-                                                                                                                                                    .clone()
-                                                                                                                                            },
-                                                                                                                                        ),
-                                                                                                                                ),
+                                                                                                                                crate::utils::text::ensure_trailing_slash({
+                                                                                                                                    let dispatch_receiver_26 =
+                                                                                                                                        &{
+                                                                                                                                            let dispatch_receiver_25 = &scope;
+                                                                                                                                            dispatch_receiver_25
+                                                                                                                                                .dispatch
+                                                                                                                                                .read_render_scope_site()
+                                                                                                                                        };
+                                                                                                                                    dispatch_receiver_26
+                                                                                                                                        .dispatch
+                                                                                                                                        .read_site_context_base_url()
+                                                                                                                                },),
                                                                                                                                 rel,
                                                                                                                             ));
                                                                                                                         crate::template::values::base::TemplateValue {
@@ -640,15 +635,12 @@ pub fn resolve_path(
                                                                                                                         {
                                                                                                                             let upcast_value_24 =
                                                                                                                                 crate::template::values::site::SiteValue::new(
-                                                                                                                                    page
-                                                                                                                                        .state
-                                                                                                                                        .with(
-                                                                                                                                            |state| {
-                                                                                                                                                state
-                                                                                                                                                    .site
-                                                                                                                                                    .clone()
-                                                                                                                                            },
-                                                                                                                                        ),
+                                                                                                                                    {
+                                                                                                                                        let dispatch_receiver_27 = &page;
+                                                                                                                                        dispatch_receiver_27
+                                                                                                                                            .dispatch
+                                                                                                                                            .read_page_context_site()
+                                                                                                                                    },
                                                                                                                                 );
                                                                                                                             crate::template::values::base::TemplateValue {
                                                                                                                                 identity: upcast_value_24
@@ -667,17 +659,14 @@ pub fn resolve_path(
                                                                                                                             crate::resources::manager::ResourceManager,
                                                                                                                         > =
                                                                                                                             {
-                                                                                                                                let dispatch_receiver_2 =
-                                                                                                                                    scope
-                                                                                                                                        .state
-                                                                                                                                        .with(
-                                                                                                                                            |state| {
-                                                                                                                                                state
-                                                                                                                                                    .env
-                                                                                                                                                    .clone()
-                                                                                                                                            },
-                                                                                                                                        );
-                                                                                                                                dispatch_receiver_2
+                                                                                                                                let dispatch_receiver_29 =
+                                                                                                                                    {
+                                                                                                                                        let dispatch_receiver_28 = &scope;
+                                                                                                                                        dispatch_receiver_28
+                                                                                                                                            .dispatch
+                                                                                                                                            .read_render_scope_env()
+                                                                                                                                    };
+                                                                                                                                dispatch_receiver_29
                                                                                                                                     .dispatch
                                                                                                                                     .clone()
                                                                                                                                     .dispatch_template_environment_get_resource_manager()
@@ -723,15 +712,12 @@ pub fn resolve_path(
                                                                                                                                 {
                                                                                                                                     let upcast_value_26 =
                                                                                                                                         crate::template::values::page::PageArrayValue::new(
-                                                                                                                                            page
-                                                                                                                                                .state
-                                                                                                                                                .with(
-                                                                                                                                                    |state| {
-                                                                                                                                                        state
-                                                                                                                                                            .pages
-                                                                                                                                                            .clone()
-                                                                                                                                                    },
-                                                                                                                                                ),
+                                                                                                                                            {
+                                                                                                                                                let dispatch_receiver_30 = &page;
+                                                                                                                                                dispatch_receiver_30
+                                                                                                                                                    .dispatch
+                                                                                                                                                    .read_page_context_pages()
+                                                                                                                                            },
                                                                                                                                         );
                                                                                                                                     crate::template::values::base::TemplateValue {
                                                                                                                                         identity: upcast_value_26
@@ -751,15 +737,12 @@ pub fn resolve_path(
                                                                                                                                         let upcast_value_27 =
                                                                                                                                             crate::template::values::page::PageArrayValue::new(
                                                                                                                                                 crate::template::evaluation::page_semantics::pages_with_kind(
-                                                                                                                                                    page
-                                                                                                                                                        .state
-                                                                                                                                                        .with(
-                                                                                                                                                            |state| {
-                                                                                                                                                                state
-                                                                                                                                                                    .pages
-                                                                                                                                                                    .clone()
-                                                                                                                                                            },
-                                                                                                                                                        ),
+                                                                                                                                                    {
+                                                                                                                                                        let dispatch_receiver_31 = &page;
+                                                                                                                                                        dispatch_receiver_31
+                                                                                                                                                            .dispatch
+                                                                                                                                                            .read_page_context_pages()
+                                                                                                                                                    },
                                                                                                                                                     String::from("page"),
                                                                                                                                                 )?,
                                                                                                                                             );
@@ -781,15 +764,12 @@ pub fn resolve_path(
                                                                                                                                             let upcast_value_28 =
                                                                                                                                                 crate::template::values::page::PageArrayValue::new(
                                                                                                                                                     crate::template::evaluation::page_semantics::pages_with_kind(
-                                                                                                                                                        page
-                                                                                                                                                            .state
-                                                                                                                                                            .with(
-                                                                                                                                                                |state| {
-                                                                                                                                                                    state
-                                                                                                                                                                        .pages
-                                                                                                                                                                        .clone()
-                                                                                                                                                                },
-                                                                                                                                                            ),
+                                                                                                                                                        {
+                                                                                                                                                            let dispatch_receiver_32 = &page;
+                                                                                                                                                            dispatch_receiver_32
+                                                                                                                                                                .dispatch
+                                                                                                                                                                .read_page_context_pages()
+                                                                                                                                                        },
                                                                                                                                                         String::from("section"),
                                                                                                                                                     )?,
                                                                                                                                                 );
@@ -829,15 +809,12 @@ pub fn resolve_path(
                                                                                                                                                 {
                                                                                                                                                     let upcast_value_30 =
                                                                                                                                                         crate::template::values::primitives::StringValue::new(
-                                                                                                                                                            page
-                                                                                                                                                                .state
-                                                                                                                                                                .with(
-                                                                                                                                                                    |state| {
-                                                                                                                                                                        state
-                                                                                                                                                                            .description
-                                                                                                                                                                            .clone()
-                                                                                                                                                                    },
-                                                                                                                                                                ),
+                                                                                                                                                            {
+                                                                                                                                                                let dispatch_receiver_33 = &page;
+                                                                                                                                                                dispatch_receiver_33
+                                                                                                                                                                    .dispatch
+                                                                                                                                                                    .read_page_context_description()
+                                                                                                                                                            },
                                                                                                                                                         );
                                                                                                                                                     crate::template::values::base::TemplateValue {
                                                                                                                                                         identity: upcast_value_30
@@ -856,15 +833,12 @@ pub fn resolve_path(
                                                                                                                                                     {
                                                                                                                                                         let upcast_value_31 =
                                                                                                                                                             crate::template::values::arrays::StringArrayValue::new(
-                                                                                                                                                                page
-                                                                                                                                                                    .state
-                                                                                                                                                                    .with(
-                                                                                                                                                                        |state| {
-                                                                                                                                                                            state
-                                                                                                                                                                                .tags
-                                                                                                                                                                                .clone()
-                                                                                                                                                                        },
-                                                                                                                                                                    ),
+                                                                                                                                                                {
+                                                                                                                                                                    let dispatch_receiver_34 = &page;
+                                                                                                                                                                    dispatch_receiver_34
+                                                                                                                                                                        .dispatch
+                                                                                                                                                                        .read_page_context_tags()
+                                                                                                                                                                },
                                                                                                                                                             );
                                                                                                                                                         crate::template::values::base::TemplateValue {
                                                                                                                                                             identity: upcast_value_31
@@ -883,15 +857,12 @@ pub fn resolve_path(
                                                                                                                                                         {
                                                                                                                                                             let upcast_value_32 =
                                                                                                                                                                 crate::template::values::arrays::StringArrayValue::new(
-                                                                                                                                                                    page
-                                                                                                                                                                        .state
-                                                                                                                                                                        .with(
-                                                                                                                                                                            |state| {
-                                                                                                                                                                                state
-                                                                                                                                                                                    .categories
-                                                                                                                                                                                    .clone()
-                                                                                                                                                                            },
-                                                                                                                                                                        ),
+                                                                                                                                                                    {
+                                                                                                                                                                        let dispatch_receiver_35 = &page;
+                                                                                                                                                                        dispatch_receiver_35
+                                                                                                                                                                            .dispatch
+                                                                                                                                                                            .read_page_context_categories()
+                                                                                                                                                                    },
                                                                                                                                                                 );
                                                                                                                                                             crate::template::values::base::TemplateValue {
                                                                                                                                                                 identity: upcast_value_32
@@ -909,21 +880,14 @@ pub fn resolve_path(
                                                                                                                                                         cur =
                                                                                                                                                             {
                                                                                                                                                                 let upcast_value_33 =
-                                                                                                                                                                    crate::template::evaluation::property_support::WRAP_PARAM_DICT
-                                                                                                                                                                        .with(
-                                                                                                                                                                            |module_binding| {
-                                                                                                                                                                                module_binding.load()
-                                                                                                                                                                            },
-                                                                                                                                                                        )
-                                                                                                                                                                        .call((page
-                                                                                                                                                                            .state
-                                                                                                                                                                            .with(
-                                                                                                                                                                                |state| {
-                                                                                                                                                                                    state
-                                                                                                                                                                                        .params
-                                                                                                                                                                                        .clone()
-                                                                                                                                                                                },
-                                                                                                                                                                            ),))?;
+                                                                                                                                                                    crate::template::evaluation::property_support::wrap_param_dict(
+                                                                                                                                                                        {
+                                                                                                                                                                            let dispatch_receiver_36 = &page;
+                                                                                                                                                                            dispatch_receiver_36
+                                                                                                                                                                                .dispatch
+                                                                                                                                                                                .read_page_context_params()
+                                                                                                                                                                        },
+                                                                                                                                                                    );
                                                                                                                                                                 crate::template::values::base::TemplateValue {
                                                                                                                                                                     identity: upcast_value_33
                                                                                                                                                                         .identity
@@ -941,16 +905,12 @@ pub fn resolve_path(
                                                                                                                                                                 {
                                                                                                                                                                     let upcast_value_34 =
                                                                                                                                                                         crate::template::values::primitives::BoolValue::new(
-                                                                                                                                                                            page
-                                                                                                                                                                                .state
-                                                                                                                                                                                .with(
-                                                                                                                                                                                    |state| {
-                                                                                                                                                                                        state
-                                                                                                                                                                                            .kind
-                                                                                                                                                                                            .clone()
-                                                                                                                                                                                    },
-                                                                                                                                                                                )
-                                                                                                                                                                                == "home",
+                                                                                                                                                                            {
+                                                                                                                                                                                let dispatch_receiver_37 = &page;
+                                                                                                                                                                                dispatch_receiver_37
+                                                                                                                                                                                    .dispatch
+                                                                                                                                                                                    .read_page_context_kind()
+                                                                                                                                                                            } == "home",
                                                                                                                                                                         );
                                                                                                                                                                     crate::template::values::base::TemplateValue {
                                                                                                                                                                         identity: upcast_value_34
@@ -969,16 +929,12 @@ pub fn resolve_path(
                                                                                                                                                                     {
                                                                                                                                                                         let upcast_value_35 =
                                                                                                                                                                             crate::template::values::primitives::BoolValue::new(
-                                                                                                                                                                                page
-                                                                                                                                                                                    .state
-                                                                                                                                                                                    .with(
-                                                                                                                                                                                        |state| {
-                                                                                                                                                                                            state
-                                                                                                                                                                                                .kind
-                                                                                                                                                                                                .clone()
-                                                                                                                                                                                        },
-                                                                                                                                                                                    )
-                                                                                                                                                                                    == "page",
+                                                                                                                                                                                {
+                                                                                                                                                                                    let dispatch_receiver_38 = &page;
+                                                                                                                                                                                    dispatch_receiver_38
+                                                                                                                                                                                        .dispatch
+                                                                                                                                                                                        .read_page_context_kind()
+                                                                                                                                                                                } == "page",
                                                                                                                                                                             );
                                                                                                                                                                         crate::template::values::base::TemplateValue {
                                                                                                                                                                             identity: upcast_value_35
@@ -997,16 +953,12 @@ pub fn resolve_path(
                                                                                                                                                                         {
                                                                                                                                                                             let upcast_value_36 =
                                                                                                                                                                                 crate::template::values::primitives::BoolValue::new(
-                                                                                                                                                                                    page
-                                                                                                                                                                                        .state
-                                                                                                                                                                                        .with(
-                                                                                                                                                                                            |state| {
-                                                                                                                                                                                                state
-                                                                                                                                                                                                    .kind
-                                                                                                                                                                                                    .clone()
-                                                                                                                                                                                            },
-                                                                                                                                                                                        )
-                                                                                                                                                                                        == "section",
+                                                                                                                                                                                    {
+                                                                                                                                                                                        let dispatch_receiver_39 = &page;
+                                                                                                                                                                                        dispatch_receiver_39
+                                                                                                                                                                                            .dispatch
+                                                                                                                                                                                            .read_page_context_kind()
+                                                                                                                                                                                    } == "section",
                                                                                                                                                                                 );
                                                                                                                                                                             crate::template::values::base::TemplateValue {
                                                                                                                                                                                 identity: upcast_value_36
@@ -1025,16 +977,12 @@ pub fn resolve_path(
                                                                                                                                                                             {
                                                                                                                                                                                 let upcast_value_37 =
                                                                                                                                                                                     crate::template::values::primitives::BoolValue::new(
-                                                                                                                                                                                        page
-                                                                                                                                                                                            .state
-                                                                                                                                                                                            .with(
-                                                                                                                                                                                                |state| {
-                                                                                                                                                                                                    state
-                                                                                                                                                                                                        .kind
-                                                                                                                                                                                                        .clone()
-                                                                                                                                                                                                },
-                                                                                                                                                                                            )
-                                                                                                                                                                                            == "taxonomy",
+                                                                                                                                                                                        {
+                                                                                                                                                                                            let dispatch_receiver_40 = &page;
+                                                                                                                                                                                            dispatch_receiver_40
+                                                                                                                                                                                                .dispatch
+                                                                                                                                                                                                .read_page_context_kind()
+                                                                                                                                                                                        } == "taxonomy",
                                                                                                                                                                                     );
                                                                                                                                                                                 crate::template::values::base::TemplateValue {
                                                                                                                                                                                     identity: upcast_value_37
@@ -1053,16 +1001,12 @@ pub fn resolve_path(
                                                                                                                                                                                 {
                                                                                                                                                                                     let upcast_value_38 =
                                                                                                                                                                                         crate::template::values::primitives::BoolValue::new(
-                                                                                                                                                                                            page
-                                                                                                                                                                                                .state
-                                                                                                                                                                                                .with(
-                                                                                                                                                                                                    |state| {
-                                                                                                                                                                                                        state
-                                                                                                                                                                                                            .kind
-                                                                                                                                                                                                            .clone()
-                                                                                                                                                                                                    },
-                                                                                                                                                                                                )
-                                                                                                                                                                                                == "term",
+                                                                                                                                                                                            {
+                                                                                                                                                                                                let dispatch_receiver_41 = &page;
+                                                                                                                                                                                                dispatch_receiver_41
+                                                                                                                                                                                                    .dispatch
+                                                                                                                                                                                                    .read_page_context_kind()
+                                                                                                                                                                                            } == "term",
                                                                                                                                                                                         );
                                                                                                                                                                                     crate::template::values::base::TemplateValue {
                                                                                                                                                                                         identity: upcast_value_38
@@ -1081,16 +1025,12 @@ pub fn resolve_path(
                                                                                                                                                                                     {
                                                                                                                                                                                         let upcast_value_39 =
                                                                                                                                                                                             crate::template::values::primitives::BoolValue::new(
-                                                                                                                                                                                                page
-                                                                                                                                                                                                    .state
-                                                                                                                                                                                                    .with(
-                                                                                                                                                                                                        |state| {
-                                                                                                                                                                                                            state
-                                                                                                                                                                                                                .kind
-                                                                                                                                                                                                                .clone()
-                                                                                                                                                                                                        },
-                                                                                                                                                                                                    )
-                                                                                                                                                                                                    != "page",
+                                                                                                                                                                                                {
+                                                                                                                                                                                                    let dispatch_receiver_42 = &page;
+                                                                                                                                                                                                    dispatch_receiver_42
+                                                                                                                                                                                                        .dispatch
+                                                                                                                                                                                                        .read_page_context_kind()
+                                                                                                                                                                                                } != "page",
                                                                                                                                                                                             );
                                                                                                                                                                                         crate::template::values::base::TemplateValue {
                                                                                                                                                                                             identity: upcast_value_39
@@ -1109,58 +1049,42 @@ pub fn resolve_path(
                                                                                                                                                                                         {
                                                                                                                                                                                             let upcast_value_40 =
                                                                                                                                                                                                 crate::template::values::primitives::BoolValue::new(
-                                                                                                                                                                                                    !page
-                                                                                                                                                                                                        .state
-                                                                                                                                                                                                        .with(
-                                                                                                                                                                                                            |state| {
-                                                                                                                                                                                                                state
-                                                                                                                                                                                                                    .summary
-                                                                                                                                                                                                                    .clone()
-                                                                                                                                                                                                            },
-                                                                                                                                                                                                        )
-                                                                                                                                                                                                        .state
-                                                                                                                                                                                                        .with(
-                                                                                                                                                                                                            |state| {
-                                                                                                                                                                                                                state
-                                                                                                                                                                                                                    .value
-                                                                                                                                                                                                                    .clone()
-                                                                                                                                                                                                            },
-                                                                                                                                                                                                        )
-                                                                                                                                                                                                        .is_empty()
-                                                                                                                                                                                                        && page
-                                                                                                                                                                                                            .state
-                                                                                                                                                                                                            .with(
-                                                                                                                                                                                                                |state| {
-                                                                                                                                                                                                                    state
-                                                                                                                                                                                                                        .summary
-                                                                                                                                                                                                                        .clone()
-                                                                                                                                                                                                                },
-                                                                                                                                                                                                            )
-                                                                                                                                                                                                            .state
-                                                                                                                                                                                                            .with(
-                                                                                                                                                                                                                |state| {
-                                                                                                                                                                                                                    state
-                                                                                                                                                                                                                        .value
-                                                                                                                                                                                                                        .clone()
-                                                                                                                                                                                                                },
-                                                                                                                                                                                                            )
-                                                                                                                                                                                                            != page
-                                                                                                                                                                                                                .state
-                                                                                                                                                                                                                .with(
-                                                                                                                                                                                                                    |state| {
-                                                                                                                                                                                                                        state
-                                                                                                                                                                                                                            .content
-                                                                                                                                                                                                                            .clone()
-                                                                                                                                                                                                                    },
-                                                                                                                                                                                                                )
-                                                                                                                                                                                                                .state
-                                                                                                                                                                                                                .with(
-                                                                                                                                                                                                                    |state| {
-                                                                                                                                                                                                                        state
-                                                                                                                                                                                                                            .value
-                                                                                                                                                                                                                            .clone()
-                                                                                                                                                                                                                    },
-                                                                                                                                                                                                                ),
+                                                                                                                                                                                                    !{
+                                                                                                                                                                                                        let dispatch_receiver_44 =
+                                                                                                                                                                                                            &{
+                                                                                                                                                                                                                let dispatch_receiver_43 = &page;
+                                                                                                                                                                                                                dispatch_receiver_43
+                                                                                                                                                                                                                    .dispatch
+                                                                                                                                                                                                                    .read_page_context_summary()
+                                                                                                                                                                                                            };
+                                                                                                                                                                                                        dispatch_receiver_44
+                                                                                                                                                                                                            .dispatch
+                                                                                                                                                                                                            .read_html_string_value()
+                                                                                                                                                                                                    }
+                                                                                                                                                                                                    .is_empty()
+                                                                                                                                                                                                        && {
+                                                                                                                                                                                                            let dispatch_receiver_46 =
+                                                                                                                                                                                                                &{
+                                                                                                                                                                                                                    let dispatch_receiver_45 = &page;
+                                                                                                                                                                                                                    dispatch_receiver_45
+                                                                                                                                                                                                                        .dispatch
+                                                                                                                                                                                                                        .read_page_context_summary()
+                                                                                                                                                                                                                };
+                                                                                                                                                                                                            dispatch_receiver_46
+                                                                                                                                                                                                                .dispatch
+                                                                                                                                                                                                                .read_html_string_value()
+                                                                                                                                                                                                        } != {
+                                                                                                                                                                                                            let dispatch_receiver_48 =
+                                                                                                                                                                                                                &{
+                                                                                                                                                                                                                    let dispatch_receiver_47 = &page;
+                                                                                                                                                                                                                    dispatch_receiver_47
+                                                                                                                                                                                                                        .dispatch
+                                                                                                                                                                                                                        .read_page_context_content()
+                                                                                                                                                                                                                };
+                                                                                                                                                                                                            dispatch_receiver_48
+                                                                                                                                                                                                                .dispatch
+                                                                                                                                                                                                                .read_html_string_value()
+                                                                                                                                                                                                        },
                                                                                                                                                                                                 );
                                                                                                                                                                                             crate::template::values::base::TemplateValue {
                                                                                                                                                                                                 identity: upcast_value_40
@@ -1179,15 +1103,12 @@ pub fn resolve_path(
                                                                                                                                                                                             {
                                                                                                                                                                                                 let upcast_value_41 =
                                                                                                                                                                                                     crate::template::values::primitives::StringValue::new(
-                                                                                                                                                                                                        page
-                                                                                                                                                                                                            .state
-                                                                                                                                                                                                            .with(
-                                                                                                                                                                                                                |state| {
-                                                                                                                                                                                                                    state
-                                                                                                                                                                                                                        .title
-                                                                                                                                                                                                                        .clone()
-                                                                                                                                                                                                                },
-                                                                                                                                                                                                            ),
+                                                                                                                                                                                                        {
+                                                                                                                                                                                                            let dispatch_receiver_49 = &page;
+                                                                                                                                                                                                            dispatch_receiver_49
+                                                                                                                                                                                                                .dispatch
+                                                                                                                                                                                                                .read_page_context_title()
+                                                                                                                                                                                                        },
                                                                                                                                                                                                     );
                                                                                                                                                                                                 crate::template::values::base::TemplateValue {
                                                                                                                                                                                                     identity: upcast_value_41
@@ -1206,15 +1127,12 @@ pub fn resolve_path(
                                                                                                                                                                                                 {
                                                                                                                                                                                                     let upcast_value_42 =
                                                                                                                                                                                                         crate::template::values::output::OutputFormatsValue::new(
-                                                                                                                                                                                                            page
-                                                                                                                                                                                                                .state
-                                                                                                                                                                                                                .with(
-                                                                                                                                                                                                                    |state| {
-                                                                                                                                                                                                                        state
-                                                                                                                                                                                                                            .site
-                                                                                                                                                                                                                            .clone()
-                                                                                                                                                                                                                    },
-                                                                                                                                                                                                                ),
+                                                                                                                                                                                                            {
+                                                                                                                                                                                                                let dispatch_receiver_50 = &page;
+                                                                                                                                                                                                                dispatch_receiver_50
+                                                                                                                                                                                                                    .dispatch
+                                                                                                                                                                                                                    .read_page_context_site()
+                                                                                                                                                                                                            },
                                                                                                                                                                                                         );
                                                                                                                                                                                                     crate::template::values::base::TemplateValue {
                                                                                                                                                                                                         identity: upcast_value_42
@@ -1232,64 +1150,61 @@ pub fn resolve_path(
                                                                                                                                                                                                 let selected: Option<
                                                                                                                                                                                                     crate::template::values::pagination::PaginatorValue,
                                                                                                                                                                                                 > =
-                                                                                                                                                                                                    scope.get_paginator();
+                                                                                                                                                                                                    {
+                                                                                                                                                                                                        let dispatch_receiver_51 = scope.clone();
+                                                                                                                                                                                                        dispatch_receiver_51
+                                                                                                                                                                                                            .dispatch
+                                                                                                                                                                                                            .clone()
+                                                                                                                                                                                                            .dispatch_render_scope_get_paginator()
+                                                                                                                                                                                                    };
                                                                                                                                                                                                 cur =
                                                                                                                                                                                                     {
                                                                                                                                                                                                         let upcast_value_43 =
                                                                                                                                                                                                             rt::option_coalesce(
                                                                                                                                                                                                                 selected.clone(),
-                                                                                                                                                                                                                Ok::<_, rt::TsonicError>,
+                                                                                                                                                                                                                Ok,
                                                                                                                                                                                                                 || {
-                                                                                                                                                                                                                    scope
-                                                                                                                                                                                                                        .select_paginator(crate::template::values::pagination::PaginatorValue::new(
-                                                                                                                                                                                                                            page
-                                                                                                                                                                                                                                .state
-                                                                                                                                                                                                                                .with(
-                                                                                                                                                                                                                                    |state| {
-                                                                                                                                                                                                                                        state
-                                                                                                                                                                                                                                            .pages
-                                                                                                                                                                                                                                            .clone()
-                                                                                                                                                                                                                                    },
-                                                                                                                                                                                                                                ),
-                                                                                                                                                                                                                            scope
-                                                                                                                                                                                                                                .state
-                                                                                                                                                                                                                                .with(
-                                                                                                                                                                                                                                    |state| {
-                                                                                                                                                                                                                                        state
-                                                                                                                                                                                                                                            .site
-                                                                                                                                                                                                                                            .clone()
-                                                                                                                                                                                                                                    },
-                                                                                                                                                                                                                                )
-                                                                                                                                                                                                                                .state
-                                                                                                                                                                                                                                .with(
-                                                                                                                                                                                                                                    |state| {
-                                                                                                                                                                                                                                        state.pagination_size
-                                                                                                                                                                                                                                    },
-                                                                                                                                                                                                                                ),
-                                                                                                                                                                                                                            scope
-                                                                                                                                                                                                                                .state
-                                                                                                                                                                                                                                .with(
-                                                                                                                                                                                                                                    |state| {
-                                                                                                                                                                                                                                        state
-                                                                                                                                                                                                                                            .state
-                                                                                                                                                                                                                                            .clone()
-                                                                                                                                                                                                                                    },
-                                                                                                                                                                                                                                )
-                                                                                                                                                                                                                                .state
-                                                                                                                                                                                                                                .with(
-                                                                                                                                                                                                                                    |state| {
-                                                                                                                                                                                                                                        state.pagination_page_number
-                                                                                                                                                                                                                                    },
-                                                                                                                                                                                                                                ),
-                                                                                                                                                                                                                            page
-                                                                                                                                                                                                                                .state
-                                                                                                                                                                                                                                .with(
-                                                                                                                                                                                                                                    |state| {
-                                                                                                                                                                                                                                        state
-                                                                                                                                                                                                                                            .rel_permalink
-                                                                                                                                                                                                                                            .clone()
-                                                                                                                                                                                                                                    },
-                                                                                                                                                                                                                                ),
+                                                                                                                                                                                                                    let dispatch_receiver_58 = scope.clone();
+                                                                                                                                                                                                                    dispatch_receiver_58
+                                                                                                                                                                                                                        .dispatch
+                                                                                                                                                                                                                        .clone()
+                                                                                                                                                                                                                        .dispatch_render_scope_select_paginator(crate::template::values::pagination::PaginatorValue::new(
+                                                                                                                                                                                                                            {
+                                                                                                                                                                                                                                let dispatch_receiver_52 = &page;
+                                                                                                                                                                                                                                dispatch_receiver_52
+                                                                                                                                                                                                                                    .dispatch
+                                                                                                                                                                                                                                    .read_page_context_pages()
+                                                                                                                                                                                                                            },
+                                                                                                                                                                                                                            {
+                                                                                                                                                                                                                                let dispatch_receiver_54 =
+                                                                                                                                                                                                                                    &{
+                                                                                                                                                                                                                                        let dispatch_receiver_53 = &scope;
+                                                                                                                                                                                                                                        dispatch_receiver_53
+                                                                                                                                                                                                                                            .dispatch
+                                                                                                                                                                                                                                            .read_render_scope_site()
+                                                                                                                                                                                                                                    };
+                                                                                                                                                                                                                                dispatch_receiver_54
+                                                                                                                                                                                                                                    .dispatch
+                                                                                                                                                                                                                                    .read_site_context_pagination_size()
+                                                                                                                                                                                                                            },
+                                                                                                                                                                                                                            {
+                                                                                                                                                                                                                                let dispatch_receiver_56 =
+                                                                                                                                                                                                                                    &{
+                                                                                                                                                                                                                                        let dispatch_receiver_55 = &scope;
+                                                                                                                                                                                                                                        dispatch_receiver_55
+                                                                                                                                                                                                                                            .dispatch
+                                                                                                                                                                                                                                            .read_render_scope_state()
+                                                                                                                                                                                                                                    };
+                                                                                                                                                                                                                                dispatch_receiver_56
+                                                                                                                                                                                                                                    .dispatch
+                                                                                                                                                                                                                                    .read_render_state_pagination_page_number()
+                                                                                                                                                                                                                            },
+                                                                                                                                                                                                                            {
+                                                                                                                                                                                                                                let dispatch_receiver_57 = &page;
+                                                                                                                                                                                                                                dispatch_receiver_57
+                                                                                                                                                                                                                                    .dispatch
+                                                                                                                                                                                                                                    .read_page_context_rel_permalink()
+                                                                                                                                                                                                                            },
                                                                                                                                                                                                                         ))
                                                                                                                                                                                                                 },
                                                                                                                                                                                                             )?;
@@ -1309,41 +1224,40 @@ pub fn resolve_path(
                                                                                                                                                                                                     let parent_page: Option<
                                                                                                                                                                                                         crate::models::page_context::PageContext,
                                                                                                                                                                                                     > =
-                                                                                                                                                                                                        page
-                                                                                                                                                                                                            .state
-                                                                                                                                                                                                            .with(
-                                                                                                                                                                                                                |state| {
-                                                                                                                                                                                                                    state
-                                                                                                                                                                                                                        .parent
-                                                                                                                                                                                                                        .clone()
-                                                                                                                                                                                                                },
-                                                                                                                                                                                                            );
+                                                                                                                                                                                                        {
+                                                                                                                                                                                                            let dispatch_receiver_59 = &page;
+                                                                                                                                                                                                            dispatch_receiver_59
+                                                                                                                                                                                                                .dispatch
+                                                                                                                                                                                                                .read_page_context_parent()
+                                                                                                                                                                                                        };
                                                                                                                                                                                                     if parent_page.is_some()
                                                                                                                                                                                                     {
                                                                                                                                                                                                         let siblings: js_abi::JsArray<
                                                                                                                                                                                                             crate::models::page_context::PageContext,
                                                                                                                                                                                                         > =
-                                                                                                                                                                                                            crate::template::evaluation::page_semantics::copy_page_array(
-                                                                                                                                                                                                                match parent_page.as_ref()
-                                                                                                                                                                                                                {
-                                                                                                                                                                                                                    Some(flow_value_7) => {
-                                                                                                                                                                                                                        flow_value_7.clone()
-                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                    None => {
-                                                                                                                                                                                                                        unreachable!(
-                                                                                                                                                                                                                            "checked flow selected a missing optional value"
-                                                                                                                                                                                                                        )
-                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                }
-                                                                                                                                                                                                                .state
+                                                                                                                                                                                                            crate::template::evaluation::page_semantics::COPY_PAGE_ARRAY
                                                                                                                                                                                                                 .with(
-                                                                                                                                                                                                                        |state| {
-                                                                                                                                                                                                                            state
-                                                                                                                                                                                                                                .pages
-                                                                                                                                                                                                                                .clone()
-                                                                                                                                                                                                                        },
-                                                                                                                                                                                                                    ),
-                                                                                                                                                                                                            )?;
+                                                                                                                                                                                                                    |module_binding| {
+                                                                                                                                                                                                                        module_binding.load()
+                                                                                                                                                                                                                    },
+                                                                                                                                                                                                                )
+                                                                                                                                                                                                                .call(({
+                                                                                                                                                                                                                    let dispatch_receiver_60 =
+                                                                                                                                                                                                                        &match parent_page.as_ref()
+                                                                                                                                                                                                                        {
+                                                                                                                                                                                                                            Some(flow_value_7) => {
+                                                                                                                                                                                                                                flow_value_7.clone()
+                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                            None => {
+                                                                                                                                                                                                                                unreachable!(
+                                                                                                                                                                                                                                    "checked flow selected a missing optional value"
+                                                                                                                                                                                                                                )
+                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                        };
+                                                                                                                                                                                                                    dispatch_receiver_60
+                                                                                                                                                                                                                        .dispatch
+                                                                                                                                                                                                                        .read_page_context_pages()
+                                                                                                                                                                                                                },))?;
                                                                                                                                                                                                         let mut found_idx: i32 = -1;
                                                                                                                                                                                                         {
                                                                                                                                                                                                             let mut pi: f64 = 0.0;
@@ -1366,24 +1280,17 @@ pub fn resolve_path(
                                                                                                                                                                                                                             )
                                                                                                                                                                                                                         }
                                                                                                                                                                                                                     };
-                                                                                                                                                                                                                if sibling
-                                                                                                                                                                                                                    .state
-                                                                                                                                                                                                                    .with(
-                                                                                                                                                                                                                        |state| {
-                                                                                                                                                                                                                            state
-                                                                                                                                                                                                                                .rel_permalink
-                                                                                                                                                                                                                                .clone()
-                                                                                                                                                                                                                        },
-                                                                                                                                                                                                                    )
-                                                                                                                                                                                                                    == page
-                                                                                                                                                                                                                        .state
-                                                                                                                                                                                                                        .with(
-                                                                                                                                                                                                                            |state| {
-                                                                                                                                                                                                                                state
-                                                                                                                                                                                                                                    .rel_permalink
-                                                                                                                                                                                                                                    .clone()
-                                                                                                                                                                                                                            },
-                                                                                                                                                                                                                        )
+                                                                                                                                                                                                                if {
+                                                                                                                                                                                                                    let dispatch_receiver_61 = &sibling;
+                                                                                                                                                                                                                    dispatch_receiver_61
+                                                                                                                                                                                                                        .dispatch
+                                                                                                                                                                                                                        .read_page_context_rel_permalink()
+                                                                                                                                                                                                                } == {
+                                                                                                                                                                                                                    let dispatch_receiver_62 = &page;
+                                                                                                                                                                                                                    dispatch_receiver_62
+                                                                                                                                                                                                                        .dispatch
+                                                                                                                                                                                                                        .read_page_context_rel_permalink()
+                                                                                                                                                                                                                }
                                                                                                                                                                                                                 {
                                                                                                                                                                                                                     found_idx =
                                                                                                                                                                                                                         tsonic_rust_runtime::conversions::f64_to_i32(
@@ -1456,41 +1363,40 @@ pub fn resolve_path(
                                                                                                                                                                                                         let parent_page: Option<
                                                                                                                                                                                                             crate::models::page_context::PageContext,
                                                                                                                                                                                                         > =
-                                                                                                                                                                                                            page
-                                                                                                                                                                                                                .state
-                                                                                                                                                                                                                .with(
-                                                                                                                                                                                                                    |state| {
-                                                                                                                                                                                                                        state
-                                                                                                                                                                                                                            .parent
-                                                                                                                                                                                                                            .clone()
-                                                                                                                                                                                                                    },
-                                                                                                                                                                                                                );
+                                                                                                                                                                                                            {
+                                                                                                                                                                                                                let dispatch_receiver_63 = &page;
+                                                                                                                                                                                                                dispatch_receiver_63
+                                                                                                                                                                                                                    .dispatch
+                                                                                                                                                                                                                    .read_page_context_parent()
+                                                                                                                                                                                                            };
                                                                                                                                                                                                         if parent_page.is_some()
                                                                                                                                                                                                         {
                                                                                                                                                                                                             let siblings: js_abi::JsArray<
                                                                                                                                                                                                                 crate::models::page_context::PageContext,
                                                                                                                                                                                                             > =
-                                                                                                                                                                                                                crate::template::evaluation::page_semantics::copy_page_array(
-                                                                                                                                                                                                                    match parent_page.as_ref()
-                                                                                                                                                                                                                    {
-                                                                                                                                                                                                                        Some(flow_value_10) => {
-                                                                                                                                                                                                                            flow_value_10.clone()
-                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                        None => {
-                                                                                                                                                                                                                            unreachable!(
-                                                                                                                                                                                                                                "checked flow selected a missing optional value"
-                                                                                                                                                                                                                            )
-                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                    .state
+                                                                                                                                                                                                                crate::template::evaluation::page_semantics::COPY_PAGE_ARRAY
                                                                                                                                                                                                                     .with(
-                                                                                                                                                                                                                            |state| {
-                                                                                                                                                                                                                                state
-                                                                                                                                                                                                                                    .pages
-                                                                                                                                                                                                                                    .clone()
-                                                                                                                                                                                                                            },
-                                                                                                                                                                                                                        ),
-                                                                                                                                                                                                                )?;
+                                                                                                                                                                                                                        |module_binding| {
+                                                                                                                                                                                                                            module_binding.load()
+                                                                                                                                                                                                                        },
+                                                                                                                                                                                                                    )
+                                                                                                                                                                                                                    .call(({
+                                                                                                                                                                                                                        let dispatch_receiver_64 =
+                                                                                                                                                                                                                            &match parent_page.as_ref()
+                                                                                                                                                                                                                            {
+                                                                                                                                                                                                                                Some(flow_value_10) => {
+                                                                                                                                                                                                                                    flow_value_10.clone()
+                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                None => {
+                                                                                                                                                                                                                                    unreachable!(
+                                                                                                                                                                                                                                        "checked flow selected a missing optional value"
+                                                                                                                                                                                                                                    )
+                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                            };
+                                                                                                                                                                                                                        dispatch_receiver_64
+                                                                                                                                                                                                                            .dispatch
+                                                                                                                                                                                                                            .read_page_context_pages()
+                                                                                                                                                                                                                    },))?;
                                                                                                                                                                                                             let mut found_idx: i32 = -1;
                                                                                                                                                                                                             {
                                                                                                                                                                                                                 let mut ni: f64 = 0.0;
@@ -1513,24 +1419,17 @@ pub fn resolve_path(
                                                                                                                                                                                                                                 )
                                                                                                                                                                                                                             }
                                                                                                                                                                                                                         };
-                                                                                                                                                                                                                    if sibling
-                                                                                                                                                                                                                        .state
-                                                                                                                                                                                                                        .with(
-                                                                                                                                                                                                                            |state| {
-                                                                                                                                                                                                                                state
-                                                                                                                                                                                                                                    .rel_permalink
-                                                                                                                                                                                                                                    .clone()
-                                                                                                                                                                                                                            },
-                                                                                                                                                                                                                        )
-                                                                                                                                                                                                                        == page
-                                                                                                                                                                                                                            .state
-                                                                                                                                                                                                                            .with(
-                                                                                                                                                                                                                                |state| {
-                                                                                                                                                                                                                                    state
-                                                                                                                                                                                                                                        .rel_permalink
-                                                                                                                                                                                                                                        .clone()
-                                                                                                                                                                                                                                },
-                                                                                                                                                                                                                            )
+                                                                                                                                                                                                                    if {
+                                                                                                                                                                                                                        let dispatch_receiver_65 = &sibling;
+                                                                                                                                                                                                                        dispatch_receiver_65
+                                                                                                                                                                                                                            .dispatch
+                                                                                                                                                                                                                            .read_page_context_rel_permalink()
+                                                                                                                                                                                                                    } == {
+                                                                                                                                                                                                                        let dispatch_receiver_66 = &page;
+                                                                                                                                                                                                                        dispatch_receiver_66
+                                                                                                                                                                                                                            .dispatch
+                                                                                                                                                                                                                            .read_page_context_rel_permalink()
+                                                                                                                                                                                                                    }
                                                                                                                                                                                                                     {
                                                                                                                                                                                                                         found_idx =
                                                                                                                                                                                                                             tsonic_rust_runtime::conversions::f64_to_i32(
@@ -1669,7 +1568,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_46 = crate::template::values::primitives::BoolValue::new(
                             js_string::trim(&{
-                                let dispatch_receiver_3 = &{
+                                let dispatch_receiver_67 = &{
                                     let downcast_value_2 = &cur;
                                     crate::template::values::date::DateValue {
                                         identity: downcast_value_2.identity.clone(),
@@ -1680,12 +1579,12 @@ pub fn resolve_path(
                                             .unwrap(),
                                     }
                                 };
-                                dispatch_receiver_3.dispatch.read_date_value_value()
+                                dispatch_receiver_67.dispatch.read_date_value_value()
                             })
                             .is_empty()
                                 || js_abi::number_is_nan(js_abi::JsDate::parse(
                                     &{
-                                        let dispatch_receiver_4 = &{
+                                        let dispatch_receiver_68 = &{
                                             let downcast_value_3 = &cur;
                                             crate::template::values::date::DateValue {
                                                 identity: downcast_value_3.identity.clone(),
@@ -1696,7 +1595,7 @@ pub fn resolve_path(
                                                     .unwrap(),
                                             }
                                         };
-                                        dispatch_receiver_4.dispatch.read_date_value_value()
+                                        dispatch_receiver_68.dispatch.read_date_value_value()
                                     },
                                 )),
                         );
@@ -1708,7 +1607,7 @@ pub fn resolve_path(
                 } else {
                     if key == "year" {
                         let milliseconds: f64 = js_abi::JsDate::parse(&{
-                            let dispatch_receiver_5 = &{
+                            let dispatch_receiver_69 = &{
                                 let downcast_value_4 = &cur;
                                 crate::template::values::date::DateValue {
                                     identity: downcast_value_4.identity.clone(),
@@ -1719,7 +1618,7 @@ pub fn resolve_path(
                                         .unwrap(),
                                 }
                             };
-                            dispatch_receiver_5.dispatch.read_date_value_value()
+                            dispatch_receiver_69.dispatch.read_date_value_value()
                         });
                         let year: f64 = if js_abi::number_is_nan(milliseconds) {
                             0.0
@@ -1727,9 +1626,7 @@ pub fn resolve_path(
                             tsonic_rust_runtime::conversions::i32_to_f64(rt::option_coalesce(
                                 crate::utils::int32::parse_int32(
                                     &crate::utils::strings::substring_count(
-                                        js_abi::JsDate::from_millis(milliseconds)
-                                            .to_iso_string()
-                                            .map_err(tsonic_rust_runtime::TsonicError::from)?,
+                                        js_abi::JsDate::from_millis(milliseconds).to_iso_string()?,
                                         0,
                                         4,
                                     )?,
@@ -1763,7 +1660,7 @@ pub fn resolve_path(
                 .is_some()
             {
                 let page: crate::models::page_context::PageContext = {
-                    let dispatch_receiver_6 = &{
+                    let dispatch_receiver_70 = &{
                         let downcast_value_5 = &cur;
                         crate::template::values::page::PageDataValue {
                             identity: downcast_value_5.identity.clone(),
@@ -1774,14 +1671,15 @@ pub fn resolve_path(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_6.dispatch.read_page_data_value_page()
+                    dispatch_receiver_70.dispatch.read_page_data_value_page()
                 };
                 let key: String = js_string::to_lower_case(&seg);
                 if key == "pages" {
                     cur = {
-                        let upcast_value_48 = crate::template::values::page::PageArrayValue::new(
-                            page.state.with(|state| state.pages.clone()),
-                        );
+                        let upcast_value_48 = crate::template::values::page::PageArrayValue::new({
+                            let dispatch_receiver_71 = &page;
+                            dispatch_receiver_71.dispatch.read_page_context_pages()
+                        });
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_48.identity.clone(),
                             dispatch: upcast_value_48.dispatch.clone(),
@@ -1795,22 +1693,34 @@ pub fn resolve_path(
                                 js_abi::JsArray<crate::models::page_context::PageContext>,
                             >,
                         > = rt::option_coalesce(
-                            page
-                                .state
-                                .with(|state| state.site.clone())
-                                .state
-                                .with(|state| state.taxonomies.clone())
-                                .get(&page.state.with(|state| state.section.clone())),
+                            {
+                                let operation_input_0 = {
+                                    let dispatch_receiver_73 = &{
+                                        let dispatch_receiver_72 = &page;
+                                        dispatch_receiver_72.dispatch.read_page_context_site()
+                                    };
+                                    dispatch_receiver_73.dispatch.read_site_context_taxonomies()
+                                };
+                                operation_input_0.get(&{
+                                    let dispatch_receiver_74 = &page;
+                                    dispatch_receiver_74.dispatch.read_page_context_section()
+                                })
+                            },
                             Some,
                             || {
-                                page
-                                    .state
-                                    .with(|state| state.site.clone())
-                                    .state
-                                    .with(|state| state.taxonomies.clone())
-                                    .get(&js_string::to_lower_case(
-                                        &page.state.with(|state| state.section.clone()),
-                                    ))
+                                let operation_input_0_2 = {
+                                    let dispatch_receiver_76 = &{
+                                        let dispatch_receiver_75 = &page;
+                                        dispatch_receiver_75.dispatch.read_page_context_site()
+                                    };
+                                    dispatch_receiver_76.dispatch.read_site_context_taxonomies()
+                                };
+                                operation_input_0_2.get(&js_string::to_lower_case(
+                                    &{
+                                        let dispatch_receiver_77 = &page;
+                                        dispatch_receiver_77.dispatch.read_page_context_section()
+                                    },
+                                ))
                             },
                         );
                         cur = if terms.is_some() {
@@ -1824,7 +1734,10 @@ pub fn resolve_path(
                                             )
                                         }
                                     },
-                                    page.state.with(|state| state.site.clone()),
+                                    {
+                                        let dispatch_receiver_78 = &page;
+                                        dispatch_receiver_78.dispatch.read_page_context_site()
+                                    },
                                 );
                             crate::template::values::base::TemplateValue {
                                 identity: upcast_value_49.identity.clone(),
@@ -1849,7 +1762,7 @@ pub fn resolve_path(
                 .is_some()
             {
                 let site: crate::models::site_context::SiteContext = {
-                    let dispatch_receiver_7 = &{
+                    let dispatch_receiver_79 = &{
                         let downcast_value_6 = &cur;
                         crate::template::values::site::SiteValue {
                             identity: downcast_value_6.identity.clone(),
@@ -1860,15 +1773,16 @@ pub fn resolve_path(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_7.dispatch.read_site_value_value()
+                    dispatch_receiver_79.dispatch.read_site_value_value()
                 };
                 let k: String = js_string::to_lower_case(&seg);
                 if k == "title" {
                     cur = {
                         let upcast_value_50 =
-                            crate::template::values::primitives::StringValue::new(
-                                site.state.with(|state| state.title.clone()),
-                            );
+                            crate::template::values::primitives::StringValue::new({
+                                let dispatch_receiver_80 = &site;
+                                dispatch_receiver_80.dispatch.read_site_context_title()
+                            });
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_50.identity.clone(),
                             dispatch: upcast_value_50.dispatch.clone(),
@@ -1878,9 +1792,10 @@ pub fn resolve_path(
                     if k == "baseurl" {
                         cur = {
                             let upcast_value_51 =
-                                crate::template::values::primitives::StringValue::new(
-                                    site.state.with(|state| state.base_url.clone()),
-                                );
+                                crate::template::values::primitives::StringValue::new({
+                                    let dispatch_receiver_81 = &site;
+                                    dispatch_receiver_81.dispatch.read_site_context_base_url()
+                                });
                             crate::template::values::base::TemplateValue {
                                 identity: upcast_value_51.identity.clone(),
                                 dispatch: upcast_value_51.dispatch.clone(),
@@ -1890,9 +1805,12 @@ pub fn resolve_path(
                         if k == "languagecode" {
                             cur = {
                                 let upcast_value_52 =
-                                    crate::template::values::primitives::StringValue::new(
-                                        site.state.with(|state| state.language_code.clone()),
-                                    );
+                                    crate::template::values::primitives::StringValue::new({
+                                        let dispatch_receiver_82 = &site;
+                                        dispatch_receiver_82
+                                            .dispatch
+                                            .read_site_context_language_code()
+                                    });
                                 crate::template::values::base::TemplateValue {
                                     identity: upcast_value_52.identity.clone(),
                                     dispatch: upcast_value_52.dispatch.clone(),
@@ -1902,9 +1820,12 @@ pub fn resolve_path(
                             if k == "copyright" {
                                 cur = {
                                     let upcast_value_53 =
-                                        crate::template::values::primitives::StringValue::new(
-                                            site.state.with(|state| state.copyright.clone()),
-                                        );
+                                        crate::template::values::primitives::StringValue::new({
+                                            let dispatch_receiver_83 = &site;
+                                            dispatch_receiver_83
+                                                .dispatch
+                                                .read_site_context_copyright()
+                                        });
                                     crate::template::values::base::TemplateValue {
                                         identity: upcast_value_53.identity.clone(),
                                         dispatch: upcast_value_53.dispatch.clone(),
@@ -1914,9 +1835,12 @@ pub fn resolve_path(
                                 if k == "language" {
                                     cur = {
                                         let upcast_value_54 =
-                                            crate::template::values::site::LanguageValue::new(
-                                                site.state.with(|state| state.language.clone()),
-                                            );
+                                            crate::template::values::site::LanguageValue::new({
+                                                let dispatch_receiver_84 = &site;
+                                                dispatch_receiver_84
+                                                    .dispatch
+                                                    .read_site_context_language()
+                                            });
                                         crate::template::values::base::TemplateValue {
                                             identity: upcast_value_54.identity.clone(),
                                             dispatch: upcast_value_54.dispatch.clone(),
@@ -1926,11 +1850,14 @@ pub fn resolve_path(
                                     if k == "languages" {
                                         cur = {
                                             let upcast_value_55 =
-                                                crate::template::evaluation::property_support::WRAP_LANGUAGES
-                                                    .with(|module_binding| module_binding.load())
-                                                    .call((site
-                                                        .state
-                                                        .with(|state| state.languages.clone()),))?;
+                                                crate::template::evaluation::property_support::wrap_languages(
+                                                    {
+                                                        let dispatch_receiver_85 = &site;
+                                                        dispatch_receiver_85
+                                                            .dispatch
+                                                            .read_site_context_languages()
+                                                    },
+                                                )?;
                                             crate::template::values::base::TemplateValue {
                                                 identity: upcast_value_55.identity.clone(),
                                                 dispatch: upcast_value_55.dispatch.clone(),
@@ -1941,9 +1868,12 @@ pub fn resolve_path(
                                             cur = {
                                                 let upcast_value_56 =
                                                     crate::template::values::primitives::BoolValue::new(
-                                                        site
-                                                            .state
-                                                            .with(|state| state.is_multi_lingual),
+                                                        {
+                                                            let dispatch_receiver_86 = &site;
+                                                            dispatch_receiver_86
+                                                                .dispatch
+                                                                .read_site_context_is_multi_lingual()
+                                                        },
                                                     );
                                                 crate::template::values::base::TemplateValue {
                                                     identity: upcast_value_56.identity.clone(),
@@ -1955,9 +1885,12 @@ pub fn resolve_path(
                                                 cur = {
                                                     let upcast_value_57 =
                                                         crate::template::values::primitives::StringValue::new(
-                                                            site.state.with(|state| {
-                                                                state.language_prefix.clone()
-                                                            }),
+                                                            {
+                                                                let dispatch_receiver_87 = &site;
+                                                                dispatch_receiver_87
+                                                                    .dispatch
+                                                                    .read_site_context_language_prefix()
+                                                            },
                                                         );
                                                     crate::template::values::base::TemplateValue {
                                                         identity: upcast_value_57.identity.clone(),
@@ -1968,7 +1901,12 @@ pub fn resolve_path(
                                                 if k == "home" {
                                                     let site_home: Option<
                                                         crate::models::page_context::PageContext,
-                                                    > = site.state.with(|state| state.home.clone());
+                                                    > = {
+                                                        let dispatch_receiver_88 = &site;
+                                                        dispatch_receiver_88
+                                                            .dispatch
+                                                            .read_site_context_home()
+                                                    };
                                                     cur = if site_home.is_some() {
                                                         let upcast_value_58 =
                                                             crate::template::values::page::PageValue::new(
@@ -1992,19 +1930,22 @@ pub fn resolve_path(
                                                                 .clone(),
                                                         }
                                                     } else {
-                                                        crate::template::runtime_helpers::NIL
-                                                            .with(|module_binding| {
-                                                                module_binding.load()
-                                                            })
+                                                        crate::template::runtime_helpers::NIL.with(|module_binding| {
+                                                            module_binding.load()
+                                                        })
                                                     };
                                                 } else {
                                                     if k == "allpages" {
                                                         cur = {
                                                             let upcast_value_59 =
                                                                 crate::template::values::page::PageArrayValue::new(
-                                                                    site.state.with(|state| {
-                                                                        state.all_pages.clone()
-                                                                    }),
+                                                                    {
+                                                                        let dispatch_receiver_89 =
+                                                                            &site;
+                                                                        dispatch_receiver_89
+                                                                            .dispatch
+                                                                            .read_site_context_all_pages()
+                                                                    },
                                                                 );
                                                             crate::template::values::base::TemplateValue {
                                                                 identity: upcast_value_59
@@ -2020,14 +1961,9 @@ pub fn resolve_path(
                                                             cur = {
                                                                 let upcast_value_60 =
                                                                     crate::template::values::scratch::ScratchValue::new(
-                                                                        crate::template::evaluation::property_support::GET_SITE_STORE
-                                                                            .with(
-                                                                                |module_binding| {
-                                                                                    module_binding
-                                                                                        .load()
-                                                                                },
-                                                                            )
-                                                                            .call((site.clone(),))?,
+                                                                        crate::template::evaluation::property_support::get_site_store(
+                                                                            site.clone(),
+                                                                        ),
                                                                     );
                                                                 crate::template::values::base::TemplateValue {
                                                                     identity: upcast_value_60
@@ -2042,20 +1978,15 @@ pub fn resolve_path(
                                                             if k == "params" {
                                                                 cur = {
                                                                     let upcast_value_61 =
-                                                                        crate::template::evaluation::property_support::WRAP_PARAM_DICT
-                                                                            .with(
-                                                                                |module_binding| {
-                                                                                    module_binding
-                                                                                        .load()
-                                                                                },
-                                                                            )
-                                                                            .call((site
-                                                                                .state
-                                                                                .with(|state| {
-                                                                                    state
-                                                                                        .params
-                                                                                        .clone()
-                                                                                }),))?;
+                                                                        crate::template::evaluation::property_support::wrap_param_dict(
+                                                                            {
+                                                                                let dispatch_receiver_90 =
+                                                                                    &site;
+                                                                                dispatch_receiver_90
+                                                                                    .dispatch
+                                                                                    .read_site_context_params()
+                                                                            },
+                                                                        );
                                                                     crate::template::values::base::TemplateValue {
                                                                         identity: upcast_value_61
                                                                             .identity
@@ -2070,13 +2001,13 @@ pub fn resolve_path(
                                                                     cur = {
                                                                         let upcast_value_62 =
                                                                             crate::template::values::page::PageArrayValue::new(
-                                                                                site
-                                                                                    .state
-                                                                                    .with(|state| {
-                                                                                        state
-                                                                                            .pages
-                                                                                            .clone()
-                                                                                    }),
+                                                                                {
+                                                                                    let dispatch_receiver_91 =
+                                                                                        &site;
+                                                                                    dispatch_receiver_91
+                                                                                        .dispatch
+                                                                                        .read_site_context_pages()
+                                                                                },
                                                                             );
                                                                         crate::template::values::base::TemplateValue {
                                                                             identity: upcast_value_62
@@ -2092,33 +2023,31 @@ pub fn resolve_path(
                                                                         let pages: js_abi::JsArray<
                                                                             crate::models::page_context::PageContext,
                                                                         > =
-                                                                            if tsonic_rust_runtime::conversions::usize_to_i32(
-                                                                                site
-                                                                                    .state
-                                                                                    .with(|state| {
-                                                                                        state
-                                                                                            .all_pages
-                                                                                            .clone()
-                                                                                    })
-                                                                                    .len(),
-                                                                            )?
-                                                                                > 0
                                                                             {
-                                                                                site
-                                                                                    .state
-                                                                                    .with(|state| {
-                                                                                        state
-                                                                                            .all_pages
-                                                                                            .clone()
-                                                                                    })
-                                                                            } else {
-                                                                                site
-                                                                                    .state
-                                                                                    .with(|state| {
-                                                                                        state
-                                                                                            .pages
-                                                                                            .clone()
-                                                                                    })
+                                                                                let conditional_test_3 =
+                                                                                    tsonic_rust_runtime::conversions::usize_to_i32(
+                                                                                        {
+                                                                                            let dispatch_receiver_92 = &site;
+                                                                                            dispatch_receiver_92
+                                                                                                .dispatch
+                                                                                                .read_site_context_all_pages()
+                                                                                        }
+                                                                                        .len(),
+                                                                                    )?
+                                                                                        > 0;
+                                                                                if conditional_test_3 {
+                                                                                    let dispatch_receiver_93 =
+                                                                                        &site;
+                                                                                    dispatch_receiver_93
+                                                                                        .dispatch
+                                                                                        .read_site_context_all_pages()
+                                                                                } else {
+                                                                                    let dispatch_receiver_94 =
+                                                                                        &site;
+                                                                                    dispatch_receiver_94
+                                                                                        .dispatch
+                                                                                        .read_site_context_pages()
+                                                                                }
                                                                             };
                                                                         cur = {
                                                                             let upcast_value_63 =
@@ -2161,17 +2090,14 @@ pub fn resolve_path(
                                                                                 cur = {
                                                                                     let upcast_value_65 =
                                                                                         {
-                                                                                            let dispatch_receiver_8 =
-                                                                                                scope
-                                                                                                    .state
-                                                                                                    .with(
-                                                                                                        |state| {
-                                                                                                            state
-                                                                                                                .env
-                                                                                                                .clone()
-                                                                                                        },
-                                                                                                    );
-                                                                                            dispatch_receiver_8
+                                                                                            let dispatch_receiver_96 =
+                                                                                                {
+                                                                                                    let dispatch_receiver_95 = &scope;
+                                                                                                    dispatch_receiver_95
+                                                                                                        .dispatch
+                                                                                                        .read_render_scope_env()
+                                                                                                };
+                                                                                            dispatch_receiver_96
                                                                                                 .dispatch
                                                                                                 .clone()
                                                                                                 .dispatch_template_environment_get_site_data()
@@ -2193,15 +2119,12 @@ pub fn resolve_path(
                                                                                     cur = {
                                                                                         let upcast_value_66 =
                                                                                             crate::template::values::docs::DocsMountArrayValue::new(
-                                                                                                site
-                                                                                                    .state
-                                                                                                    .with(
-                                                                                                        |state| {
-                                                                                                            state
-                                                                                                                .docs_mounts
-                                                                                                                .clone()
-                                                                                                        },
-                                                                                                    ),
+                                                                                                {
+                                                                                                    let dispatch_receiver_97 = &site;
+                                                                                                    dispatch_receiver_97
+                                                                                                        .dispatch
+                                                                                                        .read_site_context_docs_mounts()
+                                                                                                },
                                                                                             );
                                                                                         crate::template::values::base::TemplateValue {
                                                                                             identity: upcast_value_66
@@ -2274,15 +2197,12 @@ pub fn resolve_path(
                                                                                                         {
                                                                                                             let upcast_value_70 =
                                                                                                                 crate::template::values::site::SitesArrayValue::new(
-                                                                                                                    site
-                                                                                                                        .state
-                                                                                                                        .with(
-                                                                                                                            |state| {
-                                                                                                                                state
-                                                                                                                                    .sites
-                                                                                                                                    .clone()
-                                                                                                                            },
-                                                                                                                        ),
+                                                                                                                    {
+                                                                                                                        let dispatch_receiver_98 = &site;
+                                                                                                                        dispatch_receiver_98
+                                                                                                                            .dispatch
+                                                                                                                            .read_site_context_sites()
+                                                                                                                    },
                                                                                                                 );
                                                                                                             crate::template::values::base::TemplateValue {
                                                                                                                 identity: upcast_value_70
@@ -2332,7 +2252,7 @@ pub fn resolve_path(
                 .is_some()
             {
                 let lang: crate::models::language::LanguageContext = {
-                    let dispatch_receiver_9 = &{
+                    let dispatch_receiver_99 = &{
                         let downcast_value_7 = &cur;
                         crate::template::values::site::LanguageValue {
                             identity: downcast_value_7.identity.clone(),
@@ -2343,15 +2263,16 @@ pub fn resolve_path(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_9.dispatch.read_language_value_value()
+                    dispatch_receiver_99.dispatch.read_language_value_value()
                 };
                 let k: String = js_string::to_lower_case(&seg);
                 if k == "lang" {
                     cur = {
                         let upcast_value_71 =
-                            crate::template::values::primitives::StringValue::new(
-                                lang.state.with(|state| state.lang.clone()),
-                            );
+                            crate::template::values::primitives::StringValue::new({
+                                let dispatch_receiver_100 = &lang;
+                                dispatch_receiver_100.dispatch.read_language_context_lang()
+                            });
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_71.identity.clone(),
                             dispatch: upcast_value_71.dispatch.clone(),
@@ -2361,9 +2282,12 @@ pub fn resolve_path(
                     if k == "languagename" {
                         cur = {
                             let upcast_value_72 =
-                                crate::template::values::primitives::StringValue::new(
-                                    lang.state.with(|state| state.language_name.clone()),
-                                );
+                                crate::template::values::primitives::StringValue::new({
+                                    let dispatch_receiver_101 = &lang;
+                                    dispatch_receiver_101
+                                        .dispatch
+                                        .read_language_context_language_name()
+                                });
                             crate::template::values::base::TemplateValue {
                                 identity: upcast_value_72.identity.clone(),
                                 dispatch: upcast_value_72.dispatch.clone(),
@@ -2373,9 +2297,12 @@ pub fn resolve_path(
                         if k == "languagedirection" {
                             cur = {
                                 let upcast_value_73 =
-                                    crate::template::values::primitives::StringValue::new(
-                                        lang.state.with(|state| state.language_direction.clone()),
-                                    );
+                                    crate::template::values::primitives::StringValue::new({
+                                        let dispatch_receiver_102 = &lang;
+                                        dispatch_receiver_102
+                                            .dispatch
+                                            .read_language_context_language_direction()
+                                    });
                                 crate::template::values::base::TemplateValue {
                                     identity: upcast_value_73.identity.clone(),
                                     dispatch: upcast_value_73.dispatch.clone(),
@@ -2397,7 +2324,7 @@ pub fn resolve_path(
                 .is_some()
             {
                 let f: crate::models::page_file::PageFile = {
-                    let dispatch_receiver_10 = &{
+                    let dispatch_receiver_103 = &{
                         let downcast_value_8 = &cur;
                         crate::template::values::page::FileValue {
                             identity: downcast_value_8.identity.clone(),
@@ -2408,15 +2335,16 @@ pub fn resolve_path(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_10.dispatch.read_file_value_value()
+                    dispatch_receiver_103.dispatch.read_file_value_value()
                 };
                 let k: String = js_string::to_lower_case(&seg);
                 if k == "filename" {
                     cur = {
                         let upcast_value_74 =
-                            crate::template::values::primitives::StringValue::new(
-                                f.state.with(|state| state.filename.clone()),
-                            );
+                            crate::template::values::primitives::StringValue::new({
+                                let dispatch_receiver_104 = &f;
+                                dispatch_receiver_104.dispatch.read_page_file_filename()
+                            });
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_74.identity.clone(),
                             dispatch: upcast_value_74.dispatch.clone(),
@@ -2426,9 +2354,10 @@ pub fn resolve_path(
                     if k == "dir" {
                         cur = {
                             let upcast_value_75 =
-                                crate::template::values::primitives::StringValue::new(
-                                    f.state.with(|state| state.dir.clone()),
-                                );
+                                crate::template::values::primitives::StringValue::new({
+                                    let dispatch_receiver_105 = &f;
+                                    dispatch_receiver_105.dispatch.read_page_file_dir()
+                                });
                             crate::template::values::base::TemplateValue {
                                 identity: upcast_value_75.identity.clone(),
                                 dispatch: upcast_value_75.dispatch.clone(),
@@ -2438,9 +2367,12 @@ pub fn resolve_path(
                         if k == "basefilename" {
                             cur = {
                                 let upcast_value_76 =
-                                    crate::template::values::primitives::StringValue::new(
-                                        f.state.with(|state| state.base_file_name.clone()),
-                                    );
+                                    crate::template::values::primitives::StringValue::new({
+                                        let dispatch_receiver_106 = &f;
+                                        dispatch_receiver_106
+                                            .dispatch
+                                            .read_page_file_base_file_name()
+                                    });
                                 crate::template::values::base::TemplateValue {
                                     identity: upcast_value_76.identity.clone(),
                                     dispatch: upcast_value_76.dispatch.clone(),
@@ -2465,7 +2397,7 @@ pub fn resolve_path(
                 if k == "default" {
                     cur = {
                         let upcast_value_77 = crate::template::values::site::SiteValue::new({
-                            let dispatch_receiver_11 = &{
+                            let dispatch_receiver_107 = &{
                                 let downcast_value_9 = &cur;
                                 crate::template::values::site::SitesValue {
                                     identity: downcast_value_9.identity.clone(),
@@ -2476,7 +2408,7 @@ pub fn resolve_path(
                                         .unwrap(),
                                 }
                             };
-                            dispatch_receiver_11.dispatch.read_sites_value_value()
+                            dispatch_receiver_107.dispatch.read_sites_value_value()
                         });
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_77.identity.clone(),
@@ -2497,7 +2429,7 @@ pub fn resolve_path(
                 .is_some()
             {
                 let site: crate::models::site_context::SiteContext = {
-                    let dispatch_receiver_12 = &{
+                    let dispatch_receiver_108 = &{
                         let downcast_value_10 = &cur;
                         crate::template::values::menus::MenusValue {
                             identity: downcast_value_10.identity.clone(),
@@ -2508,17 +2440,22 @@ pub fn resolve_path(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_12.dispatch.read_menus_value_site()
+                    dispatch_receiver_108.dispatch.read_menus_value_site()
                 };
                 let entries: Option<js_abi::JsArray<crate::models::menu_entry::MenuEntry>> =
                     rt::option_coalesce(
-                        site.state.with(|state| state.menus.clone()).get(&seg),
+                        {
+                            let dispatch_receiver_109 = &site;
+                            dispatch_receiver_109.dispatch.read_site_context_menus()
+                        }
+                        .get(&seg),
                         Some,
                         || {
-                            site
-                                .state
-                                .with(|state| state.menus.clone())
-                                .get(&js_string::to_lower_case(&seg))
+                            let operation_input_0_3 = {
+                                let dispatch_receiver_110 = &site;
+                                dispatch_receiver_110.dispatch.read_site_context_menus()
+                            };
+                            operation_input_0_3.get(&js_string::to_lower_case(&seg))
                         },
                     );
                 cur = if entries.is_some() {
@@ -2547,7 +2484,7 @@ pub fn resolve_path(
                 .is_some()
             {
                 let entry: crate::models::menu_entry::MenuEntry = {
-                    let dispatch_receiver_13 = &{
+                    let dispatch_receiver_111 = &{
                         let downcast_value_11 = &cur;
                         crate::template::values::menus::MenuEntryValue {
                             identity: downcast_value_11.identity.clone(),
@@ -2558,10 +2495,10 @@ pub fn resolve_path(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_13.dispatch.read_menu_entry_value_value()
+                    dispatch_receiver_111.dispatch.read_menu_entry_value_value()
                 };
                 let site: crate::models::site_context::SiteContext = {
-                    let dispatch_receiver_14 = &{
+                    let dispatch_receiver_112 = &{
                         let downcast_value_12 = &cur;
                         crate::template::values::menus::MenuEntryValue {
                             identity: downcast_value_12.identity.clone(),
@@ -2572,15 +2509,16 @@ pub fn resolve_path(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_14.dispatch.read_menu_entry_value_site()
+                    dispatch_receiver_112.dispatch.read_menu_entry_value_site()
                 };
                 let k: String = js_string::to_lower_case(&seg);
                 if k == "name" {
                     cur = {
                         let upcast_value_79 =
-                            crate::template::values::primitives::StringValue::new(
-                                entry.state.with(|state| state.name.clone()),
-                            );
+                            crate::template::values::primitives::StringValue::new({
+                                let dispatch_receiver_113 = &entry;
+                                dispatch_receiver_113.dispatch.read_menu_entry_name()
+                            });
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_79.identity.clone(),
                             dispatch: upcast_value_79.dispatch.clone(),
@@ -2589,29 +2527,39 @@ pub fn resolve_path(
                 } else {
                     if k == "url" {
                         let entry_page_for_url: Option<crate::models::page_context::PageContext> =
-                            entry.state.with(|state| state.page.clone());
+                            {
+                                let dispatch_receiver_114 = &entry;
+                                dispatch_receiver_114.dispatch.read_menu_entry_page()
+                            };
                         cur = {
                             let upcast_value_80 =
-                                crate::template::values::primitives::StringValue::new(if !entry
-                                    .state
-                                    .with(|state| state.url.clone())
-                                    .is_empty()
-                                {
-                                    entry.state.with(|state| state.url.clone())
-                                } else {
-                                    if entry_page_for_url.is_some() {
-                                        match entry_page_for_url.as_ref() {
-                                            Some(flow_value_16) => flow_value_16.clone(),
-                                            None => {
-                                                unreachable!(
-                                                    "checked flow selected a missing optional value"
-                                                )
-                                            }
-                                        }
-                                        .state
-                                        .with(|state| state.rel_permalink.clone())
+                                crate::template::values::primitives::StringValue::new({
+                                    let conditional_test_4 = !{
+                                        let dispatch_receiver_115 = &entry;
+                                        dispatch_receiver_115.dispatch.read_menu_entry_url()
+                                    }
+                                    .is_empty();
+                                    if conditional_test_4 {
+                                        let dispatch_receiver_116 = &entry;
+                                        dispatch_receiver_116.dispatch.read_menu_entry_url()
                                     } else {
-                                        String::from("")
+                                        if entry_page_for_url.is_some() {
+                                            let dispatch_receiver_117 = &match entry_page_for_url
+                                                .as_ref()
+                                            {
+                                                Some(flow_value_16) => flow_value_16.clone(),
+                                                None => {
+                                                    unreachable!(
+                                                        "checked flow selected a missing optional value"
+                                                    )
+                                                }
+                                            };
+                                            dispatch_receiver_117
+                                                .dispatch
+                                                .read_page_context_rel_permalink()
+                                        } else {
+                                            String::from("")
+                                        }
                                     }
                                 });
                             crate::template::values::base::TemplateValue {
@@ -2623,9 +2571,10 @@ pub fn resolve_path(
                         if k == "title" {
                             cur = {
                                 let upcast_value_81 =
-                                    crate::template::values::primitives::StringValue::new(
-                                        entry.state.with(|state| state.title.clone()),
-                                    );
+                                    crate::template::values::primitives::StringValue::new({
+                                        let dispatch_receiver_118 = &entry;
+                                        dispatch_receiver_118.dispatch.read_menu_entry_title()
+                                    });
                                 crate::template::values::base::TemplateValue {
                                     identity: upcast_value_81.identity.clone(),
                                     dispatch: upcast_value_81.dispatch.clone(),
@@ -2635,9 +2584,10 @@ pub fn resolve_path(
                             if k == "weight" {
                                 cur = {
                                     let upcast_value_82 =
-                                        crate::template::values::primitives::NumberValue::new(
-                                            entry.state.with(|state| state.weight),
-                                        );
+                                        crate::template::values::primitives::NumberValue::new({
+                                            let dispatch_receiver_119 = &entry;
+                                            dispatch_receiver_119.dispatch.read_menu_entry_weight()
+                                        });
                                     crate::template::values::base::TemplateValue {
                                         identity: upcast_value_82.identity.clone(),
                                         dispatch: upcast_value_82.dispatch.clone(),
@@ -2647,9 +2597,12 @@ pub fn resolve_path(
                                 if k == "parent" {
                                     cur = {
                                         let upcast_value_83 =
-                                            crate::template::values::primitives::StringValue::new(
-                                                entry.state.with(|state| state.parent.clone()),
-                                            );
+                                            crate::template::values::primitives::StringValue::new({
+                                                let dispatch_receiver_120 = &entry;
+                                                dispatch_receiver_120
+                                                    .dispatch
+                                                    .read_menu_entry_parent()
+                                            });
                                         crate::template::values::base::TemplateValue {
                                             identity: upcast_value_83.identity.clone(),
                                             dispatch: upcast_value_83.dispatch.clone(),
@@ -2660,9 +2613,12 @@ pub fn resolve_path(
                                         cur = {
                                             let upcast_value_84 =
                                                 crate::template::values::primitives::StringValue::new(
-                                                    entry
-                                                        .state
-                                                        .with(|state| state.identifier.clone()),
+                                                    {
+                                                        let dispatch_receiver_121 = &entry;
+                                                        dispatch_receiver_121
+                                                            .dispatch
+                                                            .read_menu_entry_identifier()
+                                                    },
                                                 );
                                             crate::template::values::base::TemplateValue {
                                                 identity: upcast_value_84.identity.clone(),
@@ -2674,7 +2630,12 @@ pub fn resolve_path(
                                             cur = {
                                                 let upcast_value_85 =
                                                     crate::template::values::primitives::StringValue::new(
-                                                        entry.state.with(|state| state.pre.clone()),
+                                                        {
+                                                            let dispatch_receiver_122 = &entry;
+                                                            dispatch_receiver_122
+                                                                .dispatch
+                                                                .read_menu_entry_pre()
+                                                        },
                                                     );
                                                 crate::template::values::base::TemplateValue {
                                                     identity: upcast_value_85.identity.clone(),
@@ -2686,9 +2647,12 @@ pub fn resolve_path(
                                                 cur = {
                                                     let upcast_value_86 =
                                                         crate::template::values::primitives::StringValue::new(
-                                                            entry
-                                                                .state
-                                                                .with(|state| state.post.clone()),
+                                                            {
+                                                                let dispatch_receiver_123 = &entry;
+                                                                dispatch_receiver_123
+                                                                    .dispatch
+                                                                    .read_menu_entry_post()
+                                                            },
                                                         );
                                                     crate::template::values::base::TemplateValue {
                                                         identity: upcast_value_86.identity.clone(),
@@ -2700,9 +2664,13 @@ pub fn resolve_path(
                                                     cur = {
                                                         let upcast_value_87 =
                                                             crate::template::values::primitives::StringValue::new(
-                                                                entry.state.with(|state| {
-                                                                    state.menu.clone()
-                                                                }),
+                                                                {
+                                                                    let dispatch_receiver_124 =
+                                                                        &entry;
+                                                                    dispatch_receiver_124
+                                                                        .dispatch
+                                                                        .read_menu_entry_menu()
+                                                                },
                                                             );
                                                         crate::template::values::base::TemplateValue {
                                                             identity: upcast_value_87
@@ -2717,9 +2685,12 @@ pub fn resolve_path(
                                                     if k == "page" {
                                                         let entry_page: Option<
                                                             crate::models::page_context::PageContext,
-                                                        > = entry
-                                                            .state
-                                                            .with(|state| state.page.clone());
+                                                        > = {
+                                                            let dispatch_receiver_125 = &entry;
+                                                            dispatch_receiver_125
+                                                                .dispatch
+                                                                .read_menu_entry_page()
+                                                        };
                                                         cur = if entry_page.is_some() {
                                                             let upcast_value_88 =
                                                                 crate::template::values::page::PageValue::new(
@@ -2753,9 +2724,13 @@ pub fn resolve_path(
                                                             cur = {
                                                                 let upcast_value_89 =
                                                                     crate::template::values::menus::MenuArrayValue::new(
-                                                                        entry.state.with(|state| {
-                                                                            state.children.clone()
-                                                                        }),
+                                                                        {
+                                                                            let dispatch_receiver_126 =
+                                                                                &entry;
+                                                                            dispatch_receiver_126
+                                                                                .dispatch
+                                                                                .read_menu_entry_children()
+                                                                        },
                                                                         site.clone(),
                                                                     );
                                                                 crate::template::values::base::TemplateValue {
@@ -2771,20 +2746,15 @@ pub fn resolve_path(
                                                             if k == "params" {
                                                                 cur = {
                                                                     let upcast_value_90 =
-                                                                        crate::template::evaluation::property_support::WRAP_PARAM_DICT
-                                                                            .with(
-                                                                                |module_binding| {
-                                                                                    module_binding
-                                                                                        .load()
-                                                                                },
-                                                                            )
-                                                                            .call((entry
-                                                                                .state
-                                                                                .with(|state| {
-                                                                                    state
-                                                                                        .params
-                                                                                        .clone()
-                                                                                }),))?;
+                                                                        crate::template::evaluation::property_support::wrap_param_dict(
+                                                                            {
+                                                                                let dispatch_receiver_127 =
+                                                                                    &entry;
+                                                                                dispatch_receiver_127
+                                                                                    .dispatch
+                                                                                    .read_menu_entry_params()
+                                                                            },
+                                                                        );
                                                                     crate::template::values::base::TemplateValue {
                                                                         identity: upcast_value_90
                                                                             .identity
@@ -2822,7 +2792,7 @@ pub fn resolve_path(
                 .is_some()
             {
                 let site: crate::models::site_context::SiteContext = {
-                    let dispatch_receiver_15 = &{
+                    let dispatch_receiver_128 = &{
                         let downcast_value_13 = &cur;
                         crate::template::values::output::OutputFormatsValue {
                             identity: downcast_value_13.identity.clone(),
@@ -2833,7 +2803,7 @@ pub fn resolve_path(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_15
+                    dispatch_receiver_128
                         .dispatch
                         .read_output_formats_value_site()
                 };
@@ -2863,7 +2833,7 @@ pub fn resolve_path(
                 .is_some()
             {
                 let fmt: crate::models::output_format::OutputFormat = {
-                    let dispatch_receiver_16 = &{
+                    let dispatch_receiver_129 = &{
                         let downcast_value_14 = &cur;
                         crate::template::values::output::OutputFormatValue {
                             identity: downcast_value_14.identity.clone(),
@@ -2874,7 +2844,7 @@ pub fn resolve_path(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_16
+                    dispatch_receiver_129
                         .dispatch
                         .read_output_format_value_value()
                 };
@@ -2894,9 +2864,9 @@ pub fn resolve_path(
                     if k == "mediatype" {
                         cur = {
                             let upcast_value_93 =
-                                crate::template::evaluation::property_support::WRAP_MEDIA_TYPE
-                                    .with(|module_binding| module_binding.load())
-                                    .call((fmt.state.with(|state| state.media_type.clone()),))?;
+                                crate::template::evaluation::property_support::wrap_media_type(
+                                    fmt.state.with(|state| state.media_type.clone()),
+                                );
                             crate::template::values::base::TemplateValue {
                                 identity: upcast_value_93.identity.clone(),
                                 dispatch: upcast_value_93.dispatch.clone(),
@@ -2930,7 +2900,7 @@ pub fn resolve_path(
                 .is_some()
             {
                 let mt: crate::models::media_type::MediaType = {
-                    let dispatch_receiver_17 = &{
+                    let dispatch_receiver_130 = &{
                         let downcast_value_15 = &cur;
                         crate::template::values::media::MediaTypeValue {
                             identity: downcast_value_15.identity.clone(),
@@ -2941,7 +2911,7 @@ pub fn resolve_path(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_17.dispatch.read_media_type_value_value()
+                    dispatch_receiver_130.dispatch.read_media_type_value_value()
                 };
                 let k: String = js_string::to_lower_case(&seg);
                 if k == "type" {
@@ -2969,7 +2939,7 @@ pub fn resolve_path(
                 .is_some()
             {
                 let sc: crate::template::contexts::ShortcodeContext = {
-                    let dispatch_receiver_18 = &{
+                    let dispatch_receiver_131 = &{
                         let downcast_value_16 = &cur;
                         crate::template::contexts::ShortcodeValue {
                             identity: downcast_value_16.identity.clone(),
@@ -2980,7 +2950,7 @@ pub fn resolve_path(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_18.dispatch.read_shortcode_value_value()
+                    dispatch_receiver_131.dispatch.read_shortcode_value_value()
                 };
                 let k: String = js_string::to_lower_case(&seg);
                 if k == "name" {
@@ -3021,9 +2991,9 @@ pub fn resolve_path(
                             if k == "params" {
                                 cur = {
                                     let upcast_value_99 =
-                                        crate::template::evaluation::property_support::WRAP_PARAM_DICT
-                                            .with(|module_binding| module_binding.load())
-                                            .call((sc.state.with(|state| state.params.clone()),))?;
+                                        crate::template::evaluation::property_support::wrap_param_dict(
+                                            sc.state.with(|state| state.params.clone()),
+                                        );
                                     crate::template::values::base::TemplateValue {
                                         identity: upcast_value_99.identity.clone(),
                                         dispatch: upcast_value_99.dispatch.clone(),
@@ -3060,11 +3030,11 @@ pub fn resolve_path(
                                             cur = {
                                                 let upcast_value_102 =
                                                     crate::template::values::primitives::HtmlValue::new(
-                                                        crate::utils::html::HtmlString::new(sc
-                                                            .state
-                                                            .with(|state| {
+                                                        crate::utils::html::HtmlString::new(
+                                                            sc.state.with(|state| {
                                                                 state.inner_deindent.clone()
-                                                            })),
+                                                            }),
+                                                        ),
                                                     );
                                                 crate::template::values::base::TemplateValue {
                                                     identity: upcast_value_102.identity.clone(),
@@ -3111,10 +3081,9 @@ pub fn resolve_path(
                                                                 .clone(),
                                                         }
                                                     } else {
-                                                        crate::template::runtime_helpers::NIL
-                                                            .with(|module_binding| {
-                                                                module_binding.load()
-                                                            })
+                                                        crate::template::runtime_helpers::NIL.with(|module_binding| {
+                                                            module_binding.load()
+                                                        })
                                                     };
                                                 } else {
                                                     cur = crate::template::runtime_helpers::NIL
@@ -3140,7 +3109,7 @@ pub fn resolve_path(
                 .is_some()
             {
                 let hook: crate::template::contexts::LinkHookContext = {
-                    let dispatch_receiver_19 = &{
+                    let dispatch_receiver_132 = &{
                         let downcast_value_17 = &cur;
                         crate::template::contexts::LinkHookValue {
                             identity: downcast_value_17.identity.clone(),
@@ -3151,7 +3120,7 @@ pub fn resolve_path(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_19.dispatch.read_link_hook_value_value()
+                    dispatch_receiver_132.dispatch.read_link_hook_value_value()
                 };
                 let k: String = js_string::to_lower_case(&seg);
                 if k == "destination" {
@@ -3219,9 +3188,10 @@ pub fn resolve_path(
                                     if k == "pageinner" {
                                         cur = {
                                             let upcast_value_110 =
-                                                crate::template::values::page::PageValue::new(hook
-                                                    .state
-                                                    .with(|state| state.page_inner.clone()));
+                                                crate::template::values::page::PageValue::new(
+                                                    hook.state
+                                                        .with(|state| state.page_inner.clone()),
+                                                );
                                             crate::template::values::base::TemplateValue {
                                                 identity: upcast_value_110.identity.clone(),
                                                 dispatch: upcast_value_110.dispatch.clone(),
@@ -3232,8 +3202,7 @@ pub fn resolve_path(
                                             cur = {
                                                 let upcast_value_111 =
                                                     crate::template::values::page::PageValue::new(
-                                                        hook
-                                                            .state
+                                                        hook.state
                                                             .with(|state| state.page_outer.clone()),
                                                     );
                                                 crate::template::values::base::TemplateValue {
@@ -3261,7 +3230,7 @@ pub fn resolve_path(
                 .is_some()
             {
                 let hook: crate::template::contexts::ImageHookContext = {
-                    let dispatch_receiver_20 = &{
+                    let dispatch_receiver_133 = &{
                         let downcast_value_18 = &cur;
                         crate::template::contexts::ImageHookValue {
                             identity: downcast_value_18.identity.clone(),
@@ -3272,7 +3241,7 @@ pub fn resolve_path(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_20.dispatch.read_image_hook_value_value()
+                    dispatch_receiver_133.dispatch.read_image_hook_value_value()
                 };
                 let k: String = js_string::to_lower_case(&seg);
                 if k == "destination" {
@@ -3338,9 +3307,10 @@ pub fn resolve_path(
                                     if k == "pageinner" {
                                         cur = {
                                             let upcast_value_117 =
-                                                crate::template::values::page::PageValue::new(hook
-                                                    .state
-                                                    .with(|state| state.page_inner.clone()));
+                                                crate::template::values::page::PageValue::new(
+                                                    hook.state
+                                                        .with(|state| state.page_inner.clone()),
+                                                );
                                             crate::template::values::base::TemplateValue {
                                                 identity: upcast_value_117.identity.clone(),
                                                 dispatch: upcast_value_117.dispatch.clone(),
@@ -3351,8 +3321,7 @@ pub fn resolve_path(
                                             cur = {
                                                 let upcast_value_118 =
                                                     crate::template::values::page::PageValue::new(
-                                                        hook
-                                                            .state
+                                                        hook.state
                                                             .with(|state| state.page_outer.clone()),
                                                     );
                                                 crate::template::values::base::TemplateValue {
@@ -3380,7 +3349,7 @@ pub fn resolve_path(
                 .is_some()
             {
                 let hook: crate::template::contexts::HeadingHookContext = {
-                    let dispatch_receiver_21 = &{
+                    let dispatch_receiver_134 = &{
                         let downcast_value_19 = &cur;
                         crate::template::contexts::HeadingHookValue {
                             identity: downcast_value_19.identity.clone(),
@@ -3391,7 +3360,7 @@ pub fn resolve_path(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_21
+                    dispatch_receiver_134
                         .dispatch
                         .read_heading_hook_value_value()
                 };
@@ -3461,9 +3430,10 @@ pub fn resolve_path(
                                     if k == "pageinner" {
                                         cur = {
                                             let upcast_value_124 =
-                                                crate::template::values::page::PageValue::new(hook
-                                                    .state
-                                                    .with(|state| state.page_inner.clone()));
+                                                crate::template::values::page::PageValue::new(
+                                                    hook.state
+                                                        .with(|state| state.page_inner.clone()),
+                                                );
                                             crate::template::values::base::TemplateValue {
                                                 identity: upcast_value_124.identity.clone(),
                                                 dispatch: upcast_value_124.dispatch.clone(),
@@ -3474,8 +3444,7 @@ pub fn resolve_path(
                                             cur = {
                                                 let upcast_value_125 =
                                                     crate::template::values::page::PageValue::new(
-                                                        hook
-                                                            .state
+                                                        hook.state
                                                             .with(|state| state.page_outer.clone()),
                                                     );
                                                 crate::template::values::base::TemplateValue {
@@ -3503,7 +3472,7 @@ pub fn resolve_path(
                 .is_some()
             {
                 let site: crate::models::site_context::SiteContext = {
-                    let dispatch_receiver_22 = &{
+                    let dispatch_receiver_135 = &{
                         let downcast_value_20 = &cur;
                         crate::template::values::taxonomies::TaxonomiesValue {
                             identity: downcast_value_20.identity.clone(),
@@ -3514,7 +3483,7 @@ pub fn resolve_path(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_22.dispatch.read_taxonomies_value_site()
+                    dispatch_receiver_135.dispatch.read_taxonomies_value_site()
                 };
                 let terms: Option<
                     js_abi::JsMap<
@@ -3522,13 +3491,22 @@ pub fn resolve_path(
                         js_abi::JsArray<crate::models::page_context::PageContext>,
                     >,
                 > = rt::option_coalesce(
-                    site.state.with(|state| state.taxonomies.clone()).get(&seg),
+                    {
+                        let dispatch_receiver_136 = &site;
+                        dispatch_receiver_136
+                            .dispatch
+                            .read_site_context_taxonomies()
+                    }
+                    .get(&seg),
                     Some,
                     || {
-                        site
-                            .state
-                            .with(|state| state.taxonomies.clone())
-                            .get(&js_string::to_lower_case(&seg))
+                        let operation_input_0_4 = {
+                            let dispatch_receiver_137 = &site;
+                            dispatch_receiver_137
+                                .dispatch
+                                .read_site_context_taxonomies()
+                        };
+                        operation_input_0_4.get(&js_string::to_lower_case(&seg))
                     },
                 );
                 cur = if terms.is_some() {
@@ -3563,7 +3541,7 @@ pub fn resolve_path(
                     String,
                     js_abi::JsArray<crate::models::page_context::PageContext>,
                 > = {
-                    let dispatch_receiver_23 = &{
+                    let dispatch_receiver_138 = &{
                         let downcast_value_21 = &cur;
                         crate::template::values::taxonomies::TaxonomyTermsValue {
                             identity: downcast_value_21.identity.clone(),
@@ -3574,13 +3552,13 @@ pub fn resolve_path(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_23
+                    dispatch_receiver_138
                         .dispatch
                         .read_taxonomy_terms_value_terms()
                 };
                 #[expect(unused_variables, reason = "authored binding drop scope")]
                 let site: crate::models::site_context::SiteContext = {
-                    let dispatch_receiver_24 = &{
+                    let dispatch_receiver_139 = &{
                         let downcast_value_22 = &cur;
                         crate::template::values::taxonomies::TaxonomyTermsValue {
                             identity: downcast_value_22.identity.clone(),
@@ -3591,16 +3569,16 @@ pub fn resolve_path(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_24
+                    dispatch_receiver_139
                         .dispatch
                         .read_taxonomy_terms_value_site()
                 };
                 if js_string::to_lower_case(&seg) == "bycount" {
                     cur = {
                         let upcast_value_127 =
-                            crate::template::evaluation::property_support::TAXONOMY_TERMS_BY_COUNT
-                                .with(|module_binding| module_binding.load())
-                                .call((terms_dict.clone(),))?;
+                            crate::template::evaluation::property_support::taxonomy_terms_by_count(
+                                terms_dict.clone(),
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_127.identity.clone(),
                             dispatch: upcast_value_127.dispatch.clone(),
@@ -3610,11 +3588,10 @@ pub fn resolve_path(
                     continue 'loop_value;
                 }
                 let pages: Option<js_abi::JsArray<crate::models::page_context::PageContext>> =
-                    rt::option_coalesce(
-                        terms_dict.get(&seg),
-                        Some,
-                        || terms_dict.get(&js_string::to_lower_case(&seg)),
-                    );
+                    rt::option_coalesce(terms_dict.get(&seg), Some, || {
+                        let operation_input_0_5 = terms_dict.clone();
+                        operation_input_0_5.get(&js_string::to_lower_case(&seg))
+                    });
                 cur = if pages.is_some() {
                     let upcast_value_128 = crate::template::values::page::PageArrayValue::new(
                         match pages.as_ref() {
@@ -3640,7 +3617,7 @@ pub fn resolve_path(
                 .is_some()
             {
                 let uri: crate::template::values::url::ParsedUrl = {
-                    let dispatch_receiver_25 = &{
+                    let dispatch_receiver_140 = &{
                         let downcast_value_23 = &cur;
                         crate::template::values::url::UrlValue {
                             identity: downcast_value_23.identity.clone(),
@@ -3651,7 +3628,7 @@ pub fn resolve_path(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_25.dispatch.read_url_value_value()
+                    dispatch_receiver_140.dispatch.read_url_value_value()
                 };
                 let k: String = js_string::to_lower_case(&seg);
                 if k == "isabs" {
@@ -3670,8 +3647,7 @@ pub fn resolve_path(
                 if k == "host" {
                     cur = {
                         let upcast_value_130 =
-                            crate::template::values::primitives::StringValue::new(if uri
-                                .state
+                            crate::template::values::primitives::StringValue::new(if uri.state
                                 .with(|state| state.absolute)
                             {
                                 uri.state.with(|state| state.host.clone())
@@ -3689,8 +3665,7 @@ pub fn resolve_path(
                 if k == "scheme" {
                     cur = {
                         let upcast_value_131 =
-                            crate::template::values::primitives::StringValue::new(if uri
-                                .state
+                            crate::template::values::primitives::StringValue::new(if uri.state
                                 .with(|state| state.absolute)
                             {
                                 uri.state.with(|state| state.scheme.clone())
@@ -3790,7 +3765,7 @@ pub fn resolve_path(
                 let selected: Option<String> =
                     crate::template::evaluation::url_query_semantics::get_url_query_value(
                         {
-                            let dispatch_receiver_26 = &{
+                            let dispatch_receiver_141 = &{
                                 let downcast_value_24 = &cur;
                                 crate::template::values::url::UrlQueryValue {
                                     identity: downcast_value_24.identity.clone(),
@@ -3801,7 +3776,7 @@ pub fn resolve_path(
                                         .unwrap(),
                                 }
                             };
-                            dispatch_receiver_26.dispatch.read_url_query_value_value()
+                            dispatch_receiver_141.dispatch.read_url_query_value_value()
                         },
                         seg.clone(),
                     )?;
@@ -3841,8 +3816,8 @@ pub fn resolve_path(
                     }
                 };
                 let res: crate::resources::models::Resource = {
-                    let dispatch_receiver_27 = &rv;
-                    dispatch_receiver_27.dispatch.read_resource_value_value()
+                    let dispatch_receiver_142 = &rv;
+                    dispatch_receiver_142.dispatch.read_resource_value_value()
                 };
                 let k: String = js_string::to_lower_case(&seg);
                 if k == "content" {
@@ -3865,9 +3840,10 @@ pub fn resolve_path(
                 if k == "data" {
                     cur = {
                         let upcast_value_139 =
-                            crate::template::values::resources::ResourceDataValue::new(
-                                res.state.with(|state| state.data.clone()),
-                            );
+                            crate::template::values::resources::ResourceDataValue::new({
+                                let dispatch_receiver_143 = &res;
+                                dispatch_receiver_143.dispatch.read_resource_data()
+                            });
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_139.identity.clone(),
                             dispatch: upcast_value_139.dispatch.clone(),
@@ -3877,8 +3853,12 @@ pub fn resolve_path(
                     continue 'loop_value;
                 }
                 if k == "relpermalink" {
-                    let output_rel_path: Option<String> =
-                        res.state.with(|state| state.output_rel_path.clone());
+                    let output_rel_path: Option<String> = {
+                        let dispatch_receiver_144 = &res;
+                        dispatch_receiver_144
+                            .dispatch
+                            .read_resource_output_rel_path()
+                    };
                     if output_rel_path.is_none()
                         || js_string::trim(&match output_rel_path.as_ref() {
     Some(flow_value_22) => flow_value_22.clone(),
@@ -3891,10 +3871,15 @@ pub fn resolve_path(
                         continue 'loop_value;
                     }
                     {
-                        let dispatch_receiver_28 = &rv;
-                        dispatch_receiver_28.dispatch.read_resource_value_manager()
-                    }
-                    .ensure_published(res.clone())?;
+                        let dispatch_receiver_146 = {
+                            let dispatch_receiver_145 = &rv;
+                            dispatch_receiver_145.dispatch.read_resource_value_manager()
+                        };
+                        dispatch_receiver_146
+                            .dispatch
+                            .clone()
+                            .dispatch_resource_manager_ensure_published(res.clone())
+                    }?;
                     let slash: String = String::from("/");
                     let rel: String = crate::utils::strings::trim_start_char(
                         &match output_rel_path.as_ref() {
@@ -3907,7 +3892,8 @@ pub fn resolve_path(
                         let upcast_value_140 =
                             crate::template::values::primitives::StringValue::new(format!(
                                 "{}{}",
-                                String::from("/"), rel,
+                                String::from("/"),
+                                rel,
                             ));
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_140.identity.clone(),
@@ -3918,8 +3904,12 @@ pub fn resolve_path(
                     continue 'loop_value;
                 }
                 if k == "permalink" {
-                    let output_rel_path: Option<String> =
-                        res.state.with(|state| state.output_rel_path.clone());
+                    let output_rel_path: Option<String> = {
+                        let dispatch_receiver_147 = &res;
+                        dispatch_receiver_147
+                            .dispatch
+                            .read_resource_output_rel_path()
+                    };
                     if output_rel_path.is_none()
                         || js_string::trim(&match output_rel_path.as_ref() {
     Some(flow_value_24) => flow_value_24.clone(),
@@ -3932,10 +3922,15 @@ pub fn resolve_path(
                         continue 'loop_value;
                     }
                     {
-                        let dispatch_receiver_29 = &rv;
-                        dispatch_receiver_29.dispatch.read_resource_value_manager()
-                    }
-                    .ensure_published(res.clone())?;
+                        let dispatch_receiver_149 = {
+                            let dispatch_receiver_148 = &rv;
+                            dispatch_receiver_148.dispatch.read_resource_value_manager()
+                        };
+                        dispatch_receiver_149
+                            .dispatch
+                            .clone()
+                            .dispatch_resource_manager_ensure_published(res.clone())
+                    }?;
                     let slash: String = String::from("/");
                     let rel: String = crate::utils::strings::trim_start_char(
                         &match output_rel_path.as_ref() {
@@ -3948,11 +3943,13 @@ pub fn resolve_path(
                         let upcast_value_141 =
                             crate::template::values::primitives::StringValue::new(format!(
                                 "{}{}",
-                                crate::utils::text::ensure_trailing_slash(scope
-                                    .state
-                                    .with(|state| state.site.clone())
-                                    .state
-                                    .with(|state| state.base_url.clone()),),
+                                crate::utils::text::ensure_trailing_slash({
+                                    let dispatch_receiver_151 = &{
+                                        let dispatch_receiver_150 = &scope;
+                                        dispatch_receiver_150.dispatch.read_render_scope_site()
+                                    };
+                                    dispatch_receiver_151.dispatch.read_site_context_base_url()
+                                },),
                                 rel,
                             ));
                         crate::template::values::base::TemplateValue {
@@ -3966,9 +3963,10 @@ pub fn resolve_path(
                 if k == "width" {
                     cur = {
                         let upcast_value_142 =
-                            crate::template::values::primitives::NumberValue::new(
-                                res.state.with(|state| state.width),
-                            );
+                            crate::template::values::primitives::NumberValue::new({
+                                let dispatch_receiver_152 = &res;
+                                dispatch_receiver_152.dispatch.read_resource_width()
+                            });
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_142.identity.clone(),
                             dispatch: upcast_value_142.dispatch.clone(),
@@ -3980,9 +3978,10 @@ pub fn resolve_path(
                 if k == "height" {
                     cur = {
                         let upcast_value_143 =
-                            crate::template::values::primitives::NumberValue::new(
-                                res.state.with(|state| state.height),
-                            );
+                            crate::template::values::primitives::NumberValue::new({
+                                let dispatch_receiver_153 = &res;
+                                dispatch_receiver_153.dispatch.read_resource_height()
+                            });
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_143.identity.clone(),
                             dispatch: upcast_value_143.dispatch.clone(),
@@ -3994,9 +3993,10 @@ pub fn resolve_path(
                 if k == "mediatype" {
                     cur = {
                         let upcast_value_144 =
-                            crate::template::values::primitives::StringValue::new(
-                                res.state.with(|state| state.media_type.clone()),
-                            );
+                            crate::template::values::primitives::StringValue::new({
+                                let dispatch_receiver_154 = &res;
+                                dispatch_receiver_154.dispatch.read_resource_media_type()
+                            });
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_144.identity.clone(),
                             dispatch: upcast_value_144.dispatch.clone(),
@@ -4017,7 +4017,7 @@ pub fn resolve_path(
                 .is_some()
             {
                 let data: crate::resources::models::ResourceData = {
-                    let dispatch_receiver_30 = &{
+                    let dispatch_receiver_155 = &{
                         let downcast_value_26 = &cur;
                         crate::template::values::resources::ResourceDataValue {
                             identity: downcast_value_26.identity.clone(),
@@ -4028,7 +4028,7 @@ pub fn resolve_path(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_30
+                    dispatch_receiver_155
                         .dispatch
                         .read_resource_data_value_value()
                 };
@@ -4036,9 +4036,12 @@ pub fn resolve_path(
                 if k == "integrity" {
                     cur = {
                         let upcast_value_145 =
-                            crate::template::values::primitives::StringValue::new(
-                                data.state.with(|state| state.integrity.clone()),
-                            );
+                            crate::template::values::primitives::StringValue::new({
+                                let dispatch_receiver_156 = &data;
+                                dispatch_receiver_156
+                                    .dispatch
+                                    .read_resource_data_integrity()
+                            });
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_145.identity.clone(),
                             dispatch: upcast_value_145.dispatch.clone(),
@@ -4059,7 +4062,7 @@ pub fn resolve_path(
                 .is_some()
             {
                 let mount: crate::docs::models::DocsMountContext = {
-                    let dispatch_receiver_31 = &{
+                    let dispatch_receiver_157 = &{
                         let downcast_value_27 = &cur;
                         crate::template::values::docs::DocsMountValue {
                             identity: downcast_value_27.identity.clone(),
@@ -4070,7 +4073,7 @@ pub fn resolve_path(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_31.dispatch.read_docs_mount_value_value()
+                    dispatch_receiver_157.dispatch.read_docs_mount_value_value()
                 };
                 let k: String = js_string::to_lower_case(&seg);
                 if k == "name" {
@@ -4124,7 +4127,7 @@ pub fn resolve_path(
                 .is_some()
             {
                 let item: crate::docs::models::NavItem = {
-                    let dispatch_receiver_32 = &{
+                    let dispatch_receiver_158 = &{
                         let downcast_value_28 = &cur;
                         crate::template::values::docs::NavItemValue {
                             identity: downcast_value_28.identity.clone(),
@@ -4135,7 +4138,7 @@ pub fn resolve_path(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_32.dispatch.read_nav_item_value_value()
+                    dispatch_receiver_158.dispatch.read_nav_item_value_value()
                 };
                 let k: String = js_string::to_lower_case(&seg);
                 if k == "title" {
@@ -4228,7 +4231,7 @@ pub fn resolve_path(
                 .is_some()
             {
                 let dict: js_abi::JsMap<String, crate::template::values::base::TemplateValue> = {
-                    let dispatch_receiver_33 = &{
+                    let dispatch_receiver_159 = &{
                         let downcast_value_29 = &cur;
                         crate::template::values::dict::DictValue {
                             identity: downcast_value_29.identity.clone(),
@@ -4239,7 +4242,7 @@ pub fn resolve_path(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_33.dispatch.read_dict_value_value()
+                    dispatch_receiver_159.dispatch.read_dict_value_value()
                 };
                 let direct: Option<crate::template::values::base::TemplateValue> = dict.get(&seg);
                 if direct.is_some() {
@@ -4274,7 +4277,7 @@ pub fn resolve_path(
             {
                 let key: String = js_string::to_lower_case(&seg);
                 let total_pages: i32 = {
-                    let dispatch_receiver_34 = {
+                    let dispatch_receiver_160 = {
                         let downcast_value_30 = &cur;
                         crate::template::values::pagination::PaginatorValue {
                             identity: downcast_value_30.identity.clone(),
@@ -4285,7 +4288,7 @@ pub fn resolve_path(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_34
+                    dispatch_receiver_160
                         .dispatch
                         .clone()
                         .dispatch_paginator_value_total_pages()
@@ -4293,7 +4296,7 @@ pub fn resolve_path(
                 if key == "pages" {
                     cur = {
                         let upcast_value_155 = crate::template::values::page::PageArrayValue::new({
-                            let dispatch_receiver_35 = {
+                            let dispatch_receiver_161 = {
                                 let downcast_value_31 = &cur;
                                 crate::template::values::pagination::PaginatorValue {
                                     identity: downcast_value_31.identity.clone(),
@@ -4304,7 +4307,7 @@ pub fn resolve_path(
                                         .unwrap(),
                                 }
                             };
-                            dispatch_receiver_35
+                            dispatch_receiver_161
                                 .dispatch
                                 .clone()
                                 .dispatch_paginator_value_pages()
@@ -4320,7 +4323,7 @@ pub fn resolve_path(
                             let upcast_value_156 =
                                 crate::template::values::primitives::BoolValue::new(
                                     {
-                                        let dispatch_receiver_36 = &{
+                                        let dispatch_receiver_162 = &{
                                             let downcast_value_32 = &cur;
                                             crate::template::values::pagination::PaginatorValue {
                                                 identity: downcast_value_32.identity.clone(),
@@ -4331,7 +4334,7 @@ pub fn resolve_path(
                                                     .unwrap(),
                                             }
                                         };
-                                        dispatch_receiver_36
+                                        dispatch_receiver_162
                                             .dispatch
                                             .read_paginator_value_page_number()
                                     } > 1,
@@ -4347,7 +4350,7 @@ pub fn resolve_path(
                                 let upcast_value_157 =
                                     crate::template::values::primitives::BoolValue::new(
                                         {
-                                            let dispatch_receiver_37 = &{
+                                            let dispatch_receiver_163 = &{
                                                 let downcast_value_33 = &cur;
                                                 crate::template::values::pagination::PaginatorValue {
                                                     identity: downcast_value_33.identity.clone(),
@@ -4358,7 +4361,7 @@ pub fn resolve_path(
                                                         .unwrap(),
                                                 }
                                             };
-                                            dispatch_receiver_37
+                                            dispatch_receiver_163
                                                 .dispatch
                                                 .read_paginator_value_page_number()
                                         } < total_pages,
@@ -4373,7 +4376,7 @@ pub fn resolve_path(
                                 cur = {
                                     let upcast_value_158 =
                                         crate::template::values::primitives::NumberValue::new({
-                                            let dispatch_receiver_38 = &{
+                                            let dispatch_receiver_164 = &{
                                                 let downcast_value_34 = &cur;
                                                 crate::template::values::pagination::PaginatorValue {
                                                     identity: downcast_value_34.identity.clone(),
@@ -4384,7 +4387,7 @@ pub fn resolve_path(
                                                         .unwrap(),
                                                 }
                                             };
-                                            dispatch_receiver_38
+                                            dispatch_receiver_164
                                                 .dispatch
                                                 .read_paginator_value_page_number()
                                         });
@@ -4408,8 +4411,8 @@ pub fn resolve_path(
                                 } else {
                                     if key == "prev" {
                                         cur = {
-                                            let conditional_test_2 = {
-                                                let dispatch_receiver_39 = &{
+                                            let conditional_test_5 = {
+                                                let dispatch_receiver_165 = &{
                                                     let downcast_value_35 = &cur;
                                                     crate::template::values::pagination::PaginatorValue {
                                                         identity: downcast_value_35
@@ -4422,13 +4425,13 @@ pub fn resolve_path(
                                                             .unwrap(),
                                                     }
                                                 };
-                                                dispatch_receiver_39
+                                                dispatch_receiver_165
                                                     .dispatch
                                                     .read_paginator_value_page_number()
                                             } > 1;
-                                            if conditional_test_2 {
+                                            if conditional_test_5 {
                                                 let upcast_value_160 = {
-                                                    let dispatch_receiver_41 = {
+                                                    let dispatch_receiver_167 = {
                                                         let downcast_value_37 = &cur;
                                                         crate::template::values::pagination::PaginatorValue {
                                                             identity: downcast_value_37
@@ -4441,12 +4444,12 @@ pub fn resolve_path(
                                                                 .unwrap(),
                                                         }
                                                     };
-                                                    dispatch_receiver_41
+                                                    dispatch_receiver_167
                                                         .dispatch
                                                         .clone()
                                                         .dispatch_paginator_value_with_page_number(
                                                             {
-                                                                let dispatch_receiver_40 = &{
+                                                                let dispatch_receiver_166 = &{
                                                                     let downcast_value_36 = &cur;
                                                                     crate::template::values::pagination::PaginatorValue {
                                                                         identity: downcast_value_36
@@ -4459,7 +4462,7 @@ pub fn resolve_path(
                                                                             .unwrap(),
                                                                     }
                                                                 };
-                                                                dispatch_receiver_40
+                                                                dispatch_receiver_166
                                                                     .dispatch
                                                                     .read_paginator_value_page_number()
                                                             } - 1,
@@ -4477,8 +4480,8 @@ pub fn resolve_path(
                                     } else {
                                         if key == "next" {
                                             cur = {
-                                                let conditional_test_3 = {
-                                                    let dispatch_receiver_42 = &{
+                                                let conditional_test_6 = {
+                                                    let dispatch_receiver_168 = &{
                                                         let downcast_value_38 = &cur;
                                                         crate::template::values::pagination::PaginatorValue {
                                                             identity: downcast_value_38
@@ -4491,13 +4494,13 @@ pub fn resolve_path(
                                                                 .unwrap(),
                                                         }
                                                     };
-                                                    dispatch_receiver_42
+                                                    dispatch_receiver_168
                                                         .dispatch
                                                         .read_paginator_value_page_number()
                                                 } < total_pages;
-                                                if conditional_test_3 {
+                                                if conditional_test_6 {
                                                     let upcast_value_161 = {
-                                                        let dispatch_receiver_44 = {
+                                                        let dispatch_receiver_170 = {
                                                             let downcast_value_40 = &cur;
                                                             crate::template::values::pagination::PaginatorValue {
                                                                 identity: downcast_value_40
@@ -4510,12 +4513,12 @@ pub fn resolve_path(
                                                                     .unwrap(),
                                                             }
                                                         };
-                                                        dispatch_receiver_44
+                                                        dispatch_receiver_170
                                                             .dispatch
                                                             .clone()
                                                             .dispatch_paginator_value_with_page_number(
                                                                 {
-                                                                    let dispatch_receiver_43 = &{
+                                                                    let dispatch_receiver_169 = &{
                                                                         let downcast_value_39 =
                                                                             &cur;
                                                                         crate::template::values::pagination::PaginatorValue {
@@ -4529,7 +4532,7 @@ pub fn resolve_path(
                                                                                 .unwrap(),
                                                                         }
                                                                     };
-                                                                    dispatch_receiver_43
+                                                                    dispatch_receiver_169
                                                                         .dispatch
                                                                         .read_paginator_value_page_number()
                                                                 } + 1,
@@ -4540,10 +4543,9 @@ pub fn resolve_path(
                                                         dispatch: upcast_value_161.dispatch.clone(),
                                                     }
                                                 } else {
-                                                    crate::template::runtime_helpers::NIL
-                                                        .with(|module_binding| {
-                                                            module_binding.load()
-                                                        })
+                                                    crate::template::runtime_helpers::NIL.with(|module_binding| {
+                                                        module_binding.load()
+                                                    })
                                                 }
                                             };
                                         } else {
@@ -4552,7 +4554,7 @@ pub fn resolve_path(
                                                     let upcast_value_162 =
                                                         crate::template::values::primitives::StringValue::new(
                                                             {
-                                                                let dispatch_receiver_45 = {
+                                                                let dispatch_receiver_171 = {
                                                                     let downcast_value_41 = &cur;
                                                                     crate::template::values::pagination::PaginatorValue {
                                                                         identity: downcast_value_41
@@ -4565,7 +4567,7 @@ pub fn resolve_path(
                                                                             .unwrap(),
                                                                     }
                                                                 };
-                                                                dispatch_receiver_45
+                                                                dispatch_receiver_171
                                                                     .dispatch
                                                                     .clone()
                                                                     .dispatch_paginator_value_url()
@@ -4610,16 +4612,16 @@ pub fn resolve_path(
                 let key: String = js_string::to_lower_case(&seg);
                 if key == "key" {
                     cur = {
-                        let dispatch_receiver_46 = &group;
-                        dispatch_receiver_46.dispatch.read_page_group_value_key()
+                        let dispatch_receiver_172 = &group;
+                        dispatch_receiver_172.dispatch.read_page_group_value_key()
                     };
                 } else {
                     if key == "pages" {
                         cur = {
                             let upcast_value_163 =
                                 crate::template::values::page::PageArrayValue::new({
-                                    let dispatch_receiver_47 = &group;
-                                    dispatch_receiver_47.dispatch.read_page_group_value_pages()
+                                    let dispatch_receiver_173 = &group;
+                                    dispatch_receiver_173.dispatch.read_page_group_value_pages()
                                 });
                             crate::template::values::base::TemplateValue {
                                 identity: upcast_value_163.identity.clone(),
@@ -4630,8 +4632,8 @@ pub fn resolve_path(
                         cur = rt::option_coalesce(
                             crate::template::evaluation::page_semantics::resolve_page_collection_property(
                                 crate::template::values::page::PageArrayValue::new({
-                                    let dispatch_receiver_48 = &group;
-                                    dispatch_receiver_48.dispatch.read_page_group_value_pages()
+                                    let dispatch_receiver_174 = &group;
+                                    dispatch_receiver_174.dispatch.read_page_group_value_pages()
                                 }),
                                 &seg,
                             )?,
@@ -4681,5 +4683,5 @@ pub fn resolve_path(
             );
         }
     }
-    Ok(cur.clone())
+    Ok(cur)
 }

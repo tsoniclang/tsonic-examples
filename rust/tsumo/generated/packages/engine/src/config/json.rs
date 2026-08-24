@@ -6,7 +6,7 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-pub(crate) fn invalid_field(
+pub fn invalid_field(
     field: String,
     expected: String,
     value: crate::utils::json::JsonValue,
@@ -15,14 +15,13 @@ pub(crate) fn invalid_field(
     crate::diagnostics::create_tsumo_error(
         String::from("TSUMO_CONFIG_INVALID_FIELD"),
         format!(
-            "{}{}{}{}{}",
+            "{}{}{}{}",
             String::from("Configuration field '"),
-            rt::source_string(&field),
+            field,
             String::from("' requires "),
-            rt::source_string(&expected),
-            String::from(""),
+            expected,
         ),
-        source_path.clone(),
+        source_path,
         Some(tsonic_rust_runtime::conversions::i32_to_f64({
             let dispatch_receiver = &value;
             dispatch_receiver.dispatch.read_json_value_line()
@@ -34,11 +33,11 @@ pub(crate) fn invalid_field(
     )
 }
 
-pub(crate) fn require_string(
+pub fn require_string(
     field: String,
     value: crate::utils::json::JsonValue,
     source_path: Option<String>,
-) -> rt::TsonicResult<String> {
+) -> Result<String, rt::TsonicError> {
     if value
         .dispatch
         .clone()
@@ -60,19 +59,19 @@ pub(crate) fn require_string(
             dispatch_receiver.dispatch.read_json_string_value()
         });
     }
-    Err(rt::TsonicError::from(invalid_field(
-        field.clone(),
+    Err(rt::TsonicError::TsumoError(invalid_field(
+        field,
         String::from("a string"),
         value.clone(),
-        source_path.clone(),
+        source_path,
     )))
 }
 
-pub(crate) fn require_int(
+pub fn require_int(
     field: String,
     value: crate::utils::json::JsonValue,
     source_path: Option<String>,
-) -> rt::TsonicResult<i32> {
+) -> Result<i32, rt::TsonicError> {
     if value
         .dispatch
         .clone()
@@ -100,19 +99,19 @@ pub(crate) fn require_int(
             });
         }
     }
-    Err(rt::TsonicError::from(invalid_field(
-        field.clone(),
+    Err(rt::TsonicError::TsumoError(invalid_field(
+        field,
         String::from("a 32-bit integer"),
         value.clone(),
-        source_path.clone(),
+        source_path,
     )))
 }
 
-pub(crate) fn require_object(
+pub fn require_object(
     field: String,
     value: crate::utils::json::JsonValue,
     source_path: Option<String>,
-) -> rt::TsonicResult<crate::utils::json::JsonObject> {
+) -> Result<crate::utils::json::JsonObject, rt::TsonicError> {
     if value
         .dispatch
         .clone()
@@ -131,19 +130,19 @@ pub(crate) fn require_object(
             }
         });
     }
-    Err(rt::TsonicError::from(invalid_field(
-        field.clone(),
+    Err(rt::TsonicError::TsumoError(invalid_field(
+        field,
         String::from("an object"),
         value.clone(),
-        source_path.clone(),
+        source_path,
     )))
 }
 
-pub(crate) fn require_array(
+pub fn require_array(
     field: String,
     value: crate::utils::json::JsonValue,
     source_path: Option<String>,
-) -> rt::TsonicResult<crate::utils::json::JsonArray> {
+) -> Result<crate::utils::json::JsonArray, rt::TsonicError> {
     if value
         .dispatch
         .clone()
@@ -162,19 +161,19 @@ pub(crate) fn require_array(
             }
         });
     }
-    Err(rt::TsonicError::from(invalid_field(
-        field.clone(),
+    Err(rt::TsonicError::TsumoError(invalid_field(
+        field,
         String::from("an array"),
         value.clone(),
-        source_path.clone(),
+        source_path,
     )))
 }
 
-pub(crate) fn assert_unique_fields(
+pub fn assert_unique_fields(
     object: crate::utils::json::JsonObject,
     context: String,
     source_path: Option<String>,
-) -> rt::TsonicResult<()> {
+) -> Result<(), rt::TsonicError> {
     let names: js_abi::JsSet<String> = js_abi::JsSet::new();
     {
         let mut index: f64 = 0.0;
@@ -194,14 +193,13 @@ pub(crate) fn assert_unique_fields(
             let name: String =
                 js_string::to_lower_case(&property.state.with(|state| state.key.clone()));
             if names.has(&name) {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                     String::from("TSUMO_CONFIG_DUPLICATE_FIELD"),
                     format!(
-                        "{}{}{}{}{}",
-                        String::from(""),
-                        rt::source_string(&context),
+                        "{}{}{}{}",
+                        context,
                         String::from(" field '"),
-                        rt::source_string(&property.state.with(|state| state.key.clone())),
+                        property.state.with(|state| state.key.clone()),
                         String::from("' is declared more than once"),
                     ),
                     source_path.clone(),
@@ -213,18 +211,18 @@ pub(crate) fn assert_unique_fields(
                     )),
                 )));
             }
-            names.add(name.clone());
+            names.add_discard(name.clone());
             index += 1.0;
         }
     }
     Ok(())
 }
 
-pub(crate) fn to_param(
+pub fn to_param(
     field: String,
     value: crate::utils::json::JsonValue,
     source_path: Option<String>,
-) -> rt::TsonicResult<crate::params::ParamValue> {
+) -> Result<crate::params::ParamValue, rt::TsonicError> {
     if value
         .dispatch
         .clone()
@@ -273,13 +271,11 @@ pub(crate) fn to_param(
         .downcast_json_value_to_json_number()
         .is_some()
     {
-        return Ok(crate::params::ParamValue::number(require_int(
-            field.clone(),
-            value.clone(),
-            source_path.clone(),
-        )?));
+        return Ok(crate::params::ParamValue::number(
+            require_int(field.clone(), value.clone(), source_path.clone())?,
+        ));
     }
-    Err(rt::TsonicError::from(invalid_field(
+    Err(rt::TsonicError::TsumoError(invalid_field(
         field.clone(),
         String::from("a string, boolean, or 32-bit integer"),
         value.clone(),
@@ -287,12 +283,12 @@ pub(crate) fn to_param(
     )))
 }
 
-pub(crate) fn apply_language_field(
+pub fn apply_language_field(
     builder: crate::config::builders::LanguageConfigBuilder,
     field: String,
     value: crate::utils::json::JsonValue,
     source_path: Option<String>,
-) -> rt::TsonicResult<()> {
+) -> Result<(), rt::TsonicError> {
     let normalized: String = js_string::to_lower_case(&field);
     if normalized == "languagename" {
         {
@@ -330,12 +326,12 @@ pub(crate) fn apply_language_field(
                         receiver_4.state.with_mut(|state| state.weight = value_5)
                     };
                 } else {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                    return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                         String::from("TSUMO_CONFIG_UNKNOWN_FIELD"),
                         format!(
                             "{}{}{}",
                             String::from("Unknown language configuration field '"),
-                            rt::source_string(&field),
+                            field,
                             String::from("'"),
                         ),
                         source_path.clone(),
@@ -355,12 +351,12 @@ pub(crate) fn apply_language_field(
     Ok(())
 }
 
-pub(crate) fn apply_menu_field(
+pub fn apply_menu_field(
     builder: crate::config::builders::MenuEntryBuilder,
     field: String,
     value: crate::utils::json::JsonValue,
     source_path: Option<String>,
-) -> rt::TsonicResult<()> {
+) -> Result<(), rt::TsonicError> {
     let normalized: String = js_string::to_lower_case(&field);
     if normalized == "name" {
         {
@@ -448,12 +444,12 @@ pub(crate) fn apply_menu_field(
                                                 .with_mut(|state| state.weight = value_10)
                                         };
                                     } else {
-                                        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                                        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                                             String::from("TSUMO_CONFIG_UNKNOWN_FIELD"),
                                             format!(
                                                 "{}{}{}",
                                                 String::from("Unknown menu configuration field '"),
-                                                rt::source_string(&field),
+                                                field,
                                                 String::from("'"),
                                             ),
                                             source_path.clone(),
@@ -483,15 +479,11 @@ pub(crate) fn apply_menu_field(
 pub fn parse_json_config(
     text: String,
     source_path: Option<String>,
-) -> rt::TsonicResult<crate::models::site_config::SiteConfig> {
-    let root_value: crate::utils::json::JsonValue = crate::utils::json::PARSE_JSON
-        .with(|module_binding| module_binding.load())
-        .call((text.clone(), source_path.clone()))?;
-    let root: crate::utils::json::JsonObject = require_object(
-        String::from("<root>"),
-        root_value.clone(),
-        source_path.clone(),
-    )?;
+) -> Result<crate::models::site_config::SiteConfig, rt::TsonicError> {
+    let root_value: crate::utils::json::JsonValue =
+        crate::utils::json::parse_json(text, source_path.clone())?;
+    let root: crate::utils::json::JsonObject =
+        require_object(String::from("<root>"), root_value, source_path.clone())?;
     assert_unique_fields(
         root.clone(),
         String::from("Configuration"),
@@ -526,8 +518,9 @@ pub fn parse_json_config(
             };
             let key: String =
                 js_string::to_lower_case(&property.state.with(|state| state.key.clone()));
-            let value: crate::utils::json::JsonValue =
-                property.state.with(|state| state.value.clone());
+            let value: crate::utils::json::JsonValue = property
+                .state
+                .with(|state| state.value.clone());
             if key == "title" {
                 title = require_string(
                     property.state.with(|state| state.key.clone()),
@@ -605,18 +598,23 @@ pub fn parse_json_config(
                                                             )
                                                         }
                                                     };
-                                                params.set(
-                                                    parameter.state.with(|state| state.key.clone()),
-                                                    to_param(
+                                                {
+                                                    let operation_input_0 = params.clone();
+                                                    operation_input_0.set_discard(
                                                         parameter
                                                             .state
                                                             .with(|state| state.key.clone()),
-                                                        parameter
-                                                            .state
-                                                            .with(|state| state.value.clone()),
-                                                        source_path.clone(),
-                                                    )?,
-                                                );
+                                                        to_param(
+                                                            parameter
+                                                                .state
+                                                                .with(|state| state.key.clone()),
+                                                            parameter
+                                                                .state
+                                                                .with(|state| state.value.clone()),
+                                                            source_path.clone(),
+                                                        )?,
+                                                    )
+                                                };
                                                 param_index += 1.0;
                                             }
                                         }
@@ -672,9 +670,9 @@ pub fn parse_json_config(
                                                         format!(
                                                             "{}{}{}",
                                                             String::from("Language '"),
-                                                            rt::source_string(&language.state.with(
-                                                                |state| state.key.clone()
-                                                            )),
+                                                            language
+                                                                .state
+                                                                .with(|state| state.key.clone()),
                                                             String::from("'"),
                                                         ),
                                                         source_path.clone(),
@@ -715,7 +713,9 @@ pub fn parse_json_config(
                                                                 builder.clone(),
                                                                 field
                                                                     .state
-                                                                    .with(|state| state.key.clone()),
+                                                                    .with(|state| {
+                                                                        state.key.clone()
+                                                                    }),
                                                                 field.state.with(|state| {
                                                                     state.value.clone()
                                                                 }),
@@ -724,9 +724,13 @@ pub fn parse_json_config(
                                                             field_index += 1.0;
                                                         }
                                                     }
-                                                    tsonic_rust_runtime::conversions::usize_to_i32(
-                                                        languages.push_many([builder.to_config()]),
-                                                    )?;
+                                                    {
+                                                        let operation_input_0_2 =
+                                                            languages.clone();
+                                                        operation_input_0_2.push_many_discard([
+                                                            builder.to_config(),
+                                                        ])
+                                                    };
                                                     language_index += 1.0;
                                                 }
                                             }
@@ -771,9 +775,10 @@ pub fn parse_json_config(
                                                             };
                                                         let menu_items: crate::utils::json::JsonArray =
                                                             require_array(
-                                                                menu
-                                                                    .state
-                                                                    .with(|state| state.key.clone()),
+                                                                menu.state
+                                                                    .with(|state| {
+                                                                        state.key.clone()
+                                                                    }),
                                                                 menu.state.with(|state| {
                                                                     state.value.clone()
                                                                 }),
@@ -810,15 +815,13 @@ pub fn parse_json_config(
                                                                 let fields: crate::utils::json::JsonObject =
                                                                     require_object(
                                                                         format!(
-                                                                            "{}{}{}{}{}",
-                                                                            String::from(""),
-                                                                            rt::source_string(&menu
-                                                                                .state
+                                                                            "{}{}{}{}",
+                                                                            menu.state
                                                                                 .with(|state| {
                                                                                     state
                                                                                         .key
                                                                                         .clone()
-                                                                                }),),
+                                                                                }),
                                                                             String::from("["),
                                                                             rt::source_string(
                                                                                 &entry_index,
@@ -833,11 +836,9 @@ pub fn parse_json_config(
                                                                     format!(
                                                                         "{}{}{}",
                                                                         String::from("Menu '"),
-                                                                        rt::source_string(&menu
-                                                                            .state
-                                                                            .with(|state| {
-                                                                                state.key.clone()
-                                                                            }),),
+                                                                        menu.state.with(|state| {
+                                                                            state.key.clone()
+                                                                        }),
                                                                         String::from("' entry"),
                                                                     ),
                                                                     source_path.clone(),
@@ -897,34 +898,41 @@ pub fn parse_json_config(
                                                                         field_index += 1.0;
                                                                     }
                                                                 }
-                                                                tsonic_rust_runtime::conversions::usize_to_i32(
-                                                                    entries.push_many([
+                                                                {
+                                                                    let operation_input_0_3 =
+                                                                        entries.clone();
+                                                                    operation_input_0_3.push_many_discard([
                                                                         builder.to_entry(),
-                                                                    ]),
-                                                                )?;
+                                                                    ])
+                                                                };
                                                                 entry_index += 1.0;
                                                             }
                                                         }
-                                                        menus.set(
-                                                            menu
-                                                                .state
-                                                                .with(|state| state.key.clone()),
-                                                            crate::menus::build_menu_hierarchy(
-                                                                entries.clone(),
-                                                            )?,
-                                                        );
+                                                        {
+                                                            let operation_input_0_4 =
+                                                                menus.clone();
+                                                            operation_input_0_4.set_discard(
+                                                                menu.state
+                                                                    .with(|state| {
+                                                                        state.key.clone()
+                                                                    }),
+                                                                crate::menus::build_menu_hierarchy(
+                                                                    entries.clone(),
+                                                                )?,
+                                                            )
+                                                        };
                                                         menu_index += 1.0;
                                                     }
                                                 }
                                             } else {
-                                                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                                                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                                                     String::from("TSUMO_CONFIG_UNKNOWN_FIELD"),
                                                     format!(
                                                         "{}{}{}",
                                                         String::from("Unknown configuration field '"),
-                                                        rt::source_string(&property.state.with(
-                                                            |state| state.key.clone()
-                                                        )),
+                                                        property
+                                                            .state
+                                                            .with(|state| state.key.clone()),
                                                         String::from("'"),
                                                     ),
                                                     source_path.clone(),
@@ -964,29 +972,50 @@ pub fn parse_json_config(
     {
         let receiver = &config;
         let value_2 = content_dir.clone();
-        receiver.state.with_mut(|state| state.content_dir = value_2)
+        {
+            let dispatch_receiver_15 = receiver;
+            dispatch_receiver_15
+                .dispatch
+                .write_site_config_content_dir(value_2)
+        }
     };
     {
         let receiver_2 = &config;
         let value_3 = params.clone();
-        receiver_2.state.with_mut(|state| state.params = value_3)
+        {
+            let dispatch_receiver_16 = receiver_2;
+            dispatch_receiver_16
+                .dispatch
+                .write_site_config_params(value_3)
+        }
     };
     {
         let receiver_3 = &config;
         let value_4 = menus.clone();
-        receiver_3.state.with_mut(|state| state.menus = value_4)
+        {
+            let dispatch_receiver_17 = receiver_3;
+            dispatch_receiver_17
+                .dispatch
+                .write_site_config_menus(value_4)
+        }
     };
     if tsonic_rust_runtime::conversions::usize_to_i32(languages.len())? > 0 {
         {
             let receiver_4 = &config;
             let value_5 = crate::config::helpers::sort_languages(languages.clone())?;
-            receiver_4.state.with_mut(|state| state.languages = value_5)
+            {
+                let dispatch_receiver_18 = receiver_4;
+                dispatch_receiver_18
+                    .dispatch
+                    .write_site_config_languages(value_5)
+            }
         };
-        let selected: crate::models::language::LanguageConfig = match config
-            .state
-            .with(|state| state.languages.clone())
-            .get_number(0.0)
-            .as_ref()
+        let selected: crate::models::language::LanguageConfig = match {
+            let dispatch_receiver_19 = &config;
+            dispatch_receiver_19.dispatch.read_site_config_languages()
+        }
+        .get_number(0.0)
+        .as_ref()
         {
             Some(flow_value_8) => flow_value_8.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
@@ -994,19 +1023,25 @@ pub fn parse_json_config(
         {
             let receiver_5 = &config;
             let value_6 = selected.state.with(|state| state.content_dir.clone());
-            receiver_5
-                .state
-                .with_mut(|state| state.content_dir = value_6)
+            {
+                let dispatch_receiver_20 = receiver_5;
+                dispatch_receiver_20
+                    .dispatch
+                    .write_site_config_content_dir(value_6)
+            }
         };
         if !has_language_code {
             {
                 let receiver_6 = &config;
                 let value_7 = selected.state.with(|state| state.lang.clone());
-                receiver_6
-                    .state
-                    .with_mut(|state| state.language_code = value_7)
+                {
+                    let dispatch_receiver_21 = receiver_6;
+                    dispatch_receiver_21
+                        .dispatch
+                        .write_site_config_language_code(value_7)
+                }
             };
         }
     }
-    Ok(config.clone())
+    Ok(config)
 }

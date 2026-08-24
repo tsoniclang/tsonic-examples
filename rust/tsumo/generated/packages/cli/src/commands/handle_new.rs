@@ -4,12 +4,10 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
-pub fn handle_new(args: js_abi::JsArray<String>) -> rt::TsonicResult<()> {
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn handle_new(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError> {
     if tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 2
-        && (match args.get_number(1.0).as_ref() {
-            Some(flow_value) => flow_value.clone(),
-            None => unreachable!("checked flow selected a missing optional value"),
-        }) == "site"
+        && args.get_number(1.0) == Some(String::from("site"))
     {
         if tsonic_rust_runtime::conversions::usize_to_i32(args.len())? < 3 {
             crate::report_usage_error::report_usage_error(
@@ -19,30 +17,24 @@ pub fn handle_new(args: js_abi::JsArray<String>) -> rt::TsonicResult<()> {
         }
         if tsonic_rust_runtime::conversions::usize_to_i32(args.len())? > 3 {
             crate::report_usage_error::report_usage_error(format!(
-                "{}{}{}",
+                "{}{}",
                 String::from("Unknown new site option: "),
-                rt::source_string(&match args.get_number(3.0).as_ref() {
-                    Some(flow_value_2) => flow_value_2.clone(),
+                match args.get_number(3.0).as_ref() {
+                    Some(flow_value) => flow_value.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
-                },),
-                String::from(""),
+                },
             ));
             return Ok(());
         }
         let dir: String = match args.get_number(2.0).as_ref() {
-            Some(flow_value_3) => flow_value_3.clone(),
+            Some(flow_value_2) => flow_value_2.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         };
-        crate::node_modules::tsumo::engine::src::scaffold::init_site::init_site(
+        tsumo_engine::init_site(
             dir.clone(),
             crate::source_date_epoch::read_source_date_epoch()?,
         )?;
-        crate::log_line::log_line(format!(
-            "{}{}{}",
-            String::from("Created site: "),
-            rt::source_string(&dir),
-            String::from(""),
-        ));
+        crate::log_line::log_line(format!("{}{}", String::from("Created site: "), dir));
         return Ok(());
     }
     if tsonic_rust_runtime::conversions::usize_to_i32(args.len())? < 2 {
@@ -51,56 +43,47 @@ pub fn handle_new(args: js_abi::JsArray<String>) -> rt::TsonicResult<()> {
         );
         return Ok(());
     }
-    let mut content_source_dir: String =
-        tsonic_rust_node::process::cwd().map_err(tsonic_rust_runtime::TsonicError::from)?;
+    let mut content_source_dir: String = tsonic_rust_node::process::cwd()?;
     {
         let mut i: f64 = 2.0;
         while i < (tsonic_rust_runtime::conversions::usize_to_i32(args.len())? as f64) {
             let a: String = match args.get_number(i).as_ref() {
-                Some(flow_value_4) => flow_value_4.clone(),
+                Some(flow_value_3) => flow_value_3.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if a == "--source" || a == "-s" {
                 if i + 1.0 >= (tsonic_rust_runtime::conversions::usize_to_i32(args.len())? as f64) {
                     crate::report_usage_error::report_usage_error(format!(
-                        "{}{}{}",
+                        "{}{}",
                         String::from("Missing value for "),
-                        rt::source_string(&a),
-                        String::from(""),
+                        a,
                     ));
                     return Ok(());
                 }
                 content_source_dir = match args.get_number(i + 1.0).as_ref() {
-    Some(flow_value_5) => flow_value_5.clone(),
+    Some(flow_value_4) => flow_value_4.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
 };
                 i += 1.0;
             } else {
                 crate::report_usage_error::report_usage_error(format!(
-                    "{}{}{}",
+                    "{}{}",
                     String::from("Unknown new option: "),
-                    rt::source_string(&a),
-                    String::from(""),
+                    a,
                 ));
                 return Ok(());
             }
             i += 1.0;
         }
     }
-    let created: String =
-        crate::node_modules::tsumo::engine::src::scaffold::new_content::new_content(
-            content_source_dir.clone(),
-            match args.get_number(1.0).as_ref() {
-                Some(flow_value_6) => flow_value_6.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            },
-            crate::source_date_epoch::read_source_date_epoch()?,
-        )?;
-    crate::log_line::log_line(format!(
-        "{}{}{}",
-        String::from("Created content: "),
-        rt::source_string(&created),
-        String::from(""),
-    ));
+    let created: String = tsumo_engine::new_content(
+        content_source_dir.clone(),
+        match args.get_number(1.0).as_ref() {
+            Some(flow_value_5) => flow_value_5.clone(),
+            None => unreachable!("checked flow selected a missing optional value"),
+        },
+        crate::source_date_epoch::read_source_date_epoch()?,
+    )?;
+    crate::log_line::log_line(format!("{}{}", String::from("Created content: "), created));
     Ok(())
 }

@@ -10,7 +10,7 @@ pub fn build_standard_site(
     request: crate::build::BuildRequest,
     site_dir: String,
     out_dir: String,
-) -> rt::TsonicResult<i32> {
+) -> Result<i32, rt::TsonicError> {
     let config: crate::models::site_config::SiteConfig =
         crate::config::loader::load_site_config(site_dir.clone())?
             .state
@@ -33,81 +33,95 @@ pub fn build_standard_site(
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
             ));
-            receiver.state.with_mut(|state| state.base_url = value)
+            {
+                let dispatch_receiver_2 = receiver;
+                dispatch_receiver_2
+                    .dispatch
+                    .write_site_config_base_url(value)
+            }
         };
     }
-    let theme_dir: Option<String> = crate::build::layout::resolve_theme_dir(
-        site_dir.clone(),
-        config.clone(),
-        {
-            let dispatch_receiver_2 = &request;
-            dispatch_receiver_2.dispatch.read_build_request_themes_dir()
-        },
-    )?;
+    let theme_dir: Option<String> =
+        crate::build::layout::resolve_theme_dir(site_dir.clone(), config.clone(), {
+            let dispatch_receiver_3 = &request;
+            dispatch_receiver_3.dispatch.read_build_request_themes_dir()
+        })?;
     let environment: crate::env::BuildEnvironment = crate::env::BuildEnvironment::new(
         site_dir.clone(),
         theme_dir.clone(),
         out_dir.clone(),
-        Some(config.state.with(|state| state.module_mounts.clone())),
         Some({
-            let dispatch_receiver_3 = &request;
-            dispatch_receiver_3.dispatch.read_build_request_build_time()
+            let dispatch_receiver_4 = &config;
+            dispatch_receiver_4
+                .dispatch
+                .read_site_config_module_mounts()
+        }),
+        Some({
+            let dispatch_receiver_5 = &request;
+            dispatch_receiver_5.dispatch.read_build_request_build_time()
         }),
     )?;
     let output_plan: crate::build::output_plan::SiteOutputPlan =
         crate::build::output_plan::SiteOutputPlan::new();
     if theme_dir.is_some() {
-        output_plan.add_directory(
-            tsonic_rust_node::path::join(&[
-                (match theme_dir.as_ref() {
+        {
+            let dispatch_receiver_6 = output_plan.clone();
+            dispatch_receiver_6.dispatch.clone().dispatch_site_output_plan_add_directory(
+                tsonic_rust_node::path::join(&[
+                    (match theme_dir.as_ref() {
     Some(flow_value_3) => flow_value_3.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
 }).as_str(),
-                "static",
-            ]),
-            String::from(""),
-            String::from("theme static files"),
-            crate::build::output_plan::AssetLayer::ThemeStatic,
-        )?;
+                    "static",
+                ]),
+                String::from(""),
+                String::from("theme static files"),
+                crate::build::output_plan::AssetLayer::ThemeStatic,
+            )
+        }?;
     }
-    output_plan.add_directory(
-        tsonic_rust_node::path::join(&[site_dir.as_str(), "static"]),
-        String::from(""),
-        String::from("site static files"),
-        crate::build::output_plan::AssetLayer::SiteStatic,
-    )?;
+    {
+        let dispatch_receiver_7 = output_plan.clone();
+        dispatch_receiver_7
+            .dispatch
+            .clone()
+            .dispatch_site_output_plan_add_directory(
+                tsonic_rust_node::path::join(&[site_dir.as_str(), "static"]),
+                String::from(""),
+                String::from("site static files"),
+                crate::build::output_plan::AssetLayer::SiteStatic,
+            )
+    }?;
     let inventory: crate::build::content_model::ContentInventory =
         crate::build::discover_content::discover_content(
-            tsonic_rust_node::path::join(&[
-                site_dir.as_str(),
-                config
-                    .state
-                    .with(|state| state.content_dir.clone())
-                    .as_str(),
-            ]),
             {
-                let dispatch_receiver_4 = &request;
-                dispatch_receiver_4
+                let operation_input_0 = site_dir.clone();
+                tsonic_rust_node::path::join(&[
+                    operation_input_0.as_str(),
+                    {
+                        let dispatch_receiver_8 = &config;
+                        dispatch_receiver_8.dispatch.read_site_config_content_dir()
+                    }
+                    .as_str(),
+                ])
+            },
+            {
+                let dispatch_receiver_9 = &request;
+                dispatch_receiver_9
                     .dispatch
                     .read_build_request_build_drafts()
             },
         )?;
     let page_graph: crate::build::standard_page_graph::StandardPageGraph =
-        crate::build::standard_page_graph::CREATE_STANDARD_PAGE_GRAPH
-            .with(|module_binding| module_binding.load())
-            .call((config.clone(), inventory.clone()))?;
+        crate::build::standard_page_graph::create_standard_page_graph(config.clone(), inventory)?;
     let taxonomies: crate::build::standard_taxonomies::StandardTaxonomyGraph =
-        crate::build::standard_taxonomies::CREATE_STANDARD_TAXONOMIES
-            .with(|module_binding| module_binding.load())
-            .call((page_graph.clone(),))?;
+        crate::build::standard_taxonomies::create_standard_taxonomies(page_graph.clone())?;
     crate::build::render_page_content::render_standard_page_content(
         page_graph.clone(),
         environment.clone(),
     )?;
     let templates: crate::build::standard_templates::StandardTemplates =
-        crate::build::standard_templates::SELECT_STANDARD_TEMPLATES
-            .with(|module_binding| module_binding.load())
-            .call((environment.clone(),))?;
+        crate::build::standard_templates::select_standard_templates(environment.clone())?;
     let sitemap_urls: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
     crate::build::plan_home_output::plan_home_output(
         page_graph.clone(),
@@ -124,7 +138,7 @@ pub fn build_standard_site(
         sitemap_urls.clone(),
     )?;
     crate::build::plan_taxonomy_outputs::plan_taxonomy_outputs(
-        taxonomies.clone(),
+        taxonomies,
         environment.clone(),
         templates.clone(),
         output_plan.clone(),
@@ -139,47 +153,78 @@ pub fn build_standard_site(
     )?;
     let ordered_sitemap_urls: js_abi::JsArray<String> =
         js_abi::array_from_vec(&sitemap_urls.keys());
-    ordered_sitemap_urls
-        .try_sort(|left, right| {
-            crate::build::site_routes::compare_site_paths(left.clone(), right.clone())
-        })?;
-    output_plan.add_default_text(
-        String::from("sitemap.xml"),
-        crate::outputs::render_sitemap(
-            config.clone(),
-            ordered_sitemap_urls.clone(),
-            {
-                let dispatch_receiver_5 = &request;
-                dispatch_receiver_5.dispatch.read_build_request_build_time()
-            },
-        )?,
-        String::from("generated sitemap"),
-    )?;
-    output_plan.add_default_text(
-        String::from("index.xml"),
-        crate::outputs::render_rss(
-            config.clone(),
-            page_graph.state.with(|state| state.content_pages.clone()),
-            {
-                let dispatch_receiver_6 = &request;
-                dispatch_receiver_6.dispatch.read_build_request_build_time()
-            },
-        )?,
-        String::from("generated RSS"),
-    )?;
-    output_plan.add_default_text(
-        String::from("robots.txt"),
-        crate::outputs::render_robots_txt(config.clone()),
-        String::from("generated robots policy"),
-    )?;
-    output_plan
-        .apply_deferred_template_results({
-            let dispatch_receiver_7 = environment.clone();
-            dispatch_receiver_7
-                .dispatch
-                .clone()
-                .dispatch_template_environment_finalize_deferred_templates()
-        }?)?;
-    output_plan.render(out_dir.clone())?;
-    Ok(output_plan.generated_output_count())
+    ordered_sitemap_urls.try_sort(crate::build::site_routes::compare_site_paths)?;
+    {
+        let dispatch_receiver_11 = output_plan.clone();
+        dispatch_receiver_11.dispatch.clone().dispatch_site_output_plan_add_default_text(
+            String::from("sitemap.xml"),
+            crate::outputs::render_sitemap(config.clone(), ordered_sitemap_urls.clone(), {
+                let dispatch_receiver_10 = &request;
+                dispatch_receiver_10
+                    .dispatch
+                    .read_build_request_build_time()
+            })?,
+            String::from("generated sitemap"),
+        )
+    }?;
+    {
+        let dispatch_receiver_14 = output_plan.clone();
+        dispatch_receiver_14.dispatch.clone().dispatch_site_output_plan_add_default_text(
+            String::from("index.xml"),
+            crate::outputs::render_rss(
+                config.clone(),
+                {
+                    let dispatch_receiver_12 = &page_graph;
+                    dispatch_receiver_12
+                        .dispatch
+                        .read_standard_page_graph_content_pages()
+                },
+                {
+                    let dispatch_receiver_13 = &request;
+                    dispatch_receiver_13
+                        .dispatch
+                        .read_build_request_build_time()
+                },
+            )?,
+            String::from("generated RSS"),
+        )
+    }?;
+    {
+        let dispatch_receiver_15 = output_plan.clone();
+        dispatch_receiver_15
+            .dispatch
+            .clone()
+            .dispatch_site_output_plan_add_default_text(
+                String::from("robots.txt"),
+                crate::outputs::render_robots_txt(config.clone()),
+                String::from("generated robots policy"),
+            )
+    }?;
+    {
+        let dispatch_receiver_17 = output_plan.clone();
+        dispatch_receiver_17
+            .dispatch
+            .clone()
+            .dispatch_site_output_plan_apply_deferred_template_results({
+                let dispatch_receiver_16 = environment.clone();
+                dispatch_receiver_16
+                    .dispatch
+                    .clone()
+                    .dispatch_template_environment_finalize_deferred_templates()
+            }?)
+    }?;
+    {
+        let dispatch_receiver_18 = output_plan.clone();
+        dispatch_receiver_18
+            .dispatch
+            .clone()
+            .dispatch_site_output_plan_render(out_dir.clone())
+    }?;
+    Ok({
+        let dispatch_receiver_19 = output_plan.clone();
+        dispatch_receiver_19
+            .dispatch
+            .clone()
+            .dispatch_site_output_plan_generated_output_count()
+    })
 }

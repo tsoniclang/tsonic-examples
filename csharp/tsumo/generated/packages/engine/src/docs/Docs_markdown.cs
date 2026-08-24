@@ -283,7 +283,7 @@ namespace Tsumo.Engine
                     Markdig.Syntax.Inlines.Inline inline = it.Current;
                     if (inline is Markdig.Syntax.Inlines.LinkInline)
                     {
-                        Markdig.Syntax.Inlines.LinkInline link = (Markdig.Syntax.Inlines.LinkInline)(Markdig.Syntax.Inlines.LinkInline)inline;
+                        Markdig.Syntax.Inlines.LinkInline link = (Markdig.Syntax.Inlines.LinkInline)inline;
                         string? updated = maybeRewriteUrl(link.Url, ctx);
                         if (updated is not null)
                         {
@@ -292,7 +292,7 @@ namespace Tsumo.Engine
                     }
                     if (inline is Markdig.Syntax.Inlines.ContainerInline)
                     {
-                        rewriteInInlines((Markdig.Syntax.Inlines.ContainerInline)(Markdig.Syntax.Inlines.ContainerInline)inline, ctx);
+                        rewriteInInlines((Markdig.Syntax.Inlines.ContainerInline)inline, ctx);
                     }
                 }
                 it.Dispose();
@@ -301,7 +301,7 @@ namespace Tsumo.Engine
             {
                 if (block is Markdig.Syntax.LeafBlock)
                 {
-                    Markdig.Syntax.LeafBlock leaf = (Markdig.Syntax.LeafBlock)(Markdig.Syntax.LeafBlock)block;
+                    Markdig.Syntax.LeafBlock leaf = (Markdig.Syntax.LeafBlock)block;
                     Markdig.Syntax.Inlines.ContainerInline? inline = leaf.Inline;
                     if (inline is not null)
                     {
@@ -309,7 +309,7 @@ namespace Tsumo.Engine
                     }
                     if ((Markdig.Syntax.LeafBlock)block is Markdig.Syntax.LinkReferenceDefinition)
                     {
-                        Markdig.Syntax.LinkReferenceDefinition def = (Markdig.Syntax.LinkReferenceDefinition)(Markdig.Syntax.LinkReferenceDefinition)block;
+                        Markdig.Syntax.LinkReferenceDefinition def = (Markdig.Syntax.LinkReferenceDefinition)block;
                         string? updated = maybeRewriteUrl(def.Url, ctx);
                         if (updated is not null)
                         {
@@ -319,7 +319,7 @@ namespace Tsumo.Engine
                 }
                 if (block is Markdig.Syntax.ContainerBlock)
                 {
-                    Markdig.Syntax.ContainerBlock container = (Markdig.Syntax.ContainerBlock)(Markdig.Syntax.ContainerBlock)block;
+                    Markdig.Syntax.ContainerBlock container = (Markdig.Syntax.ContainerBlock)block;
                     Markdig.Syntax.ContainerBlock.Enumerator it = container.GetEnumerator();
                     while (it.MoveNext())
                     {

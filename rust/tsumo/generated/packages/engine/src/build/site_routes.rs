@@ -6,22 +6,19 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-pub fn normalize_site_path(path: &str) -> rt::TsonicResult<String> {
-    Ok(js_string::replace_all(path, "\\", "/").map_err(tsonic_rust_runtime::TsonicError::from)?)
+pub fn normalize_site_path(path: &str) -> Result<String, rt::TsonicError> {
+    js_string::replace_all(path, "\\", "/").map_err(rt::TsonicError::from)
 }
 
-pub fn split_site_path(path: String) -> rt::TsonicResult<js_abi::JsArray<String>> {
-    Ok(
-        js_string::split_all(&normalize_site_path(&path)?, "/")
-            .map_err(tsonic_rust_runtime::TsonicError::from)?,
-    )
+pub fn split_site_path(path: String) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
+    js_string::split_all(&normalize_site_path(&path)?, "/").map_err(rt::TsonicError::from)
 }
 
 pub fn join_site_path(segments: js_abi::JsArray<String>) -> String {
     segments.join("/")
 }
 
-pub fn without_markdown_extension(file_name: String) -> rt::TsonicResult<String> {
+pub fn without_markdown_extension(file_name: String) -> Result<String, rt::TsonicError> {
     Ok(if js_string::ends_with_at_end(&js_string::to_lower_case(&file_name), ".md") {
         crate::utils::strings::substring_count(
             file_name.clone(),
@@ -33,7 +30,9 @@ pub fn without_markdown_extension(file_name: String) -> rt::TsonicResult<String>
     })
 }
 
-pub fn site_output_path(route_segments: js_abi::JsArray<String>) -> rt::TsonicResult<String> {
+pub fn site_output_path(
+    route_segments: js_abi::JsArray<String>,
+) -> Result<String, rt::TsonicError> {
     Ok(if tsonic_rust_runtime::conversions::usize_to_i32(route_segments.len())? == 0 {
         String::from("index.html")
     } else {
@@ -45,7 +44,10 @@ pub fn site_output_path(route_segments: js_abi::JsArray<String>) -> rt::TsonicRe
     })
 }
 
-pub fn assert_site_route_segment(segment: String, source_path: String) -> rt::TsonicResult<()> {
+pub fn assert_site_route_segment(
+    segment: String,
+    source_path: String,
+) -> Result<(), rt::TsonicError> {
     if segment.is_empty()
         || segment == "."
         || segment == ".."
@@ -53,15 +55,10 @@ pub fn assert_site_route_segment(segment: String, source_path: String) -> rt::Ts
         || js_string::includes_from_start(&segment, "\\")
         || js_string::includes_from_start(&segment, ":")
     {
-        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_CONTENT_ROUTE_SEGMENT_INVALID"),
-            format!(
-                "{}{}{}",
-                String::from("Content route segment is invalid: "),
-                rt::source_string(&segment),
-                String::from(""),
-            ),
-            Some(source_path.clone()),
+            format!("{}{}", String::from("Content route segment is invalid: "), segment),
+            Some(source_path),
             None,
             None,
         )));
@@ -69,7 +66,7 @@ pub fn assert_site_route_segment(segment: String, source_path: String) -> rt::Ts
     Ok(())
 }
 
-pub fn compare_site_paths(left: String, right: String) -> rt::TsonicResult<f64> {
+pub fn compare_site_paths(left: String, right: String) -> Result<f64, rt::TsonicError> {
     Ok(tsonic_rust_runtime::conversions::i32_to_f64(crate::utils::strings::compare_text(
         normalize_site_path(&left)?,
         normalize_site_path(&right)?,

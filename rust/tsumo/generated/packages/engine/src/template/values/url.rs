@@ -6,29 +6,32 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-pub(crate) fn trim_leading_character(value: String, character: String) -> rt::TsonicResult<String> {
+pub fn trim_leading_character(value: String, character: String) -> Result<String, rt::TsonicError> {
     Ok(if js_string::starts_with_from_start(&value, &character) {
-        js_string::slice(
-            &value,
-            tsonic_rust_runtime::conversions::i32_to_f64(
-                tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&character))?,
-            ),
-            None,
-        )
-        .map_err(tsonic_rust_runtime::TsonicError::from)?
+        {
+            let operation_input_0 = value.clone();
+            js_string::slice(
+                &operation_input_0,
+                tsonic_rust_runtime::conversions::i32_to_f64(
+                    tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&character))?,
+                ),
+                None,
+            )
+        }?
     } else {
         value.clone()
     })
 }
 
-pub(crate) fn trim_trailing_character(
+pub fn trim_trailing_character(
     value: String,
     character: String,
-) -> rt::TsonicResult<String> {
-    Ok(
-        if js_string::ends_with_at_end(&value, &character) {
+) -> Result<String, rt::TsonicError> {
+    Ok(if js_string::ends_with_at_end(&value, &character) {
+        {
+            let operation_input_0 = value.clone();
             js_string::slice_to(
-                &value,
+                &operation_input_0,
                 0.0,
                 tsonic_rust_runtime::conversions::i32_to_f64(
                     tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&value))?
@@ -37,43 +40,54 @@ pub(crate) fn trim_trailing_character(
                         ))?,
                 ),
             )
-            .map_err(tsonic_rust_runtime::TsonicError::from)?
-        } else {
-            value.clone()
-        },
-    )
+        }?
+    } else {
+        value.clone()
+    })
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ParsedUrlState {
-    pub(crate) original_string: String,
-    pub(crate) absolute: bool,
-    pub(crate) scheme: String,
-    pub(crate) host: String,
-    pub(crate) path: String,
-    pub(crate) raw_query: String,
-    pub(crate) fragment: String,
+pub struct ParsedUrlState {
+    pub original_string: String,
+    pub absolute: bool,
+    pub scheme: String,
+    pub host: String,
+    pub path: String,
+    pub raw_query: String,
+    pub fragment: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ParsedUrl {
-    pub(crate) state: rt::ObjectHandle<ParsedUrlState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<ParsedUrlState>,
 }
 
 impl ParsedUrl {
     pub fn new(
         original_string: String,
         value: tsonic_rust_node::url::LegacyUrlObject,
-    ) -> rt::TsonicResult<ParsedUrl> {
-        let field_original_string: String = original_string.clone();
-        let field_absolute: bool = !value.protocol().is_empty();
-        let field_scheme: String = trim_trailing_character(value.protocol(), String::from(":"))?;
-        let field_host: String = value.hostname();
-        let field_path: String = value.pathname();
-        let field_raw_query: String = trim_leading_character(value.search(), String::from("?"))?;
-        let field_fragment: String = trim_leading_character(value.hash(), String::from("#"))?;
+    ) -> Result<ParsedUrl, rt::TsonicError> {
+        let protocol: String =
+            rt::option_coalesce(value.protocol(), std::convert::identity, || String::from(""));
+        let host: String =
+            rt::option_coalesce(value.host(), std::convert::identity, || String::from(""));
+        let pathname: String =
+            rt::option_coalesce(value.pathname(), std::convert::identity, || String::from(""));
+        let search: String =
+            rt::option_coalesce(value.search(), std::convert::identity, || String::from(""));
+        let hash: String =
+            rt::option_coalesce(value.hash(), std::convert::identity, || String::from(""));
+        let field_original_string: String = original_string;
+        let field_absolute: bool = !protocol.is_empty();
+        let field_scheme: String = trim_trailing_character(protocol.clone(), String::from(":"))?;
+        let field_host: String = host;
+        let field_path: String = pathname;
+        let field_raw_query: String = trim_leading_character(search, String::from("?"))?;
+        let field_fragment: String = trim_leading_character(hash, String::from("#"))?;
         Ok(ParsedUrl {
-            state: rt::ObjectHandle::new(ParsedUrlState {
+            state: rt::ObjectRef::new(ParsedUrlState {
                 original_string: field_original_string,
                 absolute: field_absolute,
                 scheme: field_scheme,
@@ -86,25 +100,27 @@ impl ParsedUrl {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct UrlPartsState {
-    pub(crate) path: String,
-    pub(crate) raw_query: String,
-    pub(crate) fragment: String,
+pub struct UrlPartsState {
+    pub path: String,
+    pub raw_query: String,
+    pub fragment: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct UrlParts {
-    pub(crate) state: rt::ObjectHandle<UrlPartsState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<UrlPartsState>,
 }
 
 impl UrlParts {
     pub fn new(path: String, raw_query: String, fragment: String) -> UrlParts {
-        let field_path: String = path.clone();
-        let field_raw_query: String = raw_query.clone();
-        let field_fragment: String = fragment.clone();
+        let field_path: String = path;
+        let field_raw_query: String = raw_query;
+        let field_fragment: String = fragment;
         UrlParts {
-            state: rt::ObjectHandle::new(UrlPartsState {
+            state: rt::ObjectRef::new(UrlPartsState {
                 path: field_path,
                 raw_query: field_raw_query,
                 fragment: field_fragment,
@@ -113,10 +129,9 @@ impl UrlParts {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait UrlValueDispatch:
-    crate::template::values::base::TemplateValueDispatch
-{
+pub trait UrlValueDispatch: crate::template::values::base::TemplateValueDispatch {
     fn downcast_url_value_to_url_value(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn UrlValueDispatch>>;
@@ -124,17 +139,27 @@ pub(crate) trait UrlValueDispatch:
     fn write_url_value_value(&self, value: ParsedUrl);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct UrlValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: ParsedUrl,
+pub struct UrlValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: ParsedUrl,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct UrlValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn UrlValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn UrlValueDispatch>,
+}
+
+impl std::fmt::Debug for UrlValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("UrlValue")
+    }
 }
 
 impl PartialEq for UrlValue {
@@ -152,9 +177,10 @@ pub(crate) struct UrlValueRoot {
 }
 
 impl UrlValue {
-    pub(crate) fn initialize_state(value: ParsedUrl) -> UrlValueState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: ParsedUrl) -> UrlValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: ParsedUrl = value.clone();
+        let field_value: ParsedUrl = value;
         UrlValueState {
             base: base_state,
             value: field_value,
@@ -483,8 +509,9 @@ impl UrlValueDispatch for UrlValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait UrlQueryValueDispatch:
+pub trait UrlQueryValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_url_query_value_to_url_query_value(
@@ -494,17 +521,27 @@ pub(crate) trait UrlQueryValueDispatch:
     fn write_url_query_value_value(&self, value: js_abi::JsMap<String, js_abi::JsArray<String>>);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct UrlQueryValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: js_abi::JsMap<String, js_abi::JsArray<String>>,
+pub struct UrlQueryValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: js_abi::JsMap<String, js_abi::JsArray<String>>,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct UrlQueryValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn UrlQueryValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn UrlQueryValueDispatch>,
+}
+
+impl std::fmt::Debug for UrlQueryValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("UrlQueryValue")
+    }
 }
 
 impl PartialEq for UrlQueryValue {
@@ -522,11 +559,12 @@ pub(crate) struct UrlQueryValueRoot {
 }
 
 impl UrlQueryValue {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         value: js_abi::JsMap<String, js_abi::JsArray<String>>,
     ) -> UrlQueryValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: js_abi::JsMap<String, js_abi::JsArray<String>> = value.clone();
+        let field_value: js_abi::JsMap<String, js_abi::JsArray<String>> = value;
         UrlQueryValueState {
             base: base_state,
             value: field_value,

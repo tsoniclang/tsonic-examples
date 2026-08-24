@@ -9,306 +9,273 @@ use crate::program as rt;
 #[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) struct TemplateRuntimeTestsState {}
 
+#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct TemplateRuntimeTests {
     pub(crate) state: rt::ObjectHandle<TemplateRuntimeTestsState>,
 }
 
 impl TemplateRuntimeTests {
+    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new() -> TemplateRuntimeTests {
         TemplateRuntimeTests {
             state: rt::ObjectHandle::new(TemplateRuntimeTestsState {}),
         }
     }
 
-    pub fn parser_and_evaluator_render_control_flow_and_pipeline(&self) -> rt::TsonicResult<()> {
+    pub fn parser_and_evaluator_render_control_flow_and_pipeline(
+        &self,
+    ) -> Result<(), rt::TsonicError> {
         let source: String =
             String::from("{{ if true }}yes{{ else }}no{{ end }}|{{ \"ab\" | upper }}");
         crate::test_root::Assert::string_equal(
             String::from("yes|AB"),
-            Some(
-                crate::template_test_harness::RENDER
-                    .with(|module_binding| module_binding.load())
-                    .call((source.clone(),))?,
-            ),
+            Some(crate::template_test_harness::render(source)?),
         )?;
-        let site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext =
-            crate::template_test_harness::CREATE_SITE
-                .with(|module_binding| module_binding.load())
-                .call(())?;
-        let page: crate::node_modules::tsumo::engine::src::models::page_context::PageContext =
-            crate::template_test_harness::CREATE_PAGE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    site.clone(),
-                    String::from("Home"),
-                    String::from(""),
-                    String::from("home"),
-                ))?;
+        let site: tsumo_engine::testing::SiteContext =
+            crate::template_test_harness::create_site()?;
+        let page: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
+            site,
+            String::from("Home"),
+            String::from(""),
+            String::from("home"),
+        );
         crate::test_root::Assert::string_equal(
             String::from("false|exact"),
             Some(
-                crate::template_test_harness::RENDER_WITH_ROOT
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("{{ in (slice \"posts\" \"tags\") .Section }}|{{ (dict \"value\" \"exact\").value }}"),
-                        {
-                            let upcast_value =
-                                crate::node_modules::tsumo::engine::src::template::values::page::PageValue::new(
-                                    page.clone(),
-                                );
-                            crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue {
-                                identity: upcast_value.identity.clone(),
-                                dispatch: upcast_value.dispatch.clone(),
-                            }
-                        },
-                    ))?,
+                crate::template_test_harness::render_with_root(
+                    String::from("{{ in (slice \"posts\" \"tags\") .Section }}|{{ (dict \"value\" \"exact\").value }}"),
+                    {
+                        let upcast_value = tsumo_engine::testing::PageValue::new(page);
+                        tsumo_engine::testing::TemplateValue {
+                            identity: upcast_value.identity.clone(),
+                            dispatch: upcast_value.dispatch.clone(),
+                        }
+                    },
+                )?,
             ),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("inner|outer|empty|chosen:chosen|changed|changed"),
             Some(
-                crate::template_test_harness::RENDER
-                    .with(|module_binding| module_binding.load())
-                    .call((format!(
-                        "{}{}{}{}{}",
-                        String::from("{{ $value := \"outer\" }}"),
-                        String::from("{{ if $value := \"inner\" }}{{ $value }}{{ end }}|{{ $value }}|"),
-                        String::from("{{ with $selected := \"\" }}invalid{{ else }}{{ if eq $selected \"\" }}empty{{ end }}{{ end }}|"),
-                        String::from("{{ with $selected := \"chosen\" }}{{ $selected }}:{{ . }}{{ end }}|"),
-                        String::from("{{ if $value = \"changed\" }}{{ $value }}{{ end }}|{{ $value }}"),
-                    ),))?,
+                crate::template_test_harness::render(
+                    String::from("{{ $value := \"outer\" }}{{ if $value := \"inner\" }}{{ $value }}{{ end }}|{{ $value }}|{{ with $selected := \"\" }}invalid{{ else }}{{ if eq $selected \"\" }}empty{{ end }}{{ end }}|{{ with $selected := \"chosen\" }}{{ $selected }}:{{ . }}{{ end }}|{{ if $value = \"changed\" }}{{ $value }}{{ end }}|{{ $value }}"),
+                )?,
             ),
         )?;
         Ok(())
     }
 
-    pub fn collection_functions_preserve_exact_split_segments(&self) -> rt::TsonicResult<()> {
+    pub fn collection_functions_preserve_exact_split_segments(
+        &self,
+    ) -> Result<(), rt::TsonicError> {
         crate::test_root::Assert::string_equal(
             String::from("a|b|"),
-            Some(
-                crate::template_test_harness::RENDER
-                    .with(|module_binding| module_binding.load())
-                    .call((String::from("{{ delimit (split \"a--b--\" \"--\") \"|\" }}"),))?,
-            ),
+            Some(crate::template_test_harness::render(
+                String::from("{{ delimit (split \"a--b--\" \"--\") \"|\" }}"),
+            )?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("a|b"),
-            Some(
-                crate::template_test_harness::RENDER
-                    .with(|module_binding| module_binding.load())
-                    .call((String::from("{{ delimit (split \"ab\" \"\") \"|\" }}"),))?,
-            ),
+            Some(crate::template_test_harness::render(
+                String::from("{{ delimit (split \"ab\" \"\") \"|\" }}"),
+            )?),
         )?;
         Ok(())
     }
 
     pub fn collection_union_accepts_slices_and_nil_without_collapsing_distinct_values(
         &self,
-    ) -> rt::TsonicResult<()> {
+    ) -> Result<(), rt::TsonicError> {
         crate::test_root::Assert::string_equal(
             String::from("a,b,c|a,b|a,b|"),
             Some(
-                crate::template_test_harness::RENDER
-                    .with(|module_binding| module_binding.load())
-                    .call((format!(
-                        "{}{}{}{}",
-                        String::from("{{ delimit (union (slice \"a\" \"b\") (slice \"b\" \"c\")) \",\" }}|"),
-                        String::from("{{ delimit (union (slice \"a\" \"b\") nil) \",\" }}|"),
-                        String::from("{{ delimit (union nil (slice \"a\" \"b\")) \",\" }}|"),
-                        String::from("{{ delimit (union nil nil) \",\" }}"),
-                    ),))?,
+                crate::template_test_harness::render(
+                    String::from("{{ delimit (union (slice \"a\" \"b\") (slice \"b\" \"c\")) \",\" }}|{{ delimit (union (slice \"a\" \"b\") nil) \",\" }}|{{ delimit (union nil (slice \"a\" \"b\")) \",\" }}|{{ delimit (union nil nil) \",\" }}"),
+                )?,
             ),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("one,three"),
             Some(
-                crate::template_test_harness::RENDER
-                    .with(|module_binding| module_binding.load())
-                    .call((String::from("{{ delimit (collections.Complement (slice \"two\") (slice \"one\" \"two\" \"three\")) \",\" }}"),))?,
+                crate::template_test_harness::render(
+                    String::from("{{ delimit (collections.Complement (slice \"two\") (slice \"one\" \"two\" \"three\")) \",\" }}"),
+                )?,
             ),
         )?;
         Ok(())
     }
 
-    pub fn page_has_shortcode_uses_the_exact_parsed_page_inventory(&self) -> rt::TsonicResult<()> {
-        let site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext =
-            crate::template_test_harness::CREATE_SITE
-                .with(|module_binding| module_binding.load())
-                .call(())?;
-        let page: crate::node_modules::tsumo::engine::src::models::page_context::PageContext =
-            crate::template_test_harness::CREATE_PAGE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    site.clone(),
-                    String::from("Home"),
-                    String::from(""),
-                    String::from("home"),
-                ))?;
+    pub fn page_has_shortcode_uses_the_exact_parsed_page_inventory(
+        &self,
+    ) -> Result<(), rt::TsonicError> {
+        let site: tsumo_engine::testing::SiteContext =
+            crate::template_test_harness::create_site()?;
+        let page: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
+            site,
+            String::from("Home"),
+            String::from(""),
+            String::from("home"),
+        );
         {
             let receiver = &page;
-            let value = crate::node_modules::tsumo::engine::src::shortcode::COLLECT_SHORTCODE_NAMES
-                .with(|module_binding| module_binding.load())
-                .call((
-                    String::from("{{< outer >}}{{< inner / >}}{{< /outer >}}\n```text\n{{< ignored >}}\n```"),
-                    Some(String::from("content/home.md")),
-                ))?;
-            receiver
-                .state
-                .with_mut(|state| state.shortcode_names = value)
+            let value = tsumo_engine::testing::collect_shortcode_names(
+                String::from("{{< outer >}}{{< inner / >}}{{< /outer >}}\n```text\n{{< ignored >}}\n```"),
+                Some(String::from("content/home.md")),
+            )?;
+            {
+                let dispatch_receiver = receiver;
+                dispatch_receiver
+                    .dispatch
+                    .write_page_context_shortcode_names(value)
+            }
         };
         crate::test_root::Assert::string_equal(
             String::from("true|true|false|false"),
             Some(
-                crate::template_test_harness::RENDER_WITH_ROOT
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        format!(
-                            "{}{}",
-                            String::from("{{ .HasShortcode \"outer\" }}|{{ .HasShortcode \"inner\" }}|"),
-                            String::from("{{ .HasShortcode \"ignored\" }}|{{ .HasShortcode \"Outer\" }}"),
-                        ),
-                        {
-                            let upcast_value =
-                                crate::node_modules::tsumo::engine::src::template::values::page::PageValue::new(
-                                    page.clone(),
-                                );
-                            crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue {
-                                identity: upcast_value.identity.clone(),
-                                dispatch: upcast_value.dispatch.clone(),
-                            }
-                        },
-                    ))?,
+                crate::template_test_harness::render_with_root(
+                    String::from("{{ .HasShortcode \"outer\" }}|{{ .HasShortcode \"inner\" }}|{{ .HasShortcode \"ignored\" }}|{{ .HasShortcode \"Outer\" }}"),
+                    {
+                        let upcast_value = tsumo_engine::testing::PageValue::new(page.clone());
+                        tsumo_engine::testing::TemplateValue {
+                            identity: upcast_value.identity.clone(),
+                            dispatch: upcast_value.dispatch.clone(),
+                        }
+                    },
+                )?,
             ),
         )?;
         Ok(())
     }
 
-    pub fn hugo_sites_exposes_the_checked_site_graph(&self) -> rt::TsonicResult<()> {
+    pub fn hugo_sites_exposes_the_checked_site_graph(&self) -> Result<(), rt::TsonicError> {
         let environment: crate::template_test_harness::TestTemplateEnvironment =
             crate::template_test_harness::TestTemplateEnvironment::new(None);
-        let site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext =
-            crate::template_test_harness::CREATE_SITE
-                .with(|module_binding| module_binding.load())
-                .call(())?;
-        let root: crate::node_modules::tsumo::engine::src::models::page_context::PageContext =
-            crate::template_test_harness::CREATE_PAGE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    site.clone(),
-                    String::from("Home"),
-                    String::from(""),
-                    String::from("home"),
-                ))?;
+        let site: tsumo_engine::testing::SiteContext =
+            crate::template_test_harness::create_site()?;
+        let root: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
+            site.clone(),
+            String::from("Home"),
+            String::from(""),
+            String::from("home"),
+        );
         {
             let receiver = &site;
             let value = Some(root.clone());
-            receiver.state.with_mut(|state| state.home = value)
+            {
+                let dispatch_receiver = receiver;
+                dispatch_receiver.dispatch.write_site_context_home(value)
+            }
         };
         {
             let receiver_2 = &site;
             let value_2 = js_abi::JsArray::from_dense(vec![site.clone()]);
-            receiver_2.state.with_mut(|state| state.sites = value_2)
+            {
+                let dispatch_receiver_2 = receiver_2;
+                dispatch_receiver_2
+                    .dispatch
+                    .write_site_context_sites(value_2)
+            }
         };
-        let template: crate::node_modules::tsumo::engine::src::template::template_2::Template =
-            crate::node_modules::tsumo::engine::src::template::parser::parse_template::PARSE_TEMPLATE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    String::from("{{ range hugo.Sites }}{{ .Title }};{{ end }}|{{ hugo.Sites.Default.Home.RelPermalink }}"),
-                    None,
-                ))?;
+        let template: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
+            String::from("{{ range hugo.Sites }}{{ .Title }};{{ end }}|{{ hugo.Sites.Default.Home.RelPermalink }}"),
+            None,
+        )?;
         crate::test_root::Assert::string_equal(
             String::from("Test Site;|/home/"),
-            Some(
-                {
-                    let dispatch_receiver = environment.clone();
-                    dispatch_receiver
-                        .dispatch
-                        .clone()
-                        .dispatch_test_template_environment_render_template(
-                            template.clone(),
-                            {
-                                let upcast_value =
-                                    crate::node_modules::tsumo::engine::src::template::values::page::PageValue::new(
-                                        root.clone(),
-                                    );
-                                crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue {
-                                    identity: upcast_value.identity.clone(),
-                                    dispatch: upcast_value.dispatch.clone(),
-                                }
-                            },
-                            site.clone(),
-                            js_abi::JsMap::new(),
-                            None,
-                        )
-                }?,
-            ),
+            Some({
+                let dispatch_receiver_3 = environment;
+                dispatch_receiver_3
+                    .dispatch
+                    .clone()
+                    .dispatch_test_template_environment_render_template(
+                        template,
+                        {
+                            let upcast_value = tsumo_engine::testing::PageValue::new(root.clone());
+                            tsumo_engine::testing::TemplateValue {
+                                identity: upcast_value.identity.clone(),
+                                dispatch: upcast_value.dispatch.clone(),
+                            }
+                        },
+                        site.clone(),
+                        js_abi::JsMap::new(),
+                        None,
+                    )
+            }?),
         )?;
         Ok(())
     }
 
-    pub fn related_pages_use_exact_default_keyword_and_tag_evidence(&self) -> rt::TsonicResult<()> {
+    pub fn related_pages_use_exact_default_keyword_and_tag_evidence(
+        &self,
+    ) -> Result<(), rt::TsonicError> {
         let environment: crate::template_test_harness::TestTemplateEnvironment =
             crate::template_test_harness::TestTemplateEnvironment::new(None);
-        let site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext =
-            crate::template_test_harness::CREATE_SITE
-                .with(|module_binding| module_binding.load())
-                .call(())?;
-        let current: crate::node_modules::tsumo::engine::src::models::page_context::PageContext =
-            crate::template_test_harness::CREATE_PAGE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    site.clone(),
-                    String::from("Current"),
-                    String::from("2026-08-15T00:00:00Z"),
-                    String::from("page"),
-                ))?;
-        let older: crate::node_modules::tsumo::engine::src::models::page_context::PageContext =
-            crate::template_test_harness::CREATE_PAGE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    site.clone(),
-                    String::from("Older"),
-                    String::from("2025-08-15T00:00:00Z"),
-                    String::from("page"),
-                ))?;
-        let newer: crate::node_modules::tsumo::engine::src::models::page_context::PageContext =
-            crate::template_test_harness::CREATE_PAGE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    site.clone(),
-                    String::from("Newer"),
-                    String::from("2027-08-15T00:00:00Z"),
-                    String::from("page"),
-                ))?;
-        let unrelated: crate::node_modules::tsumo::engine::src::models::page_context::PageContext =
-            crate::template_test_harness::CREATE_PAGE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    site.clone(),
-                    String::from("Unrelated"),
-                    String::from("2024-08-15T00:00:00Z"),
-                    String::from("page"),
-                ))?;
+        let site: tsumo_engine::testing::SiteContext =
+            crate::template_test_harness::create_site()?;
+        let current: tsumo_engine::testing::PageContext =
+            crate::template_test_harness::create_page(
+                site.clone(),
+                String::from("Current"),
+                String::from("2026-08-15T00:00:00Z"),
+                String::from("page"),
+            );
+        let older: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
+            site.clone(),
+            String::from("Older"),
+            String::from("2025-08-15T00:00:00Z"),
+            String::from("page"),
+        );
+        let newer: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
+            site.clone(),
+            String::from("Newer"),
+            String::from("2027-08-15T00:00:00Z"),
+            String::from("page"),
+        );
+        let unrelated: tsumo_engine::testing::PageContext =
+            crate::template_test_harness::create_page(
+                site.clone(),
+                String::from("Unrelated"),
+                String::from("2024-08-15T00:00:00Z"),
+                String::from("page"),
+            );
         {
             let receiver = &current;
             let value = js_abi::JsArray::from_dense(vec![String::from("shared")]);
-            receiver.state.with_mut(|state| state.tags = value)
+            {
+                let dispatch_receiver = receiver;
+                dispatch_receiver.dispatch.write_page_context_tags(value)
+            }
         };
         {
             let receiver_2 = &older;
             let value_2 = js_abi::JsArray::from_dense(vec![String::from("shared")]);
-            receiver_2.state.with_mut(|state| state.tags = value_2)
+            {
+                let dispatch_receiver_2 = receiver_2;
+                dispatch_receiver_2
+                    .dispatch
+                    .write_page_context_tags(value_2)
+            }
         };
         {
             let receiver_3 = &newer;
             let value_3 = js_abi::JsArray::from_dense(vec![String::from("shared")]);
-            receiver_3.state.with_mut(|state| state.tags = value_3)
+            {
+                let dispatch_receiver_3 = receiver_3;
+                dispatch_receiver_3
+                    .dispatch
+                    .write_page_context_tags(value_3)
+            }
         };
         {
             let receiver_4 = &unrelated;
             let value_4 = js_abi::JsArray::from_dense(vec![String::from("other")]);
-            receiver_4.state.with_mut(|state| state.tags = value_4)
+            {
+                let dispatch_receiver_4 = receiver_4;
+                dispatch_receiver_4
+                    .dispatch
+                    .write_page_context_tags(value_4)
+            }
         };
         {
             let receiver_5 = &site;
@@ -318,31 +285,84 @@ impl TemplateRuntimeTests {
                 newer.clone(),
                 unrelated.clone(),
             ]);
-            receiver_5.state.with_mut(|state| state.all_pages = value_5)
+            {
+                let dispatch_receiver_5 = receiver_5;
+                dispatch_receiver_5
+                    .dispatch
+                    .write_site_context_all_pages(value_5)
+            }
         };
-        let template: crate::node_modules::tsumo::engine::src::template::template_2::Template =
-            crate::node_modules::tsumo::engine::src::template::parser::parse_template::PARSE_TEMPLATE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    String::from("{{ range site.RegularPages.Related page }}{{ .Title }}{{ end }}"),
-                    None,
-                ))?;
+        let template: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
+            String::from("{{ range site.RegularPages.Related page }}{{ .Title }}{{ end }}"),
+            None,
+        )?;
         crate::test_root::Assert::string_equal(
             String::from("Older"),
-            Some(
-                {
+            Some({
+                let dispatch_receiver_6 = environment;
+                dispatch_receiver_6
+                    .dispatch
+                    .clone()
+                    .dispatch_test_template_environment_render_template(
+                        template,
+                        {
+                            let upcast_value =
+                                tsumo_engine::testing::PageValue::new(current.clone());
+                            tsumo_engine::testing::TemplateValue {
+                                identity: upcast_value.identity.clone(),
+                                dispatch: upcast_value.dispatch.clone(),
+                            }
+                        },
+                        site.clone(),
+                        js_abi::JsMap::new(),
+                        None,
+                    )
+            }?),
+        )?;
+        Ok(())
+    }
+
+    pub fn css_build_applies_its_closed_resource_options(&self) -> Result<(), rt::TsonicError> {
+        let root: String =
+            crate::test_root::create_test_directory(String::from("template-css-build"))?;
+        let site_directory: String = tsonic_rust_node::path::join(&[root.as_str(), "site"]);
+        let output_directory: String = tsonic_rust_node::path::join(&[root.as_str(), "output"]);
+        let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
+            crate::test_root::create_directory(site_directory.clone())?;
+            let manager: tsumo_engine::testing::ResourceManager =
+                tsumo_engine::testing::ResourceManager::new(
+                    site_directory.clone(),
+                    Option::<String>::None,
+                    output_directory,
+                )?;
+            let environment: crate::template_test_harness::TestTemplateEnvironment =
+                crate::template_test_harness::TestTemplateEnvironment::new(Some(manager));
+            let site: tsumo_engine::testing::SiteContext =
+                crate::template_test_harness::create_site()?;
+            let page: tsumo_engine::testing::PageContext =
+                crate::template_test_harness::create_page(
+                    site.clone(),
+                    String::from("Home"),
+                    String::from(""),
+                    String::from("home"),
+                );
+            let template: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
+                String::from("{{ $style := resources.FromString \"theme.css\" \"body { color: red; }\\n\" }}{{ $style = $style | css.Build (dict \"targetPath\" \"css/main.css\" \"minify\" true \"sourceMap\" \"none\") }}{{ $style.RelPermalink }}|{{ $style.Content }}"),
+                None,
+            )?;
+            crate::test_root::Assert::string_equal(
+                String::from("/css/main.css|body { color: red; }"),
+                Some({
                     let dispatch_receiver = environment.clone();
                     dispatch_receiver
                         .dispatch
                         .clone()
                         .dispatch_test_template_environment_render_template(
-                            template.clone(),
+                            template,
                             {
                                 let upcast_value =
-                                    crate::node_modules::tsumo::engine::src::template::values::page::PageValue::new(
-                                        current.clone(),
-                                    );
-                                crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue {
+                                    tsumo_engine::testing::PageValue::new(page.clone());
+                                tsumo_engine::testing::TemplateValue {
                                     identity: upcast_value.identity.clone(),
                                     dispatch: upcast_value.dispatch.clone(),
                                 }
@@ -351,128 +371,41 @@ impl TemplateRuntimeTests {
                             js_abi::JsMap::new(),
                             None,
                         )
-                }?,
-            ),
-        )?;
-        Ok(())
-    }
-
-    pub fn css_build_applies_its_closed_resource_options(&self) -> rt::TsonicResult<()> {
-        let root: String = crate::test_root::CREATE_TEST_DIRECTORY
-            .with(|module_binding| module_binding.load())
-            .call((String::from("template-css-build"),))?;
-        let site_directory: String = tsonic_rust_node::path::join(&[root.as_str(), "site"]);
-        let output_directory: String = tsonic_rust_node::path::join(&[root.as_str(), "output"]);
-        let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::CREATE_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((site_directory.clone(),))?;
-            let manager: crate::node_modules::tsumo::engine::src::resources::manager::ResourceManager =
-                crate::node_modules::tsumo::engine::src::resources::manager::ResourceManager::new(
-                    site_directory.clone(),
-                    Option::<String>::None,
-                    output_directory.clone(),
-                )?;
-            let environment: crate::template_test_harness::TestTemplateEnvironment =
-                crate::template_test_harness::TestTemplateEnvironment::new(Some(manager.clone()));
-            let site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext =
-                crate::template_test_harness::CREATE_SITE
-                    .with(|module_binding| module_binding.load())
-                    .call(())?;
-            let page: crate::node_modules::tsumo::engine::src::models::page_context::PageContext =
-                crate::template_test_harness::CREATE_PAGE
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        site.clone(),
-                        String::from("Home"),
-                        String::from(""),
-                        String::from("home"),
-                    ))?;
-            let template: crate::node_modules::tsumo::engine::src::template::template_2::Template =
-                crate::node_modules::tsumo::engine::src::template::parser::parse_template::PARSE_TEMPLATE
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        format!(
-                            "{}{}{}",
-                            String::from("{{ $style := resources.FromString \"theme.css\" \"body { color: red; }\\n\" }}"),
-                            String::from("{{ $style = $style | css.Build (dict \"targetPath\" \"css/main.css\" \"minify\" true \"sourceMap\" \"none\") }}"),
-                            String::from("{{ $style.RelPermalink }}|{{ $style.Content }}"),
-                        ),
-                        None,
-                    ))?;
-            crate::test_root::Assert::string_equal(
-                String::from("/css/main.css|body { color: red; }"),
-                Some(
-                    {
-                        let dispatch_receiver = environment.clone();
-                        dispatch_receiver
-                            .dispatch
-                            .clone()
-                            .dispatch_test_template_environment_render_template(
-                                template.clone(),
-                                {
-                                    let upcast_value =
-                                        crate::node_modules::tsumo::engine::src::template::values::page::PageValue::new(
-                                            page.clone(),
-                                        );
-                                    crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue {
-                                        identity: upcast_value.identity.clone(),
-                                        dispatch: upcast_value.dispatch.clone(),
-                                    }
-                                },
-                                site.clone(),
-                                js_abi::JsMap::new(),
-                                None,
-                            )
-                    }?,
-                ),
+                }?),
             )?;
-            let namespace_template: crate::node_modules::tsumo::engine::src::template::template_2::Template =
-                crate::node_modules::tsumo::engine::src::template::parser::parse_template::PARSE_TEMPLATE
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        format!(
-                            "{}{}{}",
-                            String::from("{{ $namespace := resources }}"),
-                            String::from("{{ $copy := $namespace.FromString \"css/copy.css\" \"p { color: blue; }\" }}"),
-                            String::from("{{ $copy.RelPermalink }}|{{ $copy.Content }}"),
-                        ),
-                        None,
-                    ))?;
+            let namespace_template: tsumo_engine::testing::Template =
+                tsumo_engine::testing::parse_template(
+                    String::from("{{ $namespace := resources }}{{ $copy := $namespace.FromString \"css/copy.css\" \"p { color: blue; }\" }}{{ $copy.RelPermalink }}|{{ $copy.Content }}"),
+                    None,
+                )?;
             crate::test_root::Assert::string_equal(
                 String::from("/css/copy.css|p { color: blue; }"),
-                Some(
-                    {
-                        let dispatch_receiver_2 = environment.clone();
-                        dispatch_receiver_2
-                            .dispatch
-                            .clone()
-                            .dispatch_test_template_environment_render_template(
-                                namespace_template.clone(),
-                                {
-                                    let upcast_value_2 =
-                                        crate::node_modules::tsumo::engine::src::template::values::page::PageValue::new(
-                                            page.clone(),
-                                        );
-                                    crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue {
-                                        identity: upcast_value_2.identity.clone(),
-                                        dispatch: upcast_value_2.dispatch.clone(),
-                                    }
-                                },
-                                site.clone(),
-                                js_abi::JsMap::new(),
-                                None,
-                            )
-                    }?,
-                ),
+                Some({
+                    let dispatch_receiver_2 = environment.clone();
+                    dispatch_receiver_2
+                        .dispatch
+                        .clone()
+                        .dispatch_test_template_environment_render_template(
+                            namespace_template,
+                            {
+                                let upcast_value_2 =
+                                    tsumo_engine::testing::PageValue::new(page.clone());
+                                tsumo_engine::testing::TemplateValue {
+                                    identity: upcast_value_2.identity.clone(),
+                                    dispatch: upcast_value_2.dispatch.clone(),
+                                }
+                            },
+                            site.clone(),
+                            js_abi::JsMap::new(),
+                            None,
+                        )
+                }?),
             )?;
             Ok(rt::Completion::Normal)
         });
         let try_flow = try_body;
         let finally_flow: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::DELETE_TEST_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((root.clone(),))?;
+            crate::test_root::delete_test_directory(root.clone())?;
             Ok(rt::Completion::Normal)
         });
         let try_flow: rt::TsonicResult<rt::Completion<()>> =
@@ -489,120 +422,139 @@ impl TemplateRuntimeTests {
 
     pub fn i18n_layers_parse_structured_formats_and_render_plural_context(
         &self,
-    ) -> rt::TsonicResult<()> {
-        let root: String = crate::test_root::CREATE_TEST_DIRECTORY
-            .with(|module_binding| module_binding.load())
-            .call((String::from("template-i18n"),))?;
+    ) -> Result<(), rt::TsonicError> {
+        let root: String = crate::test_root::create_test_directory(String::from("template-i18n"))?;
         let theme_directory: String = tsonic_rust_node::path::join(&[root.as_str(), "theme"]);
         let site_directory: String = tsonic_rust_node::path::join(&[root.as_str(), "site"]);
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::CREATE_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((theme_directory.clone(),))?;
-            crate::test_root::CREATE_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((site_directory.clone(),))?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[theme_directory.as_str(), "en.toml"]),
-                    format!(
-                        "{}{}{}{}{}{}",
-                        String::from("toggleMenu = \"Theme Menu\"\n"),
-                        String::from("[footer]\n"),
-                        String::from("builtWith = \"Built with {{ .Generator }}\"\n"),
-                        String::from("[list.page]\n"),
-                        String::from("one = \"{{ .Count }} page\"\n"),
-                        String::from("other = \"{{ .Count }} pages\"\n"),
-                    ),
-                ))?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[theme_directory.as_str(), "fr.json"]),
-                    String::from("{\"local\":\"Locale française\"}"),
-                ))?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[site_directory.as_str(), "en.yaml"]),
-                    format!(
-                        "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
-                        String::from("- id: toggleMenu # site override\n"),
-                        String::from("  translation: Site Menu\n"),
-                        String::from("- id: legacy\n"),
-                        String::from("  translation: Legacy {{ .Name }}\n"),
-                        String::from("- id: continued\n"),
-                        String::from("  translation:\n"),
-                        String::from("    \"Continued scalar\"\n"),
-                        String::from("- id: folded\n"),
-                        String::from("  translation: >-\n"),
-                        String::from("    Folded\n"),
-                        String::from("    scalar\n"),
-                        String::from("- id: literal\n"),
-                        String::from("  translation: |\n"),
-                        String::from("    Literal\n"),
-                        String::from("    scalar\n"),
-                        String::from("- id: escapedQuoted\n"),
-                        String::from("  translation:\n"),
-                        String::from("    \"Generated with "),
-                        String::from("\\"),
-                        String::from("\n"),
-                        String::from("    exact continuity.\"\n"),
-                        String::from("- id: foldedQuoted\n"),
-                        String::from("  translation: \"Folded\n"),
-                        String::from("  quoted scalar\"\n"),
-                        String::from("- id: singleQuoted\n"),
-                        String::from("  translation:\n"),
-                        String::from("    'Single\n"),
-                        String::from("    quoted ''value'''\n"),
-                        String::from("- id: plainWithQuotes\n"),
-                        String::from("  translation: Tagged '{{ . }}'\n"),
-                    ),
-                ))?;
-            let store: crate::node_modules::tsumo::engine::src::i18n::I18nStore =
-                crate::node_modules::tsumo::engine::src::i18n::I18nStore::new();
-            store.load_from_dir(theme_directory.clone())?;
-            store.load_from_dir(site_directory.clone())?;
+            crate::test_root::create_directory(theme_directory.clone())?;
+            crate::test_root::create_directory(site_directory.clone())?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[theme_directory.as_str(), "en.toml"]),
+                String::from("toggleMenu = \"Theme Menu\"\n[footer]\nbuiltWith = \"Built with {{ .Generator }}\"\n[list.page]\none = \"{{ .Count }} page\"\nother = \"{{ .Count }} pages\"\n"),
+            )?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[theme_directory.as_str(), "fr.json"]),
+                String::from("{\"local\":\"Locale française\"}"),
+            )?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[site_directory.as_str(), "en.yaml"]),
+                String::from("- id: toggleMenu # site override\n  translation: Site Menu\n- id: legacy\n  translation: Legacy {{ .Name }}\n- id: continued\n  translation:\n    \"Continued scalar\"\n- id: folded\n  translation: >-\n    Folded\n    scalar\n- id: literal\n  translation: |\n    Literal\n    scalar\n- id: escapedQuoted\n  translation:\n    \"Generated with \\\n    exact continuity.\"\n- id: foldedQuoted\n  translation: \"Folded\n  quoted scalar\"\n- id: singleQuoted\n  translation:\n    'Single\n    quoted ''value'''\n- id: plainWithQuotes\n  translation: Tagged '{{ . }}'\n"),
+            )?;
+            let store: tsumo_engine::testing::I18nStore = tsumo_engine::testing::I18nStore::new();
+            {
+                let dispatch_receiver = store.clone();
+                dispatch_receiver
+                    .dispatch
+                    .clone()
+                    .dispatch_i18n_store_load_from_dir(theme_directory.clone())
+            }?;
+            {
+                let dispatch_receiver_2 = store.clone();
+                dispatch_receiver_2
+                    .dispatch
+                    .clone()
+                    .dispatch_i18n_store_load_from_dir(site_directory.clone())
+            }?;
             crate::test_root::Assert::string_equal(
                 String::from("Site Menu"),
-                Some(store.translate("en-US", String::from("toggleMenu"), None)?),
+                Some({
+                    let dispatch_receiver_3 = store.clone();
+                    dispatch_receiver_3
+                        .dispatch
+                        .clone()
+                        .dispatch_i18n_store_translate("en-US", String::from("toggleMenu"), None)
+                }?),
             )?;
             crate::test_root::Assert::string_equal(
                 String::from("{{ .Count }} page"),
-                Some(store.translate("en", String::from("list.page"), Some(1))?),
+                Some({
+                    let dispatch_receiver_4 = store.clone();
+                    dispatch_receiver_4
+                        .dispatch
+                        .clone()
+                        .dispatch_i18n_store_translate("en", String::from("list.page"), Some(1))
+                }?),
             )?;
             crate::test_root::Assert::string_equal(
                 String::from("{{ .Count }} pages"),
-                Some(store.translate("en", String::from("list.page"), Some(2))?),
+                Some({
+                    let dispatch_receiver_5 = store.clone();
+                    dispatch_receiver_5
+                        .dispatch
+                        .clone()
+                        .dispatch_i18n_store_translate("en", String::from("list.page"), Some(2))
+                }?),
             )?;
             crate::test_root::Assert::string_equal(
                 String::from("Locale française"),
-                Some(store.translate("fr-FR", String::from("local"), None)?),
+                Some({
+                    let dispatch_receiver_6 = store.clone();
+                    dispatch_receiver_6
+                        .dispatch
+                        .clone()
+                        .dispatch_i18n_store_translate("fr-FR", String::from("local"), None)
+                }?),
             )?;
             crate::test_root::Assert::string_equal(
                 String::from("Folded scalar"),
-                Some(store.translate("en", String::from("folded"), None)?),
+                Some({
+                    let dispatch_receiver_7 = store.clone();
+                    dispatch_receiver_7
+                        .dispatch
+                        .clone()
+                        .dispatch_i18n_store_translate("en", String::from("folded"), None)
+                }?),
             )?;
             crate::test_root::Assert::string_equal(
                 String::from("Literal\nscalar\n"),
-                Some(store.translate("en", String::from("literal"), None)?),
+                Some({
+                    let dispatch_receiver_8 = store.clone();
+                    dispatch_receiver_8
+                        .dispatch
+                        .clone()
+                        .dispatch_i18n_store_translate("en", String::from("literal"), None)
+                }?),
             )?;
             crate::test_root::Assert::string_equal(
                 String::from("Generated with exact continuity."),
-                Some(store.translate("en", String::from("escapedQuoted"), None)?),
+                Some({
+                    let dispatch_receiver_9 = store.clone();
+                    dispatch_receiver_9
+                        .dispatch
+                        .clone()
+                        .dispatch_i18n_store_translate("en", String::from("escapedQuoted"), None)
+                }?),
             )?;
             crate::test_root::Assert::string_equal(
                 String::from("Folded quoted scalar"),
-                Some(store.translate("en", String::from("foldedQuoted"), None)?),
+                Some({
+                    let dispatch_receiver_10 = store.clone();
+                    dispatch_receiver_10
+                        .dispatch
+                        .clone()
+                        .dispatch_i18n_store_translate("en", String::from("foldedQuoted"), None)
+                }?),
             )?;
             crate::test_root::Assert::string_equal(
                 String::from("Single quoted 'value'"),
-                Some(store.translate("en", String::from("singleQuoted"), None)?),
+                Some({
+                    let dispatch_receiver_11 = store.clone();
+                    dispatch_receiver_11
+                        .dispatch
+                        .clone()
+                        .dispatch_i18n_store_translate("en", String::from("singleQuoted"), None)
+                }?),
             )?;
             crate::test_root::Assert::string_equal(
                 String::from("Tagged '{{ . }}'"),
-                Some(store.translate("en", String::from("plainWithQuotes"), None)?),
+                Some({
+                    let dispatch_receiver_12 = store.clone();
+                    dispatch_receiver_12
+                        .dispatch
+                        .clone()
+                        .dispatch_i18n_store_translate("en", String::from("plainWithQuotes"), None)
+                }?),
             )?;
             let environment: crate::template_test_harness::TestTemplateEnvironment =
                 crate::template_test_harness::TestTemplateEnvironment::new(None);
@@ -610,72 +562,52 @@ impl TemplateRuntimeTests {
                 let receiver = &environment;
                 let value = Some(store.clone());
                 {
-                    let dispatch_receiver = receiver;
-                    dispatch_receiver
+                    let dispatch_receiver_13 = receiver;
+                    dispatch_receiver_13
                         .dispatch
                         .write_test_template_environment_i18n_store(value)
                 }
             };
-            let site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext =
-                crate::template_test_harness::CREATE_SITE
-                    .with(|module_binding| module_binding.load())
-                    .call(())?;
-            let page: crate::node_modules::tsumo::engine::src::models::page_context::PageContext =
-                crate::template_test_harness::CREATE_PAGE
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        site.clone(),
-                        String::from("Home"),
-                        String::from(""),
-                        String::from("home"),
-                    ))?;
-            let template: crate::node_modules::tsumo::engine::src::template::template_2::Template =
-                crate::node_modules::tsumo::engine::src::template::parser::parse_template::PARSE_TEMPLATE
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        format!(
-                            "{}{}{}{}",
-                            String::from("{{ T \"toggleMenu\" }}|"),
-                            String::from("{{ T \"footer.builtWith\" (dict \"Generator\" \"<strong>Tsumo</strong>\") | safeHTML }}|"),
-                            String::from("{{ T \"list.page\" 1 }}|{{ T \"list.page\" 2 }}|"),
-                            String::from("{{ T \"legacy\" (dict \"Name\" \"Ada\") }}|{{ T \"continued\" }}"),
-                        ),
-                        None,
-                    ))?;
+            let site: tsumo_engine::testing::SiteContext =
+                crate::template_test_harness::create_site()?;
+            let page: tsumo_engine::testing::PageContext =
+                crate::template_test_harness::create_page(
+                    site.clone(),
+                    String::from("Home"),
+                    String::from(""),
+                    String::from("home"),
+                );
+            let template: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
+                String::from("{{ T \"toggleMenu\" }}|{{ T \"footer.builtWith\" (dict \"Generator\" \"<strong>Tsumo</strong>\") | safeHTML }}|{{ T \"list.page\" 1 }}|{{ T \"list.page\" 2 }}|{{ T \"legacy\" (dict \"Name\" \"Ada\") }}|{{ T \"continued\" }}"),
+                None,
+            )?;
             crate::test_root::Assert::string_equal(
                 String::from("Site Menu|Built with <strong>Tsumo</strong>|1 page|2 pages|Legacy Ada|Continued scalar"),
-                Some(
-                    {
-                        let dispatch_receiver_2 = environment.clone();
-                        dispatch_receiver_2
-                            .dispatch
-                            .clone()
-                            .dispatch_test_template_environment_render_template(
-                                template.clone(),
-                                {
-                                    let upcast_value =
-                                        crate::node_modules::tsumo::engine::src::template::values::page::PageValue::new(
-                                            page.clone(),
-                                        );
-                                    crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue {
-                                        identity: upcast_value.identity.clone(),
-                                        dispatch: upcast_value.dispatch.clone(),
-                                    }
-                                },
-                                site.clone(),
-                                js_abi::JsMap::new(),
-                                None,
-                            )
-                    }?,
-                ),
+                Some({
+                    let dispatch_receiver_14 = environment.clone();
+                    dispatch_receiver_14
+                        .dispatch
+                        .clone()
+                        .dispatch_test_template_environment_render_template(
+                            template,
+                            {
+                                let upcast_value = tsumo_engine::testing::PageValue::new(page);
+                                tsumo_engine::testing::TemplateValue {
+                                    identity: upcast_value.identity.clone(),
+                                    dispatch: upcast_value.dispatch.clone(),
+                                }
+                            },
+                            site.clone(),
+                            js_abi::JsMap::new(),
+                            None,
+                        )
+                }?),
             )?;
             Ok(rt::Completion::Normal)
         });
         let try_flow = try_body;
         let finally_flow: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::DELETE_TEST_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((root.clone(),))?;
+            crate::test_root::delete_test_directory(root.clone())?;
             Ok(rt::Completion::Normal)
         });
         let try_flow: rt::TsonicResult<rt::Completion<()>> =
@@ -692,77 +624,52 @@ impl TemplateRuntimeTests {
 
     pub fn deferred_templates_finalize_after_normal_render_and_share_keyed_results(
         &self,
-    ) -> rt::TsonicResult<()> {
+    ) -> Result<(), rt::TsonicError> {
         let environment: crate::template_test_harness::TestTemplateEnvironment =
             crate::template_test_harness::TestTemplateEnvironment::new(None);
-        let site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext =
-            crate::template_test_harness::CREATE_SITE
-                .with(|module_binding| module_binding.load())
-                .call(())?;
-        let page: crate::node_modules::tsumo::engine::src::models::page_context::PageContext =
-            crate::template_test_harness::CREATE_PAGE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    site.clone(),
-                    String::from("Home"),
-                    String::from(""),
-                    String::from("home"),
-                ))?;
-        let template: crate::node_modules::tsumo::engine::src::template::template_2::Template =
-            crate::node_modules::tsumo::engine::src::template::parser::parse_template::PARSE_TEMPLATE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    format!(
-                        "{}{}{}",
-                        String::from("{{ with (templates.Defer (dict \"key\" \"shared\")) }}"),
-                        String::from("{{ site.Store.Add \"runs\" 1 }}{{ site.Store.Get \"late\" }}{{ end }}"),
-                        String::from("{{ site.Store.Set \"late\" \"ready\" }}"),
-                    ),
-                    Some(String::from("layouts/baseof.html")),
-                ))?;
+        let site: tsumo_engine::testing::SiteContext =
+            crate::template_test_harness::create_site()?;
+        let page: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
+            site.clone(),
+            String::from("Home"),
+            String::from(""),
+            String::from("home"),
+        );
+        let template: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
+            String::from("{{ with (templates.Defer (dict \"key\" \"shared\")) }}{{ site.Store.Add \"runs\" 1 }}{{ site.Store.Get \"late\" }}{{ end }}{{ site.Store.Set \"late\" \"ready\" }}"),
+            Some(String::from("layouts/baseof.html")),
+        )?;
         let mut first: String = {
             let dispatch_receiver = environment.clone();
-            dispatch_receiver
-                .dispatch
-                .clone()
-                .dispatch_test_template_environment_render_template(
-                    template.clone(),
-                    {
-                        let upcast_value =
-                            crate::node_modules::tsumo::engine::src::template::values::page::PageValue::new(
-                                page.clone(),
-                            );
-                        crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue {
-                            identity: upcast_value.identity.clone(),
-                            dispatch: upcast_value.dispatch.clone(),
-                        }
-                    },
-                    site.clone(),
-                    js_abi::JsMap::new(),
-                    None,
-                )
+            dispatch_receiver.dispatch.clone().dispatch_test_template_environment_render_template(
+                template.clone(),
+                {
+                    let upcast_value = tsumo_engine::testing::PageValue::new(page.clone());
+                    tsumo_engine::testing::TemplateValue {
+                        identity: upcast_value.identity.clone(),
+                        dispatch: upcast_value.dispatch.clone(),
+                    }
+                },
+                site.clone(),
+                js_abi::JsMap::new(),
+                None,
+            )
         }?;
         let mut second: String = {
             let dispatch_receiver_2 = environment.clone();
-            dispatch_receiver_2
-                .dispatch
-                .clone()
-                .dispatch_test_template_environment_render_template(
-                    template.clone(),
-                    {
-                        let upcast_value_2 =
-                            crate::node_modules::tsumo::engine::src::template::values::page::PageValue::new(
-                                page.clone(),
-                            );
-                        crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue {
-                            identity: upcast_value_2.identity.clone(),
-                            dispatch: upcast_value_2.dispatch.clone(),
-                        }
-                    },
-                    site.clone(),
-                    js_abi::JsMap::new(),
-                    None,
-                )
+            dispatch_receiver_2.dispatch.clone().dispatch_test_template_environment_render_template(
+                template.clone(),
+                {
+                    let upcast_value_2 = tsumo_engine::testing::PageValue::new(page.clone());
+                    tsumo_engine::testing::TemplateValue {
+                        identity: upcast_value_2.identity.clone(),
+                        dispatch: upcast_value_2.dispatch.clone(),
+                    }
+                },
+                site.clone(),
+                js_abi::JsMap::new(),
+                None,
+            )
         }?;
         let results: js_abi::JsMap<String, String> = {
             let dispatch_receiver_3 = environment.clone();
@@ -781,96 +688,75 @@ impl TemplateRuntimeTests {
             first = js_string::replace_all(&first, &token, &match result.as_ref() {
     Some(flow_value) => flow_value.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
-}).map_err(tsonic_rust_runtime::TsonicError::from)?;
+})?;
             second = js_string::replace_all(&second, &token, &match result.as_ref() {
     Some(flow_value_2) => flow_value_2.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
-}).map_err(tsonic_rust_runtime::TsonicError::from)?;
+})?;
         }
         crate::test_root::Assert::string_equal(String::from("ready"), Some(first.clone()))?;
         crate::test_root::Assert::string_equal(String::from("ready"), Some(second.clone()))?;
         crate::test_root::Assert::string_equal(
             String::from("1"),
-            Some(
-                {
-                    let dispatch_receiver_4 = environment.clone();
-                    dispatch_receiver_4
-                        .dispatch
-                        .clone()
-                        .dispatch_test_template_environment_render_template(
-                            crate::node_modules::tsumo::engine::src::template::parser::parse_template::PARSE_TEMPLATE
-                                .with(|module_binding| module_binding.load())
-                                .call((String::from("{{ site.Store.Get \"runs\" }}"), None))?,
-                            {
-                                let upcast_value_3 =
-                                    crate::node_modules::tsumo::engine::src::template::values::page::PageValue::new(
-                                        page.clone(),
-                                    );
-                                crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue {
-                                    identity: upcast_value_3.identity.clone(),
-                                    dispatch: upcast_value_3.dispatch.clone(),
-                                }
-                            },
-                            site.clone(),
-                            js_abi::JsMap::new(),
+            Some({
+                let dispatch_receiver_4 = environment.clone();
+                dispatch_receiver_4
+                    .dispatch
+                    .clone()
+                    .dispatch_test_template_environment_render_template(
+                        tsumo_engine::testing::parse_template(
+                            String::from("{{ site.Store.Get \"runs\" }}"),
                             None,
-                        )
-                }?,
-            ),
+                        )?,
+                        {
+                            let upcast_value_3 =
+                                tsumo_engine::testing::PageValue::new(page.clone());
+                            tsumo_engine::testing::TemplateValue {
+                                identity: upcast_value_3.identity.clone(),
+                                dispatch: upcast_value_3.dispatch.clone(),
+                            }
+                        },
+                        site.clone(),
+                        js_abi::JsMap::new(),
+                        None,
+                    )
+            }?),
         )?;
         Ok(())
     }
 
     pub fn deferred_templates_distinguish_authored_occurrences_with_the_same_key(
         &self,
-    ) -> rt::TsonicResult<()> {
+    ) -> Result<(), rt::TsonicError> {
         let environment: crate::template_test_harness::TestTemplateEnvironment =
             crate::template_test_harness::TestTemplateEnvironment::new(None);
-        let site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext =
-            crate::template_test_harness::CREATE_SITE
-                .with(|module_binding| module_binding.load())
-                .call(())?;
-        let page: crate::node_modules::tsumo::engine::src::models::page_context::PageContext =
-            crate::template_test_harness::CREATE_PAGE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    site.clone(),
-                    String::from("Home"),
-                    String::from(""),
-                    String::from("home"),
-                ))?;
-        let template: crate::node_modules::tsumo::engine::src::template::template_2::Template =
-            crate::node_modules::tsumo::engine::src::template::parser::parse_template::PARSE_TEMPLATE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    format!(
-                        "{}{}",
-                        String::from("{{ with (templates.Defer (dict \"key\" \"shared\")) }}first{{ end }}|"),
-                        String::from("{{ with (templates.Defer (dict \"key\" \"shared\")) }}second{{ end }}"),
-                    ),
-                    Some(String::from("layouts/distinct-deferred.html")),
-                ))?;
+        let site: tsumo_engine::testing::SiteContext =
+            crate::template_test_harness::create_site()?;
+        let page: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
+            site.clone(),
+            String::from("Home"),
+            String::from(""),
+            String::from("home"),
+        );
+        let template: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
+            String::from("{{ with (templates.Defer (dict \"key\" \"shared\")) }}first{{ end }}|{{ with (templates.Defer (dict \"key\" \"shared\")) }}second{{ end }}"),
+            Some(String::from("layouts/distinct-deferred.html")),
+        )?;
         let mut output: String = {
             let dispatch_receiver = environment.clone();
-            dispatch_receiver
-                .dispatch
-                .clone()
-                .dispatch_test_template_environment_render_template(
-                    template.clone(),
-                    {
-                        let upcast_value =
-                            crate::node_modules::tsumo::engine::src::template::values::page::PageValue::new(
-                                page.clone(),
-                            );
-                        crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue {
-                            identity: upcast_value.identity.clone(),
-                            dispatch: upcast_value.dispatch.clone(),
-                        }
-                    },
-                    site.clone(),
-                    js_abi::JsMap::new(),
-                    None,
-                )
+            dispatch_receiver.dispatch.clone().dispatch_test_template_environment_render_template(
+                template,
+                {
+                    let upcast_value = tsumo_engine::testing::PageValue::new(page);
+                    tsumo_engine::testing::TemplateValue {
+                        identity: upcast_value.identity.clone(),
+                        dispatch: upcast_value.dispatch.clone(),
+                    }
+                },
+                site.clone(),
+                js_abi::JsMap::new(),
+                None,
+            )
         }?;
         let results: js_abi::JsMap<String, String> = {
             let dispatch_receiver_2 = environment.clone();
@@ -895,254 +781,285 @@ impl TemplateRuntimeTests {
             output = js_string::replace_all(&output, &token, &match result.as_ref() {
     Some(flow_value) => flow_value.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
-}).map_err(tsonic_rust_runtime::TsonicError::from)?;
+})?;
         }
         crate::test_root::Assert::string_equal(String::from("first|second"), Some(output.clone()))?;
         Ok(())
     }
 
-    pub fn return_evaluates_its_complete_value_expression(&self) -> rt::TsonicResult<()> {
+    pub fn return_evaluates_its_complete_value_expression(&self) -> Result<(), rt::TsonicError> {
         let environment: crate::template_test_harness::TestTemplateEnvironment =
             crate::template_test_harness::TestTemplateEnvironment::new(None);
         {
-            let dispatch_receiver = &environment;
-            dispatch_receiver
-                .dispatch
-                .read_test_template_environment_templates()
-        }
-        .set(
+            let operation_input_0 = {
+                let dispatch_receiver = &environment;
+                dispatch_receiver
+                    .dispatch
+                    .read_test_template_environment_templates()
+            };
+            operation_input_0.set_discard(
                 String::from("partials/selection"),
-                crate::node_modules::tsumo::engine::src::template::parser::parse_template::PARSE_TEMPLATE
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("{{ return cond true \"selected\" \"rejected\" }}"),
-                        Some(String::from("partials/selection")),
-                    ))?,
-            );
-        let site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext =
-            crate::template_test_harness::CREATE_SITE
-                .with(|module_binding| module_binding.load())
-                .call(())?;
-        let root: crate::node_modules::tsumo::engine::src::models::page_context::PageContext =
-            crate::template_test_harness::CREATE_PAGE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    site.clone(),
-                    String::from("Home"),
-                    String::from(""),
-                    String::from("home"),
-                ))?;
-        let parent: crate::node_modules::tsumo::engine::src::template::template_2::Template =
-            crate::node_modules::tsumo::engine::src::template::parser::parse_template::PARSE_TEMPLATE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    String::from("{{ partial \"selection\" . }}"),
-                    Some(String::from("partials/parent")),
-                ))?;
+                tsumo_engine::testing::parse_template(
+                    String::from("{{ return cond true \"selected\" \"rejected\" }}"),
+                    Some(String::from("partials/selection")),
+                )?,
+            )
+        };
+        let site: tsumo_engine::testing::SiteContext =
+            crate::template_test_harness::create_site()?;
+        let root: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
+            site.clone(),
+            String::from("Home"),
+            String::from(""),
+            String::from("home"),
+        );
+        let parent: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
+            String::from("{{ partial \"selection\" . }}"),
+            Some(String::from("partials/parent")),
+        )?;
         crate::test_root::Assert::string_equal(
             String::from("selected"),
-            Some(
-                {
-                    let dispatch_receiver_2 = environment.clone();
-                    dispatch_receiver_2
-                        .dispatch
-                        .clone()
-                        .dispatch_test_template_environment_render_template(
-                            parent.clone(),
-                            {
-                                let upcast_value =
-                                    crate::node_modules::tsumo::engine::src::template::values::page::PageValue::new(
-                                        root.clone(),
-                                    );
-                                crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue {
-                                    identity: upcast_value.identity.clone(),
-                                    dispatch: upcast_value.dispatch.clone(),
-                                }
-                            },
-                            site.clone(),
-                            js_abi::JsMap::new(),
-                            None,
-                        )
-                }?,
-            ),
+            Some({
+                let dispatch_receiver_2 = environment.clone();
+                dispatch_receiver_2
+                    .dispatch
+                    .clone()
+                    .dispatch_test_template_environment_render_template(
+                        parent,
+                        {
+                            let upcast_value = tsumo_engine::testing::PageValue::new(root);
+                            tsumo_engine::testing::TemplateValue {
+                                identity: upcast_value.identity.clone(),
+                                dispatch: upcast_value.dispatch.clone(),
+                            }
+                        },
+                        site.clone(),
+                        js_abi::JsMap::new(),
+                        None,
+                    )
+            }?),
         )?;
         Ok(())
     }
 
     pub fn template_string_literals_decode_exact_interpreted_and_raw_forms(
         &self,
-    ) -> rt::TsonicResult<()> {
+    ) -> Result<(), rt::TsonicError> {
         crate::test_root::Assert::string_equal(
             String::from("line\nnext"),
-            Some(
-                crate::template_test_harness::RENDER
-                    .with(|module_binding| module_binding.load())
-                    .call((String::from("{{ print \"line\\nnext\" }}"),))?,
-            ),
+            Some(crate::template_test_harness::render(
+                String::from("{{ print \"line\\nnext\" }}"),
+            )?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("line\\nnext"),
-            Some(
-                crate::template_test_harness::RENDER
-                    .with(|module_binding| module_binding.load())
-                    .call((String::from("{{ print `line\\nnext` }}"),))?,
-            ),
+            Some(crate::template_test_harness::render(
+                String::from("{{ print `line\\nnext` }}"),
+            )?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from(""),
-            Some(
-                crate::template_test_harness::RENDER
-                    .with(|module_binding| module_binding.load())
-                    .call((String::from("{{ print \"\\033\" }}"),))?,
-            ),
+            Some(crate::template_test_harness::render(
+                String::from("{{ print \"\\033\" }}"),
+            )?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("🔗"),
-            Some(
-                crate::template_test_harness::RENDER
-                    .with(|module_binding| module_binding.load())
-                    .call((String::from("{{ print \"\\U0001F517\" }}"),))?,
-            ),
+            Some(crate::template_test_harness::render(
+                String::from("{{ print \"\\U0001F517\" }}"),
+            )?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_TEMPLATE_STRING_ESCAPE_INVALID"),
-            Some(
-                crate::template_test_harness::CAPTURE_DIAGNOSTIC_CODE
-                    .with(|module_binding| module_binding.load())
-                    .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
-                        move |_callable_arguments| {
-                            crate::template_test_harness::RENDER
-                                .with(|module_binding| module_binding.load())
-                                .call((String::from("{{ print \"\\q\" }}"),))?;
-                            Ok::<_, rt::TsonicError>(())
-                        },
-                    ),))?,
-            ),
+            Some(crate::template_test_harness::capture_diagnostic_code(rt::Callable::<
+                (),
+                rt::TsonicResult<()>,
+            >::new(move |_callable_arguments| {
+                crate::template_test_harness::render(String::from("{{ print \"\\q\" }}"))?;
+                Ok::<_, rt::TsonicError>(())
+            }))?),
         )?;
         Ok(())
     }
 
-    pub fn template_text_compatibility_functions_are_deterministic(&self) -> rt::TsonicResult<()> {
+    pub fn template_text_compatibility_functions_are_deterministic(
+        &self,
+    ) -> Result<(), rt::TsonicError> {
         crate::test_root::Assert::string_equal(
             String::from("a-b---c"),
-            Some(
-                crate::template_test_harness::RENDER
-                    .with(|module_binding| module_binding.load())
-                    .call((String::from("{{ anchorize \"a b   c\" }}"),))?,
-            ),
+            Some(crate::template_test_harness::render(
+                String::from("{{ anchorize \"a b   c\" }}"),
+            )?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("-a-b--c-"),
-            Some(
-                crate::template_test_harness::RENDER
-                    .with(|module_binding| module_binding.load())
-                    .call((String::from("{{ anchorize \"< a, b, & c >\" }}"),))?,
-            ),
+            Some(crate::template_test_harness::render(
+                String::from("{{ anchorize \"< a, b, & c >\" }}"),
+            )?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("maingo|hugö"),
-            Some(
-                crate::template_test_harness::RENDER
-                    .with(|module_binding| module_binding.load())
-                    .call((String::from("{{ anchorize \"main.go\" }}|{{ anchorize \"Hugö\" }}"),))?,
-            ),
+            Some(crate::template_test_harness::render(
+                String::from("{{ anchorize \"main.go\" }}|{{ anchorize \"Hugö\" }}"),
+            )?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("I ❤️ Tsumo :unknown:"),
-            Some(
-                crate::template_test_harness::RENDER
-                    .with(|module_binding| module_binding.load())
-                    .call((String::from("{{ emojify \"I :heart: Tsumo :unknown:\" }}"),))?,
-            ),
+            Some(crate::template_test_harness::render(
+                String::from("{{ emojify \"I :heart: Tsumo :unknown:\" }}"),
+            )?),
         )?;
         Ok(())
     }
 
     pub fn template_regular_expression_functions_preserve_matches_groups_and_limits(
         &self,
-    ) -> rt::TsonicResult<()> {
+    ) -> Result<(), rt::TsonicError> {
         crate::test_root::Assert::string_equal(
             String::from("ab,ac"),
-            Some(
-                crate::template_test_harness::RENDER
-                    .with(|module_binding| module_binding.load())
-                    .call((String::from("{{ delimit (findRE `a.` `ab ac ad` 2) `,` }}"),))?,
-            ),
+            Some(crate::template_test_harness::render(
+                String::from("{{ delimit (findRE `a.` `ab ac ad` 2) `,` }}"),
+            )?),
+        )?;
+        crate::test_root::Assert::string_equal(
+            String::from("ab,ac,ad"),
+            Some(crate::template_test_harness::render(
+                String::from("{{ delimit (findRE `a.` `ab ac ad`) `,` }}"),
+            )?),
+        )?;
+        crate::test_root::Assert::string_equal(
+            String::from(""),
+            Some(crate::template_test_harness::render(
+                String::from("{{ delimit (findRE `a.` `ab ac ad` 0) `,` }}"),
+            )?),
+        )?;
+        crate::test_root::Assert::string_equal(
+            String::from(",,"),
+            Some(crate::template_test_harness::render(
+                String::from("{{ delimit (findRE `(?:)` `ab`) `,` }}"),
+            )?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("item42|item|42|item|42"),
             Some(
-                crate::template_test_harness::RENDER
-                    .with(|module_binding| module_binding.load())
-                    .call((format!(
-                        "{}{}",
-                        String::from("{{ range findRESubmatch `([a-z]+)([0-9]+)` `item42` }}"),
-                        String::from("{{ delimit . `|` }}|{{ index . 1 }}|{{ index . 2 }}{{ end }}"),
-                    ),))?,
+                crate::template_test_harness::render(
+                    String::from("{{ range findRESubmatch `([a-z]+)([0-9]+)` `item42` }}{{ delimit . `|` }}|{{ index . 1 }}|{{ index . 2 }}{{ end }}"),
+                )?,
             ),
         )?;
         crate::test_root::Assert::string_equal(
+            String::from("b|"),
+            Some(crate::template_test_harness::render(
+                String::from("{{ range findRESubmatch `(a)?b` `b` }}{{ delimit . `|` }}{{ end }}"),
+            )?),
+        )?;
+        crate::test_root::Assert::string_equal(
             String::from("x2 item3"),
+            Some(crate::template_test_harness::render(
+                String::from("{{ replaceRE `item` `x` `item2 item3` 1 }}"),
+            )?),
+        )?;
+        crate::test_root::Assert::string_equal(
+            String::from("x2 x3"),
+            Some(crate::template_test_harness::render(
+                String::from("{{ replaceRE `item` `x` `item2 item3` }}"),
+            )?),
+        )?;
+        crate::test_root::Assert::string_equal(
+            String::from("item2 item3"),
+            Some(crate::template_test_harness::render(
+                String::from("{{ replaceRE `item` `x` `item2 item3` 0 }}"),
+            )?),
+        )?;
+        crate::test_root::Assert::string_equal(
+            String::from("&lt;&gt;a2"),
             Some(
-                crate::template_test_harness::RENDER
-                    .with(|module_binding| module_binding.load())
-                    .call((String::from("{{ replaceRE `item` `x` `item2 item3` 1 }}"),))?,
+                crate::template_test_harness::render(
+                    String::from("{{ replaceRE `(a)?b` `<$1>` `b` 1 }}{{ replaceRE `(a)` `$12` `a` 1 }}"),
+                )?,
             ),
+        )?;
+        crate::test_root::Assert::string_equal(
+            String::from("a|$00"),
+            Some(crate::template_test_harness::render(
+                String::from("{{ replaceRE `(a)` `$01` `a` 1 }}|{{ replaceRE `(a)` `$00` `a` 1 }}"),
+            )?),
+        )?;
+        crate::test_root::Assert::string_equal(
+            String::from("item-42-$-item42"),
+            Some(
+                crate::template_test_harness::render(
+                    String::from("{{ replaceRE `(?<word>[a-z]+)([0-9]+)` `$<word>-$2-$$-$&` `item42` 1 }}"),
+                )?,
+            ),
+        )?;
+        crate::test_root::Assert::string_equal(
+            String::from("TSUMO_TEMPLATE_REGEXP_INVALID"),
+            Some(crate::template_test_harness::capture_diagnostic_code(rt::Callable::<
+                (),
+                rt::TsonicResult<()>,
+            >::new(move |_callable_arguments| {
+                crate::template_test_harness::render(String::from("{{ findRE `(` `value` }}"))?;
+                Ok::<_, rt::TsonicError>(())
+            }))?),
         )?;
         Ok(())
     }
 
     pub fn template_scanning_preserves_unicode_scalars_and_utf16_locations(
         &self,
-    ) -> rt::TsonicResult<()> {
+    ) -> Result<(), rt::TsonicError> {
         crate::test_root::Assert::string_equal(
             String::from("before 🔗 after"),
-            Some(
-                crate::template_test_harness::RENDER
-                    .with(|module_binding| module_binding.load())
-                    .call((String::from("before 🔗 after"),))?,
-            ),
+            Some(crate::template_test_harness::render(
+                String::from("before 🔗 after"),
+            )?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("🔗"),
-            Some(
-                crate::template_test_harness::RENDER
-                    .with(|module_binding| module_binding.load())
-                    .call((String::from("{{ print \"🔗\" }}"),))?,
-            ),
+            Some(crate::template_test_harness::render(
+                String::from("{{ print \"🔗\" }}"),
+            )?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("🔗"),
-            Some(
-                crate::template_test_harness::RENDER
-                    .with(|module_binding| module_binding.load())
-                    .call((String::from("{{ \"<span>🔗</span>\" | plainify }}"),))?,
-            ),
+            Some(crate::template_test_harness::render(
+                String::from("{{ \"<span>🔗</span>\" | plainify }}"),
+            )?),
         )?;
-        let located: crate::node_modules::tsumo::engine::src::diagnostics::TsumoDiagnostic =
-            crate::template_test_harness::CAPTURE_DIAGNOSTIC
-                .with(|module_binding| module_binding.load())
-                .call((rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                    crate::node_modules::tsumo::engine::src::template::parser::parse_template::PARSE_TEMPLATE
-                        .with(|module_binding| module_binding.load())
-                        .call((
-                            String::from("🔗{{ if true"),
-                            Some(String::from("layouts/unicode.html")),
-                        ))?;
-                    Ok::<_, rt::TsonicError>(())
-                }),))?;
+        let located: tsumo_engine::TsumoDiagnostic =
+            crate::template_test_harness::capture_diagnostic(rt::Callable::<
+                (),
+                rt::TsonicResult<()>,
+            >::new(move |_callable_arguments| {
+                tsumo_engine::testing::parse_template(
+                    String::from("🔗{{ if true"),
+                    Some(String::from("layouts/unicode.html")),
+                )?;
+                Ok::<_, rt::TsonicError>(())
+            }))?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_TEMPLATE_ACTION_UNCLOSED"),
-            Some(located.state.with(|state| state.code.clone())),
+            Some({
+                let dispatch_receiver = &located;
+                dispatch_receiver.dispatch.read_tsumo_diagnostic_code()
+            }),
         )?;
-        crate::test_root::Assert::number_equal(1.0, located.state.with(|state| state.line))?;
-        crate::test_root::Assert::number_equal(3.0, located.state.with(|state| state.column))?;
+        crate::test_root::Assert::number_equal(1.0, {
+            let dispatch_receiver_2 = &located;
+            dispatch_receiver_2.dispatch.read_tsumo_diagnostic_line()
+        })?;
+        crate::test_root::Assert::number_equal(3.0, {
+            let dispatch_receiver_3 = &located;
+            dispatch_receiver_3.dispatch.read_tsumo_diagnostic_column()
+        })?;
         let large_template_lines: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
         {
             let mut index: f64 = 0.0;
             while index < 2000.0 {
-                tsonic_rust_runtime::conversions::usize_to_i32(
-                    large_template_lines.push_many([
+                {
+                    let operation_input_0 = large_template_lines.clone();
+                    operation_input_0.push_many_discard([
                         format!(
                             "{}{}{}{}{}",
                             String::from("line "),
@@ -1151,18 +1068,16 @@ impl TemplateRuntimeTests {
                             rt::source_string(&index),
                             String::from("\" }}"),
                         ),
-                    ]),
-                )?;
+                    ])
+                };
                 index += 1.0;
             }
         }
         crate::test_root::Assert::r#true({
-            let _ = crate::node_modules::tsumo::engine::src::template::parser::parse_template::PARSE_TEMPLATE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    large_template_lines.join("\n"),
-                    Some(String::from("layouts/large.html")),
-                ))?;
+            let _ = tsumo_engine::testing::parse_template(
+                large_template_lines.join("\n"),
+                Some(String::from("layouts/large.html")),
+            )?;
             {
                 let _ = rt::Undefined;
                 true
@@ -1171,187 +1086,163 @@ impl TemplateRuntimeTests {
         Ok(())
     }
 
-    pub fn dictionary_range_order_is_deterministic(&self) -> rt::TsonicResult<()> {
+    pub fn dictionary_range_order_is_deterministic(&self) -> Result<(), rt::TsonicError> {
         let source: String = String::from("{{ range $key, $value := dict \"z\" \"last\" \"a\" \"first\" }}{{$key}}={{$value}};{{end}}");
         crate::test_root::Assert::string_equal(
             String::from("a=first;z=last;"),
-            Some(
-                crate::template_test_harness::RENDER
-                    .with(|module_binding| module_binding.load())
-                    .call((source.clone(),))?,
-            ),
+            Some(crate::template_test_harness::render(source.clone())?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("a=first;z=last;"),
-            Some(
-                crate::template_test_harness::RENDER
-                    .with(|module_binding| module_binding.load())
-                    .call((source.clone(),))?,
-            ),
+            Some(crate::template_test_harness::render(source.clone())?),
         )?;
         Ok(())
     }
 
-    pub fn parser_reports_exact_malformed_input_diagnostics(&self) -> rt::TsonicResult<()> {
+    pub fn parser_reports_exact_malformed_input_diagnostics(&self) -> Result<(), rt::TsonicError> {
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_TEMPLATE_ACTION_UNCLOSED"),
-            Some(
-                crate::template_test_harness::CAPTURE_DIAGNOSTIC_CODE
-                    .with(|module_binding| module_binding.load())
-                    .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
-                        move |_callable_arguments| {
-                            crate::node_modules::tsumo::engine::src::template::parser::parse_template::PARSE_TEMPLATE
-                                .with(|module_binding| module_binding.load())
-                                .call((String::from("before {{ if true"), None))?;
-                            Ok::<_, rt::TsonicError>(())
-                        },
-                    ),))?,
-            ),
+            Some(crate::template_test_harness::capture_diagnostic_code(rt::Callable::<
+                (),
+                rt::TsonicResult<()>,
+            >::new(move |_callable_arguments| {
+                tsumo_engine::testing::parse_template(String::from("before {{ if true"), None)?;
+                Ok::<_, rt::TsonicError>(())
+            }))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_TEMPLATE_STRING_UNCLOSED"),
-            Some(
-                crate::template_test_harness::CAPTURE_DIAGNOSTIC_CODE
-                    .with(|module_binding| module_binding.load())
-                    .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
-                        move |_callable_arguments_2| {
-                            crate::node_modules::tsumo::engine::src::template::parser::parse_template::PARSE_TEMPLATE
-                                .with(|module_binding| module_binding.load())
-                                .call((String::from("{{ print \"unterminated }}"), None))?;
-                            Ok::<_, rt::TsonicError>(())
-                        },
-                    ),))?,
-            ),
+            Some(crate::template_test_harness::capture_diagnostic_code(rt::Callable::<
+                (),
+                rt::TsonicResult<()>,
+            >::new(move |_callable_arguments_2| {
+                tsumo_engine::testing::parse_template(
+                    String::from("{{ print \"unterminated }}"),
+                    None,
+                )?;
+                Ok::<_, rt::TsonicError>(())
+            }))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_TEMPLATE_BLOCK_UNCLOSED"),
-            Some(
-                crate::template_test_harness::CAPTURE_DIAGNOSTIC_CODE
-                    .with(|module_binding| module_binding.load())
-                    .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
-                        move |_callable_arguments_3| {
-                            crate::node_modules::tsumo::engine::src::template::parser::parse_template::PARSE_TEMPLATE
-                                .with(|module_binding| module_binding.load())
-                                .call((String::from("{{ if true }}body"), None))?;
-                            Ok::<_, rt::TsonicError>(())
-                        },
-                    ),))?,
-            ),
+            Some(crate::template_test_harness::capture_diagnostic_code(rt::Callable::<
+                (),
+                rt::TsonicResult<()>,
+            >::new(move |_callable_arguments_3| {
+                tsumo_engine::testing::parse_template(String::from("{{ if true }}body"), None)?;
+                Ok::<_, rt::TsonicError>(())
+            }))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_TEMPLATE_DEFINE_DUPLICATE"),
-            Some(
-                crate::template_test_harness::CAPTURE_DIAGNOSTIC_CODE
-                    .with(|module_binding| module_binding.load())
-                    .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
-                        move |_callable_arguments_4| {
-                            crate::node_modules::tsumo::engine::src::template::parser::parse_template::PARSE_TEMPLATE
-                                .with(|module_binding| module_binding.load())
-                                .call((
-                                    String::from("{{ define \"x\" }}a{{ end }}{{ define \"x\" }}b{{ end }}"),
-                                    None,
-                                ))?;
-                            Ok::<_, rt::TsonicError>(())
-                        },
-                    ),))?,
-            ),
+            Some(crate::template_test_harness::capture_diagnostic_code(rt::Callable::<
+                (),
+                rt::TsonicResult<()>,
+            >::new(move |_callable_arguments_4| {
+                tsumo_engine::testing::parse_template(
+                    String::from("{{ define \"x\" }}a{{ end }}{{ define \"x\" }}b{{ end }}"),
+                    None,
+                )?;
+                Ok::<_, rt::TsonicError>(())
+            }))?),
         )?;
-        let located: crate::node_modules::tsumo::engine::src::diagnostics::TsumoDiagnostic =
-            crate::template_test_harness::CAPTURE_DIAGNOSTIC
-                .with(|module_binding| module_binding.load())
-                .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
-                    move |_callable_arguments_5| {
-                        crate::node_modules::tsumo::engine::src::template::parser::parse_template::PARSE_TEMPLATE
-                            .with(|module_binding| module_binding.load())
-                            .call((
-                                String::from("first\n{{ if true"),
-                                Some(String::from("layouts/single.html")),
-                            ))?;
-                        Ok::<_, rt::TsonicError>(())
-                    },
-                ),))?;
+        let located: tsumo_engine::TsumoDiagnostic =
+            crate::template_test_harness::capture_diagnostic(rt::Callable::<
+                (),
+                rt::TsonicResult<()>,
+            >::new(move |_callable_arguments_5| {
+                tsumo_engine::testing::parse_template(
+                    String::from("first\n{{ if true"),
+                    Some(String::from("layouts/single.html")),
+                )?;
+                Ok::<_, rt::TsonicError>(())
+            }))?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_TEMPLATE_ACTION_UNCLOSED"),
-            Some(located.state.with(|state| state.code.clone())),
+            Some({
+                let dispatch_receiver = &located;
+                dispatch_receiver.dispatch.read_tsumo_diagnostic_code()
+            }),
         )?;
-        crate::test_root::Assert::string_equal(
-            String::from("layouts/single.html"),
-            located.state.with(|state| state.file.clone()),
-        )?;
-        crate::test_root::Assert::number_equal(2.0, located.state.with(|state| state.line))?;
-        crate::test_root::Assert::number_equal(1.0, located.state.with(|state| state.column))?;
+        crate::test_root::Assert::string_equal(String::from("layouts/single.html"), {
+            let dispatch_receiver_2 = &located;
+            dispatch_receiver_2.dispatch.read_tsumo_diagnostic_file()
+        })?;
+        crate::test_root::Assert::number_equal(2.0, {
+            let dispatch_receiver_3 = &located;
+            dispatch_receiver_3.dispatch.read_tsumo_diagnostic_line()
+        })?;
+        crate::test_root::Assert::number_equal(1.0, {
+            let dispatch_receiver_4 = &located;
+            dispatch_receiver_4.dispatch.read_tsumo_diagnostic_column()
+        })?;
         Ok(())
     }
 
     pub fn shortcode_parser_rejects_ambiguous_input_with_exact_locations(
         &self,
-    ) -> rt::TsonicResult<()> {
-        let unclosed: crate::node_modules::tsumo::engine::src::diagnostics::TsumoDiagnostic =
-            crate::template_test_harness::CAPTURE_DIAGNOSTIC
-                .with(|module_binding| module_binding.load())
-                .call((rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                    crate::node_modules::tsumo::engine::src::shortcode::PARSE_SHORTCODES
-                        .with(|module_binding| module_binding.load())
-                        .call((
-                            String::from("first\n{{< figure"),
-                            Some(String::from("content/post.md")),
-                        ))?;
-                    Ok::<_, rt::TsonicError>(())
-                }),))?;
+    ) -> Result<(), rt::TsonicError> {
+        let unclosed: tsumo_engine::TsumoDiagnostic =
+            crate::template_test_harness::capture_diagnostic(rt::Callable::<
+                (),
+                rt::TsonicResult<()>,
+            >::new(move |_callable_arguments| {
+                tsumo_engine::testing::parse_shortcodes(
+                    String::from("first\n{{< figure"),
+                    Some(String::from("content/post.md")),
+                )?;
+                Ok::<_, rt::TsonicError>(())
+            }))?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_SHORTCODE_ACTION_UNCLOSED"),
-            Some(unclosed.state.with(|state| state.code.clone())),
+            Some({
+                let dispatch_receiver = &unclosed;
+                dispatch_receiver.dispatch.read_tsumo_diagnostic_code()
+            }),
         )?;
-        crate::test_root::Assert::string_equal(
-            String::from("content/post.md"),
-            unclosed.state.with(|state| state.file.clone()),
-        )?;
-        crate::test_root::Assert::number_equal(2.0, unclosed.state.with(|state| state.line))?;
-        crate::test_root::Assert::number_equal(1.0, unclosed.state.with(|state| state.column))?;
+        crate::test_root::Assert::string_equal(String::from("content/post.md"), {
+            let dispatch_receiver_2 = &unclosed;
+            dispatch_receiver_2.dispatch.read_tsumo_diagnostic_file()
+        })?;
+        crate::test_root::Assert::number_equal(2.0, {
+            let dispatch_receiver_3 = &unclosed;
+            dispatch_receiver_3.dispatch.read_tsumo_diagnostic_line()
+        })?;
+        crate::test_root::Assert::number_equal(1.0, {
+            let dispatch_receiver_4 = &unclosed;
+            dispatch_receiver_4.dispatch.read_tsumo_diagnostic_column()
+        })?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_SHORTCODE_PARAMETER_DUPLICATE"),
-            Some(
-                crate::template_test_harness::CAPTURE_DIAGNOSTIC_CODE
-                    .with(|module_binding| module_binding.load())
-                    .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
-                        move |_callable_arguments_2| {
-                            crate::node_modules::tsumo::engine::src::shortcode::PARSE_SHORTCODES
-                                .with(|module_binding| module_binding.load())
-                                .call((
-                                    String::from("{{< figure src='one' src='two' >}}"),
-                                    Some(String::from("content/post.md")),
-                                ))?;
-                            Ok::<_, rt::TsonicError>(())
-                        },
-                    ),))?,
-            ),
+            Some(crate::template_test_harness::capture_diagnostic_code(rt::Callable::<
+                (),
+                rt::TsonicResult<()>,
+            >::new(move |_callable_arguments_2| {
+                tsumo_engine::testing::parse_shortcodes(
+                    String::from("{{< figure src='one' src='two' >}}"),
+                    Some(String::from("content/post.md")),
+                )?;
+                Ok::<_, rt::TsonicError>(())
+            }))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_SHORTCODE_PARAMETER_STYLE_MIXED"),
-            Some(
-                crate::template_test_harness::CAPTURE_DIAGNOSTIC_CODE
-                    .with(|module_binding| module_binding.load())
-                    .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
-                        move |_callable_arguments_3| {
-                            crate::node_modules::tsumo::engine::src::shortcode::PARSE_SHORTCODES
-                                .with(|module_binding| module_binding.load())
-                                .call((
-                                    String::from("{{< figure 'one' src='two' >}}"),
-                                    Some(String::from("content/post.md")),
-                                ))?;
-                            Ok::<_, rt::TsonicError>(())
-                        },
-                    ),))?,
-            ),
+            Some(crate::template_test_harness::capture_diagnostic_code(rt::Callable::<
+                (),
+                rt::TsonicResult<()>,
+            >::new(move |_callable_arguments_3| {
+                tsumo_engine::testing::parse_shortcodes(
+                    String::from("{{< figure 'one' src='two' >}}"),
+                    Some(String::from("content/post.md")),
+                )?;
+                Ok::<_, rt::TsonicError>(())
+            }))?),
         )?;
-        let quoted: js_abi::JsArray<
-            crate::node_modules::tsumo::engine::src::shortcode::ShortcodeCall,
-        > = crate::node_modules::tsumo::engine::src::shortcode::PARSE_SHORTCODES
-            .with(|module_binding| module_binding.load())
-            .call((
+        let quoted: js_abi::JsArray<tsumo_engine::shortcode::ShortcodeCall> =
+            tsumo_engine::testing::parse_shortcodes(
                 String::from("{{< figure caption=\"\" published=\"true\" count=2 >}}"),
                 Some(String::from("content/post.md")),
-            ))?;
+            )?;
         crate::test_root::Assert::number_equal(
             1.0,
             Some(tsonic_rust_runtime::conversions::i32_to_f64(
@@ -1369,9 +1260,8 @@ impl TemplateRuntimeTests {
             .get("caption")
             .as_ref()
             .map(|optional_receiver| {
-                    optional_receiver
-                        .state
-                        .with(|state| state.string_value.clone())
+                    let dispatch_receiver_5 = optional_receiver;
+                    dispatch_receiver_5.dispatch.read_param_value_string_value()
                 }),
         )?;
         crate::test_root::Assert::string_equal(
@@ -1385,9 +1275,8 @@ impl TemplateRuntimeTests {
             .get("published")
             .as_ref()
             .map(|optional_receiver_2| {
-                    optional_receiver_2
-                        .state
-                        .with(|state| state.string_value.clone())
+                    let dispatch_receiver_6 = optional_receiver_2;
+                    dispatch_receiver_6.dispatch.read_param_value_string_value()
                 }),
         )?;
         crate::test_root::Assert::number_equal(
@@ -1400,155 +1289,119 @@ impl TemplateRuntimeTests {
             .with(|state| state.params.clone())
             .get("count")
             .as_ref()
-            .map(|optional_receiver_3| optional_receiver_3.state.with(|state| state.number_value))
+            .map(|optional_receiver_3| {
+                    let dispatch_receiver_7 = optional_receiver_3;
+                    dispatch_receiver_7.dispatch.read_param_value_number_value()
+                })
             .map(tsonic_rust_runtime::conversions::i32_to_f64),
         )?;
         Ok(())
     }
 
-    pub fn evaluator_reports_exact_unknown_and_invalid_operations(&self) -> rt::TsonicResult<()> {
+    pub fn evaluator_reports_exact_unknown_and_invalid_operations(
+        &self,
+    ) -> Result<(), rt::TsonicError> {
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_TEMPLATE_UNKNOWN_FUNCTION"),
-            Some(
-                crate::template_test_harness::CAPTURE_DIAGNOSTIC_CODE
-                    .with(|module_binding| module_binding.load())
-                    .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
-                        move |_callable_arguments| {
-                            crate::template_test_harness::RENDER
-                                .with(|module_binding| module_binding.load())
-                                .call((String::from("{{ imaginary \"x\" }}"),))?;
-                            Ok::<_, rt::TsonicError>(())
-                        },
-                    ),))?,
-            ),
+            Some(crate::template_test_harness::capture_diagnostic_code(rt::Callable::<
+                (),
+                rt::TsonicResult<()>,
+            >::new(move |_callable_arguments| {
+                crate::template_test_harness::render(String::from("{{ imaginary \"x\" }}"))?;
+                Ok::<_, rt::TsonicError>(())
+            }))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_TEMPLATE_FUNCTION_ARGUMENTS_INVALID"),
-            Some(
-                crate::template_test_harness::CAPTURE_DIAGNOSTIC_CODE
-                    .with(|module_binding| module_binding.load())
-                    .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
-                        move |_callable_arguments_2| {
-                            crate::template_test_harness::RENDER
-                                .with(|module_binding| module_binding.load())
-                                .call((String::from("{{ div 1 }}"),))?;
-                            Ok::<_, rt::TsonicError>(())
-                        },
-                    ),))?,
-            ),
+            Some(crate::template_test_harness::capture_diagnostic_code(rt::Callable::<
+                (),
+                rt::TsonicResult<()>,
+            >::new(move |_callable_arguments_2| {
+                crate::template_test_harness::render(String::from("{{ div 1 }}"))?;
+                Ok::<_, rt::TsonicError>(())
+            }))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_TEMPLATE_DIVIDE_BY_ZERO"),
-            Some(
-                crate::template_test_harness::CAPTURE_DIAGNOSTIC_CODE
-                    .with(|module_binding| module_binding.load())
-                    .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
-                        move |_callable_arguments_3| {
-                            crate::template_test_harness::RENDER
-                                .with(|module_binding| module_binding.load())
-                                .call((String::from("{{ div 4 0 }}"),))?;
-                            Ok::<_, rt::TsonicError>(())
-                        },
-                    ),))?,
-            ),
+            Some(crate::template_test_harness::capture_diagnostic_code(rt::Callable::<
+                (),
+                rt::TsonicResult<()>,
+            >::new(move |_callable_arguments_3| {
+                crate::template_test_harness::render(String::from("{{ div 4 0 }}"))?;
+                Ok::<_, rt::TsonicError>(())
+            }))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_TEMPLATE_MODULO_BY_ZERO"),
-            Some(
-                crate::template_test_harness::CAPTURE_DIAGNOSTIC_CODE
-                    .with(|module_binding| module_binding.load())
-                    .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
-                        move |_callable_arguments_4| {
-                            crate::template_test_harness::RENDER
-                                .with(|module_binding| module_binding.load())
-                                .call((String::from("{{ mod 4 0 }}"),))?;
-                            Ok::<_, rt::TsonicError>(())
-                        },
-                    ),))?,
-            ),
+            Some(crate::template_test_harness::capture_diagnostic_code(rt::Callable::<
+                (),
+                rt::TsonicResult<()>,
+            >::new(move |_callable_arguments_4| {
+                crate::template_test_harness::render(String::from("{{ mod 4 0 }}"))?;
+                Ok::<_, rt::TsonicError>(())
+            }))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_TEMPLATE_PARTIAL_MISSING"),
-            Some(
-                crate::template_test_harness::CAPTURE_DIAGNOSTIC_CODE
-                    .with(|module_binding| module_binding.load())
-                    .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
-                        move |_callable_arguments_5| {
-                            crate::template_test_harness::RENDER
-                                .with(|module_binding| module_binding.load())
-                                .call((String::from("{{ partial \"absent\" . }}"),))?;
-                            Ok::<_, rt::TsonicError>(())
-                        },
-                    ),))?,
-            ),
+            Some(crate::template_test_harness::capture_diagnostic_code(rt::Callable::<
+                (),
+                rt::TsonicResult<()>,
+            >::new(move |_callable_arguments_5| {
+                crate::template_test_harness::render(String::from("{{ partial \"absent\" . }}"))?;
+                Ok::<_, rt::TsonicError>(())
+            }))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_TEMPLATE_METHOD_UNKNOWN"),
-            Some(
-                crate::template_test_harness::CAPTURE_DIAGNOSTIC_CODE
-                    .with(|module_binding| module_binding.load())
-                    .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
-                        move |_callable_arguments_6| {
-                            crate::template_test_harness::RENDER
-                                .with(|module_binding| module_binding.load())
-                                .call((String::from("{{ (\"value\").Missing \"argument\" }}"),))?;
-                            Ok::<_, rt::TsonicError>(())
-                        },
-                    ),))?,
-            ),
+            Some(crate::template_test_harness::capture_diagnostic_code(rt::Callable::<
+                (),
+                rt::TsonicResult<()>,
+            >::new(move |_callable_arguments_6| {
+                crate::template_test_harness::render(
+                    String::from("{{ (\"value\").Missing \"argument\" }}"),
+                )?;
+                Ok::<_, rt::TsonicError>(())
+            }))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_TEMPLATE_METHOD_UNKNOWN"),
-            Some(
-                crate::template_test_harness::CAPTURE_DIAGNOSTIC_CODE
-                    .with(|module_binding| module_binding.load())
-                    .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
-                        move |_callable_arguments_7| {
-                            crate::template_test_harness::RENDER
-                                .with(|module_binding| module_binding.load())
-                                .call((String::from("{{ $value := slice \"item\" }}{{ $value.Missing \"argument\" }}"),))?;
-                            Ok::<_, rt::TsonicError>(())
-                        },
-                    ),))?,
-            ),
+            Some(crate::template_test_harness::capture_diagnostic_code(rt::Callable::<
+                (),
+                rt::TsonicResult<()>,
+            >::new(move |_callable_arguments_7| {
+                crate::template_test_harness::render(
+                    String::from("{{ $value := slice \"item\" }}{{ $value.Missing \"argument\" }}"),
+                )?;
+                Ok::<_, rt::TsonicError>(())
+            }))?),
         )?;
         Ok(())
     }
 
-    pub fn dictionary_values_are_resolved_without_name_fallbacks(&self) -> rt::TsonicResult<()> {
-        let values: js_abi::JsMap<
-            String,
-            crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue,
-        > = js_abi::JsMap::new();
-        values.set(String::from("message"), {
-            let upcast_value =
-                crate::node_modules::tsumo::engine::src::template::values::primitives::StringValue::new(
-                    String::from("exact"),
-                );
-            crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue {
-                identity: upcast_value.identity.clone(),
-                dispatch: upcast_value.dispatch.clone(),
-            }
-        });
+    pub fn dictionary_values_are_resolved_without_name_fallbacks(
+        &self,
+    ) -> Result<(), rt::TsonicError> {
+        let values: js_abi::JsMap<String, tsumo_engine::testing::TemplateValue> =
+            js_abi::JsMap::new();
+        {
+            let operation_input_0 = values.clone();
+            operation_input_0.set_discard(String::from("message"), {
+                let upcast_value = tsumo_engine::testing::StringValue::new(String::from("exact"));
+                tsumo_engine::testing::TemplateValue {
+                    identity: upcast_value.identity.clone(),
+                    dispatch: upcast_value.dispatch.clone(),
+                }
+            })
+        };
         crate::test_root::Assert::string_equal(
             String::from("exact"),
-            Some(
-                crate::template_test_harness::RENDER_WITH_ROOT
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("{{ .message }}"),
-                        {
-                            let upcast_value_2 =
-                                crate::node_modules::tsumo::engine::src::template::values::dict::DictValue::new(
-                                    values.clone(),
-                                );
-                            crate::node_modules::tsumo::engine::src::template::values::base::TemplateValue {
-                                identity: upcast_value_2.identity.clone(),
-                                dispatch: upcast_value_2.dispatch.clone(),
-                            }
-                        },
-                    ))?,
-            ),
+            Some(crate::template_test_harness::render_with_root(String::from("{{ .message }}"), {
+                let upcast_value_2 = tsumo_engine::testing::DictValue::new(values.clone());
+                tsumo_engine::testing::TemplateValue {
+                    identity: upcast_value_2.identity.clone(),
+                    dispatch: upcast_value_2.dispatch.clone(),
+                }
+            })?),
         )?;
         Ok(())
     }
@@ -1560,319 +1413,196 @@ impl Default for TemplateRuntimeTests {
     }
 }
 
-pub type RunTemplateRuntimeTestsCallable = rt::Callable<(), rt::TsonicResult<()>>;
-
-std::thread_local! {
-    pub static RUN_TEMPLATE_RUNTIME_TESTS: rt::ModuleCell<RunTemplateRuntimeTestsCallable> = const { rt::ModuleCell::new() };
-}
-
-#[doc(hidden)]
-pub fn module_init() {
-    {
-        let module_value = rt::Callable::<(), rt::TsonicResult<()>>::new(
-            move |_callable_arguments| {
-                let tests: TemplateRuntimeTests = TemplateRuntimeTests::new();
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("parser and evaluator render control flow and pipeline"),
-                        {
-                            let capture_tests = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_2| {
-                                    capture_tests
-                                        .parser_and_evaluator_render_control_flow_and_pipeline()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("collection functions preserve exact split segments"),
-                        {
-                            let capture_tests_2 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_3| {
-                                    capture_tests_2
-                                        .collection_functions_preserve_exact_split_segments()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("collection union accepts slices and nil without collapsing distinct values"),
-                        {
-                            let capture_tests_3 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_4| {
-                                    capture_tests_3
-                                        .collection_union_accepts_slices_and_nil_without_collapsing_distinct_values()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("page HasShortcode uses the exact parsed page inventory"),
-                        {
-                            let capture_tests_4 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_5| {
-                                    capture_tests_4
-                                        .page_has_shortcode_uses_the_exact_parsed_page_inventory()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("return evaluates its complete value expression"),
-                        {
-                            let capture_tests_5 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_6| {
-                                    capture_tests_5
-                                        .return_evaluates_its_complete_value_expression()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("hugo Sites exposes the checked site graph"),
-                        {
-                            let capture_tests_6 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_7| {
-                                    capture_tests_6.hugo_sites_exposes_the_checked_site_graph()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("related pages use exact default keyword and tag evidence"),
-                        {
-                            let capture_tests_7 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_8| {
-                                    capture_tests_7
-                                        .related_pages_use_exact_default_keyword_and_tag_evidence()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("css Build applies its closed resource options"),
-                        {
-                            let capture_tests_8 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_9| {
-                                    capture_tests_8
-                                        .css_build_applies_its_closed_resource_options()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("i18n layers parse structured formats and render plural context"),
-                        {
-                            let capture_tests_9 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_10| {
-                                    capture_tests_9
-                                        .i18n_layers_parse_structured_formats_and_render_plural_context()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("deferred templates finalize after normal render and share keyed results"),
-                        {
-                            let capture_tests_10 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_11| {
-                                    capture_tests_10
-                                        .deferred_templates_finalize_after_normal_render_and_share_keyed_results()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("deferred templates distinguish authored occurrences with the same key"),
-                        {
-                            let capture_tests_11 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_12| {
-                                    capture_tests_11
-                                        .deferred_templates_distinguish_authored_occurrences_with_the_same_key()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("template string literals decode exact interpreted and raw forms"),
-                        {
-                            let capture_tests_12 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_13| {
-                                    capture_tests_12
-                                        .template_string_literals_decode_exact_interpreted_and_raw_forms()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("template text compatibility functions are deterministic"),
-                        {
-                            let capture_tests_13 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_14| {
-                                    capture_tests_13
-                                        .template_text_compatibility_functions_are_deterministic()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("template regular expression functions preserve matches, groups, and limits"),
-                        {
-                            let capture_tests_14 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_15| {
-                                    capture_tests_14
-                                        .template_regular_expression_functions_preserve_matches_groups_and_limits()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("template scanning preserves Unicode scalars and UTF-16 locations"),
-                        {
-                            let capture_tests_15 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_16| {
-                                    capture_tests_15
-                                        .template_scanning_preserves_unicode_scalars_and_utf16_locations()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("dictionary range order is deterministic"),
-                        {
-                            let capture_tests_16 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_17| {
-                                    capture_tests_16.dictionary_range_order_is_deterministic()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("parser reports exact malformed input diagnostics"),
-                        {
-                            let capture_tests_17 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_18| {
-                                    capture_tests_17
-                                        .parser_reports_exact_malformed_input_diagnostics()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("shortcode parser rejects ambiguous input with exact locations"),
-                        {
-                            let capture_tests_18 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_19| {
-                                    capture_tests_18
-                                        .shortcode_parser_rejects_ambiguous_input_with_exact_locations()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("evaluator reports exact unknown and invalid operations"),
-                        {
-                            let capture_tests_19 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_20| {
-                                    capture_tests_19
-                                        .evaluator_reports_exact_unknown_and_invalid_operations()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("dictionary values are resolved without name fallbacks"),
-                        {
-                            let capture_tests_20 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_21| {
-                                    capture_tests_20
-                                        .dictionary_values_are_resolved_without_name_fallbacks()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn run_template_runtime_tests() -> Result<(), rt::TsonicError> {
+    let tests: TemplateRuntimeTests = TemplateRuntimeTests::new();
+    crate::test_root::run_test(
+        String::from("parser and evaluator render control flow and pipeline"),
+        {
+            let capture_tests = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
+                capture_tests.parser_and_evaluator_render_control_flow_and_pipeline()?;
                 Ok::<_, rt::TsonicError>(())
-            },
-        );
-        RUN_TEMPLATE_RUNTIME_TESTS.with(|module_binding| module_binding.initialize(module_value))
-    };
+            })
+        },
+    )?;
+    crate::test_root::run_test(String::from("collection functions preserve exact split segments"), {
+        let capture_tests_2 = tests.clone();
+        rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
+            capture_tests_2.collection_functions_preserve_exact_split_segments()?;
+            Ok::<_, rt::TsonicError>(())
+        })
+    })?;
+    crate::test_root::run_test(
+        String::from("collection union accepts slices and nil without collapsing distinct values"),
+        {
+            let capture_tests_3 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_3| {
+                capture_tests_3
+                    .collection_union_accepts_slices_and_nil_without_collapsing_distinct_values()?;
+                Ok::<_, rt::TsonicError>(())
+            })
+        },
+    )?;
+    crate::test_root::run_test(
+        String::from("page HasShortcode uses the exact parsed page inventory"),
+        {
+            let capture_tests_4 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_4| {
+                capture_tests_4.page_has_shortcode_uses_the_exact_parsed_page_inventory()?;
+                Ok::<_, rt::TsonicError>(())
+            })
+        },
+    )?;
+    crate::test_root::run_test(String::from("return evaluates its complete value expression"), {
+        let capture_tests_5 = tests.clone();
+        rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_5| {
+            capture_tests_5.return_evaluates_its_complete_value_expression()?;
+            Ok::<_, rt::TsonicError>(())
+        })
+    })?;
+    crate::test_root::run_test(String::from("hugo Sites exposes the checked site graph"), {
+        let capture_tests_6 = tests.clone();
+        rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_6| {
+            capture_tests_6.hugo_sites_exposes_the_checked_site_graph()?;
+            Ok::<_, rt::TsonicError>(())
+        })
+    })?;
+    crate::test_root::run_test(
+        String::from("related pages use exact default keyword and tag evidence"),
+        {
+            let capture_tests_7 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_7| {
+                capture_tests_7.related_pages_use_exact_default_keyword_and_tag_evidence()?;
+                Ok::<_, rt::TsonicError>(())
+            })
+        },
+    )?;
+    crate::test_root::run_test(String::from("css Build applies its closed resource options"), {
+        let capture_tests_8 = tests.clone();
+        rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_8| {
+            capture_tests_8.css_build_applies_its_closed_resource_options()?;
+            Ok::<_, rt::TsonicError>(())
+        })
+    })?;
+    crate::test_root::run_test(
+        String::from("i18n layers parse structured formats and render plural context"),
+        {
+            let capture_tests_9 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_9| {
+                capture_tests_9.i18n_layers_parse_structured_formats_and_render_plural_context()?;
+                Ok::<_, rt::TsonicError>(())
+            })
+        },
+    )?;
+    crate::test_root::run_test(
+        String::from("deferred templates finalize after normal render and share keyed results"),
+        {
+            let capture_tests_10 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_10| {
+                capture_tests_10
+                    .deferred_templates_finalize_after_normal_render_and_share_keyed_results()?;
+                Ok::<_, rt::TsonicError>(())
+            })
+        },
+    )?;
+    crate::test_root::run_test(
+        String::from("deferred templates distinguish authored occurrences with the same key"),
+        {
+            let capture_tests_11 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_11| {
+                capture_tests_11
+                    .deferred_templates_distinguish_authored_occurrences_with_the_same_key()?;
+                Ok::<_, rt::TsonicError>(())
+            })
+        },
+    )?;
+    crate::test_root::run_test(
+        String::from("template string literals decode exact interpreted and raw forms"),
+        {
+            let capture_tests_12 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_12| {
+                capture_tests_12
+                    .template_string_literals_decode_exact_interpreted_and_raw_forms()?;
+                Ok::<_, rt::TsonicError>(())
+            })
+        },
+    )?;
+    crate::test_root::run_test(
+        String::from("template text compatibility functions are deterministic"),
+        {
+            let capture_tests_13 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_13| {
+                capture_tests_13.template_text_compatibility_functions_are_deterministic()?;
+                Ok::<_, rt::TsonicError>(())
+            })
+        },
+    )?;
+    crate::test_root::run_test(
+        String::from("template regular expression functions preserve matches, groups, and limits"),
+        {
+            let capture_tests_14 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_14| {
+                capture_tests_14
+                    .template_regular_expression_functions_preserve_matches_groups_and_limits()?;
+                Ok::<_, rt::TsonicError>(())
+            })
+        },
+    )?;
+    crate::test_root::run_test(
+        String::from("template scanning preserves Unicode scalars and UTF-16 locations"),
+        {
+            let capture_tests_15 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_15| {
+                capture_tests_15
+                    .template_scanning_preserves_unicode_scalars_and_utf16_locations()?;
+                Ok::<_, rt::TsonicError>(())
+            })
+        },
+    )?;
+    crate::test_root::run_test(String::from("dictionary range order is deterministic"), {
+        let capture_tests_16 = tests.clone();
+        rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_16| {
+            capture_tests_16.dictionary_range_order_is_deterministic()?;
+            Ok::<_, rt::TsonicError>(())
+        })
+    })?;
+    crate::test_root::run_test(String::from("parser reports exact malformed input diagnostics"), {
+        let capture_tests_17 = tests.clone();
+        rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_17| {
+            capture_tests_17.parser_reports_exact_malformed_input_diagnostics()?;
+            Ok::<_, rt::TsonicError>(())
+        })
+    })?;
+    crate::test_root::run_test(
+        String::from("shortcode parser rejects ambiguous input with exact locations"),
+        {
+            let capture_tests_18 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_18| {
+                capture_tests_18.shortcode_parser_rejects_ambiguous_input_with_exact_locations()?;
+                Ok::<_, rt::TsonicError>(())
+            })
+        },
+    )?;
+    crate::test_root::run_test(
+        String::from("evaluator reports exact unknown and invalid operations"),
+        {
+            let capture_tests_19 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_19| {
+                capture_tests_19.evaluator_reports_exact_unknown_and_invalid_operations()?;
+                Ok::<_, rt::TsonicError>(())
+            })
+        },
+    )?;
+    crate::test_root::run_test(
+        String::from("dictionary values are resolved without name fallbacks"),
+        {
+            let capture_tests_20 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_20| {
+                capture_tests_20.dictionary_values_are_resolved_without_name_fallbacks()?;
+                Ok::<_, rt::TsonicError>(())
+            })
+        },
+    )?;
+    Ok(())
 }

@@ -4,36 +4,187 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ContentPageSourceState {
-    pub(crate) source_path: String,
-    pub(crate) section: String,
-    pub(crate) r#type: String,
-    pub(crate) slug: String,
-    pub(crate) title: String,
-    pub(crate) date_utc: js_abi::JsDate,
-    pub(crate) date_string: String,
-    pub(crate) lastmod_string: String,
-    pub(crate) draft: bool,
-    pub(crate) leaf_bundle: bool,
-    pub(crate) description: String,
-    pub(crate) tags: js_abi::JsArray<String>,
-    pub(crate) categories: js_abi::JsArray<String>,
-    pub(crate) parameters: js_abi::JsMap<String, crate::params::ParamValue>,
-    pub(crate) raw_body: String,
-    pub(crate) rel_permalink: String,
-    pub(crate) output_rel_path: String,
-    pub(crate) layout: Option<String>,
-    pub(crate) file: crate::models::page_file::PageFile,
-    pub(crate) menus: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu>,
+pub trait ContentPageSourceDispatch {
+    fn downcast_content_page_source_to_content_page_source(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn ContentPageSourceDispatch>>;
+    fn read_content_page_source_source_path(&self) -> String;
+    fn write_content_page_source_source_path(&self, value: String);
+    fn read_content_page_source_section(&self) -> String;
+    fn write_content_page_source_section(&self, value: String);
+    fn read_content_page_source_type(&self) -> String;
+    fn write_content_page_source_type(&self, value: String);
+    fn read_content_page_source_slug(&self) -> String;
+    fn write_content_page_source_slug(&self, value: String);
+    fn read_content_page_source_title(&self) -> String;
+    fn write_content_page_source_title(&self, value: String);
+    fn read_content_page_source_date_utc(&self) -> js_abi::JsDate;
+    fn write_content_page_source_date_utc(&self, value: js_abi::JsDate);
+    fn read_content_page_source_date_string(&self) -> String;
+    fn write_content_page_source_date_string(&self, value: String);
+    fn read_content_page_source_lastmod_string(&self) -> String;
+    fn write_content_page_source_lastmod_string(&self, value: String);
+    fn read_content_page_source_draft(&self) -> bool;
+    fn write_content_page_source_draft(&self, value: bool);
+    fn read_content_page_source_leaf_bundle(&self) -> bool;
+    fn write_content_page_source_leaf_bundle(&self, value: bool);
+    fn read_content_page_source_description(&self) -> String;
+    fn write_content_page_source_description(&self, value: String);
+    fn read_content_page_source_tags(&self) -> js_abi::JsArray<String>;
+    fn write_content_page_source_tags(&self, value: js_abi::JsArray<String>);
+    fn read_content_page_source_categories(&self) -> js_abi::JsArray<String>;
+    fn write_content_page_source_categories(&self, value: js_abi::JsArray<String>);
+    fn read_content_page_source_parameters(
+        &self,
+    ) -> js_abi::JsMap<String, crate::params::ParamValue>;
+    fn write_content_page_source_parameters(
+        &self,
+        value: js_abi::JsMap<String, crate::params::ParamValue>,
+    );
+    fn read_content_page_source_raw_body(&self) -> String;
+    fn write_content_page_source_raw_body(&self, value: String);
+    fn read_content_page_source_rel_permalink(&self) -> String;
+    fn write_content_page_source_rel_permalink(&self, value: String);
+    fn read_content_page_source_output_rel_path(&self) -> String;
+    fn write_content_page_source_output_rel_path(&self, value: String);
+    fn read_content_page_source_layout(&self) -> Option<String>;
+    fn write_content_page_source_layout(&self, value: Option<String>);
+    fn read_content_page_source_file(&self) -> crate::models::page_file::PageFile;
+    fn write_content_page_source_file(&self, value: crate::models::page_file::PageFile);
+    fn read_content_page_source_menus(
+        &self,
+    ) -> js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu>;
+    fn write_content_page_source_menus(
+        &self,
+        value: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu>,
+    );
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct ContentPageSourceState {
+    pub source_path: String,
+    pub section: String,
+    pub r#type: String,
+    pub slug: String,
+    pub title: String,
+    pub date_utc: js_abi::JsDate,
+    pub date_string: String,
+    pub lastmod_string: String,
+    pub draft: bool,
+    pub leaf_bundle: bool,
+    pub description: String,
+    pub tags: js_abi::JsArray<String>,
+    pub categories: js_abi::JsArray<String>,
+    pub parameters: js_abi::JsMap<String, crate::params::ParamValue>,
+    pub raw_body: String,
+    pub rel_permalink: String,
+    pub output_rel_path: String,
+    pub layout: Option<String>,
+    pub file: crate::models::page_file::PageFile,
+    pub menus: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu>,
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+#[derive(Clone)]
 pub struct ContentPageSource {
-    pub(crate) state: rt::ObjectHandle<ContentPageSourceState>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn ContentPageSourceDispatch>,
+}
+
+impl std::fmt::Debug for ContentPageSource {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("ContentPageSource")
+    }
+}
+
+impl PartialEq for ContentPageSource {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+    }
+}
+
+impl Eq for ContentPageSource {}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub(crate) struct ContentPageSourceRoot {
+    identity: rt::ObjectIdentity,
+    state: rt::ObjectHandle<ContentPageSourceState>,
 }
 
 impl ContentPageSource {
+    #[doc(hidden)]
+    #[expect(clippy::too_many_arguments, reason = "checked source signature")]
+    pub fn initialize_state(
+        source_path: String,
+        section: String,
+        r#type: String,
+        slug: String,
+        title: String,
+        date_utc: js_abi::JsDate,
+        date_string: String,
+        lastmod_string: String,
+        draft: bool,
+        leaf_bundle: bool,
+        description: String,
+        tags: js_abi::JsArray<String>,
+        categories: js_abi::JsArray<String>,
+        parameters: js_abi::JsMap<String, crate::params::ParamValue>,
+        raw_body: String,
+        rel_permalink: String,
+        output_rel_path: String,
+        layout: Option<String>,
+        file: crate::models::page_file::PageFile,
+        menus: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu>,
+    ) -> ContentPageSourceState {
+        let field_source_path: String = source_path;
+        let field_section: String = section;
+        let field_type: String = r#type;
+        let field_slug: String = slug;
+        let field_title: String = title;
+        let field_date_utc: js_abi::JsDate = date_utc;
+        let field_date_string: String = date_string;
+        let field_lastmod_string: String = lastmod_string;
+        let field_draft: bool = draft;
+        let field_leaf_bundle: bool = leaf_bundle;
+        let field_description: String = description;
+        let field_tags: js_abi::JsArray<String> = tags;
+        let field_categories: js_abi::JsArray<String> = categories;
+        let field_parameters: js_abi::JsMap<String, crate::params::ParamValue> = parameters;
+        let field_raw_body: String = raw_body;
+        let field_rel_permalink: String = rel_permalink;
+        let field_output_rel_path: String = output_rel_path;
+        let field_layout: Option<String> = layout;
+        let field_file: crate::models::page_file::PageFile = file;
+        let field_menus: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu> = menus;
+        ContentPageSourceState {
+            source_path: field_source_path,
+            section: field_section,
+            r#type: field_type,
+            slug: field_slug,
+            title: field_title,
+            date_utc: field_date_utc,
+            date_string: field_date_string,
+            lastmod_string: field_lastmod_string,
+            draft: field_draft,
+            leaf_bundle: field_leaf_bundle,
+            description: field_description,
+            tags: field_tags,
+            categories: field_categories,
+            parameters: field_parameters,
+            raw_body: field_raw_body,
+            rel_permalink: field_rel_permalink,
+            output_rel_path: field_output_rel_path,
+            layout: field_layout,
+            file: field_file,
+            menus: field_menus,
+        }
+    }
+
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     pub fn new(
         source_path: String,
@@ -57,70 +208,235 @@ impl ContentPageSource {
         file: crate::models::page_file::PageFile,
         menus: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu>,
     ) -> ContentPageSource {
-        let field_source_path: String = source_path.clone();
-        let field_section: String = section.clone();
-        let field_r_type: String = r#type.clone();
-        let field_slug: String = slug.clone();
-        let field_title: String = title.clone();
-        let field_date_utc: js_abi::JsDate = date_utc.clone();
-        let field_date_string: String = date_string.clone();
-        let field_lastmod_string: String = lastmod_string.clone();
-        let field_draft: bool = draft;
-        let field_leaf_bundle: bool = leaf_bundle;
-        let field_description: String = description.clone();
-        let field_tags: js_abi::JsArray<String> = tags.clone();
-        let field_categories: js_abi::JsArray<String> = categories.clone();
-        let field_parameters: js_abi::JsMap<String, crate::params::ParamValue> =
-            parameters.clone();
-        let field_raw_body: String = raw_body.clone();
-        let field_rel_permalink: String = rel_permalink.clone();
-        let field_output_rel_path: String = output_rel_path.clone();
-        let field_layout: Option<String> = layout.clone();
-        let field_file: crate::models::page_file::PageFile = file.clone();
-        let field_menus: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu> =
-            menus.clone();
+        let state = ContentPageSource::initialize_state(
+            source_path,
+            section,
+            r#type,
+            slug,
+            title,
+            date_utc,
+            date_string,
+            lastmod_string,
+            draft,
+            leaf_bundle,
+            description,
+            tags,
+            categories,
+            parameters,
+            raw_body,
+            rel_permalink,
+            output_rel_path,
+            layout,
+            file,
+            menus,
+        );
+        let identity = rt::ObjectIdentity::new();
+        let root = std::rc::Rc::new(ContentPageSourceRoot {
+            identity: identity.clone(),
+            state: rt::ObjectHandle::new(state),
+        });
         ContentPageSource {
-            state: rt::ObjectHandle::new(ContentPageSourceState {
-                source_path: field_source_path,
-                section: field_section,
-                r#type: field_r_type,
-                slug: field_slug,
-                title: field_title,
-                date_utc: field_date_utc,
-                date_string: field_date_string,
-                lastmod_string: field_lastmod_string,
-                draft: field_draft,
-                leaf_bundle: field_leaf_bundle,
-                description: field_description,
-                tags: field_tags,
-                categories: field_categories,
-                parameters: field_parameters,
-                raw_body: field_raw_body,
-                rel_permalink: field_rel_permalink,
-                output_rel_path: field_output_rel_path,
-                layout: field_layout,
-                file: field_file,
-                menus: field_menus,
-            }),
+            identity,
+            dispatch: root,
         }
     }
 }
 
+impl ContentPageSourceDispatch for ContentPageSourceRoot {
+    fn downcast_content_page_source_to_content_page_source(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn ContentPageSourceDispatch>> {
+        Some(self)
+    }
+
+    fn read_content_page_source_source_path(&self) -> String {
+        self.state.with(|state| state.source_path.clone())
+    }
+
+    fn write_content_page_source_source_path(&self, value: String) {
+        self.state.with_mut(|state| state.source_path = value);
+    }
+
+    fn read_content_page_source_section(&self) -> String {
+        self.state.with(|state| state.section.clone())
+    }
+
+    fn write_content_page_source_section(&self, value: String) {
+        self.state.with_mut(|state| state.section = value);
+    }
+
+    fn read_content_page_source_type(&self) -> String {
+        self.state.with(|state| state.r#type.clone())
+    }
+
+    fn write_content_page_source_type(&self, value: String) {
+        self.state.with_mut(|state| state.r#type = value);
+    }
+
+    fn read_content_page_source_slug(&self) -> String {
+        self.state.with(|state| state.slug.clone())
+    }
+
+    fn write_content_page_source_slug(&self, value: String) {
+        self.state.with_mut(|state| state.slug = value);
+    }
+
+    fn read_content_page_source_title(&self) -> String {
+        self.state.with(|state| state.title.clone())
+    }
+
+    fn write_content_page_source_title(&self, value: String) {
+        self.state.with_mut(|state| state.title = value);
+    }
+
+    fn read_content_page_source_date_utc(&self) -> js_abi::JsDate {
+        self.state.with(|state| state.date_utc.clone())
+    }
+
+    fn write_content_page_source_date_utc(&self, value: js_abi::JsDate) {
+        self.state.with_mut(|state| state.date_utc = value);
+    }
+
+    fn read_content_page_source_date_string(&self) -> String {
+        self.state.with(|state| state.date_string.clone())
+    }
+
+    fn write_content_page_source_date_string(&self, value: String) {
+        self.state.with_mut(|state| state.date_string = value);
+    }
+
+    fn read_content_page_source_lastmod_string(&self) -> String {
+        self.state.with(|state| state.lastmod_string.clone())
+    }
+
+    fn write_content_page_source_lastmod_string(&self, value: String) {
+        self.state.with_mut(|state| state.lastmod_string = value);
+    }
+
+    fn read_content_page_source_draft(&self) -> bool {
+        self.state.with(|state| state.draft)
+    }
+
+    fn write_content_page_source_draft(&self, value: bool) {
+        self.state.with_mut(|state| state.draft = value);
+    }
+
+    fn read_content_page_source_leaf_bundle(&self) -> bool {
+        self.state.with(|state| state.leaf_bundle)
+    }
+
+    fn write_content_page_source_leaf_bundle(&self, value: bool) {
+        self.state.with_mut(|state| state.leaf_bundle = value);
+    }
+
+    fn read_content_page_source_description(&self) -> String {
+        self.state.with(|state| state.description.clone())
+    }
+
+    fn write_content_page_source_description(&self, value: String) {
+        self.state.with_mut(|state| state.description = value);
+    }
+
+    fn read_content_page_source_tags(&self) -> js_abi::JsArray<String> {
+        self.state.with(|state| state.tags.clone())
+    }
+
+    fn write_content_page_source_tags(&self, value: js_abi::JsArray<String>) {
+        self.state.with_mut(|state| state.tags = value);
+    }
+
+    fn read_content_page_source_categories(&self) -> js_abi::JsArray<String> {
+        self.state.with(|state| state.categories.clone())
+    }
+
+    fn write_content_page_source_categories(&self, value: js_abi::JsArray<String>) {
+        self.state.with_mut(|state| state.categories = value);
+    }
+
+    fn read_content_page_source_parameters(
+        &self,
+    ) -> js_abi::JsMap<String, crate::params::ParamValue> {
+        self.state.with(|state| state.parameters.clone())
+    }
+
+    fn write_content_page_source_parameters(
+        &self,
+        value: js_abi::JsMap<String, crate::params::ParamValue>,
+    ) {
+        self.state.with_mut(|state| state.parameters = value);
+    }
+
+    fn read_content_page_source_raw_body(&self) -> String {
+        self.state.with(|state| state.raw_body.clone())
+    }
+
+    fn write_content_page_source_raw_body(&self, value: String) {
+        self.state.with_mut(|state| state.raw_body = value);
+    }
+
+    fn read_content_page_source_rel_permalink(&self) -> String {
+        self.state.with(|state| state.rel_permalink.clone())
+    }
+
+    fn write_content_page_source_rel_permalink(&self, value: String) {
+        self.state.with_mut(|state| state.rel_permalink = value);
+    }
+
+    fn read_content_page_source_output_rel_path(&self) -> String {
+        self.state.with(|state| state.output_rel_path.clone())
+    }
+
+    fn write_content_page_source_output_rel_path(&self, value: String) {
+        self.state.with_mut(|state| state.output_rel_path = value);
+    }
+
+    fn read_content_page_source_layout(&self) -> Option<String> {
+        self.state.with(|state| state.layout.clone())
+    }
+
+    fn write_content_page_source_layout(&self, value: Option<String>) {
+        self.state.with_mut(|state| state.layout = value);
+    }
+
+    fn read_content_page_source_file(&self) -> crate::models::page_file::PageFile {
+        self.state.with(|state| state.file.clone())
+    }
+
+    fn write_content_page_source_file(&self, value: crate::models::page_file::PageFile) {
+        self.state.with_mut(|state| state.file = value);
+    }
+
+    fn read_content_page_source_menus(
+        &self,
+    ) -> js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu> {
+        self.state.with(|state| state.menus.clone())
+    }
+
+    fn write_content_page_source_menus(
+        &self,
+        value: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu>,
+    ) {
+        self.state.with_mut(|state| state.menus = value);
+    }
+}
+
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ListPageSourceState {
-    pub(crate) title: Option<String>,
-    pub(crate) raw_body: String,
-    pub(crate) description: String,
-    pub(crate) r#type: Option<String>,
-    pub(crate) layout: Option<String>,
-    pub(crate) parameters: js_abi::JsMap<String, crate::params::ParamValue>,
-    pub(crate) source_dir: String,
-    pub(crate) file: crate::models::page_file::PageFile,
+pub struct ListPageSourceState {
+    pub title: Option<String>,
+    pub raw_body: String,
+    pub description: String,
+    pub r#type: Option<String>,
+    pub layout: Option<String>,
+    pub parameters: js_abi::JsMap<String, crate::params::ParamValue>,
+    pub source_dir: String,
+    pub file: crate::models::page_file::PageFile,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ListPageSource {
-    pub(crate) state: rt::ObjectHandle<ListPageSourceState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<ListPageSourceState>,
 }
 
 impl ListPageSource {
@@ -135,17 +451,16 @@ impl ListPageSource {
         source_dir: String,
         file: crate::models::page_file::PageFile,
     ) -> ListPageSource {
-        let field_title: Option<String> = title.clone();
-        let field_raw_body: String = raw_body.clone();
-        let field_description: String = description.clone();
-        let field_r_type: Option<String> = r#type.clone();
-        let field_layout: Option<String> = layout.clone();
-        let field_parameters: js_abi::JsMap<String, crate::params::ParamValue> =
-            parameters.clone();
-        let field_source_dir: String = source_dir.clone();
-        let field_file: crate::models::page_file::PageFile = file.clone();
+        let field_title: Option<String> = title;
+        let field_raw_body: String = raw_body;
+        let field_description: String = description;
+        let field_r_type: Option<String> = r#type;
+        let field_layout: Option<String> = layout;
+        let field_parameters: js_abi::JsMap<String, crate::params::ParamValue> = parameters;
+        let field_source_dir: String = source_dir;
+        let field_file: crate::models::page_file::PageFile = file;
         ListPageSource {
-            state: rt::ObjectHandle::new(ListPageSourceState {
+            state: rt::ObjectRef::new(ListPageSourceState {
                 title: field_title,
                 raw_body: field_raw_body,
                 description: field_description,
@@ -159,15 +474,17 @@ impl ListPageSource {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ContentInventoryState {
-    pub(crate) pages: js_abi::JsArray<ContentPageSource>,
-    pub(crate) list_pages_by_route: js_abi::JsMap<String, ListPageSource>,
+pub struct ContentInventoryState {
+    pub pages: js_abi::JsArray<ContentPageSource>,
+    pub list_pages_by_route: js_abi::JsMap<String, ListPageSource>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ContentInventory {
-    pub(crate) state: rt::ObjectHandle<ContentInventoryState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<ContentInventoryState>,
 }
 
 impl ContentInventory {
@@ -175,11 +492,10 @@ impl ContentInventory {
         pages: js_abi::JsArray<ContentPageSource>,
         list_pages_by_route: js_abi::JsMap<String, ListPageSource>,
     ) -> ContentInventory {
-        let field_pages: js_abi::JsArray<ContentPageSource> = pages.clone();
-        let field_list_pages_by_route: js_abi::JsMap<String, ListPageSource> =
-            list_pages_by_route.clone();
+        let field_pages: js_abi::JsArray<ContentPageSource> = pages;
+        let field_list_pages_by_route: js_abi::JsMap<String, ListPageSource> = list_pages_by_route;
         ContentInventory {
-            state: rt::ObjectHandle::new(ContentInventoryState {
+            state: rt::ObjectRef::new(ContentInventoryState {
                 pages: field_pages,
                 list_pages_by_route: field_list_pages_by_route,
             }),

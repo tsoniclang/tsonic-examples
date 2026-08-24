@@ -6,56 +6,188 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct SiteContextState {
-    pub(crate) title: String,
-    pub(crate) base_url: String,
-    pub(crate) language_code: String,
-    pub(crate) copyright: String,
-    pub(crate) language: crate::models::language::LanguageContext,
-    pub(crate) languages: js_abi::JsArray<crate::models::language::LanguageContext>,
-    pub(crate) is_multi_lingual: bool,
-    pub(crate) language_prefix: String,
-    pub(crate) params: js_abi::JsMap<String, crate::params::ParamValue>,
-    pub(crate) menus: js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>>,
-    pub(crate) taxonomies:
+pub trait SiteContextDispatch {
+    fn downcast_site_context_to_site_context(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn SiteContextDispatch>>;
+    fn read_site_context_title(&self) -> String;
+    fn write_site_context_title(&self, value: String);
+    fn read_site_context_base_url(&self) -> String;
+    fn write_site_context_base_url(&self, value: String);
+    fn read_site_context_language_code(&self) -> String;
+    fn write_site_context_language_code(&self, value: String);
+    fn read_site_context_copyright(&self) -> String;
+    fn write_site_context_copyright(&self, value: String);
+    fn read_site_context_language(&self) -> crate::models::language::LanguageContext;
+    fn write_site_context_language(&self, value: crate::models::language::LanguageContext);
+    fn read_site_context_languages(
+        &self,
+    ) -> js_abi::JsArray<crate::models::language::LanguageContext>;
+    fn write_site_context_languages(
+        &self,
+        value: js_abi::JsArray<crate::models::language::LanguageContext>,
+    );
+    fn read_site_context_is_multi_lingual(&self) -> bool;
+    fn write_site_context_is_multi_lingual(&self, value: bool);
+    fn read_site_context_language_prefix(&self) -> String;
+    fn write_site_context_language_prefix(&self, value: String);
+    fn read_site_context_params(&self) -> js_abi::JsMap<String, crate::params::ParamValue>;
+    fn write_site_context_params(&self, value: js_abi::JsMap<String, crate::params::ParamValue>);
+    fn read_site_context_menus(
+        &self,
+    ) -> js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>>;
+    fn write_site_context_menus(
+        &self,
+        value: js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>>,
+    );
+    fn read_site_context_taxonomies(
+        &self,
+    ) -> js_abi::JsMap<
+        String,
+        js_abi::JsMap<String, js_abi::JsArray<crate::models::page_context::PageContext>>,
+    >;
+    fn write_site_context_taxonomies(
+        &self,
+        value: js_abi::JsMap<
+            String,
+            js_abi::JsMap<String, js_abi::JsArray<crate::models::page_context::PageContext>>,
+        >,
+    );
+    fn read_site_context_taxonomy_term_pages(
+        &self,
+    ) -> js_abi::JsMap<String, js_abi::JsMap<String, crate::models::page_context::PageContext>>;
+    fn write_site_context_taxonomy_term_pages(
+        &self,
+        value: js_abi::JsMap<
+            String,
+            js_abi::JsMap<String, crate::models::page_context::PageContext>,
+        >,
+    );
+    fn read_site_context_store(&self) -> Option<crate::template::values::scratch::ScratchStore>;
+    fn write_site_context_store(
+        &self,
+        value: Option<crate::template::values::scratch::ScratchStore>,
+    );
+    fn read_site_context_pages(&self) -> js_abi::JsArray<crate::models::page_context::PageContext>;
+    fn write_site_context_pages(
+        &self,
+        value: js_abi::JsArray<crate::models::page_context::PageContext>,
+    );
+    fn read_site_context_all_pages(
+        &self,
+    ) -> js_abi::JsArray<crate::models::page_context::PageContext>;
+    fn write_site_context_all_pages(
+        &self,
+        value: js_abi::JsArray<crate::models::page_context::PageContext>,
+    );
+    fn read_site_context_home(&self) -> Option<crate::models::page_context::PageContext>;
+    fn write_site_context_home(&self, value: Option<crate::models::page_context::PageContext>);
+    fn read_site_context_docs_mounts(
+        &self,
+    ) -> js_abi::JsArray<crate::docs::models::DocsMountContext>;
+    fn write_site_context_docs_mounts(
+        &self,
+        value: js_abi::JsArray<crate::docs::models::DocsMountContext>,
+    );
+    fn read_site_context_sites(&self) -> js_abi::JsArray<SiteContext>;
+    fn write_site_context_sites(&self, value: js_abi::JsArray<SiteContext>);
+    fn read_site_context_pagination_size(&self) -> i32;
+    fn write_site_context_pagination_size(&self, value: i32);
+    fn dispatch_site_context_get_output_formats(
+        self: std::rc::Rc<Self>,
+    ) -> js_abi::JsArray<crate::models::output_format::OutputFormat>;
+    fn exact_site_context_get_output_formats(
+        self: std::rc::Rc<Self>,
+    ) -> js_abi::JsArray<crate::models::output_format::OutputFormat>;
+}
+
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct SiteContextState {
+    pub title: String,
+    pub base_url: String,
+    pub language_code: String,
+    pub copyright: String,
+    pub language: crate::models::language::LanguageContext,
+    pub languages: js_abi::JsArray<crate::models::language::LanguageContext>,
+    pub is_multi_lingual: bool,
+    pub language_prefix: String,
+    pub params: js_abi::JsMap<String, crate::params::ParamValue>,
+    pub menus: js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>>,
+    pub taxonomies:
         js_abi::JsMap<
             String,
             js_abi::JsMap<String, js_abi::JsArray<crate::models::page_context::PageContext>>,
         >,
-    pub(crate) taxonomy_term_pages:
+    pub taxonomy_term_pages:
         js_abi::JsMap<String, js_abi::JsMap<String, crate::models::page_context::PageContext>>,
-    pub(crate) store: Option<crate::template::values::scratch::ScratchStore>,
-    pub(crate) pages: js_abi::JsArray<crate::models::page_context::PageContext>,
-    pub(crate) all_pages: js_abi::JsArray<crate::models::page_context::PageContext>,
-    pub(crate) home: Option<crate::models::page_context::PageContext>,
-    pub(crate) docs_mounts: js_abi::JsArray<crate::docs::models::DocsMountContext>,
-    pub(crate) sites: js_abi::JsArray<SiteContext>,
-    pub(crate) pagination_size: i32,
+    pub store: Option<crate::template::values::scratch::ScratchStore>,
+    pub pages: js_abi::JsArray<crate::models::page_context::PageContext>,
+    pub all_pages: js_abi::JsArray<crate::models::page_context::PageContext>,
+    pub home: Option<crate::models::page_context::PageContext>,
+    pub docs_mounts: js_abi::JsArray<crate::docs::models::DocsMountContext>,
+    pub sites: js_abi::JsArray<SiteContext>,
+    pub pagination_size: i32,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+#[derive(Clone)]
 pub struct SiteContext {
-    pub(crate) state: rt::ObjectHandle<SiteContextState>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn SiteContextDispatch>,
+}
+
+impl std::fmt::Debug for SiteContext {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("SiteContext")
+    }
+}
+
+impl PartialEq for SiteContext {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+    }
+}
+
+impl Eq for SiteContext {}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub(crate) struct SiteContextRoot {
+    identity: rt::ObjectIdentity,
+    state: rt::ObjectHandle<SiteContextState>,
 }
 
 impl SiteContext {
-    pub fn new(
+    #[doc(hidden)]
+    pub fn initialize_state(
         config: crate::models::site_config::SiteConfig,
         pages: js_abi::JsArray<crate::models::page_context::PageContext>,
         language_raw: Option<crate::models::language::LanguageConfig>,
         all_languages_raw: Option<js_abi::JsArray<crate::models::language::LanguageContext>>,
-    ) -> rt::TsonicResult<SiteContext> {
+    ) -> Result<SiteContextState, rt::TsonicError> {
         let field_language_code: String;
         let field_language: crate::models::language::LanguageContext;
-        let field_title: String = config.state.with(|state| state.title.clone());
-        let field_base_url: String = config.state.with(|state| state.base_url.clone());
+        let field_title: String = {
+            let dispatch_receiver = &config;
+            dispatch_receiver.dispatch.read_site_config_title()
+        };
+        let field_base_url: String = {
+            let dispatch_receiver_2 = &config;
+            dispatch_receiver_2.dispatch.read_site_config_base_url()
+        };
         let field_copyright: String = rt::option_coalesce(
-            config.state.with(|state| state.copyright.clone()),
+            {
+                let dispatch_receiver_3 = &config;
+                dispatch_receiver_3.dispatch.read_site_config_copyright()
+            },
             std::convert::identity,
             || String::from(""),
         );
-        let language: Option<crate::models::language::LanguageConfig> = language_raw.clone();
+        let language: Option<crate::models::language::LanguageConfig> = language_raw;
         if language.is_some() {
             field_language = crate::models::language::LanguageContext::new(
                 match language.as_ref() {
@@ -82,75 +214,100 @@ impl SiteContext {
     None => unreachable!("checked flow selected a missing optional value"),
 }).state.with(|state| state.lang.clone());
         } else {
-            let lang: String = if tsonic_rust_runtime::conversions::usize_to_i32(
-                config.state.with(|state| state.languages.clone()).len(),
-            )? > 0
-            {
-                match config
-                    .state
-                    .with(|state| state.languages.clone())
+            let lang: String = {
+                let conditional_test_2 = tsonic_rust_runtime::conversions::usize_to_i32(
+                    {
+                        let dispatch_receiver_4 = &config;
+                        dispatch_receiver_4.dispatch.read_site_config_languages()
+                    }
+                    .len(),
+                )? > 0;
+                if conditional_test_2 {
+                    match {
+                        let dispatch_receiver_5 = &config;
+                        dispatch_receiver_5.dispatch.read_site_config_languages()
+                    }
                     .get_number(0.0)
                     .as_ref()
-                {
-                    Some(flow_value_5) => flow_value_5.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }
-                .state
-                .with(|state| state.lang.clone())
-            } else {
-                if js_string::trim(&config.state.with(|state| state.language_code.clone()))
-                    .is_empty()
-                {
-                    String::from("en")
+                    {
+                        Some(flow_value_5) => flow_value_5.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }
+                    .state
+                    .with(|state| state.lang.clone())
                 } else {
-                    config.state.with(|state| state.language_code.clone())
+                    let conditional_test = js_string::trim(&{
+                        let dispatch_receiver_6 = &config;
+                        dispatch_receiver_6
+                            .dispatch
+                            .read_site_config_language_code()
+                    })
+                    .is_empty();
+                    if conditional_test {
+                        String::from("en")
+                    } else {
+                        let dispatch_receiver_7 = &config;
+                        dispatch_receiver_7
+                            .dispatch
+                            .read_site_config_language_code()
+                    }
                 }
             };
-            let name: String = if tsonic_rust_runtime::conversions::usize_to_i32(
-                config.state.with(|state| state.languages.clone()).len(),
-            )? > 0
-            {
-                match config
-                    .state
-                    .with(|state| state.languages.clone())
+            let name: String = {
+                let conditional_test_3 = tsonic_rust_runtime::conversions::usize_to_i32(
+                    {
+                        let dispatch_receiver_8 = &config;
+                        dispatch_receiver_8.dispatch.read_site_config_languages()
+                    }
+                    .len(),
+                )? > 0;
+                if conditional_test_3 {
+                    match {
+                        let dispatch_receiver_9 = &config;
+                        dispatch_receiver_9.dispatch.read_site_config_languages()
+                    }
                     .get_number(0.0)
                     .as_ref()
-                {
-                    Some(flow_value_6) => flow_value_6.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }
-                .state
-                .with(|state| state.language_name.clone())
-            } else {
-                lang.clone()
-            };
-            let dir: String = if tsonic_rust_runtime::conversions::usize_to_i32(
-                config.state.with(|state| state.languages.clone()).len(),
-            )? > 0
-            {
-                match config
+                    {
+                        Some(flow_value_6) => flow_value_6.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }
                     .state
-                    .with(|state| state.languages.clone())
+                    .with(|state| state.language_name.clone())
+                } else {
+                    lang.clone()
+                }
+            };
+            let dir: String = {
+                let conditional_test_4 = tsonic_rust_runtime::conversions::usize_to_i32(
+                    {
+                        let dispatch_receiver_10 = &config;
+                        dispatch_receiver_10.dispatch.read_site_config_languages()
+                    }
+                    .len(),
+                )? > 0;
+                if conditional_test_4 {
+                    match {
+                        let dispatch_receiver_11 = &config;
+                        dispatch_receiver_11.dispatch.read_site_config_languages()
+                    }
                     .get_number(0.0)
                     .as_ref()
-                {
-                    Some(flow_value_7) => flow_value_7.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
+                    {
+                        Some(flow_value_7) => flow_value_7.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }
+                    .state
+                    .with(|state| state.language_direction.clone())
+                } else {
+                    String::from("ltr")
                 }
-                .state
-                .with(|state| state.language_direction.clone())
-            } else {
-                String::from("ltr")
             };
-            field_language = crate::models::language::LanguageContext::new(
-                lang.clone(),
-                name.clone(),
-                dir.clone(),
-            );
+            field_language = crate::models::language::LanguageContext::new(lang.clone(), name, dir);
             field_language_code = lang.clone();
         }
         let all_languages: Option<js_abi::JsArray<crate::models::language::LanguageContext>> =
-            all_languages_raw.clone();
+            all_languages_raw;
         let field_languages: js_abi::JsArray<crate::models::language::LanguageContext> =
             if all_languages.is_some()
                 && tsonic_rust_runtime::conversions::usize_to_i32(
@@ -168,16 +325,21 @@ impl SiteContext {
             } else {
                 let langs: js_abi::JsArray<crate::models::language::LanguageContext> =
                     js_abi::JsArray::from_dense(vec![field_language.clone()]);
-                langs.clone()
+                langs
             };
         let field_is_multi_lingual: bool = false;
         let field_language_prefix: String = String::from("");
-        let field_params: js_abi::JsMap<String, crate::params::ParamValue> =
-            config.state.with(|state| state.params.clone());
+        let field_params: js_abi::JsMap<String, crate::params::ParamValue> = {
+            let dispatch_receiver_12 = &config;
+            dispatch_receiver_12.dispatch.read_site_config_params()
+        };
         let field_menus: js_abi::JsMap<
             String,
             js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
-        > = config.state.with(|state| state.menus.clone());
+        > = {
+            let dispatch_receiver_13 = &config;
+            dispatch_receiver_13.dispatch.read_site_config_menus()
+        };
         let field_taxonomies: js_abi::JsMap<
             String,
             js_abi::JsMap<String, js_abi::JsArray<crate::models::page_context::PageContext>>,
@@ -195,51 +357,293 @@ impl SiteContext {
             Option::<crate::models::page_context::PageContext>::None;
         let empty: js_abi::JsArray<crate::docs::models::DocsMountContext> =
             js_abi::JsArray::from_dense(vec![]);
-        let field_docs_mounts: js_abi::JsArray<crate::docs::models::DocsMountContext> =
-            empty.clone();
+        let field_docs_mounts: js_abi::JsArray<crate::docs::models::DocsMountContext> = empty;
         let empty_sites: js_abi::JsArray<SiteContext> = js_abi::JsArray::from_dense(vec![]);
-        let field_sites: js_abi::JsArray<SiteContext> = empty_sites.clone();
+        let field_sites: js_abi::JsArray<SiteContext> = empty_sites;
         let field_pagination_size: i32 = 10;
-        Ok(SiteContext {
-            state: rt::ObjectHandle::new(SiteContextState {
-                title: field_title,
-                base_url: field_base_url,
-                language_code: field_language_code,
-                copyright: field_copyright,
-                language: field_language,
-                languages: field_languages,
-                is_multi_lingual: field_is_multi_lingual,
-                language_prefix: field_language_prefix,
-                params: field_params,
-                menus: field_menus,
-                taxonomies: field_taxonomies,
-                taxonomy_term_pages: field_taxonomy_term_pages,
-                store: field_store,
-                pages: field_pages,
-                all_pages: field_all_pages,
-                home: field_home,
-                docs_mounts: field_docs_mounts,
-                sites: field_sites,
-                pagination_size: field_pagination_size,
-            }),
+        Ok(SiteContextState {
+            title: field_title,
+            base_url: field_base_url,
+            language_code: field_language_code,
+            copyright: field_copyright,
+            language: field_language,
+            languages: field_languages,
+            is_multi_lingual: field_is_multi_lingual,
+            language_prefix: field_language_prefix,
+            params: field_params,
+            menus: field_menus,
+            taxonomies: field_taxonomies,
+            taxonomy_term_pages: field_taxonomy_term_pages,
+            store: field_store,
+            pages: field_pages,
+            all_pages: field_all_pages,
+            home: field_home,
+            docs_mounts: field_docs_mounts,
+            sites: field_sites,
+            pagination_size: field_pagination_size,
         })
     }
 
-    pub fn get_output_formats(
-        &self,
+    pub fn new(
+        config: crate::models::site_config::SiteConfig,
+        pages: js_abi::JsArray<crate::models::page_context::PageContext>,
+        language_raw: Option<crate::models::language::LanguageConfig>,
+        all_languages_raw: Option<js_abi::JsArray<crate::models::language::LanguageContext>>,
+    ) -> Result<SiteContext, rt::TsonicError> {
+        let state = SiteContext::initialize_state(config, pages, language_raw, all_languages_raw)?;
+        let identity = rt::ObjectIdentity::new();
+        let root = std::rc::Rc::new(SiteContextRoot {
+            identity: identity.clone(),
+            state: rt::ObjectHandle::new(state),
+        });
+        Ok(SiteContext {
+            identity,
+            dispatch: root,
+        })
+    }
+}
+
+impl SiteContextRoot {
+    fn exact_site_context_get_output_formats(
+        self: std::rc::Rc<Self>,
     ) -> js_abi::JsArray<crate::models::output_format::OutputFormat> {
+        let project_this = SiteContext {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
         let rss: crate::models::output_format::OutputFormat =
             crate::models::output_format::OutputFormat::new(
                 String::from("alternate"),
                 String::from("application/rss+xml"),
                 format!(
                     "{}{}",
-                    self.state.with(|state| state.base_url.clone()),
+                    {
+                        let dispatch_receiver = &project_this;
+                        dispatch_receiver.dispatch.read_site_context_base_url()
+                    },
                     String::from("index.xml"),
                 ),
             );
         let formats: js_abi::JsArray<crate::models::output_format::OutputFormat> =
-            js_abi::JsArray::from_dense(vec![rss.clone()]);
-        formats.clone()
+            js_abi::JsArray::from_dense(vec![rss]);
+        formats
+    }
+}
+
+impl SiteContextDispatch for SiteContextRoot {
+    fn downcast_site_context_to_site_context(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn SiteContextDispatch>> {
+        Some(self)
+    }
+
+    fn read_site_context_title(&self) -> String {
+        self.state.with(|state| state.title.clone())
+    }
+
+    fn write_site_context_title(&self, value: String) {
+        self.state.with_mut(|state| state.title = value);
+    }
+
+    fn read_site_context_base_url(&self) -> String {
+        self.state.with(|state| state.base_url.clone())
+    }
+
+    fn write_site_context_base_url(&self, value: String) {
+        self.state.with_mut(|state| state.base_url = value);
+    }
+
+    fn read_site_context_language_code(&self) -> String {
+        self.state.with(|state| state.language_code.clone())
+    }
+
+    fn write_site_context_language_code(&self, value: String) {
+        self.state.with_mut(|state| state.language_code = value);
+    }
+
+    fn read_site_context_copyright(&self) -> String {
+        self.state.with(|state| state.copyright.clone())
+    }
+
+    fn write_site_context_copyright(&self, value: String) {
+        self.state.with_mut(|state| state.copyright = value);
+    }
+
+    fn read_site_context_language(&self) -> crate::models::language::LanguageContext {
+        self.state.with(|state| state.language.clone())
+    }
+
+    fn write_site_context_language(&self, value: crate::models::language::LanguageContext) {
+        self.state.with_mut(|state| state.language = value);
+    }
+
+    fn read_site_context_languages(
+        &self,
+    ) -> js_abi::JsArray<crate::models::language::LanguageContext> {
+        self.state.with(|state| state.languages.clone())
+    }
+
+    fn write_site_context_languages(
+        &self,
+        value: js_abi::JsArray<crate::models::language::LanguageContext>,
+    ) {
+        self.state.with_mut(|state| state.languages = value);
+    }
+
+    fn read_site_context_is_multi_lingual(&self) -> bool {
+        self.state.with(|state| state.is_multi_lingual)
+    }
+
+    fn write_site_context_is_multi_lingual(&self, value: bool) {
+        self.state.with_mut(|state| state.is_multi_lingual = value);
+    }
+
+    fn read_site_context_language_prefix(&self) -> String {
+        self.state.with(|state| state.language_prefix.clone())
+    }
+
+    fn write_site_context_language_prefix(&self, value: String) {
+        self.state.with_mut(|state| state.language_prefix = value);
+    }
+
+    fn read_site_context_params(&self) -> js_abi::JsMap<String, crate::params::ParamValue> {
+        self.state.with(|state| state.params.clone())
+    }
+
+    fn write_site_context_params(&self, value: js_abi::JsMap<String, crate::params::ParamValue>) {
+        self.state.with_mut(|state| state.params = value);
+    }
+
+    fn read_site_context_menus(
+        &self,
+    ) -> js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>> {
+        self.state.with(|state| state.menus.clone())
+    }
+
+    fn write_site_context_menus(
+        &self,
+        value: js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>>,
+    ) {
+        self.state.with_mut(|state| state.menus = value);
+    }
+
+    fn read_site_context_taxonomies(
+        &self,
+    ) -> js_abi::JsMap<
+        String,
+        js_abi::JsMap<String, js_abi::JsArray<crate::models::page_context::PageContext>>,
+    > {
+        self.state.with(|state| state.taxonomies.clone())
+    }
+
+    fn write_site_context_taxonomies(
+        &self,
+        value: js_abi::JsMap<
+            String,
+            js_abi::JsMap<String, js_abi::JsArray<crate::models::page_context::PageContext>>,
+        >,
+    ) {
+        self.state.with_mut(|state| state.taxonomies = value);
+    }
+
+    fn read_site_context_taxonomy_term_pages(
+        &self,
+    ) -> js_abi::JsMap<String, js_abi::JsMap<String, crate::models::page_context::PageContext>> {
+        self.state.with(|state| state.taxonomy_term_pages.clone())
+    }
+
+    fn write_site_context_taxonomy_term_pages(
+        &self,
+        value: js_abi::JsMap<
+            String,
+            js_abi::JsMap<String, crate::models::page_context::PageContext>,
+        >,
+    ) {
+        self.state
+            .with_mut(|state| state.taxonomy_term_pages = value);
+    }
+
+    fn read_site_context_store(&self) -> Option<crate::template::values::scratch::ScratchStore> {
+        self.state.with(|state| state.store.clone())
+    }
+
+    fn write_site_context_store(
+        &self,
+        value: Option<crate::template::values::scratch::ScratchStore>,
+    ) {
+        self.state.with_mut(|state| state.store = value);
+    }
+
+    fn read_site_context_pages(&self) -> js_abi::JsArray<crate::models::page_context::PageContext> {
+        self.state.with(|state| state.pages.clone())
+    }
+
+    fn write_site_context_pages(
+        &self,
+        value: js_abi::JsArray<crate::models::page_context::PageContext>,
+    ) {
+        self.state.with_mut(|state| state.pages = value);
+    }
+
+    fn read_site_context_all_pages(
+        &self,
+    ) -> js_abi::JsArray<crate::models::page_context::PageContext> {
+        self.state.with(|state| state.all_pages.clone())
+    }
+
+    fn write_site_context_all_pages(
+        &self,
+        value: js_abi::JsArray<crate::models::page_context::PageContext>,
+    ) {
+        self.state.with_mut(|state| state.all_pages = value);
+    }
+
+    fn read_site_context_home(&self) -> Option<crate::models::page_context::PageContext> {
+        self.state.with(|state| state.home.clone())
+    }
+
+    fn write_site_context_home(&self, value: Option<crate::models::page_context::PageContext>) {
+        self.state.with_mut(|state| state.home = value);
+    }
+
+    fn read_site_context_docs_mounts(
+        &self,
+    ) -> js_abi::JsArray<crate::docs::models::DocsMountContext> {
+        self.state.with(|state| state.docs_mounts.clone())
+    }
+
+    fn write_site_context_docs_mounts(
+        &self,
+        value: js_abi::JsArray<crate::docs::models::DocsMountContext>,
+    ) {
+        self.state.with_mut(|state| state.docs_mounts = value);
+    }
+
+    fn read_site_context_sites(&self) -> js_abi::JsArray<SiteContext> {
+        self.state.with(|state| state.sites.clone())
+    }
+
+    fn write_site_context_sites(&self, value: js_abi::JsArray<SiteContext>) {
+        self.state.with_mut(|state| state.sites = value);
+    }
+
+    fn read_site_context_pagination_size(&self) -> i32 {
+        self.state.with(|state| state.pagination_size)
+    }
+
+    fn write_site_context_pagination_size(&self, value: i32) {
+        self.state.with_mut(|state| state.pagination_size = value);
+    }
+
+    fn dispatch_site_context_get_output_formats(
+        self: std::rc::Rc<Self>,
+    ) -> js_abi::JsArray<crate::models::output_format::OutputFormat> {
+        SiteContextRoot::exact_site_context_get_output_formats(self)
+    }
+
+    fn exact_site_context_get_output_formats(
+        self: std::rc::Rc<Self>,
+    ) -> js_abi::JsArray<crate::models::output_format::OutputFormat> {
+        SiteContextRoot::exact_site_context_get_output_formats(self)
     }
 }

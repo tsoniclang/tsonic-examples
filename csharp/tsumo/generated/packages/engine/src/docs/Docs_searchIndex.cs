@@ -22,6 +22,7 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
+            Utils_textBuilder.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
             escapeJsonString = (string input) =>
             {
@@ -51,27 +52,27 @@ namespace Tsumo.Engine
                     ordered.push(documents[index]);
                 }
                 ordered.sort((SearchDocument left, SearchDocument right) => compareSearchDocuments(left, right));
-                System.Text.StringBuilder output = new System.Text.StringBuilder();
-                output.Append("[");
+                TextBuilder output = new TextBuilder();
+                output.append("[");
                 for (int index_1 = 0; index_1 < ordered.length; index_1++)
                 {
                     SearchDocument document = ordered[index_1];
                     if (index_1 > 0)
                     {
-                        output.Append(",");
+                        output.append(",");
                     }
-                    output.Append("{\"title\":\"");
-                    output.Append(escapeJsonString(document.title));
-                    output.Append("\",\"url\":\"");
-                    output.Append(escapeJsonString(document.url));
-                    output.Append("\",\"mount\":\"");
-                    output.Append(escapeJsonString(document.mount));
-                    output.Append("\",\"text\":\"");
-                    output.Append(escapeJsonString(document.text));
-                    output.Append("\"}");
+                    output.append("{\"title\":\"");
+                    output.append(escapeJsonString(document.title));
+                    output.append("\",\"url\":\"");
+                    output.append(escapeJsonString(document.url));
+                    output.append("\",\"mount\":\"");
+                    output.append(escapeJsonString(document.mount));
+                    output.append("\",\"text\":\"");
+                    output.append(escapeJsonString(document.text));
+                    output.append("\"}");
                 }
-                output.Append("]");
-                return output.ToString();
+                output.append("]");
+                return output.toString();
             };
             return null;
         }

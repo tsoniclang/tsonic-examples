@@ -4,10 +4,9 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait PageValueDispatch:
-    crate::template::values::base::TemplateValueDispatch
-{
+pub trait PageValueDispatch: crate::template::values::base::TemplateValueDispatch {
     fn downcast_page_value_to_page_value(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn PageValueDispatch>>;
@@ -15,17 +14,27 @@ pub(crate) trait PageValueDispatch:
     fn write_page_value_value(&self, value: crate::models::page_context::PageContext);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct PageValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: crate::models::page_context::PageContext,
+pub struct PageValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: crate::models::page_context::PageContext,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct PageValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn PageValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn PageValueDispatch>,
+}
+
+impl std::fmt::Debug for PageValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("PageValue")
+    }
 }
 
 impl PartialEq for PageValue {
@@ -43,11 +52,10 @@ pub(crate) struct PageValueRoot {
 }
 
 impl PageValue {
-    pub(crate) fn initialize_state(
-        value: crate::models::page_context::PageContext,
-    ) -> PageValueState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: crate::models::page_context::PageContext) -> PageValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: crate::models::page_context::PageContext = value.clone();
+        let field_value: crate::models::page_context::PageContext = value;
         PageValueState {
             base: base_state,
             value: field_value,
@@ -376,10 +384,9 @@ impl PageValueDispatch for PageValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait FileValueDispatch:
-    crate::template::values::base::TemplateValueDispatch
-{
+pub trait FileValueDispatch: crate::template::values::base::TemplateValueDispatch {
     fn downcast_file_value_to_file_value(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn FileValueDispatch>>;
@@ -387,17 +394,27 @@ pub(crate) trait FileValueDispatch:
     fn write_file_value_value(&self, value: crate::models::page_file::PageFile);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct FileValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: crate::models::page_file::PageFile,
+pub struct FileValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: crate::models::page_file::PageFile,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct FileValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn FileValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn FileValueDispatch>,
+}
+
+impl std::fmt::Debug for FileValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("FileValue")
+    }
 }
 
 impl PartialEq for FileValue {
@@ -415,9 +432,10 @@ pub(crate) struct FileValueRoot {
 }
 
 impl FileValue {
-    pub(crate) fn initialize_state(value: crate::models::page_file::PageFile) -> FileValueState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: crate::models::page_file::PageFile) -> FileValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: crate::models::page_file::PageFile = value.clone();
+        let field_value: crate::models::page_file::PageFile = value;
         FileValueState {
             base: base_state,
             value: field_value,
@@ -746,8 +764,9 @@ impl FileValueDispatch for FileValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait PageArrayValueDispatch:
+pub trait PageArrayValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_page_array_value_to_page_array_value(
@@ -762,17 +781,27 @@ pub(crate) trait PageArrayValueDispatch:
     );
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct PageArrayValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: js_abi::JsArray<crate::models::page_context::PageContext>,
+pub struct PageArrayValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: js_abi::JsArray<crate::models::page_context::PageContext>,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct PageArrayValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn PageArrayValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn PageArrayValueDispatch>,
+}
+
+impl std::fmt::Debug for PageArrayValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("PageArrayValue")
+    }
 }
 
 impl PartialEq for PageArrayValue {
@@ -790,11 +819,12 @@ pub(crate) struct PageArrayValueRoot {
 }
 
 impl PageArrayValue {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         value: js_abi::JsArray<crate::models::page_context::PageContext>,
     ) -> PageArrayValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: js_abi::JsArray<crate::models::page_context::PageContext> = value.clone();
+        let field_value: js_abi::JsArray<crate::models::page_context::PageContext> = value;
         PageArrayValueState {
             base: base_state,
             value: field_value,
@@ -1128,8 +1158,9 @@ impl PageArrayValueDispatch for PageArrayValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait PageGroupValueDispatch:
+pub trait PageGroupValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_page_group_value_to_page_group_value(
@@ -1146,18 +1177,28 @@ pub(crate) trait PageGroupValueDispatch:
     );
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct PageGroupValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) key: crate::template::values::base::TemplateValue,
-    pub(crate) pages: js_abi::JsArray<crate::models::page_context::PageContext>,
+pub struct PageGroupValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub key: crate::template::values::base::TemplateValue,
+    pub pages: js_abi::JsArray<crate::models::page_context::PageContext>,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct PageGroupValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn PageGroupValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn PageGroupValueDispatch>,
+}
+
+impl std::fmt::Debug for PageGroupValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("PageGroupValue")
+    }
 }
 
 impl PartialEq for PageGroupValue {
@@ -1175,13 +1216,14 @@ pub(crate) struct PageGroupValueRoot {
 }
 
 impl PageGroupValue {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         key: crate::template::values::base::TemplateValue,
         pages: js_abi::JsArray<crate::models::page_context::PageContext>,
     ) -> PageGroupValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_key: crate::template::values::base::TemplateValue = key.clone();
-        let field_pages: js_abi::JsArray<crate::models::page_context::PageContext> = pages.clone();
+        let field_key: crate::template::values::base::TemplateValue = key;
+        let field_pages: js_abi::JsArray<crate::models::page_context::PageContext> = pages;
         PageGroupValueState {
             base: base_state,
             key: field_key,
@@ -1527,8 +1569,9 @@ impl PageGroupValueDispatch for PageGroupValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait PageDataValueDispatch:
+pub trait PageDataValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_page_data_value_to_page_data_value(
@@ -1538,17 +1581,27 @@ pub(crate) trait PageDataValueDispatch:
     fn write_page_data_value_page(&self, value: crate::models::page_context::PageContext);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct PageDataValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) page: crate::models::page_context::PageContext,
+pub struct PageDataValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub page: crate::models::page_context::PageContext,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct PageDataValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn PageDataValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn PageDataValueDispatch>,
+}
+
+impl std::fmt::Debug for PageDataValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("PageDataValue")
+    }
 }
 
 impl PartialEq for PageDataValue {
@@ -1566,11 +1619,10 @@ pub(crate) struct PageDataValueRoot {
 }
 
 impl PageDataValue {
-    pub(crate) fn initialize_state(
-        page: crate::models::page_context::PageContext,
-    ) -> PageDataValueState {
+    #[doc(hidden)]
+    pub fn initialize_state(page: crate::models::page_context::PageContext) -> PageDataValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_page: crate::models::page_context::PageContext = page.clone();
+        let field_page: crate::models::page_context::PageContext = page;
         PageDataValueState {
             base: base_state,
             page: field_page,
@@ -1899,8 +1951,9 @@ impl PageDataValueDispatch for PageDataValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait PageResourcesValueDispatch:
+pub trait PageResourcesValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_page_resources_value_to_page_resources_value(
@@ -1909,24 +1962,31 @@ pub(crate) trait PageResourcesValueDispatch:
     fn read_page_resources_value_page(&self) -> crate::models::page_context::PageContext;
     fn write_page_resources_value_page(&self, value: crate::models::page_context::PageContext);
     fn read_page_resources_value_manager(&self) -> crate::resources::manager::ResourceManager;
-    fn write_page_resources_value_manager(
-        &self,
-        value: crate::resources::manager::ResourceManager,
-    );
+    fn write_page_resources_value_manager(&self, value: crate::resources::manager::ResourceManager);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct PageResourcesValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) page: crate::models::page_context::PageContext,
-    pub(crate) manager: crate::resources::manager::ResourceManager,
+pub struct PageResourcesValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub page: crate::models::page_context::PageContext,
+    pub manager: crate::resources::manager::ResourceManager,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct PageResourcesValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn PageResourcesValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn PageResourcesValueDispatch>,
+}
+
+impl std::fmt::Debug for PageResourcesValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("PageResourcesValue")
+    }
 }
 
 impl PartialEq for PageResourcesValue {
@@ -1944,13 +2004,14 @@ pub(crate) struct PageResourcesValueRoot {
 }
 
 impl PageResourcesValue {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         page: crate::models::page_context::PageContext,
         manager: crate::resources::manager::ResourceManager,
     ) -> PageResourcesValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_page: crate::models::page_context::PageContext = page.clone();
-        let field_manager: crate::resources::manager::ResourceManager = manager.clone();
+        let field_page: crate::models::page_context::PageContext = page;
+        let field_manager: crate::resources::manager::ResourceManager = manager;
         PageResourcesValueState {
             base: base_state,
             page: field_page,

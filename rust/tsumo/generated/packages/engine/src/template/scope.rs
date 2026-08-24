@@ -4,25 +4,122 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct RenderScopeState {
-    pub(crate) root: crate::template::values::base::TemplateValue,
-    pub(crate) dot: crate::template::values::base::TemplateValue,
-    pub(crate) site: crate::models::site_context::SiteContext,
-    pub(crate) env: crate::template::environment::TemplateEnvironment,
-    pub(crate) parent: Option<RenderScope>,
-    pub(crate) vars: js_abi::JsMap<String, crate::template::values::base::TemplateValue>,
-    pub(crate) state: RenderState,
-    pub(crate) template_source_path: Option<String>,
+pub trait RenderScopeDispatch {
+    fn downcast_render_scope_to_render_scope(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn RenderScopeDispatch>>;
+    fn read_render_scope_root(&self) -> crate::template::values::base::TemplateValue;
+    fn write_render_scope_root(&self, value: crate::template::values::base::TemplateValue);
+    fn read_render_scope_dot(&self) -> crate::template::values::base::TemplateValue;
+    fn write_render_scope_dot(&self, value: crate::template::values::base::TemplateValue);
+    fn read_render_scope_site(&self) -> crate::models::site_context::SiteContext;
+    fn write_render_scope_site(&self, value: crate::models::site_context::SiteContext);
+    fn read_render_scope_env(&self) -> crate::template::environment::TemplateEnvironment;
+    fn write_render_scope_env(&self, value: crate::template::environment::TemplateEnvironment);
+    fn read_render_scope_parent(&self) -> Option<RenderScope>;
+    fn write_render_scope_parent(&self, value: Option<RenderScope>);
+    fn read_render_scope_vars(
+        &self,
+    ) -> js_abi::JsMap<String, crate::template::values::base::TemplateValue>;
+    fn write_render_scope_vars(
+        &self,
+        value: js_abi::JsMap<String, crate::template::values::base::TemplateValue>,
+    );
+    fn read_render_scope_state(&self) -> RenderState;
+    fn write_render_scope_state(&self, value: RenderState);
+    fn read_render_scope_template_source_path(&self) -> Option<String>;
+    fn write_render_scope_template_source_path(&self, value: Option<String>);
+    fn dispatch_render_scope_get_var(
+        self: std::rc::Rc<Self>,
+        name: String,
+    ) -> Option<crate::template::values::base::TemplateValue>;
+    fn exact_render_scope_get_var(
+        self: std::rc::Rc<Self>,
+        name: String,
+    ) -> Option<crate::template::values::base::TemplateValue>;
+    fn dispatch_render_scope_declare_var(
+        self: std::rc::Rc<Self>,
+        name: String,
+        value: crate::template::values::base::TemplateValue,
+    );
+    fn exact_render_scope_declare_var(
+        self: std::rc::Rc<Self>,
+        name: String,
+        value: crate::template::values::base::TemplateValue,
+    );
+    fn dispatch_render_scope_assign_var(
+        self: std::rc::Rc<Self>,
+        name: String,
+        value: crate::template::values::base::TemplateValue,
+    );
+    fn exact_render_scope_assign_var(
+        self: std::rc::Rc<Self>,
+        name: String,
+        value: crate::template::values::base::TemplateValue,
+    );
+    fn dispatch_render_scope_get_paginator(
+        self: std::rc::Rc<Self>,
+    ) -> Option<crate::template::values::pagination::PaginatorValue>;
+    fn exact_render_scope_get_paginator(
+        self: std::rc::Rc<Self>,
+    ) -> Option<crate::template::values::pagination::PaginatorValue>;
+    fn dispatch_render_scope_select_paginator(
+        self: std::rc::Rc<Self>,
+        paginator: crate::template::values::pagination::PaginatorValue,
+    ) -> Result<crate::template::values::pagination::PaginatorValue, rt::TsonicError>;
+    fn exact_render_scope_select_paginator(
+        self: std::rc::Rc<Self>,
+        paginator: crate::template::values::pagination::PaginatorValue,
+    ) -> Result<crate::template::values::pagination::PaginatorValue, rt::TsonicError>;
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct RenderScopeState {
+    pub root: crate::template::values::base::TemplateValue,
+    pub dot: crate::template::values::base::TemplateValue,
+    pub site: crate::models::site_context::SiteContext,
+    pub env: crate::template::environment::TemplateEnvironment,
+    pub parent: Option<RenderScope>,
+    pub vars: js_abi::JsMap<String, crate::template::values::base::TemplateValue>,
+    pub state: RenderState,
+    pub template_source_path: Option<String>,
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+#[derive(Clone)]
 pub struct RenderScope {
-    pub(crate) state: rt::ObjectHandle<RenderScopeState>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn RenderScopeDispatch>,
+}
+
+impl std::fmt::Debug for RenderScope {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("RenderScope")
+    }
+}
+
+impl PartialEq for RenderScope {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+    }
+}
+
+impl Eq for RenderScope {}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub(crate) struct RenderScopeRoot {
+    identity: rt::ObjectIdentity,
+    state: rt::ObjectHandle<RenderScopeState>,
 }
 
 impl RenderScope {
-    pub fn new(
+    #[doc(hidden)]
+    pub fn initialize_state(
         root: crate::template::values::base::TemplateValue,
         dot: crate::template::values::base::TemplateValue,
         site: crate::models::site_context::SiteContext,
@@ -30,31 +127,33 @@ impl RenderScope {
         parent: Option<RenderScope>,
         state: Option<RenderState>,
         template_source_path: Option<String>,
-    ) -> RenderScope {
+    ) -> RenderScopeState {
         let field_root: crate::template::values::base::TemplateValue = root.clone();
-        let field_dot: crate::template::values::base::TemplateValue = dot.clone();
-        let field_site: crate::models::site_context::SiteContext = site.clone();
-        let field_env: crate::template::environment::TemplateEnvironment = env.clone();
+        let field_dot: crate::template::values::base::TemplateValue = dot;
+        let field_site: crate::models::site_context::SiteContext = site;
+        let field_env: crate::template::environment::TemplateEnvironment = env;
         let field_parent: Option<RenderScope> = parent.clone();
         let field_vars: js_abi::JsMap<String, crate::template::values::base::TemplateValue> =
             js_abi::JsMap::new();
         let field_state: RenderState = rt::option_coalesce(
             rt::option_coalesce(
-                parent
-                    .as_ref()
-                    .map(|optional_receiver| {
-                        optional_receiver.state.with(|state| state.state.clone())
-                    }),
+                parent.as_ref().map(|optional_receiver| {
+                    let dispatch_receiver = optional_receiver;
+                    dispatch_receiver.dispatch.read_render_scope_state()
+                }),
                 Some,
-                || state.clone(),
+                || state,
             ),
             std::convert::identity,
             || RenderState::new(1),
         );
-        if field_state
-            .state
-            .with(|state| state.current_page.clone())
-            .is_none()
+        if {
+            let dispatch_receiver_2 = &field_state;
+            dispatch_receiver_2
+                .dispatch
+                .read_render_state_current_page()
+        }
+        .is_none()
             && root
                 .dispatch
                 .clone()
@@ -64,7 +163,7 @@ impl RenderScope {
             {
                 let receiver = &field_state;
                 let value_2 = Some({
-                    let dispatch_receiver = &{
+                    let dispatch_receiver_3 = &{
                         let downcast_value = &root;
                         crate::template::values::page::PageValue {
                             identity: downcast_value.identity.clone(),
@@ -75,44 +174,158 @@ impl RenderScope {
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver.dispatch.read_page_value_value()
+                    dispatch_receiver_3.dispatch.read_page_value_value()
                 });
-                receiver
-                    .state
-                    .with_mut(|state| state.current_page = value_2)
+                {
+                    let dispatch_receiver_4 = receiver;
+                    dispatch_receiver_4
+                        .dispatch
+                        .write_render_state_current_page(value_2)
+                }
             };
         }
         let field_template_source_path: Option<String> =
-            rt::option_coalesce(template_source_path.clone(), Some, || {
+            rt::option_coalesce(template_source_path, Some, || {
                 parent.as_ref().and_then(|optional_receiver_2| {
-                    optional_receiver_2
-                        .state
-                        .with(|state| state.template_source_path.clone())
+                    let dispatch_receiver_5 = optional_receiver_2;
+                    dispatch_receiver_5
+                        .dispatch
+                        .read_render_scope_template_source_path()
                 })
             });
-        RenderScope {
-            state: rt::ObjectHandle::new(RenderScopeState {
-                root: field_root,
-                dot: field_dot,
-                site: field_site,
-                env: field_env,
-                parent: field_parent,
-                vars: field_vars,
-                state: field_state,
-                template_source_path: field_template_source_path,
-            }),
+        RenderScopeState {
+            root: field_root,
+            dot: field_dot,
+            site: field_site,
+            env: field_env,
+            parent: field_parent,
+            vars: field_vars,
+            state: field_state,
+            template_source_path: field_template_source_path,
         }
     }
 
-    pub fn get_var(&self, name: String) -> Option<crate::template::values::base::TemplateValue> {
-        let mut cur: Option<RenderScope> = Some(self.clone());
+    pub fn new(
+        root: crate::template::values::base::TemplateValue,
+        dot: crate::template::values::base::TemplateValue,
+        site: crate::models::site_context::SiteContext,
+        env: crate::template::environment::TemplateEnvironment,
+        parent: Option<RenderScope>,
+        state: Option<RenderState>,
+        template_source_path: Option<String>,
+    ) -> RenderScope {
+        let state_2 = RenderScope::initialize_state(
+            root,
+            dot,
+            site,
+            env,
+            parent,
+            state,
+            template_source_path,
+        );
+        let identity = rt::ObjectIdentity::new();
+        let root_2 = std::rc::Rc::new(RenderScopeRoot {
+            identity: identity.clone(),
+            state: rt::ObjectHandle::new(state_2),
+        });
+        RenderScope {
+            identity,
+            dispatch: root_2,
+        }
+    }
+}
+
+impl RenderScopeRoot {
+    fn exact_render_scope_assign_var(
+        self: std::rc::Rc<Self>,
+        name: String,
+        value: crate::template::values::base::TemplateValue,
+    ) {
+        let project_this = RenderScope {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        let mut cur: Option<RenderScope> = Some(project_this.clone());
         while cur.is_some() {
-            let value: Option<crate::template::values::base::TemplateValue> = match cur.as_ref() {
-                Some(flow_value) => flow_value.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
+            if { let dispatch_receiver = &match cur.as_ref() {
+    Some(flow_value) => flow_value.clone(),
+    None => unreachable!("checked flow selected a missing optional value"),
+}; dispatch_receiver.dispatch.read_render_scope_vars() }.has(&name)
+            {
+                { let dispatch_receiver_2 = &match cur.as_ref() {
+    Some(flow_value_2) => flow_value_2.clone(),
+    None => unreachable!("checked flow selected a missing optional value"),
+}; dispatch_receiver_2.dispatch.read_render_scope_vars() }.set_discard(
+                    name.clone(),
+                    value.clone(),
+                );
+                return;
             }
-            .state
-            .with(|state| state.vars.clone())
+            cur = { let dispatch_receiver_3 = &match cur.as_ref() {
+    Some(flow_value_3) => flow_value_3.clone(),
+    None => unreachable!("checked flow selected a missing optional value"),
+}; dispatch_receiver_3.dispatch.read_render_scope_parent() };
+        }
+        {
+            let dispatch_receiver_4 = project_this.clone();
+            dispatch_receiver_4
+                .dispatch
+                .clone()
+                .dispatch_render_scope_declare_var(name.clone(), value.clone())
+        };
+    }
+
+    fn exact_render_scope_declare_var(
+        self: std::rc::Rc<Self>,
+        name: String,
+        value: crate::template::values::base::TemplateValue,
+    ) {
+        let project_this = RenderScope {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        {
+            let dispatch_receiver = &project_this;
+            dispatch_receiver.dispatch.read_render_scope_vars()
+        }
+        .set_discard(name, value);
+    }
+
+    fn exact_render_scope_get_paginator(
+        self: std::rc::Rc<Self>,
+    ) -> Option<crate::template::values::pagination::PaginatorValue> {
+        let project_this = RenderScope {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        {
+            let dispatch_receiver_2 = &{
+                let dispatch_receiver = &project_this;
+                dispatch_receiver.dispatch.read_render_scope_state()
+            };
+            dispatch_receiver_2
+                .dispatch
+                .read_render_state_selected_paginator()
+        }
+    }
+
+    fn exact_render_scope_get_var(
+        self: std::rc::Rc<Self>,
+        name: String,
+    ) -> Option<crate::template::values::base::TemplateValue> {
+        let project_this = RenderScope {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        let mut cur: Option<RenderScope> = Some(project_this.clone());
+        while cur.is_some() {
+            let value: Option<crate::template::values::base::TemplateValue> = {
+                let dispatch_receiver = &match cur.as_ref() {
+                    Some(flow_value) => flow_value.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                };
+                dispatch_receiver.dispatch.read_render_scope_vars()
+            }
             .get(&name);
             if value.is_some() {
                 return Some(match value.as_ref() {
@@ -120,79 +333,44 @@ impl RenderScope {
                     None => unreachable!("checked flow selected a missing optional value"),
                 });
             }
-            cur = (match cur.as_ref() {
+            cur = { let dispatch_receiver_2 = &match cur.as_ref() {
     Some(flow_value_3) => flow_value_3.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
-}).state.with(|state| state.parent.clone());
+}; dispatch_receiver_2.dispatch.read_render_scope_parent() };
         }
         Option::<crate::template::values::base::TemplateValue>::None
     }
 
-    pub fn declare_var(&self, name: String, value: crate::template::values::base::TemplateValue) {
-        self
-            .state
-            .with(|state| state.vars.clone())
-            .set(name.clone(), value.clone());
-    }
-
-    pub fn assign_var(&self, name: String, value: crate::template::values::base::TemplateValue) {
-        let mut cur: Option<RenderScope> = Some(self.clone());
-        while cur.is_some() {
-            if match cur.as_ref() {
-                Some(flow_value) => flow_value.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            }
-            .state
-            .with(|state| state.vars.clone())
-            .has(&name)
-            {
-                match cur.as_ref() {
-                    Some(flow_value_2) => flow_value_2.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }
-                .state
-                .with(|state| state.vars.clone())
-                .set(name.clone(), value.clone());
-                return;
-            }
-            cur = (match cur.as_ref() {
-    Some(flow_value_3) => flow_value_3.clone(),
-    None => unreachable!("checked flow selected a missing optional value"),
-}).state.with(|state| state.parent.clone());
-        }
-        self.declare_var(name.clone(), value.clone());
-    }
-
-    pub fn get_paginator(&self) -> Option<crate::template::values::pagination::PaginatorValue> {
-        self
-            .state
-            .with(|state| state.state.clone())
-            .state
-            .with(|state| state.selected_paginator.clone())
-    }
-
-    pub fn select_paginator(
-        &self,
+    fn exact_render_scope_select_paginator(
+        self: std::rc::Rc<Self>,
         paginator: crate::template::values::pagination::PaginatorValue,
-    ) -> rt::TsonicResult<crate::template::values::pagination::PaginatorValue> {
-        let existing: Option<crate::template::values::pagination::PaginatorValue> = self
-            .state
-            .with(|state| state.state.clone())
-            .state
-            .with(|state| state.selected_paginator.clone());
+    ) -> Result<crate::template::values::pagination::PaginatorValue, rt::TsonicError> {
+        let project_this = RenderScope {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        let existing: Option<crate::template::values::pagination::PaginatorValue> = {
+            let dispatch_receiver_2 = &{
+                let dispatch_receiver = &project_this;
+                dispatch_receiver.dispatch.read_render_scope_state()
+            };
+            dispatch_receiver_2
+                .dispatch
+                .read_render_state_selected_paginator()
+        };
         if existing.is_some() {
             if !{
-                let dispatch_receiver = match existing.as_ref() {
+                let dispatch_receiver_3 = match existing.as_ref() {
                     Some(flow_value) => flow_value.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-                dispatch_receiver
+                dispatch_receiver_3
                     .dispatch
                     .clone()
                     .dispatch_paginator_value_has_same_source(paginator.clone())
             }?
             {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                     String::from("TSUMO_TEMPLATE_PAGINATION_CONFLICT"),
                     String::from("A rendered page cannot select more than one pagination source"),
                     None,
@@ -206,30 +384,234 @@ impl RenderScope {
             });
         }
         {
-            let receiver = &self.state.with(|state| state.state.clone());
+            let receiver = &{
+                let dispatch_receiver_4 = &project_this;
+                dispatch_receiver_4.dispatch.read_render_scope_state()
+            };
             let value = Some(paginator.clone());
-            receiver
-                .state
-                .with_mut(|state| state.selected_paginator = value)
+            {
+                let dispatch_receiver_5 = receiver;
+                dispatch_receiver_5
+                    .dispatch
+                    .write_render_state_selected_paginator(value)
+            }
         };
-        Ok(paginator.clone())
+        Ok(paginator)
     }
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct RenderStateState {
-    pub(crate) pagination_page_number: i32,
-    pub(crate) selected_paginator: Option<crate::template::values::pagination::PaginatorValue>,
-    pub(crate) current_page: Option<crate::models::page_context::PageContext>,
+impl RenderScopeDispatch for RenderScopeRoot {
+    fn downcast_render_scope_to_render_scope(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn RenderScopeDispatch>> {
+        Some(self)
+    }
+
+    fn read_render_scope_root(&self) -> crate::template::values::base::TemplateValue {
+        self.state.with(|state| state.root.clone())
+    }
+
+    fn write_render_scope_root(&self, value: crate::template::values::base::TemplateValue) {
+        self.state.with_mut(|state| state.root = value);
+    }
+
+    fn read_render_scope_dot(&self) -> crate::template::values::base::TemplateValue {
+        self.state.with(|state| state.dot.clone())
+    }
+
+    fn write_render_scope_dot(&self, value: crate::template::values::base::TemplateValue) {
+        self.state.with_mut(|state| state.dot = value);
+    }
+
+    fn read_render_scope_site(&self) -> crate::models::site_context::SiteContext {
+        self.state.with(|state| state.site.clone())
+    }
+
+    fn write_render_scope_site(&self, value: crate::models::site_context::SiteContext) {
+        self.state.with_mut(|state| state.site = value);
+    }
+
+    fn read_render_scope_env(&self) -> crate::template::environment::TemplateEnvironment {
+        self.state.with(|state| state.env.clone())
+    }
+
+    fn write_render_scope_env(&self, value: crate::template::environment::TemplateEnvironment) {
+        self.state.with_mut(|state| state.env = value);
+    }
+
+    fn read_render_scope_parent(&self) -> Option<RenderScope> {
+        self.state.with(|state| state.parent.clone())
+    }
+
+    fn write_render_scope_parent(&self, value: Option<RenderScope>) {
+        self.state.with_mut(|state| state.parent = value);
+    }
+
+    fn read_render_scope_vars(
+        &self,
+    ) -> js_abi::JsMap<String, crate::template::values::base::TemplateValue> {
+        self.state.with(|state| state.vars.clone())
+    }
+
+    fn write_render_scope_vars(
+        &self,
+        value: js_abi::JsMap<String, crate::template::values::base::TemplateValue>,
+    ) {
+        self.state.with_mut(|state| state.vars = value);
+    }
+
+    fn read_render_scope_state(&self) -> RenderState {
+        self.state.with(|state| state.state.clone())
+    }
+
+    fn write_render_scope_state(&self, value: RenderState) {
+        self.state.with_mut(|state| state.state = value);
+    }
+
+    fn read_render_scope_template_source_path(&self) -> Option<String> {
+        self.state.with(|state| state.template_source_path.clone())
+    }
+
+    fn write_render_scope_template_source_path(&self, value: Option<String>) {
+        self.state
+            .with_mut(|state| state.template_source_path = value);
+    }
+
+    fn dispatch_render_scope_get_var(
+        self: std::rc::Rc<Self>,
+        name: String,
+    ) -> Option<crate::template::values::base::TemplateValue> {
+        RenderScopeRoot::exact_render_scope_get_var(self, name)
+    }
+
+    fn exact_render_scope_get_var(
+        self: std::rc::Rc<Self>,
+        name: String,
+    ) -> Option<crate::template::values::base::TemplateValue> {
+        RenderScopeRoot::exact_render_scope_get_var(self, name)
+    }
+
+    fn dispatch_render_scope_declare_var(
+        self: std::rc::Rc<Self>,
+        name: String,
+        value: crate::template::values::base::TemplateValue,
+    ) {
+        RenderScopeRoot::exact_render_scope_declare_var(self, name, value)
+    }
+
+    fn exact_render_scope_declare_var(
+        self: std::rc::Rc<Self>,
+        name: String,
+        value: crate::template::values::base::TemplateValue,
+    ) {
+        RenderScopeRoot::exact_render_scope_declare_var(self, name, value)
+    }
+
+    fn dispatch_render_scope_assign_var(
+        self: std::rc::Rc<Self>,
+        name: String,
+        value: crate::template::values::base::TemplateValue,
+    ) {
+        RenderScopeRoot::exact_render_scope_assign_var(self, name, value)
+    }
+
+    fn exact_render_scope_assign_var(
+        self: std::rc::Rc<Self>,
+        name: String,
+        value: crate::template::values::base::TemplateValue,
+    ) {
+        RenderScopeRoot::exact_render_scope_assign_var(self, name, value)
+    }
+
+    fn dispatch_render_scope_get_paginator(
+        self: std::rc::Rc<Self>,
+    ) -> Option<crate::template::values::pagination::PaginatorValue> {
+        RenderScopeRoot::exact_render_scope_get_paginator(self)
+    }
+
+    fn exact_render_scope_get_paginator(
+        self: std::rc::Rc<Self>,
+    ) -> Option<crate::template::values::pagination::PaginatorValue> {
+        RenderScopeRoot::exact_render_scope_get_paginator(self)
+    }
+
+    fn dispatch_render_scope_select_paginator(
+        self: std::rc::Rc<Self>,
+        paginator: crate::template::values::pagination::PaginatorValue,
+    ) -> Result<crate::template::values::pagination::PaginatorValue, rt::TsonicError> {
+        RenderScopeRoot::exact_render_scope_select_paginator(self, paginator)
+    }
+
+    fn exact_render_scope_select_paginator(
+        self: std::rc::Rc<Self>,
+        paginator: crate::template::values::pagination::PaginatorValue,
+    ) -> Result<crate::template::values::pagination::PaginatorValue, rt::TsonicError> {
+        RenderScopeRoot::exact_render_scope_select_paginator(self, paginator)
+    }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub trait RenderStateDispatch {
+    fn downcast_render_state_to_render_state(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn RenderStateDispatch>>;
+    fn read_render_state_pagination_page_number(&self) -> i32;
+    fn write_render_state_pagination_page_number(&self, value: i32);
+    fn read_render_state_selected_paginator(
+        &self,
+    ) -> Option<crate::template::values::pagination::PaginatorValue>;
+    fn write_render_state_selected_paginator(
+        &self,
+        value: Option<crate::template::values::pagination::PaginatorValue>,
+    );
+    fn read_render_state_current_page(&self) -> Option<crate::models::page_context::PageContext>;
+    fn write_render_state_current_page(
+        &self,
+        value: Option<crate::models::page_context::PageContext>,
+    );
+}
+
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct RenderStateState {
+    pub pagination_page_number: i32,
+    pub selected_paginator: Option<crate::template::values::pagination::PaginatorValue>,
+    pub current_page: Option<crate::models::page_context::PageContext>,
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+#[derive(Clone)]
 pub struct RenderState {
-    pub(crate) state: rt::ObjectHandle<RenderStateState>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn RenderStateDispatch>,
+}
+
+impl std::fmt::Debug for RenderState {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("RenderState")
+    }
+}
+
+impl PartialEq for RenderState {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+    }
+}
+
+impl Eq for RenderState {}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub(crate) struct RenderStateRoot {
+    identity: rt::ObjectIdentity,
+    state: rt::ObjectHandle<RenderStateState>,
 }
 
 impl RenderState {
-    pub fn new(pagination_page_number: i32) -> RenderState {
+    #[doc(hidden)]
+    pub fn initialize_state(pagination_page_number: i32) -> RenderStateState {
         let field_pagination_page_number: i32 = if pagination_page_number > 0 {
             pagination_page_number
         } else {
@@ -239,12 +621,65 @@ impl RenderState {
             Option::<crate::template::values::pagination::PaginatorValue>::None;
         let field_current_page: Option<crate::models::page_context::PageContext> =
             Option::<crate::models::page_context::PageContext>::None;
-        RenderState {
-            state: rt::ObjectHandle::new(RenderStateState {
-                pagination_page_number: field_pagination_page_number,
-                selected_paginator: field_selected_paginator,
-                current_page: field_current_page,
-            }),
+        RenderStateState {
+            pagination_page_number: field_pagination_page_number,
+            selected_paginator: field_selected_paginator,
+            current_page: field_current_page,
         }
+    }
+
+    pub fn new(pagination_page_number: i32) -> RenderState {
+        let state = RenderState::initialize_state(pagination_page_number);
+        let identity = rt::ObjectIdentity::new();
+        let root = std::rc::Rc::new(RenderStateRoot {
+            identity: identity.clone(),
+            state: rt::ObjectHandle::new(state),
+        });
+        RenderState {
+            identity,
+            dispatch: root,
+        }
+    }
+}
+
+impl RenderStateDispatch for RenderStateRoot {
+    fn downcast_render_state_to_render_state(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn RenderStateDispatch>> {
+        Some(self)
+    }
+
+    fn read_render_state_pagination_page_number(&self) -> i32 {
+        self.state.with(|state| state.pagination_page_number)
+    }
+
+    fn write_render_state_pagination_page_number(&self, value: i32) {
+        self.state
+            .with_mut(|state| state.pagination_page_number = value);
+    }
+
+    fn read_render_state_selected_paginator(
+        &self,
+    ) -> Option<crate::template::values::pagination::PaginatorValue> {
+        self.state.with(|state| state.selected_paginator.clone())
+    }
+
+    fn write_render_state_selected_paginator(
+        &self,
+        value: Option<crate::template::values::pagination::PaginatorValue>,
+    ) {
+        self.state
+            .with_mut(|state| state.selected_paginator = value);
+    }
+
+    fn read_render_state_current_page(&self) -> Option<crate::models::page_context::PageContext> {
+        self.state.with(|state| state.current_page.clone())
+    }
+
+    fn write_render_state_current_page(
+        &self,
+        value: Option<crate::models::page_context::PageContext>,
+    ) {
+        self.state.with_mut(|state| state.current_page = value);
     }
 }

@@ -2,36 +2,101 @@
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ResourceDataState {
-    pub(crate) integrity: String,
+pub trait ResourceDataDispatch {
+    fn downcast_resource_data_to_resource_data(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn ResourceDataDispatch>>;
+    fn read_resource_data_integrity(&self) -> String;
+    fn write_resource_data_integrity(&self, value: String);
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct ResourceDataState {
+    pub integrity: String,
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+#[derive(Clone)]
 pub struct ResourceData {
-    pub(crate) state: rt::ObjectHandle<ResourceDataState>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn ResourceDataDispatch>,
+}
+
+impl std::fmt::Debug for ResourceData {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("ResourceData")
+    }
+}
+
+impl PartialEq for ResourceData {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+    }
+}
+
+impl Eq for ResourceData {}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub(crate) struct ResourceDataRoot {
+    identity: rt::ObjectIdentity,
+    state: rt::ObjectHandle<ResourceDataState>,
 }
 
 impl ResourceData {
+    #[doc(hidden)]
+    pub fn initialize_state(integrity: String) -> ResourceDataState {
+        let field_integrity: String = integrity;
+        ResourceDataState {
+            integrity: field_integrity,
+        }
+    }
+
     pub fn new(integrity: String) -> ResourceData {
-        let field_integrity: String = integrity.clone();
+        let state = ResourceData::initialize_state(integrity);
+        let identity = rt::ObjectIdentity::new();
+        let root = std::rc::Rc::new(ResourceDataRoot {
+            identity: identity.clone(),
+            state: rt::ObjectHandle::new(state),
+        });
         ResourceData {
-            state: rt::ObjectHandle::new(ResourceDataState {
-                integrity: field_integrity,
-            }),
+            identity,
+            dispatch: root,
         }
     }
 }
 
+impl ResourceDataDispatch for ResourceDataRoot {
+    fn downcast_resource_data_to_resource_data(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn ResourceDataDispatch>> {
+        Some(self)
+    }
+
+    fn read_resource_data_integrity(&self) -> String {
+        self.state.with(|state| state.integrity.clone())
+    }
+
+    fn write_resource_data_integrity(&self, value: String) {
+        self.state.with_mut(|state| state.integrity = value);
+    }
+}
+
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ImageDimensionsState {
-    pub(crate) width: i32,
-    pub(crate) height: i32,
+pub struct ImageDimensionsState {
+    pub width: i32,
+    pub height: i32,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ImageDimensions {
-    pub(crate) state: rt::ObjectHandle<ImageDimensionsState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<ImageDimensionsState>,
 }
 
 impl ImageDimensions {
@@ -39,7 +104,7 @@ impl ImageDimensions {
         let field_width: i32 = width;
         let field_height: i32 = height;
         ImageDimensions {
-            state: rt::ObjectHandle::new(ImageDimensionsState {
+            state: rt::ObjectRef::new(ImageDimensionsState {
                 width: field_width,
                 height: field_height,
             }),
@@ -47,26 +112,120 @@ impl ImageDimensions {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ResourceState {
-    pub(crate) id: String,
-    pub(crate) source_path: Option<String>,
-    pub(crate) publishable: bool,
-    pub(crate) output_rel_path: Option<String>,
-    pub(crate) bytes: tsonic_rust_node::buffer::Buffer,
-    pub(crate) text: Option<String>,
-    pub(crate) data: ResourceData,
-    pub(crate) media_type: String,
-    pub(crate) width: i32,
-    pub(crate) height: i32,
+pub trait ResourceDispatch {
+    fn downcast_resource_to_resource(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn ResourceDispatch>>;
+    fn read_resource_id(&self) -> String;
+    fn write_resource_id(&self, value: String);
+    fn read_resource_source_path(&self) -> Option<String>;
+    fn write_resource_source_path(&self, value: Option<String>);
+    fn read_resource_publishable(&self) -> bool;
+    fn write_resource_publishable(&self, value: bool);
+    fn read_resource_output_rel_path(&self) -> Option<String>;
+    fn write_resource_output_rel_path(&self, value: Option<String>);
+    fn read_resource_bytes(&self) -> tsonic_rust_node::buffer::Buffer;
+    fn write_resource_bytes(&self, value: tsonic_rust_node::buffer::Buffer);
+    fn read_resource_text(&self) -> Option<String>;
+    fn write_resource_text(&self, value: Option<String>);
+    fn read_resource_data(&self) -> ResourceData;
+    fn write_resource_data(&self, value: ResourceData);
+    fn read_resource_media_type(&self) -> String;
+    fn write_resource_media_type(&self, value: String);
+    fn read_resource_width(&self) -> i32;
+    fn write_resource_width(&self, value: i32);
+    fn read_resource_height(&self) -> i32;
+    fn write_resource_height(&self, value: i32);
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct ResourceState {
+    pub id: String,
+    pub source_path: Option<String>,
+    pub publishable: bool,
+    pub output_rel_path: Option<String>,
+    pub bytes: tsonic_rust_node::buffer::Buffer,
+    pub text: Option<String>,
+    pub data: ResourceData,
+    pub media_type: String,
+    pub width: i32,
+    pub height: i32,
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+#[derive(Clone)]
 pub struct Resource {
-    pub(crate) state: rt::ObjectHandle<ResourceState>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn ResourceDispatch>,
+}
+
+impl std::fmt::Debug for Resource {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("Resource")
+    }
+}
+
+impl PartialEq for Resource {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+    }
+}
+
+impl Eq for Resource {}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub(crate) struct ResourceRoot {
+    identity: rt::ObjectIdentity,
+    state: rt::ObjectHandle<ResourceState>,
 }
 
 impl Resource {
+    #[doc(hidden)]
+    #[expect(clippy::too_many_arguments, reason = "checked source signature")]
+    pub fn initialize_state(
+        id: String,
+        source_path: Option<String>,
+        publishable: bool,
+        output_rel_path: Option<String>,
+        bytes: tsonic_rust_node::buffer::Buffer,
+        text: Option<String>,
+        data: ResourceData,
+        media_type: Option<String>,
+        width: Option<i32>,
+        height: Option<i32>,
+    ) -> ResourceState {
+        let media_type = media_type.unwrap_or_else(|| String::from(""));
+        let width = width.unwrap_or(0);
+        let height = height.unwrap_or(0);
+        let field_id: String = id;
+        let field_source_path: Option<String> = source_path;
+        let field_publishable: bool = publishable;
+        let field_output_rel_path: Option<String> = output_rel_path;
+        let field_bytes: tsonic_rust_node::buffer::Buffer = bytes;
+        let field_text: Option<String> = text;
+        let field_data: ResourceData = data;
+        let field_media_type: String = media_type;
+        let field_width: i32 = width;
+        let field_height: i32 = height;
+        ResourceState {
+            id: field_id,
+            source_path: field_source_path,
+            publishable: field_publishable,
+            output_rel_path: field_output_rel_path,
+            bytes: field_bytes,
+            text: field_text,
+            data: field_data,
+            media_type: field_media_type,
+            width: field_width,
+            height: field_height,
+        }
+    }
+
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     pub fn new(
         id: String,
@@ -80,32 +239,114 @@ impl Resource {
         width: Option<i32>,
         height: Option<i32>,
     ) -> Resource {
-        let media_type = media_type.unwrap_or_else(|| String::from(""));
-        let width = width.unwrap_or(0);
-        let height = height.unwrap_or(0);
-        let field_id: String = id.clone();
-        let field_source_path: Option<String> = source_path.clone();
-        let field_publishable: bool = publishable;
-        let field_output_rel_path: Option<String> = output_rel_path.clone();
-        let field_bytes: tsonic_rust_node::buffer::Buffer = bytes.clone();
-        let field_text: Option<String> = text.clone();
-        let field_data: ResourceData = data.clone();
-        let field_media_type: String = media_type.clone();
-        let field_width: i32 = width;
-        let field_height: i32 = height;
+        let state = Resource::initialize_state(
+            id,
+            source_path,
+            publishable,
+            output_rel_path,
+            bytes,
+            text,
+            data,
+            media_type,
+            width,
+            height,
+        );
+        let identity = rt::ObjectIdentity::new();
+        let root = std::rc::Rc::new(ResourceRoot {
+            identity: identity.clone(),
+            state: rt::ObjectHandle::new(state),
+        });
         Resource {
-            state: rt::ObjectHandle::new(ResourceState {
-                id: field_id,
-                source_path: field_source_path,
-                publishable: field_publishable,
-                output_rel_path: field_output_rel_path,
-                bytes: field_bytes,
-                text: field_text,
-                data: field_data,
-                media_type: field_media_type,
-                width: field_width,
-                height: field_height,
-            }),
+            identity,
+            dispatch: root,
         }
+    }
+}
+
+impl ResourceDispatch for ResourceRoot {
+    fn downcast_resource_to_resource(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn ResourceDispatch>> {
+        Some(self)
+    }
+
+    fn read_resource_id(&self) -> String {
+        self.state.with(|state| state.id.clone())
+    }
+
+    fn write_resource_id(&self, value: String) {
+        self.state.with_mut(|state| state.id = value);
+    }
+
+    fn read_resource_source_path(&self) -> Option<String> {
+        self.state.with(|state| state.source_path.clone())
+    }
+
+    fn write_resource_source_path(&self, value: Option<String>) {
+        self.state.with_mut(|state| state.source_path = value);
+    }
+
+    fn read_resource_publishable(&self) -> bool {
+        self.state.with(|state| state.publishable)
+    }
+
+    fn write_resource_publishable(&self, value: bool) {
+        self.state.with_mut(|state| state.publishable = value);
+    }
+
+    fn read_resource_output_rel_path(&self) -> Option<String> {
+        self.state.with(|state| state.output_rel_path.clone())
+    }
+
+    fn write_resource_output_rel_path(&self, value: Option<String>) {
+        self.state.with_mut(|state| state.output_rel_path = value);
+    }
+
+    fn read_resource_bytes(&self) -> tsonic_rust_node::buffer::Buffer {
+        self.state.with(|state| state.bytes.clone())
+    }
+
+    fn write_resource_bytes(&self, value: tsonic_rust_node::buffer::Buffer) {
+        self.state.with_mut(|state| state.bytes = value);
+    }
+
+    fn read_resource_text(&self) -> Option<String> {
+        self.state.with(|state| state.text.clone())
+    }
+
+    fn write_resource_text(&self, value: Option<String>) {
+        self.state.with_mut(|state| state.text = value);
+    }
+
+    fn read_resource_data(&self) -> ResourceData {
+        self.state.with(|state| state.data.clone())
+    }
+
+    fn write_resource_data(&self, value: ResourceData) {
+        self.state.with_mut(|state| state.data = value);
+    }
+
+    fn read_resource_media_type(&self) -> String {
+        self.state.with(|state| state.media_type.clone())
+    }
+
+    fn write_resource_media_type(&self, value: String) {
+        self.state.with_mut(|state| state.media_type = value);
+    }
+
+    fn read_resource_width(&self) -> i32 {
+        self.state.with(|state| state.width)
+    }
+
+    fn write_resource_width(&self, value: i32) {
+        self.state.with_mut(|state| state.width = value);
+    }
+
+    fn read_resource_height(&self) -> i32 {
+        self.state.with(|state| state.height)
+    }
+
+    fn write_resource_height(&self, value: i32) {
+        self.state.with_mut(|state| state.height = value);
     }
 }

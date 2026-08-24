@@ -31,11 +31,13 @@ namespace Tsumo.Engine
             Utils_strings.__tsonic_module_init();
             Utils_text.__tsonic_module_init();
             Utils_int32.__tsonic_module_init();
+            Utils_urlComponents.__tsonic_module_init();
             Markdown.__tsonic_module_init();
             Template_values.__tsonic_module_init();
             Utils_html.__tsonic_module_init();
             Diagnostics.__tsonic_module_init();
             Template_evaluation_scalarSemantics.__tsonic_module_init();
+            Utils_textBuilder.__tsonic_module_init();
             Template_evaluation_serialization.__tsonic_module_init();
             Template_runtimeHelpers.__tsonic_module_init();
             Template_functions_functionContext.__tsonic_module_init();
@@ -505,11 +507,11 @@ namespace Tsumo.Engine
                 {
                     TemplateValue v_11 = args[0];
                     string s_15 = Template_runtimeHelpers.toPlainString(v_11);
-                    return new StringValue(System.Uri.EscapeDataString(s_15));
+                    return new StringValue(Utils_urlComponents.encodeUrlComponent(s_15));
                 }
                 if (name == "querify" && args.length >= 2)
                 {
-                    return new StringValue(System.Uri.EscapeDataString(Template_runtimeHelpers.toPlainString(args[0])) + "=" + System.Uri.EscapeDataString(Template_runtimeHelpers.toPlainString(args[1])));
+                    return new StringValue(Utils_urlComponents.encodeUrlComponent(Template_runtimeHelpers.toPlainString(args[0])) + "=" + Utils_urlComponents.encodeUrlComponent(Template_runtimeHelpers.toPlainString(args[1])));
                 }
                 if (name == "default" && args.length == 1)
                 {
@@ -573,49 +575,43 @@ namespace Tsumo.Engine
                 {
                     string layout = Template_runtimeHelpers.toPlainString(args[0]);
                     string s_16 = Template_runtimeHelpers.toPlainString(args[1]);
-                    System.DateTime? parsed_1 = Template_evaluation_scalarSemantics.parseDateTime(s_16);
-                    if (parsed_1 is null)
-                    {
-                        return new StringValue("");
-                    }
-                    string fmt = Template_evaluation_scalarSemantics.convertGoDateLayoutToDotNet(layout);
-                    return new StringValue(parsed_1.Value.ToString(fmt));
+                    return new StringValue(Template_evaluation_scalarSemantics.formatDateTime(s_16, layout) ?? "");
                 }
                 if (name == "print" && args.length >= 1)
                 {
-                    System.Text.StringBuilder sb = new System.Text.StringBuilder();
+                    TextBuilder sb = new TextBuilder();
                     for (int i_3 = 0; i_3 < args.length; i_3++)
                     {
-                        sb.Append(Template_runtimeHelpers.toPlainString(args[i_3]));
+                        sb.append(Template_runtimeHelpers.toPlainString(args[i_3]));
                     }
-                    return new StringValue(sb.ToString());
+                    return new StringValue(sb.toString());
                 }
                 if (name == "printf" && args.length >= 1)
                 {
-                    string fmt_1 = Template_runtimeHelpers.toPlainString(args[0]);
+                    string fmt = Template_runtimeHelpers.toPlainString(args[0]);
                     Tsonic.CSharp.Js.JSArray<TemplateValue> values = new Tsonic.CSharp.Js.JSArray<TemplateValue>(new TemplateValue[] { });
                     for (int argumentIndex = 1; argumentIndex < args.length; argumentIndex++)
                     {
                         values.push(args[argumentIndex]);
                     }
-                    System.Text.StringBuilder sb_1 = new System.Text.StringBuilder();
+                    TextBuilder sb_1 = new TextBuilder();
                     int pos = 0;
                     int valueIndex = 0;
-                    while (pos < fmt_1.Length)
+                    while (pos < fmt.Length)
                     {
-                        string ch = Utils_strings.substringCount(fmt_1, pos, 1);
-                        if (ch == "%" && pos + 1 < fmt_1.Length)
+                        string ch = Utils_strings.substringCount(fmt, pos, 1);
+                        if (ch == "%" && pos + 1 < fmt.Length)
                         {
-                            string next = Utils_strings.substringCount(fmt_1, pos + 1, 1);
+                            string next = Utils_strings.substringCount(fmt, pos + 1, 1);
                             if (next == "%")
                             {
-                                sb_1.Append("%");
+                                sb_1.append("%");
                                 pos += 2;
                                 continue;
                             }
                             string verb = next;
                             int width = 2;
-                            if (next == "#" && pos + 2 < fmt_1.Length && Utils_strings.substringCount(fmt_1, pos + 2, 1) == "v")
+                            if (next == "#" && pos + 2 < fmt.Length && Utils_strings.substringCount(fmt, pos + 2, 1) == "v")
                             {
                                 verb = "#v";
                                 width = 3;
@@ -624,17 +620,17 @@ namespace Tsumo.Engine
                             {
                                 if (valueIndex < values.length)
                                 {
-                                    sb_1.Append(formatTemplateValue(values[valueIndex], verb));
+                                    sb_1.append(formatTemplateValue(values[valueIndex], verb));
                                 }
                                 valueIndex++;
                                 pos += width;
                                 continue;
                             }
                         }
-                        sb_1.Append(ch);
+                        sb_1.append(ch);
                         pos++;
                     }
-                    return new StringValue(sb_1.ToString());
+                    return new StringValue(sb_1.toString());
                 }
                 if (args.length >= 2)
                 {

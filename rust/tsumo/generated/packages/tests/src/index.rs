@@ -2,48 +2,21 @@
 
 use crate::program as rt;
 
-pub fn main() -> rt::TsonicResult<()> {
-    crate::scaffold_and_build_test::RUN_SCAFFOLD_AND_BUILD_TESTS
-        .with(|module_binding| module_binding.load())
-        .call(())?;
-    crate::input_boundaries_test::RUN_INPUT_BOUNDARY_TESTS
-        .with(|module_binding| module_binding.load())
-        .call(())?;
-    crate::layout_cache_test::RUN_LAYOUT_CACHE_TESTS
-        .with(|module_binding| module_binding.load())
-        .call(())?;
-    crate::filesystem_boundaries_test::RUN_FILESYSTEM_BOUNDARY_TESTS
-        .with(|module_binding| module_binding.load())
-        .call(())?;
-    crate::content_and_menu_test::RUN_CONTENT_AND_MENU_TESTS
-        .with(|module_binding| module_binding.load())
-        .call(())?;
-    crate::docs_domain_test::RUN_DOCS_DOMAIN_TESTS
-        .with(|module_binding| module_binding.load())
-        .call(())?;
-    crate::output_plan_test::RUN_OUTPUT_PLAN_TESTS
-        .with(|module_binding| module_binding.load())
-        .call(())?;
-    crate::resource_pipeline_test::RUN_RESOURCE_PIPELINE_TESTS
-        .with(|module_binding| module_binding.load())
-        .call(())?;
-    crate::template_control_flow_test::RUN_TEMPLATE_CONTROL_FLOW_TESTS
-        .with(|module_binding| module_binding.load())
-        .call(())?;
-    crate::template_function_semantics_test::RUN_TEMPLATE_FUNCTION_SEMANTICS_TESTS
-        .with(|module_binding| module_binding.load())
-        .call(())?;
-    crate::template_page_context_test::RUN_TEMPLATE_PAGE_CONTEXT_TESTS
-        .with(|module_binding| module_binding.load())
-        .call(())?;
-    crate::template_runtime_test::RUN_TEMPLATE_RUNTIME_TESTS
-        .with(|module_binding| module_binding.load())
-        .call(())?;
-    crate::theme_compatibility_test::RUN_THEME_COMPATIBILITY_TESTS
-        .with(|module_binding| module_binding.load())
-        .call(())?;
-    crate::test_root::COMPLETE_TESTS
-        .with(|module_binding| module_binding.load())
-        .call((73.0,))?;
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn main() -> Result<(), rt::TsonicError> {
+    crate::scaffold_and_build_test::run_scaffold_and_build_tests()?;
+    crate::input_boundaries_test::run_input_boundary_tests()?;
+    crate::layout_cache_test::run_layout_cache_tests()?;
+    crate::filesystem_boundaries_test::run_filesystem_boundary_tests()?;
+    crate::content_and_menu_test::run_content_and_menu_tests()?;
+    crate::docs_domain_test::run_docs_domain_tests()?;
+    crate::output_plan_test::run_output_plan_tests()?;
+    crate::resource_pipeline_test::run_resource_pipeline_tests()?;
+    crate::template_control_flow_test::run_template_control_flow_tests()?;
+    crate::template_function_semantics_test::run_template_function_semantics_tests()?;
+    crate::template_page_context_test::run_template_page_context_tests()?;
+    crate::template_runtime_test::run_template_runtime_tests()?;
+    crate::theme_compatibility_test::run_theme_compatibility_tests()?;
+    crate::test_root::complete_tests(73.0)?;
     Ok(())
 }

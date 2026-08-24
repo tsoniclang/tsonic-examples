@@ -2,26 +2,76 @@
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct FrontMatterMenuState {
-    pub(crate) menu: String,
-    pub(crate) name: String,
-    pub(crate) weight: i32,
-    pub(crate) parent: String,
-    pub(crate) identifier: String,
-    pub(crate) pre: String,
-    pub(crate) post: String,
-    pub(crate) title: String,
+pub trait FrontMatterMenuDispatch {
+    fn downcast_front_matter_menu_to_front_matter_menu(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn FrontMatterMenuDispatch>>;
+    fn read_front_matter_menu_menu(&self) -> String;
+    fn write_front_matter_menu_menu(&self, value: String);
+    fn read_front_matter_menu_name(&self) -> String;
+    fn write_front_matter_menu_name(&self, value: String);
+    fn read_front_matter_menu_weight(&self) -> i32;
+    fn write_front_matter_menu_weight(&self, value: i32);
+    fn read_front_matter_menu_parent(&self) -> String;
+    fn write_front_matter_menu_parent(&self, value: String);
+    fn read_front_matter_menu_identifier(&self) -> String;
+    fn write_front_matter_menu_identifier(&self, value: String);
+    fn read_front_matter_menu_pre(&self) -> String;
+    fn write_front_matter_menu_pre(&self, value: String);
+    fn read_front_matter_menu_post(&self) -> String;
+    fn write_front_matter_menu_post(&self, value: String);
+    fn read_front_matter_menu_title(&self) -> String;
+    fn write_front_matter_menu_title(&self, value: String);
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct FrontMatterMenuState {
+    pub menu: String,
+    pub name: String,
+    pub weight: i32,
+    pub parent: String,
+    pub identifier: String,
+    pub pre: String,
+    pub post: String,
+    pub title: String,
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+#[derive(Clone)]
 pub struct FrontMatterMenu {
-    pub(crate) state: rt::ObjectHandle<FrontMatterMenuState>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn FrontMatterMenuDispatch>,
+}
+
+impl std::fmt::Debug for FrontMatterMenu {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("FrontMatterMenu")
+    }
+}
+
+impl PartialEq for FrontMatterMenu {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+    }
+}
+
+impl Eq for FrontMatterMenu {}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub(crate) struct FrontMatterMenuRoot {
+    identity: rt::ObjectIdentity,
+    state: rt::ObjectHandle<FrontMatterMenuState>,
 }
 
 impl FrontMatterMenu {
-    pub fn new(menu: String) -> FrontMatterMenu {
-        let field_menu: String = menu.clone();
+    #[doc(hidden)]
+    pub fn initialize_state(menu: String) -> FrontMatterMenuState {
+        let field_menu: String = menu;
         let field_name: String = String::from("");
         let field_weight: i32 = 0;
         let field_parent: String = String::from("");
@@ -29,17 +79,100 @@ impl FrontMatterMenu {
         let field_pre: String = String::from("");
         let field_post: String = String::from("");
         let field_title: String = String::from("");
-        FrontMatterMenu {
-            state: rt::ObjectHandle::new(FrontMatterMenuState {
-                menu: field_menu,
-                name: field_name,
-                weight: field_weight,
-                parent: field_parent,
-                identifier: field_identifier,
-                pre: field_pre,
-                post: field_post,
-                title: field_title,
-            }),
+        FrontMatterMenuState {
+            menu: field_menu,
+            name: field_name,
+            weight: field_weight,
+            parent: field_parent,
+            identifier: field_identifier,
+            pre: field_pre,
+            post: field_post,
+            title: field_title,
         }
+    }
+
+    pub fn new(menu: String) -> FrontMatterMenu {
+        let state = FrontMatterMenu::initialize_state(menu);
+        let identity = rt::ObjectIdentity::new();
+        let root = std::rc::Rc::new(FrontMatterMenuRoot {
+            identity: identity.clone(),
+            state: rt::ObjectHandle::new(state),
+        });
+        FrontMatterMenu {
+            identity,
+            dispatch: root,
+        }
+    }
+}
+
+impl FrontMatterMenuDispatch for FrontMatterMenuRoot {
+    fn downcast_front_matter_menu_to_front_matter_menu(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn FrontMatterMenuDispatch>> {
+        Some(self)
+    }
+
+    fn read_front_matter_menu_menu(&self) -> String {
+        self.state.with(|state| state.menu.clone())
+    }
+
+    fn write_front_matter_menu_menu(&self, value: String) {
+        self.state.with_mut(|state| state.menu = value);
+    }
+
+    fn read_front_matter_menu_name(&self) -> String {
+        self.state.with(|state| state.name.clone())
+    }
+
+    fn write_front_matter_menu_name(&self, value: String) {
+        self.state.with_mut(|state| state.name = value);
+    }
+
+    fn read_front_matter_menu_weight(&self) -> i32 {
+        self.state.with(|state| state.weight)
+    }
+
+    fn write_front_matter_menu_weight(&self, value: i32) {
+        self.state.with_mut(|state| state.weight = value);
+    }
+
+    fn read_front_matter_menu_parent(&self) -> String {
+        self.state.with(|state| state.parent.clone())
+    }
+
+    fn write_front_matter_menu_parent(&self, value: String) {
+        self.state.with_mut(|state| state.parent = value);
+    }
+
+    fn read_front_matter_menu_identifier(&self) -> String {
+        self.state.with(|state| state.identifier.clone())
+    }
+
+    fn write_front_matter_menu_identifier(&self, value: String) {
+        self.state.with_mut(|state| state.identifier = value);
+    }
+
+    fn read_front_matter_menu_pre(&self) -> String {
+        self.state.with(|state| state.pre.clone())
+    }
+
+    fn write_front_matter_menu_pre(&self, value: String) {
+        self.state.with_mut(|state| state.pre = value);
+    }
+
+    fn read_front_matter_menu_post(&self) -> String {
+        self.state.with(|state| state.post.clone())
+    }
+
+    fn write_front_matter_menu_post(&self, value: String) {
+        self.state.with_mut(|state| state.post = value);
+    }
+
+    fn read_front_matter_menu_title(&self) -> String {
+        self.state.with(|state| state.title.clone())
+    }
+
+    fn write_front_matter_menu_title(&self, value: String) {
+        self.state.with_mut(|state| state.title = value);
     }
 }

@@ -2,18 +2,20 @@
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct LanguageConfigState {
-    pub(crate) lang: String,
-    pub(crate) language_name: String,
-    pub(crate) language_direction: String,
-    pub(crate) content_dir: String,
-    pub(crate) weight: i32,
+pub struct LanguageConfigState {
+    pub lang: String,
+    pub language_name: String,
+    pub language_direction: String,
+    pub content_dir: String,
+    pub weight: i32,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct LanguageConfig {
-    pub(crate) state: rt::ObjectHandle<LanguageConfigState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<LanguageConfigState>,
 }
 
 impl LanguageConfig {
@@ -24,13 +26,13 @@ impl LanguageConfig {
         content_dir: String,
         weight: i32,
     ) -> LanguageConfig {
-        let field_lang: String = lang.clone();
-        let field_language_name: String = language_name.clone();
-        let field_language_direction: String = language_direction.clone();
-        let field_content_dir: String = content_dir.clone();
+        let field_lang: String = lang;
+        let field_language_name: String = language_name;
+        let field_language_direction: String = language_direction;
+        let field_content_dir: String = content_dir;
         let field_weight: i32 = weight;
         LanguageConfig {
-            state: rt::ObjectHandle::new(LanguageConfigState {
+            state: rt::ObjectRef::new(LanguageConfigState {
                 lang: field_lang,
                 language_name: field_language_name,
                 language_direction: field_language_direction,
@@ -41,29 +43,117 @@ impl LanguageConfig {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct LanguageContextState {
-    pub(crate) lang: String,
-    pub(crate) language_name: String,
-    pub(crate) language_direction: String,
+pub trait LanguageContextDispatch {
+    fn downcast_language_context_to_language_context(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn LanguageContextDispatch>>;
+    fn read_language_context_lang(&self) -> String;
+    fn write_language_context_lang(&self, value: String);
+    fn read_language_context_language_name(&self) -> String;
+    fn write_language_context_language_name(&self, value: String);
+    fn read_language_context_language_direction(&self) -> String;
+    fn write_language_context_language_direction(&self, value: String);
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct LanguageContextState {
+    pub lang: String,
+    pub language_name: String,
+    pub language_direction: String,
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+#[derive(Clone)]
 pub struct LanguageContext {
-    pub(crate) state: rt::ObjectHandle<LanguageContextState>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn LanguageContextDispatch>,
+}
+
+impl std::fmt::Debug for LanguageContext {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("LanguageContext")
+    }
+}
+
+impl PartialEq for LanguageContext {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+    }
+}
+
+impl Eq for LanguageContext {}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub(crate) struct LanguageContextRoot {
+    identity: rt::ObjectIdentity,
+    state: rt::ObjectHandle<LanguageContextState>,
 }
 
 impl LanguageContext {
-    pub fn new(lang: String, language_name: String, language_direction: String) -> LanguageContext {
-        let field_lang: String = lang.clone();
-        let field_language_name: String = language_name.clone();
-        let field_language_direction: String = language_direction.clone();
-        LanguageContext {
-            state: rt::ObjectHandle::new(LanguageContextState {
-                lang: field_lang,
-                language_name: field_language_name,
-                language_direction: field_language_direction,
-            }),
+    #[doc(hidden)]
+    pub fn initialize_state(
+        lang: String,
+        language_name: String,
+        language_direction: String,
+    ) -> LanguageContextState {
+        let field_lang: String = lang;
+        let field_language_name: String = language_name;
+        let field_language_direction: String = language_direction;
+        LanguageContextState {
+            lang: field_lang,
+            language_name: field_language_name,
+            language_direction: field_language_direction,
         }
+    }
+
+    pub fn new(lang: String, language_name: String, language_direction: String) -> LanguageContext {
+        let state = LanguageContext::initialize_state(lang, language_name, language_direction);
+        let identity = rt::ObjectIdentity::new();
+        let root = std::rc::Rc::new(LanguageContextRoot {
+            identity: identity.clone(),
+            state: rt::ObjectHandle::new(state),
+        });
+        LanguageContext {
+            identity,
+            dispatch: root,
+        }
+    }
+}
+
+impl LanguageContextDispatch for LanguageContextRoot {
+    fn downcast_language_context_to_language_context(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn LanguageContextDispatch>> {
+        Some(self)
+    }
+
+    fn read_language_context_lang(&self) -> String {
+        self.state.with(|state| state.lang.clone())
+    }
+
+    fn write_language_context_lang(&self, value: String) {
+        self.state.with_mut(|state| state.lang = value);
+    }
+
+    fn read_language_context_language_name(&self) -> String {
+        self.state.with(|state| state.language_name.clone())
+    }
+
+    fn write_language_context_language_name(&self, value: String) {
+        self.state.with_mut(|state| state.language_name = value);
+    }
+
+    fn read_language_context_language_direction(&self) -> String {
+        self.state.with(|state| state.language_direction.clone())
+    }
+
+    fn write_language_context_language_direction(&self, value: String) {
+        self.state
+            .with_mut(|state| state.language_direction = value);
     }
 }

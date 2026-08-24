@@ -32,6 +32,7 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
+            Utils_textBuilder.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
             Resources_mediaTypes.__tsonic_module_init();
             Resources_models.__tsonic_module_init();
@@ -40,24 +41,24 @@ namespace Tsumo.Engine
             concatenateResources = (string targetPath, Tsonic.CSharp.Js.JSArray<Resource> resources) =>
             {
                 string target = Resources_paths.normalizeResourceRelativePath(targetPath);
-                System.Text.StringBuilder identity = new System.Text.StringBuilder();
-                identity.Append("concat:");
-                identity.Append(target);
-                System.Text.StringBuilder text = new System.Text.StringBuilder();
+                TextBuilder identity = new TextBuilder();
+                identity.append("concat:");
+                identity.append(target);
+                TextBuilder text = new TextBuilder();
                 for (int index = 0; index < resources.length; index++)
                 {
                     Resource resource = resources[index];
-                    identity.Append("|" + resource.id);
-                    if (text.Length > 0)
+                    identity.append("|" + resource.id);
+                    if (text.length > 0)
                     {
-                        text.Append("\n");
+                        text.append("\n");
                     }
-                    text.Append(Resources_text.readResourceText(resource, "resources.Concat"));
+                    text.append(Resources_text.readResourceText(resource, "resources.Concat"));
                 }
-                string content = text.ToString();
+                string content = text.toString();
                 ResourcePathParts path = Resources_paths.splitResourcePath(target);
                 ResourceFileNameParts file = Resources_paths.splitResourceFileName(path.fileName);
-                return new Resource(identity.ToString(), null, true, target, Tsonic.CSharp.Node.Buffer.from(content, "utf8"), content, new ResourceData(""), Resources_mediaTypes.resourceMediaTypeForExtension(file.extension));
+                return new Resource(identity.toString(), null, true, target, Tsonic.CSharp.Node.Buffer.from(content, "utf8"), content, new ResourceData(""), Resources_mediaTypes.resourceMediaTypeForExtension(file.extension));
             };
             createStringResource = (string name, string content) =>
             {
@@ -72,7 +73,7 @@ namespace Tsumo.Engine
                 string identity = $"{resource.id}|minify";
                 string resourceText = Resources_text.readResourceText(resource, "resources.Minify");
                 Tsonic.CSharp.Js.JSArray<string> lines = Tsonic.CSharp.Js.String.split(Utils_strings.replaceLineEndings(resourceText, "\n"), "\n");
-                System.Text.StringBuilder output = new System.Text.StringBuilder();
+                TextBuilder output = new TextBuilder();
                 for (int index = 0; index < lines.length; index++)
                 {
                     string line = Tsonic.CSharp.Js.String.trim(lines[index]);
@@ -80,13 +81,13 @@ namespace Tsumo.Engine
                     {
                         continue;
                     }
-                    if (output.Length > 0)
+                    if (output.length > 0)
                     {
-                        output.Append("\n");
+                        output.append("\n");
                     }
-                    output.Append(line);
+                    output.append(line);
                 }
-                string text = output.ToString();
+                string text = output.toString();
                 return new Resource(identity, resource.sourcePath, resource.publishable, resource.outputRelPath, Tsonic.CSharp.Node.Buffer.from(text, "utf8"), text, resource.Data, resource.mediaType, resource.width, resource.height);
             };
             fingerprintResource = (Resource resource) =>

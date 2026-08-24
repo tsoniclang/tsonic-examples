@@ -20,15 +20,16 @@ namespace Tsumo.Tests
                 {
                     operation();
                 }
-                catch (System.Exception error)
+                catch (System.Exception __tsonic_catch0)
                 {
-                    if (error is TsumoError)
+                    Tsonic.CSharp.Runtime.TsValue error = Tsonic.CSharp.Runtime.TsThrownValueException.toValue(__tsonic_catch0);
+                    if (Tsonic.CSharp.Runtime.TsValue.IsDynamicInstanceOf<TsumoError>(error))
                     {
-                        return (TsumoError)error;
+                        return Tsonic.CSharp.Runtime.TsValue.CastDynamic<TsumoError>(error);
                     }
                     throw;
                 }
-                throw new System.Exception("Expected a Tsumo error");
+                throw new Tsonic.CSharp.Runtime.Error("Expected a Tsumo error");
             };
             return null;
         }
@@ -45,20 +46,20 @@ namespace Tsumo.Tests
             string root = TestRoot.createTestDirectory("filesystem-discovery");
             try
             {
-                string source = System.IO.Path.Combine(root, "source");
-                string nested = System.IO.Path.Combine(source, "a");
-                string outside = System.IO.Path.Combine(root, "outside");
-                System.IO.Directory.CreateDirectory(nested);
-                System.IO.Directory.CreateDirectory(outside);
-                System.IO.File.WriteAllText(System.IO.Path.Combine(source, "z.txt"), "z");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(nested, "b.txt"), "b");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(nested, "a.txt"), "a");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(outside, "outside.txt"), "outside");
-                Xunit.Assert.Equal<Tsonic.CSharp.Js.JSArray<string>>(new Tsonic.CSharp.Js.JSArray<string>(new string[] { System.IO.Path.Combine(nested, "a.txt"), System.IO.Path.Combine(nested, "b.txt"), System.IO.Path.Combine(source, "z.txt") }), Node_modules_Tsumo_engine_src_fs.listFilesRecursive(source, "*.txt"));
-                Xunit.Assert.Equal<Tsonic.CSharp.Js.JSArray<string>>(new Tsonic.CSharp.Js.JSArray<string>(new string[] { System.IO.Path.Combine(source, "z.txt") }), Node_modules_Tsumo_engine_src_fs.listFilesTopDirectory(source, "*.txt"));
+                string source = Tsonic.CSharp.Node.path.join(root, "source");
+                string nested = Tsonic.CSharp.Node.path.join(source, "a");
+                string outside = Tsonic.CSharp.Node.path.join(root, "outside");
+                TestRoot.createDirectory(nested);
+                TestRoot.createDirectory(outside);
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(source, "z.txt"), "z");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(nested, "b.txt"), "b");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(nested, "a.txt"), "a");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(outside, "outside.txt"), "outside");
+                Xunit.Assert.Equal<Tsonic.CSharp.Js.JSArray<string>>(new Tsonic.CSharp.Js.JSArray<string>(new string[] { Tsonic.CSharp.Node.path.join(nested, "a.txt"), Tsonic.CSharp.Node.path.join(nested, "b.txt"), Tsonic.CSharp.Node.path.join(source, "z.txt") }), Node_modules_Tsumo_engine_src_fs.listFilesRecursive(source, "*.txt"));
+                Xunit.Assert.Equal<Tsonic.CSharp.Js.JSArray<string>>(new Tsonic.CSharp.Js.JSArray<string>(new string[] { Tsonic.CSharp.Node.path.join(source, "z.txt") }), Node_modules_Tsumo_engine_src_fs.listFilesTopDirectory(source, "*.txt"));
                 Xunit.Assert.Equal<Tsonic.CSharp.Js.JSArray<string>>(new Tsonic.CSharp.Js.JSArray<string>(new string[] { nested }), Node_modules_Tsumo_engine_src_fs.listDirectoriesTopDirectory(source));
-                string link = System.IO.Path.Combine(source, "linked-directory");
-                System.IO.Directory.CreateSymbolicLink(link, outside);
+                string link = Tsonic.CSharp.Node.path.join(source, "linked-directory");
+                TestRoot.createSymbolicLink(outside, link);
                 TsumoError error = FilesystemBoundariesTest.captureTsumoError(() =>
                 {
                     Node_modules_Tsumo_engine_src_fs.listFilesRecursive(source, "*");
@@ -77,16 +78,16 @@ namespace Tsumo.Tests
             string root = TestRoot.createTestDirectory("watch-snapshot");
             try
             {
-                string watched = System.IO.Path.Combine(root, "watched");
-                System.IO.Directory.CreateDirectory(watched);
-                string file = System.IO.Path.Combine(watched, "page.md");
-                System.IO.File.WriteAllText(file, "before");
+                string watched = Tsonic.CSharp.Node.path.join(root, "watched");
+                TestRoot.createDirectory(watched);
+                string file = Tsonic.CSharp.Node.path.join(watched, "page.md");
+                TestRoot.writeTextFile(file, "before");
                 Tsonic.CSharp.Js.Map<string, WatchEntryState> initial = Node_modules_Tsumo_engine_src_watchSnapshot.createWatchSnapshot(new Tsonic.CSharp.Js.JSArray<string>(new string[] { watched }));
                 Xunit.Assert.True(Node_modules_Tsumo_engine_src_watchSnapshot.watchSnapshotsEqual(initial, Node_modules_Tsumo_engine_src_watchSnapshot.createWatchSnapshot(new Tsonic.CSharp.Js.JSArray<string>(new string[] { watched }))));
-                System.IO.File.WriteAllText(file, "after with a different size");
+                TestRoot.writeTextFile(file, "after with a different size");
                 Xunit.Assert.False(Node_modules_Tsumo_engine_src_watchSnapshot.watchSnapshotsEqual(initial, Node_modules_Tsumo_engine_src_watchSnapshot.createWatchSnapshot(new Tsonic.CSharp.Js.JSArray<string>(new string[] { watched }))));
-                string link = System.IO.Path.Combine(watched, "linked-file.md");
-                System.IO.File.CreateSymbolicLink(link, file);
+                string link = Tsonic.CSharp.Node.path.join(watched, "linked-file.md");
+                TestRoot.createSymbolicLink(file, link);
                 Xunit.Assert.Equal("TSUMO_FILESYSTEM_LINK_UNSUPPORTED", FilesystemBoundariesTest.captureTsumoError(() =>
                 {
                     Node_modules_Tsumo_engine_src_watchSnapshot.createWatchSnapshot(new Tsonic.CSharp.Js.JSArray<string>(new string[] { watched }));

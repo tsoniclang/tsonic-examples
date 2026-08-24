@@ -6,8 +6,8 @@ pub use tsonic_rust_runtime::*;
 #[derive(Clone)]
 pub enum TsonicError {
     Runtime(tsonic_rust_runtime::TsonicError),
-    Project0(crate::diagnostics::TsumoError),
-    Project1(crate::template::evaluation::return_signal::TemplateReturnSignal),
+    TsumoError(crate::diagnostics::TsumoError),
+    TemplateReturnSignal(crate::template::evaluation::return_signal::TemplateReturnSignal),
     Suppressed(Box<TsonicError>, Box<TsonicError>),
 }
 
@@ -25,15 +25,21 @@ impl std::convert::From<tsonic_rust_runtime::JsError> for TsonicError {
     }
 }
 
+impl std::convert::From<tsonic_rust_node::NodeError> for TsonicError {
+    fn from(value: tsonic_rust_node::NodeError) -> Self {
+        Self::Runtime(tsonic_rust_runtime::TsonicError::from(value))
+    }
+}
+
 impl std::convert::From<crate::diagnostics::TsumoError> for TsonicError {
     fn from(value: crate::diagnostics::TsumoError) -> Self {
-        Self::Project0(value)
+        Self::TsumoError(value)
     }
 }
 
 impl std::convert::From<crate::template::evaluation::return_signal::TemplateReturnSignal> for TsonicError {
     fn from(value: crate::template::evaluation::return_signal::TemplateReturnSignal) -> Self {
-        Self::Project1(value)
+        Self::TemplateReturnSignal(value)
     }
 }
 
@@ -41,8 +47,8 @@ impl std::fmt::Display for TsonicError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Runtime(value) => std::fmt::Display::fmt(value, formatter),
-            Self::Project0(value) => std::fmt::Display::fmt(value, formatter),
-            Self::Project1(value) => std::fmt::Display::fmt(value, formatter),
+            Self::TsumoError(value) => std::fmt::Display::fmt(value, formatter),
+            Self::TemplateReturnSignal(value) => std::fmt::Display::fmt(value, formatter),
             Self::Suppressed(error, suppressed) => {
                 write!(
                     formatter,

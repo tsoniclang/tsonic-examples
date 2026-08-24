@@ -6,8 +6,8 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-pub(crate) fn substring_error() -> rt::TsonicResult<()> {
-    Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+pub fn substring_error() -> Result<(), rt::TsonicError> {
+    Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
         String::from("TSUMO_INTERNAL_STRING_RANGE_INVALID"),
         String::from("Substring bounds are out of range"),
         None,
@@ -16,11 +16,11 @@ pub(crate) fn substring_error() -> rt::TsonicResult<()> {
     )))
 }
 
-pub(crate) fn require_substring_bounds(
+pub fn require_substring_bounds(
     source: &str,
     start_index: i32,
     length: i32,
-) -> rt::TsonicResult<()> {
+) -> Result<(), rt::TsonicError> {
     if start_index < 0
         || length < 0
         || start_index > tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(source))?
@@ -36,38 +36,41 @@ pub fn replace_text(
     source: &str,
     old_value: String,
     new_value: String,
-) -> rt::TsonicResult<String> {
-    Ok(
-        js_string::replace_all(source, &old_value, &new_value)
-            .map_err(tsonic_rust_runtime::TsonicError::from)?,
-    )
+) -> Result<String, rt::TsonicError> {
+    js_string::replace_all(source, &old_value, &new_value).map_err(rt::TsonicError::from)
 }
 
-pub fn index_of_text(source: &str, value: String) -> rt::TsonicResult<i32> {
-    Ok(tsonic_rust_runtime::conversions::isize_to_i32(js_string::index_of_from_start(
-        source, &value,
-    ))?)
+pub fn index_of_text(source: &str, value: String) -> Result<i32, rt::TsonicError> {
+    tsonic_rust_runtime::conversions::isize_to_i32(js_string::index_of_from_start(source, &value))
+        .map_err(rt::TsonicError::from)
 }
 
-pub fn index_of_text_ignore_case(source: &str, value: &str) -> rt::TsonicResult<i32> {
-    Ok(tsonic_rust_runtime::conversions::isize_to_i32(js_string::index_of_from_start(
-        &js_string::to_lower_case(source),
-        &js_string::to_lower_case(value),
-    ))?)
+pub fn index_of_text_ignore_case(source: &str, value: &str) -> Result<i32, rt::TsonicError> {
+    tsonic_rust_runtime::conversions::isize_to_i32({
+        let operation_input_0 = js_string::to_lower_case(source);
+        js_string::index_of_from_start(&operation_input_0, &js_string::to_lower_case(value))
+    })
+    .map_err(rt::TsonicError::from)
 }
 
-pub fn index_of_text_from(source: &str, value: String, start_index: i32) -> rt::TsonicResult<i32> {
-    Ok(tsonic_rust_runtime::conversions::isize_to_i32(js_string::index_of(
+pub fn index_of_text_from(
+    source: &str,
+    value: String,
+    start_index: i32,
+) -> Result<i32, rt::TsonicError> {
+    tsonic_rust_runtime::conversions::isize_to_i32(js_string::index_of(
         source,
         &value,
         tsonic_rust_runtime::conversions::i32_to_f64(start_index),
-    ))?)
+    ))
+    .map_err(rt::TsonicError::from)
 }
 
-pub fn last_index_of_text(source: &str, value: String) -> rt::TsonicResult<i32> {
-    Ok(tsonic_rust_runtime::conversions::isize_to_i32(js_string::last_index_of_from_end(
+pub fn last_index_of_text(source: &str, value: String) -> Result<i32, rt::TsonicError> {
+    tsonic_rust_runtime::conversions::isize_to_i32(js_string::last_index_of_from_end(
         source, &value,
-    ))?)
+    ))
+    .map_err(rt::TsonicError::from)
 }
 
 pub fn contains_text(source: &str, value: String) -> bool {
@@ -86,68 +89,65 @@ pub fn compare_text(left: String, right: String) -> i32 {
     }
 }
 
-pub fn substring_from(source: &str, start_index: i32) -> rt::TsonicResult<String> {
+pub fn substring_from(source: &str, start_index: i32) -> Result<String, rt::TsonicError> {
     if start_index < 0
         || start_index > tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(source))?
     {
         substring_error()?;
     }
-    Ok(
-        js_string::substring_from(source, tsonic_rust_runtime::conversions::i32_to_f64(start_index))
-            .map_err(tsonic_rust_runtime::TsonicError::from)?,
-    )
+    js_string::substring_from(source, tsonic_rust_runtime::conversions::i32_to_f64(start_index))
+        .map_err(rt::TsonicError::from)
 }
 
-pub fn substring_count(source: String, start_index: i32, length: i32) -> rt::TsonicResult<String> {
+pub fn substring_count(
+    source: String,
+    start_index: i32,
+    length: i32,
+) -> Result<String, rt::TsonicError> {
     require_substring_bounds(&source, start_index, length)?;
-    Ok(
-        js_string::substring(
-            &source,
-            tsonic_rust_runtime::conversions::i32_to_f64(start_index),
-            tsonic_rust_runtime::conversions::i32_to_f64(start_index + length),
-        )
-        .map_err(tsonic_rust_runtime::TsonicError::from)?,
+    js_string::substring(
+        &source,
+        tsonic_rust_runtime::conversions::i32_to_f64(start_index),
+        tsonic_rust_runtime::conversions::i32_to_f64(start_index + length),
     )
+    .map_err(rt::TsonicError::from)
 }
 
-pub fn char_at_text(source: &str, index: i32) -> rt::TsonicResult<String> {
+pub fn char_at_text(source: &str, index: i32) -> Result<String, rt::TsonicError> {
     if index < 0
         || index >= tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(source))?
     {
         return Ok(String::from(""));
     }
-    Ok(
-        js_string::substring(
-            source,
-            tsonic_rust_runtime::conversions::i32_to_f64(index),
-            tsonic_rust_runtime::conversions::i32_to_f64(index + 1),
-        )
-        .map_err(tsonic_rust_runtime::TsonicError::from)?,
+    js_string::substring(
+        source,
+        tsonic_rust_runtime::conversions::i32_to_f64(index),
+        tsonic_rust_runtime::conversions::i32_to_f64(index + 1),
     )
+    .map_err(rt::TsonicError::from)
 }
 
-pub fn code_point_at_text(source: &str, index: i32) -> rt::TsonicResult<String> {
+pub fn code_point_at_text(source: &str, index: i32) -> Result<String, rt::TsonicError> {
     let code_point: Option<f64> =
         js_string::code_point_at(source, tsonic_rust_runtime::conversions::i32_to_f64(index));
     Ok(if code_point.is_none() {
         String::from("")
     } else {
         js_string::from_code_point(&[match code_point.as_ref() {
-    Some(flow_value) => *flow_value,
-    None => unreachable!("checked flow selected a missing optional value"),
-}]).map_err(tsonic_rust_runtime::TsonicError::from)?
+            Some(flow_value) => *flow_value,
+            None => unreachable!("checked flow selected a missing optional value"),
+        }])?
     })
 }
 
-pub fn next_code_point_index(source: &str, index: i32) -> rt::TsonicResult<i32> {
+pub fn next_code_point_index(source: String, index: i32) -> Result<i32, rt::TsonicError> {
     let code_point: Option<f64> =
-        js_string::code_point_at(source, tsonic_rust_runtime::conversions::i32_to_f64(index));
+        js_string::code_point_at(&source, tsonic_rust_runtime::conversions::i32_to_f64(index));
     if code_point.is_none() {
-        return Ok(tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-            source,
-        ))?);
+        return tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&source))
+            .map_err(rt::TsonicError::from);
     }
-    Ok(tsonic_rust_runtime::conversions::f64_to_i32(
+    tsonic_rust_runtime::conversions::f64_to_i32(
         index as f64 + {
             let conditional_test = (match code_point.as_ref() {
                 Some(flow_value) => *flow_value,
@@ -159,23 +159,24 @@ pub fn next_code_point_index(source: &str, index: i32) -> rt::TsonicResult<i32> 
                 1.0
             }
         },
-    )?)
+    )
+    .map_err(rt::TsonicError::from)
 }
 
-pub fn code_point_length(source: String) -> rt::TsonicResult<i32> {
+pub fn code_point_length(source: String) -> Result<i32, rt::TsonicError> {
     let mut count: i32 = 0;
     let mut index: i32 = 0;
     while index < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&source))? {
-        index = next_code_point_index(&source, index)?;
+        index = next_code_point_index(source.clone(), index)?;
         count += 1;
     }
     Ok(count)
 }
 
-pub(crate) fn utf16_index_at_code_point(
+pub fn utf16_index_at_code_point(
     source: String,
     code_point_index: i32,
-) -> rt::TsonicResult<i32> {
+) -> Result<i32, rt::TsonicError> {
     if code_point_index < 0 {
         substring_error()?;
     }
@@ -184,7 +185,7 @@ pub(crate) fn utf16_index_at_code_point(
     while current_code_point < code_point_index
         && utf16_index < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&source))?
     {
-        utf16_index = next_code_point_index(&source, utf16_index)?;
+        utf16_index = next_code_point_index(source.clone(), utf16_index)?;
         current_code_point += 1;
     }
     if current_code_point != code_point_index {
@@ -197,7 +198,7 @@ pub fn substring_code_points(
     source: String,
     start_index: i32,
     length: i32,
-) -> rt::TsonicResult<String> {
+) -> Result<String, rt::TsonicError> {
     if start_index < 0 || length < 0 {
         substring_error()?;
     }
@@ -206,10 +207,10 @@ pub fn substring_code_points(
     substring_count(source.clone(), start, end - start)
 }
 
-pub fn trim_start_code_points(source: String, cutset: &str) -> rt::TsonicResult<String> {
+pub fn trim_start_code_points(source: String, cutset: &str) -> Result<String, rt::TsonicError> {
     let mut start: i32 = 0;
     'loop_value: while start < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&source))? {
-        let next: i32 = next_code_point_index(&source, start)?;
+        let next: i32 = next_code_point_index(source.clone(), start)?;
         if !js_string::includes_from_start(
             cutset,
             &substring_count(source.clone(), start, next - start)?,
@@ -222,11 +223,11 @@ pub fn trim_start_code_points(source: String, cutset: &str) -> rt::TsonicResult<
     substring_from(&source, start)
 }
 
-pub fn trim_end_code_points(source: String, cutset: &str) -> rt::TsonicResult<String> {
+pub fn trim_end_code_points(source: String, cutset: &str) -> Result<String, rt::TsonicError> {
     let mut index: i32 = 0;
     let mut end: i32 = 0;
     while index < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&source))? {
-        let next: i32 = next_code_point_index(&source, index)?;
+        let next: i32 = next_code_point_index(source.clone(), index)?;
         if !js_string::includes_from_start(
             cutset,
             &substring_count(source.clone(), index, next - index)?,
@@ -239,11 +240,11 @@ pub fn trim_end_code_points(source: String, cutset: &str) -> rt::TsonicResult<St
     substring_count(source.clone(), 0, end)
 }
 
-pub fn trim_code_points(source: String, cutset: String) -> rt::TsonicResult<String> {
-    trim_end_code_points(trim_start_code_points(source.clone(), &cutset)?, &cutset)
+pub fn trim_code_points(source: String, cutset: String) -> Result<String, rt::TsonicError> {
+    trim_end_code_points(trim_start_code_points(source, &cutset)?, &cutset)
 }
 
-pub(crate) fn is_unicode_space(value: f64) -> bool {
+pub fn is_unicode_space(value: f64) -> bool {
     (9.0..=13.0).contains(&value)
         || value == 32.0
         || value == 133.0
@@ -257,7 +258,7 @@ pub(crate) fn is_unicode_space(value: f64) -> bool {
         || value == 12288.0
 }
 
-pub fn trim_unicode_space(source: String) -> rt::TsonicResult<String> {
+pub fn trim_unicode_space(source: String) -> Result<String, rt::TsonicError> {
     let mut start: i32 = 0;
     'loop_value: while start < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&source))? {
         let code_point: Option<f64> =
@@ -266,22 +267,24 @@ pub fn trim_unicode_space(source: String) -> rt::TsonicResult<String> {
             || !is_unicode_space(match code_point.as_ref() {
                 Some(flow_value) => *flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
-            }) {
+            })
+        {
             break 'loop_value;
         }
-        start = next_code_point_index(&source, start)?;
+        start = next_code_point_index(source.clone(), start)?;
     }
     let mut index: i32 = start;
     let mut end: i32 = start;
     while index < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&source))? {
         let code_point: Option<f64> =
             js_string::code_point_at(&source, tsonic_rust_runtime::conversions::i32_to_f64(index));
-        let next: i32 = next_code_point_index(&source, index)?;
+        let next: i32 = next_code_point_index(source.clone(), index)?;
         if code_point.is_some()
             && !is_unicode_space(match code_point.as_ref() {
                 Some(flow_value_2) => *flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
-            }) {
+            })
+        {
             end = next;
         }
         index = next;
@@ -289,69 +292,51 @@ pub fn trim_unicode_space(source: String) -> rt::TsonicResult<String> {
     substring_count(source.clone(), start, end - start)
 }
 
-pub fn zero_pad_integer(value: i32, width: i32) -> rt::TsonicResult<String> {
-    let mut result: String = format!(
-        "{}{}{}",
-        String::from(""),
-        rt::source_string(&value),
-        String::from(""),
-    );
+pub fn zero_pad_integer(value: i32, width: i32) -> Result<String, rt::TsonicError> {
+    let mut result: String = rt::source_string(&value);
     while tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&result))? < width {
-        result = format!("{}{}{}", String::from("0"), rt::source_string(&result), String::from(""));
+        result = format!("{}{}", String::from("0"), result);
     }
-    Ok(result.clone())
+    Ok(result)
 }
 
-pub fn trim_start_char(source: &str, ch: String) -> rt::TsonicResult<String> {
+pub fn trim_start_char(source: &str, ch: String) -> Result<String, rt::TsonicError> {
     let mut start: f64 = 0.0;
     while start
         < (tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(source))? as f64)
-        && js_string::substring(source, start, start + 1.0)
-            .map_err(tsonic_rust_runtime::TsonicError::from)?
-            == ch
+        && js_string::substring(source, start, start + 1.0)? == ch
     {
         start += 1.0;
     }
-    Ok(js_string::substring_from(source, start).map_err(tsonic_rust_runtime::TsonicError::from)?)
+    js_string::substring_from(source, start).map_err(rt::TsonicError::from)
 }
 
-pub fn trim_end_char(source: &str, ch: String) -> rt::TsonicResult<String> {
-    let mut end: i32 = tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(source))?;
+pub fn trim_end_char(source: String, ch: String) -> Result<String, rt::TsonicError> {
+    let mut end: i32 = tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&source))?;
     while end > 0
         && js_string::substring(
-            source,
+            &source,
             tsonic_rust_runtime::conversions::i32_to_f64(end - 1),
             tsonic_rust_runtime::conversions::i32_to_f64(end),
-        )
-        .map_err(tsonic_rust_runtime::TsonicError::from)? == ch
+        )? == ch
     {
         end -= 1;
     }
-    Ok(
-        js_string::substring(source, 0.0, tsonic_rust_runtime::conversions::i32_to_f64(end))
-            .map_err(tsonic_rust_runtime::TsonicError::from)?,
-    )
+    js_string::substring(&source, 0.0, tsonic_rust_runtime::conversions::i32_to_f64(end))
+        .map_err(rt::TsonicError::from)
 }
 
-pub fn replace_line_endings(source: &str, replacement: String) -> rt::TsonicResult<String> {
-    let normalized: String = js_string::replace_all(
-        &js_string::replace_all(source, "\r\n", "\n")
-            .map_err(tsonic_rust_runtime::TsonicError::from)?,
-        "\r",
-        "\n",
-    )
-    .map_err(tsonic_rust_runtime::TsonicError::from)?;
+pub fn replace_line_endings(source: &str, replacement: String) -> Result<String, rt::TsonicError> {
+    let normalized: String =
+        js_string::replace_all(&js_string::replace_all(source, "\r\n", "\n")?, "\r", "\n")?;
     Ok(if replacement == "\n" {
         normalized.clone()
     } else {
-        js_string::replace_all(&normalized, "\n", &replacement)
-            .map_err(tsonic_rust_runtime::TsonicError::from)?
+        js_string::replace_all(&normalized, "\n", &replacement)?
     })
 }
 
-pub fn split_lines(source: String) -> rt::TsonicResult<js_abi::JsArray<String>> {
-    Ok(
-        js_string::split_all(&replace_line_endings(&source, String::from("\n"))?, "\n")
-            .map_err(tsonic_rust_runtime::TsonicError::from)?,
-    )
+pub fn split_lines(source: String) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
+    js_string::split_all(&replace_line_endings(&source, String::from("\n"))?, "\n")
+        .map_err(rt::TsonicError::from)
 }

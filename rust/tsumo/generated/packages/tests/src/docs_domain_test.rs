@@ -6,9 +6,10 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
+#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn capture_docs_diagnostic(
     operation: rt::Callable<(), rt::TsonicResult<()>>,
-) -> rt::TsonicResult<String> {
+) -> Result<String, rt::TsonicError> {
     let try_body: rt::TsonicResult<rt::Completion<String>> = rt::completion_region(|| {
         operation.call(())?;
         Ok(rt::Completion::Normal)
@@ -16,22 +17,29 @@ pub(crate) fn capture_docs_diagnostic(
     let try_flow: rt::TsonicResult<rt::Completion<String>> = match try_body {
         Ok(completion) => Ok(completion),
         Err(error) => rt::completion_region(|| {
-            if matches!(error.clone(), rt::TsonicError::Project0(_)) {
-                return Ok(rt::Completion::Return(
-                    {
-                        let dispatch_receiver = &match error {
-                            rt::TsonicError::Project0(program_error) => program_error,
-                            _ => {
-                                unreachable!(
-                                    "checked flow selected a different program-error variant"
-                                )
-                            }
+            if matches!(
+                error.clone(),
+                rt::TsonicError::TsumoEngineError(tsumo_engine::program::TsonicError::TsumoError(_)),
+            )
+            {
+                return Ok(
+                    rt::Completion::Return({
+                        let dispatch_receiver_2 = &{
+                            let dispatch_receiver = &match error {
+                                rt::TsonicError::TsumoEngineError(tsumo_engine::program::TsonicError::TsumoError(program_error)) => {
+                                    program_error
+                                }
+                                _ => {
+                                    unreachable!(
+                                        "checked flow selected a different program-error variant"
+                                    )
+                                }
+                            };
+                            dispatch_receiver.dispatch.read_tsumo_error_diagnostic()
                         };
-                        dispatch_receiver.dispatch.read_tsumo_error_diagnostic()
-                    }
-                    .state
-                    .with(|state| state.code.clone()),
-                ));
+                        dispatch_receiver_2.dispatch.read_tsumo_diagnostic_code()
+                    }),
+                );
             }
             Err(error.clone())
         }),
@@ -49,14 +57,15 @@ pub(crate) fn capture_docs_diagnostic(
     )))
 }
 
+#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn create_mount(
     source_dir: String,
     prefix: String,
-) -> crate::node_modules::tsumo::engine::src::docs::models::DocsMountConfig {
-    crate::node_modules::tsumo::engine::src::docs::models::DocsMountConfig::new(
+) -> tsumo_engine::testing::DocsMountConfig {
+    tsumo_engine::testing::DocsMountConfig::new(
         String::from("Docs"),
-        source_dir.clone(),
-        prefix.clone(),
+        source_dir,
+        prefix,
         Option::<String>::None,
         String::from("main"),
         Option::<String>::None,
@@ -67,49 +76,46 @@ pub(crate) fn create_mount(
 #[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) struct DocsDomainTestsState {}
 
+#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct DocsDomainTests {
-    pub(crate) state: rt::ObjectHandle<DocsDomainTestsState>,
+    pub(crate) state: rt::ObjectRef<DocsDomainTestsState>,
 }
 
 impl DocsDomainTests {
+    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new() -> DocsDomainTests {
         DocsDomainTests {
-            state: rt::ObjectHandle::new(DocsDomainTestsState {}),
+            state: rt::ObjectRef::new(DocsDomainTestsState {}),
         }
     }
 
-    pub fn route_discovery_is_sorted_and_rejects_output_collisions(&self) -> rt::TsonicResult<()> {
-        let root: String = crate::test_root::CREATE_TEST_DIRECTORY
-            .with(|module_binding| module_binding.load())
-            .call((String::from("docs-routes"),))?;
+    pub fn route_discovery_is_sorted_and_rejects_output_collisions(
+        &self,
+    ) -> Result<(), rt::TsonicError> {
+        let root: String = crate::test_root::create_test_directory(String::from("docs-routes"))?;
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
             let source: String = tsonic_rust_node::path::join(&[root.as_str(), "source"]);
-            crate::test_root::CREATE_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((tsonic_rust_node::path::join(&[source.as_str(), "nested"]),))?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[source.as_str(), "z.md"]),
-                    String::from("# Z"),
+            crate::test_root::create_directory(tsonic_rust_node::path::join(
+                &[source.as_str(), "nested"],
+            ))?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[source.as_str(), "z.md"]),
+                String::from("# Z"),
+            )?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[source.as_str(), "a.md"]),
+                String::from("# A"),
+            )?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[source.as_str(), "nested", "asset.txt"]),
+                String::from("asset"),
+            )?;
+            let routes: tsumo_engine::docs::routes::DocsMountRoutes =
+                tsumo_engine::testing::discover_docs_mount_routes(create_mount(
+                    source.clone(),
+                    String::from("/docs/"),
                 ))?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[source.as_str(), "a.md"]),
-                    String::from("# A"),
-                ))?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[source.as_str(), "nested", "asset.txt"]),
-                    String::from("asset"),
-                ))?;
-            let routes: crate::node_modules::tsumo::engine::src::docs::routes::DocsMountRoutes =
-                crate::node_modules::tsumo::engine::src::docs::routes::DISCOVER_DOCS_MOUNT_ROUTES
-                    .with(|module_binding| module_binding.load())
-                    .call((create_mount(source.clone(), String::from("/docs/")),))?;
             crate::test_root::Assert::number_equal(
                 2.0,
                 Some(tsonic_rust_runtime::conversions::i32_to_f64(
@@ -168,46 +174,37 @@ impl DocsDomainTests {
                 .with(|state| state.output_rel_path.clone())
                     == "docs/nested/asset.txt",
             )?;
-            let conflicting: String = tsonic_rust_node::path::join(&[root.as_str(), "conflicting"]);
-            crate::test_root::CREATE_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((tsonic_rust_node::path::join(&[conflicting.as_str(), "guide"]),))?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[conflicting.as_str(), "guide.md"]),
-                    String::from("# Guide"),
-                ))?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[conflicting.as_str(), "guide", "index.md"]),
-                    String::from("# Other guide"),
-                ))?;
+            let conflicting: String =
+                tsonic_rust_node::path::join(&[root.as_str(), "conflicting"]);
+            crate::test_root::create_directory(tsonic_rust_node::path::join(
+                &[conflicting.as_str(), "guide"],
+            ))?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[conflicting.as_str(), "guide.md"]),
+                String::from("# Guide"),
+            )?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[conflicting.as_str(), "guide", "index.md"]),
+                String::from("# Other guide"),
+            )?;
             crate::test_root::Assert::string_equal(
                 String::from("TSUMO_DOCS_ROUTE_CONFLICT"),
-                Some(
-                    capture_docs_diagnostic({
-                        let capture_conflicting = conflicting.clone();
-                        rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                            crate::node_modules::tsumo::engine::src::docs::routes::DISCOVER_DOCS_MOUNT_ROUTES
-                                .with(|module_binding| module_binding.load())
-                                .call((create_mount(
-                                    capture_conflicting.clone(),
-                                    String::from("/docs/"),
-                                ),))?;
-                            Ok::<_, rt::TsonicError>(())
-                        })
-                    })?,
-                ),
+                Some(capture_docs_diagnostic({
+                    let capture_conflicting = conflicting.clone();
+                    rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
+                        tsumo_engine::testing::discover_docs_mount_routes(create_mount(
+                            capture_conflicting.clone(),
+                            String::from("/docs/"),
+                        ))?;
+                        Ok::<_, rt::TsonicError>(())
+                    })
+                })?),
             )?;
             Ok(rt::Completion::Normal)
         });
         let try_flow = try_body;
         let finally_flow: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::DELETE_TEST_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((root.clone(),))?;
+            crate::test_root::delete_test_directory(root.clone())?;
             Ok(rt::Completion::Normal)
         });
         let try_flow: rt::TsonicResult<rt::Completion<()>> =
@@ -222,34 +219,26 @@ impl DocsDomainTests {
         Ok(())
     }
 
-    pub fn content_inventory_excludes_draft_leaf_routes(&self) -> rt::TsonicResult<()> {
-        let root: String = crate::test_root::CREATE_TEST_DIRECTORY
-            .with(|module_binding| module_binding.load())
-            .call((String::from("docs-content"),))?;
+    pub fn content_inventory_excludes_draft_leaf_routes(&self) -> Result<(), rt::TsonicError> {
+        let root: String = crate::test_root::create_test_directory(String::from("docs-content"))?;
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[root.as_str(), "published.md"]),
-                    String::from("---\ntitle: Published\n---\nBody"),
-                ))?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[root.as_str(), "draft.md"]),
-                    String::from("---\ntitle: Draft\ndraft: true\n---\nHidden"),
-                ))?;
-            let routes: js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::docs::routes::DocsMarkdownRoute,
-            > = crate::node_modules::tsumo::engine::src::docs::routes::DISCOVER_DOCS_MOUNT_ROUTES
-                .with(|module_binding| module_binding.load())
-                .call((create_mount(root.clone(), String::from("/docs/")),))?
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[root.as_str(), "published.md"]),
+                String::from("---\ntitle: Published\n---\nBody"),
+            )?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[root.as_str(), "draft.md"]),
+                String::from("---\ntitle: Draft\ndraft: true\n---\nHidden"),
+            )?;
+            let routes: js_abi::JsArray<tsumo_engine::docs::routes::DocsMarkdownRoute> =
+                tsumo_engine::testing::discover_docs_mount_routes(create_mount(
+                    root.clone(),
+                    String::from("/docs/"),
+                ))?
                 .state
                 .with(|state| state.markdown.clone());
-            let production: crate::node_modules::tsumo::engine::src::docs::content::DocsContentInventory =
-                crate::node_modules::tsumo::engine::src::docs::content::LOAD_DOCS_CONTENT
-                    .with(|module_binding| module_binding.load())
-                    .call((routes.clone(), false))?;
+            let production: tsumo_engine::docs::content::DocsContentInventory =
+                tsumo_engine::testing::load_docs_content(routes.clone(), false)?;
             crate::test_root::Assert::number_equal(
                 1.0,
                 Some(tsonic_rust_runtime::conversions::i32_to_f64(
@@ -270,10 +259,8 @@ impl DocsDomainTests {
                     .with(|state| state.permalink_by_relative_path.clone())
                     .has("draft.md"),
             )?;
-            let with_drafts: crate::node_modules::tsumo::engine::src::docs::content::DocsContentInventory =
-                crate::node_modules::tsumo::engine::src::docs::content::LOAD_DOCS_CONTENT
-                    .with(|module_binding| module_binding.load())
-                    .call((routes.clone(), true))?;
+            let with_drafts: tsumo_engine::docs::content::DocsContentInventory =
+                tsumo_engine::testing::load_docs_content(routes.clone(), true)?;
             crate::test_root::Assert::number_equal(
                 2.0,
                 Some(tsonic_rust_runtime::conversions::i32_to_f64(
@@ -292,9 +279,7 @@ impl DocsDomainTests {
         });
         let try_flow = try_body;
         let finally_flow: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::DELETE_TEST_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((root.clone(),))?;
+            crate::test_root::delete_test_directory(root.clone())?;
             Ok(rt::Completion::Normal)
         });
         let try_flow: rt::TsonicResult<rt::Completion<()>> =
@@ -309,27 +294,20 @@ impl DocsDomainTests {
         Ok(())
     }
 
-    pub fn docs_config_has_one_closed_schema(&self) -> rt::TsonicResult<()> {
-        let root: String = crate::test_root::CREATE_TEST_DIRECTORY
-            .with(|module_binding| module_binding.load())
-            .call((String::from("docs-config"),))?;
+    pub fn docs_config_has_one_closed_schema(&self) -> Result<(), rt::TsonicError> {
+        let root: String = crate::test_root::create_test_directory(String::from("docs-config"))?;
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::CREATE_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((tsonic_rust_node::path::join(&[root.as_str(), "content"]),))?;
+            crate::test_root::create_directory(tsonic_rust_node::path::join(
+                &[root.as_str(), "content"],
+            ))?;
             let config_path: String =
                 tsonic_rust_node::path::join(&[root.as_str(), "tsumo.docs.json"]);
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    config_path.clone(),
-                    String::from("{\"siteName\":\"Contract\",\"mounts\":[{\"name\":\"Main\",\"source\":\"./content\",\"prefix\":\"/docs/\"}]}"),
-                ))?;
-            let loaded: Option<
-                crate::node_modules::tsumo::engine::src::docs::config::LoadedDocsConfig,
-            > = crate::node_modules::tsumo::engine::src::docs::config::LOAD_DOCS_CONFIG
-                .with(|module_binding| module_binding.load())
-                .call((root.clone(),))?;
+            crate::test_root::write_text_file(
+                config_path.clone(),
+                String::from("{\"siteName\":\"Contract\",\"mounts\":[{\"name\":\"Main\",\"source\":\"./content\",\"prefix\":\"/docs/\"}]}"),
+            )?;
+            let loaded: Option<tsumo_engine::docs::config::LoadedDocsConfig> =
+                tsumo_engine::testing::load_docs_config(root.clone())?;
             crate::test_root::Assert::r#true(
                 loaded.is_some()
                     && tsonic_rust_runtime::conversions::usize_to_i32(
@@ -345,8 +323,8 @@ impl DocsDomainTests {
                     )? == 1,
             )?;
             crate::test_root::Assert::r#true(
-                loaded.is_some()
-                    && match match loaded.as_ref() {
+                loaded.is_some() && {
+                    let dispatch_receiver = &match match loaded.as_ref() {
                         Some(flow_value_2) => flow_value_2.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
@@ -359,43 +337,36 @@ impl DocsDomainTests {
                     {
                         Some(flow_value_3) => flow_value_3.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
-                    }
-                    .state
-                    .with(|state| state.url_prefix.clone())
-                        == "/docs/",
+                    };
+                    dispatch_receiver
+                        .dispatch
+                        .read_docs_mount_config_url_prefix()
+                } == "/docs/",
             )?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    config_path.clone(),
-                    String::from("{\"mounts\":[{\"source\":\"./content\",\"prefix\":\"/docs/\",\"repo\":\"https://example.invalid\"}]}"),
-                ))?;
+            crate::test_root::write_text_file(
+                config_path.clone(),
+                String::from("{\"mounts\":[{\"source\":\"./content\",\"prefix\":\"/docs/\",\"repo\":\"https://example.invalid\"}]}"),
+            )?;
             crate::test_root::Assert::string_equal(
                 String::from("TSUMO_DOCS_CONFIG_UNKNOWN_PROPERTY"),
                 Some(capture_docs_diagnostic({
                     let capture_root = root.clone();
                     rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                        crate::node_modules::tsumo::engine::src::docs::config::LOAD_DOCS_CONFIG
-                            .with(|module_binding| module_binding.load())
-                            .call((capture_root.clone(),))?;
+                        tsumo_engine::testing::load_docs_config(capture_root.clone())?;
                         Ok::<_, rt::TsonicError>(())
                     })
                 })?),
             )?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    config_path.clone(),
-                    String::from("{\"search\":\"yes\",\"mounts\":[{\"source\":\"./content\",\"prefix\":\"/docs/\"}]}"),
-                ))?;
+            crate::test_root::write_text_file(
+                config_path.clone(),
+                String::from("{\"search\":\"yes\",\"mounts\":[{\"source\":\"./content\",\"prefix\":\"/docs/\"}]}"),
+            )?;
             crate::test_root::Assert::string_equal(
                 String::from("TSUMO_DOCS_CONFIG_TYPE"),
                 Some(capture_docs_diagnostic({
                     let capture_root_2 = root.clone();
                     rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
-                        crate::node_modules::tsumo::engine::src::docs::config::LOAD_DOCS_CONFIG
-                            .with(|module_binding| module_binding.load())
-                            .call((capture_root_2.clone(),))?;
+                        tsumo_engine::testing::load_docs_config(capture_root_2.clone())?;
                         Ok::<_, rt::TsonicError>(())
                     })
                 })?),
@@ -404,9 +375,7 @@ impl DocsDomainTests {
         });
         let try_flow = try_body;
         let finally_flow: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::DELETE_TEST_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((root.clone(),))?;
+            crate::test_root::delete_test_directory(root.clone())?;
             Ok(rt::Completion::Normal)
         });
         let try_flow: rt::TsonicResult<rt::Completion<()>> =
@@ -421,102 +390,107 @@ impl DocsDomainTests {
         Ok(())
     }
 
-    pub fn output_and_search_plans_are_exact_and_deterministic(&self) -> rt::TsonicResult<()> {
-        let root: String = crate::test_root::CREATE_TEST_DIRECTORY
-            .with(|module_binding| module_binding.load())
-            .call((String::from("docs-output"),))?;
+    pub fn output_and_search_plans_are_exact_and_deterministic(
+        &self,
+    ) -> Result<(), rt::TsonicError> {
+        let root: String = crate::test_root::create_test_directory(String::from("docs-output"))?;
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
             crate::test_root::Assert::string_equal(
                 String::from("guide/index.html"),
-                Some(
-                    crate::node_modules::tsumo::engine::src::docs::output::DOCS_OUTPUT_PATH_FOR_PERMALINK
-                        .with(|module_binding| module_binding.load())
-                        .call((String::from("/guide/"),))?,
-                ),
+                Some(tsumo_engine::testing::docs_output_path_for_permalink(
+                    "/guide/",
+                )?),
             )?;
             crate::test_root::Assert::string_equal(
                 String::from("TSUMO_DOCS_OUTPUT_PATH_ESCAPES_ROOT"),
-                Some(
-                    capture_docs_diagnostic({
-                        let capture_root = root.clone();
-                        rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                            crate::node_modules::tsumo::engine::src::docs::output::RESOLVE_DOCS_OUTPUT_PATH
-                                .with(|module_binding| module_binding.load())
-                                .call((capture_root.clone(), String::from("../outside.html")))?;
-                            Ok::<_, rt::TsonicError>(())
-                        })
-                    })?,
-                ),
+                Some(capture_docs_diagnostic({
+                    let capture_root = root.clone();
+                    rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
+                        tsumo_engine::testing::resolve_docs_output_path(
+                            capture_root.clone(),
+                            String::from("../outside.html"),
+                        )?;
+                        Ok::<_, rt::TsonicError>(())
+                    })
+                })?),
             )?;
             crate::test_root::Assert::string_equal(
                 String::from("TSUMO_DOCS_OUTPUT_PATH_ABSOLUTE"),
-                Some(
-                    capture_docs_diagnostic({
-                        let capture_root_2 = root.clone();
-                        rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
-                            crate::node_modules::tsumo::engine::src::docs::output::RESOLVE_DOCS_OUTPUT_PATH
-                                .with(|module_binding| module_binding.load())
-                                .call((capture_root_2.clone(), String::from("/outside.html")))?;
-                            Ok::<_, rt::TsonicError>(())
-                        })
-                    })?,
-                ),
+                Some(capture_docs_diagnostic({
+                    let capture_root_2 = root.clone();
+                    rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
+                        tsumo_engine::testing::resolve_docs_output_path(
+                            capture_root_2.clone(),
+                            String::from("/outside.html"),
+                        )?;
+                        Ok::<_, rt::TsonicError>(())
+                    })
+                })?),
             )?;
-            let claims: crate::node_modules::tsumo::engine::src::docs::output::DocsOutputClaims =
-                crate::node_modules::tsumo::engine::src::docs::output::DocsOutputClaims::new();
-            claims.add(String::from("docs/index.html"), String::from("first.md"))?;
+            let claims: tsumo_engine::testing::DocsOutputClaims =
+                tsumo_engine::testing::DocsOutputClaims::new();
+            {
+                let dispatch_receiver = claims.clone();
+                dispatch_receiver
+                    .dispatch
+                    .clone()
+                    .dispatch_docs_output_claims_add(
+                        String::from("docs/index.html"),
+                        String::from("first.md"),
+                    )
+            }?;
             crate::test_root::Assert::string_equal(
                 String::from("TSUMO_DOCS_ROUTE_CONFLICT"),
-                Some(
-                    capture_docs_diagnostic({
-                        let capture_claims = claims.clone();
-                        rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_3| {
-                            capture_claims.add(String::from("DOCS/index.html"), String::from("second.md"))?;
-                            Ok::<_, rt::TsonicError>(())
-                        })
-                    })?,
-                ),
+                Some(capture_docs_diagnostic({
+                    let capture_claims = claims.clone();
+                    rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_3| {
+                        {
+                            let dispatch_receiver_2 = capture_claims.clone();
+                            dispatch_receiver_2
+                                .dispatch
+                                .clone()
+                                .dispatch_docs_output_claims_add(
+                                    String::from("DOCS/index.html"),
+                                    String::from("second.md"),
+                                )
+                        }?;
+                        Ok::<_, rt::TsonicError>(())
+                    })
+                })?),
             )?;
-            let documents: js_abi::JsArray<
-                crate::node_modules::tsumo::engine::src::docs::search_index::SearchDocument,
-            > = js_abi::JsArray::from_dense(vec![
-                crate::node_modules::tsumo::engine::src::docs::search_index::SearchDocument::new(
-                    String::from("Zulu"),
-                    String::from("/z/"),
-                    String::from("Docs"),
-                    String::from("last"),
-                ),
-                crate::node_modules::tsumo::engine::src::docs::search_index::SearchDocument::new(
-                    String::from("Alpha"),
-                    String::from("/a/"),
-                    String::from("Docs"),
-                    String::from("quoted \"value\""),
-                ),
-            ]);
+            let documents: js_abi::JsArray<tsumo_engine::testing::SearchDocument> =
+                js_abi::JsArray::from_dense(vec![
+                    tsumo_engine::testing::SearchDocument::new(
+                        String::from("Zulu"),
+                        String::from("/z/"),
+                        String::from("Docs"),
+                        String::from("last"),
+                    ),
+                    tsumo_engine::testing::SearchDocument::new(
+                        String::from("Alpha"),
+                        String::from("/a/"),
+                        String::from("Docs"),
+                        String::from("quoted \"value\""),
+                    ),
+                ]);
             let expected: String = String::from("[{\"title\":\"Alpha\",\"url\":\"/a/\",\"mount\":\"Docs\",\"text\":\"quoted \\\"value\\\"\"},{\"title\":\"Zulu\",\"url\":\"/z/\",\"mount\":\"Docs\",\"text\":\"last\"}]");
             crate::test_root::Assert::string_equal(
                 expected.clone(),
-                Some(
-                    crate::node_modules::tsumo::engine::src::docs::search_index::RENDER_SEARCH_INDEX_JSON
-                        .with(|module_binding| module_binding.load())
-                        .call((documents.clone(),))?,
-                ),
+                Some(tsumo_engine::testing::render_search_index_json(
+                    documents.clone(),
+                )?),
             )?;
             crate::test_root::Assert::string_equal(
                 expected.clone(),
-                Some(
-                    crate::node_modules::tsumo::engine::src::docs::search_index::RENDER_SEARCH_INDEX_JSON
-                        .with(|module_binding| module_binding.load())
-                        .call((documents.clone(),))?,
-                ),
+                Some(tsumo_engine::testing::render_search_index_json(
+                    documents.clone(),
+                )?),
             )?;
             Ok(rt::Completion::Normal)
         });
         let try_flow = try_body;
         let finally_flow: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::DELETE_TEST_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((root.clone(),))?;
+            crate::test_root::delete_test_directory(root.clone())?;
             Ok(rt::Completion::Normal)
         });
         let try_flow: rt::TsonicResult<rt::Completion<()>> =
@@ -531,23 +505,24 @@ impl DocsDomainTests {
         Ok(())
     }
 
-    pub fn strict_markdown_links_fail_closed(&self) -> rt::TsonicResult<()> {
-        let mount: crate::node_modules::tsumo::engine::src::docs::models::DocsMountConfig =
+    pub fn strict_markdown_links_fail_closed(&self) -> Result<(), rt::TsonicError> {
+        let mount: tsumo_engine::testing::DocsMountConfig =
             create_mount(String::from("/docs"), String::from("/docs/"));
         let routes: js_abi::JsMap<String, String> = js_abi::JsMap::new();
-        routes.set(String::from("known.md"), String::from("/docs/known/"));
-        let context: crate::node_modules::tsumo::engine::src::docs::markdown::DocsLinkRewriteContext =
-            crate::node_modules::tsumo::engine::src::docs::markdown::DocsLinkRewriteContext::new(
-                mount.clone(),
+        routes.set_discard(String::from("known.md"), String::from("/docs/known/"));
+        let context: tsumo_engine::testing::DocsLinkRewriteContext =
+            tsumo_engine::testing::DocsLinkRewriteContext::new(
+                mount,
                 String::from("/docs/current.md"),
                 String::from(""),
                 routes.clone(),
                 true,
             );
-        let rendered: crate::node_modules::tsumo::engine::src::markdown::result::MarkdownResult =
-            crate::node_modules::tsumo::engine::src::docs::markdown::RENDER_DOCS_MARKDOWN
-                .with(|module_binding| module_binding.load())
-                .call((String::from("[Known](known.md)"), context.clone()))?;
+        let rendered: tsumo_engine::markdown::result::MarkdownResult =
+            tsumo_engine::testing::render_docs_markdown(
+                String::from("[Known](known.md)"),
+                context.clone(),
+            )?;
         crate::test_root::Assert::r#true(js_string::includes_from_start(
             &rendered.state.with(|state| state.html.clone()),
             "/docs/known/",
@@ -557,12 +532,10 @@ impl DocsDomainTests {
             Some(capture_docs_diagnostic({
                 let capture_context = context.clone();
                 rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                    crate::node_modules::tsumo::engine::src::docs::markdown::RENDER_DOCS_MARKDOWN
-                        .with(|module_binding| module_binding.load())
-                        .call((
-                            String::from("[Missing](missing.md)"),
-                            capture_context.clone(),
-                        ))?;
+                    tsumo_engine::testing::render_docs_markdown(
+                        String::from("[Missing](missing.md)"),
+                        capture_context.clone(),
+                    )?;
                     Ok::<_, rt::TsonicError>(())
                 })
             })?),
@@ -572,12 +545,10 @@ impl DocsDomainTests {
             Some(capture_docs_diagnostic({
                 let capture_context_2 = context.clone();
                 rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
-                    crate::node_modules::tsumo::engine::src::docs::markdown::RENDER_DOCS_MARKDOWN
-                        .with(|module_binding| module_binding.load())
-                        .call((
-                            String::from("[Unsafe](javascript:alert(1))"),
-                            capture_context_2.clone(),
-                        ))?;
+                    tsumo_engine::testing::render_docs_markdown(
+                        String::from("[Unsafe](javascript:alert(1))"),
+                        capture_context_2.clone(),
+                    )?;
                     Ok::<_, rt::TsonicError>(())
                 })
             })?),
@@ -592,94 +563,49 @@ impl Default for DocsDomainTests {
     }
 }
 
-pub type RunDocsDomainTestsCallable = rt::Callable<(), rt::TsonicResult<()>>;
-
-std::thread_local! {
-    pub static RUN_DOCS_DOMAIN_TESTS: rt::ModuleCell<RunDocsDomainTestsCallable> = const { rt::ModuleCell::new() };
-}
-
-#[doc(hidden)]
-pub fn module_init() {
-    {
-        let module_value = rt::Callable::<(), rt::TsonicResult<()>>::new(
-            move |_callable_arguments| {
-                let tests: DocsDomainTests = DocsDomainTests::new();
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("docs route discovery is sorted and rejects output collisions"),
-                        {
-                            let capture_tests = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_2| {
-                                    capture_tests
-                                        .route_discovery_is_sorted_and_rejects_output_collisions()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("docs content inventory excludes draft leaf routes"),
-                        {
-                            let capture_tests_2 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_3| {
-                                    capture_tests_2
-                                        .content_inventory_excludes_draft_leaf_routes()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("docs config has one closed schema"),
-                        {
-                            let capture_tests_3 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_4| {
-                                    capture_tests_3.docs_config_has_one_closed_schema()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("docs output and search plans are exact and deterministic"),
-                        {
-                            let capture_tests_4 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_5| {
-                                    capture_tests_4
-                                        .output_and_search_plans_are_exact_and_deterministic()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("strict markdown links fail closed"),
-                        {
-                            let capture_tests_5 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_6| {
-                                    capture_tests_5.strict_markdown_links_fail_closed()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn run_docs_domain_tests() -> Result<(), rt::TsonicError> {
+    let tests: DocsDomainTests = DocsDomainTests::new();
+    crate::test_root::run_test(
+        String::from("docs route discovery is sorted and rejects output collisions"),
+        {
+            let capture_tests = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
+                capture_tests.route_discovery_is_sorted_and_rejects_output_collisions()?;
                 Ok::<_, rt::TsonicError>(())
-            },
-        );
-        RUN_DOCS_DOMAIN_TESTS.with(|module_binding| module_binding.initialize(module_value))
-    };
+            })
+        },
+    )?;
+    crate::test_root::run_test(String::from("docs content inventory excludes draft leaf routes"), {
+        let capture_tests_2 = tests.clone();
+        rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
+            capture_tests_2.content_inventory_excludes_draft_leaf_routes()?;
+            Ok::<_, rt::TsonicError>(())
+        })
+    })?;
+    crate::test_root::run_test(String::from("docs config has one closed schema"), {
+        let capture_tests_3 = tests.clone();
+        rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_3| {
+            capture_tests_3.docs_config_has_one_closed_schema()?;
+            Ok::<_, rt::TsonicError>(())
+        })
+    })?;
+    crate::test_root::run_test(
+        String::from("docs output and search plans are exact and deterministic"),
+        {
+            let capture_tests_4 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_4| {
+                capture_tests_4.output_and_search_plans_are_exact_and_deterministic()?;
+                Ok::<_, rt::TsonicError>(())
+            })
+        },
+    )?;
+    crate::test_root::run_test(String::from("strict markdown links fail closed"), {
+        let capture_tests_5 = tests.clone();
+        rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_5| {
+            capture_tests_5.strict_markdown_links_fail_closed()?;
+            Ok::<_, rt::TsonicError>(())
+        })
+    })?;
+    Ok(())
 }
