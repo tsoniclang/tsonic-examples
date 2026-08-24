@@ -67,9 +67,10 @@ namespace Tsumo.Cli
             {
                 main();
             }
-            catch (System.Exception error)
+            catch (System.Exception __tsonic_catch0)
             {
-                LogErrorLine.logErrorLine(error is TsumoError ? ((TsumoError)error).diagnostic.format() : $"{error}");
+                Tsonic.CSharp.Runtime.TsValue error = Tsonic.CSharp.Runtime.TsThrownValueException.toValue(__tsonic_catch0);
+                LogErrorLine.logErrorLine(Tsonic.CSharp.Runtime.TsValue.IsDynamicInstanceOf<TsumoError>(error) ? Tsonic.CSharp.Runtime.TsValue.CastDynamic<TsumoError>(error).diagnostic.format() : $"{error}");
                 Tsonic.CSharp.Node.process.exitCode = 1;
             }
             return null;

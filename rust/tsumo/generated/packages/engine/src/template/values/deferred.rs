@@ -2,8 +2,9 @@
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait DeferredTemplateValueDispatch:
+pub trait DeferredTemplateValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_deferred_template_value_to_deferred_template_value(
@@ -18,18 +19,28 @@ pub(crate) trait DeferredTemplateValueDispatch:
     );
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct DeferredTemplateValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) key: Option<String>,
-    pub(crate) data: crate::template::values::base::TemplateValue,
+pub struct DeferredTemplateValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub key: Option<String>,
+    pub data: crate::template::values::base::TemplateValue,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct DeferredTemplateValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn DeferredTemplateValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn DeferredTemplateValueDispatch>,
+}
+
+impl std::fmt::Debug for DeferredTemplateValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("DeferredTemplateValue")
+    }
 }
 
 impl PartialEq for DeferredTemplateValue {
@@ -47,13 +58,14 @@ pub(crate) struct DeferredTemplateValueRoot {
 }
 
 impl DeferredTemplateValue {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         key: Option<String>,
         data: crate::template::values::base::TemplateValue,
     ) -> DeferredTemplateValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_key: Option<String> = key.clone();
-        let field_data: crate::template::values::base::TemplateValue = data.clone();
+        let field_key: Option<String> = key;
+        let field_data: crate::template::values::base::TemplateValue = data;
         DeferredTemplateValueState {
             base: base_state,
             key: field_key,

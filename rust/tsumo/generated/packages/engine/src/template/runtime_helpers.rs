@@ -8,53 +8,1108 @@ std::thread_local! {
     pub static NIL: rt::ModuleCell<crate::template::values::base::TemplateValue> = const { rt::ModuleCell::new() };
 }
 
-pub type IsTemplateMapCallable =
-    rt::Callable<(crate::template::values::base::TemplateValue,), rt::TsonicResult<bool>>;
-
-std::thread_local! {
-    pub static IS_TEMPLATE_MAP: rt::ModuleCell<IsTemplateMapCallable> = const { rt::ModuleCell::new() };
+pub fn is_template_map(value: crate::template::values::base::TemplateValue) -> bool {
+    value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_dict_value()
+        .is_some()
+        || value
+            .dispatch
+            .clone()
+            .downcast_template_value_to_menus_value()
+            .is_some()
+        || value
+            .dispatch
+            .clone()
+            .downcast_template_value_to_taxonomies_value()
+            .is_some()
+        || value
+            .dispatch
+            .clone()
+            .downcast_template_value_to_taxonomy_terms_value()
+            .is_some()
 }
 
-pub type IsTemplateSliceCallable =
-    rt::Callable<(crate::template::values::base::TemplateValue,), rt::TsonicResult<bool>>;
-
-std::thread_local! {
-    pub static IS_TEMPLATE_SLICE: rt::ModuleCell<IsTemplateSliceCallable> = const { rt::ModuleCell::new() };
+pub fn is_template_slice(value: crate::template::values::base::TemplateValue) -> bool {
+    value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_any_array_value()
+        .is_some()
+        || value
+            .dispatch
+            .clone()
+            .downcast_template_value_to_docs_mount_array_value()
+            .is_some()
+        || value
+            .dispatch
+            .clone()
+            .downcast_template_value_to_menu_array_value()
+            .is_some()
+        || value
+            .dispatch
+            .clone()
+            .downcast_template_value_to_nav_array_value()
+            .is_some()
+        || value
+            .dispatch
+            .clone()
+            .downcast_template_value_to_page_array_value()
+            .is_some()
+        || value
+            .dispatch
+            .clone()
+            .downcast_template_value_to_sites_array_value()
+            .is_some()
+        || value
+            .dispatch
+            .clone()
+            .downcast_template_value_to_string_array_value()
+            .is_some()
 }
 
-pub type IsTruthyCallable =
-    rt::Callable<(crate::template::values::base::TemplateValue,), rt::TsonicResult<bool>>;
-
-std::thread_local! {
-    pub static IS_TRUTHY: rt::ModuleCell<IsTruthyCallable> = const { rt::ModuleCell::new() };
+pub fn is_truthy(
+    value: crate::template::values::base::TemplateValue,
+) -> Result<bool, rt::TsonicError> {
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_nil_value()
+        .is_some()
+    {
+        return Ok(false);
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_bool_value()
+        .is_some()
+    {
+        return Ok({
+            let dispatch_receiver = &{
+                let downcast_value = &value;
+                crate::template::values::primitives::BoolValue {
+                    identity: downcast_value.identity.clone(),
+                    dispatch: downcast_value
+                        .dispatch
+                        .clone()
+                        .downcast_template_value_to_bool_value()
+                        .unwrap(),
+                }
+            };
+            dispatch_receiver.dispatch.read_bool_value_value()
+        });
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_number_value()
+        .is_some()
+    {
+        return Ok(
+            {
+                let dispatch_receiver_2 = &{
+                    let downcast_value_2 = &value;
+                    crate::template::values::primitives::NumberValue {
+                        identity: downcast_value_2.identity.clone(),
+                        dispatch: downcast_value_2
+                            .dispatch
+                            .clone()
+                            .downcast_template_value_to_number_value()
+                            .unwrap(),
+                    }
+                };
+                dispatch_receiver_2.dispatch.read_number_value_value()
+            } != 0,
+        );
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_string_value()
+        .is_some()
+    {
+        return Ok(!{
+            let dispatch_receiver_3 = &{
+                let downcast_value_3 = &value;
+                crate::template::values::primitives::StringValue {
+                    identity: downcast_value_3.identity.clone(),
+                    dispatch: downcast_value_3
+                        .dispatch
+                        .clone()
+                        .downcast_template_value_to_string_value()
+                        .unwrap(),
+                }
+            };
+            dispatch_receiver_3.dispatch.read_string_value_value()
+        }
+        .is_empty());
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_html_value()
+        .is_some()
+    {
+        return Ok(!{
+            let dispatch_receiver_5 = &{
+                let dispatch_receiver_4 = &{
+                    let downcast_value_4 = &value;
+                    crate::template::values::primitives::HtmlValue {
+                        identity: downcast_value_4.identity.clone(),
+                        dispatch: downcast_value_4
+                            .dispatch
+                            .clone()
+                            .downcast_template_value_to_html_value()
+                            .unwrap(),
+                    }
+                };
+                dispatch_receiver_4.dispatch.read_html_value_value()
+            };
+            dispatch_receiver_5.dispatch.read_html_string_value()
+        }
+        .is_empty());
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_date_value()
+        .is_some()
+    {
+        return Ok(!js_string::trim(&{
+            let dispatch_receiver_6 = &{
+                let downcast_value_5 = &value;
+                crate::template::values::date::DateValue {
+                    identity: downcast_value_5.identity.clone(),
+                    dispatch: downcast_value_5
+                        .dispatch
+                        .clone()
+                        .downcast_template_value_to_date_value()
+                        .unwrap(),
+                }
+            };
+            dispatch_receiver_6.dispatch.read_date_value_value()
+        })
+        .is_empty());
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_dict_value()
+        .is_some()
+    {
+        return Ok(
+            tsonic_rust_runtime::conversions::usize_to_i32(
+                {
+                    let dispatch_receiver_7 = &{
+                        let downcast_value_6 = &value;
+                        crate::template::values::dict::DictValue {
+                            identity: downcast_value_6.identity.clone(),
+                            dispatch: downcast_value_6
+                                .dispatch
+                                .clone()
+                                .downcast_template_value_to_dict_value()
+                                .unwrap(),
+                        }
+                    };
+                    dispatch_receiver_7.dispatch.read_dict_value_value()
+                }
+                .len(),
+            )? > 0,
+        );
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_page_array_value()
+        .is_some()
+    {
+        return Ok(
+            tsonic_rust_runtime::conversions::usize_to_i32(
+                {
+                    let dispatch_receiver_8 = &{
+                        let downcast_value_7 = &value;
+                        crate::template::values::page::PageArrayValue {
+                            identity: downcast_value_7.identity.clone(),
+                            dispatch: downcast_value_7
+                                .dispatch
+                                .clone()
+                                .downcast_template_value_to_page_array_value()
+                                .unwrap(),
+                        }
+                    };
+                    dispatch_receiver_8.dispatch.read_page_array_value_value()
+                }
+                .len(),
+            )? > 0,
+        );
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_string_array_value()
+        .is_some()
+    {
+        return Ok(
+            tsonic_rust_runtime::conversions::usize_to_i32(
+                {
+                    let dispatch_receiver_9 = &{
+                        let downcast_value_8 = &value;
+                        crate::template::values::arrays::StringArrayValue {
+                            identity: downcast_value_8.identity.clone(),
+                            dispatch: downcast_value_8
+                                .dispatch
+                                .clone()
+                                .downcast_template_value_to_string_array_value()
+                                .unwrap(),
+                        }
+                    };
+                    dispatch_receiver_9.dispatch.read_string_array_value_value()
+                }
+                .len(),
+            )? > 0,
+        );
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_sites_array_value()
+        .is_some()
+    {
+        return Ok(
+            tsonic_rust_runtime::conversions::usize_to_i32(
+                {
+                    let dispatch_receiver_10 = &{
+                        let downcast_value_9 = &value;
+                        crate::template::values::site::SitesArrayValue {
+                            identity: downcast_value_9.identity.clone(),
+                            dispatch: downcast_value_9
+                                .dispatch
+                                .clone()
+                                .downcast_template_value_to_sites_array_value()
+                                .unwrap(),
+                        }
+                    };
+                    dispatch_receiver_10.dispatch.read_sites_array_value_value()
+                }
+                .len(),
+            )? > 0,
+        );
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_docs_mount_array_value()
+        .is_some()
+    {
+        return Ok(
+            tsonic_rust_runtime::conversions::usize_to_i32(
+                {
+                    let dispatch_receiver_11 = &{
+                        let downcast_value_10 = &value;
+                        crate::template::values::docs::DocsMountArrayValue {
+                            identity: downcast_value_10.identity.clone(),
+                            dispatch: downcast_value_10
+                                .dispatch
+                                .clone()
+                                .downcast_template_value_to_docs_mount_array_value()
+                                .unwrap(),
+                        }
+                    };
+                    dispatch_receiver_11
+                        .dispatch
+                        .read_docs_mount_array_value_value()
+                }
+                .len(),
+            )? > 0,
+        );
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_nav_array_value()
+        .is_some()
+    {
+        return Ok(
+            tsonic_rust_runtime::conversions::usize_to_i32(
+                {
+                    let dispatch_receiver_12 = &{
+                        let downcast_value_11 = &value;
+                        crate::template::values::docs::NavArrayValue {
+                            identity: downcast_value_11.identity.clone(),
+                            dispatch: downcast_value_11
+                                .dispatch
+                                .clone()
+                                .downcast_template_value_to_nav_array_value()
+                                .unwrap(),
+                        }
+                    };
+                    dispatch_receiver_12.dispatch.read_nav_array_value_value()
+                }
+                .len(),
+            )? > 0,
+        );
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_any_array_value()
+        .is_some()
+    {
+        return Ok(
+            tsonic_rust_runtime::conversions::usize_to_i32(
+                {
+                    let dispatch_receiver_13 = &{
+                        let downcast_value_12 = &value;
+                        crate::template::values::arrays::AnyArrayValue {
+                            identity: downcast_value_12.identity.clone(),
+                            dispatch: downcast_value_12
+                                .dispatch
+                                .clone()
+                                .downcast_template_value_to_any_array_value()
+                                .unwrap(),
+                        }
+                    };
+                    dispatch_receiver_13.dispatch.read_any_array_value_value()
+                }
+                .len(),
+            )? > 0,
+        );
+    }
+    Ok(true)
 }
 
-pub type IsDefaultSetCallable =
-    rt::Callable<(crate::template::values::base::TemplateValue,), rt::TsonicResult<bool>>;
-
-std::thread_local! {
-    pub static IS_DEFAULT_SET: rt::ModuleCell<IsDefaultSetCallable> = const { rt::ModuleCell::new() };
+pub fn is_default_set(
+    value: crate::template::values::base::TemplateValue,
+) -> Result<bool, rt::TsonicError> {
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_nil_value()
+        .is_some()
+    {
+        return Ok(false);
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_bool_value()
+        .is_some()
+    {
+        return Ok(true);
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_number_value()
+        .is_some()
+    {
+        return Ok(
+            {
+                let dispatch_receiver = &{
+                    let downcast_value = &value;
+                    crate::template::values::primitives::NumberValue {
+                        identity: downcast_value.identity.clone(),
+                        dispatch: downcast_value
+                            .dispatch
+                            .clone()
+                            .downcast_template_value_to_number_value()
+                            .unwrap(),
+                    }
+                };
+                dispatch_receiver.dispatch.read_number_value_value()
+            } != 0,
+        );
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_string_value()
+        .is_some()
+    {
+        return Ok(!{
+            let dispatch_receiver_2 = &{
+                let downcast_value_2 = &value;
+                crate::template::values::primitives::StringValue {
+                    identity: downcast_value_2.identity.clone(),
+                    dispatch: downcast_value_2
+                        .dispatch
+                        .clone()
+                        .downcast_template_value_to_string_value()
+                        .unwrap(),
+                }
+            };
+            dispatch_receiver_2.dispatch.read_string_value_value()
+        }
+        .is_empty());
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_html_value()
+        .is_some()
+    {
+        return Ok(!{
+            let dispatch_receiver_4 = &{
+                let dispatch_receiver_3 = &{
+                    let downcast_value_3 = &value;
+                    crate::template::values::primitives::HtmlValue {
+                        identity: downcast_value_3.identity.clone(),
+                        dispatch: downcast_value_3
+                            .dispatch
+                            .clone()
+                            .downcast_template_value_to_html_value()
+                            .unwrap(),
+                    }
+                };
+                dispatch_receiver_3.dispatch.read_html_value_value()
+            };
+            dispatch_receiver_4.dispatch.read_html_string_value()
+        }
+        .is_empty());
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_date_value()
+        .is_some()
+    {
+        return Ok(!js_string::trim(&{
+            let dispatch_receiver_5 = &{
+                let downcast_value_4 = &value;
+                crate::template::values::date::DateValue {
+                    identity: downcast_value_4.identity.clone(),
+                    dispatch: downcast_value_4
+                        .dispatch
+                        .clone()
+                        .downcast_template_value_to_date_value()
+                        .unwrap(),
+                }
+            };
+            dispatch_receiver_5.dispatch.read_date_value_value()
+        })
+        .is_empty());
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_dict_value()
+        .is_some()
+    {
+        return Ok(
+            tsonic_rust_runtime::conversions::usize_to_i32(
+                {
+                    let dispatch_receiver_6 = &{
+                        let downcast_value_5 = &value;
+                        crate::template::values::dict::DictValue {
+                            identity: downcast_value_5.identity.clone(),
+                            dispatch: downcast_value_5
+                                .dispatch
+                                .clone()
+                                .downcast_template_value_to_dict_value()
+                                .unwrap(),
+                        }
+                    };
+                    dispatch_receiver_6.dispatch.read_dict_value_value()
+                }
+                .len(),
+            )? > 0,
+        );
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_page_array_value()
+        .is_some()
+    {
+        return Ok(
+            tsonic_rust_runtime::conversions::usize_to_i32(
+                {
+                    let dispatch_receiver_7 = &{
+                        let downcast_value_6 = &value;
+                        crate::template::values::page::PageArrayValue {
+                            identity: downcast_value_6.identity.clone(),
+                            dispatch: downcast_value_6
+                                .dispatch
+                                .clone()
+                                .downcast_template_value_to_page_array_value()
+                                .unwrap(),
+                        }
+                    };
+                    dispatch_receiver_7.dispatch.read_page_array_value_value()
+                }
+                .len(),
+            )? > 0,
+        );
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_string_array_value()
+        .is_some()
+    {
+        return Ok(
+            tsonic_rust_runtime::conversions::usize_to_i32(
+                {
+                    let dispatch_receiver_8 = &{
+                        let downcast_value_7 = &value;
+                        crate::template::values::arrays::StringArrayValue {
+                            identity: downcast_value_7.identity.clone(),
+                            dispatch: downcast_value_7
+                                .dispatch
+                                .clone()
+                                .downcast_template_value_to_string_array_value()
+                                .unwrap(),
+                        }
+                    };
+                    dispatch_receiver_8.dispatch.read_string_array_value_value()
+                }
+                .len(),
+            )? > 0,
+        );
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_sites_array_value()
+        .is_some()
+    {
+        return Ok(
+            tsonic_rust_runtime::conversions::usize_to_i32(
+                {
+                    let dispatch_receiver_9 = &{
+                        let downcast_value_8 = &value;
+                        crate::template::values::site::SitesArrayValue {
+                            identity: downcast_value_8.identity.clone(),
+                            dispatch: downcast_value_8
+                                .dispatch
+                                .clone()
+                                .downcast_template_value_to_sites_array_value()
+                                .unwrap(),
+                        }
+                    };
+                    dispatch_receiver_9.dispatch.read_sites_array_value_value()
+                }
+                .len(),
+            )? > 0,
+        );
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_docs_mount_array_value()
+        .is_some()
+    {
+        return Ok(
+            tsonic_rust_runtime::conversions::usize_to_i32(
+                {
+                    let dispatch_receiver_10 = &{
+                        let downcast_value_9 = &value;
+                        crate::template::values::docs::DocsMountArrayValue {
+                            identity: downcast_value_9.identity.clone(),
+                            dispatch: downcast_value_9
+                                .dispatch
+                                .clone()
+                                .downcast_template_value_to_docs_mount_array_value()
+                                .unwrap(),
+                        }
+                    };
+                    dispatch_receiver_10
+                        .dispatch
+                        .read_docs_mount_array_value_value()
+                }
+                .len(),
+            )? > 0,
+        );
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_nav_array_value()
+        .is_some()
+    {
+        return Ok(
+            tsonic_rust_runtime::conversions::usize_to_i32(
+                {
+                    let dispatch_receiver_11 = &{
+                        let downcast_value_10 = &value;
+                        crate::template::values::docs::NavArrayValue {
+                            identity: downcast_value_10.identity.clone(),
+                            dispatch: downcast_value_10
+                                .dispatch
+                                .clone()
+                                .downcast_template_value_to_nav_array_value()
+                                .unwrap(),
+                        }
+                    };
+                    dispatch_receiver_11.dispatch.read_nav_array_value_value()
+                }
+                .len(),
+            )? > 0,
+        );
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_any_array_value()
+        .is_some()
+    {
+        return Ok(
+            tsonic_rust_runtime::conversions::usize_to_i32(
+                {
+                    let dispatch_receiver_12 = &{
+                        let downcast_value_11 = &value;
+                        crate::template::values::arrays::AnyArrayValue {
+                            identity: downcast_value_11.identity.clone(),
+                            dispatch: downcast_value_11
+                                .dispatch
+                                .clone()
+                                .downcast_template_value_to_any_array_value()
+                                .unwrap(),
+                        }
+                    };
+                    dispatch_receiver_12.dispatch.read_any_array_value_value()
+                }
+                .len(),
+            )? > 0,
+        );
+    }
+    Ok(true)
 }
 
-pub type StringifyCallable =
-    rt::Callable<(crate::template::values::base::TemplateValue, bool), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub static STRINGIFY: rt::ModuleCell<StringifyCallable> = const { rt::ModuleCell::new() };
+pub fn stringify(
+    value: crate::template::values::base::TemplateValue,
+    escape: bool,
+) -> Result<String, rt::TsonicError> {
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_deferred_template_value()
+        .is_some()
+    {
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_TEMPLATE_DEFER_CONTEXT_INVALID"),
+            String::from("templates.Defer can only be evaluated by a with block"),
+            None,
+            None,
+            None,
+        )));
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_nil_value()
+        .is_some()
+    {
+        return Ok(String::from(""));
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_html_value()
+        .is_some()
+    {
+        return Ok({
+            let dispatch_receiver_2 = &{
+                let dispatch_receiver = &{
+                    let downcast_value = &value;
+                    crate::template::values::primitives::HtmlValue {
+                        identity: downcast_value.identity.clone(),
+                        dispatch: downcast_value
+                            .dispatch
+                            .clone()
+                            .downcast_template_value_to_html_value()
+                            .unwrap(),
+                    }
+                };
+                dispatch_receiver.dispatch.read_html_value_value()
+            };
+            dispatch_receiver_2.dispatch.read_html_string_value()
+        });
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_string_value()
+        .is_some()
+    {
+        let s: String = {
+            let dispatch_receiver_3 = &{
+                let downcast_value_2 = &value;
+                crate::template::values::primitives::StringValue {
+                    identity: downcast_value_2.identity.clone(),
+                    dispatch: downcast_value_2
+                        .dispatch
+                        .clone()
+                        .downcast_template_value_to_string_value()
+                        .unwrap(),
+                }
+            };
+            dispatch_receiver_3.dispatch.read_string_value_value()
+        };
+        return Ok(if escape {
+            crate::utils::html::escape_html(s.clone())?
+        } else {
+            s.clone()
+        });
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_bool_value()
+        .is_some()
+    {
+        return Ok({
+            let conditional_test = {
+                let dispatch_receiver_4 = &{
+                    let downcast_value_3 = &value;
+                    crate::template::values::primitives::BoolValue {
+                        identity: downcast_value_3.identity.clone(),
+                        dispatch: downcast_value_3
+                            .dispatch
+                            .clone()
+                            .downcast_template_value_to_bool_value()
+                            .unwrap(),
+                    }
+                };
+                dispatch_receiver_4.dispatch.read_bool_value_value()
+            };
+            if conditional_test {
+                String::from("true")
+            } else {
+                String::from("false")
+            }
+        });
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_number_value()
+        .is_some()
+    {
+        return Ok(rt::source_string(
+            &{
+                let dispatch_receiver_5 = &{
+                    let downcast_value_4 = &value;
+                    crate::template::values::primitives::NumberValue {
+                        identity: downcast_value_4.identity.clone(),
+                        dispatch: downcast_value_4
+                            .dispatch
+                            .clone()
+                            .downcast_template_value_to_number_value()
+                            .unwrap(),
+                    }
+                };
+                dispatch_receiver_5.dispatch.read_number_value_value()
+            },
+        ));
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_date_value()
+        .is_some()
+    {
+        return Ok(if escape {
+            crate::utils::html::escape_html({
+                let dispatch_receiver_6 = &{
+                    let downcast_value_5 = &value;
+                    crate::template::values::date::DateValue {
+                        identity: downcast_value_5.identity.clone(),
+                        dispatch: downcast_value_5
+                            .dispatch
+                            .clone()
+                            .downcast_template_value_to_date_value()
+                            .unwrap(),
+                    }
+                };
+                dispatch_receiver_6.dispatch.read_date_value_value()
+            })?
+        } else {
+            let dispatch_receiver_7 = &{
+                let downcast_value_6 = &value;
+                crate::template::values::date::DateValue {
+                    identity: downcast_value_6.identity.clone(),
+                    dispatch: downcast_value_6
+                        .dispatch
+                        .clone()
+                        .downcast_template_value_to_date_value()
+                        .unwrap(),
+                }
+            };
+            dispatch_receiver_7.dispatch.read_date_value_value()
+        });
+    }
+    Ok(String::from(""))
 }
 
-pub type ToPlainStringCallable =
-    rt::Callable<(crate::template::values::base::TemplateValue,), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub static TO_PLAIN_STRING: rt::ModuleCell<ToPlainStringCallable> = const { rt::ModuleCell::new() };
+pub fn to_plain_string(
+    value: crate::template::values::base::TemplateValue,
+) -> Result<String, rt::TsonicError> {
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_deferred_template_value()
+        .is_some()
+    {
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_TEMPLATE_DEFER_CONTEXT_INVALID"),
+            String::from("templates.Defer cannot be converted to text outside a with block"),
+            None,
+            None,
+            None,
+        )));
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_string_value()
+        .is_some()
+    {
+        return Ok({
+            let dispatch_receiver = &{
+                let downcast_value = &value;
+                crate::template::values::primitives::StringValue {
+                    identity: downcast_value.identity.clone(),
+                    dispatch: downcast_value
+                        .dispatch
+                        .clone()
+                        .downcast_template_value_to_string_value()
+                        .unwrap(),
+                }
+            };
+            dispatch_receiver.dispatch.read_string_value_value()
+        });
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_html_value()
+        .is_some()
+    {
+        return Ok({
+            let dispatch_receiver_3 = &{
+                let dispatch_receiver_2 = &{
+                    let downcast_value_2 = &value;
+                    crate::template::values::primitives::HtmlValue {
+                        identity: downcast_value_2.identity.clone(),
+                        dispatch: downcast_value_2
+                            .dispatch
+                            .clone()
+                            .downcast_template_value_to_html_value()
+                            .unwrap(),
+                    }
+                };
+                dispatch_receiver_2.dispatch.read_html_value_value()
+            };
+            dispatch_receiver_3.dispatch.read_html_string_value()
+        });
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_bool_value()
+        .is_some()
+    {
+        return Ok({
+            let conditional_test = {
+                let dispatch_receiver_4 = &{
+                    let downcast_value_3 = &value;
+                    crate::template::values::primitives::BoolValue {
+                        identity: downcast_value_3.identity.clone(),
+                        dispatch: downcast_value_3
+                            .dispatch
+                            .clone()
+                            .downcast_template_value_to_bool_value()
+                            .unwrap(),
+                    }
+                };
+                dispatch_receiver_4.dispatch.read_bool_value_value()
+            };
+            if conditional_test {
+                String::from("true")
+            } else {
+                String::from("false")
+            }
+        });
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_number_value()
+        .is_some()
+    {
+        return Ok(rt::source_string(
+            &{
+                let dispatch_receiver_5 = &{
+                    let downcast_value_4 = &value;
+                    crate::template::values::primitives::NumberValue {
+                        identity: downcast_value_4.identity.clone(),
+                        dispatch: downcast_value_4
+                            .dispatch
+                            .clone()
+                            .downcast_template_value_to_number_value()
+                            .unwrap(),
+                    }
+                };
+                dispatch_receiver_5.dispatch.read_number_value_value()
+            },
+        ));
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_page_value()
+        .is_some()
+    {
+        return Ok({
+            let dispatch_receiver_7 = &{
+                let dispatch_receiver_6 = &{
+                    let downcast_value_5 = &value;
+                    crate::template::values::page::PageValue {
+                        identity: downcast_value_5.identity.clone(),
+                        dispatch: downcast_value_5
+                            .dispatch
+                            .clone()
+                            .downcast_template_value_to_page_value()
+                            .unwrap(),
+                    }
+                };
+                dispatch_receiver_6.dispatch.read_page_value_value()
+            };
+            dispatch_receiver_7
+                .dispatch
+                .read_page_context_rel_permalink()
+        });
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_version_string_value()
+        .is_some()
+    {
+        return Ok({
+            let dispatch_receiver_8 = &{
+                let downcast_value_6 = &value;
+                crate::template::values::version::VersionStringValue {
+                    identity: downcast_value_6.identity.clone(),
+                    dispatch: downcast_value_6
+                        .dispatch
+                        .clone()
+                        .downcast_template_value_to_version_string_value()
+                        .unwrap(),
+                }
+            };
+            dispatch_receiver_8
+                .dispatch
+                .read_version_string_value_value()
+        });
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_date_value()
+        .is_some()
+    {
+        return Ok({
+            let dispatch_receiver_9 = &{
+                let downcast_value_7 = &value;
+                crate::template::values::date::DateValue {
+                    identity: downcast_value_7.identity.clone(),
+                    dispatch: downcast_value_7
+                        .dispatch
+                        .clone()
+                        .downcast_template_value_to_date_value()
+                        .unwrap(),
+                }
+            };
+            dispatch_receiver_9.dispatch.read_date_value_value()
+        });
+    }
+    Ok(String::from(""))
 }
 
-pub type ToNumberCallable =
-    rt::Callable<(crate::template::values::base::TemplateValue,), rt::TsonicResult<i32>>;
-
-std::thread_local! {
-    pub static TO_NUMBER: rt::ModuleCell<ToNumberCallable> = const { rt::ModuleCell::new() };
+pub fn to_number(
+    value: crate::template::values::base::TemplateValue,
+) -> Result<i32, rt::TsonicError> {
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_number_value()
+        .is_some()
+    {
+        return Ok({
+            let dispatch_receiver = &{
+                let downcast_value = &value;
+                crate::template::values::primitives::NumberValue {
+                    identity: downcast_value.identity.clone(),
+                    dispatch: downcast_value
+                        .dispatch
+                        .clone()
+                        .downcast_template_value_to_number_value()
+                        .unwrap(),
+                }
+            };
+            dispatch_receiver.dispatch.read_number_value_value()
+        });
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_string_value()
+        .is_some()
+    {
+        return Ok(rt::option_coalesce(
+            crate::utils::int32::parse_int32(
+                &{
+                    let dispatch_receiver_2 = &{
+                        let downcast_value_2 = &value;
+                        crate::template::values::primitives::StringValue {
+                            identity: downcast_value_2.identity.clone(),
+                            dispatch: downcast_value_2
+                                .dispatch
+                                .clone()
+                                .downcast_template_value_to_string_value()
+                                .unwrap(),
+                        }
+                    };
+                    dispatch_receiver_2.dispatch.read_string_value_value()
+                },
+            )?,
+            std::convert::identity,
+            || 0,
+        ));
+    }
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_bool_value()
+        .is_some()
+    {
+        return Ok({
+            let conditional_test = {
+                let dispatch_receiver_3 = &{
+                    let downcast_value_3 = &value;
+                    crate::template::values::primitives::BoolValue {
+                        identity: downcast_value_3.identity.clone(),
+                        dispatch: downcast_value_3
+                            .dispatch
+                            .clone()
+                            .downcast_template_value_to_bool_value()
+                            .unwrap(),
+                    }
+                };
+                dispatch_receiver_3.dispatch.read_bool_value_value()
+            };
+            if conditional_test {
+                1
+            } else {
+                0
+            }
+        });
+    }
+    Ok(0)
 }
 
 #[doc(hidden)]
@@ -68,1146 +1123,5 @@ pub fn module_init() {
             }
         };
         NIL.with(|module_binding| module_binding.initialize(module_value))
-    };
-    {
-        let module_value_2 = rt::Callable::<
-            (crate::template::values::base::TemplateValue,),
-            rt::TsonicResult<bool>,
-        >::new(move |callable_arguments| {
-            let value = callable_arguments.0;
-            Ok::<_, rt::TsonicError>(
-                value
-                    .dispatch
-                    .clone()
-                    .downcast_template_value_to_dict_value()
-                    .is_some()
-                    || value
-                        .dispatch
-                        .clone()
-                        .downcast_template_value_to_menus_value()
-                        .is_some()
-                    || value
-                        .dispatch
-                        .clone()
-                        .downcast_template_value_to_taxonomies_value()
-                        .is_some()
-                    || value
-                        .dispatch
-                        .clone()
-                        .downcast_template_value_to_taxonomy_terms_value()
-                        .is_some(),
-            )
-        });
-        IS_TEMPLATE_MAP.with(|module_binding_2| module_binding_2.initialize(module_value_2))
-    };
-    {
-        let module_value_3 = rt::Callable::<
-            (crate::template::values::base::TemplateValue,),
-            rt::TsonicResult<bool>,
-        >::new(move |callable_arguments_2| {
-            let value = callable_arguments_2.0;
-            Ok::<_, rt::TsonicError>(
-                value
-                    .dispatch
-                    .clone()
-                    .downcast_template_value_to_any_array_value()
-                    .is_some()
-                    || value
-                        .dispatch
-                        .clone()
-                        .downcast_template_value_to_docs_mount_array_value()
-                        .is_some()
-                    || value
-                        .dispatch
-                        .clone()
-                        .downcast_template_value_to_menu_array_value()
-                        .is_some()
-                    || value
-                        .dispatch
-                        .clone()
-                        .downcast_template_value_to_nav_array_value()
-                        .is_some()
-                    || value
-                        .dispatch
-                        .clone()
-                        .downcast_template_value_to_page_array_value()
-                        .is_some()
-                    || value
-                        .dispatch
-                        .clone()
-                        .downcast_template_value_to_sites_array_value()
-                        .is_some()
-                    || value
-                        .dispatch
-                        .clone()
-                        .downcast_template_value_to_string_array_value()
-                        .is_some(),
-            )
-        });
-        IS_TEMPLATE_SLICE.with(|module_binding_3| module_binding_3.initialize(module_value_3))
-    };
-    {
-        let module_value_4 = rt::Callable::<
-            (crate::template::values::base::TemplateValue,),
-            rt::TsonicResult<bool>,
-        >::new(move |callable_arguments_3| {
-            let value = callable_arguments_3.0;
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_nil_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(false);
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_bool_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>({
-                    let dispatch_receiver = &{
-                        let downcast_value = &value;
-                        crate::template::values::primitives::BoolValue {
-                            identity: downcast_value.identity.clone(),
-                            dispatch: downcast_value
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_bool_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver.dispatch.read_bool_value_value()
-                });
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_number_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(
-                    {
-                        let dispatch_receiver_2 = &{
-                            let downcast_value_2 = &value;
-                            crate::template::values::primitives::NumberValue {
-                                identity: downcast_value_2.identity.clone(),
-                                dispatch: downcast_value_2
-                                    .dispatch
-                                    .clone()
-                                    .downcast_template_value_to_number_value()
-                                    .unwrap(),
-                            }
-                        };
-                        dispatch_receiver_2.dispatch.read_number_value_value()
-                    } != 0,
-                );
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_string_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(!{
-                    let dispatch_receiver_3 = &{
-                        let downcast_value_3 = &value;
-                        crate::template::values::primitives::StringValue {
-                            identity: downcast_value_3.identity.clone(),
-                            dispatch: downcast_value_3
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_string_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_3.dispatch.read_string_value_value()
-                }
-                .is_empty());
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_html_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(!{
-                    let dispatch_receiver_4 = &{
-                        let downcast_value_4 = &value;
-                        crate::template::values::primitives::HtmlValue {
-                            identity: downcast_value_4.identity.clone(),
-                            dispatch: downcast_value_4
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_html_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_4.dispatch.read_html_value_value()
-                }
-                .state
-                .with(|state| state.value.clone())
-                .is_empty());
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_date_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(!js_string::trim(&{
-                    let dispatch_receiver_5 = &{
-                        let downcast_value_5 = &value;
-                        crate::template::values::date::DateValue {
-                            identity: downcast_value_5.identity.clone(),
-                            dispatch: downcast_value_5
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_date_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_5.dispatch.read_date_value_value()
-                })
-                .is_empty());
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_dict_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        {
-                            let dispatch_receiver_6 = &{
-                                let downcast_value_6 = &value;
-                                crate::template::values::dict::DictValue {
-                                    identity: downcast_value_6.identity.clone(),
-                                    dispatch: downcast_value_6
-                                        .dispatch
-                                        .clone()
-                                        .downcast_template_value_to_dict_value()
-                                        .unwrap(),
-                                }
-                            };
-                            dispatch_receiver_6.dispatch.read_dict_value_value()
-                        }
-                        .len(),
-                    )? > 0,
-                );
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_page_array_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        {
-                            let dispatch_receiver_7 = &{
-                                let downcast_value_7 = &value;
-                                crate::template::values::page::PageArrayValue {
-                                    identity: downcast_value_7.identity.clone(),
-                                    dispatch: downcast_value_7
-                                        .dispatch
-                                        .clone()
-                                        .downcast_template_value_to_page_array_value()
-                                        .unwrap(),
-                                }
-                            };
-                            dispatch_receiver_7.dispatch.read_page_array_value_value()
-                        }
-                        .len(),
-                    )? > 0,
-                );
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_string_array_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        {
-                            let dispatch_receiver_8 = &{
-                                let downcast_value_8 = &value;
-                                crate::template::values::arrays::StringArrayValue {
-                                    identity: downcast_value_8.identity.clone(),
-                                    dispatch: downcast_value_8
-                                        .dispatch
-                                        .clone()
-                                        .downcast_template_value_to_string_array_value()
-                                        .unwrap(),
-                                }
-                            };
-                            dispatch_receiver_8.dispatch.read_string_array_value_value()
-                        }
-                        .len(),
-                    )? > 0,
-                );
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_sites_array_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        {
-                            let dispatch_receiver_9 = &{
-                                let downcast_value_9 = &value;
-                                crate::template::values::site::SitesArrayValue {
-                                    identity: downcast_value_9.identity.clone(),
-                                    dispatch: downcast_value_9
-                                        .dispatch
-                                        .clone()
-                                        .downcast_template_value_to_sites_array_value()
-                                        .unwrap(),
-                                }
-                            };
-                            dispatch_receiver_9.dispatch.read_sites_array_value_value()
-                        }
-                        .len(),
-                    )? > 0,
-                );
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_docs_mount_array_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        {
-                            let dispatch_receiver_10 = &{
-                                let downcast_value_10 = &value;
-                                crate::template::values::docs::DocsMountArrayValue {
-                                    identity: downcast_value_10.identity.clone(),
-                                    dispatch: downcast_value_10
-                                        .dispatch
-                                        .clone()
-                                        .downcast_template_value_to_docs_mount_array_value()
-                                        .unwrap(),
-                                }
-                            };
-                            dispatch_receiver_10
-                                .dispatch
-                                .read_docs_mount_array_value_value()
-                        }
-                        .len(),
-                    )? > 0,
-                );
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_nav_array_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        {
-                            let dispatch_receiver_11 = &{
-                                let downcast_value_11 = &value;
-                                crate::template::values::docs::NavArrayValue {
-                                    identity: downcast_value_11.identity.clone(),
-                                    dispatch: downcast_value_11
-                                        .dispatch
-                                        .clone()
-                                        .downcast_template_value_to_nav_array_value()
-                                        .unwrap(),
-                                }
-                            };
-                            dispatch_receiver_11.dispatch.read_nav_array_value_value()
-                        }
-                        .len(),
-                    )? > 0,
-                );
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_any_array_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        {
-                            let dispatch_receiver_12 = &{
-                                let downcast_value_12 = &value;
-                                crate::template::values::arrays::AnyArrayValue {
-                                    identity: downcast_value_12.identity.clone(),
-                                    dispatch: downcast_value_12
-                                        .dispatch
-                                        .clone()
-                                        .downcast_template_value_to_any_array_value()
-                                        .unwrap(),
-                                }
-                            };
-                            dispatch_receiver_12.dispatch.read_any_array_value_value()
-                        }
-                        .len(),
-                    )? > 0,
-                );
-            }
-            Ok::<_, rt::TsonicError>(true)
-        });
-        IS_TRUTHY.with(|module_binding_4| module_binding_4.initialize(module_value_4))
-    };
-    {
-        let module_value_5 = rt::Callable::<
-            (crate::template::values::base::TemplateValue,),
-            rt::TsonicResult<bool>,
-        >::new(move |callable_arguments_4| {
-            let value = callable_arguments_4.0;
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_nil_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(false);
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_bool_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(true);
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_number_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(
-                    {
-                        let dispatch_receiver_13 = &{
-                            let downcast_value_13 = &value;
-                            crate::template::values::primitives::NumberValue {
-                                identity: downcast_value_13.identity.clone(),
-                                dispatch: downcast_value_13
-                                    .dispatch
-                                    .clone()
-                                    .downcast_template_value_to_number_value()
-                                    .unwrap(),
-                            }
-                        };
-                        dispatch_receiver_13.dispatch.read_number_value_value()
-                    } != 0,
-                );
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_string_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(!{
-                    let dispatch_receiver_14 = &{
-                        let downcast_value_14 = &value;
-                        crate::template::values::primitives::StringValue {
-                            identity: downcast_value_14.identity.clone(),
-                            dispatch: downcast_value_14
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_string_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_14.dispatch.read_string_value_value()
-                }
-                .is_empty());
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_html_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(!{
-                    let dispatch_receiver_15 = &{
-                        let downcast_value_15 = &value;
-                        crate::template::values::primitives::HtmlValue {
-                            identity: downcast_value_15.identity.clone(),
-                            dispatch: downcast_value_15
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_html_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_15.dispatch.read_html_value_value()
-                }
-                .state
-                .with(|state| state.value.clone())
-                .is_empty());
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_date_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(!js_string::trim(&{
-                    let dispatch_receiver_16 = &{
-                        let downcast_value_16 = &value;
-                        crate::template::values::date::DateValue {
-                            identity: downcast_value_16.identity.clone(),
-                            dispatch: downcast_value_16
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_date_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_16.dispatch.read_date_value_value()
-                })
-                .is_empty());
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_dict_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        {
-                            let dispatch_receiver_17 = &{
-                                let downcast_value_17 = &value;
-                                crate::template::values::dict::DictValue {
-                                    identity: downcast_value_17.identity.clone(),
-                                    dispatch: downcast_value_17
-                                        .dispatch
-                                        .clone()
-                                        .downcast_template_value_to_dict_value()
-                                        .unwrap(),
-                                }
-                            };
-                            dispatch_receiver_17.dispatch.read_dict_value_value()
-                        }
-                        .len(),
-                    )? > 0,
-                );
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_page_array_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        {
-                            let dispatch_receiver_18 = &{
-                                let downcast_value_18 = &value;
-                                crate::template::values::page::PageArrayValue {
-                                    identity: downcast_value_18.identity.clone(),
-                                    dispatch: downcast_value_18
-                                        .dispatch
-                                        .clone()
-                                        .downcast_template_value_to_page_array_value()
-                                        .unwrap(),
-                                }
-                            };
-                            dispatch_receiver_18.dispatch.read_page_array_value_value()
-                        }
-                        .len(),
-                    )? > 0,
-                );
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_string_array_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        {
-                            let dispatch_receiver_19 = &{
-                                let downcast_value_19 = &value;
-                                crate::template::values::arrays::StringArrayValue {
-                                    identity: downcast_value_19.identity.clone(),
-                                    dispatch: downcast_value_19
-                                        .dispatch
-                                        .clone()
-                                        .downcast_template_value_to_string_array_value()
-                                        .unwrap(),
-                                }
-                            };
-                            dispatch_receiver_19
-                                .dispatch
-                                .read_string_array_value_value()
-                        }
-                        .len(),
-                    )? > 0,
-                );
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_sites_array_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        {
-                            let dispatch_receiver_20 = &{
-                                let downcast_value_20 = &value;
-                                crate::template::values::site::SitesArrayValue {
-                                    identity: downcast_value_20.identity.clone(),
-                                    dispatch: downcast_value_20
-                                        .dispatch
-                                        .clone()
-                                        .downcast_template_value_to_sites_array_value()
-                                        .unwrap(),
-                                }
-                            };
-                            dispatch_receiver_20.dispatch.read_sites_array_value_value()
-                        }
-                        .len(),
-                    )? > 0,
-                );
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_docs_mount_array_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        {
-                            let dispatch_receiver_21 = &{
-                                let downcast_value_21 = &value;
-                                crate::template::values::docs::DocsMountArrayValue {
-                                    identity: downcast_value_21.identity.clone(),
-                                    dispatch: downcast_value_21
-                                        .dispatch
-                                        .clone()
-                                        .downcast_template_value_to_docs_mount_array_value()
-                                        .unwrap(),
-                                }
-                            };
-                            dispatch_receiver_21
-                                .dispatch
-                                .read_docs_mount_array_value_value()
-                        }
-                        .len(),
-                    )? > 0,
-                );
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_nav_array_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        {
-                            let dispatch_receiver_22 = &{
-                                let downcast_value_22 = &value;
-                                crate::template::values::docs::NavArrayValue {
-                                    identity: downcast_value_22.identity.clone(),
-                                    dispatch: downcast_value_22
-                                        .dispatch
-                                        .clone()
-                                        .downcast_template_value_to_nav_array_value()
-                                        .unwrap(),
-                                }
-                            };
-                            dispatch_receiver_22.dispatch.read_nav_array_value_value()
-                        }
-                        .len(),
-                    )? > 0,
-                );
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_any_array_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        {
-                            let dispatch_receiver_23 = &{
-                                let downcast_value_23 = &value;
-                                crate::template::values::arrays::AnyArrayValue {
-                                    identity: downcast_value_23.identity.clone(),
-                                    dispatch: downcast_value_23
-                                        .dispatch
-                                        .clone()
-                                        .downcast_template_value_to_any_array_value()
-                                        .unwrap(),
-                                }
-                            };
-                            dispatch_receiver_23.dispatch.read_any_array_value_value()
-                        }
-                        .len(),
-                    )? > 0,
-                );
-            }
-            Ok::<_, rt::TsonicError>(true)
-        });
-        IS_DEFAULT_SET.with(|module_binding_5| module_binding_5.initialize(module_value_5))
-    };
-    {
-        let module_value_6 = rt::Callable::<
-            (crate::template::values::base::TemplateValue, bool),
-            rt::TsonicResult<String>,
-        >::new(move |callable_arguments_5| {
-            let value = callable_arguments_5.0;
-            let escape = callable_arguments_5.1;
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_deferred_template_value()
-                .is_some()
-            {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                    String::from("TSUMO_TEMPLATE_DEFER_CONTEXT_INVALID"),
-                    String::from("templates.Defer can only be evaluated by a with block"),
-                    None,
-                    None,
-                    None,
-                )));
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_nil_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(String::from(""));
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_html_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>({
-                    let dispatch_receiver_24 = &{
-                        let downcast_value_24 = &value;
-                        crate::template::values::primitives::HtmlValue {
-                            identity: downcast_value_24.identity.clone(),
-                            dispatch: downcast_value_24
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_html_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_24.dispatch.read_html_value_value()
-                }
-                .state
-                .with(|state| state.value.clone()));
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_string_value()
-                .is_some()
-            {
-                let s: String = {
-                    let dispatch_receiver_25 = &{
-                        let downcast_value_25 = &value;
-                        crate::template::values::primitives::StringValue {
-                            identity: downcast_value_25.identity.clone(),
-                            dispatch: downcast_value_25
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_string_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_25.dispatch.read_string_value_value()
-                };
-                return Ok::<_, rt::TsonicError>(if escape {
-                    crate::utils::html::escape_html(s.clone())?
-                } else {
-                    s.clone()
-                });
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_bool_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>({
-                    let conditional_test = {
-                        let dispatch_receiver_26 = &{
-                            let downcast_value_26 = &value;
-                            crate::template::values::primitives::BoolValue {
-                                identity: downcast_value_26.identity.clone(),
-                                dispatch: downcast_value_26
-                                    .dispatch
-                                    .clone()
-                                    .downcast_template_value_to_bool_value()
-                                    .unwrap(),
-                            }
-                        };
-                        dispatch_receiver_26.dispatch.read_bool_value_value()
-                    };
-                    if conditional_test {
-                        String::from("true")
-                    } else {
-                        String::from("false")
-                    }
-                });
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_number_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(format!(
-                    "{}{}{}",
-                    String::from(""),
-                    rt::source_string(&{
-                        let dispatch_receiver_27 = &{
-                            let downcast_value_27 = &value;
-                            crate::template::values::primitives::NumberValue {
-                                identity: downcast_value_27.identity.clone(),
-                                dispatch: downcast_value_27
-                                    .dispatch
-                                    .clone()
-                                    .downcast_template_value_to_number_value()
-                                    .unwrap(),
-                            }
-                        };
-                        dispatch_receiver_27.dispatch.read_number_value_value()
-                    },),
-                    String::from(""),
-                ));
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_date_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(if escape {
-                    crate::utils::html::escape_html({
-                        let dispatch_receiver_28 = &{
-                            let downcast_value_28 = &value;
-                            crate::template::values::date::DateValue {
-                                identity: downcast_value_28.identity.clone(),
-                                dispatch: downcast_value_28
-                                    .dispatch
-                                    .clone()
-                                    .downcast_template_value_to_date_value()
-                                    .unwrap(),
-                            }
-                        };
-                        dispatch_receiver_28.dispatch.read_date_value_value()
-                    })?
-                } else {
-                    let dispatch_receiver_29 = &{
-                        let downcast_value_29 = &value;
-                        crate::template::values::date::DateValue {
-                            identity: downcast_value_29.identity.clone(),
-                            dispatch: downcast_value_29
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_date_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_29.dispatch.read_date_value_value()
-                });
-            }
-            Ok::<_, rt::TsonicError>(String::from(""))
-        });
-        STRINGIFY.with(|module_binding_6| module_binding_6.initialize(module_value_6))
-    };
-    {
-        let module_value_7 = rt::Callable::<
-            (crate::template::values::base::TemplateValue,),
-            rt::TsonicResult<String>,
-        >::new(move |callable_arguments_6| {
-            let value = callable_arguments_6.0;
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_deferred_template_value()
-                .is_some()
-            {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                    String::from("TSUMO_TEMPLATE_DEFER_CONTEXT_INVALID"),
-                    String::from("templates.Defer cannot be converted to text outside a with block"),
-                    None,
-                    None,
-                    None,
-                )));
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_string_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>({
-                    let dispatch_receiver_30 = &{
-                        let downcast_value_30 = &value;
-                        crate::template::values::primitives::StringValue {
-                            identity: downcast_value_30.identity.clone(),
-                            dispatch: downcast_value_30
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_string_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_30.dispatch.read_string_value_value()
-                });
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_html_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>({
-                    let dispatch_receiver_31 = &{
-                        let downcast_value_31 = &value;
-                        crate::template::values::primitives::HtmlValue {
-                            identity: downcast_value_31.identity.clone(),
-                            dispatch: downcast_value_31
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_html_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_31.dispatch.read_html_value_value()
-                }
-                .state
-                .with(|state| state.value.clone()));
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_bool_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>({
-                    let conditional_test_2 = {
-                        let dispatch_receiver_32 = &{
-                            let downcast_value_32 = &value;
-                            crate::template::values::primitives::BoolValue {
-                                identity: downcast_value_32.identity.clone(),
-                                dispatch: downcast_value_32
-                                    .dispatch
-                                    .clone()
-                                    .downcast_template_value_to_bool_value()
-                                    .unwrap(),
-                            }
-                        };
-                        dispatch_receiver_32.dispatch.read_bool_value_value()
-                    };
-                    if conditional_test_2 {
-                        String::from("true")
-                    } else {
-                        String::from("false")
-                    }
-                });
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_number_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(format!(
-                    "{}{}{}",
-                    String::from(""),
-                    rt::source_string(&{
-                        let dispatch_receiver_33 = &{
-                            let downcast_value_33 = &value;
-                            crate::template::values::primitives::NumberValue {
-                                identity: downcast_value_33.identity.clone(),
-                                dispatch: downcast_value_33
-                                    .dispatch
-                                    .clone()
-                                    .downcast_template_value_to_number_value()
-                                    .unwrap(),
-                            }
-                        };
-                        dispatch_receiver_33.dispatch.read_number_value_value()
-                    },),
-                    String::from(""),
-                ));
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_page_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>({
-                    let dispatch_receiver_34 = &{
-                        let downcast_value_34 = &value;
-                        crate::template::values::page::PageValue {
-                            identity: downcast_value_34.identity.clone(),
-                            dispatch: downcast_value_34
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_page_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_34.dispatch.read_page_value_value()
-                }
-                .state
-                .with(|state| state.rel_permalink.clone()));
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_version_string_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>({
-                    let dispatch_receiver_35 = &{
-                        let downcast_value_35 = &value;
-                        crate::template::values::version::VersionStringValue {
-                            identity: downcast_value_35.identity.clone(),
-                            dispatch: downcast_value_35
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_version_string_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_35
-                        .dispatch
-                        .read_version_string_value_value()
-                });
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_date_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>({
-                    let dispatch_receiver_36 = &{
-                        let downcast_value_36 = &value;
-                        crate::template::values::date::DateValue {
-                            identity: downcast_value_36.identity.clone(),
-                            dispatch: downcast_value_36
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_date_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_36.dispatch.read_date_value_value()
-                });
-            }
-            Ok::<_, rt::TsonicError>(String::from(""))
-        });
-        TO_PLAIN_STRING.with(|module_binding_7| module_binding_7.initialize(module_value_7))
-    };
-    {
-        let module_value_8 = rt::Callable::<
-            (crate::template::values::base::TemplateValue,),
-            rt::TsonicResult<i32>,
-        >::new(move |callable_arguments_7| {
-            let value = callable_arguments_7.0;
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_number_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>({
-                    let dispatch_receiver_37 = &{
-                        let downcast_value_37 = &value;
-                        crate::template::values::primitives::NumberValue {
-                            identity: downcast_value_37.identity.clone(),
-                            dispatch: downcast_value_37
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_number_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_37.dispatch.read_number_value_value()
-                });
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_string_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>(rt::option_coalesce(
-                    crate::utils::int32::parse_int32(
-                        &{
-                            let dispatch_receiver_38 = &{
-                                let downcast_value_38 = &value;
-                                crate::template::values::primitives::StringValue {
-                                    identity: downcast_value_38.identity.clone(),
-                                    dispatch: downcast_value_38
-                                        .dispatch
-                                        .clone()
-                                        .downcast_template_value_to_string_value()
-                                        .unwrap(),
-                                }
-                            };
-                            dispatch_receiver_38.dispatch.read_string_value_value()
-                        },
-                    )?,
-                    std::convert::identity,
-                    || 0,
-                ));
-            }
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_bool_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>({
-                    let conditional_test_3 = {
-                        let dispatch_receiver_39 = &{
-                            let downcast_value_39 = &value;
-                            crate::template::values::primitives::BoolValue {
-                                identity: downcast_value_39.identity.clone(),
-                                dispatch: downcast_value_39
-                                    .dispatch
-                                    .clone()
-                                    .downcast_template_value_to_bool_value()
-                                    .unwrap(),
-                            }
-                        };
-                        dispatch_receiver_39.dispatch.read_bool_value_value()
-                    };
-                    if conditional_test_3 {
-                        1
-                    } else {
-                        0
-                    }
-                });
-            }
-            Ok::<_, rt::TsonicError>(0)
-        });
-        TO_NUMBER.with(|module_binding_8| module_binding_8.initialize(module_value_8))
     };
 }

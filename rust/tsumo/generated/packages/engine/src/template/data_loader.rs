@@ -6,27 +6,27 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct SelectedDataFileState {
-    pub(crate) semantic_path: String,
-    pub(crate) source_path: String,
-    pub(crate) format: String,
+pub struct SelectedDataFileState {
+    pub semantic_path: String,
+    pub source_path: String,
+    pub format: String,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct SelectedDataFile {
-    pub(crate) state: rt::ObjectHandle<SelectedDataFileState>,
+pub struct SelectedDataFile {
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<SelectedDataFileState>,
 }
 
 impl SelectedDataFile {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new(semantic_path: String, source_path: String, format: String) -> SelectedDataFile {
-        let field_semantic_path: String = semantic_path.clone();
-        let field_source_path: String = source_path.clone();
-        let field_format: String = format.clone();
+        let field_semantic_path: String = semantic_path;
+        let field_source_path: String = source_path;
+        let field_format: String = format;
         SelectedDataFile {
-            state: rt::ObjectHandle::new(SelectedDataFileState {
+            state: rt::ObjectRef::new(SelectedDataFileState {
                 semantic_path: field_semantic_path,
                 source_path: field_source_path,
                 format: field_format,
@@ -35,300 +35,88 @@ impl SelectedDataFile {
     }
 }
 
-type DataFormatCallable = rt::Callable<(String,), rt::TsonicResult<Option<String>>>;
-
-std::thread_local! {
-    pub(crate) static DATA_FORMAT: rt::ModuleCell<DataFormatCallable> = const { rt::ModuleCell::new() };
+pub fn data_format(path: String) -> Option<String> {
+    let extension: String = js_string::to_lower_case(&tsonic_rust_node::path::extname(&path));
+    if extension == ".json" {
+        return Some(String::from("json"));
+    }
+    if extension == ".yaml" || extension == ".yml" {
+        return Some(String::from("yaml"));
+    }
+    if extension == ".toml" {
+        return Some(String::from("toml"));
+    }
+    if extension == ".xml" {
+        return Some(String::from("xml"));
+    }
+    Option::<String>::None
 }
 
-type NormalizeDataPathCallable = rt::Callable<(String,), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub(crate) static NORMALIZE_DATA_PATH: rt::ModuleCell<NormalizeDataPathCallable> = const { rt::ModuleCell::new() };
+pub fn normalize_data_path(path: String) -> Result<String, rt::TsonicError> {
+    crate::utils::strings::replace_text(&path, String::from("\\"), String::from("/"))
 }
 
-type CollectDataLayerCallable =
-    rt::Callable<(String, js_abi::JsMap<String, SelectedDataFile>), rt::TsonicResult<()>>;
-
-std::thread_local! {
-    pub(crate) static COLLECT_DATA_LAYER: rt::ModuleCell<CollectDataLayerCallable> = const { rt::ModuleCell::new() };
-}
-
-type SetDataPathCallable =
-    rt::Callable<
-        (
-            crate::template::values::dict::DictValue,
-            String,
-            crate::template::values::base::TemplateValue,
-            String,
-        ),
-        rt::TsonicResult<()>,
-    >;
-
-std::thread_local! {
-    pub(crate) static SET_DATA_PATH: rt::ModuleCell<SetDataPathCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type LoadSiteDataCallable =
-    rt::Callable<
-        (
-            String,
-            Option<String>,
-            Option<js_abi::JsArray<crate::models::site_config::ModuleMount>>,
-        ),
-        rt::TsonicResult<crate::template::values::dict::DictValue>,
-    >;
-
-std::thread_local! {
-    pub static LOAD_SITE_DATA: rt::ModuleCell<LoadSiteDataCallable> = const { rt::ModuleCell::new() };
-}
-
-#[doc(hidden)]
-pub fn module_init() {
+pub fn collect_data_layer(
+    root: String,
+    selected: js_abi::JsMap<String, SelectedDataFile>,
+) -> Result<(), rt::TsonicError> {
+    if !crate::fs::dir_exists(root.clone())? {
+        return Ok(());
+    }
+    let files: js_abi::JsArray<String> =
+        crate::fs::list_files_recursive(root.clone(), String::from("*"))?;
+    let layer: js_abi::JsMap<String, SelectedDataFile> = js_abi::JsMap::new();
     {
-        let module_value = rt::Callable::<(String,), rt::TsonicResult<Option<String>>>::new(
-            move |callable_arguments| {
-                let path = callable_arguments.0;
-                let extension: String =
-                    js_string::to_lower_case(&tsonic_rust_node::path::extname(&path));
-                if extension == ".json" {
-                    return Ok::<_, rt::TsonicError>(Some(String::from("json")));
-                }
-                if extension == ".yaml" || extension == ".yml" {
-                    return Ok::<_, rt::TsonicError>(Some(String::from("yaml")));
-                }
-                if extension == ".toml" {
-                    return Ok::<_, rt::TsonicError>(Some(String::from("toml")));
-                }
-                if extension == ".xml" {
-                    return Ok::<_, rt::TsonicError>(Some(String::from("xml")));
-                }
-                Ok::<_, rt::TsonicError>(Option::<String>::None)
-            },
-        );
-        DATA_FORMAT.with(|module_binding| module_binding.initialize(module_value))
-    };
-    {
-        let module_value_2 =
-            rt::Callable::<(String,), rt::TsonicResult<String>>::new(move |callable_arguments_2| {
-                let path = callable_arguments_2.0;
-                crate::utils::strings::replace_text(&path, String::from("\\"), String::from("/"))
-            });
-        NORMALIZE_DATA_PATH.with(|module_binding_2| module_binding_2.initialize(module_value_2))
-    };
-    {
-        let module_value_3 = rt::Callable::<
-            (String, js_abi::JsMap<String, SelectedDataFile>),
-            rt::TsonicResult<()>,
-        >::new(move |callable_arguments_3| {
-            let root = callable_arguments_3.0;
-            let selected = callable_arguments_3.1;
-            if !crate::fs::DIR_EXISTS
-                .with(|module_binding| module_binding.load())
-                .call((root.clone(),))?
-            {
-                return Ok::<_, rt::TsonicError>(());
-            }
-            let files: js_abi::JsArray<String> = crate::fs::LIST_FILES_RECURSIVE
-                .with(|module_binding| module_binding.load())
-                .call((root.clone(), String::from("*")))?;
-            let layer: js_abi::JsMap<String, SelectedDataFile> = js_abi::JsMap::new();
-            {
-                let mut index: i32 = 0;
-                'loop_value: while index < tsonic_rust_runtime::conversions::usize_to_i32(files.len())? {
-                    let source_path: String = match files
-                        .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
-                        .as_ref()
-                    {
-                        Some(flow_value) => flow_value.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    };
-                    let format: Option<String> = DATA_FORMAT
-                        .with(|module_binding| module_binding.load())
-                        .call((source_path.clone(),))?;
-                    if format.is_none() {
-                        index += 1;
-                        continue 'loop_value;
-                    }
-                    let relative_path: String = NORMALIZE_DATA_PATH
-                        .with(|module_binding| module_binding.load())
-                        .call((tsonic_rust_node::path::relative(&root, &source_path),))?;
-                    let extension: String = tsonic_rust_node::path::extname(&relative_path);
-                    let semantic_path: String = js_string::slice_to(
-                        &relative_path,
-                        0.0,
-                        tsonic_rust_runtime::conversions::i32_to_f64(
-                            tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                                &relative_path,
-                            ))?
-                                - tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                                    &extension,
-                                ))?,
-                        ),
-                    )
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                    let existing: Option<SelectedDataFile> = layer.get(&semantic_path);
-                    if existing.is_some() {
-                        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                            String::from("TSUMO_DATA_IDENTITY_CONFLICT"),
-                            format!(
-                                "{}{}{}{}{}{}{}",
-                                String::from("Data files '"),
-                                rt::source_string(&(match existing.as_ref() {
-    Some(flow_value_2) => flow_value_2.clone(),
-    None => unreachable!("checked flow selected a missing optional value"),
-}).state.with(
-                                    |state| state.source_path.clone()
-                                )),
-                                String::from("' and '"),
-                                rt::source_string(&source_path),
-                                String::from("' define the same data identity '"),
-                                rt::source_string(&semantic_path),
-                                String::from("'"),
-                            ),
-                            Some(source_path.clone()),
-                            None,
-                            None,
-                        )));
-                    }
-                    layer.set(
-                        semantic_path.clone(),
-                        SelectedDataFile::new(semantic_path.clone(), source_path.clone(), match format.as_ref()
-                        {
-                            Some(flow_value_3) => flow_value_3.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        }),
-                    );
-                    index += 1;
-                }
-            }
-            for file in layer.values() {
-                selected.set(
-                    file.state.with(|state| state.semantic_path.clone()),
-                    file.clone(),
-                );
-            }
-            Ok::<_, rt::TsonicError>(())
-        });
-        COLLECT_DATA_LAYER.with(|module_binding_3| module_binding_3.initialize(module_value_3))
-    };
-    {
-        let module_value_4 = rt::Callable::<
-            (
-                crate::template::values::dict::DictValue,
-                String,
-                crate::template::values::base::TemplateValue,
-                String,
-            ),
-            rt::TsonicResult<()>,
-        >::new(move |callable_arguments_4| {
-            let root = callable_arguments_4.0;
-            let semantic_path = callable_arguments_4.1;
-            let value = callable_arguments_4.2;
-            let source_path = callable_arguments_4.3;
-            let segments: js_abi::JsArray<String> = js_string::split_all(&semantic_path, "/")
-                .map_err(tsonic_rust_runtime::TsonicError::from)?;
-            let mut current: crate::template::values::dict::DictValue = root.clone();
-            {
-                let mut index: i32 = 0;
-                'loop_value_3: while index < tsonic_rust_runtime::conversions::usize_to_i32(segments.len())? - 1 {
-                    let segment: String = match segments
-                        .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
-                        .as_ref()
-                    {
-                        Some(flow_value_4) => flow_value_4.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    };
-                    let existing: Option<crate::template::values::base::TemplateValue> = {
-                        let dispatch_receiver = &current;
-                        dispatch_receiver.dispatch.read_dict_value_value()
-                    }
-                    .get(&segment);
-                    if existing.is_none() {
-                        let created: crate::template::values::dict::DictValue =
-                            crate::template::values::dict::DictValue::new(js_abi::JsMap::new());
-                        {
-                            let dispatch_receiver_2 = &current;
-                            dispatch_receiver_2.dispatch.read_dict_value_value()
-                        }
-                        .set(segment.clone(), {
-                            let upcast_value = created.clone();
-                            crate::template::values::base::TemplateValue {
-                                identity: upcast_value.identity.clone(),
-                                dispatch: upcast_value.dispatch.clone(),
-                            }
-                        });
-                        current = created.clone();
-                        index += 1;
-                        continue 'loop_value_3;
-                    }
-                    if match existing.as_ref() {
-                        Some(flow_value_5) => flow_value_5.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }
-                    .dispatch
-                    .clone()
-                    .downcast_template_value_to_dict_value()
-                    .is_none()
-                    {
-                        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                            String::from("TSUMO_DATA_TREE_CONFLICT"),
-                            format!(
-                                "{}{}{}{}{}",
-                                String::from("Data identity '"),
-                                rt::source_string(&semantic_path),
-                                String::from("' conflicts with a data file at '"),
-                                rt::source_string(&segments
-                                    .slice_to(
-                                        0.0,
-                                        tsonic_rust_runtime::conversions::i32_to_f64(index + 1),
-                                    )
-                                    .join("/"),),
-                                String::from("'"),
-                            ),
-                            Some(source_path.clone()),
-                            None,
-                            None,
-                        )));
-                    }
-                    current = {
-                        let downcast_value = &existing;
-                        crate::template::values::dict::DictValue {
-                            identity: downcast_value.as_ref().unwrap().identity.clone(),
-                            dispatch: downcast_value
-                                .as_ref()
-                                .unwrap()
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_dict_value()
-                                .unwrap(),
-                        }
-                    };
-                    index += 1;
-                }
-            }
-            let name: String = match segments
-                .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
-                    tsonic_rust_runtime::conversions::usize_to_i32(segments.len())? - 1,
-                ))
+        let mut index: i32 = 0;
+        'loop_value: while index < tsonic_rust_runtime::conversions::usize_to_i32(files.len())? {
+            let source_path: String = match files
+                .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
                 .as_ref()
             {
-                Some(flow_value_6) => flow_value_6.clone(),
+                Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            if {
-                let dispatch_receiver_3 = &current;
-                dispatch_receiver_3.dispatch.read_dict_value_value()
+            let format: Option<String> = data_format(source_path.clone());
+            if format.is_none() {
+                index += 1;
+                continue 'loop_value;
             }
-            .has(&name)
-            {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                    String::from("TSUMO_DATA_TREE_CONFLICT"),
+            let relative_path: String =
+                normalize_data_path(tsonic_rust_node::path::relative(&root, &source_path))?;
+            let extension: String = tsonic_rust_node::path::extname(&relative_path);
+            let semantic_path: String = {
+                let operation_input_0 = relative_path.clone();
+                js_string::slice_to(
+                    &operation_input_0,
+                    0.0,
+                    tsonic_rust_runtime::conversions::i32_to_f64(
+                        tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
+                            &relative_path,
+                        ))?
+                            - tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
+                                &extension,
+                            ))?,
+                    ),
+                )
+            }?;
+            let existing: Option<SelectedDataFile> = layer.get(&semantic_path);
+            if existing.is_some() {
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+                    String::from("TSUMO_DATA_IDENTITY_CONFLICT"),
                     format!(
-                        "{}{}{}",
-                        String::from("Data identity '"),
-                        rt::source_string(&semantic_path),
-                        String::from("' is declared more than once"),
+                        "{}{}{}{}{}{}{}",
+                        String::from("Data files '"),
+                        match existing.as_ref() {
+                            Some(flow_value_2) => flow_value_2.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        }
+                        .state
+                        .with(|state| state.source_path.clone()),
+                        String::from("' and '"),
+                        source_path,
+                        String::from("' define the same data identity '"),
+                        semantic_path,
+                        String::from("'"),
                     ),
                     Some(source_path.clone()),
                     None,
@@ -336,192 +124,295 @@ pub fn module_init() {
                 )));
             }
             {
-                let dispatch_receiver_4 = &current;
-                dispatch_receiver_4.dispatch.read_dict_value_value()
-            }
-            .set(name.clone(), value.clone());
-            Ok::<_, rt::TsonicError>(())
-        });
-        SET_DATA_PATH.with(|module_binding_4| module_binding_4.initialize(module_value_4))
-    };
-    {
-        let module_value_5 = rt::Callable::<
-            (
-                String,
-                Option<String>,
-                Option<js_abi::JsArray<crate::models::site_config::ModuleMount>>,
-            ),
-            rt::TsonicResult<crate::template::values::dict::DictValue>,
-        >::new(move |callable_arguments_5| {
-            let site_dir = callable_arguments_5.0;
-            let theme_dir = callable_arguments_5.1;
-            let mounts = callable_arguments_5.2;
-            let selected: js_abi::JsMap<String, SelectedDataFile> = js_abi::JsMap::new();
-            if theme_dir.is_some() {
-                COLLECT_DATA_LAYER
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        tsonic_rust_node::path::join(&[
-                            (match theme_dir.as_ref() {
-    Some(flow_value_7) => flow_value_7.clone(),
-    None => unreachable!("checked flow selected a missing optional value"),
-}).as_str(),
-                            "data",
-                        ]),
-                        selected.clone(),
-                    ))?;
-            }
-            if mounts.is_some() {
-                {
-                    let mut index: i32 = tsonic_rust_runtime::conversions::usize_to_i32(
-                        (match mounts.as_ref() {
-    Some(flow_value_8) => flow_value_8.clone(),
-    None => unreachable!("checked flow selected a missing optional value"),
-}).len(),
-                    )? - 1;
-                    'loop_value_4: while index >= 0 {
-                        let mount: crate::models::site_config::ModuleMount = match match mounts
-                            .as_ref()
-                        {
-                            Some(flow_value_9) => flow_value_9.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        }
-                        .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
-                        .as_ref()
-                        {
-                            Some(flow_value_10) => flow_value_10.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        };
-                        let target: String = crate::utils::strings::trim_end_char(
-                            &crate::utils::strings::trim_start_char(
-                                &NORMALIZE_DATA_PATH
-                                    .with(|module_binding| module_binding.load())
-                                    .call((mount.state.with(|state| state.target.clone()),))?,
-                                String::from("/"),
-                            )?,
-                            String::from("/"),
-                        )?;
-                        if target != "data" {
-                            index -= 1;
-                            continue 'loop_value_4;
-                        }
-                        let root: String = if tsonic_rust_node::path::is_absolute(&mount
-                            .state
-                            .with(|state| state.source.clone()))
-                        {
-                            mount.state.with(|state| state.source.clone())
-                        } else {
-                            tsonic_rust_node::path::join(&[
-                                site_dir.as_str(),
-                                mount.state.with(|state| state.source.clone()).as_str(),
-                            ])
-                        };
-                        COLLECT_DATA_LAYER
-                            .with(|module_binding| module_binding.load())
-                            .call((root.clone(), selected.clone()))?;
-                        index -= 1;
-                    }
-                }
-            }
-            COLLECT_DATA_LAYER
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[site_dir.as_str(), "data"]),
-                    selected.clone(),
-                ))?;
-            let identities: js_abi::JsArray<String> = js_abi::array_from_vec(&selected.keys());
-            identities.sort_by_js_string();
-            let root: crate::template::values::dict::DictValue =
-                crate::template::values::dict::DictValue::new(js_abi::JsMap::new());
-            {
-                let mut index: i32 = 0;
-                while index < tsonic_rust_runtime::conversions::usize_to_i32(identities.len())? {
-                    let identity: String = match identities
-                        .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
+                let operation_input_0_2 = layer.clone();
+                operation_input_0_2.set_discard(
+                    semantic_path.clone(),
+                    SelectedDataFile::new(semantic_path.clone(), source_path.clone(), match format
                         .as_ref()
                     {
-                        Some(flow_value_11) => flow_value_11.clone(),
+                        Some(flow_value_3) => flow_value_3.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
-                    };
-                    let file: Option<SelectedDataFile> = selected.get(&identity);
-                    if file.is_none() {
-                        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                            String::from("TSUMO_DATA_SELECTION_INCONSISTENT"),
-                            format!(
-                                "{}{}{}",
-                                String::from("Selected data identity '"),
-                                rt::source_string(&identity),
-                                String::from("' disappeared"),
-                            ),
-                            None,
-                            None,
-                            None,
-                        )));
-                    }
-                    let value: crate::template::values::base::TemplateValue =
-                        crate::template::evaluation::structured_data::PARSE_TEMPLATE_DATA_TEXT
-                            .with(|module_binding| module_binding.load())
-                            .call((
-                                crate::fs::READ_TEXT_FILE
-                                    .with(|module_binding| module_binding.load())
-                                    .call((match file.as_ref() {
-                                        Some(flow_value_12) => flow_value_12.clone(),
-                                        None => {
-                                            unreachable!(
-                                                "checked flow selected a missing optional value"
-                                            )
-                                        }
-                                    }
-                                    .state
-                                    .with(|state| state.source_path.clone()),))?,
-                                match file.as_ref() {
-                                    Some(flow_value_13) => flow_value_13.clone(),
-                                    None => {
-                                        unreachable!(
-                                            "checked flow selected a missing optional value"
-                                        )
-                                    }
-                                }
-                                .state
-                                .with(|state| state.format.clone()),
-                                Some(match file.as_ref() {
-                                    Some(flow_value_14) => flow_value_14.clone(),
-                                    None => {
-                                        unreachable!(
-                                            "checked flow selected a missing optional value"
-                                        )
-                                    }
-                                }
-                                .state
-                                .with(|state| state.source_path.clone())),
-                            ))?;
-                    SET_DATA_PATH
-                        .with(|module_binding| module_binding.load())
-                        .call((
-                            root.clone(),
-                            match file.as_ref() {
-                                Some(flow_value_15) => flow_value_15.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            }
-                            .state
-                            .with(|state| state.semantic_path.clone()),
-                            value.clone(),
-                            match file.as_ref() {
-                                Some(flow_value_16) => flow_value_16.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            }
-                            .state
-                            .with(|state| state.source_path.clone()),
-                        ))?;
-                    index += 1;
-                }
+                    }),
+                )
+            };
+            index += 1;
+        }
+    }
+    for file in layer.values() {
+        {
+            let operation_input_0_3 = selected.clone();
+            operation_input_0_3.set_discard(
+                file.state.with(|state| state.semantic_path.clone()),
+                file.clone(),
+            )
+        };
+    }
+    Ok(())
+}
+
+pub fn set_data_path(
+    root: crate::template::values::dict::DictValue,
+    semantic_path: String,
+    value: crate::template::values::base::TemplateValue,
+    source_path: String,
+) -> Result<(), rt::TsonicError> {
+    let segments: js_abi::JsArray<String> = js_string::split_all(&semantic_path, "/")?;
+    let mut current: crate::template::values::dict::DictValue = root;
+    {
+        let mut index: i32 = 0;
+        'loop_value: while index < tsonic_rust_runtime::conversions::usize_to_i32(segments.len())? - 1 {
+            let segment: String = match segments
+                .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
+                .as_ref()
+            {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
+            let existing: Option<crate::template::values::base::TemplateValue> = {
+                let dispatch_receiver = &current;
+                dispatch_receiver.dispatch.read_dict_value_value()
             }
-            Ok::<_, rt::TsonicError>(root.clone())
-        });
-        LOAD_SITE_DATA.with(|module_binding_5| module_binding_5.initialize(module_value_5))
+            .get(&segment);
+            if existing.is_none() {
+                let created: crate::template::values::dict::DictValue =
+                    crate::template::values::dict::DictValue::new(js_abi::JsMap::new());
+                {
+                    let dispatch_receiver_2 = &current;
+                    dispatch_receiver_2.dispatch.read_dict_value_value()
+                }
+                .set_discard(segment.clone(), {
+                    let upcast_value = created.clone();
+                    crate::template::values::base::TemplateValue {
+                        identity: upcast_value.identity.clone(),
+                        dispatch: upcast_value.dispatch.clone(),
+                    }
+                });
+                current = created.clone();
+                index += 1;
+                continue 'loop_value;
+            }
+            if match existing.as_ref() {
+                Some(flow_value_2) => flow_value_2.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            }
+            .dispatch
+            .clone()
+            .downcast_template_value_to_dict_value()
+            .is_none()
+            {
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+                    String::from("TSUMO_DATA_TREE_CONFLICT"),
+                    format!(
+                        "{}{}{}{}{}",
+                        String::from("Data identity '"),
+                        semantic_path,
+                        String::from("' conflicts with a data file at '"),
+                        segments
+                            .slice_to(0.0, tsonic_rust_runtime::conversions::i32_to_f64(index + 1))
+                            .join("/"),
+                        String::from("'"),
+                    ),
+                    Some(source_path.clone()),
+                    None,
+                    None,
+                )));
+            }
+            current = {
+                let downcast_value = &existing;
+                crate::template::values::dict::DictValue {
+                    identity: downcast_value.as_ref().unwrap().identity.clone(),
+                    dispatch: downcast_value
+                        .as_ref()
+                        .unwrap()
+                        .dispatch
+                        .clone()
+                        .downcast_template_value_to_dict_value()
+                        .unwrap(),
+                }
+            };
+            index += 1;
+        }
+    }
+    let name: String = match {
+        let operation_input_0 = segments.clone();
+        operation_input_0.get_number(tsonic_rust_runtime::conversions::i32_to_f64(
+            tsonic_rust_runtime::conversions::usize_to_i32(segments.len())? - 1,
+        ))
+    }
+    .as_ref()
+    {
+        Some(flow_value_3) => flow_value_3.clone(),
+        None => unreachable!("checked flow selected a missing optional value"),
     };
+    if { let dispatch_receiver_3 = &current; dispatch_receiver_3.dispatch.read_dict_value_value() }
+        .has(&name)
+    {
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_DATA_TREE_CONFLICT"),
+            format!(
+                "{}{}{}",
+                String::from("Data identity '"),
+                semantic_path,
+                String::from("' is declared more than once"),
+            ),
+            Some(source_path.clone()),
+            None,
+            None,
+        )));
+    }
+    { let dispatch_receiver_4 = &current; dispatch_receiver_4.dispatch.read_dict_value_value() }
+        .set_discard(name.clone(), value);
+    Ok(())
+}
+
+pub fn load_site_data(
+    site_dir: String,
+    theme_dir: Option<String>,
+    mounts: Option<js_abi::JsArray<crate::models::site_config::ModuleMount>>,
+) -> Result<crate::template::values::dict::DictValue, rt::TsonicError> {
+    let selected: js_abi::JsMap<String, SelectedDataFile> = js_abi::JsMap::new();
+    if theme_dir.is_some() {
+        collect_data_layer(
+            tsonic_rust_node::path::join(&[
+                (match theme_dir.as_ref() {
+    Some(flow_value) => flow_value.clone(),
+    None => unreachable!("checked flow selected a missing optional value"),
+}).as_str(),
+                "data",
+            ]),
+            selected.clone(),
+        )?;
+    }
+    if mounts.is_some() {
+        {
+            let mut index: i32 = tsonic_rust_runtime::conversions::usize_to_i32(
+                (match mounts.as_ref() {
+    Some(flow_value_2) => flow_value_2.clone(),
+    None => unreachable!("checked flow selected a missing optional value"),
+}).len(),
+            )? - 1;
+            'loop_value: while index >= 0 {
+                let mount: crate::models::site_config::ModuleMount = match match mounts.as_ref() {
+                    Some(flow_value_3) => flow_value_3.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }
+                .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
+                .as_ref()
+                {
+                    Some(flow_value_4) => flow_value_4.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                };
+                let target: String = crate::utils::strings::trim_end_char(
+                    crate::utils::strings::trim_start_char(
+                        &normalize_data_path({
+                            let dispatch_receiver = &mount;
+                            dispatch_receiver.dispatch.read_module_mount_target()
+                        })?,
+                        String::from("/"),
+                    )?,
+                    String::from("/"),
+                )?;
+                if target != "data" {
+                    index -= 1;
+                    continue 'loop_value;
+                }
+                let root: String = {
+                    let conditional_test = tsonic_rust_node::path::is_absolute(&{
+                        let dispatch_receiver_2 = &mount;
+                        dispatch_receiver_2.dispatch.read_module_mount_source()
+                    });
+                    if conditional_test {
+                        let dispatch_receiver_3 = &mount;
+                        dispatch_receiver_3.dispatch.read_module_mount_source()
+                    } else {
+                        let operation_input_0 = site_dir.clone();
+                        tsonic_rust_node::path::join(&[
+                            operation_input_0.as_str(),
+                            {
+                                let dispatch_receiver_4 = &mount;
+                                dispatch_receiver_4.dispatch.read_module_mount_source()
+                            }
+                            .as_str(),
+                        ])
+                    }
+                };
+                collect_data_layer(root.clone(), selected.clone())?;
+                index -= 1;
+            }
+        }
+    }
+    collect_data_layer(
+        tsonic_rust_node::path::join(&[site_dir.as_str(), "data"]),
+        selected.clone(),
+    )?;
+    let identities: js_abi::JsArray<String> = js_abi::array_from_vec(&selected.keys());
+    identities.sort_by_js_string();
+    let root: crate::template::values::dict::DictValue =
+        crate::template::values::dict::DictValue::new(js_abi::JsMap::new());
+    {
+        let mut index: i32 = 0;
+        while index < tsonic_rust_runtime::conversions::usize_to_i32(identities.len())? {
+            let identity: String = match identities
+                .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
+                .as_ref()
+            {
+                Some(flow_value_5) => flow_value_5.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
+            let file: Option<SelectedDataFile> = selected.get(&identity);
+            if file.is_none() {
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+                    String::from("TSUMO_DATA_SELECTION_INCONSISTENT"),
+                    format!(
+                        "{}{}{}",
+                        String::from("Selected data identity '"),
+                        identity,
+                        String::from("' disappeared"),
+                    ),
+                    None,
+                    None,
+                    None,
+                )));
+            }
+            let value: crate::template::values::base::TemplateValue =
+                crate::template::evaluation::structured_data::parse_template_data_text(
+                    crate::fs::read_text_file(match file.as_ref() {
+                        Some(flow_value_6) => flow_value_6.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }
+                    .state
+                    .with(|state| state.source_path.clone()))?,
+                    &match file.as_ref() {
+                        Some(flow_value_7) => flow_value_7.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }
+                    .state
+                    .with(|state| state.format.clone()),
+                    Some(match file.as_ref() {
+                        Some(flow_value_8) => flow_value_8.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }
+                    .state
+                    .with(|state| state.source_path.clone())),
+                )?;
+            set_data_path(
+                root.clone(),
+                match file.as_ref() {
+                    Some(flow_value_9) => flow_value_9.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }
+                .state
+                .with(|state| state.semantic_path.clone()),
+                value.clone(),
+                match file.as_ref() {
+                    Some(flow_value_10) => flow_value_10.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }
+                .state
+                .with(|state| state.source_path.clone()),
+            )?;
+            index += 1;
+        }
+    }
+    Ok(root)
 }

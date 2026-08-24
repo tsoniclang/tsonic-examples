@@ -4,23 +4,25 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ShortcodeContextState {
-    pub(crate) name: String,
-    pub(crate) page: crate::models::page_context::PageContext,
-    pub(crate) site: crate::models::site_context::SiteContext,
-    pub(crate) params: js_abi::JsMap<String, crate::params::ParamValue>,
-    pub(crate) positional_params: js_abi::JsArray<String>,
-    pub(crate) is_named_params: bool,
-    pub(crate) inner: String,
-    pub(crate) inner_deindent: String,
-    pub(crate) ordinal: i32,
-    pub(crate) parent: Option<ShortcodeContext>,
+pub struct ShortcodeContextState {
+    pub name: String,
+    pub page: crate::models::page_context::PageContext,
+    pub site: crate::models::site_context::SiteContext,
+    pub params: js_abi::JsMap<String, crate::params::ParamValue>,
+    pub positional_params: js_abi::JsArray<String>,
+    pub is_named_params: bool,
+    pub inner: String,
+    pub inner_deindent: String,
+    pub ordinal: i32,
+    pub parent: Option<ShortcodeContext>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ShortcodeContext {
-    pub(crate) state: rt::ObjectHandle<ShortcodeContextState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<ShortcodeContextState>,
 }
 
 impl ShortcodeContext {
@@ -35,21 +37,19 @@ impl ShortcodeContext {
         inner: String,
         ordinal: i32,
         parent: Option<ShortcodeContext>,
-    ) -> rt::TsonicResult<ShortcodeContext> {
-        let field_name: String = name.clone();
-        let field_page: crate::models::page_context::PageContext = page.clone();
-        let field_site: crate::models::site_context::SiteContext = site.clone();
-        let field_params: js_abi::JsMap<String, crate::params::ParamValue> = params.clone();
-        let field_positional_params: js_abi::JsArray<String> = positional_params.clone();
+    ) -> Result<ShortcodeContext, rt::TsonicError> {
+        let field_name: String = name;
+        let field_page: crate::models::page_context::PageContext = page;
+        let field_site: crate::models::site_context::SiteContext = site;
+        let field_params: js_abi::JsMap<String, crate::params::ParamValue> = params;
+        let field_positional_params: js_abi::JsArray<String> = positional_params;
         let field_is_named_params: bool = is_named_params;
         let field_inner: String = inner.clone();
-        let field_inner_deindent: String = crate::shortcode::INNER_DEINDENT
-            .with(|module_binding| module_binding.load())
-            .call((inner.clone(),))?;
+        let field_inner_deindent: String = crate::shortcode::inner_deindent(inner.clone())?;
         let field_ordinal: i32 = ordinal;
-        let field_parent: Option<ShortcodeContext> = parent.clone();
+        let field_parent: Option<ShortcodeContext> = parent;
         Ok(ShortcodeContext {
-            state: rt::ObjectHandle::new(ShortcodeContextState {
+            state: rt::ObjectRef::new(ShortcodeContextState {
                 name: field_name,
                 page: field_page,
                 site: field_site,
@@ -64,10 +64,12 @@ impl ShortcodeContext {
         })
     }
 
-    pub fn get(&self, key_or_index: String) -> rt::TsonicResult<Option<crate::params::ParamValue>> {
+    pub fn get(
+        &self,
+        key_or_index: String,
+    ) -> Result<Option<crate::params::ParamValue>, rt::TsonicError> {
         if self.state.with(|state| state.is_named_params) {
-            return Ok(self
-                .state
+            return Ok(self.state
                 .with(|state| state.params.clone())
                 .get(&key_or_index));
         }
@@ -82,15 +84,13 @@ impl ShortcodeContext {
                 None => unreachable!("checked flow selected a missing optional value"),
             })
                 < tsonic_rust_runtime::conversions::usize_to_i32(
-                    self
-                        .state
+                    self.state
                         .with(|state| state.positional_params.clone())
                         .len(),
                 )?
         {
             return Ok(Some(crate::params::ParamValue::string(
-                match self
-                    .state
+                match self.state
                     .with(|state| state.positional_params.clone())
                     .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
                         match idx.as_ref() {
@@ -109,8 +109,9 @@ impl ShortcodeContext {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait ShortcodeValueDispatch:
+pub trait ShortcodeValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_shortcode_value_to_shortcode_value(
@@ -120,17 +121,27 @@ pub(crate) trait ShortcodeValueDispatch:
     fn write_shortcode_value_value(&self, value: ShortcodeContext);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ShortcodeValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: ShortcodeContext,
+pub struct ShortcodeValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: ShortcodeContext,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct ShortcodeValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn ShortcodeValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn ShortcodeValueDispatch>,
+}
+
+impl std::fmt::Debug for ShortcodeValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("ShortcodeValue")
+    }
 }
 
 impl PartialEq for ShortcodeValue {
@@ -148,9 +159,10 @@ pub(crate) struct ShortcodeValueRoot {
 }
 
 impl ShortcodeValue {
-    pub(crate) fn initialize_state(value: ShortcodeContext) -> ShortcodeValueState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: ShortcodeContext) -> ShortcodeValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: ShortcodeContext = value.clone();
+        let field_value: ShortcodeContext = value;
         ShortcodeValueState {
             base: base_state,
             value: field_value,
@@ -479,20 +491,22 @@ impl ShortcodeValueDispatch for ShortcodeValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct LinkHookContextState {
-    pub(crate) destination: String,
-    pub(crate) text: String,
-    pub(crate) title: String,
-    pub(crate) plain_text: String,
-    pub(crate) page: crate::models::page_context::PageContext,
-    pub(crate) page_inner: crate::models::page_context::PageContext,
-    pub(crate) page_outer: crate::models::page_context::PageContext,
+pub struct LinkHookContextState {
+    pub destination: String,
+    pub text: String,
+    pub title: String,
+    pub plain_text: String,
+    pub page: crate::models::page_context::PageContext,
+    pub page_inner: crate::models::page_context::PageContext,
+    pub page_outer: crate::models::page_context::PageContext,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct LinkHookContext {
-    pub(crate) state: rt::ObjectHandle<LinkHookContextState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<LinkHookContextState>,
 }
 
 impl LinkHookContext {
@@ -504,15 +518,15 @@ impl LinkHookContext {
         page_inner: crate::models::page_context::PageContext,
         page_outer: crate::models::page_context::PageContext,
     ) -> LinkHookContext {
-        let field_destination: String = destination.clone();
-        let field_text: String = text.clone();
-        let field_title: String = title.clone();
-        let field_plain_text: String = plain_text.clone();
+        let field_destination: String = destination;
+        let field_text: String = text;
+        let field_title: String = title;
+        let field_plain_text: String = plain_text;
         let field_page: crate::models::page_context::PageContext = page_inner.clone();
         let field_page_inner: crate::models::page_context::PageContext = page_inner.clone();
-        let field_page_outer: crate::models::page_context::PageContext = page_outer.clone();
+        let field_page_outer: crate::models::page_context::PageContext = page_outer;
         LinkHookContext {
-            state: rt::ObjectHandle::new(LinkHookContextState {
+            state: rt::ObjectRef::new(LinkHookContextState {
                 destination: field_destination,
                 text: field_text,
                 title: field_title,
@@ -525,8 +539,9 @@ impl LinkHookContext {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait LinkHookValueDispatch:
+pub trait LinkHookValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_link_hook_value_to_link_hook_value(
@@ -536,17 +551,27 @@ pub(crate) trait LinkHookValueDispatch:
     fn write_link_hook_value_value(&self, value: LinkHookContext);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct LinkHookValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: LinkHookContext,
+pub struct LinkHookValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: LinkHookContext,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct LinkHookValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn LinkHookValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn LinkHookValueDispatch>,
+}
+
+impl std::fmt::Debug for LinkHookValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("LinkHookValue")
+    }
 }
 
 impl PartialEq for LinkHookValue {
@@ -564,9 +589,10 @@ pub(crate) struct LinkHookValueRoot {
 }
 
 impl LinkHookValue {
-    pub(crate) fn initialize_state(value: LinkHookContext) -> LinkHookValueState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: LinkHookContext) -> LinkHookValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: LinkHookContext = value.clone();
+        let field_value: LinkHookContext = value;
         LinkHookValueState {
             base: base_state,
             value: field_value,
@@ -895,20 +921,22 @@ impl LinkHookValueDispatch for LinkHookValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ImageHookContextState {
-    pub(crate) destination: String,
-    pub(crate) text: String,
-    pub(crate) title: String,
-    pub(crate) plain_text: String,
-    pub(crate) page: crate::models::page_context::PageContext,
-    pub(crate) page_inner: crate::models::page_context::PageContext,
-    pub(crate) page_outer: crate::models::page_context::PageContext,
+pub struct ImageHookContextState {
+    pub destination: String,
+    pub text: String,
+    pub title: String,
+    pub plain_text: String,
+    pub page: crate::models::page_context::PageContext,
+    pub page_inner: crate::models::page_context::PageContext,
+    pub page_outer: crate::models::page_context::PageContext,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ImageHookContext {
-    pub(crate) state: rt::ObjectHandle<ImageHookContextState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<ImageHookContextState>,
 }
 
 impl ImageHookContext {
@@ -920,15 +948,15 @@ impl ImageHookContext {
         page_inner: crate::models::page_context::PageContext,
         page_outer: crate::models::page_context::PageContext,
     ) -> ImageHookContext {
-        let field_destination: String = destination.clone();
-        let field_text: String = text.clone();
-        let field_title: String = title.clone();
-        let field_plain_text: String = plain_text.clone();
+        let field_destination: String = destination;
+        let field_text: String = text;
+        let field_title: String = title;
+        let field_plain_text: String = plain_text;
         let field_page: crate::models::page_context::PageContext = page_inner.clone();
         let field_page_inner: crate::models::page_context::PageContext = page_inner.clone();
-        let field_page_outer: crate::models::page_context::PageContext = page_outer.clone();
+        let field_page_outer: crate::models::page_context::PageContext = page_outer;
         ImageHookContext {
-            state: rt::ObjectHandle::new(ImageHookContextState {
+            state: rt::ObjectRef::new(ImageHookContextState {
                 destination: field_destination,
                 text: field_text,
                 title: field_title,
@@ -941,8 +969,9 @@ impl ImageHookContext {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait ImageHookValueDispatch:
+pub trait ImageHookValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_image_hook_value_to_image_hook_value(
@@ -952,17 +981,27 @@ pub(crate) trait ImageHookValueDispatch:
     fn write_image_hook_value_value(&self, value: ImageHookContext);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ImageHookValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: ImageHookContext,
+pub struct ImageHookValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: ImageHookContext,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct ImageHookValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn ImageHookValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn ImageHookValueDispatch>,
+}
+
+impl std::fmt::Debug for ImageHookValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("ImageHookValue")
+    }
 }
 
 impl PartialEq for ImageHookValue {
@@ -980,9 +1019,10 @@ pub(crate) struct ImageHookValueRoot {
 }
 
 impl ImageHookValue {
-    pub(crate) fn initialize_state(value: ImageHookContext) -> ImageHookValueState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: ImageHookContext) -> ImageHookValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: ImageHookContext = value.clone();
+        let field_value: ImageHookContext = value;
         ImageHookValueState {
             base: base_state,
             value: field_value,
@@ -1311,20 +1351,22 @@ impl ImageHookValueDispatch for ImageHookValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct HeadingHookContextState {
-    pub(crate) level: i32,
-    pub(crate) text: String,
-    pub(crate) plain_text: String,
-    pub(crate) anchor: String,
-    pub(crate) page: crate::models::page_context::PageContext,
-    pub(crate) page_inner: crate::models::page_context::PageContext,
-    pub(crate) page_outer: crate::models::page_context::PageContext,
+pub struct HeadingHookContextState {
+    pub level: i32,
+    pub text: String,
+    pub plain_text: String,
+    pub anchor: String,
+    pub page: crate::models::page_context::PageContext,
+    pub page_inner: crate::models::page_context::PageContext,
+    pub page_outer: crate::models::page_context::PageContext,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct HeadingHookContext {
-    pub(crate) state: rt::ObjectHandle<HeadingHookContextState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<HeadingHookContextState>,
 }
 
 impl HeadingHookContext {
@@ -1337,14 +1379,14 @@ impl HeadingHookContext {
         page_outer: crate::models::page_context::PageContext,
     ) -> HeadingHookContext {
         let field_level: i32 = level;
-        let field_text: String = text.clone();
-        let field_plain_text: String = plain_text.clone();
-        let field_anchor: String = anchor.clone();
+        let field_text: String = text;
+        let field_plain_text: String = plain_text;
+        let field_anchor: String = anchor;
         let field_page: crate::models::page_context::PageContext = page_inner.clone();
         let field_page_inner: crate::models::page_context::PageContext = page_inner.clone();
-        let field_page_outer: crate::models::page_context::PageContext = page_outer.clone();
+        let field_page_outer: crate::models::page_context::PageContext = page_outer;
         HeadingHookContext {
-            state: rt::ObjectHandle::new(HeadingHookContextState {
+            state: rt::ObjectRef::new(HeadingHookContextState {
                 level: field_level,
                 text: field_text,
                 plain_text: field_plain_text,
@@ -1357,8 +1399,9 @@ impl HeadingHookContext {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait HeadingHookValueDispatch:
+pub trait HeadingHookValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_heading_hook_value_to_heading_hook_value(
@@ -1368,17 +1411,27 @@ pub(crate) trait HeadingHookValueDispatch:
     fn write_heading_hook_value_value(&self, value: HeadingHookContext);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct HeadingHookValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: HeadingHookContext,
+pub struct HeadingHookValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: HeadingHookContext,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct HeadingHookValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn HeadingHookValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn HeadingHookValueDispatch>,
+}
+
+impl std::fmt::Debug for HeadingHookValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("HeadingHookValue")
+    }
 }
 
 impl PartialEq for HeadingHookValue {
@@ -1396,9 +1449,10 @@ pub(crate) struct HeadingHookValueRoot {
 }
 
 impl HeadingHookValue {
-    pub(crate) fn initialize_state(value: HeadingHookContext) -> HeadingHookValueState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: HeadingHookContext) -> HeadingHookValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: HeadingHookContext = value.clone();
+        let field_value: HeadingHookContext = value;
         HeadingHookValueState {
             base: base_state,
             value: field_value,

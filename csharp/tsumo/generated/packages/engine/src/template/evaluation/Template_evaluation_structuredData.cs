@@ -381,7 +381,7 @@ namespace Tsumo.Engine
                     {
                         throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_UNMARSHAL_OPTIONS_INVALID", "transform.Unmarshal options must be a dictionary");
                     }
-                    requestedFormat = optionValue((DictValue)(DictValue)options, "format");
+                    requestedFormat = optionValue((DictValue)options, "format");
                 }
                 StructuredInput input = inputFromValue(args[args.length - 1]);
                 string format = normalizeFormat(requestedFormat, input);

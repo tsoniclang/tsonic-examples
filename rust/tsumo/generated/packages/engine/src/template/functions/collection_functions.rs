@@ -6,7 +6,7 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-pub(crate) fn union_elements_equal(
+pub fn union_elements_equal(
     left: crate::template::values::base::TemplateValue,
     right: crate::template::values::base::TemplateValue,
 ) -> Option<bool> {
@@ -72,21 +72,20 @@ pub(crate) fn union_elements_equal(
                     }
                 };
                 dispatch_receiver.dispatch.read_string_value_value()
-            }
-                == {
-                    let dispatch_receiver_2 = &{
-                        let downcast_value_2 = &right;
-                        crate::template::values::primitives::StringValue {
-                            identity: downcast_value_2.identity.clone(),
-                            dispatch: downcast_value_2
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_string_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_2.dispatch.read_string_value_value()
-                },
+            } == {
+                let dispatch_receiver_2 = &{
+                    let downcast_value_2 = &right;
+                    crate::template::values::primitives::StringValue {
+                        identity: downcast_value_2.identity.clone(),
+                        dispatch: downcast_value_2
+                            .dispatch
+                            .clone()
+                            .downcast_template_value_to_string_value()
+                            .unwrap(),
+                    }
+                };
+                dispatch_receiver_2.dispatch.read_string_value_value()
+            },
         );
     }
     if left
@@ -127,21 +126,20 @@ pub(crate) fn union_elements_equal(
                     }
                 };
                 dispatch_receiver_3.dispatch.read_number_value_value()
-            }
-                == {
-                    let dispatch_receiver_4 = &{
-                        let downcast_value_4 = &right;
-                        crate::template::values::primitives::NumberValue {
-                            identity: downcast_value_4.identity.clone(),
-                            dispatch: downcast_value_4
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_number_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_4.dispatch.read_number_value_value()
-                },
+            } == {
+                let dispatch_receiver_4 = &{
+                    let downcast_value_4 = &right;
+                    crate::template::values::primitives::NumberValue {
+                        identity: downcast_value_4.identity.clone(),
+                        dispatch: downcast_value_4
+                            .dispatch
+                            .clone()
+                            .downcast_template_value_to_number_value()
+                            .unwrap(),
+                    }
+                };
+                dispatch_receiver_4.dispatch.read_number_value_value()
+            },
         );
     }
     if left
@@ -182,21 +180,20 @@ pub(crate) fn union_elements_equal(
                     }
                 };
                 dispatch_receiver_5.dispatch.read_bool_value_value()
-            }
-                == {
-                    let dispatch_receiver_6 = &{
-                        let downcast_value_6 = &right;
-                        crate::template::values::primitives::BoolValue {
-                            identity: downcast_value_6.identity.clone(),
-                            dispatch: downcast_value_6
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_bool_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_6.dispatch.read_bool_value_value()
-                },
+            } == {
+                let dispatch_receiver_6 = &{
+                    let downcast_value_6 = &right;
+                    crate::template::values::primitives::BoolValue {
+                        identity: downcast_value_6.identity.clone(),
+                        dispatch: downcast_value_6
+                            .dispatch
+                            .clone()
+                            .downcast_template_value_to_bool_value()
+                            .unwrap(),
+                    }
+                };
+                dispatch_receiver_6.dispatch.read_bool_value_value()
+            },
         );
     }
     if left
@@ -237,37 +234,36 @@ pub(crate) fn union_elements_equal(
                     }
                 };
                 dispatch_receiver_7.dispatch.read_page_value_value()
-            }
-                == {
-                    let dispatch_receiver_8 = &{
-                        let downcast_value_8 = &right;
-                        crate::template::values::page::PageValue {
-                            identity: downcast_value_8.identity.clone(),
-                            dispatch: downcast_value_8
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_page_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_8.dispatch.read_page_value_value()
-                },
+            } == {
+                let dispatch_receiver_8 = &{
+                    let downcast_value_8 = &right;
+                    crate::template::values::page::PageValue {
+                        identity: downcast_value_8.identity.clone(),
+                        dispatch: downcast_value_8
+                            .dispatch
+                            .clone()
+                            .downcast_template_value_to_page_value()
+                            .unwrap(),
+                    }
+                };
+                dispatch_receiver_8.dispatch.read_page_value_value()
+            },
         );
     }
     Option::<bool>::None
 }
 
-pub(crate) fn require_element_equality(
+pub fn require_element_equality(
     left: crate::template::values::base::TemplateValue,
     right: crate::template::values::base::TemplateValue,
     diagnostic_code: String,
     diagnostic_message: String,
-) -> rt::TsonicResult<bool> {
-    let equals: Option<bool> = union_elements_equal(left.clone(), right.clone());
+) -> Result<bool, rt::TsonicError> {
+    let equals: Option<bool> = union_elements_equal(left, right);
     if equals.is_none() {
-        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-            diagnostic_code.clone(),
-            diagnostic_message.clone(),
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+            diagnostic_code,
+            diagnostic_message,
             None,
             None,
             None,
@@ -279,10 +275,10 @@ pub(crate) fn require_element_equality(
     })
 }
 
-pub(crate) fn append_unique_union_value(
+pub fn append_unique_union_value(
     result: js_abi::JsArray<crate::template::values::base::TemplateValue>,
     candidate: crate::template::values::base::TemplateValue,
-) -> rt::TsonicResult<()> {
+) -> Result<(), rt::TsonicError> {
     {
         let mut index: f64 = 0.0;
         while index < (tsonic_rust_runtime::conversions::usize_to_i32(result.len())? as f64) {
@@ -301,13 +297,16 @@ pub(crate) fn append_unique_union_value(
             index += 1.0;
         }
     }
-    tsonic_rust_runtime::conversions::usize_to_i32(result.push_many([candidate.clone()]))?;
+    result.push_many_discard([candidate.clone()]);
     Ok(())
 }
 
-pub(crate) fn union_values(
+pub fn union_values(
     value: crate::template::values::base::TemplateValue,
-) -> rt::TsonicResult<Option<js_abi::JsArray<crate::template::values::base::TemplateValue>>> {
+) -> Result<
+    Option<js_abi::JsArray<crate::template::values::base::TemplateValue>>,
+    rt::TsonicError,
+> {
     if value
         .dispatch
         .clone()
@@ -350,38 +349,43 @@ pub(crate) fn union_values(
             while index
                 < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_2 = &{ let downcast_value_2 = &value; crate::template::values::arrays::StringArrayValue { identity: downcast_value_2.identity.clone(), dispatch: downcast_value_2.dispatch.clone().downcast_template_value_to_string_array_value().unwrap() } }; dispatch_receiver_2.dispatch.read_string_array_value_value() }.len())? as f64)
             {
-                tsonic_rust_runtime::conversions::usize_to_i32(result.push_many([{
-                    let upcast_value = crate::template::values::primitives::StringValue::new(
-                        match {
-                            let dispatch_receiver_3 = &{
-                                let downcast_value_3 = &value;
-                                crate::template::values::arrays::StringArrayValue {
-                                    identity: downcast_value_3.identity.clone(),
-                                    dispatch: downcast_value_3
-                                        .dispatch
-                                        .clone()
-                                        .downcast_template_value_to_string_array_value()
-                                        .unwrap(),
+                {
+                    let operation_input_0 = result.clone();
+                    operation_input_0.push_many_discard([{
+                        let upcast_value = crate::template::values::primitives::StringValue::new(
+                            match {
+                                let dispatch_receiver_3 = &{
+                                    let downcast_value_3 = &value;
+                                    crate::template::values::arrays::StringArrayValue {
+                                        identity: downcast_value_3.identity.clone(),
+                                        dispatch: downcast_value_3
+                                            .dispatch
+                                            .clone()
+                                            .downcast_template_value_to_string_array_value()
+                                            .unwrap(),
+                                    }
+                                };
+                                dispatch_receiver_3.dispatch.read_string_array_value_value()
+                            }
+                            .get_number(index)
+                            .as_ref()
+                            {
+                                Some(flow_value) => flow_value.clone(),
+                                None => {
+                                    unreachable!("checked flow selected a missing optional value")
                                 }
-                            };
-                            dispatch_receiver_3.dispatch.read_string_array_value_value()
+                            },
+                        );
+                        crate::template::values::base::TemplateValue {
+                            identity: upcast_value.identity.clone(),
+                            dispatch: upcast_value.dispatch.clone(),
                         }
-                        .get_number(index)
-                        .as_ref()
-                        {
-                            Some(flow_value) => flow_value.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },
-                    );
-                    crate::template::values::base::TemplateValue {
-                        identity: upcast_value.identity.clone(),
-                        dispatch: upcast_value.dispatch.clone(),
-                    }
-                }]))?;
+                    }])
+                };
                 index += 1.0;
             }
         }
-        return Ok(Some(result.clone()));
+        return Ok(Some(result));
     }
     if value
         .dispatch
@@ -396,44 +400,51 @@ pub(crate) fn union_values(
             while index
                 < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_4 = &{ let downcast_value_4 = &value; crate::template::values::page::PageArrayValue { identity: downcast_value_4.identity.clone(), dispatch: downcast_value_4.dispatch.clone().downcast_template_value_to_page_array_value().unwrap() } }; dispatch_receiver_4.dispatch.read_page_array_value_value() }.len())? as f64)
             {
-                tsonic_rust_runtime::conversions::usize_to_i32(result.push_many([{
-                    let upcast_value_2 = crate::template::values::page::PageValue::new(match {
-                        let dispatch_receiver_5 = &{
-                            let downcast_value_5 = &value;
-                            crate::template::values::page::PageArrayValue {
-                                identity: downcast_value_5.identity.clone(),
-                                dispatch: downcast_value_5
-                                    .dispatch
-                                    .clone()
-                                    .downcast_template_value_to_page_array_value()
-                                    .unwrap(),
+                {
+                    let operation_input_0_2 = result.clone();
+                    operation_input_0_2.push_many_discard([{
+                        let upcast_value_2 = crate::template::values::page::PageValue::new(
+                            match {
+                                let dispatch_receiver_5 = &{
+                                    let downcast_value_5 = &value;
+                                    crate::template::values::page::PageArrayValue {
+                                        identity: downcast_value_5.identity.clone(),
+                                        dispatch: downcast_value_5
+                                            .dispatch
+                                            .clone()
+                                            .downcast_template_value_to_page_array_value()
+                                            .unwrap(),
+                                    }
+                                };
+                                dispatch_receiver_5.dispatch.read_page_array_value_value()
                             }
-                        };
-                        dispatch_receiver_5.dispatch.read_page_array_value_value()
-                    }
-                    .get_number(index)
-                    .as_ref()
-                    {
-                        Some(flow_value_2) => flow_value_2.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    });
-                    crate::template::values::base::TemplateValue {
-                        identity: upcast_value_2.identity.clone(),
-                        dispatch: upcast_value_2.dispatch.clone(),
-                    }
-                }]))?;
+                            .get_number(index)
+                            .as_ref()
+                            {
+                                Some(flow_value_2) => flow_value_2.clone(),
+                                None => {
+                                    unreachable!("checked flow selected a missing optional value")
+                                }
+                            },
+                        );
+                        crate::template::values::base::TemplateValue {
+                            identity: upcast_value_2.identity.clone(),
+                            dispatch: upcast_value_2.dispatch.clone(),
+                        }
+                    }])
+                };
                 index += 1.0;
             }
         }
-        return Ok(Some(result.clone()));
+        return Ok(Some(result));
     }
     Ok(Option::<js_abi::JsArray<crate::template::values::base::TemplateValue>>::None)
 }
 
-pub(crate) fn complement_contains(
+pub fn complement_contains(
     collections: js_abi::JsArray<js_abi::JsArray<crate::template::values::base::TemplateValue>>,
     candidate: crate::template::values::base::TemplateValue,
-) -> rt::TsonicResult<bool> {
+) -> Result<bool, rt::TsonicError> {
     {
         let mut collection_index: f64 = 0.0;
         while collection_index
@@ -474,9 +485,10 @@ pub fn call_collection_function(
     name: String,
     args: js_abi::JsArray<crate::template::values::base::TemplateValue>,
     context: crate::template::functions::function_context::TemplateFunctionContext,
-) -> rt::TsonicResult<Option<crate::template::values::base::TemplateValue>> {
-    let scope: crate::template::scope::RenderScope =
-        context.state.with(|state| state.scope.clone());
+) -> Result<Option<crate::template::values::base::TemplateValue>, rt::TsonicError> {
+    let scope: crate::template::scope::RenderScope = context
+        .state
+        .with(|state| state.scope.clone());
     if name == "seq" {
         return Ok(Some({
             let upcast_value =
@@ -503,7 +515,7 @@ pub fn call_collection_function(
                         None => unreachable!("checked flow selected a missing optional value"),
                     })?;
                 if values.is_none() {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                    return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                         String::from("TSUMO_TEMPLATE_COMPLEMENT_COLLECTION_UNSUPPORTED"),
                         String::from("collections.Complement requires slice arguments"),
                         None,
@@ -511,20 +523,20 @@ pub fn call_collection_function(
                         None,
                     )));
                 }
-                tsonic_rust_runtime::conversions::usize_to_i32(exclusions.push_many([match values
-                    .as_ref()
-                {
+                exclusions.push_many_discard([match values.as_ref() {
                     Some(flow_value_2) => flow_value_2.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
-                }]))?;
+                }]);
                 index += 1.0;
             }
         }
-        let source: crate::template::values::base::TemplateValue = match args
-            .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
+        let source: crate::template::values::base::TemplateValue = match {
+            let operation_input_0 = args.clone();
+            operation_input_0.get_number(tsonic_rust_runtime::conversions::i32_to_f64(
                 tsonic_rust_runtime::conversions::usize_to_i32(args.len())? - 1,
             ))
-            .as_ref()
+        }
+        .as_ref()
         {
             Some(flow_value_3) => flow_value_3.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
@@ -532,7 +544,7 @@ pub fn call_collection_function(
         let source_values: Option<js_abi::JsArray<crate::template::values::base::TemplateValue>> =
             union_values(source.clone())?;
         if source_values.is_none() {
-            return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+            return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                 String::from("TSUMO_TEMPLATE_COMPLEMENT_COLLECTION_UNSUPPORTED"),
                 String::from("collections.Complement requires slice arguments"),
                 None,
@@ -573,21 +585,16 @@ pub fn call_collection_function(
                         Some(flow_value_4) => flow_value_4.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
-                    if !complement_contains(
-                        exclusions.clone(),
-                        {
-                            let upcast_value_2 =
-                                crate::template::values::page::PageValue::new(page.clone());
-                            crate::template::values::base::TemplateValue {
-                                identity: upcast_value_2.identity.clone(),
-                                dispatch: upcast_value_2.dispatch.clone(),
-                            }
-                        },
-                    )?
+                    if !complement_contains(exclusions.clone(), {
+                        let upcast_value_2 =
+                            crate::template::values::page::PageValue::new(page.clone());
+                        crate::template::values::base::TemplateValue {
+                            identity: upcast_value_2.identity.clone(),
+                            dispatch: upcast_value_2.dispatch.clone(),
+                        }
+                    })?
                     {
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            pages.push_many([page.clone()]),
-                        )?;
+                        pages.push_many_discard([page.clone()]);
                     }
                     index += 1.0;
                 }
@@ -633,21 +640,16 @@ pub fn call_collection_function(
                         Some(flow_value_5) => flow_value_5.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
-                    if !complement_contains(
-                        exclusions.clone(),
-                        {
-                            let upcast_value_4 =
-                                crate::template::values::primitives::StringValue::new(value.clone());
-                            crate::template::values::base::TemplateValue {
-                                identity: upcast_value_4.identity.clone(),
-                                dispatch: upcast_value_4.dispatch.clone(),
-                            }
-                        },
-                    )?
+                    if !complement_contains(exclusions.clone(), {
+                        let upcast_value_4 =
+                            crate::template::values::primitives::StringValue::new(value.clone());
+                        crate::template::values::base::TemplateValue {
+                            identity: upcast_value_4.identity.clone(),
+                            dispatch: upcast_value_4.dispatch.clone(),
+                        }
+                    })?
                     {
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            strings.push_many([value.clone()]),
-                        )?;
+                        strings.push_many_discard([value.clone()]);
                     }
                     index += 1.0;
                 }
@@ -684,9 +686,7 @@ pub fn call_collection_function(
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 if !complement_contains(exclusions.clone(), value.clone())? {
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        values.push_many([value.clone()]),
-                    )?;
+                    values.push_many_discard([value.clone()]);
                 }
                 index += 1.0;
             }
@@ -711,36 +711,38 @@ pub fn call_collection_function(
             Some(flow_value_9) => flow_value_9.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         };
-        let path: String = crate::template::runtime_helpers::TO_PLAIN_STRING
-            .with(|module_binding| module_binding.load())
-            .call((match args.get_number(1.0).as_ref() {
+        let path: String = crate::template::runtime_helpers::to_plain_string(
+            match args.get_number(1.0).as_ref() {
                 Some(flow_value_10) => flow_value_10.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
-            },))?;
+            },
+        )?;
         let op_raw: String = if tsonic_rust_runtime::conversions::usize_to_i32(args.len())? == 3 {
             String::from("eq")
         } else {
-            js_string::to_lower_case(&crate::template::runtime_helpers::TO_PLAIN_STRING
-                .with(|module_binding| module_binding.load())
-                .call((match args.get_number(2.0).as_ref() {
+            js_string::to_lower_case(&crate::template::runtime_helpers::to_plain_string(
+                match args.get_number(2.0).as_ref() {
                     Some(flow_value_11) => flow_value_11.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
-                },))?)
+                },
+            )?)
         };
-        let expected: crate::template::values::base::TemplateValue = match args
-            .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
+        let expected: crate::template::values::base::TemplateValue = match {
+            let operation_input_0_2 = args.clone();
+            operation_input_0_2.get_number(tsonic_rust_runtime::conversions::i32_to_f64(
                 tsonic_rust_runtime::conversions::usize_to_i32(args.len())? - 1,
             ))
-            .as_ref()
+        }
+        .as_ref()
         {
             Some(flow_value_12) => flow_value_12.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         };
         let empty: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
         let segs: js_abi::JsArray<String> = if js_string::trim(&path).is_empty() {
-            empty.clone()
+            empty
         } else {
-            js_string::split_all(&path, ".").map_err(tsonic_rust_runtime::TsonicError::from)?
+            js_string::split_all(&path, ".")?
         };
         if collection
             .dispatch
@@ -797,13 +799,13 @@ pub fn call_collection_function(
                                 scope.clone(),
                             )?
                         };
-                    if crate::template::evaluation::page_semantics::MATCH_WHERE
-                        .with(|module_binding| module_binding.load())
-                        .call((actual.clone(), op_raw.clone(), expected.clone()))?
+                    if crate::template::evaluation::page_semantics::match_where(
+                        actual.clone(),
+                        op_raw.clone(),
+                        expected.clone(),
+                    )?
                     {
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            out.push_many([page.clone()]),
-                        )?;
+                        out.push_many_discard([page.clone()]);
                     }
                     i += 1.0;
                 }
@@ -860,13 +862,13 @@ pub fn call_collection_function(
                                 scope.clone(),
                             )?
                         };
-                    if crate::template::evaluation::page_semantics::MATCH_WHERE
-                        .with(|module_binding| module_binding.load())
-                        .call((actual.clone(), op_raw.clone(), expected.clone()))?
+                    if crate::template::evaluation::page_semantics::match_where(
+                        actual.clone(),
+                        op_raw.clone(),
+                        expected.clone(),
+                    )?
                     {
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            out.push_many([item.clone()]),
-                        )?;
+                        out.push_many_discard([item.clone()]);
                     }
                     i += 1.0;
                 }
@@ -880,7 +882,7 @@ pub fn call_collection_function(
                 }
             }));
         }
-        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_TEMPLATE_WHERE_COLLECTION_UNSUPPORTED"),
             String::from("collections.Where requires a page collection or slice"),
             None,
@@ -898,33 +900,33 @@ pub fn call_collection_function(
         };
         let sort_key: String =
             if tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 2 {
-                crate::template::runtime_helpers::TO_PLAIN_STRING
-                    .with(|module_binding| module_binding.load())
-                    .call((match args.get_number(1.0).as_ref() {
+                crate::template::runtime_helpers::to_plain_string(
+                    match args.get_number(1.0).as_ref() {
                         Some(flow_value_16) => flow_value_16.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
-                    },))?
+                    },
+                )?
             } else {
                 String::from("")
             };
         let sort_order: String = if tsonic_rust_runtime::conversions::usize_to_i32(args.len())?
             >= 3
         {
-            js_string::to_lower_case(&crate::template::runtime_helpers::TO_PLAIN_STRING
-                .with(|module_binding| module_binding.load())
-                .call((match args.get_number(2.0).as_ref() {
+            js_string::to_lower_case(&crate::template::runtime_helpers::to_plain_string(
+                match args.get_number(2.0).as_ref() {
                     Some(flow_value_17) => flow_value_17.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
-                },))?)
+                },
+            )?)
         } else {
             String::from("asc")
         };
         let is_desc: bool = sort_order == "desc";
         let empty: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
         let key_segs: js_abi::JsArray<String> = if js_string::trim(&sort_key).is_empty() {
-            empty.clone()
+            empty
         } else {
-            js_string::split_all(&sort_key, ".").map_err(tsonic_rust_runtime::TsonicError::from)?
+            js_string::split_all(&sort_key, ".")?
         };
         if collection
             .dispatch
@@ -933,20 +935,22 @@ pub fn call_collection_function(
             .is_some()
         {
             let arr: js_abi::JsArray<crate::models::page_context::PageContext> =
-                crate::template::evaluation::page_semantics::copy_page_array({
-                    let dispatch_receiver_9 = &{
-                        let downcast_value_9 = &collection;
-                        crate::template::values::page::PageArrayValue {
-                            identity: downcast_value_9.identity.clone(),
-                            dispatch: downcast_value_9
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_page_array_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_9.dispatch.read_page_array_value_value()
-                })?;
+                crate::template::evaluation::page_semantics::COPY_PAGE_ARRAY
+                    .with(|module_binding| module_binding.load())
+                    .call(({
+                        let dispatch_receiver_9 = &{
+                            let downcast_value_9 = &collection;
+                            crate::template::values::page::PageArrayValue {
+                                identity: downcast_value_9.identity.clone(),
+                                dispatch: downcast_value_9
+                                    .dispatch
+                                    .clone()
+                                    .downcast_template_value_to_page_array_value()
+                                    .unwrap(),
+                            }
+                        };
+                        dispatch_receiver_9.dispatch.read_page_array_value_value()
+                    },))?;
             {
                 let mut i: f64 = 0.0;
                 while i < (tsonic_rust_runtime::conversions::usize_to_i32(arr.len())? as f64) {
@@ -960,16 +964,17 @@ pub fn call_collection_function(
                                     == 0
                                 {
                                     let upcast_value_11 =
-                                        crate::template::values::page::PageValue::new(
-                                            match arr.get_number(i).as_ref() {
-                                                Some(flow_value_18) => flow_value_18.clone(),
-                                                None => {
-                                                    unreachable!(
-                                                        "checked flow selected a missing optional value"
-                                                    )
-                                                }
-                                            },
-                                        );
+                                        crate::template::values::page::PageValue::new(match arr
+                                            .get_number(i)
+                                            .as_ref()
+                                        {
+                                            Some(flow_value_18) => flow_value_18.clone(),
+                                            None => {
+                                                unreachable!(
+                                                    "checked flow selected a missing optional value"
+                                                )
+                                            }
+                                        });
                                     crate::template::values::base::TemplateValue {
                                         identity: upcast_value_11.identity.clone(),
                                         dispatch: upcast_value_11.dispatch.clone(),
@@ -1004,16 +1009,17 @@ pub fn call_collection_function(
                                     == 0
                                 {
                                     let upcast_value_13 =
-                                        crate::template::values::page::PageValue::new(
-                                            match arr.get_number(j).as_ref() {
-                                                Some(flow_value_20) => flow_value_20.clone(),
-                                                None => {
-                                                    unreachable!(
-                                                        "checked flow selected a missing optional value"
-                                                    )
-                                                }
-                                            },
-                                        );
+                                        crate::template::values::page::PageValue::new(match arr
+                                            .get_number(j)
+                                            .as_ref()
+                                        {
+                                            Some(flow_value_20) => flow_value_20.clone(),
+                                            None => {
+                                                unreachable!(
+                                                    "checked flow selected a missing optional value"
+                                                )
+                                            }
+                                        });
                                     crate::template::values::base::TemplateValue {
                                         identity: upcast_value_13.identity.clone(),
                                         dispatch: upcast_value_13.dispatch.clone(),
@@ -1110,13 +1116,13 @@ pub fn call_collection_function(
             {
                 let mut i: f64 = 0.0;
                 while i < (tsonic_rust_runtime::conversions::usize_to_i32(items.len())? as f64) {
-                    tsonic_rust_runtime::conversions::usize_to_i32(arr.push_many([match items
-                        .get_number(i)
-                        .as_ref()
                     {
-                        Some(flow_value_24) => flow_value_24.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }]))?;
+                        let operation_input_0_3 = arr.clone();
+                        operation_input_0_3.push_many_discard([match items.get_number(i).as_ref() {
+                            Some(flow_value_24) => flow_value_24.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        }])
+                    };
                     i += 1.0;
                 }
             }
@@ -1222,15 +1228,15 @@ pub fn call_collection_function(
                 }
             }));
         }
-        return Ok(Some(collection.clone()));
+        return Ok(Some(collection));
     }
     if name == "after" && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 2 {
-        let n: i32 = crate::template::runtime_helpers::TO_NUMBER
-            .with(|module_binding| module_binding.load())
-            .call((match args.get_number(0.0).as_ref() {
+        let n: i32 = crate::template::runtime_helpers::to_number(
+            match args.get_number(0.0).as_ref() {
                 Some(flow_value_31) => flow_value_31.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
-            },))?;
+            },
+        )?;
         let collection: crate::template::values::base::TemplateValue = match args
             .get_number(1.0)
             .as_ref()
@@ -1245,32 +1251,37 @@ pub fn call_collection_function(
             .is_some()
         {
             let pages: js_abi::JsArray<crate::models::page_context::PageContext> =
-                crate::template::evaluation::page_semantics::copy_page_array({
-                    let dispatch_receiver_11 = &{
-                        let downcast_value_11 = &collection;
-                        crate::template::values::page::PageArrayValue {
-                            identity: downcast_value_11.identity.clone(),
-                            dispatch: downcast_value_11
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_page_array_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_11.dispatch.read_page_array_value_value()
-                })?;
+                crate::template::evaluation::page_semantics::COPY_PAGE_ARRAY
+                    .with(|module_binding| module_binding.load())
+                    .call(({
+                        let dispatch_receiver_11 = &{
+                            let downcast_value_11 = &collection;
+                            crate::template::values::page::PageArrayValue {
+                                identity: downcast_value_11.identity.clone(),
+                                dispatch: downcast_value_11
+                                    .dispatch
+                                    .clone()
+                                    .downcast_template_value_to_page_array_value()
+                                    .unwrap(),
+                            }
+                        };
+                        dispatch_receiver_11.dispatch.read_page_array_value_value()
+                    },))?;
             let result: js_abi::JsArray<crate::models::page_context::PageContext> =
                 js_abi::JsArray::from_dense(vec![]);
             {
                 let mut i: i32 = n;
                 while i < tsonic_rust_runtime::conversions::usize_to_i32(pages.len())? {
-                    tsonic_rust_runtime::conversions::usize_to_i32(result.push_many([match pages
-                        .get_number(tsonic_rust_runtime::conversions::i32_to_f64(i))
-                        .as_ref()
                     {
-                        Some(flow_value_33) => flow_value_33.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }]))?;
+                        let operation_input_0_4 = result.clone();
+                        operation_input_0_4.push_many_discard([match pages
+                            .get_number(tsonic_rust_runtime::conversions::i32_to_f64(i))
+                            .as_ref()
+                        {
+                            Some(flow_value_33) => flow_value_33.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        }])
+                    };
                     i += 1;
                 }
             }
@@ -1308,13 +1319,16 @@ pub fn call_collection_function(
             {
                 let mut i: i32 = n;
                 while i < tsonic_rust_runtime::conversions::usize_to_i32(items.len())? {
-                    tsonic_rust_runtime::conversions::usize_to_i32(result.push_many([match items
-                        .get_number(tsonic_rust_runtime::conversions::i32_to_f64(i))
-                        .as_ref()
                     {
-                        Some(flow_value_34) => flow_value_34.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }]))?;
+                        let operation_input_0_5 = result.clone();
+                        operation_input_0_5.push_many_discard([match items
+                            .get_number(tsonic_rust_runtime::conversions::i32_to_f64(i))
+                            .as_ref()
+                        {
+                            Some(flow_value_34) => flow_value_34.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        }])
+                    };
                     i += 1;
                 }
             }
@@ -1332,12 +1346,12 @@ pub fn call_collection_function(
         ));
     }
     if name == "first" && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 2 {
-        let count: i32 = crate::template::runtime_helpers::TO_NUMBER
-            .with(|module_binding| module_binding.load())
-            .call((match args.get_number(0.0).as_ref() {
+        let count: i32 = crate::template::runtime_helpers::to_number(
+            match args.get_number(0.0).as_ref() {
                 Some(flow_value_35) => flow_value_35.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
-            },))?;
+            },
+        )?;
         let collection: crate::template::values::base::TemplateValue = match args
             .get_number(1.0)
             .as_ref()
@@ -1382,10 +1396,11 @@ pub fn call_collection_function(
                     ),
                 ],
             ))?;
-            {
-                let mut i: f64 = 0.0;
-                while i < (limit as f64) {
-                    tsonic_rust_runtime::conversions::usize_to_i32(result.push_many([match {
+            for i_range in 0..limit {
+                let i = i_range as f64;
+                {
+                    let operation_input_0_6 = result.clone();
+                    operation_input_0_6.push_many_discard([match {
                         let dispatch_receiver_14 = &{
                             let downcast_value_14 = &collection;
                             crate::template::values::page::PageArrayValue {
@@ -1404,9 +1419,8 @@ pub fn call_collection_function(
                     {
                         Some(flow_value_37) => flow_value_37.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
-                    }]))?;
-                    i += 1.0;
-                }
+                    }])
+                };
             }
             return Ok(Some({
                 let upcast_value_19 =
@@ -1449,10 +1463,11 @@ pub fn call_collection_function(
                     ),
                 ],
             ))?;
-            {
-                let mut i: f64 = 0.0;
-                while i < (limit as f64) {
-                    tsonic_rust_runtime::conversions::usize_to_i32(result.push_many([match {
+            for i_range_2 in 0..limit {
+                let i = i_range_2 as f64;
+                {
+                    let operation_input_0_7 = result.clone();
+                    operation_input_0_7.push_many_discard([match {
                         let dispatch_receiver_16 = &{
                             let downcast_value_16 = &collection;
                             crate::template::values::arrays::AnyArrayValue {
@@ -1471,9 +1486,8 @@ pub fn call_collection_function(
                     {
                         Some(flow_value_38) => flow_value_38.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
-                    }]))?;
-                    i += 1.0;
-                }
+                    }])
+                };
             }
             return Ok(Some({
                 let upcast_value_20 =
@@ -1517,10 +1531,11 @@ pub fn call_collection_function(
                     ),
                 ],
             ))?;
-            {
-                let mut i: f64 = 0.0;
-                while i < (limit as f64) {
-                    tsonic_rust_runtime::conversions::usize_to_i32(result.push_many([match {
+            for i_range_3 in 0..limit {
+                let i = i_range_3 as f64;
+                {
+                    let operation_input_0_8 = result.clone();
+                    operation_input_0_8.push_many_discard([match {
                         let dispatch_receiver_18 = &{
                             let downcast_value_18 = &collection;
                             crate::template::values::arrays::StringArrayValue {
@@ -1541,9 +1556,8 @@ pub fn call_collection_function(
                     {
                         Some(flow_value_39) => flow_value_39.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
-                    }]))?;
-                    i += 1.0;
-                }
+                    }])
+                };
             }
             return Ok(Some({
                 let upcast_value_21 =
@@ -1559,12 +1573,12 @@ pub fn call_collection_function(
         ));
     }
     if name == "last" && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 2 {
-        let n: i32 = crate::template::runtime_helpers::TO_NUMBER
-            .with(|module_binding| module_binding.load())
-            .call((match args.get_number(0.0).as_ref() {
+        let n: i32 = crate::template::runtime_helpers::to_number(
+            match args.get_number(0.0).as_ref() {
                 Some(flow_value_40) => flow_value_40.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
-            },))?;
+            },
+        )?;
         let collection: crate::template::values::base::TemplateValue = match args
             .get_number(1.0)
             .as_ref()
@@ -1579,20 +1593,22 @@ pub fn call_collection_function(
             .is_some()
         {
             let pages: js_abi::JsArray<crate::models::page_context::PageContext> =
-                crate::template::evaluation::page_semantics::copy_page_array({
-                    let dispatch_receiver_19 = &{
-                        let downcast_value_19 = &collection;
-                        crate::template::values::page::PageArrayValue {
-                            identity: downcast_value_19.identity.clone(),
-                            dispatch: downcast_value_19
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_page_array_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_19.dispatch.read_page_array_value_value()
-                })?;
+                crate::template::evaluation::page_semantics::COPY_PAGE_ARRAY
+                    .with(|module_binding| module_binding.load())
+                    .call(({
+                        let dispatch_receiver_19 = &{
+                            let downcast_value_19 = &collection;
+                            crate::template::values::page::PageArrayValue {
+                                identity: downcast_value_19.identity.clone(),
+                                dispatch: downcast_value_19
+                                    .dispatch
+                                    .clone()
+                                    .downcast_template_value_to_page_array_value()
+                                    .unwrap(),
+                            }
+                        };
+                        dispatch_receiver_19.dispatch.read_page_array_value_value()
+                    },))?;
             let start: i32 = if tsonic_rust_runtime::conversions::usize_to_i32(pages.len())? > n {
                 tsonic_rust_runtime::conversions::usize_to_i32(pages.len())? - n
             } else {
@@ -1603,13 +1619,16 @@ pub fn call_collection_function(
             {
                 let mut i: i32 = start;
                 while i < tsonic_rust_runtime::conversions::usize_to_i32(pages.len())? {
-                    tsonic_rust_runtime::conversions::usize_to_i32(result.push_many([match pages
-                        .get_number(tsonic_rust_runtime::conversions::i32_to_f64(i))
-                        .as_ref()
                     {
-                        Some(flow_value_42) => flow_value_42.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }]))?;
+                        let operation_input_0_9 = result.clone();
+                        operation_input_0_9.push_many_discard([match pages
+                            .get_number(tsonic_rust_runtime::conversions::i32_to_f64(i))
+                            .as_ref()
+                        {
+                            Some(flow_value_42) => flow_value_42.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        }])
+                    };
                     i += 1;
                 }
             }
@@ -1652,13 +1671,16 @@ pub fn call_collection_function(
             {
                 let mut i: i32 = start;
                 while i < tsonic_rust_runtime::conversions::usize_to_i32(items.len())? {
-                    tsonic_rust_runtime::conversions::usize_to_i32(result.push_many([match items
-                        .get_number(tsonic_rust_runtime::conversions::i32_to_f64(i))
-                        .as_ref()
                     {
-                        Some(flow_value_43) => flow_value_43.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }]))?;
+                        let operation_input_0_10 = result.clone();
+                        operation_input_0_10.push_many_discard([match items
+                            .get_number(tsonic_rust_runtime::conversions::i32_to_f64(i))
+                            .as_ref()
+                        {
+                            Some(flow_value_43) => flow_value_43.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        }])
+                    };
                     i += 1;
                 }
             }
@@ -1690,20 +1712,22 @@ pub fn call_collection_function(
             .is_some()
         {
             let pages: js_abi::JsArray<crate::models::page_context::PageContext> =
-                crate::template::evaluation::page_semantics::copy_page_array({
-                    let dispatch_receiver_21 = &{
-                        let downcast_value_21 = &collection;
-                        crate::template::values::page::PageArrayValue {
-                            identity: downcast_value_21.identity.clone(),
-                            dispatch: downcast_value_21
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_page_array_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_21.dispatch.read_page_array_value_value()
-                })?;
+                crate::template::evaluation::page_semantics::COPY_PAGE_ARRAY
+                    .with(|module_binding| module_binding.load())
+                    .call(({
+                        let dispatch_receiver_21 = &{
+                            let downcast_value_21 = &collection;
+                            crate::template::values::page::PageArrayValue {
+                                identity: downcast_value_21.identity.clone(),
+                                dispatch: downcast_value_21
+                                    .dispatch
+                                    .clone()
+                                    .downcast_template_value_to_page_array_value()
+                                    .unwrap(),
+                            }
+                        };
+                        dispatch_receiver_21.dispatch.read_page_array_value_value()
+                    },))?;
             let seen: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
             let uniq_result: js_abi::JsArray<crate::models::page_context::PageContext> =
                 js_abi::JsArray::from_dense(vec![]);
@@ -1717,12 +1741,15 @@ pub fn call_collection_function(
                         Some(flow_value_45) => flow_value_45.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
-                    let key: String = p.state.with(|state| state.rel_permalink.clone());
+                    let key: String = {
+                        let dispatch_receiver_22 = &p;
+                        dispatch_receiver_22
+                            .dispatch
+                            .read_page_context_rel_permalink()
+                    };
                     if !seen.has(&key) {
-                        seen.set(key.clone(), true);
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            uniq_result.push_many([p.clone()]),
-                        )?;
+                        seen.set_discard(key.clone(), true);
+                        uniq_result.push_many_discard([p.clone()]);
                     }
                     i += 1.0;
                 }
@@ -1743,7 +1770,7 @@ pub fn call_collection_function(
             .is_some()
         {
             let items: js_abi::JsArray<crate::template::values::base::TemplateValue> = {
-                let dispatch_receiver_22 = &{
+                let dispatch_receiver_23 = &{
                     let downcast_value_22 = &collection;
                     crate::template::values::arrays::AnyArrayValue {
                         identity: downcast_value_22.identity.clone(),
@@ -1754,7 +1781,7 @@ pub fn call_collection_function(
                             .unwrap(),
                     }
                 };
-                dispatch_receiver_22.dispatch.read_any_array_value_value()
+                dispatch_receiver_23.dispatch.read_any_array_value_value()
             };
             let seen: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
             let uniq_result: js_abi::JsArray<crate::template::values::base::TemplateValue> =
@@ -1762,22 +1789,26 @@ pub fn call_collection_function(
             {
                 let mut i: f64 = 0.0;
                 while i < (tsonic_rust_runtime::conversions::usize_to_i32(items.len())? as f64) {
-                    let key: String = crate::template::runtime_helpers::TO_PLAIN_STRING
-                        .with(|module_binding| module_binding.load())
-                        .call((match items.get_number(i).as_ref() {
+                    let key: String = crate::template::runtime_helpers::to_plain_string(
+                        match items.get_number(i).as_ref() {
                             Some(flow_value_46) => flow_value_46.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
-                        },))?;
+                        },
+                    )?;
                     if !seen.has(&key) {
-                        seen.set(key.clone(), true);
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            uniq_result.push_many([match items.get_number(i).as_ref() {
+                        seen.set_discard(key.clone(), true);
+                        {
+                            let operation_input_0_11 = uniq_result.clone();
+                            operation_input_0_11.push_many_discard([match items
+                                .get_number(i)
+                                .as_ref()
+                            {
                                 Some(flow_value_47) => flow_value_47.clone(),
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
-                            }]),
-                        )?;
+                            }])
+                        };
                     }
                     i += 1.0;
                 }
@@ -1791,7 +1822,7 @@ pub fn call_collection_function(
                 }
             }));
         }
-        return Ok(Some(collection.clone()));
+        return Ok(Some(collection));
     }
     if name == "union" && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 2 {
         let first: crate::template::values::base::TemplateValue = match args
@@ -1820,27 +1851,29 @@ pub fn call_collection_function(
                 .is_some()
         {
             let result: js_abi::JsArray<crate::models::page_context::PageContext> =
-                crate::template::evaluation::page_semantics::copy_page_array({
-                    let dispatch_receiver_23 = &{
-                        let downcast_value_23 = &first;
-                        crate::template::values::page::PageArrayValue {
-                            identity: downcast_value_23.identity.clone(),
-                            dispatch: downcast_value_23
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_page_array_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_23.dispatch.read_page_array_value_value()
-                })?;
+                crate::template::evaluation::page_semantics::COPY_PAGE_ARRAY
+                    .with(|module_binding| module_binding.load())
+                    .call(({
+                        let dispatch_receiver_24 = &{
+                            let downcast_value_23 = &first;
+                            crate::template::values::page::PageArrayValue {
+                                identity: downcast_value_23.identity.clone(),
+                                dispatch: downcast_value_23
+                                    .dispatch
+                                    .clone()
+                                    .downcast_template_value_to_page_array_value()
+                                    .unwrap(),
+                            }
+                        };
+                        dispatch_receiver_24.dispatch.read_page_array_value_value()
+                    },))?;
             {
                 let mut index: f64 = 0.0;
                 while index
-                    < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_24 = &{ let downcast_value_24 = &second; crate::template::values::page::PageArrayValue { identity: downcast_value_24.identity.clone(), dispatch: downcast_value_24.dispatch.clone().downcast_template_value_to_page_array_value().unwrap() } }; dispatch_receiver_24.dispatch.read_page_array_value_value() }.len())? as f64)
+                    < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_25 = &{ let downcast_value_24 = &second; crate::template::values::page::PageArrayValue { identity: downcast_value_24.identity.clone(), dispatch: downcast_value_24.dispatch.clone().downcast_template_value_to_page_array_value().unwrap() } }; dispatch_receiver_25.dispatch.read_page_array_value_value() }.len())? as f64)
                 {
                     let candidate: crate::models::page_context::PageContext = match {
-                        let dispatch_receiver_25 = &{
+                        let dispatch_receiver_26 = &{
                             let downcast_value_25 = &second;
                             crate::template::values::page::PageArrayValue {
                                 identity: downcast_value_25.identity.clone(),
@@ -1851,7 +1884,7 @@ pub fn call_collection_function(
                                     .unwrap(),
                             }
                         };
-                        dispatch_receiver_25.dispatch.read_page_array_value_value()
+                        dispatch_receiver_26.dispatch.read_page_array_value_value()
                     }
                     .get_number(index)
                     .as_ref()
@@ -1865,13 +1898,7 @@ pub fn call_collection_function(
                         'loop_value_22: while result_index
                             < (tsonic_rust_runtime::conversions::usize_to_i32(result.len())? as f64)
                         {
-                            if (match result.get_number(result_index).as_ref() {
-                                Some(flow_value_51) => flow_value_51.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            }) == candidate
-                            {
+                            if result.get_number(result_index) == Some(candidate.clone()) {
                                 present = true;
                                 break 'loop_value_22;
                             }
@@ -1879,9 +1906,7 @@ pub fn call_collection_function(
                         }
                     }
                     if !present {
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            result.push_many([candidate.clone()]),
-                        )?;
+                        result.push_many_discard([candidate.clone()]);
                     }
                     index += 1.0;
                 }
@@ -1910,36 +1935,16 @@ pub fn call_collection_function(
             {
                 let mut index: f64 = 0.0;
                 while index
-                    < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_26 = &{ let downcast_value_26 = &first; crate::template::values::arrays::StringArrayValue { identity: downcast_value_26.identity.clone(), dispatch: downcast_value_26.dispatch.clone().downcast_template_value_to_string_array_value().unwrap() } }; dispatch_receiver_26.dispatch.read_string_array_value_value() }.len())? as f64)
+                    < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_27 = &{ let downcast_value_26 = &first; crate::template::values::arrays::StringArrayValue { identity: downcast_value_26.identity.clone(), dispatch: downcast_value_26.dispatch.clone().downcast_template_value_to_string_array_value().unwrap() } }; dispatch_receiver_27.dispatch.read_string_array_value_value() }.len())? as f64)
                 {
-                    if !result.includes_from_start(&match {
-                        let dispatch_receiver_27 = &{
-                            let downcast_value_27 = &first;
-                            crate::template::values::arrays::StringArrayValue {
-                                identity: downcast_value_27.identity.clone(),
-                                dispatch: downcast_value_27
-                                    .dispatch
-                                    .clone()
-                                    .downcast_template_value_to_string_array_value()
-                                    .unwrap(),
-                            }
-                        };
-                        dispatch_receiver_27
-                            .dispatch
-                            .read_string_array_value_value()
-                    }
-                    .get_number(index)
-                    .as_ref()
-                    {
-                        Some(flow_value_52) => flow_value_52.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }) {
-                        tsonic_rust_runtime::conversions::usize_to_i32(result.push_many([match {
+                    if !{
+                        let operation_input_0_12 = result.clone();
+                        operation_input_0_12.includes_from_start(&match {
                             let dispatch_receiver_28 = &{
-                                let downcast_value_28 = &first;
+                                let downcast_value_27 = &first;
                                 crate::template::values::arrays::StringArrayValue {
-                                    identity: downcast_value_28.identity.clone(),
-                                    dispatch: downcast_value_28
+                                    identity: downcast_value_27.identity.clone(),
+                                    dispatch: downcast_value_27
                                         .dispatch
                                         .clone()
                                         .downcast_template_value_to_string_array_value()
@@ -1953,9 +1958,37 @@ pub fn call_collection_function(
                         .get_number(index)
                         .as_ref()
                         {
-                            Some(flow_value_53) => flow_value_53.clone(),
+                            Some(flow_value_51) => flow_value_51.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
-                        }]))?;
+                        })
+                    } {
+                        {
+                            let operation_input_0_13 = result.clone();
+                            operation_input_0_13.push_many_discard([match {
+                                let dispatch_receiver_29 = &{
+                                    let downcast_value_28 = &first;
+                                    crate::template::values::arrays::StringArrayValue {
+                                        identity: downcast_value_28.identity.clone(),
+                                        dispatch: downcast_value_28
+                                            .dispatch
+                                            .clone()
+                                            .downcast_template_value_to_string_array_value()
+                                            .unwrap(),
+                                    }
+                                };
+                                dispatch_receiver_29
+                                    .dispatch
+                                    .read_string_array_value_value()
+                            }
+                            .get_number(index)
+                            .as_ref()
+                            {
+                                Some(flow_value_52) => flow_value_52.clone(),
+                                None => {
+                                    unreachable!("checked flow selected a missing optional value")
+                                }
+                            }])
+                        };
                     }
                     index += 1.0;
                 }
@@ -1963,36 +1996,16 @@ pub fn call_collection_function(
             {
                 let mut index: f64 = 0.0;
                 while index
-                    < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_29 = &{ let downcast_value_29 = &second; crate::template::values::arrays::StringArrayValue { identity: downcast_value_29.identity.clone(), dispatch: downcast_value_29.dispatch.clone().downcast_template_value_to_string_array_value().unwrap() } }; dispatch_receiver_29.dispatch.read_string_array_value_value() }.len())? as f64)
+                    < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_30 = &{ let downcast_value_29 = &second; crate::template::values::arrays::StringArrayValue { identity: downcast_value_29.identity.clone(), dispatch: downcast_value_29.dispatch.clone().downcast_template_value_to_string_array_value().unwrap() } }; dispatch_receiver_30.dispatch.read_string_array_value_value() }.len())? as f64)
                 {
-                    if !result.includes_from_start(&match {
-                        let dispatch_receiver_30 = &{
-                            let downcast_value_30 = &second;
-                            crate::template::values::arrays::StringArrayValue {
-                                identity: downcast_value_30.identity.clone(),
-                                dispatch: downcast_value_30
-                                    .dispatch
-                                    .clone()
-                                    .downcast_template_value_to_string_array_value()
-                                    .unwrap(),
-                            }
-                        };
-                        dispatch_receiver_30
-                            .dispatch
-                            .read_string_array_value_value()
-                    }
-                    .get_number(index)
-                    .as_ref()
-                    {
-                        Some(flow_value_54) => flow_value_54.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }) {
-                        tsonic_rust_runtime::conversions::usize_to_i32(result.push_many([match {
+                    if !{
+                        let operation_input_0_14 = result.clone();
+                        operation_input_0_14.includes_from_start(&match {
                             let dispatch_receiver_31 = &{
-                                let downcast_value_31 = &second;
+                                let downcast_value_30 = &second;
                                 crate::template::values::arrays::StringArrayValue {
-                                    identity: downcast_value_31.identity.clone(),
-                                    dispatch: downcast_value_31
+                                    identity: downcast_value_30.identity.clone(),
+                                    dispatch: downcast_value_30
                                         .dispatch
                                         .clone()
                                         .downcast_template_value_to_string_array_value()
@@ -2006,9 +2019,37 @@ pub fn call_collection_function(
                         .get_number(index)
                         .as_ref()
                         {
-                            Some(flow_value_55) => flow_value_55.clone(),
+                            Some(flow_value_53) => flow_value_53.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
-                        }]))?;
+                        })
+                    } {
+                        {
+                            let operation_input_0_15 = result.clone();
+                            operation_input_0_15.push_many_discard([match {
+                                let dispatch_receiver_32 = &{
+                                    let downcast_value_31 = &second;
+                                    crate::template::values::arrays::StringArrayValue {
+                                        identity: downcast_value_31.identity.clone(),
+                                        dispatch: downcast_value_31
+                                            .dispatch
+                                            .clone()
+                                            .downcast_template_value_to_string_array_value()
+                                            .unwrap(),
+                                    }
+                                };
+                                dispatch_receiver_32
+                                    .dispatch
+                                    .read_string_array_value_value()
+                            }
+                            .get_number(index)
+                            .as_ref()
+                            {
+                                Some(flow_value_54) => flow_value_54.clone(),
+                                None => {
+                                    unreachable!("checked flow selected a missing optional value")
+                                }
+                            }])
+                        };
                     }
                     index += 1.0;
                 }
@@ -2035,20 +2076,22 @@ pub fn call_collection_function(
         {
             return Ok(Some({
                 let upcast_value_28 = crate::template::values::page::PageArrayValue::new(
-                    crate::template::evaluation::page_semantics::copy_page_array({
-                        let dispatch_receiver_32 = &{
-                            let downcast_value_32 = &second;
-                            crate::template::values::page::PageArrayValue {
-                                identity: downcast_value_32.identity.clone(),
-                                dispatch: downcast_value_32
-                                    .dispatch
-                                    .clone()
-                                    .downcast_template_value_to_page_array_value()
-                                    .unwrap(),
-                            }
-                        };
-                        dispatch_receiver_32.dispatch.read_page_array_value_value()
-                    })?,
+                    crate::template::evaluation::page_semantics::COPY_PAGE_ARRAY
+                        .with(|module_binding| module_binding.load())
+                        .call(({
+                            let dispatch_receiver_33 = &{
+                                let downcast_value_32 = &second;
+                                crate::template::values::page::PageArrayValue {
+                                    identity: downcast_value_32.identity.clone(),
+                                    dispatch: downcast_value_32
+                                        .dispatch
+                                        .clone()
+                                        .downcast_template_value_to_page_array_value()
+                                        .unwrap(),
+                                }
+                            };
+                            dispatch_receiver_33.dispatch.read_page_array_value_value()
+                        },))?,
                 );
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_28.identity.clone(),
@@ -2069,20 +2112,22 @@ pub fn call_collection_function(
         {
             return Ok(Some({
                 let upcast_value_29 = crate::template::values::page::PageArrayValue::new(
-                    crate::template::evaluation::page_semantics::copy_page_array({
-                        let dispatch_receiver_33 = &{
-                            let downcast_value_33 = &first;
-                            crate::template::values::page::PageArrayValue {
-                                identity: downcast_value_33.identity.clone(),
-                                dispatch: downcast_value_33
-                                    .dispatch
-                                    .clone()
-                                    .downcast_template_value_to_page_array_value()
-                                    .unwrap(),
-                            }
-                        };
-                        dispatch_receiver_33.dispatch.read_page_array_value_value()
-                    })?,
+                    crate::template::evaluation::page_semantics::COPY_PAGE_ARRAY
+                        .with(|module_binding| module_binding.load())
+                        .call(({
+                            let dispatch_receiver_34 = &{
+                                let downcast_value_33 = &first;
+                                crate::template::values::page::PageArrayValue {
+                                    identity: downcast_value_33.identity.clone(),
+                                    dispatch: downcast_value_33
+                                        .dispatch
+                                        .clone()
+                                        .downcast_template_value_to_page_array_value()
+                                        .unwrap(),
+                                }
+                            };
+                            dispatch_receiver_34.dispatch.read_page_array_value_value()
+                        },))?,
                 );
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_29.identity.clone(),
@@ -2104,7 +2149,7 @@ pub fn call_collection_function(
             return Ok(Some({
                 let upcast_value_30 = crate::template::values::arrays::StringArrayValue::new(
                     {
-                        let dispatch_receiver_34 = &{
+                        let dispatch_receiver_35 = &{
                             let downcast_value_34 = &second;
                             crate::template::values::arrays::StringArrayValue {
                                 identity: downcast_value_34.identity.clone(),
@@ -2115,7 +2160,7 @@ pub fn call_collection_function(
                                     .unwrap(),
                             }
                         };
-                        dispatch_receiver_34
+                        dispatch_receiver_35
                             .dispatch
                             .read_string_array_value_value()
                     }
@@ -2141,7 +2186,7 @@ pub fn call_collection_function(
             return Ok(Some({
                 let upcast_value_31 = crate::template::values::arrays::StringArrayValue::new(
                     {
-                        let dispatch_receiver_35 = &{
+                        let dispatch_receiver_36 = &{
                             let downcast_value_35 = &first;
                             crate::template::values::arrays::StringArrayValue {
                                 identity: downcast_value_35.identity.clone(),
@@ -2152,7 +2197,7 @@ pub fn call_collection_function(
                                     .unwrap(),
                             }
                         };
-                        dispatch_receiver_35
+                        dispatch_receiver_36
                             .dispatch
                             .read_string_array_value_value()
                     }
@@ -2175,18 +2220,18 @@ pub fn call_collection_function(
                 let mut index: f64 = 0.0;
                 while index
                     < (tsonic_rust_runtime::conversions::usize_to_i32((match first_values.as_ref() {
-    Some(flow_value_56) => flow_value_56.clone(),
+    Some(flow_value_55) => flow_value_55.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
 }).len())? as f64)
                 {
                     append_unique_union_value(result.clone(), match match first_values.as_ref() {
-                        Some(flow_value_57) => flow_value_57.clone(),
+                        Some(flow_value_56) => flow_value_56.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                     .get_number(index)
                     .as_ref()
                     {
-                        Some(flow_value_58) => flow_value_58.clone(),
+                        Some(flow_value_57) => flow_value_57.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     })?;
                     index += 1.0;
@@ -2196,18 +2241,18 @@ pub fn call_collection_function(
                 let mut index: f64 = 0.0;
                 while index
                     < (tsonic_rust_runtime::conversions::usize_to_i32((match second_values.as_ref() {
-    Some(flow_value_59) => flow_value_59.clone(),
+    Some(flow_value_58) => flow_value_58.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
 }).len())? as f64)
                 {
                     append_unique_union_value(result.clone(), match match second_values.as_ref() {
-                        Some(flow_value_60) => flow_value_60.clone(),
+                        Some(flow_value_59) => flow_value_59.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                     .get_number(index)
                     .as_ref()
                     {
-                        Some(flow_value_61) => flow_value_61.clone(),
+                        Some(flow_value_60) => flow_value_60.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     })?;
                     index += 1.0;
@@ -2222,7 +2267,7 @@ pub fn call_collection_function(
                 }
             }));
         }
-        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_TEMPLATE_UNION_COLLECTIONS_INVALID"),
             String::from("collections.Union requires two slices or nil values"),
             None,
@@ -2231,24 +2276,24 @@ pub fn call_collection_function(
         )));
     }
     if name == "group" && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 2 {
-        let key: String = crate::template::runtime_helpers::TO_PLAIN_STRING
-            .with(|module_binding| module_binding.load())
-            .call((match args.get_number(0.0).as_ref() {
-                Some(flow_value_62) => flow_value_62.clone(),
+        let key: String = crate::template::runtime_helpers::to_plain_string(
+            match args.get_number(0.0).as_ref() {
+                Some(flow_value_61) => flow_value_61.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
-            },))?;
+            },
+        )?;
         let collection: crate::template::values::base::TemplateValue = match args
             .get_number(1.0)
             .as_ref()
         {
-            Some(flow_value_63) => flow_value_63.clone(),
+            Some(flow_value_62) => flow_value_62.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         };
         let empty: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
         let key_segs: js_abi::JsArray<String> = if js_string::trim(&key).is_empty() {
-            empty.clone()
+            empty
         } else {
-            js_string::split_all(&key, ".").map_err(tsonic_rust_runtime::TsonicError::from)?
+            js_string::split_all(&key, ".")?
         };
         if collection
             .dispatch
@@ -2257,20 +2302,22 @@ pub fn call_collection_function(
             .is_some()
         {
             let pages: js_abi::JsArray<crate::models::page_context::PageContext> =
-                crate::template::evaluation::page_semantics::copy_page_array({
-                    let dispatch_receiver_36 = &{
-                        let downcast_value_36 = &collection;
-                        crate::template::values::page::PageArrayValue {
-                            identity: downcast_value_36.identity.clone(),
-                            dispatch: downcast_value_36
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_page_array_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_36.dispatch.read_page_array_value_value()
-                })?;
+                crate::template::evaluation::page_semantics::COPY_PAGE_ARRAY
+                    .with(|module_binding| module_binding.load())
+                    .call(({
+                        let dispatch_receiver_37 = &{
+                            let downcast_value_36 = &collection;
+                            crate::template::values::page::PageArrayValue {
+                                identity: downcast_value_36.identity.clone(),
+                                dispatch: downcast_value_36
+                                    .dispatch
+                                    .clone()
+                                    .downcast_template_value_to_page_array_value()
+                                    .unwrap(),
+                            }
+                        };
+                        dispatch_receiver_37.dispatch.read_page_array_value_value()
+                    },))?;
             let groups: js_abi::JsMap<
                 String,
                 js_abi::JsArray<crate::models::page_context::PageContext>,
@@ -2283,7 +2330,7 @@ pub fn call_collection_function(
                         .get_number(i)
                         .as_ref()
                     {
-                        Some(flow_value_64) => flow_value_64.clone(),
+                        Some(flow_value_63) => flow_value_63.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     let val: crate::template::values::base::TemplateValue =
@@ -2299,29 +2346,25 @@ pub fn call_collection_function(
                             key_segs.clone(),
                             scope.clone(),
                         )?;
-                    let group_key: String = crate::template::runtime_helpers::TO_PLAIN_STRING
-                        .with(|module_binding| module_binding.load())
-                        .call((val.clone(),))?;
+                    let group_key: String =
+                        crate::template::runtime_helpers::to_plain_string(val.clone())?;
                     let mut group: Option<
                         js_abi::JsArray<crate::models::page_context::PageContext>,
                     > = groups.get(&group_key);
                     if group.is_none() {
                         group = Some(js_abi::JsArray::from_dense(vec![]));
-                        groups.set(group_key.clone(), match group.as_ref() {
-                            Some(flow_value_65) => flow_value_65.clone(),
+                        groups.set_discard(group_key.clone(), match group.as_ref() {
+                            Some(flow_value_64) => flow_value_64.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         });
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            group_order.push_many([group_key.clone()]),
-                        )?;
+                        group_order.push_many_discard([group_key.clone()]);
                     }
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        match group.as_ref() {
-                            Some(flow_value_66) => flow_value_66.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        }
-                        .push_many([page.clone()]),
-                    )?;
+                    (match group.as_ref() {
+    Some(flow_value_65) => flow_value_65.clone(),
+    None => unreachable!("checked flow selected a missing optional value"),
+}).push_many_discard([
+                        page.clone(),
+                    ]);
                     i += 1.0;
                 }
             }
@@ -2332,10 +2375,15 @@ pub fn call_collection_function(
                 let mut i: f64 = 0.0;
                 'loop_value_28: while i < (tsonic_rust_runtime::conversions::usize_to_i32(keys.len())? as f64) {
                     let group: Option<js_abi::JsArray<crate::models::page_context::PageContext>> =
-                        groups.get(&match keys.get_number(i).as_ref() {
-                            Some(flow_value_67) => flow_value_67.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        });
+                        {
+                            let operation_input_0_16 = groups.clone();
+                            operation_input_0_16.get(&match keys.get_number(i).as_ref() {
+                                Some(flow_value_66) => flow_value_66.clone(),
+                                None => {
+                                    unreachable!("checked flow selected a missing optional value")
+                                }
+                            })
+                        };
                     if group.is_none() {
                         i += 1.0;
                         continue 'loop_value_28;
@@ -2344,45 +2392,58 @@ pub fn call_collection_function(
                         String,
                         crate::template::values::base::TemplateValue,
                     > = js_abi::JsMap::new();
-                    group_dict.set(String::from("Key"), {
-                        let upcast_value_34 =
-                            crate::template::values::primitives::StringValue::new(
-                                match keys.get_number(i).as_ref() {
+                    {
+                        let operation_input_0_17 = group_dict.clone();
+                        operation_input_0_17.set_discard(String::from("Key"), {
+                            let upcast_value_34 =
+                                crate::template::values::primitives::StringValue::new(match keys
+                                    .get_number(i)
+                                    .as_ref()
+                                {
+                                    Some(flow_value_67) => flow_value_67.clone(),
+                                    None => {
+                                        unreachable!(
+                                            "checked flow selected a missing optional value"
+                                        )
+                                    }
+                                });
+                            crate::template::values::base::TemplateValue {
+                                identity: upcast_value_34.identity.clone(),
+                                dispatch: upcast_value_34.dispatch.clone(),
+                            }
+                        })
+                    };
+                    {
+                        let operation_input_0_18 = group_dict.clone();
+                        operation_input_0_18.set_discard(String::from("Pages"), {
+                            let upcast_value_35 =
+                                crate::template::values::page::PageArrayValue::new(match group
+                                    .as_ref()
+                                {
                                     Some(flow_value_68) => flow_value_68.clone(),
                                     None => {
                                         unreachable!(
                                             "checked flow selected a missing optional value"
                                         )
                                     }
-                                },
-                            );
-                        crate::template::values::base::TemplateValue {
-                            identity: upcast_value_34.identity.clone(),
-                            dispatch: upcast_value_34.dispatch.clone(),
-                        }
-                    });
-                    group_dict.set(String::from("Pages"), {
-                        let upcast_value_35 = crate::template::values::page::PageArrayValue::new(
-                            match group.as_ref() {
-                                Some(flow_value_69) => flow_value_69.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                        );
-                        crate::template::values::base::TemplateValue {
-                            identity: upcast_value_35.identity.clone(),
-                            dispatch: upcast_value_35.dispatch.clone(),
-                        }
-                    });
-                    tsonic_rust_runtime::conversions::usize_to_i32(group_result.push_many([{
-                        let upcast_value_36 =
-                            crate::template::values::dict::DictValue::new(group_dict.clone());
-                        crate::template::values::base::TemplateValue {
-                            identity: upcast_value_36.identity.clone(),
-                            dispatch: upcast_value_36.dispatch.clone(),
-                        }
-                    }]))?;
+                                });
+                            crate::template::values::base::TemplateValue {
+                                identity: upcast_value_35.identity.clone(),
+                                dispatch: upcast_value_35.dispatch.clone(),
+                            }
+                        })
+                    };
+                    {
+                        let operation_input_0_19 = group_result.clone();
+                        operation_input_0_19.push_many_discard([{
+                            let upcast_value_36 =
+                                crate::template::values::dict::DictValue::new(group_dict.clone());
+                            crate::template::values::base::TemplateValue {
+                                identity: upcast_value_36.identity.clone(),
+                                dispatch: upcast_value_36.dispatch.clone(),
+                            }
+                        }])
+                    };
                     i += 1.0;
                 }
             }
@@ -2401,12 +2462,10 @@ pub fn call_collection_function(
     }
     if name == "plainify" && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 1 {
         let v: crate::template::values::base::TemplateValue = match args.get_number(0.0).as_ref() {
-            Some(flow_value_70) => flow_value_70.clone(),
+            Some(flow_value_69) => flow_value_69.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         };
-        let s: String = crate::template::runtime_helpers::TO_PLAIN_STRING
-            .with(|module_binding| module_binding.load())
-            .call((v.clone(),))?;
+        let s: String = crate::template::runtime_helpers::to_plain_string(v)?;
         let sb: crate::utils::text_builder::TextBuilder =
             crate::utils::text_builder::TextBuilder::new();
         let mut in_tag: bool = false;
@@ -2416,23 +2475,34 @@ pub fn call_collection_function(
                 let ch: String = crate::utils::strings::code_point_at_text(&s, i)?;
                 if ch == "<" {
                     in_tag = true;
-                    i = crate::utils::strings::next_code_point_index(&s, i)?;
+                    i = crate::utils::strings::next_code_point_index(s.clone(), i)?;
                     continue 'loop_value_29;
                 }
                 if ch == ">" {
                     in_tag = false;
-                    i = crate::utils::strings::next_code_point_index(&s, i)?;
+                    i = crate::utils::strings::next_code_point_index(s.clone(), i)?;
                     continue 'loop_value_29;
                 }
                 if !in_tag {
-                    sb.append(ch.clone())?;
+                    {
+                        let dispatch_receiver_38 = sb.clone();
+                        dispatch_receiver_38
+                            .dispatch
+                            .clone()
+                            .dispatch_text_builder_append(ch.clone())
+                    }?;
                 }
-                i = crate::utils::strings::next_code_point_index(&s, i)?;
+                i = crate::utils::strings::next_code_point_index(s.clone(), i)?;
             }
         }
         return Ok(Some({
-            let upcast_value_38 =
-                crate::template::values::primitives::StringValue::new(sb.to_string());
+            let upcast_value_38 = crate::template::values::primitives::StringValue::new({
+                let dispatch_receiver_39 = sb.clone();
+                dispatch_receiver_39
+                    .dispatch
+                    .clone()
+                    .dispatch_text_builder_to_string()
+            });
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_38.identity.clone(),
                 dispatch: upcast_value_38.dispatch.clone(),
@@ -2441,20 +2511,20 @@ pub fn call_collection_function(
     }
     if name == "cond" && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 3 {
         return Ok({
-            let conditional_test = crate::template::runtime_helpers::IS_TRUTHY
-                .with(|module_binding| module_binding.load())
-                .call((match args.get_number(0.0).as_ref() {
-                    Some(flow_value_71) => flow_value_71.clone(),
+            let conditional_test = crate::template::runtime_helpers::is_truthy(
+                match args.get_number(0.0).as_ref() {
+                    Some(flow_value_70) => flow_value_70.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
-                },))?;
+                },
+            )?;
             if conditional_test {
                 Some(match args.get_number(1.0).as_ref() {
-                    Some(flow_value_72) => flow_value_72.clone(),
+                    Some(flow_value_71) => flow_value_71.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 })
             } else {
                 Some(match args.get_number(2.0).as_ref() {
-                    Some(flow_value_73) => flow_value_73.clone(),
+                    Some(flow_value_72) => flow_value_72.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 })
             }
@@ -2466,16 +2536,22 @@ pub fn call_collection_function(
         {
             let mut i: f64 = 0.0;
             while i + 1.0 < (tsonic_rust_runtime::conversions::usize_to_i32(args.len())? as f64) {
-                let k: String = crate::template::runtime_helpers::TO_PLAIN_STRING
-                    .with(|module_binding| module_binding.load())
-                    .call((match args.get_number(i).as_ref() {
+                let k: String = crate::template::runtime_helpers::to_plain_string(
+                    match args.get_number(i).as_ref() {
+                        Some(flow_value_73) => flow_value_73.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
+                )?;
+                {
+                    let operation_input_0_20 = map.clone();
+                    operation_input_0_20.set_discard(k.clone(), match args
+                        .get_number(i + 1.0)
+                        .as_ref()
+                    {
                         Some(flow_value_74) => flow_value_74.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
-                    },))?;
-                map.set(k.clone(), match args.get_number(i + 1.0).as_ref() {
-                    Some(flow_value_75) => flow_value_75.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                });
+                    })
+                };
                 i += 2.0;
             }
         }
@@ -2493,13 +2569,13 @@ pub fn call_collection_function(
         {
             let mut i: f64 = 0.0;
             while i < (tsonic_rust_runtime::conversions::usize_to_i32(args.len())? as f64) {
-                tsonic_rust_runtime::conversions::usize_to_i32(items.push_many([match args
-                    .get_number(i)
-                    .as_ref()
                 {
-                    Some(flow_value_76) => flow_value_76.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }]))?;
+                    let operation_input_0_21 = items.clone();
+                    operation_input_0_21.push_many_discard([match args.get_number(i).as_ref() {
+                        Some(flow_value_75) => flow_value_75.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }])
+                };
                 i += 1.0;
             }
         }
@@ -2515,19 +2591,21 @@ pub fn call_collection_function(
     if name == "reverse" && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 1 {
         return crate::template::functions::sequence_semantics::reverse_template_collection(
             match args.get_number(0.0).as_ref() {
-                Some(flow_value_77) => flow_value_77.clone(),
+                Some(flow_value_76) => flow_value_76.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             },
         );
     }
     if name == "append" && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 2 {
-        let list_value: crate::template::values::base::TemplateValue = match args
-            .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
+        let list_value: crate::template::values::base::TemplateValue = match {
+            let operation_input_0_22 = args.clone();
+            operation_input_0_22.get_number(tsonic_rust_runtime::conversions::i32_to_f64(
                 tsonic_rust_runtime::conversions::usize_to_i32(args.len())? - 1,
             ))
-            .as_ref()
+        }
+        .as_ref()
         {
-            Some(flow_value_78) => flow_value_78.clone(),
+            Some(flow_value_77) => flow_value_77.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         };
         let items: js_abi::JsArray<crate::template::values::base::TemplateValue> =
@@ -2541,33 +2619,36 @@ pub fn call_collection_function(
             {
                 let mut i: f64 = 0.0;
                 while i
-                    < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_37 = &{ let downcast_value_37 = &list_value; crate::template::values::arrays::AnyArrayValue { identity: downcast_value_37.identity.clone(), dispatch: downcast_value_37.dispatch.clone().downcast_template_value_to_any_array_value().unwrap() } }; dispatch_receiver_37.dispatch.read_any_array_value_value() }.len())? as f64)
+                    < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_40 = &{ let downcast_value_37 = &list_value; crate::template::values::arrays::AnyArrayValue { identity: downcast_value_37.identity.clone(), dispatch: downcast_value_37.dispatch.clone().downcast_template_value_to_any_array_value().unwrap() } }; dispatch_receiver_40.dispatch.read_any_array_value_value() }.len())? as f64)
                 {
-                    tsonic_rust_runtime::conversions::usize_to_i32(items.push_many([match {
-                        let dispatch_receiver_38 = &{
-                            let downcast_value_38 = &list_value;
-                            crate::template::values::arrays::AnyArrayValue {
-                                identity: downcast_value_38.identity.clone(),
-                                dispatch: downcast_value_38
-                                    .dispatch
-                                    .clone()
-                                    .downcast_template_value_to_any_array_value()
-                                    .unwrap(),
-                            }
-                        };
-                        dispatch_receiver_38.dispatch.read_any_array_value_value()
-                    }
-                    .get_number(i)
-                    .as_ref()
                     {
-                        Some(flow_value_79) => flow_value_79.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }]))?;
+                        let operation_input_0_23 = items.clone();
+                        operation_input_0_23.push_many_discard([match {
+                            let dispatch_receiver_41 = &{
+                                let downcast_value_38 = &list_value;
+                                crate::template::values::arrays::AnyArrayValue {
+                                    identity: downcast_value_38.identity.clone(),
+                                    dispatch: downcast_value_38
+                                        .dispatch
+                                        .clone()
+                                        .downcast_template_value_to_any_array_value()
+                                        .unwrap(),
+                                }
+                            };
+                            dispatch_receiver_41.dispatch.read_any_array_value_value()
+                        }
+                        .get_number(i)
+                        .as_ref()
+                        {
+                            Some(flow_value_78) => flow_value_78.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        }])
+                    };
                     i += 1.0;
                 }
             }
         } else {
-            tsonic_rust_runtime::conversions::usize_to_i32(items.push_many([list_value.clone()]))?;
+            items.push_many_discard([list_value.clone()]);
         }
         {
             let mut i: f64 = 0.0;
@@ -2576,7 +2657,7 @@ pub fn call_collection_function(
                     .get_number(i)
                     .as_ref()
                 {
-                    Some(flow_value_80) => flow_value_80.clone(),
+                    Some(flow_value_79) => flow_value_79.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 if v
@@ -2588,35 +2669,40 @@ pub fn call_collection_function(
                     {
                         let mut j: f64 = 0.0;
                         while j
-                            < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_39 = &{ let downcast_value_39 = &v; crate::template::values::arrays::AnyArrayValue { identity: downcast_value_39.identity.clone(), dispatch: downcast_value_39.dispatch.clone().downcast_template_value_to_any_array_value().unwrap() } }; dispatch_receiver_39.dispatch.read_any_array_value_value() }.len())? as f64)
+                            < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_42 = &{ let downcast_value_39 = &v; crate::template::values::arrays::AnyArrayValue { identity: downcast_value_39.identity.clone(), dispatch: downcast_value_39.dispatch.clone().downcast_template_value_to_any_array_value().unwrap() } }; dispatch_receiver_42.dispatch.read_any_array_value_value() }.len())? as f64)
                         {
-                            tsonic_rust_runtime::conversions::usize_to_i32(items.push_many([match {
-                                let dispatch_receiver_40 = &{
-                                    let downcast_value_40 = &v;
-                                    crate::template::values::arrays::AnyArrayValue {
-                                        identity: downcast_value_40.identity.clone(),
-                                        dispatch: downcast_value_40
-                                            .dispatch
-                                            .clone()
-                                            .downcast_template_value_to_any_array_value()
-                                            .unwrap(),
-                                    }
-                                };
-                                dispatch_receiver_40.dispatch.read_any_array_value_value()
-                            }
-                            .get_number(j)
-                            .as_ref()
                             {
-                                Some(flow_value_81) => flow_value_81.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
+                                let operation_input_0_24 = items.clone();
+                                operation_input_0_24.push_many_discard([match {
+                                    let dispatch_receiver_43 = &{
+                                        let downcast_value_40 = &v;
+                                        crate::template::values::arrays::AnyArrayValue {
+                                            identity: downcast_value_40.identity.clone(),
+                                            dispatch: downcast_value_40
+                                                .dispatch
+                                                .clone()
+                                                .downcast_template_value_to_any_array_value()
+                                                .unwrap(),
+                                        }
+                                    };
+                                    dispatch_receiver_43.dispatch.read_any_array_value_value()
                                 }
-                            }]))?;
+                                .get_number(j)
+                                .as_ref()
+                                {
+                                    Some(flow_value_80) => flow_value_80.clone(),
+                                    None => {
+                                        unreachable!(
+                                            "checked flow selected a missing optional value"
+                                        )
+                                    }
+                                }])
+                            };
                             j += 1.0;
                         }
                     }
                 } else {
-                    tsonic_rust_runtime::conversions::usize_to_i32(items.push_many([v.clone()]))?;
+                    items.push_many_discard([v.clone()]);
                 }
                 i += 1.0;
             }
@@ -2632,11 +2718,11 @@ pub fn call_collection_function(
     }
     if name == "merge" && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 2 {
         let a: crate::template::values::base::TemplateValue = match args.get_number(0.0).as_ref() {
-            Some(flow_value_82) => flow_value_82.clone(),
+            Some(flow_value_81) => flow_value_81.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         };
         let b: crate::template::values::base::TemplateValue = match args.get_number(1.0).as_ref() {
-            Some(flow_value_83) => flow_value_83.clone(),
+            Some(flow_value_82) => flow_value_82.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         };
         let merged: js_abi::JsMap<String, crate::template::values::base::TemplateValue> =
@@ -2647,25 +2733,24 @@ pub fn call_collection_function(
             .downcast_template_value_to_dict_value()
             .is_some()
         {
-            'loop_value_35: for k in
-                {
-                    let dispatch_receiver_41 = &{
-                        let downcast_value_41 = &a;
-                        crate::template::values::dict::DictValue {
-                            identity: downcast_value_41.identity.clone(),
-                            dispatch: downcast_value_41
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_dict_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_41.dispatch.read_dict_value_value()
-                }
-                .keys()
+            'loop_value_35: for k in {
+                let dispatch_receiver_44 = &{
+                    let downcast_value_41 = &a;
+                    crate::template::values::dict::DictValue {
+                        identity: downcast_value_41.identity.clone(),
+                        dispatch: downcast_value_41
+                            .dispatch
+                            .clone()
+                            .downcast_template_value_to_dict_value()
+                            .unwrap(),
+                    }
+                };
+                dispatch_receiver_44.dispatch.read_dict_value_value()
+            }
+            .keys()
             {
                 let v: Option<crate::template::values::base::TemplateValue> = {
-                    let dispatch_receiver_42 = &{
+                    let dispatch_receiver_45 = &{
                         let downcast_value_42 = &a;
                         crate::template::values::dict::DictValue {
                             identity: downcast_value_42.identity.clone(),
@@ -2676,14 +2761,14 @@ pub fn call_collection_function(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_42.dispatch.read_dict_value_value()
+                    dispatch_receiver_45.dispatch.read_dict_value_value()
                 }
                 .get(&k);
                 if v.is_none() {
                     continue 'loop_value_35;
                 }
-                merged.set(k.clone(), match v.as_ref() {
-                    Some(flow_value_84) => flow_value_84.clone(),
+                merged.set_discard(k.clone(), match v.as_ref() {
+                    Some(flow_value_83) => flow_value_83.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 });
             }
@@ -2694,25 +2779,24 @@ pub fn call_collection_function(
             .downcast_template_value_to_dict_value()
             .is_some()
         {
-            'loop_value_36: for k in
-                {
-                    let dispatch_receiver_43 = &{
-                        let downcast_value_43 = &b;
-                        crate::template::values::dict::DictValue {
-                            identity: downcast_value_43.identity.clone(),
-                            dispatch: downcast_value_43
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_dict_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_43.dispatch.read_dict_value_value()
-                }
-                .keys()
+            'loop_value_36: for k in {
+                let dispatch_receiver_46 = &{
+                    let downcast_value_43 = &b;
+                    crate::template::values::dict::DictValue {
+                        identity: downcast_value_43.identity.clone(),
+                        dispatch: downcast_value_43
+                            .dispatch
+                            .clone()
+                            .downcast_template_value_to_dict_value()
+                            .unwrap(),
+                    }
+                };
+                dispatch_receiver_46.dispatch.read_dict_value_value()
+            }
+            .keys()
             {
                 let v: Option<crate::template::values::base::TemplateValue> = {
-                    let dispatch_receiver_44 = &{
+                    let dispatch_receiver_47 = &{
                         let downcast_value_44 = &b;
                         crate::template::values::dict::DictValue {
                             identity: downcast_value_44.identity.clone(),
@@ -2723,14 +2807,14 @@ pub fn call_collection_function(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_44.dispatch.read_dict_value_value()
+                    dispatch_receiver_47.dispatch.read_dict_value_value()
                 }
                 .get(&k);
                 if v.is_none() {
                     continue 'loop_value_36;
                 }
-                merged.set(k.clone(), match v.as_ref() {
-                    Some(flow_value_85) => flow_value_85.clone(),
+                merged.set_discard(k.clone(), match v.as_ref() {
+                    Some(flow_value_84) => flow_value_84.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 });
             }
@@ -2748,15 +2832,15 @@ pub fn call_collection_function(
             .get_number(0.0)
             .as_ref()
         {
-            Some(flow_value_86) => flow_value_86.clone(),
+            Some(flow_value_85) => flow_value_85.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         };
-        let key: String = crate::template::runtime_helpers::TO_PLAIN_STRING
-            .with(|module_binding| module_binding.load())
-            .call((match args.get_number(1.0).as_ref() {
-                Some(flow_value_87) => flow_value_87.clone(),
+        let key: String = crate::template::runtime_helpers::to_plain_string(
+            match args.get_number(1.0).as_ref() {
+                Some(flow_value_86) => flow_value_86.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
-            },))?;
+            },
+        )?;
         if container
             .dispatch
             .clone()
@@ -2766,7 +2850,7 @@ pub fn call_collection_function(
             return Ok(Some({
                 let upcast_value_43 = crate::template::values::primitives::BoolValue::new(
                     {
-                        let dispatch_receiver_45 = &{
+                        let dispatch_receiver_48 = &{
                             let downcast_value_45 = &container;
                             crate::template::values::dict::DictValue {
                                 identity: downcast_value_45.identity.clone(),
@@ -2777,7 +2861,7 @@ pub fn call_collection_function(
                                     .unwrap(),
                             }
                         };
-                        dispatch_receiver_45.dispatch.read_dict_value_value()
+                        dispatch_receiver_48.dispatch.read_dict_value_value()
                     }
                     .has(&key),
                 );
@@ -2800,14 +2884,14 @@ pub fn call_collection_function(
             .get_number(0.0)
             .as_ref()
         {
-            Some(flow_value_88) => flow_value_88.clone(),
+            Some(flow_value_87) => flow_value_87.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         };
         let key_value: crate::template::values::base::TemplateValue = match args
             .get_number(1.0)
             .as_ref()
         {
-            Some(flow_value_89) => flow_value_89.clone(),
+            Some(flow_value_88) => flow_value_88.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         };
         if container
@@ -2816,11 +2900,10 @@ pub fn call_collection_function(
             .downcast_template_value_to_dict_value()
             .is_some()
         {
-            let key: String = crate::template::runtime_helpers::TO_PLAIN_STRING
-                .with(|module_binding| module_binding.load())
-                .call((key_value.clone(),))?;
+            let key: String =
+                crate::template::runtime_helpers::to_plain_string(key_value.clone())?;
             let v: Option<crate::template::values::base::TemplateValue> = {
-                let dispatch_receiver_46 = &{
+                let dispatch_receiver_49 = &{
                     let downcast_value_46 = &container;
                     crate::template::values::dict::DictValue {
                         identity: downcast_value_46.identity.clone(),
@@ -2831,17 +2914,18 @@ pub fn call_collection_function(
                             .unwrap(),
                     }
                 };
-                dispatch_receiver_46.dispatch.read_dict_value_value()
+                dispatch_receiver_49.dispatch.read_dict_value_value()
             }
             .get(&key);
             return Ok(if v.is_some() {
                 Some(match v.as_ref() {
-                    Some(flow_value_90) => flow_value_90.clone(),
+                    Some(flow_value_89) => flow_value_89.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 })
             } else {
-                Some(crate::template::runtime_helpers::NIL
-                    .with(|module_binding| module_binding.load()))
+                Some(crate::template::runtime_helpers::NIL.with(|module_binding| {
+                    module_binding.load()
+                }))
             });
         }
         if container
@@ -2856,7 +2940,7 @@ pub fn call_collection_function(
                 .is_some()
         {
             let index: i32 = {
-                let dispatch_receiver_47 = &{
+                let dispatch_receiver_50 = &{
                     let downcast_value_47 = &key_value;
                     crate::template::values::primitives::NumberValue {
                         identity: downcast_value_47.identity.clone(),
@@ -2867,13 +2951,13 @@ pub fn call_collection_function(
                             .unwrap(),
                     }
                 };
-                dispatch_receiver_47.dispatch.read_number_value_value()
+                dispatch_receiver_50.dispatch.read_number_value_value()
             };
             if index < 0
                 || index
                     >= tsonic_rust_runtime::conversions::usize_to_i32(
                         {
-                            let dispatch_receiver_48 = &{
+                            let dispatch_receiver_51 = &{
                                 let downcast_value_48 = &container;
                                 crate::template::values::arrays::StringArrayValue {
                                     identity: downcast_value_48.identity.clone(),
@@ -2884,7 +2968,7 @@ pub fn call_collection_function(
                                         .unwrap(),
                                 }
                             };
-                            dispatch_receiver_48
+                            dispatch_receiver_51
                                 .dispatch
                                 .read_string_array_value_value()
                         }
@@ -2899,7 +2983,7 @@ pub fn call_collection_function(
             return Ok(Some({
                 let upcast_value_45 = crate::template::values::primitives::StringValue::new(
                     match {
-                        let dispatch_receiver_49 = &{
+                        let dispatch_receiver_52 = &{
                             let downcast_value_49 = &container;
                             crate::template::values::arrays::StringArrayValue {
                                 identity: downcast_value_49.identity.clone(),
@@ -2910,14 +2994,14 @@ pub fn call_collection_function(
                                     .unwrap(),
                             }
                         };
-                        dispatch_receiver_49
+                        dispatch_receiver_52
                             .dispatch
                             .read_string_array_value_value()
                     }
                     .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
                     .as_ref()
                     {
-                        Some(flow_value_91) => flow_value_91.clone(),
+                        Some(flow_value_90) => flow_value_90.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                 );
@@ -2941,7 +3025,7 @@ pub fn call_collection_function(
                 .is_some()
             {
                 let idx: i32 = {
-                    let dispatch_receiver_50 = &{
+                    let dispatch_receiver_53 = &{
                         let downcast_value_50 = &key_value;
                         crate::template::values::primitives::NumberValue {
                             identity: downcast_value_50.identity.clone(),
@@ -2952,13 +3036,13 @@ pub fn call_collection_function(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_50.dispatch.read_number_value_value()
+                    dispatch_receiver_53.dispatch.read_number_value_value()
                 };
                 if idx < 0
                     || idx
                         >= tsonic_rust_runtime::conversions::usize_to_i32(
                             {
-                                let dispatch_receiver_51 = &{
+                                let dispatch_receiver_54 = &{
                                     let downcast_value_51 = &container;
                                     crate::template::values::arrays::AnyArrayValue {
                                         identity: downcast_value_51.identity.clone(),
@@ -2969,7 +3053,7 @@ pub fn call_collection_function(
                                             .unwrap(),
                                     }
                                 };
-                                dispatch_receiver_51.dispatch.read_any_array_value_value()
+                                dispatch_receiver_54.dispatch.read_any_array_value_value()
                             }
                             .len(),
                         )?
@@ -2979,26 +3063,28 @@ pub fn call_collection_function(
                             .with(|module_binding| module_binding.load()),
                     ));
                 }
-                return Ok(Some(match {
-                    let dispatch_receiver_52 = &{
-                        let downcast_value_52 = &container;
-                        crate::template::values::arrays::AnyArrayValue {
-                            identity: downcast_value_52.identity.clone(),
-                            dispatch: downcast_value_52
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_any_array_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_52.dispatch.read_any_array_value_value()
-                }
-                .get_number(tsonic_rust_runtime::conversions::i32_to_f64(idx))
-                .as_ref()
-                {
-                    Some(flow_value_92) => flow_value_92.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }));
+                return Ok(Some(
+                    match {
+                        let dispatch_receiver_55 = &{
+                            let downcast_value_52 = &container;
+                            crate::template::values::arrays::AnyArrayValue {
+                                identity: downcast_value_52.identity.clone(),
+                                dispatch: downcast_value_52
+                                    .dispatch
+                                    .clone()
+                                    .downcast_template_value_to_any_array_value()
+                                    .unwrap(),
+                            }
+                        };
+                        dispatch_receiver_55.dispatch.read_any_array_value_value()
+                    }
+                    .get_number(tsonic_rust_runtime::conversions::i32_to_f64(idx))
+                    .as_ref()
+                    {
+                        Some(flow_value_91) => flow_value_91.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
+                ));
             }
         }
         #[expect(clippy::collapsible_if, reason = "checked lexical regions")]
@@ -3015,7 +3101,7 @@ pub fn call_collection_function(
                 .is_some()
             {
                 let idx: i32 = {
-                    let dispatch_receiver_53 = &{
+                    let dispatch_receiver_56 = &{
                         let downcast_value_53 = &key_value;
                         crate::template::values::primitives::NumberValue {
                             identity: downcast_value_53.identity.clone(),
@@ -3026,14 +3112,14 @@ pub fn call_collection_function(
                                 .unwrap(),
                         }
                     };
-                    dispatch_receiver_53.dispatch.read_number_value_value()
+                    dispatch_receiver_56.dispatch.read_number_value_value()
                 };
                 return Ok({
                     let conditional_test_2 = idx >= 0
                         && idx
                             < tsonic_rust_runtime::conversions::usize_to_i32(
                                 {
-                                    let dispatch_receiver_54 = &{
+                                    let dispatch_receiver_57 = &{
                                         let downcast_value_54 = &container;
                                         crate::template::values::page::PageArrayValue {
                                             identity: downcast_value_54.identity.clone(),
@@ -3044,7 +3130,7 @@ pub fn call_collection_function(
                                                 .unwrap(),
                                         }
                                     };
-                                    dispatch_receiver_54.dispatch.read_page_array_value_value()
+                                    dispatch_receiver_57.dispatch.read_page_array_value_value()
                                 }
                                 .len(),
                             )?;
@@ -3052,7 +3138,7 @@ pub fn call_collection_function(
                         Some({
                             let upcast_value_46 = crate::template::values::page::PageValue::new(
                                 match {
-                                    let dispatch_receiver_55 = &{
+                                    let dispatch_receiver_58 = &{
                                         let downcast_value_55 = &container;
                                         crate::template::values::page::PageArrayValue {
                                             identity: downcast_value_55.identity.clone(),
@@ -3063,12 +3149,12 @@ pub fn call_collection_function(
                                                 .unwrap(),
                                         }
                                     };
-                                    dispatch_receiver_55.dispatch.read_page_array_value_value()
+                                    dispatch_receiver_58.dispatch.read_page_array_value_value()
                                 }
                                 .get_number(tsonic_rust_runtime::conversions::i32_to_f64(idx))
                                 .as_ref()
                                 {
-                                    Some(flow_value_93) => flow_value_93.clone(),
+                                    Some(flow_value_92) => flow_value_92.clone(),
                                     None => {
                                         unreachable!(
                                             "checked flow selected a missing optional value"
@@ -3082,8 +3168,9 @@ pub fn call_collection_function(
                             }
                         })
                     } else {
-                        Some(crate::template::runtime_helpers::NIL
-                            .with(|module_binding| module_binding.load()))
+                        Some(crate::template::runtime_helpers::NIL.with(|module_binding| {
+                            module_binding.load()
+                        }))
                     }
                 });
             }
@@ -3097,15 +3184,15 @@ pub fn call_collection_function(
             .get_number(0.0)
             .as_ref()
         {
-            Some(flow_value_94) => flow_value_94.clone(),
+            Some(flow_value_93) => flow_value_93.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         };
-        let delim: String = crate::template::runtime_helpers::TO_PLAIN_STRING
-            .with(|module_binding| module_binding.load())
-            .call((match args.get_number(1.0).as_ref() {
-                Some(flow_value_95) => flow_value_95.clone(),
+        let delim: String = crate::template::runtime_helpers::to_plain_string(
+            match args.get_number(1.0).as_ref() {
+                Some(flow_value_94) => flow_value_94.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
-            },))?;
+            },
+        )?;
         let parts: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
         if list_value
             .dispatch
@@ -3116,37 +3203,35 @@ pub fn call_collection_function(
             {
                 let mut i: f64 = 0.0;
                 while i
-                    < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_56 = &{ let downcast_value_56 = &list_value; crate::template::values::arrays::AnyArrayValue { identity: downcast_value_56.identity.clone(), dispatch: downcast_value_56.dispatch.clone().downcast_template_value_to_any_array_value().unwrap() } }; dispatch_receiver_56.dispatch.read_any_array_value_value() }.len())? as f64)
+                    < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_59 = &{ let downcast_value_56 = &list_value; crate::template::values::arrays::AnyArrayValue { identity: downcast_value_56.identity.clone(), dispatch: downcast_value_56.dispatch.clone().downcast_template_value_to_any_array_value().unwrap() } }; dispatch_receiver_59.dispatch.read_any_array_value_value() }.len())? as f64)
                 {
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        parts
-                            .push_many([crate::template::runtime_helpers::TO_PLAIN_STRING
-                                .with(|module_binding| module_binding.load())
-                                .call((match {
-                                    let dispatch_receiver_57 = &{
-                                        let downcast_value_57 = &list_value;
-                                        crate::template::values::arrays::AnyArrayValue {
-                                            identity: downcast_value_57.identity.clone(),
-                                            dispatch: downcast_value_57
-                                                .dispatch
-                                                .clone()
-                                                .downcast_template_value_to_any_array_value()
-                                                .unwrap(),
-                                        }
-                                    };
-                                    dispatch_receiver_57.dispatch.read_any_array_value_value()
-                                }
-                                .get_number(i)
-                                .as_ref()
-                                {
-                                    Some(flow_value_96) => flow_value_96.clone(),
-                                    None => {
-                                        unreachable!(
-                                            "checked flow selected a missing optional value"
-                                        )
+                    {
+                        let operation_input_0_25 = parts.clone();
+                        operation_input_0_25.push_many_discard([crate::template::runtime_helpers::to_plain_string(
+                            match {
+                                let dispatch_receiver_60 = &{
+                                    let downcast_value_57 = &list_value;
+                                    crate::template::values::arrays::AnyArrayValue {
+                                        identity: downcast_value_57.identity.clone(),
+                                        dispatch: downcast_value_57
+                                            .dispatch
+                                            .clone()
+                                            .downcast_template_value_to_any_array_value()
+                                            .unwrap(),
                                     }
-                                },))?]),
-                    )?;
+                                };
+                                dispatch_receiver_60.dispatch.read_any_array_value_value()
+                            }
+                            .get_number(i)
+                            .as_ref()
+                            {
+                                Some(flow_value_95) => flow_value_95.clone(),
+                                None => {
+                                    unreachable!("checked flow selected a missing optional value")
+                                }
+                            },
+                        )?])
+                    };
                     i += 1.0;
                 }
             }
@@ -3160,30 +3245,35 @@ pub fn call_collection_function(
                 {
                     let mut i: f64 = 0.0;
                     while i
-                        < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_58 = &{ let downcast_value_58 = &list_value; crate::template::values::arrays::StringArrayValue { identity: downcast_value_58.identity.clone(), dispatch: downcast_value_58.dispatch.clone().downcast_template_value_to_string_array_value().unwrap() } }; dispatch_receiver_58.dispatch.read_string_array_value_value() }.len())? as f64)
+                        < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_61 = &{ let downcast_value_58 = &list_value; crate::template::values::arrays::StringArrayValue { identity: downcast_value_58.identity.clone(), dispatch: downcast_value_58.dispatch.clone().downcast_template_value_to_string_array_value().unwrap() } }; dispatch_receiver_61.dispatch.read_string_array_value_value() }.len())? as f64)
                     {
-                        tsonic_rust_runtime::conversions::usize_to_i32(parts.push_many([match {
-                            let dispatch_receiver_59 = &{
-                                let downcast_value_59 = &list_value;
-                                crate::template::values::arrays::StringArrayValue {
-                                    identity: downcast_value_59.identity.clone(),
-                                    dispatch: downcast_value_59
-                                        .dispatch
-                                        .clone()
-                                        .downcast_template_value_to_string_array_value()
-                                        .unwrap(),
-                                }
-                            };
-                            dispatch_receiver_59
-                                .dispatch
-                                .read_string_array_value_value()
-                        }
-                        .get_number(i)
-                        .as_ref()
                         {
-                            Some(flow_value_97) => flow_value_97.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        }]))?;
+                            let operation_input_0_26 = parts.clone();
+                            operation_input_0_26.push_many_discard([match {
+                                let dispatch_receiver_62 = &{
+                                    let downcast_value_59 = &list_value;
+                                    crate::template::values::arrays::StringArrayValue {
+                                        identity: downcast_value_59.identity.clone(),
+                                        dispatch: downcast_value_59
+                                            .dispatch
+                                            .clone()
+                                            .downcast_template_value_to_string_array_value()
+                                            .unwrap(),
+                                    }
+                                };
+                                dispatch_receiver_62
+                                    .dispatch
+                                    .read_string_array_value_value()
+                            }
+                            .get_number(i)
+                            .as_ref()
+                            {
+                                Some(flow_value_96) => flow_value_96.clone(),
+                                None => {
+                                    unreachable!("checked flow selected a missing optional value")
+                                }
+                            }])
+                        };
                         i += 1.0;
                     }
                 }
@@ -3191,24 +3281,15 @@ pub fn call_collection_function(
         }
         let arr: js_abi::JsArray<String> = parts.clone();
         let mut out: String = String::from("");
-        {
-            let mut i: f64 = 0.0;
-            while i < (tsonic_rust_runtime::conversions::usize_to_i32(arr.len())? as f64) {
-                if i > 0.0 {
-                    {
-                        let current = out.clone();
-                        out = format!("{}{}", current, delim.clone())
-                    };
-                }
-                {
-                    let current_2 = out.clone();
-                    out = format!("{}{}", current_2, match arr.get_number(i).as_ref() {
-    Some(flow_value_98) => flow_value_98.clone(),
-    None => unreachable!("checked flow selected a missing optional value"),
-})
-                };
-                i += 1.0;
+        for i_range_4 in 0..tsonic_rust_runtime::conversions::usize_to_i32(arr.len())? {
+            let i = i_range_4 as f64;
+            if i > 0.0 {
+                out.push_str(&delim);
             }
+            out.push_str(&match arr.get_number(i).as_ref() {
+                Some(flow_value_97) => flow_value_97.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            });
         }
         return Ok(Some({
             let upcast_value_47 =
@@ -3224,15 +3305,15 @@ pub fn call_collection_function(
             .get_number(0.0)
             .as_ref()
         {
-            Some(flow_value_99) => flow_value_99.clone(),
+            Some(flow_value_98) => flow_value_98.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         };
-        let needle: String = crate::template::runtime_helpers::TO_PLAIN_STRING
-            .with(|module_binding| module_binding.load())
-            .call((match args.get_number(1.0).as_ref() {
-                Some(flow_value_100) => flow_value_100.clone(),
+        let needle: String = crate::template::runtime_helpers::to_plain_string(
+            match args.get_number(1.0).as_ref() {
+                Some(flow_value_99) => flow_value_99.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
-            },))?;
+            },
+        )?;
         if container
             .dispatch
             .clone()
@@ -3242,12 +3323,11 @@ pub fn call_collection_function(
             {
                 let mut i: f64 = 0.0;
                 while i
-                    < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_60 = &{ let downcast_value_60 = &container; crate::template::values::arrays::AnyArrayValue { identity: downcast_value_60.identity.clone(), dispatch: downcast_value_60.dispatch.clone().downcast_template_value_to_any_array_value().unwrap() } }; dispatch_receiver_60.dispatch.read_any_array_value_value() }.len())? as f64)
+                    < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_63 = &{ let downcast_value_60 = &container; crate::template::values::arrays::AnyArrayValue { identity: downcast_value_60.identity.clone(), dispatch: downcast_value_60.dispatch.clone().downcast_template_value_to_any_array_value().unwrap() } }; dispatch_receiver_63.dispatch.read_any_array_value_value() }.len())? as f64)
                 {
-                    if crate::template::runtime_helpers::TO_PLAIN_STRING
-                        .with(|module_binding| module_binding.load())
-                        .call((match {
-                            let dispatch_receiver_61 = &{
+                    if crate::template::runtime_helpers::to_plain_string(
+                        match {
+                            let dispatch_receiver_64 = &{
                                 let downcast_value_61 = &container;
                                 crate::template::values::arrays::AnyArrayValue {
                                     identity: downcast_value_61.identity.clone(),
@@ -3258,15 +3338,15 @@ pub fn call_collection_function(
                                         .unwrap(),
                                 }
                             };
-                            dispatch_receiver_61.dispatch.read_any_array_value_value()
+                            dispatch_receiver_64.dispatch.read_any_array_value_value()
                         }
                         .get_number(i)
                         .as_ref()
                         {
-                            Some(flow_value_101) => flow_value_101.clone(),
+                            Some(flow_value_100) => flow_value_100.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
-                        },))?
-                        == needle
+                        },
+                    )? == needle
                     {
                         return Ok(Some({
                             let upcast_value_48 =
@@ -3299,7 +3379,7 @@ pub fn call_collection_function(
                     let upcast_value_50 =
                         crate::template::values::primitives::BoolValue::new(js_string::includes_from_start(
                             &{
-                                let dispatch_receiver_62 = &{
+                                let dispatch_receiver_65 = &{
                                     let downcast_value_62 = &container;
                                     crate::template::values::primitives::StringValue {
                                         identity: downcast_value_62.identity.clone(),
@@ -3310,7 +3390,7 @@ pub fn call_collection_function(
                                             .unwrap(),
                                     }
                                 };
-                                dispatch_receiver_62.dispatch.read_string_value_value()
+                                dispatch_receiver_65.dispatch.read_string_value_value()
                             },
                             &needle,
                         ));
@@ -3330,18 +3410,18 @@ pub fn call_collection_function(
         }));
     }
     if name == "split" && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 2 {
-        let s: String = crate::template::runtime_helpers::TO_PLAIN_STRING
-            .with(|module_binding| module_binding.load())
-            .call((match args.get_number(0.0).as_ref() {
+        let s: String = crate::template::runtime_helpers::to_plain_string(
+            match args.get_number(0.0).as_ref() {
+                Some(flow_value_101) => flow_value_101.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            },
+        )?;
+        let delim: String = crate::template::runtime_helpers::to_plain_string(
+            match args.get_number(1.0).as_ref() {
                 Some(flow_value_102) => flow_value_102.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
-            },))?;
-        let delim: String = crate::template::runtime_helpers::TO_PLAIN_STRING
-            .with(|module_binding| module_binding.load())
-            .call((match args.get_number(1.0).as_ref() {
-                Some(flow_value_103) => flow_value_103.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            },))?;
+            },
+        )?;
         let items: js_abi::JsArray<crate::template::values::base::TemplateValue> =
             js_abi::JsArray::from_dense(vec![]);
         if delim.is_empty() {
@@ -3350,20 +3430,23 @@ pub fn call_collection_function(
                 while i
                     < (tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&s))? as f64)
                 {
-                    tsonic_rust_runtime::conversions::usize_to_i32(items.push_many([{
-                        let upcast_value_52 =
-                            crate::template::values::primitives::StringValue::new(
-                                crate::utils::strings::substring_count(
-                                    s.clone(),
-                                    tsonic_rust_runtime::conversions::f64_to_i32(i)?,
-                                    1,
-                                )?,
-                            );
-                        crate::template::values::base::TemplateValue {
-                            identity: upcast_value_52.identity.clone(),
-                            dispatch: upcast_value_52.dispatch.clone(),
-                        }
-                    }]))?;
+                    {
+                        let operation_input_0_27 = items.clone();
+                        operation_input_0_27.push_many_discard([{
+                            let upcast_value_52 =
+                                crate::template::values::primitives::StringValue::new(
+                                    crate::utils::strings::substring_count(
+                                        s.clone(),
+                                        tsonic_rust_runtime::conversions::f64_to_i32(i)?,
+                                        1,
+                                    )?,
+                                );
+                            crate::template::values::base::TemplateValue {
+                                identity: upcast_value_52.identity.clone(),
+                                dispatch: upcast_value_52.dispatch.clone(),
+                            }
+                        }])
+                    };
                     i += 1.0;
                 }
             }
@@ -3384,35 +3467,41 @@ pub fn call_collection_function(
             if idx < 0 {
                 break 'loop_value_42;
             }
-            tsonic_rust_runtime::conversions::usize_to_i32(items.push_many([{
-                let upcast_value_54 = crate::template::values::primitives::StringValue::new(
-                    crate::utils::strings::substring_count(
-                        s.clone(),
-                        tsonic_rust_runtime::conversions::f64_to_i32(start)?,
-                        tsonic_rust_runtime::conversions::f64_to_i32(idx as f64 - start)?,
-                    )?,
-                );
-                crate::template::values::base::TemplateValue {
-                    identity: upcast_value_54.identity.clone(),
-                    dispatch: upcast_value_54.dispatch.clone(),
-                }
-            }]))?;
+            {
+                let operation_input_0_28 = items.clone();
+                operation_input_0_28.push_many_discard([{
+                    let upcast_value_54 = crate::template::values::primitives::StringValue::new(
+                        crate::utils::strings::substring_count(
+                            s.clone(),
+                            tsonic_rust_runtime::conversions::f64_to_i32(start)?,
+                            tsonic_rust_runtime::conversions::f64_to_i32(idx as f64 - start)?,
+                        )?,
+                    );
+                    crate::template::values::base::TemplateValue {
+                        identity: upcast_value_54.identity.clone(),
+                        dispatch: upcast_value_54.dispatch.clone(),
+                    }
+                }])
+            };
             start = tsonic_rust_runtime::conversions::i32_to_f64(
                 idx + tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&delim))?,
             );
         }
-        tsonic_rust_runtime::conversions::usize_to_i32(items.push_many([{
-            let upcast_value_55 = crate::template::values::primitives::StringValue::new(
-                crate::utils::strings::substring_from(
-                    &s,
-                    tsonic_rust_runtime::conversions::f64_to_i32(start)?,
-                )?,
-            );
-            crate::template::values::base::TemplateValue {
-                identity: upcast_value_55.identity.clone(),
-                dispatch: upcast_value_55.dispatch.clone(),
-            }
-        }]))?;
+        {
+            let operation_input_0_29 = items.clone();
+            operation_input_0_29.push_many_discard([{
+                let upcast_value_55 = crate::template::values::primitives::StringValue::new(
+                    crate::utils::strings::substring_from(
+                        &s,
+                        tsonic_rust_runtime::conversions::f64_to_i32(start)?,
+                    )?,
+                );
+                crate::template::values::base::TemplateValue {
+                    identity: upcast_value_55.identity.clone(),
+                    dispatch: upcast_value_55.dispatch.clone(),
+                }
+            }])
+        };
         return Ok(Some({
             let upcast_value_56 =
                 crate::template::values::arrays::AnyArrayValue::new(items.clone());

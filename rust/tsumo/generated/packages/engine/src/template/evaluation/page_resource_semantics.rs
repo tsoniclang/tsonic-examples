@@ -6,15 +6,17 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct PageResourceEntryState {
-    pub(crate) relative_path: String,
-    pub(crate) value: crate::template::values::resources::ResourceValue,
+pub struct PageResourceEntryState {
+    pub relative_path: String,
+    pub value: crate::template::values::resources::ResourceValue,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct PageResourceEntry {
-    pub(crate) state: rt::ObjectHandle<PageResourceEntryState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<PageResourceEntryState>,
 }
 
 impl PageResourceEntry {
@@ -22,10 +24,10 @@ impl PageResourceEntry {
         relative_path: String,
         value: crate::template::values::resources::ResourceValue,
     ) -> PageResourceEntry {
-        let field_relative_path: String = relative_path.clone();
-        let field_value: crate::template::values::resources::ResourceValue = value.clone();
+        let field_relative_path: String = relative_path;
+        let field_value: crate::template::values::resources::ResourceValue = value;
         PageResourceEntry {
-            state: rt::ObjectHandle::new(PageResourceEntryState {
+            state: rt::ObjectRef::new(PageResourceEntryState {
                 relative_path: field_relative_path,
                 value: field_value,
             }),
@@ -33,18 +35,38 @@ impl PageResourceEntry {
     }
 }
 
-type PageResourceTemplateValuesCallable =
-    rt::Callable<
-        (js_abi::JsArray<PageResourceEntry>,),
-        rt::TsonicResult<js_abi::JsArray<crate::template::values::base::TemplateValue>>,
-    >;
-
-std::thread_local! {
-    pub(crate) static PAGE_RESOURCE_TEMPLATE_VALUES: rt::ModuleCell<PageResourceTemplateValuesCallable> = const { rt::ModuleCell::new() };
+pub fn page_resource_template_values(
+    entries: js_abi::JsArray<PageResourceEntry>,
+) -> Result<js_abi::JsArray<crate::template::values::base::TemplateValue>, rt::TsonicError> {
+    let values: js_abi::JsArray<crate::template::values::base::TemplateValue> =
+        js_abi::JsArray::from_dense(vec![]);
+    {
+        let mut index: f64 = 0.0;
+        while index < (tsonic_rust_runtime::conversions::usize_to_i32(entries.len())? as f64) {
+            {
+                let operation_input_0 = values.clone();
+                operation_input_0.push_many_discard([{
+                    let upcast_value = match entries.get_number(index).as_ref() {
+                        Some(flow_value) => flow_value.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }
+                    .state
+                    .with(|state| state.value.clone());
+                    crate::template::values::base::TemplateValue {
+                        identity: upcast_value.identity.clone(),
+                        dispatch: upcast_value.dispatch.clone(),
+                    }
+                }])
+            };
+            index += 1.0;
+        }
+    }
+    Ok(values)
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait PageResourceCollectionValueDispatch:
+pub trait PageResourceCollectionValueDispatch:
     crate::template::values::arrays::AnyArrayValueDispatch
 {
     fn downcast_page_resource_collection_value_to_page_resource_collection_value(
@@ -57,17 +79,27 @@ pub(crate) trait PageResourceCollectionValueDispatch:
     );
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct PageResourceCollectionValueState {
-    pub(crate) base: crate::template::values::arrays::AnyArrayValueState,
-    pub(crate) entries: js_abi::JsArray<PageResourceEntry>,
+pub struct PageResourceCollectionValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::arrays::AnyArrayValueState,
+    pub entries: js_abi::JsArray<PageResourceEntry>,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct PageResourceCollectionValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn PageResourceCollectionValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn PageResourceCollectionValueDispatch>,
+}
+
+impl std::fmt::Debug for PageResourceCollectionValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("PageResourceCollectionValue")
+    }
 }
 
 impl PartialEq for PageResourceCollectionValue {
@@ -85,13 +117,12 @@ pub(crate) struct PageResourceCollectionValueRoot {
 }
 
 impl PageResourceCollectionValue {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         entries: js_abi::JsArray<PageResourceEntry>,
-    ) -> rt::TsonicResult<PageResourceCollectionValueState> {
+    ) -> Result<PageResourceCollectionValueState, rt::TsonicError> {
         let base_state = crate::template::values::arrays::AnyArrayValue::initialize_state(
-            PAGE_RESOURCE_TEMPLATE_VALUES
-                .with(|module_binding| module_binding.load())
-                .call((entries.clone(),))?,
+            page_resource_template_values(entries.clone())?,
         );
         let field_entries: js_abi::JsArray<PageResourceEntry> = entries.clone();
         Ok(PageResourceCollectionValueState {
@@ -102,7 +133,7 @@ impl PageResourceCollectionValue {
 
     pub fn new(
         entries: js_abi::JsArray<PageResourceEntry>,
-    ) -> rt::TsonicResult<PageResourceCollectionValue> {
+    ) -> Result<PageResourceCollectionValue, rt::TsonicError> {
         let state = PageResourceCollectionValue::initialize_state(entries)?;
         let identity = rt::ObjectIdentity::new();
         let root = std::rc::Rc::new(PageResourceCollectionValueRoot {
@@ -450,341 +481,371 @@ impl PageResourceCollectionValueDispatch for PageResourceCollectionValueRoot {
     }
 }
 
-type PageResourceEntriesCallable =
-    rt::Callable<
-        (crate::template::values::page::PageResourcesValue,),
-        rt::TsonicResult<js_abi::JsArray<PageResourceEntry>>,
-    >;
-
-std::thread_local! {
-    pub(crate) static PAGE_RESOURCE_ENTRIES: rt::ModuleCell<PageResourceEntriesCallable> = const { rt::ModuleCell::new() };
+pub fn page_resource_entries(
+    resources: crate::template::values::page::PageResourcesValue,
+) -> Result<js_abi::JsArray<PageResourceEntry>, rt::TsonicError> {
+    let source_directory: Option<String> = {
+        let dispatch_receiver_2 = &{
+            let dispatch_receiver = &resources;
+            dispatch_receiver.dispatch.read_page_resources_value_page()
+        };
+        dispatch_receiver_2
+            .dispatch
+            .read_page_context_resource_source_dir()
+    };
+    if source_directory.is_none() {
+        return Ok(js_abi::JsArray::from_dense(vec![]));
+    }
+    let files: js_abi::JsArray<crate::resources::page_bundle::PageBundleResourceFile> =
+        crate::resources::page_bundle::discover_page_bundle_resource_files(
+            match source_directory.as_ref() {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            },
+        )?;
+    let entries: js_abi::JsArray<PageResourceEntry> = js_abi::JsArray::from_dense(vec![]);
+    let base: String = crate::template::evaluation::serialization::trim_slashes({
+        let dispatch_receiver_4 = &{
+            let dispatch_receiver_3 = &resources;
+            dispatch_receiver_3
+                .dispatch
+                .read_page_resources_value_page()
+        };
+        dispatch_receiver_4
+            .dispatch
+            .read_page_context_rel_permalink()
+    })?;
+    {
+        let mut index: f64 = 0.0;
+        while index < (tsonic_rust_runtime::conversions::usize_to_i32(files.len())? as f64) {
+            let file: crate::resources::page_bundle::PageBundleResourceFile = match files
+                .get_number(index)
+                .as_ref()
+            {
+                Some(flow_value_2) => flow_value_2.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
+            let output_path: String = if base.is_empty() {
+                file.state.with(|state| state.relative_path.clone())
+            } else {
+                format!(
+                    "{}{}{}",
+                    crate::template::evaluation::serialization::trim_end_character(
+                        base.clone(),
+                        String::from("/"),
+                    )?,
+                    String::from("/"),
+                    file.state.with(|state| state.relative_path.clone()),
+                )
+            };
+            let identity: String = format!(
+                "{}{}{}{}",
+                String::from("page-resource:"),
+                {
+                    let dispatch_receiver_6 = &{
+                        let dispatch_receiver_5 = &resources;
+                        dispatch_receiver_5
+                            .dispatch
+                            .read_page_resources_value_page()
+                    };
+                    dispatch_receiver_6
+                        .dispatch
+                        .read_page_context_rel_permalink()
+                },
+                String::from(":"),
+                file.state.with(|state| state.relative_path.clone()),
+            );
+            {
+                let operation_input_0 = entries.clone();
+                operation_input_0.push_many_discard([PageResourceEntry::new(
+                    file.state.with(|state| state.relative_path.clone()),
+                    crate::template::values::resources::ResourceValue::new(
+                        {
+                            let dispatch_receiver_7 = &resources;
+                            dispatch_receiver_7
+                                .dispatch
+                                .read_page_resources_value_manager()
+                        },
+                        {
+                            let dispatch_receiver_9 = {
+                                let dispatch_receiver_8 = &resources;
+                                dispatch_receiver_8
+                                    .dispatch
+                                    .read_page_resources_value_manager()
+                            };
+                            dispatch_receiver_9
+                                .dispatch
+                                .clone()
+                                .dispatch_resource_manager_load_file(
+                                    identity.clone(),
+                                    file.state.with(|state| state.source_path.clone()),
+                                    output_path.clone(),
+                                )
+                        }?,
+                    ),
+                )])
+            };
+            index += 1.0;
+        }
+    }
+    Ok(entries)
 }
 
-pub type GetPageResourceCallable =
-    rt::Callable<
-        (crate::template::values::page::PageResourcesValue, String),
-        rt::TsonicResult<crate::template::values::base::TemplateValue>,
-    >;
-
-std::thread_local! {
-    pub static GET_PAGE_RESOURCE: rt::ModuleCell<GetPageResourceCallable> = const { rt::ModuleCell::new() };
+pub fn get_page_resource(
+    resources: crate::template::values::page::PageResourcesValue,
+    path_raw: String,
+) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
+    let path: String = crate::resources::paths::normalize_resource_relative_path(path_raw)?;
+    if path.is_empty() {
+        return Ok(
+            crate::template::runtime_helpers::NIL.with(|module_binding| module_binding.load()),
+        );
+    }
+    let entries: js_abi::JsArray<PageResourceEntry> = page_resource_entries(resources)?;
+    {
+        let mut index: f64 = 0.0;
+        while index < (tsonic_rust_runtime::conversions::usize_to_i32(entries.len())? as f64) {
+            let entry: PageResourceEntry = match entries.get_number(index).as_ref() {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
+            if entry.state.with(|state| state.relative_path.clone()) == path {
+                return Ok({
+                    let upcast_value = entry.state.with(|state| state.value.clone());
+                    crate::template::values::base::TemplateValue {
+                        identity: upcast_value.identity.clone(),
+                        dispatch: upcast_value.dispatch.clone(),
+                    }
+                });
+            }
+            index += 1.0;
+        }
+    }
+    Ok(crate::template::runtime_helpers::NIL.with(|module_binding| module_binding.load()))
 }
 
-pub type GetMatchingPageResourceCallable =
-    rt::Callable<
-        (crate::template::values::page::PageResourcesValue, String),
-        rt::TsonicResult<crate::template::values::base::TemplateValue>,
-    >;
-
-std::thread_local! {
-    pub static GET_MATCHING_PAGE_RESOURCE: rt::ModuleCell<GetMatchingPageResourceCallable> = const { rt::ModuleCell::new() };
+pub fn get_matching_page_resource(
+    resources: crate::template::values::page::PageResourcesValue,
+    pattern: String,
+) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
+    GET_MATCHING_PAGE_RESOURCE_FROM_COLLECTION.with(|module_binding| module_binding.load()).call((
+        PageResourceCollectionValue::new(page_resource_entries(resources)?)?,
+        pattern,
+    ))
 }
 
-pub type GetMatchingPageResourceFromCollectionCallable =
-    rt::Callable<
-        (PageResourceCollectionValue, String),
-        rt::TsonicResult<crate::template::values::base::TemplateValue>,
-    >;
+pub type GetMatchingPageResourceFromCollectionCallable = rt::Callable<
+    (PageResourceCollectionValue, String),
+    rt::TsonicResult<crate::template::values::base::TemplateValue>,
+>;
 
 std::thread_local! {
     pub static GET_MATCHING_PAGE_RESOURCE_FROM_COLLECTION: rt::ModuleCell<GetMatchingPageResourceFromCollectionCallable> = const { rt::ModuleCell::new() };
 }
 
-pub type GetMatchingPageResourcesCallable =
-    rt::Callable<
-        (crate::template::values::page::PageResourcesValue, String),
-        rt::TsonicResult<PageResourceCollectionValue>,
-    >;
-
-std::thread_local! {
-    pub static GET_MATCHING_PAGE_RESOURCES: rt::ModuleCell<GetMatchingPageResourcesCallable> = const { rt::ModuleCell::new() };
+pub fn get_matching_page_resources(
+    resources: crate::template::values::page::PageResourcesValue,
+    pattern: String,
+) -> Result<PageResourceCollectionValue, rt::TsonicError> {
+    GET_MATCHING_PAGE_RESOURCES_FROM_COLLECTION.with(|module_binding| module_binding.load()).call((
+        PageResourceCollectionValue::new(page_resource_entries(resources)?)?,
+        pattern,
+    ))
 }
 
-pub type GetMatchingPageResourcesFromCollectionCallable =
-    rt::Callable<
-        (PageResourceCollectionValue, String),
-        rt::TsonicResult<PageResourceCollectionValue>,
-    >;
+pub type GetMatchingPageResourcesFromCollectionCallable = rt::Callable<
+    (PageResourceCollectionValue, String),
+    rt::TsonicResult<PageResourceCollectionValue>,
+>;
 
 std::thread_local! {
     pub static GET_MATCHING_PAGE_RESOURCES_FROM_COLLECTION: rt::ModuleCell<GetMatchingPageResourcesFromCollectionCallable> = const { rt::ModuleCell::new() };
 }
 
-type FilterPageResourcesByTypeCallable =
-    rt::Callable<
-        (js_abi::JsArray<PageResourceEntry>, String),
-        rt::TsonicResult<PageResourceCollectionValue>,
-    >;
-
-std::thread_local! {
-    pub(crate) static FILTER_PAGE_RESOURCES_BY_TYPE: rt::ModuleCell<FilterPageResourcesByTypeCallable> = const { rt::ModuleCell::new() };
+pub fn filter_page_resources_by_type(
+    entries: js_abi::JsArray<PageResourceEntry>,
+    media_type: String,
+) -> Result<PageResourceCollectionValue, rt::TsonicError> {
+    let selected: js_abi::JsArray<PageResourceEntry> = js_abi::JsArray::from_dense(vec![]);
+    {
+        let mut index: f64 = 0.0;
+        while index < (tsonic_rust_runtime::conversions::usize_to_i32(entries.len())? as f64) {
+            let entry: PageResourceEntry = match entries.get_number(index).as_ref() {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
+            if crate::resources::media_types::resource_matches_media_type(
+                &{
+                    let dispatch_receiver_2 = &{
+                        let dispatch_receiver = &entry.state.with(|state| state.value.clone());
+                        dispatch_receiver.dispatch.read_resource_value_value()
+                    };
+                    dispatch_receiver_2.dispatch.read_resource_media_type()
+                },
+                &media_type,
+            )
+            {
+                selected.push_many_discard([entry.clone()]);
+            }
+            index += 1.0;
+        }
+    }
+    PageResourceCollectionValue::new(selected.clone())
 }
 
-pub type GetPageResourcesByTypeCallable =
-    rt::Callable<
-        (crate::template::values::page::PageResourcesValue, String),
-        rt::TsonicResult<PageResourceCollectionValue>,
-    >;
-
-std::thread_local! {
-    pub static GET_PAGE_RESOURCES_BY_TYPE: rt::ModuleCell<GetPageResourcesByTypeCallable> = const { rt::ModuleCell::new() };
+pub fn get_page_resources_by_type(
+    resources: crate::template::values::page::PageResourcesValue,
+    media_type: String,
+) -> Result<PageResourceCollectionValue, rt::TsonicError> {
+    filter_page_resources_by_type(page_resource_entries(resources)?, media_type)
 }
 
-pub type GetPageResourceCollectionByTypeCallable =
-    rt::Callable<
-        (PageResourceCollectionValue, String),
-        rt::TsonicResult<PageResourceCollectionValue>,
-    >;
-
-std::thread_local! {
-    pub static GET_PAGE_RESOURCE_COLLECTION_BY_TYPE: rt::ModuleCell<GetPageResourceCollectionByTypeCallable> = const { rt::ModuleCell::new() };
+pub fn get_page_resource_collection_by_type(
+    resources: PageResourceCollectionValue,
+    media_type: String,
+) -> Result<PageResourceCollectionValue, rt::TsonicError> {
+    filter_page_resources_by_type(
+        {
+            let dispatch_receiver = &resources;
+            dispatch_receiver
+                .dispatch
+                .read_page_resource_collection_value_entries()
+        },
+        media_type,
+    )
 }
 
-pub type CallPageResourcesMethodCallable =
-    rt::Callable<
-        (
-            crate::template::values::page::PageResourcesValue,
-            String,
-            js_abi::JsArray<crate::template::values::base::TemplateValue>,
-        ),
-        rt::TsonicResult<Option<crate::template::values::base::TemplateValue>>,
-    >;
-
-std::thread_local! {
-    pub static CALL_PAGE_RESOURCES_METHOD: rt::ModuleCell<CallPageResourcesMethodCallable> = const { rt::ModuleCell::new() };
+pub fn call_page_resources_method(
+    resources: crate::template::values::page::PageResourcesValue,
+    method_name: &str,
+    args: js_abi::JsArray<crate::template::values::base::TemplateValue>,
+) -> Result<Option<crate::template::values::base::TemplateValue>, rt::TsonicError> {
+    let method: String = js_string::to_lower_case(method_name);
+    if method == "get" && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 1 {
+        return Ok(Some(get_page_resource(
+            resources.clone(),
+            crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0).as_ref() {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            })?,
+        )?));
+    }
+    if method == "getmatch" && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 1 {
+        return Ok(Some(get_matching_page_resource(
+            resources.clone(),
+            crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0).as_ref() {
+                Some(flow_value_2) => flow_value_2.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            })?,
+        )?));
+    }
+    if method == "match" && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 1 {
+        return Ok(Some({
+            let upcast_value = get_matching_page_resources(
+                resources.clone(),
+                crate::template::runtime_helpers::to_plain_string(
+                    match args.get_number(0.0).as_ref() {
+                        Some(flow_value_3) => flow_value_3.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
+                )?,
+            )?;
+            crate::template::values::base::TemplateValue {
+                identity: upcast_value.identity.clone(),
+                dispatch: upcast_value.dispatch.clone(),
+            }
+        }));
+    }
+    if method == "bytype" && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 1 {
+        return Ok(Some({
+            let upcast_value_2 = get_page_resources_by_type(
+                resources.clone(),
+                crate::template::runtime_helpers::to_plain_string(
+                    match args.get_number(0.0).as_ref() {
+                        Some(flow_value_4) => flow_value_4.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
+                )?,
+            )?;
+            crate::template::values::base::TemplateValue {
+                identity: upcast_value_2.identity.clone(),
+                dispatch: upcast_value_2.dispatch.clone(),
+            }
+        }));
+    }
+    Ok(Option::<crate::template::values::base::TemplateValue>::None)
 }
 
-pub type CallPageResourceCollectionMethodCallable =
-    rt::Callable<
-        (
-            PageResourceCollectionValue,
-            String,
-            js_abi::JsArray<crate::template::values::base::TemplateValue>,
-        ),
-        rt::TsonicResult<Option<crate::template::values::base::TemplateValue>>,
-    >;
-
-std::thread_local! {
-    pub static CALL_PAGE_RESOURCE_COLLECTION_METHOD: rt::ModuleCell<CallPageResourceCollectionMethodCallable> = const { rt::ModuleCell::new() };
+pub fn call_page_resource_collection_method(
+    resources: PageResourceCollectionValue,
+    method_name: &str,
+    args: js_abi::JsArray<crate::template::values::base::TemplateValue>,
+) -> Result<Option<crate::template::values::base::TemplateValue>, rt::TsonicError> {
+    let method: String = js_string::to_lower_case(method_name);
+    if method == "getmatch" && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 1 {
+        return Ok(Some(GET_MATCHING_PAGE_RESOURCE_FROM_COLLECTION
+            .with(|module_binding| module_binding.load())
+            .call((
+                resources.clone(),
+                crate::template::runtime_helpers::to_plain_string(
+                    match args.get_number(0.0).as_ref() {
+                        Some(flow_value) => flow_value.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
+                )?,
+            ))?));
+    }
+    if method == "match" && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 1 {
+        return Ok(Some({
+            let upcast_value = GET_MATCHING_PAGE_RESOURCES_FROM_COLLECTION
+                .with(|module_binding| module_binding.load())
+                .call((
+                    resources.clone(),
+                    crate::template::runtime_helpers::to_plain_string(
+                        match args.get_number(0.0).as_ref() {
+                            Some(flow_value_2) => flow_value_2.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        },
+                    )?,
+                ))?;
+            crate::template::values::base::TemplateValue {
+                identity: upcast_value.identity.clone(),
+                dispatch: upcast_value.dispatch.clone(),
+            }
+        }));
+    }
+    if method == "bytype" && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 1 {
+        return Ok(Some({
+            let upcast_value_2 = get_page_resource_collection_by_type(
+                resources.clone(),
+                crate::template::runtime_helpers::to_plain_string(
+                    match args.get_number(0.0).as_ref() {
+                        Some(flow_value_3) => flow_value_3.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
+                )?,
+            )?;
+            crate::template::values::base::TemplateValue {
+                identity: upcast_value_2.identity.clone(),
+                dispatch: upcast_value_2.dispatch.clone(),
+            }
+        }));
+    }
+    Ok(Option::<crate::template::values::base::TemplateValue>::None)
 }
 
 #[doc(hidden)]
 pub fn module_init() {
     {
         let module_value = rt::Callable::<
-            (js_abi::JsArray<PageResourceEntry>,),
-            rt::TsonicResult<js_abi::JsArray<crate::template::values::base::TemplateValue>>,
-        >::new(move |callable_arguments| {
-            let entries = callable_arguments.0;
-            let values: js_abi::JsArray<crate::template::values::base::TemplateValue> =
-                js_abi::JsArray::from_dense(vec![]);
-            {
-                let mut index: f64 = 0.0;
-                while index
-                    < (tsonic_rust_runtime::conversions::usize_to_i32(entries.len())? as f64)
-                {
-                    tsonic_rust_runtime::conversions::usize_to_i32(values.push_many([{
-                        let upcast_value = match entries.get_number(index).as_ref() {
-                            Some(flow_value) => flow_value.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        }
-                        .state
-                        .with(|state| state.value.clone());
-                        crate::template::values::base::TemplateValue {
-                            identity: upcast_value.identity.clone(),
-                            dispatch: upcast_value.dispatch.clone(),
-                        }
-                    }]))?;
-                    index += 1.0;
-                }
-            }
-            Ok::<_, rt::TsonicError>(values.clone())
-        });
-        PAGE_RESOURCE_TEMPLATE_VALUES.with(|module_binding| module_binding.initialize(module_value))
-    };
-    {
-        let module_value_2 = rt::Callable::<
-            (crate::template::values::page::PageResourcesValue,),
-            rt::TsonicResult<js_abi::JsArray<PageResourceEntry>>,
-        >::new(move |callable_arguments_2| {
-            let resources = callable_arguments_2.0;
-            let source_directory: Option<String> = {
-                let dispatch_receiver = &resources;
-                dispatch_receiver.dispatch.read_page_resources_value_page()
-            }
-            .state
-            .with(|state| state.resource_source_dir.clone());
-            if source_directory.is_none() {
-                return Ok::<_, rt::TsonicError>(js_abi::JsArray::from_dense(vec![]));
-            }
-            let files: js_abi::JsArray<crate::resources::page_bundle::PageBundleResourceFile> =
-                crate::resources::page_bundle::DISCOVER_PAGE_BUNDLE_RESOURCE_FILES
-                    .with(|module_binding| module_binding.load())
-                    .call((match source_directory.as_ref() {
-                        Some(flow_value_2) => flow_value_2.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },))?;
-            let entries: js_abi::JsArray<PageResourceEntry> = js_abi::JsArray::from_dense(vec![]);
-            let base: String = crate::template::evaluation::serialization::trim_slashes(
-                {
-                    let dispatch_receiver_2 = &resources;
-                    dispatch_receiver_2
-                        .dispatch
-                        .read_page_resources_value_page()
-                }
-                .state
-                .with(|state| state.rel_permalink.clone()),
-            )?;
-            {
-                let mut index: f64 = 0.0;
-                while index < (tsonic_rust_runtime::conversions::usize_to_i32(files.len())? as f64)
-                {
-                    let file: crate::resources::page_bundle::PageBundleResourceFile = match files
-                        .get_number(index)
-                        .as_ref()
-                    {
-                        Some(flow_value_3) => flow_value_3.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    };
-                    let output_path: String = if base.is_empty() {
-                        file.state.with(|state| state.relative_path.clone())
-                    } else {
-                        format!(
-                            "{}{}{}{}{}",
-                            String::from(""),
-                            rt::source_string(
-                                &crate::template::evaluation::serialization::trim_end_character(
-                                    base.clone(),
-                                    String::from("/"),
-                                )?,
-                            ),
-                            String::from("/"),
-                            rt::source_string(&file.state.with(
-                                |state| state.relative_path.clone()
-                            )),
-                            String::from(""),
-                        )
-                    };
-                    let identity: String = format!(
-                        "{}{}{}{}{}",
-                        String::from("page-resource:"),
-                        rt::source_string(&{
-                            let dispatch_receiver_3 = &resources;
-                            dispatch_receiver_3
-                                .dispatch
-                                .read_page_resources_value_page()
-                        }
-                        .state
-                        .with(|state| state.rel_permalink.clone()),),
-                        String::from(":"),
-                        rt::source_string(&file.state.with(|state| state.relative_path.clone())),
-                        String::from(""),
-                    );
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        entries
-                            .push_many([PageResourceEntry::new(
-                                file.state.with(|state| state.relative_path.clone()),
-                                crate::template::values::resources::ResourceValue::new(
-                                    {
-                                        let dispatch_receiver_4 = &resources;
-                                        dispatch_receiver_4
-                                            .dispatch
-                                            .read_page_resources_value_manager()
-                                    },
-                                    {
-                                        let dispatch_receiver_5 = &resources;
-                                        dispatch_receiver_5
-                                            .dispatch
-                                            .read_page_resources_value_manager()
-                                    }
-                                    .load_file(
-                                            identity.clone(),
-                                            file.state.with(|state| state.source_path.clone()),
-                                            output_path.clone(),
-                                        )?,
-                                ),
-                            )]),
-                    )?;
-                    index += 1.0;
-                }
-            }
-            Ok::<_, rt::TsonicError>(entries.clone())
-        });
-        PAGE_RESOURCE_ENTRIES.with(|module_binding_2| module_binding_2.initialize(module_value_2))
-    };
-    {
-        let module_value_3 = rt::Callable::<
-            (crate::template::values::page::PageResourcesValue, String),
-            rt::TsonicResult<crate::template::values::base::TemplateValue>,
-        >::new(move |callable_arguments_3| {
-            let resources = callable_arguments_3.0;
-            let path_raw = callable_arguments_3.1;
-            let path: String = crate::resources::paths::NORMALIZE_RESOURCE_RELATIVE_PATH
-                .with(|module_binding| module_binding.load())
-                .call((path_raw.clone(),))?;
-            if path.is_empty() {
-                return Ok::<_, rt::TsonicError>(crate::template::runtime_helpers::NIL
-                    .with(|module_binding| module_binding.load()));
-            }
-            let entries: js_abi::JsArray<PageResourceEntry> = PAGE_RESOURCE_ENTRIES
-                .with(|module_binding| module_binding.load())
-                .call((resources.clone(),))?;
-            {
-                let mut index: f64 = 0.0;
-                while index
-                    < (tsonic_rust_runtime::conversions::usize_to_i32(entries.len())? as f64)
-                {
-                    let entry: PageResourceEntry = match entries.get_number(index).as_ref() {
-                        Some(flow_value_4) => flow_value_4.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    };
-                    if entry.state.with(|state| state.relative_path.clone()) == path {
-                        return Ok::<_, rt::TsonicError>({
-                            let upcast_value_2 = entry.state.with(|state| state.value.clone());
-                            crate::template::values::base::TemplateValue {
-                                identity: upcast_value_2.identity.clone(),
-                                dispatch: upcast_value_2.dispatch.clone(),
-                            }
-                        });
-                    }
-                    index += 1.0;
-                }
-            }
-            Ok::<_, rt::TsonicError>(
-                crate::template::runtime_helpers::NIL.with(|module_binding| module_binding.load()),
-            )
-        });
-        GET_PAGE_RESOURCE.with(|module_binding_3| module_binding_3.initialize(module_value_3))
-    };
-    {
-        let module_value_4 = rt::Callable::<
-            (crate::template::values::page::PageResourcesValue, String),
-            rt::TsonicResult<crate::template::values::base::TemplateValue>,
-        >::new(move |callable_arguments_4| {
-            let resources = callable_arguments_4.0;
-            let pattern = callable_arguments_4.1;
-            GET_MATCHING_PAGE_RESOURCE_FROM_COLLECTION
-                .with(|module_binding| module_binding.load())
-                .call((
-                    PageResourceCollectionValue::new(PAGE_RESOURCE_ENTRIES
-                        .with(|module_binding| module_binding.load())
-                        .call((resources.clone(),))?)?,
-                    pattern.clone(),
-                ))
-        });
-        GET_MATCHING_PAGE_RESOURCE
-            .with(|module_binding_4| module_binding_4.initialize(module_value_4))
-    };
-    {
-        let module_value_5 = rt::Callable::<
             (PageResourceCollectionValue, String),
             rt::TsonicResult<crate::template::values::base::TemplateValue>,
-        >::new(move |callable_arguments_5| {
-            let resources = callable_arguments_5.0;
-            let pattern = callable_arguments_5.1;
+        >::new(move |callable_arguments| {
+            let resources = callable_arguments.0;
+            let pattern = callable_arguments.1;
             let entries: js_abi::JsArray<PageResourceEntry> = {
-                let dispatch_receiver_6 = &resources;
-                dispatch_receiver_6
+                let dispatch_receiver = &resources;
+                dispatch_receiver
                     .dispatch
                     .read_page_resource_collection_value_entries()
             };
@@ -794,7 +855,7 @@ pub fn module_init() {
                     < (tsonic_rust_runtime::conversions::usize_to_i32(entries.len())? as f64)
                 {
                     let entry: PageResourceEntry = match entries.get_number(index).as_ref() {
-                        Some(flow_value_5) => flow_value_5.clone(),
+                        Some(flow_value) => flow_value.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     if crate::resources::glob::resource_glob_matches(
@@ -803,10 +864,10 @@ pub fn module_init() {
                     )?
                     {
                         return Ok::<_, rt::TsonicError>({
-                            let upcast_value_3 = entry.state.with(|state| state.value.clone());
+                            let upcast_value = entry.state.with(|state| state.value.clone());
                             crate::template::values::base::TemplateValue {
-                                identity: upcast_value_3.identity.clone(),
-                                dispatch: upcast_value_3.dispatch.clone(),
+                                identity: upcast_value.identity.clone(),
+                                dispatch: upcast_value.dispatch.clone(),
                             }
                         });
                     }
@@ -818,50 +879,31 @@ pub fn module_init() {
             )
         });
         GET_MATCHING_PAGE_RESOURCE_FROM_COLLECTION
-            .with(|module_binding_5| module_binding_5.initialize(module_value_5))
+            .with(|module_binding| module_binding.initialize(module_value))
     };
     {
-        let module_value_6 = rt::Callable::<
-            (crate::template::values::page::PageResourcesValue, String),
-            rt::TsonicResult<PageResourceCollectionValue>,
-        >::new(move |callable_arguments_6| {
-            let resources = callable_arguments_6.0;
-            let pattern = callable_arguments_6.1;
-            GET_MATCHING_PAGE_RESOURCES_FROM_COLLECTION
-                .with(|module_binding| module_binding.load())
-                .call((
-                    PageResourceCollectionValue::new(PAGE_RESOURCE_ENTRIES
-                        .with(|module_binding| module_binding.load())
-                        .call((resources.clone(),))?)?,
-                    pattern.clone(),
-                ))
-        });
-        GET_MATCHING_PAGE_RESOURCES
-            .with(|module_binding_6| module_binding_6.initialize(module_value_6))
-    };
-    {
-        let module_value_7 = rt::Callable::<
+        let module_value_2 = rt::Callable::<
             (PageResourceCollectionValue, String),
             rt::TsonicResult<PageResourceCollectionValue>,
-        >::new(move |callable_arguments_7| {
-            let resources = callable_arguments_7.0;
-            let pattern = callable_arguments_7.1;
+        >::new(move |callable_arguments_2| {
+            let resources = callable_arguments_2.0;
+            let pattern = callable_arguments_2.1;
             let selected: js_abi::JsArray<PageResourceEntry> = js_abi::JsArray::from_dense(vec![]);
             {
                 let mut index: f64 = 0.0;
                 while index
-                    < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_7 = &resources; dispatch_receiver_7.dispatch.read_page_resource_collection_value_entries() }.len())? as f64)
+                    < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_2 = &resources; dispatch_receiver_2.dispatch.read_page_resource_collection_value_entries() }.len())? as f64)
                 {
                     let entry: PageResourceEntry = match {
-                        let dispatch_receiver_8 = &resources;
-                        dispatch_receiver_8
+                        let dispatch_receiver_3 = &resources;
+                        dispatch_receiver_3
                             .dispatch
                             .read_page_resource_collection_value_entries()
                     }
                     .get_number(index)
                     .as_ref()
                     {
-                        Some(flow_value_6) => flow_value_6.clone(),
+                        Some(flow_value_2) => flow_value_2.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     if crate::resources::glob::resource_glob_matches(
@@ -869,9 +911,7 @@ pub fn module_init() {
                         entry.state.with(|state| state.relative_path.clone()),
                     )?
                     {
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            selected.push_many([entry.clone()]),
-                        )?;
+                        selected.push_many_discard([entry.clone()]);
                     }
                     index += 1.0;
                 }
@@ -879,270 +919,6 @@ pub fn module_init() {
             PageResourceCollectionValue::new(selected.clone())
         });
         GET_MATCHING_PAGE_RESOURCES_FROM_COLLECTION
-            .with(|module_binding_7| module_binding_7.initialize(module_value_7))
-    };
-    {
-        let module_value_8 = rt::Callable::<
-            (js_abi::JsArray<PageResourceEntry>, String),
-            rt::TsonicResult<PageResourceCollectionValue>,
-        >::new(move |callable_arguments_8| {
-            let entries = callable_arguments_8.0;
-            let media_type = callable_arguments_8.1;
-            let selected: js_abi::JsArray<PageResourceEntry> = js_abi::JsArray::from_dense(vec![]);
-            {
-                let mut index: f64 = 0.0;
-                while index
-                    < (tsonic_rust_runtime::conversions::usize_to_i32(entries.len())? as f64)
-                {
-                    let entry: PageResourceEntry = match entries.get_number(index).as_ref() {
-                        Some(flow_value_7) => flow_value_7.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    };
-                    if crate::resources::media_types::resource_matches_media_type(
-                        &{
-                            let dispatch_receiver_9 =
-                                &entry.state.with(|state| state.value.clone());
-                            dispatch_receiver_9.dispatch.read_resource_value_value()
-                        }
-                        .state
-                        .with(|state| state.media_type.clone()),
-                        &media_type,
-                    )
-                    {
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            selected.push_many([entry.clone()]),
-                        )?;
-                    }
-                    index += 1.0;
-                }
-            }
-            PageResourceCollectionValue::new(selected.clone())
-        });
-        FILTER_PAGE_RESOURCES_BY_TYPE
-            .with(|module_binding_8| module_binding_8.initialize(module_value_8))
-    };
-    {
-        let module_value_9 = rt::Callable::<
-            (crate::template::values::page::PageResourcesValue, String),
-            rt::TsonicResult<PageResourceCollectionValue>,
-        >::new(move |callable_arguments_9| {
-            let resources = callable_arguments_9.0;
-            let media_type = callable_arguments_9.1;
-            FILTER_PAGE_RESOURCES_BY_TYPE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    PAGE_RESOURCE_ENTRIES
-                        .with(|module_binding| module_binding.load())
-                        .call((resources.clone(),))?,
-                    media_type.clone(),
-                ))
-        });
-        GET_PAGE_RESOURCES_BY_TYPE
-            .with(|module_binding_9| module_binding_9.initialize(module_value_9))
-    };
-    {
-        let module_value_10 = rt::Callable::<
-            (PageResourceCollectionValue, String),
-            rt::TsonicResult<PageResourceCollectionValue>,
-        >::new(move |callable_arguments_10| {
-            let resources = callable_arguments_10.0;
-            let media_type = callable_arguments_10.1;
-            FILTER_PAGE_RESOURCES_BY_TYPE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    {
-                        let dispatch_receiver_10 = &resources;
-                        dispatch_receiver_10
-                            .dispatch
-                            .read_page_resource_collection_value_entries()
-                    },
-                    media_type.clone(),
-                ))
-        });
-        GET_PAGE_RESOURCE_COLLECTION_BY_TYPE
-            .with(|module_binding_10| module_binding_10.initialize(module_value_10))
-    };
-    {
-        let module_value_11 = rt::Callable::<
-            (
-                crate::template::values::page::PageResourcesValue,
-                String,
-                js_abi::JsArray<crate::template::values::base::TemplateValue>,
-            ),
-            rt::TsonicResult<Option<crate::template::values::base::TemplateValue>>,
-        >::new(move |callable_arguments_11| {
-            let resources = callable_arguments_11.0;
-            let method_name = callable_arguments_11.1;
-            let args = callable_arguments_11.2;
-            let method: String = js_string::to_lower_case(&method_name);
-            if method == "get" && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 1 {
-                return Ok::<_, rt::TsonicError>(Some(GET_PAGE_RESOURCE
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        resources.clone(),
-                        crate::template::runtime_helpers::TO_PLAIN_STRING
-                            .with(|module_binding| module_binding.load())
-                            .call((match args.get_number(0.0).as_ref() {
-                                Some(flow_value_8) => flow_value_8.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },))?,
-                    ))?));
-            }
-            if method == "getmatch"
-                && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 1
-            {
-                return Ok::<_, rt::TsonicError>(Some(GET_MATCHING_PAGE_RESOURCE
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        resources.clone(),
-                        crate::template::runtime_helpers::TO_PLAIN_STRING
-                            .with(|module_binding| module_binding.load())
-                            .call((match args.get_number(0.0).as_ref() {
-                                Some(flow_value_9) => flow_value_9.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },))?,
-                    ))?));
-            }
-            if method == "match" && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 1
-            {
-                return Ok::<_, rt::TsonicError>(Some({
-                    let upcast_value_4 = GET_MATCHING_PAGE_RESOURCES
-                        .with(|module_binding| module_binding.load())
-                        .call((
-                            resources.clone(),
-                            crate::template::runtime_helpers::TO_PLAIN_STRING
-                                .with(|module_binding| module_binding.load())
-                                .call((match args.get_number(0.0).as_ref() {
-                                    Some(flow_value_10) => flow_value_10.clone(),
-                                    None => {
-                                        unreachable!(
-                                            "checked flow selected a missing optional value"
-                                        )
-                                    }
-                                },))?,
-                        ))?;
-                    crate::template::values::base::TemplateValue {
-                        identity: upcast_value_4.identity.clone(),
-                        dispatch: upcast_value_4.dispatch.clone(),
-                    }
-                }));
-            }
-            if method == "bytype"
-                && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 1
-            {
-                return Ok::<_, rt::TsonicError>(Some({
-                    let upcast_value_5 = GET_PAGE_RESOURCES_BY_TYPE
-                        .with(|module_binding| module_binding.load())
-                        .call((
-                            resources.clone(),
-                            crate::template::runtime_helpers::TO_PLAIN_STRING
-                                .with(|module_binding| module_binding.load())
-                                .call((match args.get_number(0.0).as_ref() {
-                                    Some(flow_value_11) => flow_value_11.clone(),
-                                    None => {
-                                        unreachable!(
-                                            "checked flow selected a missing optional value"
-                                        )
-                                    }
-                                },))?,
-                        ))?;
-                    crate::template::values::base::TemplateValue {
-                        identity: upcast_value_5.identity.clone(),
-                        dispatch: upcast_value_5.dispatch.clone(),
-                    }
-                }));
-            }
-            Ok::<_, rt::TsonicError>(Option::<crate::template::values::base::TemplateValue>::None)
-        });
-        CALL_PAGE_RESOURCES_METHOD
-            .with(|module_binding_11| module_binding_11.initialize(module_value_11))
-    };
-    {
-        let module_value_12 = rt::Callable::<
-            (
-                PageResourceCollectionValue,
-                String,
-                js_abi::JsArray<crate::template::values::base::TemplateValue>,
-            ),
-            rt::TsonicResult<Option<crate::template::values::base::TemplateValue>>,
-        >::new(move |callable_arguments_12| {
-            let resources = callable_arguments_12.0;
-            let method_name = callable_arguments_12.1;
-            let args = callable_arguments_12.2;
-            let method: String = js_string::to_lower_case(&method_name);
-            if method == "getmatch"
-                && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 1
-            {
-                return Ok::<_, rt::TsonicError>(Some(GET_MATCHING_PAGE_RESOURCE_FROM_COLLECTION
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        resources.clone(),
-                        crate::template::runtime_helpers::TO_PLAIN_STRING
-                            .with(|module_binding| module_binding.load())
-                            .call((match args.get_number(0.0).as_ref() {
-                                Some(flow_value_12) => flow_value_12.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },))?,
-                    ))?));
-            }
-            if method == "match" && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 1
-            {
-                return Ok::<_, rt::TsonicError>(Some({
-                    let upcast_value_6 = GET_MATCHING_PAGE_RESOURCES_FROM_COLLECTION
-                        .with(|module_binding| module_binding.load())
-                        .call((
-                            resources.clone(),
-                            crate::template::runtime_helpers::TO_PLAIN_STRING
-                                .with(|module_binding| module_binding.load())
-                                .call((match args.get_number(0.0).as_ref() {
-                                    Some(flow_value_13) => flow_value_13.clone(),
-                                    None => {
-                                        unreachable!(
-                                            "checked flow selected a missing optional value"
-                                        )
-                                    }
-                                },))?,
-                        ))?;
-                    crate::template::values::base::TemplateValue {
-                        identity: upcast_value_6.identity.clone(),
-                        dispatch: upcast_value_6.dispatch.clone(),
-                    }
-                }));
-            }
-            if method == "bytype"
-                && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 1
-            {
-                return Ok::<_, rt::TsonicError>(Some({
-                    let upcast_value_7 = GET_PAGE_RESOURCE_COLLECTION_BY_TYPE
-                        .with(|module_binding| module_binding.load())
-                        .call((
-                            resources.clone(),
-                            crate::template::runtime_helpers::TO_PLAIN_STRING
-                                .with(|module_binding| module_binding.load())
-                                .call((match args.get_number(0.0).as_ref() {
-                                    Some(flow_value_14) => flow_value_14.clone(),
-                                    None => {
-                                        unreachable!(
-                                            "checked flow selected a missing optional value"
-                                        )
-                                    }
-                                },))?,
-                        ))?;
-                    crate::template::values::base::TemplateValue {
-                        identity: upcast_value_7.identity.clone(),
-                        dispatch: upcast_value_7.dispatch.clone(),
-                    }
-                }));
-            }
-            Ok::<_, rt::TsonicError>(Option::<crate::template::values::base::TemplateValue>::None)
-        });
-        CALL_PAGE_RESOURCE_COLLECTION_METHOD
-            .with(|module_binding_12| module_binding_12.initialize(module_value_12))
+            .with(|module_binding_2| module_binding_2.initialize(module_value_2))
     };
 }

@@ -6,23 +6,25 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct LoadedDocsConfigState {
-    pub(crate) path: String,
-    pub(crate) config: crate::docs::models::DocsSiteConfig,
+pub struct LoadedDocsConfigState {
+    pub path: String,
+    pub config: crate::docs::models::DocsSiteConfig,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct LoadedDocsConfig {
-    pub(crate) state: rt::ObjectHandle<LoadedDocsConfigState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<LoadedDocsConfigState>,
 }
 
 impl LoadedDocsConfig {
     pub fn new(path: String, config: crate::docs::models::DocsSiteConfig) -> LoadedDocsConfig {
-        let field_path: String = path.clone();
-        let field_config: crate::docs::models::DocsSiteConfig = config.clone();
+        let field_path: String = path;
+        let field_config: crate::docs::models::DocsSiteConfig = config;
         LoadedDocsConfig {
-            state: rt::ObjectHandle::new(LoadedDocsConfigState {
+            state: rt::ObjectRef::new(LoadedDocsConfigState {
                 path: field_path,
                 config: field_config,
             }),
@@ -30,954 +32,647 @@ impl LoadedDocsConfig {
     }
 }
 
-type DocsConfigErrorCallable =
-    rt::Callable<(String, String, String), rt::TsonicResult<crate::diagnostics::TsumoError>>;
-
-std::thread_local! {
-    pub(crate) static DOCS_CONFIG_ERROR: rt::ModuleCell<DocsConfigErrorCallable> = const { rt::ModuleCell::new() };
+pub fn docs_config_error(
+    code: String,
+    message: String,
+    path: String,
+) -> crate::diagnostics::TsumoError {
+    crate::diagnostics::create_tsumo_error(code, message, Some(path), None, None)
 }
 
-type AssertUniquePropertiesCallable =
-    rt::Callable<(crate::utils::json::JsonObject, String, String), rt::TsonicResult<()>>;
-
-std::thread_local! {
-    pub(crate) static ASSERT_UNIQUE_PROPERTIES: rt::ModuleCell<AssertUniquePropertiesCallable> = const { rt::ModuleCell::new() };
-}
-
-type OptionalStringCallable =
-    rt::Callable<
-        (crate::utils::json::JsonObject, String, String, String),
-        rt::TsonicResult<Option<String>>,
-    >;
-
-std::thread_local! {
-    pub(crate) static OPTIONAL_STRING: rt::ModuleCell<OptionalStringCallable> = const { rt::ModuleCell::new() };
-}
-
-type OptionalBoolCallable =
-    rt::Callable<
-        (crate::utils::json::JsonObject, String, String, String),
-        rt::TsonicResult<Option<bool>>,
-    >;
-
-std::thread_local! {
-    pub(crate) static OPTIONAL_BOOL: rt::ModuleCell<OptionalBoolCallable> = const { rt::ModuleCell::new() };
-}
-
-type RequiredStringCallable =
-    rt::Callable<
-        (crate::utils::json::JsonObject, String, String, String),
-        rt::TsonicResult<String>,
-    >;
-
-std::thread_local! {
-    pub(crate) static REQUIRED_STRING: rt::ModuleCell<RequiredStringCallable> = const { rt::ModuleCell::new() };
-}
-
-type RejectUnknownPropertiesCallable =
-    rt::Callable<
-        (
-            crate::utils::json::JsonObject,
-            js_abi::JsArray<String>,
-            String,
-            String,
-        ),
-        rt::TsonicResult<()>,
-    >;
-
-std::thread_local! {
-    pub(crate) static REJECT_UNKNOWN_PROPERTIES: rt::ModuleCell<RejectUnknownPropertiesCallable> = const { rt::ModuleCell::new() };
-}
-
-type NormalizePrefixCallable = rt::Callable<(String,), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub(crate) static NORMALIZE_PREFIX: rt::ModuleCell<NormalizePrefixCallable> = const { rt::ModuleCell::new() };
-}
-
-type ResolveSourceDirCallable = rt::Callable<(String, String, String), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub(crate) static RESOLVE_SOURCE_DIR: rt::ModuleCell<ResolveSourceDirCallable> = const { rt::ModuleCell::new() };
-}
-
-type ParseMountCallable =
-    rt::Callable<
-        (String, crate::utils::json::JsonValue, f64, String),
-        rt::TsonicResult<crate::docs::models::DocsMountConfig>,
-    >;
-
-std::thread_local! {
-    pub(crate) static PARSE_MOUNT: rt::ModuleCell<ParseMountCallable> = const { rt::ModuleCell::new() };
-}
-
-type ParseMountsCallable =
-    rt::Callable<
-        (String, crate::utils::json::JsonObject, String),
-        rt::TsonicResult<js_abi::JsArray<crate::docs::models::DocsMountConfig>>,
-    >;
-
-std::thread_local! {
-    pub(crate) static PARSE_MOUNTS: rt::ModuleCell<ParseMountsCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type LoadDocsConfigCallable =
-    rt::Callable<(String,), rt::TsonicResult<Option<LoadedDocsConfig>>>;
-
-std::thread_local! {
-    pub static LOAD_DOCS_CONFIG: rt::ModuleCell<LoadDocsConfigCallable> = const { rt::ModuleCell::new() };
-}
-
-#[doc(hidden)]
-pub fn module_init() {
+pub fn assert_unique_properties(
+    value: crate::utils::json::JsonObject,
+    context: String,
+    path: String,
+) -> Result<(), rt::TsonicError> {
+    let seen: js_abi::JsMap<String, String> = js_abi::JsMap::new();
     {
-        let module_value = rt::Callable::<
-            (String, String, String),
-            rt::TsonicResult<crate::diagnostics::TsumoError>,
-        >::new(move |callable_arguments| {
-            let code = callable_arguments.0;
-            let message = callable_arguments.1;
-            let path = callable_arguments.2;
-            Ok::<_, rt::TsonicError>(crate::diagnostics::create_tsumo_error(
-                code.clone(),
-                message.clone(),
-                Some(path.clone()),
-                None,
-                None,
-            ))
-        });
-        DOCS_CONFIG_ERROR.with(|module_binding| module_binding.initialize(module_value))
-    };
-    {
-        let module_value_2 = rt::Callable::<
-            (crate::utils::json::JsonObject, String, String),
-            rt::TsonicResult<()>,
-        >::new(move |callable_arguments_2| {
-            let value = callable_arguments_2.0;
-            let context = callable_arguments_2.1;
-            let path = callable_arguments_2.2;
-            let seen: js_abi::JsMap<String, String> = js_abi::JsMap::new();
+        let mut index: f64 = 0.0;
+        while index
+            < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver = &value; dispatch_receiver.dispatch.read_json_object_properties() }.len())? as f64)
+        {
+            let property: crate::utils::json::JsonProperty = match {
+                let dispatch_receiver_2 = &value;
+                dispatch_receiver_2.dispatch.read_json_object_properties()
+            }
+            .get_number(index)
+            .as_ref()
             {
-                let mut index: f64 = 0.0;
-                while index
-                    < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver = &value; dispatch_receiver.dispatch.read_json_object_properties() }.len())? as f64)
-                {
-                    let property: crate::utils::json::JsonProperty = match {
-                        let dispatch_receiver_2 = &value;
-                        dispatch_receiver_2.dispatch.read_json_object_properties()
-                    }
-                    .get_number(index)
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
+            let key: String =
+                js_string::to_lower_case(&property.state.with(|state| state.key.clone()));
+            let previous: Option<String> = seen.get(&key);
+            if previous.is_some() {
+                return Err(rt::TsonicError::TsumoError(docs_config_error(
+                    String::from("TSUMO_DOCS_CONFIG_DUPLICATE_PROPERTY"),
+                    format!(
+                        "{}{}{}{}{}{}",
+                        context,
+                        String::from(" contains duplicate properties '"),
+                        match previous.as_ref() {
+                            Some(flow_value_2) => flow_value_2.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        },
+                        String::from("' and '"),
+                        property.state.with(|state| state.key.clone()),
+                        String::from("'"),
+                    ),
+                    path.clone(),
+                )));
+            }
+            {
+                let operation_input_0 = seen.clone();
+                operation_input_0
+                    .set_discard(key.clone(), property.state.with(|state| state.key.clone()))
+            };
+            index += 1.0;
+        }
+    }
+    Ok(())
+}
+
+pub fn optional_string(
+    root: crate::utils::json::JsonObject,
+    name: String,
+    context: String,
+    path: String,
+) -> Result<Option<String>, rt::TsonicError> {
+    let value: Option<crate::utils::json::JsonValue> = {
+        let dispatch_receiver = root;
+        dispatch_receiver
+            .dispatch
+            .clone()
+            .dispatch_json_object_get_case_insensitive(&name)
+    }?;
+    if value.is_none() {
+        return Ok(Option::<String>::None);
+    }
+    if match value.as_ref() {
+        Some(flow_value) => flow_value.clone(),
+        None => unreachable!("checked flow selected a missing optional value"),
+    }
+    .dispatch
+    .clone()
+    .downcast_json_value_to_json_string()
+    .is_none()
+    {
+        return Err(rt::TsonicError::TsumoError(docs_config_error(
+            String::from("TSUMO_DOCS_CONFIG_TYPE"),
+            format!(
+                "{}{}{}{}",
+                context,
+                String::from("."),
+                name,
+                String::from(" must be a string"),
+            ),
+            path,
+        )));
+    }
+    Ok(Some({
+        let dispatch_receiver_2 = &{
+            let downcast_value = &value;
+            crate::utils::json::JsonString {
+                identity: downcast_value.as_ref().unwrap().identity.clone(),
+                dispatch: downcast_value
                     .as_ref()
-                    {
+                    .unwrap()
+                    .dispatch
+                    .clone()
+                    .downcast_json_value_to_json_string()
+                    .unwrap(),
+            }
+        };
+        dispatch_receiver_2.dispatch.read_json_string_value()
+    }))
+}
+
+pub fn optional_bool(
+    root: crate::utils::json::JsonObject,
+    name: String,
+    context: String,
+    path: String,
+) -> Result<Option<bool>, rt::TsonicError> {
+    let value: Option<crate::utils::json::JsonValue> = {
+        let dispatch_receiver = root;
+        dispatch_receiver
+            .dispatch
+            .clone()
+            .dispatch_json_object_get_case_insensitive(&name)
+    }?;
+    if value.is_none() {
+        return Ok(Option::<bool>::None);
+    }
+    if match value.as_ref() {
+        Some(flow_value) => flow_value.clone(),
+        None => unreachable!("checked flow selected a missing optional value"),
+    }
+    .dispatch
+    .clone()
+    .downcast_json_value_to_json_bool()
+    .is_none()
+    {
+        return Err(rt::TsonicError::TsumoError(docs_config_error(
+            String::from("TSUMO_DOCS_CONFIG_TYPE"),
+            format!(
+                "{}{}{}{}",
+                context,
+                String::from("."),
+                name,
+                String::from(" must be a boolean"),
+            ),
+            path,
+        )));
+    }
+    Ok(Some({
+        let dispatch_receiver_2 = &{
+            let downcast_value = &value;
+            crate::utils::json::JsonBool {
+                identity: downcast_value.as_ref().unwrap().identity.clone(),
+                dispatch: downcast_value
+                    .as_ref()
+                    .unwrap()
+                    .dispatch
+                    .clone()
+                    .downcast_json_value_to_json_bool()
+                    .unwrap(),
+            }
+        };
+        dispatch_receiver_2.dispatch.read_json_bool_value()
+    }))
+}
+
+pub fn required_string(
+    root: crate::utils::json::JsonObject,
+    name: String,
+    context: String,
+    path: String,
+) -> Result<String, rt::TsonicError> {
+    let value: Option<String> =
+        optional_string(root, name.clone(), context.clone(), path.clone())?;
+    if value.is_none() {
+        return Err(rt::TsonicError::TsumoError(docs_config_error(
+            String::from("TSUMO_DOCS_CONFIG_REQUIRED"),
+            format!(
+                "{}{}{}{}",
+                context,
+                String::from("."),
+                name,
+                String::from(" is required"),
+            ),
+            path.clone(),
+        )));
+    }
+    Ok(match value.as_ref() {
+        Some(flow_value) => flow_value.clone(),
+        None => unreachable!("checked flow selected a missing optional value"),
+    })
+}
+
+pub fn reject_unknown_properties(
+    root: crate::utils::json::JsonObject,
+    allowed_names: js_abi::JsArray<String>,
+    context: String,
+    path: String,
+) -> Result<(), rt::TsonicError> {
+    let allowed: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
+    {
+        let mut index: f64 = 0.0;
+        while index < (tsonic_rust_runtime::conversions::usize_to_i32(allowed_names.len())? as f64)
+        {
+            {
+                let operation_input_0 = allowed.clone();
+                operation_input_0.set_discard(
+                    js_string::to_lower_case(&match allowed_names.get_number(index).as_ref() {
                         Some(flow_value) => flow_value.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
-                    };
-                    let key: String =
-                        js_string::to_lower_case(&property.state.with(|state| state.key.clone()));
-                    let previous: Option<String> = seen.get(&key);
-                    if previous.is_some() {
-                        return Err(
-                            rt::TsonicError::from(
-                                DOCS_CONFIG_ERROR
-                                    .with(|module_binding| module_binding.load())
-                                    .call((
-                                        String::from("TSUMO_DOCS_CONFIG_DUPLICATE_PROPERTY"),
-                                        format!(
-                                            "{}{}{}{}{}{}{}",
-                                            String::from(""),
-                                            rt::source_string(&context),
-                                            String::from(" contains duplicate properties '"),
-                                            rt::source_string(&match previous.as_ref() {
-                                                Some(flow_value_2) => flow_value_2.clone(),
-                                                None => {
-                                                    unreachable!(
-                                                        "checked flow selected a missing optional value"
-                                                    )
-                                                }
-                                            },),
-                                            String::from("' and '"),
-                                            rt::source_string(&property.state.with(
-                                                |state| state.key.clone()
-                                            )),
-                                            String::from("'"),
-                                        ),
-                                        path.clone(),
-                                    ))?,
-                            ),
-                        );
-                    }
-                    seen
-                        .set(key.clone(), property.state.with(|state| state.key.clone()));
-                    index += 1.0;
-                }
-            }
-            Ok::<_, rt::TsonicError>(())
-        });
-        ASSERT_UNIQUE_PROPERTIES
-            .with(|module_binding_2| module_binding_2.initialize(module_value_2))
-    };
+                    }),
+                    true,
+                )
+            };
+            index += 1.0;
+        }
+    }
     {
-        let module_value_3 = rt::Callable::<
-            (crate::utils::json::JsonObject, String, String, String),
-            rt::TsonicResult<Option<String>>,
-        >::new(move |callable_arguments_3| {
-            let root = callable_arguments_3.0;
-            let name = callable_arguments_3.1;
-            let context = callable_arguments_3.2;
-            let path = callable_arguments_3.3;
-            let value: Option<crate::utils::json::JsonValue> = {
-                let dispatch_receiver_3 = root.clone();
-                dispatch_receiver_3
-                    .dispatch
-                    .clone()
-                    .dispatch_json_object_get_case_insensitive(&name)
-            }?;
-            if value.is_none() {
-                return Ok::<_, rt::TsonicError>(Option::<String>::None);
+        let mut index: f64 = 0.0;
+        'loop_value_2: while index
+            < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver = &root; dispatch_receiver.dispatch.read_json_object_properties() }.len())? as f64)
+        {
+            let name: String = match {
+                let dispatch_receiver_2 = &root;
+                dispatch_receiver_2.dispatch.read_json_object_properties()
             }
-            if match value.as_ref() {
-                Some(flow_value_3) => flow_value_3.clone(),
+            .get_number(index)
+            .as_ref()
+            {
+                Some(flow_value_2) => flow_value_2.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             }
-            .dispatch
-            .clone()
-            .downcast_json_value_to_json_string()
-            .is_none()
-            {
-                return Err(
-                    rt::TsonicError::from(
-                        DOCS_CONFIG_ERROR
-                            .with(|module_binding| module_binding.load())
-                            .call((
-                                String::from("TSUMO_DOCS_CONFIG_TYPE"),
-                                format!(
-                                    "{}{}{}{}{}",
-                                    String::from(""),
-                                    rt::source_string(&context),
-                                    String::from("."),
-                                    rt::source_string(&name),
-                                    String::from(" must be a string"),
-                                ),
-                                path.clone(),
-                            ))?,
-                    ),
-                );
+            .state
+            .with(|state| state.key.clone());
+            #[expect(clippy::blocks_in_conditions, reason = "checked evaluation region")]
+            if {
+                let operation_input_0_2 = allowed.clone();
+                operation_input_0_2.has(&js_string::to_lower_case(&name))
+            } {
+                index += 1.0;
+                continue 'loop_value_2;
             }
-            Ok::<_, rt::TsonicError>(Some({
-                let dispatch_receiver_4 = &{
-                    let downcast_value = &value;
-                    crate::utils::json::JsonString {
-                        identity: downcast_value.as_ref().unwrap().identity.clone(),
-                        dispatch: downcast_value
-                            .as_ref()
-                            .unwrap()
-                            .dispatch
-                            .clone()
-                            .downcast_json_value_to_json_string()
-                            .unwrap(),
-                    }
-                };
-                dispatch_receiver_4.dispatch.read_json_string_value()
-            }))
-        });
-        OPTIONAL_STRING.with(|module_binding_3| module_binding_3.initialize(module_value_3))
-    };
+            return Err(rt::TsonicError::TsumoError(docs_config_error(
+                String::from("TSUMO_DOCS_CONFIG_UNKNOWN_PROPERTY"),
+                format!(
+                    "{}{}{}{}",
+                    context,
+                    String::from(" contains unknown property '"),
+                    name,
+                    String::from("'"),
+                ),
+                path.clone(),
+            )));
+        }
+    }
+    Ok(())
+}
+
+pub fn normalize_prefix(raw: &str) -> String {
+    crate::utils::text::ensure_trailing_slash(crate::utils::text::ensure_leading_slash(
+        &js_string::trim(raw),
+    ))
+}
+
+pub fn resolve_source_dir(
+    site_dir: String,
+    raw: String,
+    path: String,
+) -> Result<String, rt::TsonicError> {
+    if js_string::trim(&raw).is_empty() {
+        return Err(rt::TsonicError::TsumoError(docs_config_error(
+            String::from("TSUMO_DOCS_CONFIG_SOURCE_EMPTY"),
+            String::from("Docs mount source cannot be empty"),
+            path,
+        )));
+    }
+    Ok(if tsonic_rust_node::path::is_absolute(&raw) {
+        tsonic_rust_node::path::resolve(&[raw.as_str()])?
+    } else {
+        tsonic_rust_node::path::resolve(
+            &[tsonic_rust_node::path::join(&[site_dir.as_str(), raw.as_str()]).as_str()],
+        )?
+    })
+}
+
+pub fn parse_mount(
+    site_dir: String,
+    value: crate::utils::json::JsonValue,
+    index: f64,
+    path: String,
+) -> Result<crate::docs::models::DocsMountConfig, rt::TsonicError> {
+    let context: String = format!(
+        "{}{}{}",
+        String::from("mounts["),
+        rt::source_string(&index),
+        String::from("]"),
+    );
+    if value
+        .dispatch
+        .clone()
+        .downcast_json_value_to_json_object()
+        .is_none()
     {
-        let module_value_4 = rt::Callable::<
-            (crate::utils::json::JsonObject, String, String, String),
-            rt::TsonicResult<Option<bool>>,
-        >::new(move |callable_arguments_4| {
-            let root = callable_arguments_4.0;
-            let name = callable_arguments_4.1;
-            let context = callable_arguments_4.2;
-            let path = callable_arguments_4.3;
-            let value: Option<crate::utils::json::JsonValue> = {
-                let dispatch_receiver_5 = root.clone();
-                dispatch_receiver_5
-                    .dispatch
-                    .clone()
-                    .dispatch_json_object_get_case_insensitive(&name)
-            }?;
-            if value.is_none() {
-                return Ok::<_, rt::TsonicError>(Option::<bool>::None);
-            }
-            if match value.as_ref() {
-                Some(flow_value_4) => flow_value_4.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            }
-            .dispatch
-            .clone()
-            .downcast_json_value_to_json_bool()
-            .is_none()
-            {
-                return Err(
-                    rt::TsonicError::from(
-                        DOCS_CONFIG_ERROR
-                            .with(|module_binding| module_binding.load())
-                            .call((
-                                String::from("TSUMO_DOCS_CONFIG_TYPE"),
-                                format!(
-                                    "{}{}{}{}{}",
-                                    String::from(""),
-                                    rt::source_string(&context),
-                                    String::from("."),
-                                    rt::source_string(&name),
-                                    String::from(" must be a boolean"),
-                                ),
-                                path.clone(),
-                            ))?,
-                    ),
-                );
-            }
-            Ok::<_, rt::TsonicError>(Some({
-                let dispatch_receiver_6 = &{
-                    let downcast_value_2 = &value;
-                    crate::utils::json::JsonBool {
-                        identity: downcast_value_2.as_ref().unwrap().identity.clone(),
-                        dispatch: downcast_value_2
-                            .as_ref()
-                            .unwrap()
-                            .dispatch
-                            .clone()
-                            .downcast_json_value_to_json_bool()
-                            .unwrap(),
-                    }
-                };
-                dispatch_receiver_6.dispatch.read_json_bool_value()
-            }))
-        });
-        OPTIONAL_BOOL.with(|module_binding_4| module_binding_4.initialize(module_value_4))
-    };
-    {
-        let module_value_5 = rt::Callable::<
-            (crate::utils::json::JsonObject, String, String, String),
-            rt::TsonicResult<String>,
-        >::new(move |callable_arguments_5| {
-            let root = callable_arguments_5.0;
-            let name = callable_arguments_5.1;
-            let context = callable_arguments_5.2;
-            let path = callable_arguments_5.3;
-            let value: Option<String> = OPTIONAL_STRING
-                .with(|module_binding| module_binding.load())
-                .call((root.clone(), name.clone(), context.clone(), path.clone()))?;
-            if value.is_none() {
-                return Err(
-                    rt::TsonicError::from(
-                        DOCS_CONFIG_ERROR
-                            .with(|module_binding| module_binding.load())
-                            .call((
-                                String::from("TSUMO_DOCS_CONFIG_REQUIRED"),
-                                format!(
-                                    "{}{}{}{}{}",
-                                    String::from(""),
-                                    rt::source_string(&context),
-                                    String::from("."),
-                                    rt::source_string(&name),
-                                    String::from(" is required"),
-                                ),
-                                path.clone(),
-                            ))?,
-                    ),
-                );
-            }
-            Ok::<_, rt::TsonicError>(match value.as_ref() {
-                Some(flow_value_5) => flow_value_5.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            })
-        });
-        REQUIRED_STRING.with(|module_binding_5| module_binding_5.initialize(module_value_5))
-    };
-    {
-        let module_value_6 = rt::Callable::<
-            (
-                crate::utils::json::JsonObject,
-                js_abi::JsArray<String>,
-                String,
-                String,
-            ),
-            rt::TsonicResult<()>,
-        >::new(move |callable_arguments_6| {
-            let root = callable_arguments_6.0;
-            let allowed_names = callable_arguments_6.1;
-            let context = callable_arguments_6.2;
-            let path = callable_arguments_6.3;
-            let allowed: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
-            {
-                let mut index: f64 = 0.0;
-                while index
-                    < (tsonic_rust_runtime::conversions::usize_to_i32(allowed_names.len())? as f64)
-                {
-                    allowed.set(
-                        js_string::to_lower_case(&match allowed_names.get_number(index).as_ref() {
-                            Some(flow_value_6) => flow_value_6.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        }),
-                        true,
-                    );
-                    index += 1.0;
-                }
-            }
-            {
-                let mut index: f64 = 0.0;
-                'loop_value_3: while index
-                    < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_7 = &root; dispatch_receiver_7.dispatch.read_json_object_properties() }.len())? as f64)
-                {
-                    let name: String = match {
-                        let dispatch_receiver_8 = &root;
-                        dispatch_receiver_8.dispatch.read_json_object_properties()
-                    }
-                    .get_number(index)
-                    .as_ref()
-                    {
-                        Some(flow_value_7) => flow_value_7.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }
-                    .state
-                    .with(|state| state.key.clone());
-                    if allowed.has(&js_string::to_lower_case(&name)) {
-                        index += 1.0;
-                        continue 'loop_value_3;
-                    }
-                    return Err(
-                        rt::TsonicError::from(
-                            DOCS_CONFIG_ERROR
-                                .with(|module_binding| module_binding.load())
-                                .call((
-                                    String::from("TSUMO_DOCS_CONFIG_UNKNOWN_PROPERTY"),
-                                    format!(
-                                        "{}{}{}{}{}",
-                                        String::from(""),
-                                        rt::source_string(&context),
-                                        String::from(" contains unknown property '"),
-                                        rt::source_string(&name),
-                                        String::from("'"),
-                                    ),
-                                    path.clone(),
-                                ))?,
-                        ),
-                    );
-                }
-            }
-            Ok::<_, rt::TsonicError>(())
-        });
-        REJECT_UNKNOWN_PROPERTIES
-            .with(|module_binding_6| module_binding_6.initialize(module_value_6))
-    };
-    {
-        let module_value_7 =
-            rt::Callable::<(String,), rt::TsonicResult<String>>::new(move |callable_arguments_7| {
-                let raw = callable_arguments_7.0;
-                Ok::<_, rt::TsonicError>(crate::utils::text::ensure_trailing_slash(
-                    crate::utils::text::ensure_leading_slash(&js_string::trim(&raw)),
-                ))
-            });
-        NORMALIZE_PREFIX.with(|module_binding_7| module_binding_7.initialize(module_value_7))
-    };
-    {
-        let module_value_8 = rt::Callable::<
-            (String, String, String),
-            rt::TsonicResult<String>,
-        >::new(move |callable_arguments_8| {
-            let site_dir = callable_arguments_8.0;
-            let raw = callable_arguments_8.1;
-            let path = callable_arguments_8.2;
-            if js_string::trim(&raw).is_empty() {
-                return Err(
-                    rt::TsonicError::from(
-                        DOCS_CONFIG_ERROR
-                            .with(|module_binding| module_binding.load())
-                            .call((
-                                String::from("TSUMO_DOCS_CONFIG_SOURCE_EMPTY"),
-                                String::from("Docs mount source cannot be empty"),
-                                path.clone(),
-                            ))?,
-                    ),
-                );
-            }
-            Ok::<_, rt::TsonicError>(if tsonic_rust_node::path::is_absolute(&raw) {
-                tsonic_rust_node::path::resolve(&[raw.as_str()])
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?
-            } else {
-                tsonic_rust_node::path::resolve(&[
-                    tsonic_rust_node::path::join(&[site_dir.as_str(), raw.as_str()]).as_str(),
-                ])
-                .map_err(tsonic_rust_runtime::TsonicError::from)?
-            })
-        });
-        RESOLVE_SOURCE_DIR.with(|module_binding_8| module_binding_8.initialize(module_value_8))
-    };
-    {
-        let module_value_9 = rt::Callable::<
-            (String, crate::utils::json::JsonValue, f64, String),
-            rt::TsonicResult<crate::docs::models::DocsMountConfig>,
-        >::new(move |callable_arguments_9| {
-            let site_dir = callable_arguments_9.0;
-            let value = callable_arguments_9.1;
-            let index = callable_arguments_9.2;
-            let path = callable_arguments_9.3;
-            let context: String = format!(
-                "{}{}{}",
-                String::from("mounts["),
-                rt::source_string(&index),
-                String::from("]"),
-            );
-            if value
+        return Err(rt::TsonicError::TsumoError(docs_config_error(
+            String::from("TSUMO_DOCS_CONFIG_TYPE"),
+            format!("{}{}", context, String::from(" must be an object")),
+            path.clone(),
+        )));
+    }
+    let object: crate::utils::json::JsonObject = {
+        let downcast_value = &value;
+        crate::utils::json::JsonObject {
+            identity: downcast_value.identity.clone(),
+            dispatch: downcast_value
                 .dispatch
                 .clone()
                 .downcast_json_value_to_json_object()
-                .is_none()
-            {
-                return Err(
-                    rt::TsonicError::from(
-                        DOCS_CONFIG_ERROR
-                            .with(|module_binding| module_binding.load())
-                            .call((
-                                String::from("TSUMO_DOCS_CONFIG_TYPE"),
-                                format!(
-                                    "{}{}{}",
-                                    String::from(""),
-                                    rt::source_string(&context),
-                                    String::from(" must be an object"),
-                                ),
-                                path.clone(),
-                            ))?,
-                    ),
-                );
-            }
-            let object: crate::utils::json::JsonObject = {
-                let downcast_value_3 = &value;
-                crate::utils::json::JsonObject {
-                    identity: downcast_value_3.identity.clone(),
-                    dispatch: downcast_value_3
-                        .dispatch
-                        .clone()
-                        .downcast_json_value_to_json_object()
-                        .unwrap(),
-                }
-            };
-            ASSERT_UNIQUE_PROPERTIES
-                .with(|module_binding| module_binding.load())
-                .call((object.clone(), context.clone(), path.clone()))?;
-            REJECT_UNKNOWN_PROPERTIES
-                .with(|module_binding| module_binding.load())
-                .call((
-                    object.clone(),
-                    js_abi::JsArray::from_dense(vec![
-                        String::from("name"),
-                        String::from("source"),
-                        String::from("prefix"),
-                        String::from("repoUrl"),
-                        String::from("repoBranch"),
-                        String::from("repoPath"),
-                        String::from("navPath"),
-                    ]),
-                    context.clone(),
-                    path.clone(),
-                ))?;
-            let source_dir: String = RESOLVE_SOURCE_DIR
-                .with(|module_binding| module_binding.load())
-                .call((
-                    site_dir.clone(),
-                    REQUIRED_STRING
-                        .with(|module_binding| module_binding.load())
-                        .call((
-                            object.clone(),
-                            String::from("source"),
-                            context.clone(),
-                            path.clone(),
-                        ))?,
-                    path.clone(),
-                ))?;
-            let url_prefix: String = NORMALIZE_PREFIX
-                .with(|module_binding| module_binding.load())
-                .call((REQUIRED_STRING
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        object.clone(),
-                        String::from("prefix"),
-                        context.clone(),
-                        path.clone(),
-                    ))?,))?;
-            let configured_name: Option<String> = OPTIONAL_STRING
-                .with(|module_binding| module_binding.load())
-                .call((
-                    object.clone(),
-                    String::from("name"),
-                    context.clone(),
-                    path.clone(),
-                ))?;
-            let fallback_name: String = if url_prefix == "/" {
-                String::from("Docs")
-            } else {
-                crate::utils::strings::trim_end_char(
-                    &crate::utils::strings::trim_start_char(&url_prefix, String::from("/"))?,
-                    String::from("/"),
-                )?
-            };
-            let name: String = {
-                let conditional_test = configured_name.is_none()
-                    || js_string::trim(&match configured_name.as_ref() {
-    Some(flow_value_8) => flow_value_8.clone(),
+                .unwrap(),
+        }
+    };
+    assert_unique_properties(
+        object.clone(),
+        context.clone(),
+        path.clone(),
+    )?;
+    reject_unknown_properties(
+        object.clone(),
+        js_abi::JsArray::from_dense(vec![
+            String::from("name"),
+            String::from("source"),
+            String::from("prefix"),
+            String::from("repoUrl"),
+            String::from("repoBranch"),
+            String::from("repoPath"),
+            String::from("navPath"),
+        ]),
+        context.clone(),
+        path.clone(),
+    )?;
+    let source_dir: String = resolve_source_dir(
+        site_dir,
+        required_string(
+            object.clone(),
+            String::from("source"),
+            context.clone(),
+            path.clone(),
+        )?,
+        path.clone(),
+    )?;
+    let url_prefix: String = normalize_prefix(&required_string(
+        object.clone(),
+        String::from("prefix"),
+        context.clone(),
+        path.clone(),
+    )?);
+    let configured_name: Option<String> = optional_string(
+        object.clone(),
+        String::from("name"),
+        context.clone(),
+        path.clone(),
+    )?;
+    let fallback_name: String = if url_prefix == "/" {
+        String::from("Docs")
+    } else {
+        crate::utils::strings::trim_end_char(
+            crate::utils::strings::trim_start_char(&url_prefix, String::from("/"))?,
+            String::from("/"),
+        )?
+    };
+    let name: String = {
+        let conditional_test = configured_name.is_none()
+            || js_string::trim(&match configured_name.as_ref() {
+    Some(flow_value) => flow_value.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
 }).is_empty();
-                if conditional_test {
-                    fallback_name.clone()
-                } else {
-                    js_string::trim(&match configured_name.as_ref() {
-                        Some(flow_value_9) => flow_value_9.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    })
-                }
-            };
-            let repo_url: Option<String> = OPTIONAL_STRING
-                .with(|module_binding| module_binding.load())
-                .call((
-                    object.clone(),
-                    String::from("repoUrl"),
-                    context.clone(),
-                    path.clone(),
-                ))?;
-            let repo_branch: String = rt::option_coalesce(
-                OPTIONAL_STRING
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        object.clone(),
-                        String::from("repoBranch"),
-                        context.clone(),
-                        path.clone(),
-                    ))?,
-                std::convert::identity,
-                || String::from("main"),
-            );
-            let repo_path: Option<String> = OPTIONAL_STRING
-                .with(|module_binding| module_binding.load())
-                .call((
-                    object.clone(),
-                    String::from("repoPath"),
-                    context.clone(),
-                    path.clone(),
-                ))?;
-            let nav_path: Option<String> = OPTIONAL_STRING
-                .with(|module_binding| module_binding.load())
-                .call((
-                    object.clone(),
-                    String::from("navPath"),
-                    context.clone(),
-                    path.clone(),
-                ))?;
-            Ok::<_, rt::TsonicError>(crate::docs::models::DocsMountConfig::new(
-                name.clone(),
-                source_dir.clone(),
-                url_prefix.clone(),
-                repo_url.clone(),
-                repo_branch.clone(),
-                repo_path.clone(),
-                nav_path.clone(),
-            ))
-        });
-        PARSE_MOUNT.with(|module_binding_9| module_binding_9.initialize(module_value_9))
-    };
-    {
-        let module_value_10 = rt::Callable::<
-            (String, crate::utils::json::JsonObject, String),
-            rt::TsonicResult<js_abi::JsArray<crate::docs::models::DocsMountConfig>>,
-        >::new(move |callable_arguments_10| {
-            let site_dir = callable_arguments_10.0;
-            let root = callable_arguments_10.1;
-            let path = callable_arguments_10.2;
-            let value: Option<crate::utils::json::JsonValue> = {
-                let dispatch_receiver_9 = root.clone();
-                dispatch_receiver_9
-                    .dispatch
-                    .clone()
-                    .dispatch_json_object_get_case_insensitive("mounts")
-            }?;
-            if !value.as_ref().is_some_and(|value| {
-                value
-                    .dispatch
-                    .clone()
-                    .downcast_json_value_to_json_array()
-                    .is_some()
-            }) {
-                return Err(
-                    rt::TsonicError::from(
-                        DOCS_CONFIG_ERROR
-                            .with(|module_binding| module_binding.load())
-                            .call((
-                                String::from("TSUMO_DOCS_CONFIG_TYPE"),
-                                String::from("mounts must be an array"),
-                                path.clone(),
-                            ))?,
-                    ),
-                );
-            }
-            let array: crate::utils::json::JsonArray = {
-                let downcast_value_4 = &value;
-                crate::utils::json::JsonArray {
-                    identity: downcast_value_4.as_ref().unwrap().identity.clone(),
-                    dispatch: downcast_value_4
-                        .as_ref()
-                        .unwrap()
-                        .dispatch
-                        .clone()
-                        .downcast_json_value_to_json_array()
-                        .unwrap(),
-                }
-            };
-            if tsonic_rust_runtime::conversions::usize_to_i32(
-                {
-                    let dispatch_receiver_10 = &array;
-                    dispatch_receiver_10.dispatch.read_json_array_items()
-                }
-                .len(),
-            )? == 0
-            {
-                return Err(
-                    rt::TsonicError::from(
-                        DOCS_CONFIG_ERROR
-                            .with(|module_binding| module_binding.load())
-                            .call((
-                                String::from("TSUMO_DOCS_CONFIG_REQUIRED"),
-                                String::from("mounts must contain at least one mount"),
-                                path.clone(),
-                            ))?,
-                    ),
-                );
-            }
-            let mounts: js_abi::JsArray<crate::docs::models::DocsMountConfig> =
-                js_abi::JsArray::from_dense(vec![]);
-            let names: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
-            let prefixes: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
-            {
-                let mut index: f64 = 0.0;
-                while index
-                    < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_11 = &array; dispatch_receiver_11.dispatch.read_json_array_items() }.len())? as f64)
-                {
-                    let mount: crate::docs::models::DocsMountConfig = PARSE_MOUNT
-                        .with(|module_binding| module_binding.load())
-                        .call((
-                            site_dir.clone(),
-                            match {
-                                let dispatch_receiver_12 = &array;
-                                dispatch_receiver_12.dispatch.read_json_array_items()
-                            }
-                            .get_number(index)
-                            .as_ref()
-                            {
-                                Some(flow_value_10) => flow_value_10.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                            index,
-                            path.clone(),
-                        ))?;
-                    let name_key: String =
-                        js_string::to_lower_case(&mount.state.with(|state| state.name.clone()));
-                    if names.has(&name_key) {
-                        return Err(
-                            rt::TsonicError::from(
-                                DOCS_CONFIG_ERROR
-                                    .with(|module_binding| module_binding.load())
-                                    .call((
-                                        String::from("TSUMO_DOCS_CONFIG_DUPLICATE_MOUNT"),
-                                        format!(
-                                            "{}{}{}",
-                                            String::from("Duplicate docs mount name: "),
-                                            rt::source_string(&mount.state.with(
-                                                |state| state.name.clone()
-                                            )),
-                                            String::from(""),
-                                        ),
-                                        path.clone(),
-                                    ))?,
-                            ),
-                        );
-                    }
-                    let prefix_key: String = js_string::to_lower_case(&mount
-                        .state
-                        .with(|state| state.url_prefix.clone()));
-                    if prefixes.has(&prefix_key) {
-                        return Err(
-                            rt::TsonicError::from(
-                                DOCS_CONFIG_ERROR
-                                    .with(|module_binding| module_binding.load())
-                                    .call((
-                                        String::from("TSUMO_DOCS_CONFIG_DUPLICATE_MOUNT"),
-                                        format!(
-                                            "{}{}{}",
-                                            String::from("Duplicate docs mount prefix: "),
-                                            rt::source_string(&mount.state.with(
-                                                |state| state.url_prefix.clone()
-                                            )),
-                                            String::from(""),
-                                        ),
-                                        path.clone(),
-                                    ))?,
-                            ),
-                        );
-                    }
-                    names.set(name_key.clone(), true);
-                    prefixes.set(prefix_key.clone(), true);
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        mounts.push_many([mount.clone()]),
-                    )?;
-                    index += 1.0;
-                }
-            }
-            Ok::<_, rt::TsonicError>(mounts.clone())
-        });
-        PARSE_MOUNTS.with(|module_binding_10| module_binding_10.initialize(module_value_10))
-    };
-    {
-        let module_value_11 = rt::Callable::<
-            (String,),
-            rt::TsonicResult<Option<LoadedDocsConfig>>,
-        >::new(move |callable_arguments_11| {
-            let site_dir = callable_arguments_11.0;
-            let candidate: String =
-                tsonic_rust_node::path::join(&[site_dir.as_str(), "tsumo.docs.json"]);
-            if !crate::fs::FILE_EXISTS
-                .with(|module_binding| module_binding.load())
-                .call((candidate.clone(),))?
-            {
-                return Ok::<_, rt::TsonicError>(Option::<LoadedDocsConfig>::None);
-            }
-            let parsed_root: Option<crate::utils::json::JsonObject> =
-                crate::utils::json::JSON_OBJECT
-                    .with(|module_binding| module_binding.load())
-                    .call((Some(
-                        crate::utils::json::PARSE_JSON
-                            .with(|module_binding| module_binding.load())
-                            .call((
-                                crate::fs::READ_TEXT_FILE
-                                    .with(|module_binding| module_binding.load())
-                                    .call((candidate.clone(),))?,
-                                Some(candidate.clone()),
-                            ))?,
-                    ),))?;
-            if parsed_root.is_none() {
-                return Err(
-                    rt::TsonicError::from(
-                        DOCS_CONFIG_ERROR
-                            .with(|module_binding| module_binding.load())
-                            .call((
-                                String::from("TSUMO_DOCS_CONFIG_TYPE"),
-                                String::from("tsumo.docs.json root must be an object"),
-                                candidate.clone(),
-                            ))?,
-                    ),
-                );
-            }
-            let root: crate::utils::json::JsonObject = match parsed_root.as_ref() {
-                Some(flow_value_11) => flow_value_11.clone(),
+        if conditional_test {
+            fallback_name
+        } else {
+            js_string::trim(&match configured_name.as_ref() {
+                Some(flow_value_2) => flow_value_2.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
-            };
-            ASSERT_UNIQUE_PROPERTIES
-                .with(|module_binding| module_binding.load())
-                .call((
-                    root.clone(),
-                    String::from("tsumo.docs.json"),
-                    candidate.clone(),
-                ))?;
-            REJECT_UNKNOWN_PROPERTIES
-                .with(|module_binding| module_binding.load())
-                .call((
-                    root.clone(),
-                    js_abi::JsArray::from_dense(vec![
-                        String::from("siteName"),
-                        String::from("homeMount"),
-                        String::from("strictLinks"),
-                        String::from("search"),
-                        String::from("searchFile"),
-                        String::from("mounts"),
-                    ]),
-                    String::from("tsumo.docs.json"),
-                    candidate.clone(),
-                ))?;
-            let mounts: js_abi::JsArray<crate::docs::models::DocsMountConfig> = PARSE_MOUNTS
-                .with(|module_binding| module_binding.load())
-                .call((site_dir.clone(), root.clone(), candidate.clone()))?;
-            let generate_search_index: bool = rt::option_coalesce(
-                OPTIONAL_BOOL
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        root.clone(),
-                        String::from("search"),
-                        String::from("tsumo.docs.json"),
-                        candidate.clone(),
-                    ))?,
-                std::convert::identity,
-                || true,
-            );
-            let search_index_file_name: String = rt::option_coalesce(
-                OPTIONAL_STRING
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        root.clone(),
-                        String::from("searchFile"),
-                        String::from("tsumo.docs.json"),
-                        candidate.clone(),
-                    ))?,
-                std::convert::identity,
-                || String::from("search.json"),
-            );
-            if generate_search_index && js_string::trim(&search_index_file_name).is_empty() {
-                return Err(
-                    rt::TsonicError::from(
-                        DOCS_CONFIG_ERROR
-                            .with(|module_binding| module_binding.load())
-                            .call((
-                                String::from("TSUMO_DOCS_CONFIG_SEARCH_FILE_EMPTY"),
-                                String::from("searchFile cannot be empty when search is enabled"),
-                                candidate.clone(),
-                            ))?,
-                    ),
-                );
-            }
-            let config: crate::docs::models::DocsSiteConfig =
-                crate::docs::models::DocsSiteConfig::new(
-                    mounts.clone(),
-                    rt::option_coalesce(
-                        OPTIONAL_BOOL
-                            .with(|module_binding| module_binding.load())
-                            .call((
-                                root.clone(),
-                                String::from("strictLinks"),
-                                String::from("tsumo.docs.json"),
-                                candidate.clone(),
-                            ))?,
-                        std::convert::identity,
-                        || false,
-                    ),
-                    generate_search_index,
-                    search_index_file_name.clone(),
-                    OPTIONAL_STRING
-                        .with(|module_binding| module_binding.load())
-                        .call((
-                            root.clone(),
-                            String::from("homeMount"),
-                            String::from("tsumo.docs.json"),
-                            candidate.clone(),
-                        ))?,
-                    rt::option_coalesce(
-                        OPTIONAL_STRING
-                            .with(|module_binding| module_binding.load())
-                            .call((
-                                root.clone(),
-                                String::from("siteName"),
-                                String::from("tsumo.docs.json"),
-                                candidate.clone(),
-                            ))?,
-                        std::convert::identity,
-                        || String::from("Docs"),
-                    ),
-                );
-            Ok::<_, rt::TsonicError>(Some(LoadedDocsConfig::new(
-                candidate.clone(),
-                config.clone(),
-            )))
-        });
-        LOAD_DOCS_CONFIG.with(|module_binding_11| module_binding_11.initialize(module_value_11))
+            })
+        }
     };
+    let repo_url: Option<String> = optional_string(
+        object.clone(),
+        String::from("repoUrl"),
+        context.clone(),
+        path.clone(),
+    )?;
+    let repo_branch: String = rt::option_coalesce(
+        optional_string(
+            object.clone(),
+            String::from("repoBranch"),
+            context.clone(),
+            path.clone(),
+        )?,
+        std::convert::identity,
+        || String::from("main"),
+    );
+    let repo_path: Option<String> = optional_string(
+        object.clone(),
+        String::from("repoPath"),
+        context.clone(),
+        path.clone(),
+    )?;
+    let nav_path: Option<String> = optional_string(
+        object.clone(),
+        String::from("navPath"),
+        context.clone(),
+        path.clone(),
+    )?;
+    Ok(crate::docs::models::DocsMountConfig::new(
+        name,
+        source_dir,
+        url_prefix.clone(),
+        repo_url,
+        repo_branch,
+        repo_path,
+        nav_path,
+    ))
+}
+
+pub fn parse_mounts(
+    site_dir: String,
+    root: crate::utils::json::JsonObject,
+    path: String,
+) -> Result<js_abi::JsArray<crate::docs::models::DocsMountConfig>, rt::TsonicError> {
+    let value: Option<crate::utils::json::JsonValue> = {
+        let dispatch_receiver = root;
+        dispatch_receiver
+            .dispatch
+            .clone()
+            .dispatch_json_object_get_case_insensitive("mounts")
+    }?;
+    if !value.as_ref().is_some_and(|value| {
+        value
+            .dispatch
+            .clone()
+            .downcast_json_value_to_json_array()
+            .is_some()
+    }) {
+        return Err(rt::TsonicError::TsumoError(docs_config_error(
+            String::from("TSUMO_DOCS_CONFIG_TYPE"),
+            String::from("mounts must be an array"),
+            path.clone(),
+        )));
+    }
+    let array: crate::utils::json::JsonArray = {
+        let downcast_value = &value;
+        crate::utils::json::JsonArray {
+            identity: downcast_value.as_ref().unwrap().identity.clone(),
+            dispatch: downcast_value
+                .as_ref()
+                .unwrap()
+                .dispatch
+                .clone()
+                .downcast_json_value_to_json_array()
+                .unwrap(),
+        }
+    };
+    if tsonic_rust_runtime::conversions::usize_to_i32(
+        { let dispatch_receiver_2 = &array; dispatch_receiver_2.dispatch.read_json_array_items() }
+            .len(),
+    )? == 0
+    {
+        return Err(rt::TsonicError::TsumoError(docs_config_error(
+            String::from("TSUMO_DOCS_CONFIG_REQUIRED"),
+            String::from("mounts must contain at least one mount"),
+            path.clone(),
+        )));
+    }
+    let mounts: js_abi::JsArray<crate::docs::models::DocsMountConfig> =
+        js_abi::JsArray::from_dense(vec![]);
+    let names: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
+    let prefixes: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
+    {
+        let mut index: f64 = 0.0;
+        while index
+            < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_3 = &array; dispatch_receiver_3.dispatch.read_json_array_items() }.len())? as f64)
+        {
+            let mount: crate::docs::models::DocsMountConfig = parse_mount(
+                site_dir.clone(),
+                match {
+                    let dispatch_receiver_4 = &array;
+                    dispatch_receiver_4.dispatch.read_json_array_items()
+                }
+                .get_number(index)
+                .as_ref()
+                {
+                    Some(flow_value) => flow_value.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                },
+                index,
+                path.clone(),
+            )?;
+            let name_key: String = js_string::to_lower_case(&{
+                let dispatch_receiver_5 = &mount;
+                dispatch_receiver_5.dispatch.read_docs_mount_config_name()
+            });
+            if names.has(&name_key) {
+                return Err(rt::TsonicError::TsumoError(docs_config_error(
+                    String::from("TSUMO_DOCS_CONFIG_DUPLICATE_MOUNT"),
+                    format!("{}{}", String::from("Duplicate docs mount name: "), {
+                        let dispatch_receiver_6 = &mount;
+                        dispatch_receiver_6.dispatch.read_docs_mount_config_name()
+                    },),
+                    path.clone(),
+                )));
+            }
+            let prefix_key: String = js_string::to_lower_case(&{
+                let dispatch_receiver_7 = &mount;
+                dispatch_receiver_7
+                    .dispatch
+                    .read_docs_mount_config_url_prefix()
+            });
+            if prefixes.has(&prefix_key) {
+                return Err(rt::TsonicError::TsumoError(docs_config_error(
+                    String::from("TSUMO_DOCS_CONFIG_DUPLICATE_MOUNT"),
+                    format!("{}{}", String::from("Duplicate docs mount prefix: "), {
+                        let dispatch_receiver_8 = &mount;
+                        dispatch_receiver_8
+                            .dispatch
+                            .read_docs_mount_config_url_prefix()
+                    },),
+                    path.clone(),
+                )));
+            }
+            names.set_discard(name_key.clone(), true);
+            prefixes.set_discard(prefix_key.clone(), true);
+            mounts.push_many_discard([mount.clone()]);
+            index += 1.0;
+        }
+    }
+    Ok(mounts)
+}
+
+pub fn load_docs_config(site_dir: String) -> Result<Option<LoadedDocsConfig>, rt::TsonicError> {
+    let candidate: String = tsonic_rust_node::path::join(&[site_dir.as_str(), "tsumo.docs.json"]);
+    if !crate::fs::file_exists(candidate.clone())? {
+        return Ok(Option::<LoadedDocsConfig>::None);
+    }
+    let parsed_root: Option<crate::utils::json::JsonObject> = crate::utils::json::json_object(Some(
+        crate::utils::json::parse_json(
+            crate::fs::read_text_file(candidate.clone())?,
+            Some(candidate.clone()),
+        )?,
+    ));
+    if parsed_root.is_none() {
+        return Err(rt::TsonicError::TsumoError(docs_config_error(
+            String::from("TSUMO_DOCS_CONFIG_TYPE"),
+            String::from("tsumo.docs.json root must be an object"),
+            candidate.clone(),
+        )));
+    }
+    let root: crate::utils::json::JsonObject = match parsed_root.as_ref() {
+        Some(flow_value) => flow_value.clone(),
+        None => unreachable!("checked flow selected a missing optional value"),
+    };
+    assert_unique_properties(
+        root.clone(),
+        String::from("tsumo.docs.json"),
+        candidate.clone(),
+    )?;
+    reject_unknown_properties(
+        root.clone(),
+        js_abi::JsArray::from_dense(vec![
+            String::from("siteName"),
+            String::from("homeMount"),
+            String::from("strictLinks"),
+            String::from("search"),
+            String::from("searchFile"),
+            String::from("mounts"),
+        ]),
+        String::from("tsumo.docs.json"),
+        candidate.clone(),
+    )?;
+    let mounts: js_abi::JsArray<crate::docs::models::DocsMountConfig> =
+        parse_mounts(site_dir.clone(), root.clone(), candidate.clone())?;
+    let generate_search_index: bool = rt::option_coalesce(
+        optional_bool(
+            root.clone(),
+            String::from("search"),
+            String::from("tsumo.docs.json"),
+            candidate.clone(),
+        )?,
+        std::convert::identity,
+        || true,
+    );
+    let search_index_file_name: String = rt::option_coalesce(
+        optional_string(
+            root.clone(),
+            String::from("searchFile"),
+            String::from("tsumo.docs.json"),
+            candidate.clone(),
+        )?,
+        std::convert::identity,
+        || String::from("search.json"),
+    );
+    if generate_search_index && js_string::trim(&search_index_file_name).is_empty() {
+        return Err(rt::TsonicError::TsumoError(docs_config_error(
+            String::from("TSUMO_DOCS_CONFIG_SEARCH_FILE_EMPTY"),
+            String::from("searchFile cannot be empty when search is enabled"),
+            candidate.clone(),
+        )));
+    }
+    let config: crate::docs::models::DocsSiteConfig = crate::docs::models::DocsSiteConfig::new(
+        mounts,
+        rt::option_coalesce(
+            optional_bool(
+                root.clone(),
+                String::from("strictLinks"),
+                String::from("tsumo.docs.json"),
+                candidate.clone(),
+            )?,
+            std::convert::identity,
+            || false,
+        ),
+        generate_search_index,
+        search_index_file_name.clone(),
+        optional_string(
+            root.clone(),
+            String::from("homeMount"),
+            String::from("tsumo.docs.json"),
+            candidate.clone(),
+        )?,
+        rt::option_coalesce(
+            optional_string(
+                root.clone(),
+                String::from("siteName"),
+                String::from("tsumo.docs.json"),
+                candidate.clone(),
+            )?,
+            std::convert::identity,
+            || String::from("Docs"),
+        ),
+    );
+    Ok(Some(LoadedDocsConfig::new(candidate.clone(), config)))
 }

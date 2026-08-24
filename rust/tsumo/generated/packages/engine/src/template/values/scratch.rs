@@ -4,14 +4,16 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ScratchStoreState {
-    pub(crate) values: js_abi::JsMap<String, crate::template::values::base::TemplateValue>,
+pub struct ScratchStoreState {
+    pub values: js_abi::JsMap<String, crate::template::values::base::TemplateValue>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ScratchStore {
-    pub(crate) state: rt::ObjectHandle<ScratchStoreState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<ScratchStoreState>,
 }
 
 impl ScratchStore {
@@ -19,7 +21,7 @@ impl ScratchStore {
         let field_values: js_abi::JsMap<String, crate::template::values::base::TemplateValue> =
             js_abi::JsMap::new();
         ScratchStore {
-            state: rt::ObjectHandle::new(ScratchStoreState {
+            state: rt::ObjectRef::new(ScratchStoreState {
                 values: field_values,
             }),
         }
@@ -30,8 +32,9 @@ impl ScratchStore {
     }
 
     pub fn get(&self, key: String) -> crate::template::values::base::TemplateValue {
-        let v: Option<crate::template::values::base::TemplateValue> =
-            self.state.with(|state| state.values.clone()).get(&key);
+        let v: Option<crate::template::values::base::TemplateValue> = self.state
+            .with(|state| state.values.clone())
+            .get(&key);
         if v.is_some() {
             match v.as_ref() {
                 Some(flow_value) => flow_value.clone(),
@@ -47,19 +50,19 @@ impl ScratchStore {
     }
 
     pub fn set(&self, key: String, value: crate::template::values::base::TemplateValue) {
-        self
-            .state
+        self.state
             .with(|state| state.values.clone())
-            .set(key.clone(), value.clone());
+            .set_discard(key, value);
     }
 
     pub fn add(
         &self,
         key: String,
         value: crate::template::values::base::TemplateValue,
-    ) -> rt::TsonicResult<()> {
-        let cur: Option<crate::template::values::base::TemplateValue> =
-            self.state.with(|state| state.values.clone()).get(&key);
+    ) -> Result<(), rt::TsonicError> {
+        let cur: Option<crate::template::values::base::TemplateValue> = self.state
+            .with(|state| state.values.clone())
+            .get(&key);
         if cur.is_none() {
             self.set(key.clone(), value.clone());
             return Ok(());
@@ -93,16 +96,19 @@ impl ScratchStore {
                 while i
                     < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver = &cur_array; dispatch_receiver.dispatch.read_any_array_value_value() }.len())? as f64)
                 {
-                    tsonic_rust_runtime::conversions::usize_to_i32(merged_list.push_many([match {
-                        let dispatch_receiver_2 = &cur_array;
-                        dispatch_receiver_2.dispatch.read_any_array_value_value()
-                    }
-                    .get_number(i)
-                    .as_ref()
                     {
-                        Some(flow_value_2) => flow_value_2.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }]))?;
+                        let operation_input_0 = merged_list.clone();
+                        operation_input_0.push_many_discard([match {
+                            let dispatch_receiver_2 = &cur_array;
+                            dispatch_receiver_2.dispatch.read_any_array_value_value()
+                        }
+                        .get_number(i)
+                        .as_ref()
+                        {
+                            Some(flow_value_2) => flow_value_2.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        }])
+                    };
                     i += 1.0;
                 }
             }
@@ -128,8 +134,9 @@ impl ScratchStore {
                     while i
                         < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_3 = &value_array; dispatch_receiver_3.dispatch.read_any_array_value_value() }.len())? as f64)
                     {
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            merged_list.push_many([match {
+                        {
+                            let operation_input_0_2 = merged_list.clone();
+                            operation_input_0_2.push_many_discard([match {
                                 let dispatch_receiver_4 = &value_array;
                                 dispatch_receiver_4.dispatch.read_any_array_value_value()
                             }
@@ -140,15 +147,13 @@ impl ScratchStore {
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
-                            }]),
-                        )?;
+                            }])
+                        };
                         i += 1.0;
                     }
                 }
             } else {
-                tsonic_rust_runtime::conversions::usize_to_i32(
-                    merged_list.push_many([value.clone()]),
-                )?;
+                merged_list.push_many_discard([value.clone()]);
             }
             self.set(key.clone(), {
                 let upcast_value =
@@ -162,11 +167,11 @@ impl ScratchStore {
         }
         let pair_list: js_abi::JsArray<crate::template::values::base::TemplateValue> =
             js_abi::JsArray::from_dense(vec![]);
-        tsonic_rust_runtime::conversions::usize_to_i32(pair_list.push_many([match cur.as_ref() {
+        pair_list.push_many_discard([match cur.as_ref() {
             Some(flow_value_4) => flow_value_4.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
-        }]))?;
-        tsonic_rust_runtime::conversions::usize_to_i32(pair_list.push_many([value.clone()]))?;
+        }]);
+        pair_list.push_many_discard([value.clone()]);
         self.set(key.clone(), {
             let upcast_value_2 =
                 crate::template::values::arrays::AnyArrayValue::new(pair_list.clone());
@@ -188,8 +193,9 @@ impl ScratchStore {
         key: String,
         value: crate::template::values::base::TemplateValue,
     ) {
-        let cur: Option<crate::template::values::base::TemplateValue> =
-            self.state.with(|state| state.values.clone()).get(&map_name);
+        let cur: Option<crate::template::values::base::TemplateValue> = self.state
+            .with(|state| state.values.clone())
+            .get(&map_name);
         #[expect(clippy::collapsible_if, reason = "checked lexical regions")]
         if cur.is_some() {
             if match cur.as_ref() {
@@ -218,28 +224,29 @@ impl ScratchStore {
                     let dispatch_receiver = &dict;
                     dispatch_receiver.dispatch.read_dict_value_value()
                 }
-                .set(key.clone(), value.clone());
+                .set_discard(key.clone(), value.clone());
                 return;
             }
         }
         let map: js_abi::JsMap<String, crate::template::values::base::TemplateValue> =
             js_abi::JsMap::new();
-        map.set(key.clone(), value.clone());
-        self
-            .state
-            .with(|state| state.values.clone())
-            .set(map_name.clone(), {
-            let upcast_value = crate::template::values::dict::DictValue::new(map.clone());
-            crate::template::values::base::TemplateValue {
-                identity: upcast_value.identity.clone(),
-                dispatch: upcast_value.dispatch.clone(),
-            }
-        });
+        map.set_discard(key.clone(), value.clone());
+        {
+            let operation_input_0 = self.state.with(|state| state.values.clone());
+            operation_input_0.set_discard(map_name.clone(), {
+                let upcast_value = crate::template::values::dict::DictValue::new(map.clone());
+                crate::template::values::base::TemplateValue {
+                    identity: upcast_value.identity.clone(),
+                    dispatch: upcast_value.dispatch.clone(),
+                }
+            })
+        };
     }
 
     pub fn delete_in_map(&self, map_name: String, key: String) {
-        let cur: Option<crate::template::values::base::TemplateValue> =
-            self.state.with(|state| state.values.clone()).get(&map_name);
+        let cur: Option<crate::template::values::base::TemplateValue> = self.state
+            .with(|state| state.values.clone())
+            .get(&map_name);
         #[expect(clippy::collapsible_if, reason = "checked lexical regions")]
         if cur.is_some() {
             if match cur.as_ref() {
@@ -280,8 +287,9 @@ impl Default for ScratchStore {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait ScratchValueDispatch:
+pub trait ScratchValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_scratch_value_to_scratch_value(
@@ -291,17 +299,27 @@ pub(crate) trait ScratchValueDispatch:
     fn write_scratch_value_value(&self, value: ScratchStore);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ScratchValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: ScratchStore,
+pub struct ScratchValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: ScratchStore,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct ScratchValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn ScratchValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn ScratchValueDispatch>,
+}
+
+impl std::fmt::Debug for ScratchValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("ScratchValue")
+    }
 }
 
 impl PartialEq for ScratchValue {
@@ -319,9 +337,10 @@ pub(crate) struct ScratchValueRoot {
 }
 
 impl ScratchValue {
-    pub(crate) fn initialize_state(value: ScratchStore) -> ScratchValueState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: ScratchStore) -> ScratchValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: ScratchStore = value.clone();
+        let field_value: ScratchStore = value;
         ScratchValueState {
             base: base_state,
             value: field_value,

@@ -4,9 +4,12 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
-pub fn handle_build(args: js_abi::JsArray<String>, build_arg_start: i32) -> rt::TsonicResult<()> {
-    let mut build_source_dir: String =
-        tsonic_rust_node::process::cwd().map_err(tsonic_rust_runtime::TsonicError::from)?;
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn handle_build(
+    args: js_abi::JsArray<String>,
+    build_arg_start: i32,
+) -> Result<(), rt::TsonicError> {
+    let mut build_source_dir: String = tsonic_rust_node::process::cwd()?;
     let mut build_destination_dir: String = String::from("public");
     let mut build_base_url: Option<String> = Option::<String>::None;
     let mut build_themes_dir: Option<String> = Option::<String>::None;
@@ -25,10 +28,9 @@ pub fn handle_build(args: js_abi::JsArray<String>, build_arg_start: i32) -> rt::
             if a == "--source" || a == "-s" {
                 if i + 1 >= tsonic_rust_runtime::conversions::usize_to_i32(args.len())? {
                     crate::report_usage_error::report_usage_error(format!(
-                        "{}{}{}",
+                        "{}{}",
                         String::from("Missing value for "),
-                        rt::source_string(&a),
-                        String::from(""),
+                        a,
                     ));
                     return Ok(());
                 }
@@ -44,10 +46,9 @@ pub fn handle_build(args: js_abi::JsArray<String>, build_arg_start: i32) -> rt::
                 if a == "--destination" || a == "-d" {
                     if i + 1 >= tsonic_rust_runtime::conversions::usize_to_i32(args.len())? {
                         crate::report_usage_error::report_usage_error(format!(
-                            "{}{}{}",
+                            "{}{}",
                             String::from("Missing value for "),
-                            rt::source_string(&a),
-                            String::from(""),
+                            a,
                         ));
                         return Ok(());
                     }
@@ -63,10 +64,9 @@ pub fn handle_build(args: js_abi::JsArray<String>, build_arg_start: i32) -> rt::
                     if a == "--baseURL" || a == "--baseurl" {
                         if i + 1 >= tsonic_rust_runtime::conversions::usize_to_i32(args.len())? {
                             crate::report_usage_error::report_usage_error(format!(
-                                "{}{}{}",
+                                "{}{}",
                                 String::from("Missing value for "),
-                                rt::source_string(&a),
-                                String::from(""),
+                                a,
                             ));
                             return Ok(());
                         }
@@ -83,10 +83,9 @@ pub fn handle_build(args: js_abi::JsArray<String>, build_arg_start: i32) -> rt::
                             if i + 1 >= tsonic_rust_runtime::conversions::usize_to_i32(args.len())?
                             {
                                 crate::report_usage_error::report_usage_error(format!(
-                                    "{}{}{}",
+                                    "{}{}",
                                     String::from("Missing value for "),
-                                    rt::source_string(&a),
-                                    String::from(""),
+                                    a,
                                 ));
                                 return Ok(());
                             }
@@ -109,10 +108,9 @@ pub fn handle_build(args: js_abi::JsArray<String>, build_arg_start: i32) -> rt::
                                         clean_destination_dir = true;
                                     } else {
                                         crate::report_usage_error::report_usage_error(format!(
-                                            "{}{}{}",
+                                            "{}{}",
                                             String::from("Unknown build option: "),
-                                            rt::source_string(&a),
-                                            String::from(""),
+                                            a,
                                         ));
                                         return Ok(());
                                     }
@@ -125,8 +123,8 @@ pub fn handle_build(args: js_abi::JsArray<String>, build_arg_start: i32) -> rt::
             i += 1;
         }
     }
-    let build_req: crate::node_modules::tsumo::engine::src::build::BuildRequest =
-        crate::node_modules::tsumo::engine::src::build::BuildRequest::new(build_source_dir.clone());
+    let build_req: tsumo_engine::BuildRequest =
+        tsumo_engine::BuildRequest::new(build_source_dir.clone());
     {
         let receiver = &build_req;
         let value = build_destination_dir.clone();
@@ -194,14 +192,19 @@ pub fn handle_build(args: js_abi::JsArray<String>, build_arg_start: i32) -> rt::
                 .write_build_request_build_time(value_6)
         }
     };
-    let result: crate::node_modules::tsumo::engine::src::build::BuildResult =
-        crate::node_modules::tsumo::engine::src::build_site::build_site(build_req.clone())?;
+    let result: tsumo_engine::BuildResult = tsumo_engine::build_site(build_req.clone())?;
     crate::log_line::log_line(format!(
         "{}{}{}{}{}",
         String::from("Built → "),
-        rt::source_string(&result.state.with(|state| state.output_dir.clone())),
+        {
+            let dispatch_receiver_8 = &result;
+            dispatch_receiver_8.dispatch.read_build_result_output_dir()
+        },
         String::from(" ("),
-        rt::source_string(&result.state.with(|state| state.pages_built)),
+        rt::source_string(&{
+            let dispatch_receiver_9 = &result;
+            dispatch_receiver_9.dispatch.read_build_result_pages_built()
+        },),
         String::from(" pages)"),
     ));
     Ok(())

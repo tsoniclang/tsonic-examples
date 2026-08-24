@@ -6,23 +6,25 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ResourcePathPartsState {
-    pub(crate) directory: String,
-    pub(crate) file_name: String,
+pub struct ResourcePathPartsState {
+    pub directory: String,
+    pub file_name: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ResourcePathParts {
-    pub(crate) state: rt::ObjectHandle<ResourcePathPartsState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<ResourcePathPartsState>,
 }
 
 impl ResourcePathParts {
     pub fn new(directory: String, file_name: String) -> ResourcePathParts {
-        let field_directory: String = directory.clone();
-        let field_file_name: String = file_name.clone();
+        let field_directory: String = directory;
+        let field_file_name: String = file_name;
         ResourcePathParts {
-            state: rt::ObjectHandle::new(ResourcePathPartsState {
+            state: rt::ObjectRef::new(ResourcePathPartsState {
                 directory: field_directory,
                 file_name: field_file_name,
             }),
@@ -30,23 +32,25 @@ impl ResourcePathParts {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ResourceFileNamePartsState {
-    pub(crate) base_name: String,
-    pub(crate) extension: String,
+pub struct ResourceFileNamePartsState {
+    pub base_name: String,
+    pub extension: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ResourceFileNameParts {
-    pub(crate) state: rt::ObjectHandle<ResourceFileNamePartsState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<ResourceFileNamePartsState>,
 }
 
 impl ResourceFileNameParts {
     pub fn new(base_name: String, extension: String) -> ResourceFileNameParts {
-        let field_base_name: String = base_name.clone();
-        let field_extension: String = extension.clone();
+        let field_base_name: String = base_name;
+        let field_extension: String = extension;
         ResourceFileNameParts {
-            state: rt::ObjectHandle::new(ResourceFileNamePartsState {
+            state: rt::ObjectRef::new(ResourceFileNamePartsState {
                 base_name: field_base_name,
                 extension: field_extension,
             }),
@@ -54,247 +58,134 @@ impl ResourceFileNameParts {
     }
 }
 
-pub type NormalizeResourceSlashesCallable = rt::Callable<(String,), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub static NORMALIZE_RESOURCE_SLASHES: rt::ModuleCell<NormalizeResourceSlashesCallable> = const { rt::ModuleCell::new() };
+pub fn normalize_resource_slashes(path: &str) -> Result<String, rt::TsonicError> {
+    js_string::replace_all(path, "\\", "/").map_err(rt::TsonicError::from)
 }
 
-pub type NormalizeResourceRelativePathCallable = rt::Callable<(String,), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub static NORMALIZE_RESOURCE_RELATIVE_PATH: rt::ModuleCell<NormalizeResourceRelativePathCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type ResourcePathToOsPathCallable = rt::Callable<(String,), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub static RESOURCE_PATH_TO_OS_PATH: rt::ModuleCell<ResourcePathToOsPathCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type ResolveContainedResourcePathCallable =
-    rt::Callable<(String, String), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub static RESOLVE_CONTAINED_RESOURCE_PATH: rt::ModuleCell<ResolveContainedResourcePathCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type SplitResourcePathCallable = rt::Callable<(String,), rt::TsonicResult<ResourcePathParts>>;
-
-std::thread_local! {
-    pub static SPLIT_RESOURCE_PATH: rt::ModuleCell<SplitResourcePathCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type SplitResourceFileNameCallable =
-    rt::Callable<(String,), rt::TsonicResult<ResourceFileNameParts>>;
-
-std::thread_local! {
-    pub static SPLIT_RESOURCE_FILE_NAME: rt::ModuleCell<SplitResourceFileNameCallable> = const { rt::ModuleCell::new() };
-}
-
-#[doc(hidden)]
-pub fn module_init() {
+pub fn normalize_resource_relative_path(path: String) -> Result<String, rt::TsonicError> {
+    let mut normalized: String = normalize_resource_slashes(&js_string::trim(&path))?;
+    while js_string::starts_with_from_start(&normalized, "/") {
+        normalized = crate::utils::strings::substring_from(&normalized, 1)?;
+    }
+    let drive_qualified: bool = tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
+        &normalized,
+    ))? >= 2
+        && crate::utils::strings::substring_count(normalized.clone(), 1, 1)? == ":";
+    if tsonic_rust_node::path::is_absolute(&normalized) || drive_qualified {
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_RESOURCE_PATH_ABSOLUTE"),
+            format!(
+                "{}{}",
+                String::from("Resource path must be source-root relative: "),
+                path,
+            ),
+            None,
+            None,
+            None,
+        )));
+    }
+    let segments: js_abi::JsArray<String> = js_string::split_all(&normalized, "/")?;
+    let accepted: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     {
-        let module_value =
-            rt::Callable::<(String,), rt::TsonicResult<String>>::new(move |callable_arguments| {
-                let path = callable_arguments.0;
-                Ok::<_, rt::TsonicError>(
-                    js_string::replace_all(&path, "\\", "/")
-                        .map_err(tsonic_rust_runtime::TsonicError::from)?,
-                )
-            });
-        NORMALIZE_RESOURCE_SLASHES.with(|module_binding| module_binding.initialize(module_value))
-    };
-    {
-        let module_value_2 =
-            rt::Callable::<(String,), rt::TsonicResult<String>>::new(move |callable_arguments_2| {
-                let path = callable_arguments_2.0;
-                let mut normalized: String = NORMALIZE_RESOURCE_SLASHES
-                    .with(|module_binding| module_binding.load())
-                    .call((js_string::trim(&path),))?;
-                while js_string::starts_with_from_start(&normalized, "/") {
-                    normalized = crate::utils::strings::substring_from(&normalized, 1)?;
-                }
-                let drive_qualified: bool = tsonic_rust_runtime::conversions::usize_to_i32(
-                    js_string::js_len(&normalized),
-                )? >= 2
-                    && crate::utils::strings::substring_count(
-                        normalized.clone(),
-                        1,
-                        1,
-                    )? == ":";
-                if tsonic_rust_node::path::is_absolute(&normalized) || drive_qualified {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                        String::from("TSUMO_RESOURCE_PATH_ABSOLUTE"),
-                        format!(
-                            "{}{}{}",
-                            String::from("Resource path must be source-root relative: "),
-                            rt::source_string(&path),
-                            String::from(""),
-                        ),
-                        None,
-                        None,
-                        None,
-                    )));
-                }
-                let segments: js_abi::JsArray<String> = js_string::split_all(&normalized, "/")
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                let accepted: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-                {
-                    let mut index: f64 = 0.0;
-                    'loop_value_2: while index
-                        < (tsonic_rust_runtime::conversions::usize_to_i32(segments.len())? as f64)
-                    {
-                        let segment: String = match segments.get_number(index).as_ref() {
-                            Some(flow_value) => flow_value.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        };
-                        if segment.is_empty() || segment == "." {
-                            index += 1.0;
-                            continue 'loop_value_2;
-                        }
-                        if segment == ".." {
-                            return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                                String::from("TSUMO_RESOURCE_PATH_ESCAPES_ROOT"),
-                                format!(
-                                    "{}{}{}",
-                                    String::from("Resource path escapes its root: "),
-                                    rt::source_string(&path),
-                                    String::from(""),
-                                ),
-                                None,
-                                None,
-                                None,
-                            )));
-                        }
-                        if js_string::includes_from_start(&segment, "\0") {
-                            return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                                String::from("TSUMO_RESOURCE_PATH_INVALID"),
-                                String::from("Resource path contains a null character"),
-                                None,
-                                None,
-                                None,
-                            )));
-                        }
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            accepted.push_many([segment.clone()]),
-                        )?;
-                        index += 1.0;
-                    }
-                }
-                Ok::<_, rt::TsonicError>(accepted.join("/"))
-            });
-        NORMALIZE_RESOURCE_RELATIVE_PATH
-            .with(|module_binding_2| module_binding_2.initialize(module_value_2))
-    };
-    {
-        let module_value_3 =
-            rt::Callable::<(String,), rt::TsonicResult<String>>::new(move |callable_arguments_3| {
-                let relative_path = callable_arguments_3.0;
-                crate::utils::strings::replace_text(
-                    &relative_path,
-                    String::from("/"),
-                    format!(
-                        "{}{}{}",
-                        String::from(""),
-                        rt::source_string(&String::from(tsonic_rust_node::path::sep())),
-                        String::from(""),
-                    ),
-                )
-            });
-        RESOURCE_PATH_TO_OS_PATH
-            .with(|module_binding_3| module_binding_3.initialize(module_value_3))
-    };
-    {
-        let module_value_4 = rt::Callable::<(String, String), rt::TsonicResult<String>>::new(
-            move |callable_arguments_4| {
-                let root = callable_arguments_4.0;
-                let relative_path = callable_arguments_4.1;
-                let normalized: String = NORMALIZE_RESOURCE_RELATIVE_PATH
-                    .with(|module_binding| module_binding.load())
-                    .call((relative_path.clone(),))?;
-                let root_path: String = tsonic_rust_node::path::resolve(&[root.as_str()])
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                let candidate: String = tsonic_rust_node::path::resolve(&[
-                    root_path.as_str(),
-                    RESOURCE_PATH_TO_OS_PATH
-                        .with(|module_binding| module_binding.load())
-                        .call((normalized.clone(),))?
-                        .as_str(),
-                ])
-                .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                if !crate::utils::paths::path_contains_or_equals(
-                    root_path.clone(),
-                    candidate.clone(),
-                )
-                {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                        String::from("TSUMO_RESOURCE_PATH_ESCAPES_ROOT"),
-                        format!(
-                            "{}{}{}",
-                            String::from("Resource path escapes its root: "),
-                            rt::source_string(&relative_path),
-                            String::from(""),
-                        ),
-                        None,
-                        None,
-                        None,
-                    )));
-                }
-                Ok::<_, rt::TsonicError>(candidate.clone())
-            },
-        );
-        RESOLVE_CONTAINED_RESOURCE_PATH
-            .with(|module_binding_4| module_binding_4.initialize(module_value_4))
-    };
-    {
-        let module_value_5 = rt::Callable::<
-            (String,),
-            rt::TsonicResult<ResourcePathParts>,
-        >::new(move |callable_arguments_5| {
-            let relative_path = callable_arguments_5.0;
-            let normalized: String = NORMALIZE_RESOURCE_RELATIVE_PATH
-                .with(|module_binding| module_binding.load())
-                .call((relative_path.clone(),))?;
-            let index: i32 =
-                tsonic_rust_runtime::conversions::isize_to_i32(js_string::last_index_of_from_end(
-                    &normalized, "/",
-                ))?;
-            if index < 0 {
-                return Ok::<_, rt::TsonicError>(ResourcePathParts::new(
-                    String::from(""),
-                    normalized.clone(),
-                ));
+        let mut index: f64 = 0.0;
+        'loop_value_2: while index < (tsonic_rust_runtime::conversions::usize_to_i32(segments.len())? as f64) {
+            let segment: String = match segments.get_number(index).as_ref() {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
+            if segment.is_empty() || segment == "." {
+                index += 1.0;
+                continue 'loop_value_2;
             }
-            Ok::<_, rt::TsonicError>(ResourcePathParts::new(
-                crate::utils::strings::substring_count(normalized.clone(), 0, index + 1)?,
-                crate::utils::strings::substring_from(&normalized, index + 1)?,
-            ))
-        });
-        SPLIT_RESOURCE_PATH.with(|module_binding_5| module_binding_5.initialize(module_value_5))
-    };
-    {
-        let module_value_6 = rt::Callable::<
-            (String,),
-            rt::TsonicResult<ResourceFileNameParts>,
-        >::new(move |callable_arguments_6| {
-            let file_name = callable_arguments_6.0;
-            let index: i32 =
-                tsonic_rust_runtime::conversions::isize_to_i32(js_string::last_index_of_from_end(
-                    &file_name, ".",
-                ))?;
-            if index < 0 {
-                return Ok::<_, rt::TsonicError>(ResourceFileNameParts::new(
-                    file_name.clone(),
-                    String::from(""),
-                ));
+            if segment == ".." {
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+                    String::from("TSUMO_RESOURCE_PATH_ESCAPES_ROOT"),
+                    format!("{}{}", String::from("Resource path escapes its root: "), path),
+                    None,
+                    None,
+                    None,
+                )));
             }
-            Ok::<_, rt::TsonicError>(ResourceFileNameParts::new(
-                crate::utils::strings::substring_count(file_name.clone(), 0, index)?,
-                crate::utils::strings::substring_from(&file_name, index)?,
-            ))
-        });
-        SPLIT_RESOURCE_FILE_NAME
-            .with(|module_binding_6| module_binding_6.initialize(module_value_6))
-    };
+            if js_string::includes_from_start(&segment, "\0") {
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+                    String::from("TSUMO_RESOURCE_PATH_INVALID"),
+                    String::from("Resource path contains a null character"),
+                    None,
+                    None,
+                    None,
+                )));
+            }
+            accepted.push_many_discard([segment.clone()]);
+            index += 1.0;
+        }
+    }
+    Ok(accepted.join("/"))
+}
+
+pub fn resource_path_to_os_path(relative_path: String) -> Result<String, rt::TsonicError> {
+    crate::utils::strings::replace_text(
+        &relative_path,
+        String::from("/"),
+        String::from(tsonic_rust_node::path::sep()),
+    )
+}
+
+pub fn resolve_contained_resource_path(
+    root: String,
+    relative_path: String,
+) -> Result<String, rt::TsonicError> {
+    let normalized: String = normalize_resource_relative_path(relative_path.clone())?;
+    let root_path: String = tsonic_rust_node::path::resolve(&[root.as_str()])?;
+    let candidate: String = {
+        let operation_input_0 = root_path.clone();
+        tsonic_rust_node::path::resolve(&[
+            operation_input_0.as_str(),
+            resource_path_to_os_path(normalized)?.as_str(),
+        ])
+    }?;
+    if !crate::utils::paths::path_contains_or_equals(root_path.clone(), candidate.clone()) {
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_RESOURCE_PATH_ESCAPES_ROOT"),
+            format!(
+                "{}{}",
+                String::from("Resource path escapes its root: "),
+                relative_path,
+            ),
+            None,
+            None,
+            None,
+        )));
+    }
+    Ok(candidate)
+}
+
+pub fn split_resource_path(relative_path: String) -> Result<ResourcePathParts, rt::TsonicError> {
+    let normalized: String = normalize_resource_relative_path(relative_path)?;
+    let index: i32 =
+        tsonic_rust_runtime::conversions::isize_to_i32(js_string::last_index_of_from_end(
+            &normalized, "/",
+        ))?;
+    if index < 0 {
+        return Ok(ResourcePathParts::new(String::from(""), normalized.clone()));
+    }
+    Ok(ResourcePathParts::new(
+        crate::utils::strings::substring_count(normalized.clone(), 0, index + 1)?,
+        crate::utils::strings::substring_from(&normalized, index + 1)?,
+    ))
+}
+
+pub fn split_resource_file_name(
+    file_name: String,
+) -> Result<ResourceFileNameParts, rt::TsonicError> {
+    let index: i32 =
+        tsonic_rust_runtime::conversions::isize_to_i32(js_string::last_index_of_from_end(
+            &file_name, ".",
+        ))?;
+    if index < 0 {
+        return Ok(ResourceFileNameParts::new(file_name.clone(), String::from("")));
+    }
+    Ok(ResourceFileNameParts::new(
+        crate::utils::strings::substring_count(file_name.clone(), 0, index)?,
+        crate::utils::strings::substring_from(&file_name, index)?,
+    ))
 }

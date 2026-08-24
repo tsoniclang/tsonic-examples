@@ -6,48 +6,133 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-pub(crate) fn create_emoji_shortcodes() -> js_abi::JsMap<String, String> {
+pub fn create_emoji_shortcodes() -> js_abi::JsMap<String, String> {
     let result: js_abi::JsMap<String, String> = js_abi::JsMap::new();
-    result.set(String::from("heart"), String::from("❤️"));
-    result.set(String::from("red_heart"), String::from("❤️"));
-    result.set(String::from("smile"), String::from("😄"));
-    result.set(String::from("grinning"), String::from("😀"));
-    result.set(String::from("joy"), String::from("😂"));
-    result.set(String::from("tada"), String::from("🎉"));
-    result.set(String::from("rocket"), String::from("🚀"));
-    result.set(String::from("warning"), String::from("⚠️"));
-    result.set(String::from("wave"), String::from("👋"));
-    result.set(String::from("fire"), String::from("🔥"));
-    result.set(String::from("sparkles"), String::from("✨"));
-    result.clone()
+    result.set_discard(String::from("heart"), String::from("❤️"));
+    result.set_discard(String::from("red_heart"), String::from("❤️"));
+    result.set_discard(String::from("smile"), String::from("😄"));
+    result.set_discard(String::from("grinning"), String::from("😀"));
+    result.set_discard(String::from("joy"), String::from("😂"));
+    result.set_discard(String::from("tada"), String::from("🎉"));
+    result.set_discard(String::from("rocket"), String::from("🚀"));
+    result.set_discard(String::from("warning"), String::from("⚠️"));
+    result.set_discard(String::from("wave"), String::from("👋"));
+    result.set_discard(String::from("fire"), String::from("🔥"));
+    result.set_discard(String::from("sparkles"), String::from("✨"));
+    result
 }
 
 std::thread_local! {
-    pub(crate) static EMOJI_BY_SHORTCODE: rt::ModuleCell<js_abi::JsMap<String, String>> = const { rt::ModuleCell::new() };
+    pub static EMOJI_BY_SHORTCODE: rt::ModuleCell<js_abi::JsMap<String, String>> = const { rt::ModuleCell::new() };
 }
 
-type IsAsciiLetterOrDigitCallable = rt::Callable<(String,), rt::TsonicResult<bool>>;
-
-std::thread_local! {
-    pub(crate) static IS_ASCII_LETTER_OR_DIGIT: rt::ModuleCell<IsAsciiLetterOrDigitCallable> = const { rt::ModuleCell::new() };
+pub fn is_ascii_letter_or_digit(character: &str) -> bool {
+    let code: f64 = js_string::char_code_at(character, 0.0);
+    (48.0..=57.0).contains(&code) || (65.0..=90.0).contains(&code) || (97.0..=122.0).contains(&code)
 }
 
-type IsAsciiWhitespaceCallable = rt::Callable<(String,), rt::TsonicResult<bool>>;
-
-std::thread_local! {
-    pub(crate) static IS_ASCII_WHITESPACE: rt::ModuleCell<IsAsciiWhitespaceCallable> = const { rt::ModuleCell::new() };
+pub fn is_ascii_whitespace(character: String) -> bool {
+    character == " " || character == "\t" || character == "\n" || character == "\r"
 }
 
-pub type AnchorizeTextCallable = rt::Callable<(String,), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub static ANCHORIZE_TEXT: rt::ModuleCell<AnchorizeTextCallable> = const { rt::ModuleCell::new() };
+pub fn anchorize_text(input: &str) -> Result<String, rt::TsonicError> {
+    let lower: String = js_string::to_lower_case(input);
+    let result: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    {
+        let mut index: f64 = 0.0;
+        'loop_value: while index
+            < (tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&lower))? as f64)
+        {
+            let character: String = js_string::char_at(&lower, index)?;
+            if is_ascii_whitespace(character.clone()) {
+                result.push_many_discard([String::from("-")]);
+                index += 1.0;
+                continue 'loop_value;
+            }
+            if is_ascii_letter_or_digit(&character)
+                || character == "-"
+                || character == "_"
+                || js_string::char_code_at(&character, 0.0) >= 128.0
+            {
+                result.push_many_discard([character.clone()]);
+            }
+            index += 1.0;
+        }
+    }
+    Ok(result.join(""))
 }
 
-pub type EmojifyTextCallable = rt::Callable<(String,), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub static EMOJIFY_TEXT: rt::ModuleCell<EmojifyTextCallable> = const { rt::ModuleCell::new() };
+pub fn emojify_text(input: &str) -> Result<String, rt::TsonicError> {
+    let result: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    let mut cursor: f64 = 0.0;
+    'loop_value: while cursor
+        < (tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(input))? as f64)
+    {
+        let opening: i32 = tsonic_rust_runtime::conversions::isize_to_i32(js_string::index_of(
+            input, ":", cursor,
+        ))?;
+        if opening < 0 {
+            {
+                let operation_input_0 = result.clone();
+                operation_input_0.push_many_discard([js_string::substring_from(input, cursor)?])
+            };
+            break 'loop_value;
+        }
+        {
+            let operation_input_0_2 = result.clone();
+            operation_input_0_2.push_many_discard([
+                js_string::substring(
+                    input,
+                    cursor,
+                    tsonic_rust_runtime::conversions::i32_to_f64(opening),
+                )?,
+            ])
+        };
+        let closing: i32 = tsonic_rust_runtime::conversions::isize_to_i32(js_string::index_of(
+            input,
+            ":",
+            tsonic_rust_runtime::conversions::i32_to_f64(opening + 1),
+        ))?;
+        if closing < 0 {
+            {
+                let operation_input_0_3 = result.clone();
+                operation_input_0_3.push_many_discard([
+                    js_string::substring_from(
+                        input,
+                        tsonic_rust_runtime::conversions::i32_to_f64(opening),
+                    )?,
+                ])
+            };
+            break 'loop_value;
+        }
+        let shortcode: String = js_string::substring(
+            input,
+            tsonic_rust_runtime::conversions::i32_to_f64(opening + 1),
+            tsonic_rust_runtime::conversions::i32_to_f64(closing),
+        )?;
+        let emoji: Option<String> = EMOJI_BY_SHORTCODE
+            .with(|module_binding| module_binding.load())
+            .get(&shortcode);
+        if emoji.is_none() {
+            {
+                let operation_input_0_4 = result.clone();
+                operation_input_0_4.push_many_discard([
+                    js_string::substring(
+                        input,
+                        tsonic_rust_runtime::conversions::i32_to_f64(opening),
+                        tsonic_rust_runtime::conversions::i32_to_f64(closing + 1),
+                    )?,
+                ])
+            };
+        } else {
+            result.push_many_discard([match emoji.as_ref() {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            }]);
+        }
+        cursor = tsonic_rust_runtime::conversions::i32_to_f64(closing + 1);
+    }
+    Ok(result.join(""))
 }
 
 #[doc(hidden)]
@@ -55,158 +140,5 @@ pub fn module_init() {
     {
         let module_value = create_emoji_shortcodes();
         EMOJI_BY_SHORTCODE.with(|module_binding| module_binding.initialize(module_value))
-    };
-    {
-        let module_value_2 =
-            rt::Callable::<(String,), rt::TsonicResult<bool>>::new(move |callable_arguments| {
-                let character = callable_arguments.0;
-                let code: f64 = js_string::char_code_at(&character, 0.0);
-                Ok::<_, rt::TsonicError>(
-                    (48.0..=57.0).contains(&code)
-                        || (65.0..=90.0).contains(&code)
-                        || (97.0..=122.0).contains(&code),
-                )
-            });
-        IS_ASCII_LETTER_OR_DIGIT
-            .with(|module_binding_2| module_binding_2.initialize(module_value_2))
-    };
-    {
-        let module_value_3 =
-            rt::Callable::<(String,), rt::TsonicResult<bool>>::new(move |callable_arguments_2| {
-                let character = callable_arguments_2.0;
-                Ok::<_, rt::TsonicError>(
-                    character == " " || character == "\t" || character == "\n" || character == "\r",
-                )
-            });
-        IS_ASCII_WHITESPACE.with(|module_binding_3| module_binding_3.initialize(module_value_3))
-    };
-    {
-        let module_value_4 = rt::Callable::<(String,), rt::TsonicResult<String>>::new(
-            move |callable_arguments_3| {
-                let input = callable_arguments_3.0;
-                let lower: String = js_string::to_lower_case(&input);
-                let result: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-                {
-                    let mut index: f64 = 0.0;
-                    'loop_value: while index
-                        < (tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&lower))? as f64)
-                    {
-                        let character: String = js_string::char_at(&lower, index)
-                            .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                        if IS_ASCII_WHITESPACE
-                            .with(|module_binding| module_binding.load())
-                            .call((character.clone(),))?
-                        {
-                            tsonic_rust_runtime::conversions::usize_to_i32(
-                                result.push_many([String::from("-")]),
-                            )?;
-                            index += 1.0;
-                            continue 'loop_value;
-                        }
-                        if IS_ASCII_LETTER_OR_DIGIT
-                            .with(|module_binding| module_binding.load())
-                            .call((character.clone(),))?
-                            || character == "-"
-                            || character == "_"
-                            || js_string::char_code_at(&character, 0.0) >= 128.0
-                        {
-                            tsonic_rust_runtime::conversions::usize_to_i32(
-                                result.push_many([character.clone()]),
-                            )?;
-                        }
-                        index += 1.0;
-                    }
-                }
-                Ok::<_, rt::TsonicError>(result.join(""))
-            },
-        );
-        ANCHORIZE_TEXT.with(|module_binding_4| module_binding_4.initialize(module_value_4))
-    };
-    {
-        let module_value_5 = rt::Callable::<(String,), rt::TsonicResult<String>>::new(
-            move |callable_arguments_4| {
-                let input = callable_arguments_4.0;
-                let result: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-                let mut cursor: f64 = 0.0;
-                'loop_value_2: while cursor
-                    < (tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&input))? as f64)
-                {
-                    let opening: i32 =
-                        tsonic_rust_runtime::conversions::isize_to_i32(js_string::index_of(
-                            &input, ":", cursor,
-                        ))?;
-                    if opening < 0 {
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            result.push_many([
-                                js_string::substring_from(&input, cursor)
-                                    .map_err(tsonic_rust_runtime::TsonicError::from)?,
-                            ]),
-                        )?;
-                        break 'loop_value_2;
-                    }
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        result.push_many([
-                            js_string::substring(
-                                &input,
-                                cursor,
-                                tsonic_rust_runtime::conversions::i32_to_f64(opening),
-                            )
-                            .map_err(tsonic_rust_runtime::TsonicError::from)?,
-                        ]),
-                    )?;
-                    let closing: i32 =
-                        tsonic_rust_runtime::conversions::isize_to_i32(js_string::index_of(
-                            &input,
-                            ":",
-                            tsonic_rust_runtime::conversions::i32_to_f64(opening + 1),
-                        ))?;
-                    if closing < 0 {
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            result.push_many([
-                                js_string::substring_from(
-                                    &input,
-                                    tsonic_rust_runtime::conversions::i32_to_f64(opening),
-                                )
-                                .map_err(tsonic_rust_runtime::TsonicError::from)?,
-                            ]),
-                        )?;
-                        break 'loop_value_2;
-                    }
-                    let shortcode: String = js_string::substring(
-                        &input,
-                        tsonic_rust_runtime::conversions::i32_to_f64(opening + 1),
-                        tsonic_rust_runtime::conversions::i32_to_f64(closing),
-                    )
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                    let emoji: Option<String> = EMOJI_BY_SHORTCODE
-                        .with(|module_binding| module_binding.load())
-                        .get(&shortcode);
-                    if emoji.is_none() {
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            result.push_many([
-                                js_string::substring(
-                                    &input,
-                                    tsonic_rust_runtime::conversions::i32_to_f64(opening),
-                                    tsonic_rust_runtime::conversions::i32_to_f64(closing + 1),
-                                )
-                                .map_err(tsonic_rust_runtime::TsonicError::from)?,
-                            ]),
-                        )?;
-                    } else {
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            result.push_many([match emoji.as_ref() {
-                                Some(flow_value) => flow_value.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            }]),
-                        )?;
-                    }
-                    cursor = tsonic_rust_runtime::conversions::i32_to_f64(closing + 1);
-                }
-                Ok::<_, rt::TsonicError>(result.join(""))
-            },
-        );
-        EMOJIFY_TEXT.with(|module_binding_5| module_binding_5.initialize(module_value_5))
     };
 }

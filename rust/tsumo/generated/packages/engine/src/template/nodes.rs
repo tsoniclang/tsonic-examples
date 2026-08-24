@@ -4,8 +4,9 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait TemplateNodeDispatch {
+pub trait TemplateNodeDispatch {
     fn downcast_template_node_to_assignment_node(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch>>;
@@ -41,14 +42,23 @@ pub(crate) trait TemplateNodeDispatch {
     ) -> Option<std::rc::Rc<dyn WithNodeDispatch>>;
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct TemplateNodeState {}
+pub struct TemplateNodeState {}
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct TemplateNode {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn TemplateNodeDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn TemplateNodeDispatch>,
+}
+
+impl std::fmt::Debug for TemplateNode {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("TemplateNode")
+    }
 }
 
 impl PartialEq for TemplateNode {
@@ -66,7 +76,8 @@ pub(crate) struct TemplateNodeRoot {
 }
 
 impl TemplateNode {
-    pub(crate) fn initialize_state() -> TemplateNodeState {
+    #[doc(hidden)]
+    pub fn initialize_state() -> TemplateNodeState {
         TemplateNodeState {}
     }
 
@@ -158,23 +169,34 @@ impl TemplateNodeDispatch for TemplateNodeRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait BreakNodeDispatch: TemplateNodeDispatch {
+pub trait BreakNodeDispatch: TemplateNodeDispatch {
     fn downcast_break_node_to_break_node(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn BreakNodeDispatch>>;
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct BreakNodeState {
-    pub(crate) base: TemplateNodeState,
+pub struct BreakNodeState {
+    #[doc(hidden)]
+    pub base: TemplateNodeState,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct BreakNode {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn BreakNodeDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn BreakNodeDispatch>,
+}
+
+impl std::fmt::Debug for BreakNode {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("BreakNode")
+    }
 }
 
 impl PartialEq for BreakNode {
@@ -192,7 +214,8 @@ pub(crate) struct BreakNodeRoot {
 }
 
 impl BreakNode {
-    pub(crate) fn initialize_state() -> BreakNodeState {
+    #[doc(hidden)]
+    pub fn initialize_state() -> BreakNodeState {
         let base_state = TemplateNode::initialize_state();
         BreakNodeState { base: base_state }
     }
@@ -293,23 +316,34 @@ impl BreakNodeDispatch for BreakNodeRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait ContinueNodeDispatch: TemplateNodeDispatch {
+pub trait ContinueNodeDispatch: TemplateNodeDispatch {
     fn downcast_continue_node_to_continue_node(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch>>;
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ContinueNodeState {
-    pub(crate) base: TemplateNodeState,
+pub struct ContinueNodeState {
+    #[doc(hidden)]
+    pub base: TemplateNodeState,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct ContinueNode {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn ContinueNodeDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn ContinueNodeDispatch>,
+}
+
+impl std::fmt::Debug for ContinueNode {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("ContinueNode")
+    }
 }
 
 impl PartialEq for ContinueNode {
@@ -327,7 +361,8 @@ pub(crate) struct ContinueNodeRoot {
 }
 
 impl ContinueNode {
-    pub(crate) fn initialize_state() -> ContinueNodeState {
+    #[doc(hidden)]
+    pub fn initialize_state() -> ContinueNodeState {
         let base_state = TemplateNode::initialize_state();
         ContinueNodeState { base: base_state }
     }
@@ -428,8 +463,9 @@ impl ContinueNodeDispatch for ContinueNodeRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait TextNodeDispatch: TemplateNodeDispatch {
+pub trait TextNodeDispatch: TemplateNodeDispatch {
     fn downcast_text_node_to_text_node(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn TextNodeDispatch>>;
@@ -437,17 +473,27 @@ pub(crate) trait TextNodeDispatch: TemplateNodeDispatch {
     fn write_text_node_text(&self, value: String);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct TextNodeState {
-    pub(crate) base: TemplateNodeState,
-    pub(crate) text: String,
+pub struct TextNodeState {
+    #[doc(hidden)]
+    pub base: TemplateNodeState,
+    pub text: String,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct TextNode {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn TextNodeDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn TextNodeDispatch>,
+}
+
+impl std::fmt::Debug for TextNode {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("TextNode")
+    }
 }
 
 impl PartialEq for TextNode {
@@ -465,9 +511,10 @@ pub(crate) struct TextNodeRoot {
 }
 
 impl TextNode {
-    pub(crate) fn initialize_state(text: String) -> TextNodeState {
+    #[doc(hidden)]
+    pub fn initialize_state(text: String) -> TextNodeState {
         let base_state = TemplateNode::initialize_state();
-        let field_text: String = text.clone();
+        let field_text: String = text;
         TextNodeState {
             base: base_state,
             text: field_text,
@@ -572,8 +619,9 @@ impl TextNodeDispatch for TextNodeRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait OutputNodeDispatch: TemplateNodeDispatch {
+pub trait OutputNodeDispatch: TemplateNodeDispatch {
     fn downcast_output_node_to_output_node(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn OutputNodeDispatch>>;
@@ -583,18 +631,28 @@ pub(crate) trait OutputNodeDispatch: TemplateNodeDispatch {
     fn write_output_node_escape(&self, value: bool);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct OutputNodeState {
-    pub(crate) base: TemplateNodeState,
-    pub(crate) pipeline: crate::template::syntax::expressions::Pipeline,
-    pub(crate) escape: bool,
+pub struct OutputNodeState {
+    #[doc(hidden)]
+    pub base: TemplateNodeState,
+    pub pipeline: crate::template::syntax::expressions::Pipeline,
+    pub escape: bool,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct OutputNode {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn OutputNodeDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn OutputNodeDispatch>,
+}
+
+impl std::fmt::Debug for OutputNode {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("OutputNode")
+    }
 }
 
 impl PartialEq for OutputNode {
@@ -612,12 +670,13 @@ pub(crate) struct OutputNodeRoot {
 }
 
 impl OutputNode {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         pipeline: crate::template::syntax::expressions::Pipeline,
         escape: bool,
     ) -> OutputNodeState {
         let base_state = TemplateNode::initialize_state();
-        let field_pipeline: crate::template::syntax::expressions::Pipeline = pipeline.clone();
+        let field_pipeline: crate::template::syntax::expressions::Pipeline = pipeline;
         let field_escape: bool = escape;
         OutputNodeState {
             base: base_state,
@@ -735,35 +794,43 @@ impl OutputNodeDispatch for OutputNodeRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait AssignmentNodeDispatch: TemplateNodeDispatch {
+pub trait AssignmentNodeDispatch: TemplateNodeDispatch {
     fn downcast_assignment_node_to_assignment_node(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch>>;
     fn read_assignment_node_name(&self) -> String;
     fn write_assignment_node_name(&self, value: String);
     fn read_assignment_node_pipeline(&self) -> crate::template::syntax::expressions::Pipeline;
-    fn write_assignment_node_pipeline(
-        &self,
-        value: crate::template::syntax::expressions::Pipeline,
-    );
+    fn write_assignment_node_pipeline(&self, value: crate::template::syntax::expressions::Pipeline);
     fn read_assignment_node_declare(&self) -> bool;
     fn write_assignment_node_declare(&self, value: bool);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct AssignmentNodeState {
-    pub(crate) base: TemplateNodeState,
-    pub(crate) name: String,
-    pub(crate) pipeline: crate::template::syntax::expressions::Pipeline,
-    pub(crate) declare: bool,
+pub struct AssignmentNodeState {
+    #[doc(hidden)]
+    pub base: TemplateNodeState,
+    pub name: String,
+    pub pipeline: crate::template::syntax::expressions::Pipeline,
+    pub declare: bool,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct AssignmentNode {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn AssignmentNodeDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn AssignmentNodeDispatch>,
+}
+
+impl std::fmt::Debug for AssignmentNode {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("AssignmentNode")
+    }
 }
 
 impl PartialEq for AssignmentNode {
@@ -781,14 +848,15 @@ pub(crate) struct AssignmentNodeRoot {
 }
 
 impl AssignmentNode {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         name: String,
         pipeline: crate::template::syntax::expressions::Pipeline,
         declare: bool,
     ) -> AssignmentNodeState {
         let base_state = TemplateNode::initialize_state();
-        let field_name: String = name.clone();
-        let field_pipeline: crate::template::syntax::expressions::Pipeline = pipeline.clone();
+        let field_name: String = name;
+        let field_pipeline: crate::template::syntax::expressions::Pipeline = pipeline;
         let field_declare: bool = declare;
         AssignmentNodeState {
             base: base_state,
@@ -919,8 +987,9 @@ impl AssignmentNodeDispatch for AssignmentNodeRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait TemplateInvokeNodeDispatch: TemplateNodeDispatch {
+pub trait TemplateInvokeNodeDispatch: TemplateNodeDispatch {
     fn downcast_template_invoke_node_to_template_invoke_node(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch>>;
@@ -933,18 +1002,28 @@ pub(crate) trait TemplateInvokeNodeDispatch: TemplateNodeDispatch {
     );
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct TemplateInvokeNodeState {
-    pub(crate) base: TemplateNodeState,
-    pub(crate) name: String,
-    pub(crate) context: crate::template::syntax::expressions::Pipeline,
+pub struct TemplateInvokeNodeState {
+    #[doc(hidden)]
+    pub base: TemplateNodeState,
+    pub name: String,
+    pub context: crate::template::syntax::expressions::Pipeline,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct TemplateInvokeNode {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn TemplateInvokeNodeDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn TemplateInvokeNodeDispatch>,
+}
+
+impl std::fmt::Debug for TemplateInvokeNode {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("TemplateInvokeNode")
+    }
 }
 
 impl PartialEq for TemplateInvokeNode {
@@ -962,13 +1041,14 @@ pub(crate) struct TemplateInvokeNodeRoot {
 }
 
 impl TemplateInvokeNode {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         name: String,
         context: crate::template::syntax::expressions::Pipeline,
     ) -> TemplateInvokeNodeState {
         let base_state = TemplateNode::initialize_state();
-        let field_name: String = name.clone();
-        let field_context: crate::template::syntax::expressions::Pipeline = context.clone();
+        let field_name: String = name;
+        let field_context: crate::template::syntax::expressions::Pipeline = context;
         TemplateInvokeNodeState {
             base: base_state,
             name: field_name,
@@ -1088,23 +1168,25 @@ impl TemplateInvokeNodeDispatch for TemplateInvokeNodeRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct TemplateVariableBindingState {
-    pub(crate) name: String,
-    pub(crate) declare: bool,
+pub struct TemplateVariableBindingState {
+    pub name: String,
+    pub declare: bool,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct TemplateVariableBinding {
-    pub(crate) state: rt::ObjectHandle<TemplateVariableBindingState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<TemplateVariableBindingState>,
 }
 
 impl TemplateVariableBinding {
     pub fn new(name: String, declare: bool) -> TemplateVariableBinding {
-        let field_name: String = name.clone();
+        let field_name: String = name;
         let field_declare: bool = declare;
         TemplateVariableBinding {
-            state: rt::ObjectHandle::new(TemplateVariableBindingState {
+            state: rt::ObjectRef::new(TemplateVariableBindingState {
                 name: field_name,
                 declare: field_declare,
             }),
@@ -1112,8 +1194,9 @@ impl TemplateVariableBinding {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait IfNodeDispatch: TemplateNodeDispatch {
+pub trait IfNodeDispatch: TemplateNodeDispatch {
     fn downcast_if_node_to_if_node(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn IfNodeDispatch>>;
@@ -1127,20 +1210,30 @@ pub(crate) trait IfNodeDispatch: TemplateNodeDispatch {
     fn write_if_node_else_nodes(&self, value: js_abi::JsArray<TemplateNode>);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct IfNodeState {
-    pub(crate) base: TemplateNodeState,
-    pub(crate) condition: crate::template::syntax::expressions::Pipeline,
-    pub(crate) binding: Option<TemplateVariableBinding>,
-    pub(crate) then_nodes: js_abi::JsArray<TemplateNode>,
-    pub(crate) else_nodes: js_abi::JsArray<TemplateNode>,
+pub struct IfNodeState {
+    #[doc(hidden)]
+    pub base: TemplateNodeState,
+    pub condition: crate::template::syntax::expressions::Pipeline,
+    pub binding: Option<TemplateVariableBinding>,
+    pub then_nodes: js_abi::JsArray<TemplateNode>,
+    pub else_nodes: js_abi::JsArray<TemplateNode>,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct IfNode {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn IfNodeDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn IfNodeDispatch>,
+}
+
+impl std::fmt::Debug for IfNode {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("IfNode")
+    }
 }
 
 impl PartialEq for IfNode {
@@ -1158,17 +1251,18 @@ pub(crate) struct IfNodeRoot {
 }
 
 impl IfNode {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         condition: crate::template::syntax::expressions::Pipeline,
         binding: Option<TemplateVariableBinding>,
         then_nodes: js_abi::JsArray<TemplateNode>,
         else_nodes: js_abi::JsArray<TemplateNode>,
     ) -> IfNodeState {
         let base_state = TemplateNode::initialize_state();
-        let field_condition: crate::template::syntax::expressions::Pipeline = condition.clone();
-        let field_binding: Option<TemplateVariableBinding> = binding.clone();
-        let field_then_nodes: js_abi::JsArray<TemplateNode> = then_nodes.clone();
-        let field_else_nodes: js_abi::JsArray<TemplateNode> = else_nodes.clone();
+        let field_condition: crate::template::syntax::expressions::Pipeline = condition;
+        let field_binding: Option<TemplateVariableBinding> = binding;
+        let field_then_nodes: js_abi::JsArray<TemplateNode> = then_nodes;
+        let field_else_nodes: js_abi::JsArray<TemplateNode> = else_nodes;
         IfNodeState {
             base: base_state,
             condition: field_condition,
@@ -1305,8 +1399,9 @@ impl IfNodeDispatch for IfNodeRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait RangeNodeDispatch: TemplateNodeDispatch {
+pub trait RangeNodeDispatch: TemplateNodeDispatch {
     fn downcast_range_node_to_range_node(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn RangeNodeDispatch>>;
@@ -1322,21 +1417,31 @@ pub(crate) trait RangeNodeDispatch: TemplateNodeDispatch {
     fn write_range_node_else_body(&self, value: js_abi::JsArray<TemplateNode>);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct RangeNodeState {
-    pub(crate) base: TemplateNodeState,
-    pub(crate) expr: crate::template::syntax::expressions::Pipeline,
-    pub(crate) key_var: Option<String>,
-    pub(crate) value_var: Option<String>,
-    pub(crate) body: js_abi::JsArray<TemplateNode>,
-    pub(crate) else_body: js_abi::JsArray<TemplateNode>,
+pub struct RangeNodeState {
+    #[doc(hidden)]
+    pub base: TemplateNodeState,
+    pub expr: crate::template::syntax::expressions::Pipeline,
+    pub key_var: Option<String>,
+    pub value_var: Option<String>,
+    pub body: js_abi::JsArray<TemplateNode>,
+    pub else_body: js_abi::JsArray<TemplateNode>,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct RangeNode {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn RangeNodeDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn RangeNodeDispatch>,
+}
+
+impl std::fmt::Debug for RangeNode {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("RangeNode")
+    }
 }
 
 impl PartialEq for RangeNode {
@@ -1354,7 +1459,8 @@ pub(crate) struct RangeNodeRoot {
 }
 
 impl RangeNode {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         expr: crate::template::syntax::expressions::Pipeline,
         key_var: Option<String>,
         value_var: Option<String>,
@@ -1362,11 +1468,11 @@ impl RangeNode {
         else_body: js_abi::JsArray<TemplateNode>,
     ) -> RangeNodeState {
         let base_state = TemplateNode::initialize_state();
-        let field_expr: crate::template::syntax::expressions::Pipeline = expr.clone();
-        let field_key_var: Option<String> = key_var.clone();
-        let field_value_var: Option<String> = value_var.clone();
-        let field_body: js_abi::JsArray<TemplateNode> = body.clone();
-        let field_else_body: js_abi::JsArray<TemplateNode> = else_body.clone();
+        let field_expr: crate::template::syntax::expressions::Pipeline = expr;
+        let field_key_var: Option<String> = key_var;
+        let field_value_var: Option<String> = value_var;
+        let field_body: js_abi::JsArray<TemplateNode> = body;
+        let field_else_body: js_abi::JsArray<TemplateNode> = else_body;
         RangeNodeState {
             base: base_state,
             expr: field_expr,
@@ -1513,8 +1619,9 @@ impl RangeNodeDispatch for RangeNodeRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait WithNodeDispatch: TemplateNodeDispatch {
+pub trait WithNodeDispatch: TemplateNodeDispatch {
     fn downcast_with_node_to_with_node(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn WithNodeDispatch>>;
@@ -1532,22 +1639,32 @@ pub(crate) trait WithNodeDispatch: TemplateNodeDispatch {
     fn write_with_node_source_segment_index(&self, value: i32);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct WithNodeState {
-    pub(crate) base: TemplateNodeState,
-    pub(crate) expr: crate::template::syntax::expressions::Pipeline,
-    pub(crate) binding: Option<TemplateVariableBinding>,
-    pub(crate) body: js_abi::JsArray<TemplateNode>,
-    pub(crate) else_body: js_abi::JsArray<TemplateNode>,
-    pub(crate) source_text: String,
-    pub(crate) source_segment_index: i32,
+pub struct WithNodeState {
+    #[doc(hidden)]
+    pub base: TemplateNodeState,
+    pub expr: crate::template::syntax::expressions::Pipeline,
+    pub binding: Option<TemplateVariableBinding>,
+    pub body: js_abi::JsArray<TemplateNode>,
+    pub else_body: js_abi::JsArray<TemplateNode>,
+    pub source_text: String,
+    pub source_segment_index: i32,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct WithNode {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn WithNodeDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn WithNodeDispatch>,
+}
+
+impl std::fmt::Debug for WithNode {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("WithNode")
+    }
 }
 
 impl PartialEq for WithNode {
@@ -1565,7 +1682,8 @@ pub(crate) struct WithNodeRoot {
 }
 
 impl WithNode {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         expr: crate::template::syntax::expressions::Pipeline,
         binding: Option<TemplateVariableBinding>,
         body: js_abi::JsArray<TemplateNode>,
@@ -1574,11 +1692,11 @@ impl WithNode {
         source_segment_index: i32,
     ) -> WithNodeState {
         let base_state = TemplateNode::initialize_state();
-        let field_expr: crate::template::syntax::expressions::Pipeline = expr.clone();
-        let field_binding: Option<TemplateVariableBinding> = binding.clone();
-        let field_body: js_abi::JsArray<TemplateNode> = body.clone();
-        let field_else_body: js_abi::JsArray<TemplateNode> = else_body.clone();
-        let field_source_text: String = source_text.clone();
+        let field_expr: crate::template::syntax::expressions::Pipeline = expr;
+        let field_binding: Option<TemplateVariableBinding> = binding;
+        let field_body: js_abi::JsArray<TemplateNode> = body;
+        let field_else_body: js_abi::JsArray<TemplateNode> = else_body;
+        let field_source_text: String = source_text;
         let field_source_segment_index: i32 = source_segment_index;
         WithNodeState {
             base: base_state,
@@ -1739,14 +1857,14 @@ impl WithNodeDispatch for WithNodeRoot {
     }
 
     fn write_with_node_source_segment_index(&self, value: i32) {
-        self
-            .state
+        self.state
             .with_mut(|state| state.source_segment_index = value);
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait BlockNodeDispatch: TemplateNodeDispatch {
+pub trait BlockNodeDispatch: TemplateNodeDispatch {
     fn downcast_block_node_to_block_node(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn BlockNodeDispatch>>;
@@ -1758,19 +1876,29 @@ pub(crate) trait BlockNodeDispatch: TemplateNodeDispatch {
     fn write_block_node_fallback(&self, value: js_abi::JsArray<TemplateNode>);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct BlockNodeState {
-    pub(crate) base: TemplateNodeState,
-    pub(crate) name: String,
-    pub(crate) context: crate::template::syntax::expressions::Pipeline,
-    pub(crate) fallback: js_abi::JsArray<TemplateNode>,
+pub struct BlockNodeState {
+    #[doc(hidden)]
+    pub base: TemplateNodeState,
+    pub name: String,
+    pub context: crate::template::syntax::expressions::Pipeline,
+    pub fallback: js_abi::JsArray<TemplateNode>,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct BlockNode {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn BlockNodeDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn BlockNodeDispatch>,
+}
+
+impl std::fmt::Debug for BlockNode {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("BlockNode")
+    }
 }
 
 impl PartialEq for BlockNode {
@@ -1788,15 +1916,16 @@ pub(crate) struct BlockNodeRoot {
 }
 
 impl BlockNode {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         name: String,
         context: crate::template::syntax::expressions::Pipeline,
         fallback: js_abi::JsArray<TemplateNode>,
     ) -> BlockNodeState {
         let base_state = TemplateNode::initialize_state();
-        let field_name: String = name.clone();
-        let field_context: crate::template::syntax::expressions::Pipeline = context.clone();
-        let field_fallback: js_abi::JsArray<TemplateNode> = fallback.clone();
+        let field_name: String = name;
+        let field_context: crate::template::syntax::expressions::Pipeline = context;
+        let field_fallback: js_abi::JsArray<TemplateNode> = fallback;
         BlockNodeState {
             base: base_state,
             name: field_name,

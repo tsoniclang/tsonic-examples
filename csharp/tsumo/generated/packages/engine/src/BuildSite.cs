@@ -19,7 +19,7 @@ namespace Tsumo.Engine
             Build_standardSite.__tsonic_module_init();
             buildSite = (BuildRequest request) =>
             {
-                string siteDir = System.IO.Path.GetFullPath(request.siteDir);
+                string siteDir = Tsonic.CSharp.Node.path.resolve(request.siteDir);
                 LoadedDocsConfig? docs = Docs_config.loadDocsConfig(siteDir);
                 OutputPublication publication = OutputPublicationModule.beginOutputPublication(siteDir, request.destinationDir, !request.cleanDestinationDir);
                 try

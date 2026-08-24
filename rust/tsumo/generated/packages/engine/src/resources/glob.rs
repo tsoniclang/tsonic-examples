@@ -6,7 +6,7 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-pub(crate) fn resource_segment_matches(pattern: String, segment: String) -> rt::TsonicResult<bool> {
+pub fn resource_segment_matches(pattern: String, segment: String) -> Result<bool, rt::TsonicError> {
     let brace_start: i32 =
         tsonic_rust_runtime::conversions::isize_to_i32(js_string::index_of_from_start(
             &pattern, "{",
@@ -23,23 +23,19 @@ pub(crate) fn resource_segment_matches(pattern: String, segment: String) -> rt::
                     &pattern,
                     tsonic_rust_runtime::conversions::i32_to_f64(brace_start + 1),
                     tsonic_rust_runtime::conversions::i32_to_f64(brace_end),
-                )
-                .map_err(tsonic_rust_runtime::TsonicError::from)?,
+                )?,
                 ",",
-            )
-            .map_err(tsonic_rust_runtime::TsonicError::from)?;
+            )?;
             if tsonic_rust_runtime::conversions::usize_to_i32(alternatives.len())? > 1 {
                 let prefix: String = js_string::substring(
                     &pattern,
                     0.0,
                     tsonic_rust_runtime::conversions::i32_to_f64(brace_start),
-                )
-                .map_err(tsonic_rust_runtime::TsonicError::from)?;
+                )?;
                 let suffix: String = js_string::substring_from(
                     &pattern,
                     tsonic_rust_runtime::conversions::i32_to_f64(brace_end + 1),
-                )
-                .map_err(tsonic_rust_runtime::TsonicError::from)?;
+                )?;
                 {
                     let mut index: f64 = 0.0;
                     while index
@@ -80,8 +76,7 @@ pub(crate) fn resource_segment_matches(pattern: String, segment: String) -> rt::
     if star < 0 {
         return Ok(pattern == segment);
     }
-    let parts: js_abi::JsArray<String> =
-        js_string::split_all(&pattern, "*").map_err(tsonic_rust_runtime::TsonicError::from)?;
+    let parts: js_abi::JsArray<String> = js_string::split_all(&pattern, "*")?;
     let mut position: f64 = 0.0;
     {
         let mut index: f64 = 0.0;
@@ -116,22 +111,20 @@ pub(crate) fn resource_segment_matches(pattern: String, segment: String) -> rt::
     )
 }
 
-pub(crate) fn split_glob_segments(value: String) -> rt::TsonicResult<js_abi::JsArray<String>> {
-    let normalized: String = crate::resources::paths::NORMALIZE_RESOURCE_RELATIVE_PATH
-        .with(|module_binding| module_binding.load())
-        .call((value.clone(),))?;
+pub fn split_glob_segments(value: String) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
+    let normalized: String = crate::resources::paths::normalize_resource_relative_path(value)?;
     if normalized.is_empty() {
         return Ok(js_abi::JsArray::from_dense(vec![]));
     }
-    Ok(js_string::split_all(&normalized, "/").map_err(tsonic_rust_runtime::TsonicError::from)?)
+    js_string::split_all(&normalized, "/").map_err(rt::TsonicError::from)
 }
 
-pub(crate) fn resource_glob_matches_at(
+pub fn resource_glob_matches_at(
     pattern_segments: js_abi::JsArray<String>,
     path_segments: js_abi::JsArray<String>,
     pattern_index: i32,
     path_index: i32,
-) -> rt::TsonicResult<bool> {
+) -> Result<bool, rt::TsonicError> {
     if pattern_index >= tsonic_rust_runtime::conversions::usize_to_i32(pattern_segments.len())? {
         return Ok(
             path_index >= tsonic_rust_runtime::conversions::usize_to_i32(path_segments.len())?,
@@ -183,10 +176,10 @@ pub(crate) fn resource_glob_matches_at(
     )
 }
 
-pub fn resource_glob_matches(pattern: String, path: String) -> rt::TsonicResult<bool> {
+pub fn resource_glob_matches(pattern: String, path: String) -> Result<bool, rt::TsonicError> {
     resource_glob_matches_at(
-        split_glob_segments(pattern.clone())?,
-        split_glob_segments(path.clone())?,
+        split_glob_segments(pattern)?,
+        split_glob_segments(path)?,
         0,
         0,
     )

@@ -14,17 +14,18 @@ pub enum AssetLayer {
     DocsAsset,
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct OutputClaimState {
-    pub(crate) relative_path: String,
-    pub(crate) owner: String,
-    pub(crate) asset_layer: Option<AssetLayer>,
+pub struct OutputClaimState {
+    pub relative_path: String,
+    pub owner: String,
+    pub asset_layer: Option<AssetLayer>,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct OutputClaim {
-    pub(crate) state: rt::ObjectHandle<OutputClaimState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<OutputClaimState>,
 }
 
 impl OutputClaim {
@@ -33,11 +34,11 @@ impl OutputClaim {
         owner: String,
         asset_layer: Option<AssetLayer>,
     ) -> OutputClaim {
-        let field_relative_path: String = relative_path.clone();
-        let field_owner: String = owner.clone();
+        let field_relative_path: String = relative_path;
+        let field_owner: String = owner;
         let field_asset_layer: Option<AssetLayer> = asset_layer;
         OutputClaim {
-            state: rt::ObjectHandle::new(OutputClaimState {
+            state: rt::ObjectRef::new(OutputClaimState {
                 relative_path: field_relative_path,
                 owner: field_owner,
                 asset_layer: field_asset_layer,
@@ -46,129 +47,414 @@ impl OutputClaim {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct FileSiteOutputState {
-    pub(crate) source_path: String,
+pub struct FileSiteOutputState {
+    pub source_path: String,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct FileSiteOutput {
-    pub(crate) state: rt::ObjectHandle<FileSiteOutputState>,
+pub struct FileSiteOutput {
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<FileSiteOutputState>,
 }
 
 impl FileSiteOutput {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new(source_path: String) -> FileSiteOutput {
-        let field_source_path: String = source_path.clone();
+        let field_source_path: String = source_path;
         FileSiteOutput {
-            state: rt::ObjectHandle::new(FileSiteOutputState {
+            state: rt::ObjectRef::new(FileSiteOutputState {
                 source_path: field_source_path,
             }),
         }
     }
 }
 
-type NormalizeOutputPathCallable = rt::Callable<(String,), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub(crate) static NORMALIZE_OUTPUT_PATH: rt::ModuleCell<NormalizeOutputPathCallable> = const { rt::ModuleCell::new() };
+pub fn normalize_output_path(relative_path: String) -> Result<String, rt::TsonicError> {
+    let normalized: String = crate::build::site_routes::normalize_site_path(&relative_path)?;
+    if normalized.is_empty()
+        || js_string::starts_with_from_start(&normalized, "/")
+        || tsonic_rust_node::path::is_absolute(&normalized)
+        || tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&normalized))? >= 2
+            && js_string::char_at(&normalized, 1.0)? == ":"
+    {
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_OUTPUT_PATH_ABSOLUTE"),
+            format!(
+                "{}{}",
+                String::from("Site output path must be relative: "),
+                relative_path,
+            ),
+            None,
+            None,
+            None,
+        )));
+    }
+    let segments: js_abi::JsArray<String> =
+        crate::build::site_routes::split_site_path(normalized.clone())?;
+    {
+        let mut index: f64 = 0.0;
+        while index < (tsonic_rust_runtime::conversions::usize_to_i32(segments.len())? as f64) {
+            let segment: String = match segments.get_number(index).as_ref() {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
+            if segment.is_empty() || segment == "." || segment == ".." {
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+                    String::from("TSUMO_OUTPUT_PATH_ESCAPES_ROOT"),
+                    format!(
+                        "{}{}",
+                        String::from("Site output path is not canonical: "),
+                        relative_path,
+                    ),
+                    None,
+                    None,
+                    None,
+                )));
+            }
+            index += 1.0;
+        }
+    }
+    Ok(crate::build::site_routes::join_site_path(segments.clone()))
 }
 
-type CombineOutputPathCallable = rt::Callable<(String, String), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub(crate) static COMBINE_OUTPUT_PATH: rt::ModuleCell<CombineOutputPathCallable> = const { rt::ModuleCell::new() };
+pub fn combine_output_path(
+    prefix: String,
+    relative_path: String,
+) -> Result<String, rt::TsonicError> {
+    let normalized_relative_path: String = normalize_output_path(relative_path)?;
+    if js_string::trim(&prefix).is_empty() {
+        return Ok(normalized_relative_path);
+    }
+    normalize_output_path(format!(
+        "{}{}{}",
+        crate::build::site_routes::normalize_site_path(&prefix)?,
+        String::from("/"),
+        normalized_relative_path,
+    ))
 }
 
-type ResolveOutputPathCallable = rt::Callable<(String, String), rt::TsonicResult<String>>;
+pub fn resolve_output_path(
+    output_root: String,
+    relative_path: String,
+) -> Result<String, rt::TsonicError> {
+    let root: String = tsonic_rust_node::path::resolve(&[output_root.as_str()])?;
+    let candidate: String = {
+        let operation_input_0 = root.clone();
+        tsonic_rust_node::path::resolve(&[
+            operation_input_0.as_str(),
+            normalize_output_path(relative_path.clone())?.as_str(),
+        ])
+    }?;
+    if !crate::utils::paths::path_contains_or_equals(root.clone(), candidate.clone()) {
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_OUTPUT_PATH_ESCAPES_ROOT"),
+            format!(
+                "{}{}",
+                String::from("Site output path escapes its root: "),
+                relative_path,
+            ),
+            None,
+            None,
+            None,
+        )));
+    }
+    Ok(candidate)
+}
 
-std::thread_local! {
-    pub(crate) static RESOLVE_OUTPUT_PATH: rt::ModuleCell<ResolveOutputPathCallable> = const { rt::ModuleCell::new() };
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub trait SiteOutputPlanDispatch {
+    fn downcast_site_output_plan_to_site_output_plan(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn SiteOutputPlanDispatch>>;
+    fn read_site_output_plan_claims_by_path(&self) -> js_abi::JsMap<String, OutputClaim>;
+    fn write_site_output_plan_claims_by_path(&self, value: js_abi::JsMap<String, OutputClaim>);
+    fn read_site_output_plan_text_by_path(&self) -> js_abi::JsMap<String, String>;
+    fn write_site_output_plan_text_by_path(&self, value: js_abi::JsMap<String, String>);
+    fn read_site_output_plan_files_by_path(&self) -> js_abi::JsMap<String, FileSiteOutput>;
+    fn write_site_output_plan_files_by_path(&self, value: js_abi::JsMap<String, FileSiteOutput>);
+    fn dispatch_site_output_plan_add_text(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+        content: String,
+        owner: String,
+    ) -> Result<(), rt::TsonicError>;
+    fn exact_site_output_plan_add_text(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+        content: String,
+        owner: String,
+    ) -> Result<(), rt::TsonicError>;
+    fn dispatch_site_output_plan_add_default_text(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+        content: String,
+        owner: String,
+    ) -> Result<(), rt::TsonicError>;
+    fn exact_site_output_plan_add_default_text(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+        content: String,
+        owner: String,
+    ) -> Result<(), rt::TsonicError>;
+    fn dispatch_site_output_plan_add_asset(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+        source_path: String,
+        owner: String,
+        layer: AssetLayer,
+    ) -> Result<(), rt::TsonicError>;
+    fn exact_site_output_plan_add_asset(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+        source_path: String,
+        owner: String,
+        layer: AssetLayer,
+    ) -> Result<(), rt::TsonicError>;
+    fn dispatch_site_output_plan_add_directory(
+        self: std::rc::Rc<Self>,
+        source_root: String,
+        output_prefix: String,
+        owner: String,
+        layer: AssetLayer,
+    ) -> Result<(), rt::TsonicError>;
+    fn exact_site_output_plan_add_directory(
+        self: std::rc::Rc<Self>,
+        source_root: String,
+        output_prefix: String,
+        owner: String,
+        layer: AssetLayer,
+    ) -> Result<(), rt::TsonicError>;
+    fn dispatch_site_output_plan_generated_output_count(self: std::rc::Rc<Self>) -> i32;
+    fn exact_site_output_plan_generated_output_count(self: std::rc::Rc<Self>) -> i32;
+    fn dispatch_site_output_plan_apply_deferred_template_results(
+        self: std::rc::Rc<Self>,
+        results: js_abi::JsMap<String, String>,
+    ) -> Result<(), rt::TsonicError>;
+    fn exact_site_output_plan_apply_deferred_template_results(
+        self: std::rc::Rc<Self>,
+        results: js_abi::JsMap<String, String>,
+    ) -> Result<(), rt::TsonicError>;
+    fn dispatch_site_output_plan_render(
+        self: std::rc::Rc<Self>,
+        output_root: String,
+    ) -> Result<(), rt::TsonicError>;
+    fn exact_site_output_plan_render(
+        self: std::rc::Rc<Self>,
+        output_root: String,
+    ) -> Result<(), rt::TsonicError>;
+    fn dispatch_site_output_plan_throw_conflict(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+        owner: String,
+        previous: OutputClaim,
+    ) -> Result<(), rt::TsonicError>;
+    fn exact_site_output_plan_throw_conflict(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+        owner: String,
+        previous: OutputClaim,
+    ) -> Result<(), rt::TsonicError>;
+}
+
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct SiteOutputPlanState {
+    pub claims_by_path: js_abi::JsMap<String, OutputClaim>,
+    pub text_by_path: js_abi::JsMap<String, String>,
+    pub files_by_path: js_abi::JsMap<String, FileSiteOutput>,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct SiteOutputPlanState {
-    pub(crate) claims_by_path: js_abi::JsMap<String, OutputClaim>,
-    pub(crate) text_by_path: js_abi::JsMap<String, String>,
-    pub(crate) files_by_path: js_abi::JsMap<String, FileSiteOutput>,
+#[derive(Clone)]
+pub struct SiteOutputPlan {
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn SiteOutputPlanDispatch>,
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct SiteOutputPlan {
-    pub(crate) state: rt::ObjectHandle<SiteOutputPlanState>,
+impl std::fmt::Debug for SiteOutputPlan {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("SiteOutputPlan")
+    }
+}
+
+impl PartialEq for SiteOutputPlan {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+    }
+}
+
+impl Eq for SiteOutputPlan {}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub(crate) struct SiteOutputPlanRoot {
+    identity: rt::ObjectIdentity,
+    state: rt::ObjectHandle<SiteOutputPlanState>,
 }
 
 impl SiteOutputPlan {
-    pub fn new() -> SiteOutputPlan {
+    #[doc(hidden)]
+    pub fn initialize_state() -> SiteOutputPlanState {
         let field_claims_by_path: js_abi::JsMap<String, OutputClaim> = js_abi::JsMap::new();
         let field_text_by_path: js_abi::JsMap<String, String> = js_abi::JsMap::new();
         let field_files_by_path: js_abi::JsMap<String, FileSiteOutput> = js_abi::JsMap::new();
-        SiteOutputPlan {
-            state: rt::ObjectHandle::new(SiteOutputPlanState {
-                claims_by_path: field_claims_by_path,
-                text_by_path: field_text_by_path,
-                files_by_path: field_files_by_path,
-            }),
+        SiteOutputPlanState {
+            claims_by_path: field_claims_by_path,
+            text_by_path: field_text_by_path,
+            files_by_path: field_files_by_path,
         }
     }
 
-    pub fn add_text(
-        &self,
-        relative_path: String,
-        content: String,
-        owner: String,
-    ) -> rt::TsonicResult<()> {
-        let output_path: String = NORMALIZE_OUTPUT_PATH
-            .with(|module_binding| module_binding.load())
-            .call((relative_path.clone(),))?;
-        let key: String = js_string::to_lower_case(&output_path);
-        let previous: Option<OutputClaim> = self
-            .state
-            .with(|state| state.claims_by_path.clone())
-            .get(&key);
-        if previous.is_some() {
-            {
-                self.throw_conflict(output_path.clone(), owner.clone(), match previous.as_ref() {
-                    Some(flow_value) => flow_value.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                })?;
-                unreachable!("fallible never call returned")
-            };
+    pub fn new() -> SiteOutputPlan {
+        let state = SiteOutputPlan::initialize_state();
+        let identity = rt::ObjectIdentity::new();
+        let root = std::rc::Rc::new(SiteOutputPlanRoot {
+            identity: identity.clone(),
+            state: rt::ObjectHandle::new(state),
+        });
+        SiteOutputPlan {
+            identity,
+            dispatch: root,
         }
-        self
-            .state
-            .with(|state| state.claims_by_path.clone())
-            .set(
-                key.clone(),
-                OutputClaim::new(
+    }
+}
+
+impl Default for SiteOutputPlan {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl SiteOutputPlanRoot {
+    fn exact_site_output_plan_add_asset(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+        source_path: String,
+        owner: String,
+        layer: AssetLayer,
+    ) -> Result<(), rt::TsonicError> {
+        let project_this = SiteOutputPlan {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        let output_path: String = normalize_output_path(relative_path)?;
+        let key: String = js_string::to_lower_case(&output_path);
+        let previous: Option<OutputClaim> = {
+            let dispatch_receiver = &project_this;
+            dispatch_receiver
+                .dispatch
+                .read_site_output_plan_claims_by_path()
+        }
+        .get(&key);
+        if previous.is_none() {
+            {
+                let operation_input_0 = {
+                    let dispatch_receiver_2 = &project_this;
+                    dispatch_receiver_2
+                        .dispatch
+                        .read_site_output_plan_claims_by_path()
+                };
+                operation_input_0.set_discard(
+                    key.clone(),
+                    OutputClaim::new(output_path.clone(), owner.clone(), Some(layer)),
+                )
+            };
+            {
+                let operation_input_0_2 = {
+                    let dispatch_receiver_3 = &project_this;
+                    dispatch_receiver_3
+                        .dispatch
+                        .read_site_output_plan_files_by_path()
+                };
+                operation_input_0_2
+                    .set_discard(key.clone(), FileSiteOutput::new(source_path.clone()))
+            };
+            return Ok(());
+        }
+        if match previous.as_ref() {
+            Some(flow_value) => flow_value.clone(),
+            None => unreachable!("checked flow selected a missing optional value"),
+        }
+        .state
+        .with(|state| state.asset_layer)
+            == Some(AssetLayer::ThemeStatic)
+            && layer == AssetLayer::SiteStatic
+        {
+            {
+                let operation_input_0_3 = {
+                    let dispatch_receiver_4 = &project_this;
+                    dispatch_receiver_4
+                        .dispatch
+                        .read_site_output_plan_claims_by_path()
+                };
+                operation_input_0_3.set_discard(
+                    key.clone(),
+                    OutputClaim::new(output_path.clone(), owner.clone(), Some(layer)),
+                )
+            };
+            {
+                let operation_input_0_4 = {
+                    let dispatch_receiver_5 = &project_this;
+                    dispatch_receiver_5
+                        .dispatch
+                        .read_site_output_plan_files_by_path()
+                };
+                operation_input_0_4
+                    .set_discard(key.clone(), FileSiteOutput::new(source_path.clone()))
+            };
+            return Ok(());
+        }
+        {
+            {
+                let dispatch_receiver_6 = project_this.clone();
+                dispatch_receiver_6.dispatch.clone().dispatch_site_output_plan_throw_conflict(
                     output_path.clone(),
                     owner.clone(),
-                    Option::<AssetLayer>::None,
-                ),
-            );
-        self
-            .state
-            .with(|state| state.text_by_path.clone())
-            .set(key.clone(), content.clone());
-        Ok(())
+                    match previous.as_ref() {
+                        Some(flow_value_2) => flow_value_2.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
+                )
+            }?;
+            unreachable!("fallible never call returned")
+        };
     }
 
-    pub fn add_default_text(
-        &self,
+    fn exact_site_output_plan_add_default_text(
+        self: std::rc::Rc<Self>,
         relative_path: String,
         content: String,
         owner: String,
-    ) -> rt::TsonicResult<()> {
-        let output_path: String = NORMALIZE_OUTPUT_PATH
-            .with(|module_binding| module_binding.load())
-            .call((relative_path.clone(),))?;
-        let previous: Option<OutputClaim> = self
-            .state
-            .with(|state| state.claims_by_path.clone())
-            .get(&js_string::to_lower_case(&output_path));
+    ) -> Result<(), rt::TsonicError> {
+        let project_this = SiteOutputPlan {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        let output_path: String = normalize_output_path(relative_path)?;
+        let previous: Option<OutputClaim> = {
+            let operation_input_0 = {
+                let dispatch_receiver = &project_this;
+                dispatch_receiver
+                    .dispatch
+                    .read_site_output_plan_claims_by_path()
+            };
+            operation_input_0.get(&js_string::to_lower_case(&output_path))
+        };
         if previous.is_none() {
-            self.add_text(output_path.clone(), content.clone(), owner.clone())?;
+            {
+                let dispatch_receiver_2 = project_this.clone();
+                dispatch_receiver_2
+                    .dispatch
+                    .clone()
+                    .dispatch_site_output_plan_add_text(
+                        output_path.clone(),
+                        content,
+                        owner.clone(),
+                    )
+            }?;
             return Ok(());
         }
         if match previous.as_ref() {
@@ -189,87 +475,35 @@ impl SiteOutputPlan {
             return Ok(());
         }
         {
-            self.throw_conflict(output_path.clone(), owner.clone(), match previous.as_ref() {
-                Some(flow_value_3) => flow_value_3.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            })?;
+            {
+                let dispatch_receiver_3 = project_this.clone();
+                dispatch_receiver_3.dispatch.clone().dispatch_site_output_plan_throw_conflict(
+                    output_path.clone(),
+                    owner.clone(),
+                    match previous.as_ref() {
+                        Some(flow_value_3) => flow_value_3.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
+                )
+            }?;
             unreachable!("fallible never call returned")
         };
     }
 
-    pub fn add_asset(
-        &self,
-        relative_path: String,
-        source_path: String,
-        owner: String,
-        layer: AssetLayer,
-    ) -> rt::TsonicResult<()> {
-        let output_path: String = NORMALIZE_OUTPUT_PATH
-            .with(|module_binding| module_binding.load())
-            .call((relative_path.clone(),))?;
-        let key: String = js_string::to_lower_case(&output_path);
-        let previous: Option<OutputClaim> = self
-            .state
-            .with(|state| state.claims_by_path.clone())
-            .get(&key);
-        if previous.is_none() {
-            self
-                .state
-                .with(|state| state.claims_by_path.clone())
-                .set(
-                    key.clone(),
-                    OutputClaim::new(output_path.clone(), owner.clone(), Some(layer)),
-                );
-            self
-                .state
-                .with(|state| state.files_by_path.clone())
-                .set(key.clone(), FileSiteOutput::new(source_path.clone()));
-            return Ok(());
-        }
-        if match previous.as_ref() {
-            Some(flow_value) => flow_value.clone(),
-            None => unreachable!("checked flow selected a missing optional value"),
-        }
-        .state
-        .with(|state| state.asset_layer)
-            == Some(AssetLayer::ThemeStatic)
-            && layer == AssetLayer::SiteStatic
-        {
-            self
-                .state
-                .with(|state| state.claims_by_path.clone())
-                .set(
-                    key.clone(),
-                    OutputClaim::new(output_path.clone(), owner.clone(), Some(layer)),
-                );
-            self
-                .state
-                .with(|state| state.files_by_path.clone())
-                .set(key.clone(), FileSiteOutput::new(source_path.clone()));
-            return Ok(());
-        }
-        {
-            self.throw_conflict(output_path.clone(), owner.clone(), match previous.as_ref() {
-                Some(flow_value_2) => flow_value_2.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            })?;
-            unreachable!("fallible never call returned")
-        };
-    }
-
-    pub fn add_directory(
-        &self,
+    fn exact_site_output_plan_add_directory(
+        self: std::rc::Rc<Self>,
         source_root: String,
         output_prefix: String,
         owner: String,
         layer: AssetLayer,
-    ) -> rt::TsonicResult<()> {
-        let files: js_abi::JsArray<String> = crate::fs::LIST_FILES_RECURSIVE
-            .with(|module_binding| module_binding.load())
-            .call((source_root.clone(), String::from("*")))?;
-        files.try_sort(|left, right| {
-            crate::build::site_routes::compare_site_paths(left.clone(), right.clone())
-        })?;
+    ) -> Result<(), rt::TsonicError> {
+        let project_this = SiteOutputPlan {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        let files: js_abi::JsArray<String> =
+            crate::fs::list_files_recursive(source_root.clone(), String::from("*"))?;
+        files.try_sort(crate::build::site_routes::compare_site_paths)?;
         {
             let mut index: f64 = 0.0;
             while index < (tsonic_rust_runtime::conversions::usize_to_i32(files.len())? as f64) {
@@ -280,39 +514,104 @@ impl SiteOutputPlan {
                 let relative_path: String = crate::build::site_routes::normalize_site_path(
                     &tsonic_rust_node::path::relative(&source_root, &source_path),
                 )?;
-                self.add_asset(
-                    COMBINE_OUTPUT_PATH
-                        .with(|module_binding| module_binding.load())
-                        .call((output_prefix.clone(), relative_path.clone()))?,
-                    source_path.clone(),
-                    owner.clone(),
-                    layer,
-                )?;
+                {
+                    let dispatch_receiver = project_this.clone();
+                    dispatch_receiver
+                        .dispatch
+                        .clone()
+                        .dispatch_site_output_plan_add_asset(
+                            combine_output_path(output_prefix.clone(), relative_path.clone())?,
+                            source_path.clone(),
+                            owner.clone(),
+                            layer,
+                        )
+                }?;
                 index += 1.0;
             }
         }
         Ok(())
     }
 
-    pub fn generated_output_count(&self) -> i32 {
-        let mut count: i32 = 0;
-        #[expect(unused_variables, reason = "authored binding drop scope")]
-        for unused in self.state.with(|state| state.text_by_path.clone()).values() {
-            count += 1;
+    fn exact_site_output_plan_add_text(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+        content: String,
+        owner: String,
+    ) -> Result<(), rt::TsonicError> {
+        let project_this = SiteOutputPlan {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        let output_path: String = normalize_output_path(relative_path)?;
+        let key: String = js_string::to_lower_case(&output_path);
+        let previous: Option<OutputClaim> = {
+            let dispatch_receiver = &project_this;
+            dispatch_receiver
+                .dispatch
+                .read_site_output_plan_claims_by_path()
         }
-        count
+        .get(&key);
+        if previous.is_some() {
+            {
+                {
+                    let dispatch_receiver_2 = project_this.clone();
+                    dispatch_receiver_2.dispatch.clone().dispatch_site_output_plan_throw_conflict(
+                        output_path.clone(),
+                        owner.clone(),
+                        match previous.as_ref() {
+                            Some(flow_value) => flow_value.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        },
+                    )
+                }?;
+                unreachable!("fallible never call returned")
+            };
+        }
+        {
+            let operation_input_0 = {
+                let dispatch_receiver_3 = &project_this;
+                dispatch_receiver_3
+                    .dispatch
+                    .read_site_output_plan_claims_by_path()
+            };
+            operation_input_0.set_discard(
+                key.clone(),
+                OutputClaim::new(
+                    output_path.clone(),
+                    owner.clone(),
+                    Option::<AssetLayer>::None,
+                ),
+            )
+        };
+        {
+            let dispatch_receiver_4 = &project_this;
+            dispatch_receiver_4
+                .dispatch
+                .read_site_output_plan_text_by_path()
+        }
+        .set_discard(key.clone(), content);
+        Ok(())
     }
 
-    pub fn apply_deferred_template_results(
-        &self,
+    fn exact_site_output_plan_apply_deferred_template_results(
+        self: std::rc::Rc<Self>,
         results: js_abi::JsMap<String, String>,
-    ) -> rt::TsonicResult<()> {
+    ) -> Result<(), rt::TsonicError> {
+        let project_this = SiteOutputPlan {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
         if tsonic_rust_runtime::conversions::usize_to_i32(results.len())? == 0 {
             return Ok(());
         }
         let resolved_placements: js_abi::JsSet<String> = js_abi::JsSet::new();
-        let output_paths: js_abi::JsArray<String> =
-            js_abi::array_from_vec(&self.state.with(|state| state.text_by_path.clone()).keys());
+        let output_paths: js_abi::JsArray<String> = js_abi::array_from_vec(&{
+            let dispatch_receiver = &project_this;
+            dispatch_receiver
+                .dispatch
+                .read_site_output_plan_text_by_path()
+        }
+        .keys());
         {
             let mut output_index: f64 = 0.0;
             'loop_value: while output_index
@@ -322,10 +621,13 @@ impl SiteOutputPlan {
                     Some(flow_value) => flow_value.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-                let mut content: Option<String> = self
-                    .state
-                    .with(|state| state.text_by_path.clone())
-                    .get(&key);
+                let mut content: Option<String> = {
+                    let dispatch_receiver_2 = &project_this;
+                    dispatch_receiver_2
+                        .dispatch
+                        .read_site_output_plan_text_by_path()
+                }
+                .get(&key);
                 if content.is_none() {
                     output_index += 1.0;
                     continue 'loop_value;
@@ -333,7 +635,7 @@ impl SiteOutputPlan {
                 for token in results.keys() {
                     let replacement: Option<String> = results.get(&token);
                     if replacement.is_none() {
-                        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                             String::from("TSUMO_TEMPLATE_DEFER_RESULT_INVALID"),
                             String::from("A deferred-template replacement disappeared"),
                             None,
@@ -353,25 +655,29 @@ impl SiteOutputPlan {
                         ))?;
                     if first >= 0 {
                         if resolved_placements.has(&token)
-                            || tsonic_rust_runtime::conversions::isize_to_i32(js_string::index_of(
-                                &match content.as_ref() {
+                            || tsonic_rust_runtime::conversions::isize_to_i32({
+                                let operation_input_0 = match content.as_ref() {
                                     Some(flow_value_3) => flow_value_3.clone(),
                                     None => {
                                         unreachable!(
                                             "checked flow selected a missing optional value"
                                         )
                                     }
-                                },
-                                &token,
-                                tsonic_rust_runtime::conversions::i32_to_f64(
-                                    first
-                                        + tsonic_rust_runtime::conversions::usize_to_i32(
-                                            js_string::js_len(&token),
-                                        )?,
-                                ),
-                            ))? >= 0
+                                };
+                                let operation_input_1 = token.clone();
+                                js_string::index_of(
+                                    &operation_input_0,
+                                    &operation_input_1,
+                                    tsonic_rust_runtime::conversions::i32_to_f64(
+                                        first
+                                            + tsonic_rust_runtime::conversions::usize_to_i32(
+                                                js_string::js_len(&token),
+                                            )?,
+                                    ),
+                                )
+                            })? >= 0
                         {
-                            return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                            return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                                 String::from("TSUMO_TEMPLATE_DEFER_PLACEMENT_INVALID"),
                                 String::from("Each deferred-template placement must occur exactly once in planned output"),
                                 None,
@@ -379,20 +685,23 @@ impl SiteOutputPlan {
                                 None,
                             )));
                         }
-                        resolved_placements.add(token.clone());
+                        resolved_placements.add_discard(token.clone());
                         content = Some(js_string::replace_all(&match content.as_ref() {
     Some(flow_value_4) => flow_value_4.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
 }, &token, &match replacement.as_ref() {
     Some(flow_value_5) => flow_value_5.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
-}).map_err(tsonic_rust_runtime::TsonicError::from)?);
+})?);
                     }
                 }
-                self
-                    .state
-                    .with(|state| state.text_by_path.clone())
-                    .set(key.clone(), match content.as_ref() {
+                {
+                    let dispatch_receiver_3 = &project_this;
+                    dispatch_receiver_3
+                        .dispatch
+                        .read_site_output_plan_text_by_path()
+                }
+                .set_discard(key.clone(), match content.as_ref() {
                     Some(flow_value_6) => flow_value_6.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 });
@@ -401,7 +710,7 @@ impl SiteOutputPlan {
         }
         for token in results.keys() {
             if !resolved_placements.has(&token) {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                     String::from("TSUMO_TEMPLATE_DEFER_PLACEMENT_INVALID"),
                     String::from("Each deferred-template placement must occur exactly once in planned output"),
                     None,
@@ -413,12 +722,42 @@ impl SiteOutputPlan {
         Ok(())
     }
 
-    pub fn render(&self, output_root: String) -> rt::TsonicResult<()> {
-        let keys: js_abi::JsArray<String> =
-            js_abi::array_from_vec(&self.state.with(|state| state.claims_by_path.clone()).keys());
-        keys.try_sort(|left, right| {
-            crate::build::site_routes::compare_site_paths(left.clone(), right.clone())
-        })?;
+    fn exact_site_output_plan_generated_output_count(self: std::rc::Rc<Self>) -> i32 {
+        let project_this = SiteOutputPlan {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        let mut count: i32 = 0;
+        #[expect(unused_variables, reason = "authored binding drop scope")]
+        for unused in {
+            let dispatch_receiver = &project_this;
+            dispatch_receiver
+                .dispatch
+                .read_site_output_plan_text_by_path()
+        }
+        .values()
+        {
+            count += 1;
+        }
+        count
+    }
+
+    fn exact_site_output_plan_render(
+        self: std::rc::Rc<Self>,
+        output_root: String,
+    ) -> Result<(), rt::TsonicError> {
+        let project_this = SiteOutputPlan {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        let keys: js_abi::JsArray<String> = js_abi::array_from_vec(&{
+            let dispatch_receiver = &project_this;
+            dispatch_receiver
+                .dispatch
+                .read_site_output_plan_claims_by_path()
+        }
+        .keys());
+        keys.try_sort(crate::build::site_routes::compare_site_paths)?;
         {
             let mut index: f64 = 0.0;
             'loop_value: while index < (tsonic_rust_runtime::conversions::usize_to_i32(keys.len())? as f64) {
@@ -426,17 +765,20 @@ impl SiteOutputPlan {
                     Some(flow_value) => flow_value.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-                let claim: Option<OutputClaim> = self
-                    .state
-                    .with(|state| state.claims_by_path.clone())
-                    .get(&key);
+                let claim: Option<OutputClaim> = {
+                    let dispatch_receiver_2 = &project_this;
+                    dispatch_receiver_2
+                        .dispatch
+                        .read_site_output_plan_claims_by_path()
+                }
+                .get(&key);
                 if claim.is_none() {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                    return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                         String::from("TSUMO_OUTPUT_PLAN_INCONSISTENT"),
                         format!(
                             "{}{}{}",
                             String::from("Output claim '"),
-                            rt::source_string(&key),
+                            key,
                             String::from("' disappeared before rendering"),
                         ),
                         None,
@@ -444,47 +786,44 @@ impl SiteOutputPlan {
                         None,
                     )));
                 }
-                let destination: String = RESOLVE_OUTPUT_PATH
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        output_root.clone(),
-                        match claim.as_ref() {
-                            Some(flow_value_2) => flow_value_2.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        }
-                        .state
-                        .with(|state| state.relative_path.clone()),
-                    ))?;
-                let text: Option<String> = self
+                let destination: String = resolve_output_path(
+                    output_root.clone(),
+                    match claim.as_ref() {
+                        Some(flow_value_2) => flow_value_2.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }
                     .state
-                    .with(|state| state.text_by_path.clone())
-                    .get(&key);
+                    .with(|state| state.relative_path.clone()),
+                )?;
+                let text: Option<String> = {
+                    let dispatch_receiver_3 = &project_this;
+                    dispatch_receiver_3
+                        .dispatch
+                        .read_site_output_plan_text_by_path()
+                }
+                .get(&key);
                 if text.is_some() {
-                    crate::fs::WRITE_TEXT_FILE
-                        .with(|module_binding| module_binding.load())
-                        .call((
-                            destination.clone(),
-                            match text.as_ref() {
-                                Some(flow_value_3) => flow_value_3.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                        ))?;
+                    crate::fs::write_text_file(destination.clone(), match text.as_ref() {
+                        Some(flow_value_3) => flow_value_3.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    })?;
                     index += 1.0;
                     continue 'loop_value;
                 }
-                let file: Option<FileSiteOutput> = self
-                    .state
-                    .with(|state| state.files_by_path.clone())
-                    .get(&key);
+                let file: Option<FileSiteOutput> = {
+                    let dispatch_receiver_4 = &project_this;
+                    dispatch_receiver_4
+                        .dispatch
+                        .read_site_output_plan_files_by_path()
+                }
+                .get(&key);
                 if file.is_none() {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                    return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                         String::from("TSUMO_OUTPUT_PLAN_INCONSISTENT"),
                         format!(
                             "{}{}{}",
                             String::from("Output claim '"),
-                            rt::source_string(&key),
+                            key,
                             String::from("' has no planned content"),
                         ),
                         None,
@@ -492,9 +831,7 @@ impl SiteOutputPlan {
                         None,
                     )));
                 }
-                crate::fs::ENSURE_DIR
-                    .with(|module_binding| module_binding.load())
-                    .call((tsonic_rust_node::path::dirname(&destination),))?;
+                crate::fs::ensure_dir(tsonic_rust_node::path::dirname(&destination))?;
                 tsonic_rust_node::fs::copy_file_sync(
                     &match file.as_ref() {
                         Some(flow_value_4) => flow_value_4.clone(),
@@ -503,30 +840,29 @@ impl SiteOutputPlan {
                     .state
                     .with(|state| state.source_path.clone()),
                     &destination,
-                )
-                .map_err(tsonic_rust_runtime::TsonicError::from)?;
+                )?;
                 index += 1.0;
             }
         }
         Ok(())
     }
 
-    pub fn throw_conflict(
-        &self,
+    fn exact_site_output_plan_throw_conflict(
+        self: std::rc::Rc<Self>,
         relative_path: String,
         owner: String,
         previous: OutputClaim,
-    ) -> rt::TsonicResult<()> {
-        Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+    ) -> Result<(), rt::TsonicError> {
+        Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_OUTPUT_PATH_CONFLICT"),
             format!(
                 "{}{}{}{}{}{}{}",
                 String::from("Output '"),
-                rt::source_string(&relative_path),
+                relative_path,
                 String::from("' is claimed by both '"),
-                rt::source_string(&previous.state.with(|state| state.owner.clone())),
+                previous.state.with(|state| state.owner.clone()),
                 String::from("' and '"),
-                rt::source_string(&owner),
+                owner,
                 String::from("'"),
             ),
             None,
@@ -536,132 +872,208 @@ impl SiteOutputPlan {
     }
 }
 
-impl Default for SiteOutputPlan {
-    fn default() -> Self {
-        Self::new()
+impl SiteOutputPlanDispatch for SiteOutputPlanRoot {
+    fn downcast_site_output_plan_to_site_output_plan(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn SiteOutputPlanDispatch>> {
+        Some(self)
     }
-}
 
-#[doc(hidden)]
-pub fn module_init() {
-    {
-        let module_value =
-            rt::Callable::<(String,), rt::TsonicResult<String>>::new(move |callable_arguments| {
-                let relative_path = callable_arguments.0;
-                let normalized: String =
-                    crate::build::site_routes::normalize_site_path(&relative_path)?;
-                if normalized.is_empty()
-                    || js_string::starts_with_from_start(&normalized, "/")
-                    || tsonic_rust_node::path::is_absolute(&normalized)
-                    || tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                        &normalized,
-                    ))? >= 2
-                        && js_string::char_at(&normalized, 1.0)
-                            .map_err(tsonic_rust_runtime::TsonicError::from)?
-                            == ":"
-                {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                        String::from("TSUMO_OUTPUT_PATH_ABSOLUTE"),
-                        format!(
-                            "{}{}{}",
-                            String::from("Site output path must be relative: "),
-                            rt::source_string(&relative_path),
-                            String::from(""),
-                        ),
-                        None,
-                        None,
-                        None,
-                    )));
-                }
-                let segments: js_abi::JsArray<String> =
-                    crate::build::site_routes::split_site_path(normalized.clone())?;
-                {
-                    let mut index: f64 = 0.0;
-                    while index
-                        < (tsonic_rust_runtime::conversions::usize_to_i32(segments.len())? as f64)
-                    {
-                        let segment: String = match segments.get_number(index).as_ref() {
-                            Some(flow_value) => flow_value.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        };
-                        if segment.is_empty() || segment == "." || segment == ".." {
-                            return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                                String::from("TSUMO_OUTPUT_PATH_ESCAPES_ROOT"),
-                                format!(
-                                    "{}{}{}",
-                                    String::from("Site output path is not canonical: "),
-                                    rt::source_string(&relative_path),
-                                    String::from(""),
-                                ),
-                                None,
-                                None,
-                                None,
-                            )));
-                        }
-                        index += 1.0;
-                    }
-                }
-                Ok::<_, rt::TsonicError>(crate::build::site_routes::join_site_path(
-                    segments.clone(),
-                ))
-            });
-        NORMALIZE_OUTPUT_PATH.with(|module_binding| module_binding.initialize(module_value))
-    };
-    {
-        let module_value_2 = rt::Callable::<(String, String), rt::TsonicResult<String>>::new(
-            move |callable_arguments_2| {
-                let prefix = callable_arguments_2.0;
-                let relative_path = callable_arguments_2.1;
-                let normalized_relative_path: String = NORMALIZE_OUTPUT_PATH
-                    .with(|module_binding| module_binding.load())
-                    .call((relative_path.clone(),))?;
-                if js_string::trim(&prefix).is_empty() {
-                    return Ok::<_, rt::TsonicError>(normalized_relative_path.clone());
-                }
-                NORMALIZE_OUTPUT_PATH
-                    .with(|module_binding| module_binding.load())
-                    .call((format!(
-                        "{}{}{}",
-                        crate::build::site_routes::normalize_site_path(&prefix)?,
-                        String::from("/"),
-                        normalized_relative_path,
-                    ),))
-            },
-        );
-        COMBINE_OUTPUT_PATH.with(|module_binding_2| module_binding_2.initialize(module_value_2))
-    };
-    {
-        let module_value_3 = rt::Callable::<(String, String), rt::TsonicResult<String>>::new(
-            move |callable_arguments_3| {
-                let output_root = callable_arguments_3.0;
-                let relative_path = callable_arguments_3.1;
-                let root: String = tsonic_rust_node::path::resolve(&[output_root.as_str()])
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                let candidate: String = tsonic_rust_node::path::resolve(&[
-                    root.as_str(),
-                    NORMALIZE_OUTPUT_PATH
-                        .with(|module_binding| module_binding.load())
-                        .call((relative_path.clone(),))?
-                        .as_str(),
-                ])
-                .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                if !crate::utils::paths::path_contains_or_equals(root.clone(), candidate.clone()) {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                        String::from("TSUMO_OUTPUT_PATH_ESCAPES_ROOT"),
-                        format!(
-                            "{}{}{}",
-                            String::from("Site output path escapes its root: "),
-                            rt::source_string(&relative_path),
-                            String::from(""),
-                        ),
-                        None,
-                        None,
-                        None,
-                    )));
-                }
-                Ok::<_, rt::TsonicError>(candidate.clone())
-            },
-        );
-        RESOLVE_OUTPUT_PATH.with(|module_binding_3| module_binding_3.initialize(module_value_3))
-    };
+    fn read_site_output_plan_claims_by_path(&self) -> js_abi::JsMap<String, OutputClaim> {
+        self.state.with(|state| state.claims_by_path.clone())
+    }
+
+    fn write_site_output_plan_claims_by_path(&self, value: js_abi::JsMap<String, OutputClaim>) {
+        self.state.with_mut(|state| state.claims_by_path = value);
+    }
+
+    fn read_site_output_plan_text_by_path(&self) -> js_abi::JsMap<String, String> {
+        self.state.with(|state| state.text_by_path.clone())
+    }
+
+    fn write_site_output_plan_text_by_path(&self, value: js_abi::JsMap<String, String>) {
+        self.state.with_mut(|state| state.text_by_path = value);
+    }
+
+    fn read_site_output_plan_files_by_path(&self) -> js_abi::JsMap<String, FileSiteOutput> {
+        self.state.with(|state| state.files_by_path.clone())
+    }
+
+    fn write_site_output_plan_files_by_path(&self, value: js_abi::JsMap<String, FileSiteOutput>) {
+        self.state.with_mut(|state| state.files_by_path = value);
+    }
+
+    fn dispatch_site_output_plan_add_text(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+        content: String,
+        owner: String,
+    ) -> Result<(), rt::TsonicError> {
+        SiteOutputPlanRoot::exact_site_output_plan_add_text(self, relative_path, content, owner)
+    }
+
+    fn exact_site_output_plan_add_text(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+        content: String,
+        owner: String,
+    ) -> Result<(), rt::TsonicError> {
+        SiteOutputPlanRoot::exact_site_output_plan_add_text(self, relative_path, content, owner)
+    }
+
+    fn dispatch_site_output_plan_add_default_text(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+        content: String,
+        owner: String,
+    ) -> Result<(), rt::TsonicError> {
+        SiteOutputPlanRoot::exact_site_output_plan_add_default_text(
+            self,
+            relative_path,
+            content,
+            owner,
+        )
+    }
+
+    fn exact_site_output_plan_add_default_text(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+        content: String,
+        owner: String,
+    ) -> Result<(), rt::TsonicError> {
+        SiteOutputPlanRoot::exact_site_output_plan_add_default_text(
+            self,
+            relative_path,
+            content,
+            owner,
+        )
+    }
+
+    fn dispatch_site_output_plan_add_asset(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+        source_path: String,
+        owner: String,
+        layer: AssetLayer,
+    ) -> Result<(), rt::TsonicError> {
+        SiteOutputPlanRoot::exact_site_output_plan_add_asset(
+            self,
+            relative_path,
+            source_path,
+            owner,
+            layer,
+        )
+    }
+
+    fn exact_site_output_plan_add_asset(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+        source_path: String,
+        owner: String,
+        layer: AssetLayer,
+    ) -> Result<(), rt::TsonicError> {
+        SiteOutputPlanRoot::exact_site_output_plan_add_asset(
+            self,
+            relative_path,
+            source_path,
+            owner,
+            layer,
+        )
+    }
+
+    fn dispatch_site_output_plan_add_directory(
+        self: std::rc::Rc<Self>,
+        source_root: String,
+        output_prefix: String,
+        owner: String,
+        layer: AssetLayer,
+    ) -> Result<(), rt::TsonicError> {
+        SiteOutputPlanRoot::exact_site_output_plan_add_directory(
+            self,
+            source_root,
+            output_prefix,
+            owner,
+            layer,
+        )
+    }
+
+    fn exact_site_output_plan_add_directory(
+        self: std::rc::Rc<Self>,
+        source_root: String,
+        output_prefix: String,
+        owner: String,
+        layer: AssetLayer,
+    ) -> Result<(), rt::TsonicError> {
+        SiteOutputPlanRoot::exact_site_output_plan_add_directory(
+            self,
+            source_root,
+            output_prefix,
+            owner,
+            layer,
+        )
+    }
+
+    fn dispatch_site_output_plan_generated_output_count(self: std::rc::Rc<Self>) -> i32 {
+        SiteOutputPlanRoot::exact_site_output_plan_generated_output_count(self)
+    }
+
+    fn exact_site_output_plan_generated_output_count(self: std::rc::Rc<Self>) -> i32 {
+        SiteOutputPlanRoot::exact_site_output_plan_generated_output_count(self)
+    }
+
+    fn dispatch_site_output_plan_apply_deferred_template_results(
+        self: std::rc::Rc<Self>,
+        results: js_abi::JsMap<String, String>,
+    ) -> Result<(), rt::TsonicError> {
+        SiteOutputPlanRoot::exact_site_output_plan_apply_deferred_template_results(self, results)
+    }
+
+    fn exact_site_output_plan_apply_deferred_template_results(
+        self: std::rc::Rc<Self>,
+        results: js_abi::JsMap<String, String>,
+    ) -> Result<(), rt::TsonicError> {
+        SiteOutputPlanRoot::exact_site_output_plan_apply_deferred_template_results(self, results)
+    }
+
+    fn dispatch_site_output_plan_render(
+        self: std::rc::Rc<Self>,
+        output_root: String,
+    ) -> Result<(), rt::TsonicError> {
+        SiteOutputPlanRoot::exact_site_output_plan_render(self, output_root)
+    }
+
+    fn exact_site_output_plan_render(
+        self: std::rc::Rc<Self>,
+        output_root: String,
+    ) -> Result<(), rt::TsonicError> {
+        SiteOutputPlanRoot::exact_site_output_plan_render(self, output_root)
+    }
+
+    fn dispatch_site_output_plan_throw_conflict(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+        owner: String,
+        previous: OutputClaim,
+    ) -> Result<(), rt::TsonicError> {
+        SiteOutputPlanRoot::exact_site_output_plan_throw_conflict(
+            self,
+            relative_path,
+            owner,
+            previous,
+        )
+    }
+
+    fn exact_site_output_plan_throw_conflict(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+        owner: String,
+        previous: OutputClaim,
+    ) -> Result<(), rt::TsonicError> {
+        SiteOutputPlanRoot::exact_site_output_plan_throw_conflict(
+            self,
+            relative_path,
+            owner,
+            previous,
+        )
+    }
 }

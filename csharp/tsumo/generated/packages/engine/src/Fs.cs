@@ -101,7 +101,10 @@ namespace Tsumo.Engine
             };
             ensureDir = (string path) =>
             {
-                Tsonic.CSharp.Node.fs.mkdirSync(path, true);
+                Tsonic.CSharp.Node.fs.mkdirSync(path, new Tsonic.CSharp.Node.MakeDirectoryOptions
+                {
+                    recursive = true,
+                });
             };
             readTextFile = (string path) =>
             {
@@ -118,7 +121,10 @@ namespace Tsumo.Engine
                 string dir = Tsonic.CSharp.Node.path.dirname(path);
                 if (dir != "")
                 {
-                    Tsonic.CSharp.Node.fs.mkdirSync(dir, true);
+                    Tsonic.CSharp.Node.fs.mkdirSync(dir, new Tsonic.CSharp.Node.MakeDirectoryOptions
+                    {
+                        recursive = true,
+                    });
                 }
                 Tsonic.CSharp.Node.fs.writeFileSync(path, content, "utf-8");
             };
@@ -128,12 +134,15 @@ namespace Tsumo.Engine
                 {
                     return;
                 }
-                Tsonic.CSharp.Node.fs.rmSync(path, true);
+                Tsonic.CSharp.Node.fs.rmSync(path, new Tsonic.CSharp.Node.RmOptions
+                {
+                    recursive = true,
+                    force = true,
+                });
             };
             rejectFilesystemLink = (string path) =>
             {
-                System.IO.FileAttributes attributes = System.IO.File.GetAttributes(path);
-                if ((attributes & System.IO.FileAttributes.ReparsePoint) != System.IO.FileAttributes.ReparsePoint)
+                if (!Tsonic.CSharp.Node.fs.lstatSync(path).IsSymbolicLink())
                 {
                     return;
                 }

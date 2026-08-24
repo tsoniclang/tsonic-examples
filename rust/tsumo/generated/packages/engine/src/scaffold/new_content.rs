@@ -6,7 +6,7 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-pub(crate) fn default_archetype() -> String {
+pub fn default_archetype() -> String {
     String::from("---\ntitle: \"{{ .Title }}\"\ndate: \"{{ .Date }}\"\ndraft: true\ndescription: \"\"\ntags: []\ncategories: []\n---\n\nWrite your post here.\n")
 }
 
@@ -14,24 +14,21 @@ pub fn new_content(
     site_dir: String,
     content_path_raw: String,
     creation_time: Option<js_abi::JsDate>,
-) -> rt::TsonicResult<String> {
-    let dir: String = tsonic_rust_node::path::resolve(&[site_dir.as_str()])
-        .map_err(tsonic_rust_runtime::TsonicError::from)?;
-    let content_dir: String = tsonic_rust_node::path::resolve(&[dir.as_str(), "content"])
-        .map_err(tsonic_rust_runtime::TsonicError::from)?;
+) -> Result<String, rt::TsonicError> {
+    let dir: String = tsonic_rust_node::path::resolve(&[site_dir.as_str()])?;
+    let content_dir: String = tsonic_rust_node::path::resolve(&[dir.as_str(), "content"])?;
     let rel: String = crate::utils::strings::replace_text(
         &js_string::trim(&content_path_raw),
         String::from("\\"),
         String::from("/"),
     )?;
     if rel.is_empty() || tsonic_rust_node::path::is_absolute(&rel) {
-        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_SCAFFOLD_CONTENT_PATH_INVALID"),
             format!(
-                "{}{}{}",
+                "{}{}",
                 String::from("Content path must be relative to the site's content directory: "),
-                rt::source_string(&content_path_raw),
-                String::from(""),
+                content_path_raw,
             ),
             None,
             None,
@@ -43,36 +40,27 @@ pub fn new_content(
     } else {
         format!("{}{}", rel, String::from(".md"))
     };
-    let dest: String = tsonic_rust_node::path::resolve(&[content_dir.as_str(), with_ext.as_str()])
-        .map_err(tsonic_rust_runtime::TsonicError::from)?;
+    let dest: String =
+        tsonic_rust_node::path::resolve(&[content_dir.as_str(), with_ext.as_str()])?;
     if !crate::utils::paths::path_contains_or_equals(content_dir.clone(), dest.clone())
         || dest == content_dir
     {
-        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_SCAFFOLD_CONTENT_PATH_ESCAPES_ROOT"),
             format!(
-                "{}{}{}",
+                "{}{}",
                 String::from("Content path escapes the site's content directory: "),
-                rt::source_string(&content_path_raw),
-                String::from(""),
+                content_path_raw,
             ),
             Some(dest.clone()),
             None,
             None,
         )));
     }
-    if crate::fs::FILE_EXISTS
-        .with(|module_binding| module_binding.load())
-        .call((dest.clone(),))?
-    {
-        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+    if crate::fs::file_exists(dest.clone())? {
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_SCAFFOLD_CONTENT_EXISTS"),
-            format!(
-                "{}{}{}",
-                String::from("File already exists: "),
-                rt::source_string(&dest),
-                String::from(""),
-            ),
+            format!("{}{}", String::from("File already exists: "), dest),
             Some(dest.clone()),
             None,
             None,
@@ -80,13 +68,8 @@ pub fn new_content(
     }
     let archetype_path: String =
         tsonic_rust_node::path::join(&[dir.as_str(), "archetypes", "default.md"]);
-    let template: String = if crate::fs::FILE_EXISTS
-        .with(|module_binding| module_binding.load())
-        .call((archetype_path.clone(),))?
-    {
-        crate::fs::READ_TEXT_FILE
-            .with(|module_binding| module_binding.load())
-            .call((archetype_path.clone(),))?
+    let template: String = if crate::fs::file_exists(archetype_path.clone())? {
+        crate::fs::read_text_file(archetype_path.clone())?
     } else {
         default_archetype()
     };
@@ -107,21 +90,16 @@ pub fn new_content(
             file_name.clone()
         },
     )?;
-    let title: String = crate::utils::text::humanize_slug(slug.clone())?;
+    let title: String = crate::utils::text::humanize_slug(slug)?;
     let date: String = rt::option_coalesce(
-        creation_time.clone(),
+        creation_time,
         std::convert::identity,
         js_abi::JsDate::new,
     )
-    .to_iso_string()
-    .map_err(tsonic_rust_runtime::TsonicError::from)?;
-    let mut content: String = template.clone();
-    content =
-        crate::utils::strings::replace_text(&content, String::from("{{ .Title }}"), title.clone())?;
-    content =
-        crate::utils::strings::replace_text(&content, String::from("{{ .Date }}"), date.clone())?;
-    crate::fs::WRITE_TEXT_FILE
-        .with(|module_binding| module_binding.load())
-        .call((dest.clone(), content.clone()))?;
-    Ok(dest.clone())
+    .to_iso_string()?;
+    let mut content: String = template;
+    content = crate::utils::strings::replace_text(&content, String::from("{{ .Title }}"), title)?;
+    content = crate::utils::strings::replace_text(&content, String::from("{{ .Date }}"), date)?;
+    crate::fs::write_text_file(dest.clone(), content.clone())?;
+    Ok(dest)
 }

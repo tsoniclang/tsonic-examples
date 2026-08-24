@@ -5,19 +5,230 @@ use tsonic_rust_js::abi as js_abi;
 use crate::program as rt;
 
 std::thread_local! {
-    pub(crate) static KNOWN_TEMPLATE_FUNCTIONS: rt::ModuleCell<js_abi::JsSet<String>> = const { rt::ModuleCell::new() };
+    pub static KNOWN_TEMPLATE_FUNCTIONS: rt::ModuleCell<js_abi::JsSet<String>> = const { rt::ModuleCell::new() };
 }
 
-pub type IsKnownTemplateFunctionCallable = rt::Callable<(String,), rt::TsonicResult<bool>>;
-
-std::thread_local! {
-    pub static IS_KNOWN_TEMPLATE_FUNCTION: rt::ModuleCell<IsKnownTemplateFunctionCallable> = const { rt::ModuleCell::new() };
+pub fn is_known_template_function(name: String) -> bool {
+    KNOWN_TEMPLATE_FUNCTIONS
+        .with(|module_binding| module_binding.load())
+        .has(&name)
 }
 
-pub type CanonicalTemplateFunctionNameCallable = rt::Callable<(String,), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub static CANONICAL_TEMPLATE_FUNCTION_NAME: rt::ModuleCell<CanonicalTemplateFunctionNameCallable> = const { rt::ModuleCell::new() };
+pub fn canonical_template_function_name(name: String) -> String {
+    if name == "collections.where" {
+        return String::from("where");
+    }
+    if name == "collections.sort" {
+        return String::from("sort");
+    }
+    if name == "collections.after" {
+        return String::from("after");
+    }
+    if name == "collections.first" {
+        return String::from("first");
+    }
+    if name == "collections.last" {
+        return String::from("last");
+    }
+    if name == "collections.uniq" {
+        return String::from("uniq");
+    }
+    if name == "collections.dictionary" {
+        return String::from("dict");
+    }
+    if name == "collections.slice" {
+        return String::from("slice");
+    }
+    if name == "collections.append" {
+        return String::from("append");
+    }
+    if name == "collections.merge" {
+        return String::from("merge");
+    }
+    if name == "collections.isset" {
+        return String::from("isset");
+    }
+    if name == "collections.index" {
+        return String::from("index");
+    }
+    if name == "collections.delimit" {
+        return String::from("delimit");
+    }
+    if name == "collections.in" {
+        return String::from("in");
+    }
+    if name == "collections.querify" {
+        return String::from("querify");
+    }
+    if name == "collections.union" {
+        return String::from("union");
+    }
+    if name == "collections.complement" {
+        return String::from("complement");
+    }
+    if name == "collections.reverse" {
+        return String::from("reverse");
+    }
+    if name == "collections.seq" {
+        return String::from("seq");
+    }
+    if name == "compare.default" {
+        return String::from("default");
+    }
+    if name == "compare.conditional" {
+        return String::from("cond");
+    }
+    if name == "compare.eq" {
+        return String::from("eq");
+    }
+    if name == "compare.ne" {
+        return String::from("ne");
+    }
+    if name == "compare.lt" {
+        return String::from("lt");
+    }
+    if name == "compare.le" {
+        return String::from("le");
+    }
+    if name == "compare.gt" {
+        return String::from("gt");
+    }
+    if name == "compare.ge" {
+        return String::from("ge");
+    }
+    if name == "math.add" {
+        return String::from("add");
+    }
+    if name == "math.sub" {
+        return String::from("sub");
+    }
+    if name == "math.mul" {
+        return String::from("mul");
+    }
+    if name == "math.div" {
+        return String::from("div");
+    }
+    if name == "math.mod" {
+        return String::from("mod");
+    }
+    if name == "math.ceil" {
+        return String::from("ceil");
+    }
+    if name == "math.min" {
+        return String::from("min");
+    }
+    if name == "math.max" {
+        return String::from("max");
+    }
+    if name == "math.round" {
+        return String::from("round");
+    }
+    if name == "tocss" {
+        return String::from("css.sass");
+    }
+    if name == "resources.tocss" {
+        return String::from("css.sass");
+    }
+    if name == "transform.markdownify" {
+        return String::from("markdownify");
+    }
+    if name == "transform.plainify" {
+        return String::from("plainify");
+    }
+    if name == "transform.unmarshal" {
+        return String::from("unmarshal");
+    }
+    if name == "transform.htmlescape" {
+        return String::from("htmlescape");
+    }
+    if name == "partials.include" {
+        return String::from("partial");
+    }
+    if name == "partials.includecached" {
+        return String::from("partialcached");
+    }
+    if name == "lang.translate" {
+        return String::from("i18n");
+    }
+    if name == "t" {
+        return String::from("i18n");
+    }
+    if name == "fmt.print" {
+        return String::from("print");
+    }
+    if name == "fmt.printf" {
+        return String::from("printf");
+    }
+    if name == "fmt.errorf" {
+        return String::from("errorf");
+    }
+    if name == "fmt.warnf" {
+        return String::from("warnf");
+    }
+    if name == "crypto.md5" {
+        return String::from("md5");
+    }
+    if name == "inflect.humanize" {
+        return String::from("humanize");
+    }
+    if name == "urls.relurl" {
+        return String::from("relurl");
+    }
+    if name == "urls.absurl" {
+        return String::from("absurl");
+    }
+    if name == "urls.abslangurl" {
+        return String::from("abslangurl");
+    }
+    if name == "safe.html" {
+        return String::from("safehtml");
+    }
+    if name == "safe.htmlattr" {
+        return String::from("safehtmlattr");
+    }
+    if name == "safe.js" {
+        return String::from("safejs");
+    }
+    if name == "safe.url" {
+        return String::from("safeurl");
+    }
+    if name == "safe.css" {
+        return String::from("safecss");
+    }
+    if name == "strings.chomp" {
+        return String::from("chomp");
+    }
+    if name == "strings.replace" {
+        return String::from("replace");
+    }
+    if name == "strings.replacere" {
+        return String::from("replacere");
+    }
+    if name == "strings.findre" {
+        return String::from("findre");
+    }
+    if name == "strings.findresubmatch" {
+        return String::from("findresubmatch");
+    }
+    if name == "strings.substr" {
+        return String::from("substr");
+    }
+    if name == "strings.tolower" {
+        return String::from("lower");
+    }
+    if name == "strings.toupper" {
+        return String::from("upper");
+    }
+    if name == "strings.title" {
+        return String::from("title");
+    }
+    if name == "strings.split" {
+        return String::from("split");
+    }
+    if name == "hasprefix" {
+        return String::from("strings.hasprefix");
+    }
+    name
 }
 
 #[doc(hidden)]
@@ -175,238 +386,5 @@ pub fn module_init() {
             String::from("union"),
         ]));
         KNOWN_TEMPLATE_FUNCTIONS.with(|module_binding| module_binding.initialize(module_value))
-    };
-    {
-        let module_value_2 =
-            rt::Callable::<(String,), rt::TsonicResult<bool>>::new(move |callable_arguments| {
-                let name = callable_arguments.0;
-                Ok::<_, rt::TsonicError>(KNOWN_TEMPLATE_FUNCTIONS
-                    .with(|module_binding| module_binding.load())
-                    .has(&name))
-            });
-        IS_KNOWN_TEMPLATE_FUNCTION
-            .with(|module_binding_2| module_binding_2.initialize(module_value_2))
-    };
-    {
-        let module_value_3 =
-            rt::Callable::<(String,), rt::TsonicResult<String>>::new(move |callable_arguments_2| {
-                let name = callable_arguments_2.0;
-                if name == "collections.where" {
-                    return Ok::<_, rt::TsonicError>(String::from("where"));
-                }
-                if name == "collections.sort" {
-                    return Ok::<_, rt::TsonicError>(String::from("sort"));
-                }
-                if name == "collections.after" {
-                    return Ok::<_, rt::TsonicError>(String::from("after"));
-                }
-                if name == "collections.first" {
-                    return Ok::<_, rt::TsonicError>(String::from("first"));
-                }
-                if name == "collections.last" {
-                    return Ok::<_, rt::TsonicError>(String::from("last"));
-                }
-                if name == "collections.uniq" {
-                    return Ok::<_, rt::TsonicError>(String::from("uniq"));
-                }
-                if name == "collections.dictionary" {
-                    return Ok::<_, rt::TsonicError>(String::from("dict"));
-                }
-                if name == "collections.slice" {
-                    return Ok::<_, rt::TsonicError>(String::from("slice"));
-                }
-                if name == "collections.append" {
-                    return Ok::<_, rt::TsonicError>(String::from("append"));
-                }
-                if name == "collections.merge" {
-                    return Ok::<_, rt::TsonicError>(String::from("merge"));
-                }
-                if name == "collections.isset" {
-                    return Ok::<_, rt::TsonicError>(String::from("isset"));
-                }
-                if name == "collections.index" {
-                    return Ok::<_, rt::TsonicError>(String::from("index"));
-                }
-                if name == "collections.delimit" {
-                    return Ok::<_, rt::TsonicError>(String::from("delimit"));
-                }
-                if name == "collections.in" {
-                    return Ok::<_, rt::TsonicError>(String::from("in"));
-                }
-                if name == "collections.querify" {
-                    return Ok::<_, rt::TsonicError>(String::from("querify"));
-                }
-                if name == "collections.union" {
-                    return Ok::<_, rt::TsonicError>(String::from("union"));
-                }
-                if name == "collections.complement" {
-                    return Ok::<_, rt::TsonicError>(String::from("complement"));
-                }
-                if name == "collections.reverse" {
-                    return Ok::<_, rt::TsonicError>(String::from("reverse"));
-                }
-                if name == "collections.seq" {
-                    return Ok::<_, rt::TsonicError>(String::from("seq"));
-                }
-                if name == "compare.default" {
-                    return Ok::<_, rt::TsonicError>(String::from("default"));
-                }
-                if name == "compare.conditional" {
-                    return Ok::<_, rt::TsonicError>(String::from("cond"));
-                }
-                if name == "compare.eq" {
-                    return Ok::<_, rt::TsonicError>(String::from("eq"));
-                }
-                if name == "compare.ne" {
-                    return Ok::<_, rt::TsonicError>(String::from("ne"));
-                }
-                if name == "compare.lt" {
-                    return Ok::<_, rt::TsonicError>(String::from("lt"));
-                }
-                if name == "compare.le" {
-                    return Ok::<_, rt::TsonicError>(String::from("le"));
-                }
-                if name == "compare.gt" {
-                    return Ok::<_, rt::TsonicError>(String::from("gt"));
-                }
-                if name == "compare.ge" {
-                    return Ok::<_, rt::TsonicError>(String::from("ge"));
-                }
-                if name == "math.add" {
-                    return Ok::<_, rt::TsonicError>(String::from("add"));
-                }
-                if name == "math.sub" {
-                    return Ok::<_, rt::TsonicError>(String::from("sub"));
-                }
-                if name == "math.mul" {
-                    return Ok::<_, rt::TsonicError>(String::from("mul"));
-                }
-                if name == "math.div" {
-                    return Ok::<_, rt::TsonicError>(String::from("div"));
-                }
-                if name == "math.mod" {
-                    return Ok::<_, rt::TsonicError>(String::from("mod"));
-                }
-                if name == "math.ceil" {
-                    return Ok::<_, rt::TsonicError>(String::from("ceil"));
-                }
-                if name == "math.min" {
-                    return Ok::<_, rt::TsonicError>(String::from("min"));
-                }
-                if name == "math.max" {
-                    return Ok::<_, rt::TsonicError>(String::from("max"));
-                }
-                if name == "math.round" {
-                    return Ok::<_, rt::TsonicError>(String::from("round"));
-                }
-                if name == "tocss" {
-                    return Ok::<_, rt::TsonicError>(String::from("css.sass"));
-                }
-                if name == "resources.tocss" {
-                    return Ok::<_, rt::TsonicError>(String::from("css.sass"));
-                }
-                if name == "transform.markdownify" {
-                    return Ok::<_, rt::TsonicError>(String::from("markdownify"));
-                }
-                if name == "transform.plainify" {
-                    return Ok::<_, rt::TsonicError>(String::from("plainify"));
-                }
-                if name == "transform.unmarshal" {
-                    return Ok::<_, rt::TsonicError>(String::from("unmarshal"));
-                }
-                if name == "transform.htmlescape" {
-                    return Ok::<_, rt::TsonicError>(String::from("htmlescape"));
-                }
-                if name == "partials.include" {
-                    return Ok::<_, rt::TsonicError>(String::from("partial"));
-                }
-                if name == "partials.includecached" {
-                    return Ok::<_, rt::TsonicError>(String::from("partialcached"));
-                }
-                if name == "lang.translate" {
-                    return Ok::<_, rt::TsonicError>(String::from("i18n"));
-                }
-                if name == "t" {
-                    return Ok::<_, rt::TsonicError>(String::from("i18n"));
-                }
-                if name == "fmt.print" {
-                    return Ok::<_, rt::TsonicError>(String::from("print"));
-                }
-                if name == "fmt.printf" {
-                    return Ok::<_, rt::TsonicError>(String::from("printf"));
-                }
-                if name == "fmt.errorf" {
-                    return Ok::<_, rt::TsonicError>(String::from("errorf"));
-                }
-                if name == "fmt.warnf" {
-                    return Ok::<_, rt::TsonicError>(String::from("warnf"));
-                }
-                if name == "crypto.md5" {
-                    return Ok::<_, rt::TsonicError>(String::from("md5"));
-                }
-                if name == "inflect.humanize" {
-                    return Ok::<_, rt::TsonicError>(String::from("humanize"));
-                }
-                if name == "urls.relurl" {
-                    return Ok::<_, rt::TsonicError>(String::from("relurl"));
-                }
-                if name == "urls.absurl" {
-                    return Ok::<_, rt::TsonicError>(String::from("absurl"));
-                }
-                if name == "urls.abslangurl" {
-                    return Ok::<_, rt::TsonicError>(String::from("abslangurl"));
-                }
-                if name == "safe.html" {
-                    return Ok::<_, rt::TsonicError>(String::from("safehtml"));
-                }
-                if name == "safe.htmlattr" {
-                    return Ok::<_, rt::TsonicError>(String::from("safehtmlattr"));
-                }
-                if name == "safe.js" {
-                    return Ok::<_, rt::TsonicError>(String::from("safejs"));
-                }
-                if name == "safe.url" {
-                    return Ok::<_, rt::TsonicError>(String::from("safeurl"));
-                }
-                if name == "safe.css" {
-                    return Ok::<_, rt::TsonicError>(String::from("safecss"));
-                }
-                if name == "strings.chomp" {
-                    return Ok::<_, rt::TsonicError>(String::from("chomp"));
-                }
-                if name == "strings.replace" {
-                    return Ok::<_, rt::TsonicError>(String::from("replace"));
-                }
-                if name == "strings.replacere" {
-                    return Ok::<_, rt::TsonicError>(String::from("replacere"));
-                }
-                if name == "strings.findre" {
-                    return Ok::<_, rt::TsonicError>(String::from("findre"));
-                }
-                if name == "strings.findresubmatch" {
-                    return Ok::<_, rt::TsonicError>(String::from("findresubmatch"));
-                }
-                if name == "strings.substr" {
-                    return Ok::<_, rt::TsonicError>(String::from("substr"));
-                }
-                if name == "strings.tolower" {
-                    return Ok::<_, rt::TsonicError>(String::from("lower"));
-                }
-                if name == "strings.toupper" {
-                    return Ok::<_, rt::TsonicError>(String::from("upper"));
-                }
-                if name == "strings.title" {
-                    return Ok::<_, rt::TsonicError>(String::from("title"));
-                }
-                if name == "strings.split" {
-                    return Ok::<_, rt::TsonicError>(String::from("split"));
-                }
-                if name == "hasprefix" {
-                    return Ok::<_, rt::TsonicError>(String::from("strings.hasprefix"));
-                }
-                Ok::<_, rt::TsonicError>(name.clone())
-            });
-        CANONICAL_TEMPLATE_FUNCTION_NAME
-            .with(|module_binding_3| module_binding_3.initialize(module_value_3))
     };
 }

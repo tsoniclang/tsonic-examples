@@ -4,71 +4,47 @@
 pub mod program;
 
 #[doc(hidden)]
-pub mod shapes;
+pub mod initializers;
 
-pub mod cli_main;
+pub(crate) mod cli_main;
 
-pub mod commands;
+pub(crate) mod commands;
 
-pub mod log_error_line;
+pub(crate) mod log_error_line;
 
-pub mod log_line;
+pub(crate) mod log_line;
 
-pub mod node_modules;
+pub(crate) mod parse_int;
 
-pub mod parse_int;
+pub(crate) mod print_usage;
 
-pub mod print_usage;
+pub(crate) mod report_usage_error;
 
-pub mod report_usage_error;
+pub(crate) mod source_date_epoch;
 
-pub mod source_date_epoch;
+pub use crate::cli_main::main as tsonic_entry;
 
 #[doc(hidden)]
 pub fn initialize() {
-    crate::node_modules::tsumo::engine::src::fs::module_init();
-    crate::node_modules::tsumo::engine::src::utils::text::module_init();
-    crate::node_modules::tsumo::engine::src::params::module_init();
-    crate::node_modules::tsumo::engine::src::utils::json::module_init();
-    crate::node_modules::tsumo::engine::src::docs::config::module_init();
-    crate::node_modules::tsumo::engine::src::resources::paths::module_init();
-    crate::node_modules::tsumo::engine::src::resources::image_provider::module_init();
-    crate::node_modules::tsumo::engine::src::resources::javascript_provider::module_init();
-    crate::node_modules::tsumo::engine::src::shortcode::module_init();
-    crate::node_modules::tsumo::engine::src::template::runtime_helpers::module_init();
-    crate::node_modules::tsumo::engine::src::template::parser::tokens::module_init();
-    crate::node_modules::tsumo::engine::src::markdown::render_hooks::module_init();
-    crate::node_modules::tsumo::engine::src::markdown::shortcodes::module_init();
-    crate::node_modules::tsumo::engine::src::markdown::render_with_shortcodes::module_init();
-    crate::node_modules::tsumo::engine::src::template::evaluation::scalar_semantics::module_init();
-    crate::node_modules::tsumo::engine::src::resources::page_bundle::module_init();
-    crate::node_modules::tsumo::engine::src::template::evaluation::page_resource_semantics::module_init();
-    crate::node_modules::tsumo::engine::src::template::evaluation::page_semantics::module_init();
-    crate::node_modules::tsumo::engine::src::template::evaluation::property_support::module_init();
-    crate::node_modules::tsumo::engine::src::template::functions::context_functions::module_init();
-    crate::node_modules::tsumo::engine::src::template::functions::function_registry::module_init();
-    crate::node_modules::tsumo::engine::src::template::functions::text_compatibility::module_init();
-    crate::node_modules::tsumo::engine::src::template::evaluation::toml_data::module_init();
-    crate::node_modules::tsumo::engine::src::template::evaluation::structured_data::module_init();
-    crate::node_modules::tsumo::engine::src::template::evaluation::render::module_init();
-    crate::node_modules::tsumo::engine::src::template::parser::parse_pipeline::module_init();
-    crate::node_modules::tsumo::engine::src::template::parser::parse_template::module_init();
-    crate::node_modules::tsumo::engine::src::i18n::module_init();
-    crate::node_modules::tsumo::engine::src::template::embedded_templates::module_init();
-    crate::node_modules::tsumo::engine::src::layouts::module_init();
-    crate::node_modules::tsumo::engine::src::build::output_plan::module_init();
-    crate::node_modules::tsumo::engine::src::template::data_loader::module_init();
-    crate::node_modules::tsumo::engine::src::docs::routes::module_init();
-    crate::node_modules::tsumo::engine::src::docs::content::module_init();
-    crate::node_modules::tsumo::engine::src::docs::url::module_init();
-    crate::node_modules::tsumo::engine::src::docs::markdown::module_init();
-    crate::node_modules::tsumo::engine::src::docs::nav::module_init();
-    crate::node_modules::tsumo::engine::src::docs::output::module_init();
-    crate::node_modules::tsumo::engine::src::docs::search_index::module_init();
-    crate::node_modules::tsumo::engine::src::output_publication::module_init();
-    crate::node_modules::tsumo::engine::src::build::standard_page_graph::module_init();
-    crate::node_modules::tsumo::engine::src::build::standard_templates::module_init();
-    crate::node_modules::tsumo::engine::src::build::standard_taxonomies::module_init();
-    crate::node_modules::tsumo::engine::src::watch_snapshot::module_init();
+    tsumo_engine::initializers::fs_initialize();
+    tsumo_engine::initializers::utils_text_initialize();
+    tsumo_engine::initializers::params_initialize();
+    tsumo_engine::initializers::template_runtime_helpers_initialize();
+    tsumo_engine::initializers::markdown_shortcodes_initialize();
+    tsumo_engine::initializers::template_evaluation_serialization_initialize();
+    tsumo_engine::initializers::template_evaluation_scalar_semantics_initialize();
+    tsumo_engine::initializers::template_evaluation_page_resource_semantics_initialize();
+    tsumo_engine::initializers::template_evaluation_page_semantics_initialize();
+    tsumo_engine::initializers::template_evaluation_property_support_initialize();
+    tsumo_engine::initializers::template_functions_context_functions_initialize();
+    tsumo_engine::initializers::template_functions_function_registry_initialize();
+    tsumo_engine::initializers::utils_regular_expressions_initialize();
+    tsumo_engine::initializers::template_functions_text_compatibility_initialize();
+    tsumo_engine::initializers::template_evaluation_render_initialize();
+    tsumo_engine::initializers::template_parser_parse_pipeline_initialize();
+    tsumo_engine::initializers::i18n_initialize();
+    tsumo_engine::initializers::template_embedded_templates_initialize();
+    tsumo_engine::initializers::layouts_initialize();
+    tsumo_engine::initializers::output_publication_initialize();
     crate::cli_main::module_init();
 }

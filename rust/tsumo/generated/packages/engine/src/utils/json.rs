@@ -6,8 +6,9 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait JsonValueDispatch {
+pub trait JsonValueDispatch {
     fn downcast_json_value_to_json_array(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn JsonArrayDispatch>>;
@@ -37,18 +38,27 @@ pub(crate) trait JsonValueDispatch {
     fn write_json_value_column(&self, value: i32);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct JsonValueState {
-    pub(crate) kind: String,
-    pub(crate) line: i32,
-    pub(crate) column: i32,
+pub struct JsonValueState {
+    pub kind: String,
+    pub line: i32,
+    pub column: i32,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct JsonValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn JsonValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn JsonValueDispatch>,
+}
+
+impl std::fmt::Debug for JsonValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("JsonValue")
+    }
 }
 
 impl PartialEq for JsonValue {
@@ -66,8 +76,9 @@ pub(crate) struct JsonValueRoot {
 }
 
 impl JsonValue {
-    pub(crate) fn initialize_state(kind: String, line: i32, column: i32) -> JsonValueState {
-        let field_kind: String = kind.clone();
+    #[doc(hidden)]
+    pub fn initialize_state(kind: String, line: i32, column: i32) -> JsonValueState {
+        let field_kind: String = kind;
         let field_line: i32 = line;
         let field_column: i32 = column;
         JsonValueState {
@@ -159,8 +170,9 @@ impl JsonValueDispatch for JsonValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait JsonNullDispatch: JsonValueDispatch {
+pub trait JsonNullDispatch: JsonValueDispatch {
     fn downcast_json_null_to_json_null(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn JsonNullDispatch>>;
@@ -168,17 +180,27 @@ pub(crate) trait JsonNullDispatch: JsonValueDispatch {
     fn write_json_null_value(&self, value: rt::Null);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct JsonNullState {
-    pub(crate) base: JsonValueState,
-    pub(crate) value: rt::Null,
+pub struct JsonNullState {
+    #[doc(hidden)]
+    pub base: JsonValueState,
+    pub value: rt::Null,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct JsonNull {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn JsonNullDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn JsonNullDispatch>,
+}
+
+impl std::fmt::Debug for JsonNull {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("JsonNull")
+    }
 }
 
 impl PartialEq for JsonNull {
@@ -196,7 +218,8 @@ pub(crate) struct JsonNullRoot {
 }
 
 impl JsonNull {
-    pub(crate) fn initialize_state(line: i32, column: i32) -> JsonNullState {
+    #[doc(hidden)]
+    pub fn initialize_state(line: i32, column: i32) -> JsonNullState {
         let base_state = JsonValue::initialize_state(String::from("null"), line, column);
         let field_value: rt::Null = rt::Null;
         JsonNullState {
@@ -303,8 +326,9 @@ impl JsonNullDispatch for JsonNullRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait JsonBoolDispatch: JsonValueDispatch {
+pub trait JsonBoolDispatch: JsonValueDispatch {
     fn downcast_json_bool_to_json_bool(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn JsonBoolDispatch>>;
@@ -312,17 +336,27 @@ pub(crate) trait JsonBoolDispatch: JsonValueDispatch {
     fn write_json_bool_value(&self, value: bool);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct JsonBoolState {
-    pub(crate) base: JsonValueState,
-    pub(crate) value: bool,
+pub struct JsonBoolState {
+    #[doc(hidden)]
+    pub base: JsonValueState,
+    pub value: bool,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct JsonBool {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn JsonBoolDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn JsonBoolDispatch>,
+}
+
+impl std::fmt::Debug for JsonBool {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("JsonBool")
+    }
 }
 
 impl PartialEq for JsonBool {
@@ -340,7 +374,8 @@ pub(crate) struct JsonBoolRoot {
 }
 
 impl JsonBool {
-    pub(crate) fn initialize_state(value: bool, line: i32, column: i32) -> JsonBoolState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: bool, line: i32, column: i32) -> JsonBoolState {
         let base_state = JsonValue::initialize_state(String::from("bool"), line, column);
         let field_value: bool = value;
         JsonBoolState {
@@ -447,8 +482,9 @@ impl JsonBoolDispatch for JsonBoolRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait JsonNumberDispatch: JsonValueDispatch {
+pub trait JsonNumberDispatch: JsonValueDispatch {
     fn downcast_json_number_to_json_number(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn JsonNumberDispatch>>;
@@ -456,17 +492,27 @@ pub(crate) trait JsonNumberDispatch: JsonValueDispatch {
     fn write_json_number_value(&self, value: f64);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct JsonNumberState {
-    pub(crate) base: JsonValueState,
-    pub(crate) value: f64,
+pub struct JsonNumberState {
+    #[doc(hidden)]
+    pub base: JsonValueState,
+    pub value: f64,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct JsonNumber {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn JsonNumberDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn JsonNumberDispatch>,
+}
+
+impl std::fmt::Debug for JsonNumber {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("JsonNumber")
+    }
 }
 
 impl PartialEq for JsonNumber {
@@ -484,7 +530,8 @@ pub(crate) struct JsonNumberRoot {
 }
 
 impl JsonNumber {
-    pub(crate) fn initialize_state(value: f64, line: i32, column: i32) -> JsonNumberState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: f64, line: i32, column: i32) -> JsonNumberState {
         let base_state = JsonValue::initialize_state(String::from("number"), line, column);
         let field_value: f64 = value;
         JsonNumberState {
@@ -591,8 +638,9 @@ impl JsonNumberDispatch for JsonNumberRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait JsonStringDispatch: JsonValueDispatch {
+pub trait JsonStringDispatch: JsonValueDispatch {
     fn downcast_json_string_to_json_string(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn JsonStringDispatch>>;
@@ -600,17 +648,27 @@ pub(crate) trait JsonStringDispatch: JsonValueDispatch {
     fn write_json_string_value(&self, value: String);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct JsonStringState {
-    pub(crate) base: JsonValueState,
-    pub(crate) value: String,
+pub struct JsonStringState {
+    #[doc(hidden)]
+    pub base: JsonValueState,
+    pub value: String,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct JsonString {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn JsonStringDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn JsonStringDispatch>,
+}
+
+impl std::fmt::Debug for JsonString {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("JsonString")
+    }
 }
 
 impl PartialEq for JsonString {
@@ -628,9 +686,10 @@ pub(crate) struct JsonStringRoot {
 }
 
 impl JsonString {
-    pub(crate) fn initialize_state(value: String, line: i32, column: i32) -> JsonStringState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: String, line: i32, column: i32) -> JsonStringState {
         let base_state = JsonValue::initialize_state(String::from("string"), line, column);
-        let field_value: String = value.clone();
+        let field_value: String = value;
         JsonStringState {
             base: base_state,
             value: field_value,
@@ -735,8 +794,9 @@ impl JsonStringDispatch for JsonStringRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait JsonArrayDispatch: JsonValueDispatch {
+pub trait JsonArrayDispatch: JsonValueDispatch {
     fn downcast_json_array_to_json_array(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn JsonArrayDispatch>>;
@@ -744,17 +804,27 @@ pub(crate) trait JsonArrayDispatch: JsonValueDispatch {
     fn write_json_array_items(&self, value: js_abi::JsArray<JsonValue>);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct JsonArrayState {
-    pub(crate) base: JsonValueState,
-    pub(crate) items: js_abi::JsArray<JsonValue>,
+pub struct JsonArrayState {
+    #[doc(hidden)]
+    pub base: JsonValueState,
+    pub items: js_abi::JsArray<JsonValue>,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct JsonArray {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn JsonArrayDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn JsonArrayDispatch>,
+}
+
+impl std::fmt::Debug for JsonArray {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("JsonArray")
+    }
 }
 
 impl PartialEq for JsonArray {
@@ -772,13 +842,14 @@ pub(crate) struct JsonArrayRoot {
 }
 
 impl JsonArray {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         items: js_abi::JsArray<JsonValue>,
         line: i32,
         column: i32,
     ) -> JsonArrayState {
         let base_state = JsonValue::initialize_state(String::from("array"), line, column);
-        let field_items: js_abi::JsArray<JsonValue> = items.clone();
+        let field_items: js_abi::JsArray<JsonValue> = items;
         JsonArrayState {
             base: base_state,
             items: field_items,
@@ -883,27 +954,29 @@ impl JsonArrayDispatch for JsonArrayRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct JsonPropertyState {
-    pub(crate) key: String,
-    pub(crate) value: JsonValue,
-    pub(crate) line: i32,
-    pub(crate) column: i32,
+pub struct JsonPropertyState {
+    pub key: String,
+    pub value: JsonValue,
+    pub line: i32,
+    pub column: i32,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct JsonProperty {
-    pub(crate) state: rt::ObjectHandle<JsonPropertyState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<JsonPropertyState>,
 }
 
 impl JsonProperty {
     pub fn new(key: String, value: JsonValue, line: i32, column: i32) -> JsonProperty {
-        let field_key: String = key.clone();
-        let field_value: JsonValue = value.clone();
+        let field_key: String = key;
+        let field_value: JsonValue = value;
         let field_line: i32 = line;
         let field_column: i32 = column;
         JsonProperty {
-            state: rt::ObjectHandle::new(JsonPropertyState {
+            state: rt::ObjectRef::new(JsonPropertyState {
                 key: field_key,
                 value: field_value,
                 line: field_line,
@@ -913,8 +986,9 @@ impl JsonProperty {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait JsonObjectDispatch: JsonValueDispatch {
+pub trait JsonObjectDispatch: JsonValueDispatch {
     fn downcast_json_object_to_json_object(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn JsonObjectDispatch>>;
@@ -923,32 +997,42 @@ pub(crate) trait JsonObjectDispatch: JsonValueDispatch {
     fn dispatch_json_object_get(
         self: std::rc::Rc<Self>,
         name: String,
-    ) -> rt::TsonicResult<Option<JsonValue>>;
+    ) -> Result<Option<JsonValue>, rt::TsonicError>;
     fn exact_json_object_get(
         self: std::rc::Rc<Self>,
         name: String,
-    ) -> rt::TsonicResult<Option<JsonValue>>;
+    ) -> Result<Option<JsonValue>, rt::TsonicError>;
     fn dispatch_json_object_get_case_insensitive(
         self: std::rc::Rc<Self>,
         name: &str,
-    ) -> rt::TsonicResult<Option<JsonValue>>;
+    ) -> Result<Option<JsonValue>, rt::TsonicError>;
     fn exact_json_object_get_case_insensitive(
         self: std::rc::Rc<Self>,
         name: &str,
-    ) -> rt::TsonicResult<Option<JsonValue>>;
+    ) -> Result<Option<JsonValue>, rt::TsonicError>;
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct JsonObjectState {
-    pub(crate) base: JsonValueState,
-    pub(crate) properties: js_abi::JsArray<JsonProperty>,
+pub struct JsonObjectState {
+    #[doc(hidden)]
+    pub base: JsonValueState,
+    pub properties: js_abi::JsArray<JsonProperty>,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct JsonObject {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn JsonObjectDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn JsonObjectDispatch>,
+}
+
+impl std::fmt::Debug for JsonObject {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("JsonObject")
+    }
 }
 
 impl PartialEq for JsonObject {
@@ -966,13 +1050,14 @@ pub(crate) struct JsonObjectRoot {
 }
 
 impl JsonObject {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         properties: js_abi::JsArray<JsonProperty>,
         line: i32,
         column: i32,
     ) -> JsonObjectState {
         let base_state = JsonValue::initialize_state(String::from("object"), line, column);
-        let field_properties: js_abi::JsArray<JsonProperty> = properties.clone();
+        let field_properties: js_abi::JsArray<JsonProperty> = properties;
         JsonObjectState {
             base: base_state,
             properties: field_properties,
@@ -997,7 +1082,7 @@ impl JsonObjectRoot {
     fn exact_json_object_get(
         self: std::rc::Rc<Self>,
         name: String,
-    ) -> rt::TsonicResult<Option<JsonValue>> {
+    ) -> Result<Option<JsonValue>, rt::TsonicError> {
         let project_this = JsonObject {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -1029,7 +1114,7 @@ impl JsonObjectRoot {
     fn exact_json_object_get_case_insensitive(
         self: std::rc::Rc<Self>,
         name: &str,
-    ) -> rt::TsonicResult<Option<JsonValue>> {
+    ) -> Result<Option<JsonValue>, rt::TsonicError> {
         let project_this = JsonObject {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -1148,54 +1233,47 @@ impl JsonObjectDispatch for JsonObjectRoot {
     fn dispatch_json_object_get(
         self: std::rc::Rc<Self>,
         name: String,
-    ) -> rt::TsonicResult<Option<JsonValue>> {
+    ) -> Result<Option<JsonValue>, rt::TsonicError> {
         JsonObjectRoot::exact_json_object_get(self, name)
     }
 
     fn exact_json_object_get(
         self: std::rc::Rc<Self>,
         name: String,
-    ) -> rt::TsonicResult<Option<JsonValue>> {
+    ) -> Result<Option<JsonValue>, rt::TsonicError> {
         JsonObjectRoot::exact_json_object_get(self, name)
     }
 
     fn dispatch_json_object_get_case_insensitive(
         self: std::rc::Rc<Self>,
         name: &str,
-    ) -> rt::TsonicResult<Option<JsonValue>> {
+    ) -> Result<Option<JsonValue>, rt::TsonicError> {
         JsonObjectRoot::exact_json_object_get_case_insensitive(self, name)
     }
 
     fn exact_json_object_get_case_insensitive(
         self: std::rc::Rc<Self>,
         name: &str,
-    ) -> rt::TsonicResult<Option<JsonValue>> {
+    ) -> Result<Option<JsonValue>, rt::TsonicError> {
         JsonObjectRoot::exact_json_object_get_case_insensitive(self, name)
     }
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct JsonParserState {
-    pub(crate) source: crate::utils::indexed_source_text::IndexedSourceText,
-    pub(crate) index: i32,
-    pub(crate) source_path: Option<String>,
-    pub(crate) line_starts: js_abi::JsArray<i32>,
-    pub(crate) depth: i32,
-}
-
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct JsonParser {
-    pub(crate) state: rt::ObjectHandle<JsonParserState>,
+pub struct JsonParser {
+    pub source: crate::utils::indexed_source_text::IndexedSourceText,
+    pub index: i32,
+    pub source_path: Option<String>,
+    pub line_starts: js_abi::JsArray<i32>,
+    pub depth: i32,
 }
 
 impl JsonParser {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn new(text: String, source_path: Option<String>) -> rt::TsonicResult<JsonParser> {
+    pub fn new(text: String, source_path: Option<String>) -> Result<JsonParser, rt::TsonicError> {
         let field_source: crate::utils::indexed_source_text::IndexedSourceText =
-            crate::utils::indexed_source_text::IndexedSourceText::new(text.clone())?;
+            crate::utils::indexed_source_text::IndexedSourceText::new(text)?;
         let field_index: i32 = 0;
-        let field_source_path: Option<String> = source_path.clone();
+        let field_source_path: Option<String> = source_path;
         let field_line_starts: js_abi::JsArray<i32> = js_abi::JsArray::from_dense(vec![0]);
         let field_depth: i32 = 0;
         {
@@ -1203,13 +1281,11 @@ impl JsonParser {
             while position < field_source.state.with(|state| state.length) {
                 let current: String = field_source.character_at(position);
                 if current == "\n" {
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        field_line_starts.push_many([
-                            tsonic_rust_runtime::conversions::f64_to_i32(
-                                tsonic_rust_runtime::conversions::i32_to_f64(position + 1),
-                            )?,
-                        ]),
-                    )?;
+                    field_line_starts.push_many_discard([
+                        tsonic_rust_runtime::conversions::f64_to_i32(
+                            tsonic_rust_runtime::conversions::i32_to_f64(position + 1),
+                        )?,
+                    ]);
                 } else {
                     if current == "\r" {
                         if position + 1 < field_source.state.with(|state| state.length)
@@ -1217,54 +1293,44 @@ impl JsonParser {
                         {
                             position += 1;
                         }
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            field_line_starts.push_many([
-                                tsonic_rust_runtime::conversions::f64_to_i32(
-                                    tsonic_rust_runtime::conversions::i32_to_f64(position + 1),
-                                )?,
-                            ]),
-                        )?;
+                        field_line_starts.push_many_discard([
+                            tsonic_rust_runtime::conversions::f64_to_i32(
+                                tsonic_rust_runtime::conversions::i32_to_f64(position + 1),
+                            )?,
+                        ]);
                     }
                 }
                 position += 1;
             }
         }
         Ok(JsonParser {
-            state: rt::ObjectHandle::new(JsonParserState {
-                source: field_source,
-                index: field_index,
-                source_path: field_source_path,
-                line_starts: field_line_starts,
-                depth: field_depth,
-            }),
+            source: field_source,
+            index: field_index,
+            source_path: field_source_path,
+            line_starts: field_line_starts,
+            depth: field_depth,
         })
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn parse(&self) -> rt::TsonicResult<JsonValue> {
+    pub fn parse(&mut self) -> Result<JsonValue, rt::TsonicError> {
         self.skip_whitespace();
         let value: JsonValue = self.parse_value()?;
         self.skip_whitespace();
-        if self.state.with(|state| state.index)
-            != self
-                .state
-                .with(|state| state.source.clone())
-                .state
-                .with(|state| state.length)
-        {
+        if self.index != self.source.state.with(|state| state.length) {
             return Err(
-                rt::TsonicError::from(
+                rt::TsonicError::TsumoError(
                     self.syntax_error(String::from("Unexpected trailing JSON content"), None)?,
                 ),
             );
         }
-        Ok(value.clone())
+        Ok(value)
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn parse_value(&self) -> rt::TsonicResult<JsonValue> {
+    pub fn parse_value(&mut self) -> Result<JsonValue, rt::TsonicError> {
         self.skip_whitespace();
-        let start: i32 = self.state.with(|state| state.index);
+        let start: i32 = self.index;
         let line: i32 = self.line_at(start)?;
         let column: i32 = self.column_at(start)?;
         let ch: String = self.peek();
@@ -1335,15 +1401,15 @@ impl JsonParser {
             });
         }
         Err(
-            rt::TsonicError::from(
+            rt::TsonicError::TsumoError(
                 self.syntax_error(String::from("Invalid JSON value"), Some(start))?,
             ),
         )
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn parse_object(&self) -> rt::TsonicResult<JsonObject> {
-        let start: i32 = self.state.with(|state| state.index);
+    pub fn parse_object(&mut self) -> Result<JsonObject, rt::TsonicError> {
+        let start: i32 = self.index;
         let line: i32 = self.line_at(start)?;
         let column: i32 = self.column_at(start)?;
         self.enter_composite(start)?;
@@ -1353,44 +1419,44 @@ impl JsonParser {
         let property_names: js_abi::JsSet<String> = js_abi::JsSet::new();
         if self.peek() == "}" {
             {
-                let update_receiver = self;
-                update_receiver.state.with_mut(|state| {
-                    let update_location = &mut state.index;
+                let update_receiver = &mut *self;
+                {
+                    let update_location = &mut update_receiver.index;
                     let update_previous = *update_location;
                     let update_next = update_previous + 1;
                     {
                         *update_location = update_next;
                         update_next
                     }
-                })
+                }
             };
             {
-                let update_receiver_2 = self;
-                update_receiver_2.state.with_mut(|state| {
-                    let update_location_2 = &mut state.depth;
+                let update_receiver_2 = &mut *self;
+                {
+                    let update_location_2 = &mut update_receiver_2.depth;
                     let update_previous_2 = *update_location_2;
                     let update_next_2 = update_previous_2 - 1;
                     {
                         *update_location_2 = update_next_2;
                         update_next_2
                     }
-                })
+                }
             };
             return Ok(JsonObject::new(properties.clone(), line, column));
         }
         'loop_value: loop {
             self.skip_whitespace();
-            let key_start: i32 = self.state.with(|state| state.index);
+            let key_start: i32 = self.index;
             let key: String = self.parse_string()?;
             if property_names.has(&key) {
                 return Err(
-                    rt::TsonicError::from(
+                    rt::TsonicError::TsumoError(
                         self.error(
                             String::from("TSUMO_JSON_DUPLICATE_PROPERTY"),
                             format!(
                                 "{}{}{}",
                                 String::from("JSON property '"),
-                                rt::source_string(&key),
+                                key,
                                 String::from("' is declared more than once"),
                             ),
                             key_start,
@@ -1398,40 +1464,41 @@ impl JsonParser {
                     ),
                 );
             }
-            property_names.add(key.clone());
+            property_names.add_discard(key.clone());
             self.skip_whitespace();
             self.expect(String::from(":"))?;
             let value: JsonValue = self.parse_value()?;
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                properties.push_many([
+            {
+                let operation_input_0 = properties.clone();
+                operation_input_0.push_many_discard([
                     JsonProperty::new(
                         key.clone(),
                         value.clone(),
                         self.line_at(key_start)?,
                         self.column_at(key_start)?,
                     ),
-                ]),
-            )?;
+                ])
+            };
             self.skip_whitespace();
             let separator: String = self.peek();
             if separator == "}" {
                 {
-                    let update_receiver_3 = self;
-                    update_receiver_3.state.with_mut(|state| {
-                        let update_location_3 = &mut state.index;
+                    let update_receiver_3 = &mut *self;
+                    {
+                        let update_location_3 = &mut update_receiver_3.index;
                         let update_previous_3 = *update_location_3;
                         let update_next_3 = update_previous_3 + 1;
                         {
                             *update_location_3 = update_next_3;
                             update_next_3
                         }
-                    })
+                    }
                 };
                 break 'loop_value;
             }
             if separator != "," {
                 return Err(
-                    rt::TsonicError::from(
+                    rt::TsonicError::TsumoError(
                         self.syntax_error(
                             String::from("Expected ',' or '}' after JSON object property"),
                             None,
@@ -1440,36 +1507,36 @@ impl JsonParser {
                 );
             }
             {
-                let update_receiver_4 = self;
-                update_receiver_4.state.with_mut(|state| {
-                    let update_location_4 = &mut state.index;
+                let update_receiver_4 = &mut *self;
+                {
+                    let update_location_4 = &mut update_receiver_4.index;
                     let update_previous_4 = *update_location_4;
                     let update_next_4 = update_previous_4 + 1;
                     {
                         *update_location_4 = update_next_4;
                         update_next_4
                     }
-                })
+                }
             };
         }
         {
-            let update_receiver_5 = self;
-            update_receiver_5.state.with_mut(|state| {
-                let update_location_5 = &mut state.depth;
+            let update_receiver_5 = &mut *self;
+            {
+                let update_location_5 = &mut update_receiver_5.depth;
                 let update_previous_5 = *update_location_5;
                 let update_next_5 = update_previous_5 - 1;
                 {
                     *update_location_5 = update_next_5;
                     update_next_5
                 }
-            })
+            }
         };
         Ok(JsonObject::new(properties.clone(), line, column))
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn parse_array(&self) -> rt::TsonicResult<JsonArray> {
-        let start: i32 = self.state.with(|state| state.index);
+    pub fn parse_array(&mut self) -> Result<JsonArray, rt::TsonicError> {
+        let start: i32 = self.index;
         let line: i32 = self.line_at(start)?;
         let column: i32 = self.column_at(start)?;
         self.enter_composite(start)?;
@@ -1478,53 +1545,56 @@ impl JsonParser {
         let items: js_abi::JsArray<JsonValue> = js_abi::JsArray::from_dense(vec![]);
         if self.peek() == "]" {
             {
-                let update_receiver = self;
-                update_receiver.state.with_mut(|state| {
-                    let update_location = &mut state.index;
+                let update_receiver = &mut *self;
+                {
+                    let update_location = &mut update_receiver.index;
                     let update_previous = *update_location;
                     let update_next = update_previous + 1;
                     {
                         *update_location = update_next;
                         update_next
                     }
-                })
+                }
             };
             {
-                let update_receiver_2 = self;
-                update_receiver_2.state.with_mut(|state| {
-                    let update_location_2 = &mut state.depth;
+                let update_receiver_2 = &mut *self;
+                {
+                    let update_location_2 = &mut update_receiver_2.depth;
                     let update_previous_2 = *update_location_2;
                     let update_next_2 = update_previous_2 - 1;
                     {
                         *update_location_2 = update_next_2;
                         update_next_2
                     }
-                })
+                }
             };
             return Ok(JsonArray::new(items.clone(), line, column));
         }
         'loop_value: loop {
-            tsonic_rust_runtime::conversions::usize_to_i32(items.push_many([self.parse_value()?]))?;
+            {
+                let operation_input_0 = items.clone();
+                operation_input_0.push_many_discard([self.parse_value()?])
+            };
             self.skip_whitespace();
             let separator: String = self.peek();
             if separator == "]" {
                 {
-                    let update_receiver_3 = self;
-                    update_receiver_3.state.with_mut(|state| {
-                        let update_location_3 = &mut state.index;
+                    let update_receiver_3 = &mut *self;
+                    {
+                        let update_location_3 = &mut update_receiver_3.index;
                         let update_previous_3 = *update_location_3;
                         let update_next_3 = update_previous_3 + 1;
                         {
                             *update_location_3 = update_next_3;
                             update_next_3
                         }
-                    })
+                    }
                 };
                 break 'loop_value;
             }
             if separator != "," {
                 return Err(
-                    rt::TsonicError::from(
+                    rt::TsonicError::TsumoError(
                         self.syntax_error(
                             String::from("Expected ',' or ']' after JSON array item"),
                             None,
@@ -1533,44 +1603,38 @@ impl JsonParser {
                 );
             }
             {
-                let update_receiver_4 = self;
-                update_receiver_4.state.with_mut(|state| {
-                    let update_location_4 = &mut state.index;
+                let update_receiver_4 = &mut *self;
+                {
+                    let update_location_4 = &mut update_receiver_4.index;
                     let update_previous_4 = *update_location_4;
                     let update_next_4 = update_previous_4 + 1;
                     {
                         *update_location_4 = update_next_4;
                         update_next_4
                     }
-                })
+                }
             };
         }
         {
-            let update_receiver_5 = self;
-            update_receiver_5.state.with_mut(|state| {
-                let update_location_5 = &mut state.depth;
+            let update_receiver_5 = &mut *self;
+            {
+                let update_location_5 = &mut update_receiver_5.depth;
                 let update_previous_5 = *update_location_5;
                 let update_next_5 = update_previous_5 - 1;
                 {
                     *update_location_5 = update_next_5;
                     update_next_5
                 }
-            })
+            }
         };
         Ok(JsonArray::new(items.clone(), line, column))
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn parse_string(&self) -> rt::TsonicResult<String> {
+    pub fn parse_string(&mut self) -> Result<String, rt::TsonicError> {
         self.expect(String::from("\""))?;
         let mut result: String = String::from("");
-        'loop_value: while self.state.with(|state| state.index)
-            < self
-                .state
-                .with(|state| state.source.clone())
-                .state
-                .with(|state| state.length)
-        {
+        'loop_value: while self.index < self.source.state.with(|state| state.length) {
             let ch: String = self.next()?;
             if ch == "\"" {
                 return Ok(result.clone());
@@ -1578,68 +1642,44 @@ impl JsonParser {
             if ch != "\\" {
                 if crate::utils::strings::compare_text(ch.clone(), String::from(" ")) < 0 {
                     return Err(
-                        rt::TsonicError::from(
+                        rt::TsonicError::TsumoError(
                             self.syntax_error(
                                 String::from("JSON strings cannot contain unescaped control characters"),
-                                Some(self.state.with(|state| state.index) - 1),
+                                Some(self.index - 1),
                             )?,
                         ),
                     );
                 }
-                {
-                    let current = result.clone();
-                    result = format!("{}{}", current, ch.clone())
-                };
+                result.push_str(&ch);
                 continue 'loop_value;
             }
             let escaped: String = self.next()?;
             if escaped == "\"" || escaped == "\\" || escaped == "/" {
-                {
-                    let current_2 = result.clone();
-                    result = format!("{}{}", current_2, escaped.clone())
-                };
+                result.push_str(&escaped);
             } else {
                 if escaped == "b" {
-                    {
-                        let current_3 = result.clone();
-                        result = format!("{}{}", current_3, String::from(""))
-                    };
+                    result.push('');
                 } else {
                     if escaped == "f" {
-                        {
-                            let current_4 = result.clone();
-                            result = format!("{}{}", current_4, String::from(""))
-                        };
+                        result.push('');
                     } else {
                         if escaped == "n" {
-                            {
-                                let current_5 = result.clone();
-                                result = format!("{}{}", current_5, String::from("\n"))
-                            };
+                            result.push('\n');
                         } else {
                             if escaped == "r" {
-                                {
-                                    let current_6 = result.clone();
-                                    result = format!("{}{}", current_6, String::from("\r"))
-                                };
+                                result.push('\r');
                             } else {
                                 if escaped == "t" {
-                                    {
-                                        let current_7 = result.clone();
-                                        result = format!("{}{}", current_7, String::from("\t"))
-                                    };
+                                    result.push('\t');
                                 } else {
                                     if escaped == "u" {
-                                        {
-                                            let current_8 = result.clone();
-                                            result = format!("{}{}", current_8, self.parse_unicode_escape()?)
-                                        };
+                                        result.push_str(&self.parse_unicode_escape()?);
                                     } else {
                                         return Err(
-                                            rt::TsonicError::from(
+                                            rt::TsonicError::TsumoError(
                                                 self.syntax_error(
                                                     String::from("Invalid JSON string escape"),
-                                                    Some(self.state.with(|state| state.index) - 1),
+                                                    Some(self.index - 1),
                                                 )?,
                                             ),
                                         );
@@ -1652,35 +1692,22 @@ impl JsonParser {
             }
         }
         Err(
-            rt::TsonicError::from(
+            rt::TsonicError::TsumoError(
                 self.syntax_error(String::from("Unterminated JSON string"), None)?,
             ),
         )
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn parse_unicode_escape(&self) -> rt::TsonicResult<String> {
+    pub fn parse_unicode_escape(&mut self) -> Result<String, rt::TsonicError> {
         let first: i32 = self.parse_unicode_code_unit()?;
         if (55296..=56319).contains(&first) {
-            if self.state.with(|state| state.index) + 6
-                > self
-                    .state
-                    .with(|state| state.source.clone())
-                    .state
-                    .with(|state| state.length)
-                || self
-                    .state
-                    .with(|state| state.source.clone())
-                    .character_at(self.state.with(|state| state.index))
-                    != "\\"
-                || self
-                    .state
-                    .with(|state| state.source.clone())
-                    .character_at(self.state.with(|state| state.index) + 1)
-                    != "u"
+            if self.index + 6 > self.source.state.with(|state| state.length)
+                || self.source.character_at(self.index) != "\\"
+                || self.source.character_at(self.index + 1) != "u"
             {
                 return Err(
-                    rt::TsonicError::from(
+                    rt::TsonicError::TsumoError(
                         self.syntax_error(
                             String::from("A high-surrogate JSON escape must be followed by a low-surrogate escape"),
                             None,
@@ -1689,56 +1716,46 @@ impl JsonParser {
                 );
             }
             {
-                let receiver = self;
+                let receiver = &mut *self;
                 let value = 2;
-                receiver.state.with_mut(|state| state.index += value)
+                receiver.index += value
             };
             let second: i32 = self.parse_unicode_code_unit()?;
             if !(56320..=57343).contains(&second) {
                 return Err(
-                    rt::TsonicError::from(
+                    rt::TsonicError::TsumoError(
                         self.syntax_error(
                             String::from("A high-surrogate JSON escape must be followed by a low-surrogate escape"),
-                            Some(self.state.with(|state| state.index) - 4),
+                            Some(self.index - 4),
                         )?,
                     ),
                 );
             }
             let code_point: i32 = 65536 + (first - 55296) * 1024 + second - 56320;
-            return Ok(
-                js_string::from_code_point(&[
-                    tsonic_rust_runtime::conversions::i32_to_f64(code_point),
-                ])
-                .map_err(tsonic_rust_runtime::TsonicError::from)?,
-            );
+            return js_string::from_code_point(&[
+                tsonic_rust_runtime::conversions::i32_to_f64(code_point),
+            ])
+            .map_err(rt::TsonicError::from);
         }
         if (56320..=57343).contains(&first) {
             return Err(
-                rt::TsonicError::from(
+                rt::TsonicError::TsumoError(
                     self.syntax_error(
                         String::from("A low-surrogate JSON escape requires a preceding high-surrogate escape"),
-                        Some(self.state.with(|state| state.index) - 4),
+                        Some(self.index - 4),
                     )?,
                 ),
             );
         }
-        Ok(
-            js_string::from_code_point(&[tsonic_rust_runtime::conversions::i32_to_f64(first)])
-                .map_err(tsonic_rust_runtime::TsonicError::from)?,
-        )
+        js_string::from_code_point(&[tsonic_rust_runtime::conversions::i32_to_f64(first)])
+            .map_err(rt::TsonicError::from)
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn parse_unicode_code_unit(&self) -> rt::TsonicResult<i32> {
-        if self.state.with(|state| state.index) + 4
-            > self
-                .state
-                .with(|state| state.source.clone())
-                .state
-                .with(|state| state.length)
-        {
+    pub fn parse_unicode_code_unit(&mut self) -> Result<i32, rt::TsonicError> {
+        if self.index + 4 > self.source.state.with(|state| state.length) {
             return Err(
-                rt::TsonicError::from(
+                rt::TsonicError::TsumoError(
                     self.syntax_error(
                         String::from("JSON unicode escapes require four hexadecimal digits"),
                         None,
@@ -1747,70 +1764,63 @@ impl JsonParser {
             );
         }
         let mut value: i32 = 0;
-        {
-            let mut offset: i32 = 0;
-            while offset < 4 {
-                let ch: String = js_string::to_lower_case(&self
-                    .state
-                    .with(|state| state.source.clone())
-                    .character_at(self.state.with(|state| state.index) + offset));
-                let digit: i32 =
-                    crate::utils::strings::index_of_text("0123456789abcdef", ch.clone())?;
-                if digit < 0 {
-                    return Err(
-                        rt::TsonicError::from(
-                            self.syntax_error(
-                                String::from("JSON unicode escapes require hexadecimal digits"),
-                                Some(self.state.with(|state| state.index) + offset),
-                            )?,
-                        ),
-                    );
-                }
-                value = value * 16 + digit;
-                offset += 1;
+        for offset in 0..4 {
+            let ch: String =
+                js_string::to_lower_case(&self.source.character_at(self.index + offset));
+            let digit: i32 = crate::utils::strings::index_of_text("0123456789abcdef", ch.clone())?;
+            if digit < 0 {
+                return Err(
+                    rt::TsonicError::TsumoError(
+                        self.syntax_error(
+                            String::from("JSON unicode escapes require hexadecimal digits"),
+                            Some(self.index + offset),
+                        )?,
+                    ),
+                );
             }
+            value = value * 16 + digit;
         }
         {
-            let receiver = self;
+            let receiver = &mut *self;
             let value_2 = 4;
-            receiver.state.with_mut(|state| state.index += value_2)
+            receiver.index += value_2
         };
         Ok(value)
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn parse_number(&self, line: i32, column: i32) -> rt::TsonicResult<JsonNumber> {
-        let start: i32 = self.state.with(|state| state.index);
+    pub fn parse_number(&mut self, line: i32, column: i32) -> Result<JsonNumber, rt::TsonicError> {
+        let start: i32 = self.index;
         if self.peek() == "-" {
             {
-                let update_receiver = self;
-                update_receiver.state.with_mut(|state| {
-                    let update_location = &mut state.index;
+                let update_receiver = &mut *self;
+                {
+                    let update_location = &mut update_receiver.index;
                     let update_previous = *update_location;
                     let update_next = update_previous + 1;
                     {
                         *update_location = update_next;
                         update_next
                     }
-                })
+                }
             };
         }
         if self.peek() == "0" {
             {
-                let update_receiver_2 = self;
-                update_receiver_2.state.with_mut(|state| {
-                    let update_location_2 = &mut state.index;
+                let update_receiver_2 = &mut *self;
+                {
+                    let update_location_2 = &mut update_receiver_2.index;
                     let update_previous_2 = *update_location_2;
                     let update_next_2 = update_previous_2 + 1;
                     {
                         *update_location_2 = update_next_2;
                         update_next_2
                     }
-                })
+                }
             };
             if self.is_digit(self.peek()) {
                 return Err(
-                    rt::TsonicError::from(
+                    rt::TsonicError::TsumoError(
                         self.syntax_error(
                             String::from("JSON numbers cannot contain leading zeroes"),
                             None,
@@ -1823,58 +1833,55 @@ impl JsonParser {
         }
         if self.peek() == "." {
             {
-                let update_receiver_3 = self;
-                update_receiver_3.state.with_mut(|state| {
-                    let update_location_3 = &mut state.index;
+                let update_receiver_3 = &mut *self;
+                {
+                    let update_location_3 = &mut update_receiver_3.index;
                     let update_previous_3 = *update_location_3;
                     let update_next_3 = update_previous_3 + 1;
                     {
                         *update_location_3 = update_next_3;
                         update_next_3
                     }
-                })
+                }
             };
             self.consume_digits()?;
         }
         let exponent: String = self.peek();
         if exponent == "e" || exponent == "E" {
             {
-                let update_receiver_4 = self;
-                update_receiver_4.state.with_mut(|state| {
-                    let update_location_4 = &mut state.index;
+                let update_receiver_4 = &mut *self;
+                {
+                    let update_location_4 = &mut update_receiver_4.index;
                     let update_previous_4 = *update_location_4;
                     let update_next_4 = update_previous_4 + 1;
                     {
                         *update_location_4 = update_next_4;
                         update_next_4
                     }
-                })
+                }
             };
             let sign: String = self.peek();
             if sign == "+" || sign == "-" {
                 {
-                    let update_receiver_5 = self;
-                    update_receiver_5.state.with_mut(|state| {
-                        let update_location_5 = &mut state.index;
+                    let update_receiver_5 = &mut *self;
+                    {
+                        let update_location_5 = &mut update_receiver_5.index;
                         let update_previous_5 = *update_location_5;
                         let update_next_5 = update_previous_5 + 1;
                         {
                             *update_location_5 = update_next_5;
                             update_next_5
                         }
-                    })
+                    }
                 };
             }
             self.consume_digits()?;
         }
-        let raw: String = self
-            .state
-            .with(|state| state.source.clone())
-            .slice(start, self.state.with(|state| state.index));
+        let raw: String = self.source.slice(start, self.index);
         let value: f64 = js_abi::number_parse_float(&raw);
         if !js_abi::number_is_finite(value) {
             return Err(
-                rt::TsonicError::from(
+                rt::TsonicError::TsumoError(
                     self.syntax_error(
                         String::from("JSON number is outside the supported finite range"),
                         Some(start),
@@ -1886,54 +1893,52 @@ impl JsonParser {
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn consume_digits(&self) -> rt::TsonicResult<()> {
-        let start: i32 = self.state.with(|state| state.index);
+    pub fn consume_digits(&mut self) -> Result<(), rt::TsonicError> {
+        let start: i32 = self.index;
         while self.is_digit(self.peek()) {
             {
-                let update_receiver = self;
-                update_receiver.state.with_mut(|state| {
-                    let update_location = &mut state.index;
+                let update_receiver = &mut *self;
+                {
+                    let update_location = &mut update_receiver.index;
                     let update_previous = *update_location;
                     let update_next = update_previous + 1;
                     {
                         *update_location = update_next;
                         update_next
                     }
-                })
+                }
             };
         }
-        if self.state.with(|state| state.index) == start {
+        if self.index == start {
             return Err(
-                rt::TsonicError::from(self.syntax_error(String::from("Expected JSON digit"), None)?),
+                rt::TsonicError::TsumoError(
+                    self.syntax_error(String::from("Expected JSON digit"), None)?,
+                ),
             );
         }
         Ok(())
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn expect_keyword(&self, keyword: String) -> rt::TsonicResult<()> {
+    pub fn expect_keyword(&mut self, keyword: String) -> Result<(), rt::TsonicError> {
         {
             let mut offset: i32 = 0;
             while offset
                 < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&keyword))?
             {
-                if self
-                    .state
-                    .with(|state| state.source.clone())
-                    .character_at(self.state.with(|state| state.index) + offset)
+                if self.source.character_at(self.index + offset)
                     != js_string::char_at(
                         &keyword,
                         tsonic_rust_runtime::conversions::i32_to_f64(offset),
-                    )
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?
+                    )?
                 {
                     return Err(
-                        rt::TsonicError::from(
+                        rt::TsonicError::TsumoError(
                             self.syntax_error(
                                 format!(
                                     "{}{}{}",
                                     String::from("Invalid JSON keyword; expected '"),
-                                    rt::source_string(&keyword),
+                                    keyword,
                                     String::from("'"),
                                 ),
                                 None,
@@ -1945,27 +1950,27 @@ impl JsonParser {
             }
         }
         {
-            let receiver = self;
+            let receiver = &mut *self;
             let value =
                 tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&keyword))?;
-            receiver.state.with_mut(|state| state.index += value)
+            receiver.index += value
         };
         Ok(())
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn expect(&self, expected: String) -> rt::TsonicResult<()> {
+    pub fn expect(&mut self, expected: String) -> Result<(), rt::TsonicError> {
         if self.next()? != expected {
             return Err(
-                rt::TsonicError::from(
+                rt::TsonicError::TsumoError(
                     self.syntax_error(
                         format!(
                             "{}{}{}",
                             String::from("Invalid JSON token; expected '"),
-                            rt::source_string(&expected),
+                            expected,
                             String::from("'"),
                         ),
-                        Some(self.state.with(|state| state.index) - 1),
+                        Some(self.index - 1),
                     )?,
                 ),
             );
@@ -1974,74 +1979,57 @@ impl JsonParser {
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn next(&self) -> rt::TsonicResult<String> {
-        if self.state.with(|state| state.index)
-            >= self
-                .state
-                .with(|state| state.source.clone())
-                .state
-                .with(|state| state.length)
-        {
+    #[expect(clippy::should_implement_trait, reason = "authored method contract")]
+    pub fn next(&mut self) -> Result<String, rt::TsonicError> {
+        if self.index >= self.source.state.with(|state| state.length) {
             return Err(
-                rt::TsonicError::from(
+                rt::TsonicError::TsumoError(
                     self.syntax_error(String::from("Unexpected end of JSON"), None)?,
                 ),
             );
         }
-        let ch: String = self
-            .state
-            .with(|state| state.source.clone())
-            .character_at(self.state.with(|state| state.index));
+        let ch: String = self.source.character_at(self.index);
         {
-            let update_receiver = self;
-            update_receiver.state.with_mut(|state| {
-                let update_location = &mut state.index;
+            let update_receiver = &mut *self;
+            {
+                let update_location = &mut update_receiver.index;
                 let update_previous = *update_location;
                 let update_next = update_previous + 1;
                 {
                     *update_location = update_next;
                     update_next
                 }
-            })
+            }
         };
-        Ok(ch.clone())
+        Ok(ch)
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn peek(&self) -> String {
-        if self.state.with(|state| state.index)
-            >= self
-                .state
-                .with(|state| state.source.clone())
-                .state
-                .with(|state| state.length)
-        {
+        if self.index >= self.source.state.with(|state| state.length) {
             return String::from("");
         }
-        self
-            .state
-            .with(|state| state.source.clone())
-            .character_at(self.state.with(|state| state.index))
+        self.source.character_at(self.index)
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn skip_whitespace(&self) {
+    pub fn skip_whitespace(&mut self) {
         loop {
             let ch: String = self.peek();
             if ch != " " && ch != "\n" && ch != "\r" && ch != "\t" {
                 return;
             }
             {
-                let update_receiver = self;
-                update_receiver.state.with_mut(|state| {
-                    let update_location = &mut state.index;
+                let update_receiver = &mut *self;
+                {
+                    let update_location = &mut update_receiver.index;
                     let update_previous = *update_location;
                     let update_next = update_previous + 1;
                     {
                         *update_location = update_next;
                         update_next
                     }
-                })
+                }
             };
         }
     }
@@ -2053,22 +2041,22 @@ impl JsonParser {
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn enter_composite(&self, index: i32) -> rt::TsonicResult<()> {
+    pub fn enter_composite(&mut self, index: i32) -> Result<(), rt::TsonicError> {
         {
-            let update_receiver = self;
-            update_receiver.state.with_mut(|state| {
-                let update_location = &mut state.depth;
+            let update_receiver = &mut *self;
+            {
+                let update_location = &mut update_receiver.depth;
                 let update_previous = *update_location;
                 let update_next = update_previous + 1;
                 {
                     *update_location = update_next;
                     update_next
                 }
-            })
+            }
         };
-        if self.state.with(|state| state.depth) > 256 {
+        if self.depth > 256 {
             return Err(
-                rt::TsonicError::from(
+                rt::TsonicError::TsumoError(
                     self.error(
                         String::from("TSUMO_JSON_DEPTH_EXCEEDED"),
                         String::from("JSON nesting exceeds the supported depth of 256"),
@@ -2081,18 +2069,16 @@ impl JsonParser {
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn line_index_at(&self, index: i32) -> rt::TsonicResult<i32> {
+    pub fn line_index_at(&self, index: i32) -> Result<i32, rt::TsonicError> {
         let mut low: i32 = 0;
-        let mut high: i32 = tsonic_rust_runtime::conversions::usize_to_i32(
-            self.state.with(|state| state.line_starts.clone()).len(),
-        )?;
+        let mut high: i32 =
+            tsonic_rust_runtime::conversions::usize_to_i32(self.line_starts.len())?;
         while low < high {
             let middle: i32 = tsonic_rust_runtime::conversions::f64_to_i32(
                 low as f64 + tsonic_rust_runtime::conversions::i32_to_f64((high - low) / 2).floor(),
             )?;
             if (match self
-                .state
-                .with(|state| state.line_starts.clone())
+                .line_starts
                 .get_number(tsonic_rust_runtime::conversions::i32_to_f64(middle))
                 .as_ref()
             {
@@ -2109,32 +2095,22 @@ impl JsonParser {
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn line_at(&self, index: i32) -> rt::TsonicResult<i32> {
+    pub fn line_at(&self, index: i32) -> Result<i32, rt::TsonicError> {
         Ok(self.line_index_at(index)? + 1)
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn column_at(&self, index: i32) -> rt::TsonicResult<i32> {
+    pub fn column_at(&self, index: i32) -> Result<i32, rt::TsonicError> {
         let line_index: i32 = self.line_index_at(index)?;
         Ok(
-            self
-                .state
-                .with(|state| state.source.clone())
-                .utf16_offset_at(index)
-                - self
-                    .state
-                    .with(|state| state.source.clone())
-                    .utf16_offset_at(
-                        match self
-                            .state
-                            .with(|state| state.line_starts.clone())
-                            .get_number(tsonic_rust_runtime::conversions::i32_to_f64(line_index))
-                            .as_ref()
-                        {
-                            Some(flow_value) => *flow_value,
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },
-                    )
+            self.source.utf16_offset_at(index) - self.source.utf16_offset_at(match self
+    .line_starts
+    .get_number(tsonic_rust_runtime::conversions::i32_to_f64(line_index))
+    .as_ref()
+{
+    Some(flow_value) => *flow_value,
+    None => unreachable!("checked flow selected a missing optional value"),
+})
                 + 1,
         )
     }
@@ -2144,15 +2120,11 @@ impl JsonParser {
         &self,
         message: String,
         index: Option<i32>,
-    ) -> rt::TsonicResult<crate::diagnostics::TsumoError> {
+    ) -> Result<crate::diagnostics::TsumoError, rt::TsonicError> {
         self.error(
             String::from("TSUMO_JSON_SYNTAX_INVALID"),
-            message.clone(),
-            rt::option_coalesce(
-                index,
-                std::convert::identity,
-                || self.state.with(|state| state.index),
-            ),
+            message,
+            rt::option_coalesce(index, std::convert::identity, || self.index),
         )
     }
 
@@ -2162,11 +2134,11 @@ impl JsonParser {
         code: String,
         message: String,
         index: i32,
-    ) -> rt::TsonicResult<crate::diagnostics::TsumoError> {
+    ) -> Result<crate::diagnostics::TsumoError, rt::TsonicError> {
         Ok(crate::diagnostics::create_tsumo_error(
-            code.clone(),
-            message.clone(),
-            self.state.with(|state| state.source_path.clone()),
+            code,
+            message,
+            self.source_path.clone(),
             Some(tsonic_rust_runtime::conversions::i32_to_f64(self
                 .line_at(index)?)),
             Some(tsonic_rust_runtime::conversions::i32_to_f64(self
@@ -2175,229 +2147,150 @@ impl JsonParser {
     }
 }
 
-pub type ParseJsonCallable = rt::Callable<(String, Option<String>), rt::TsonicResult<JsonValue>>;
-
-std::thread_local! {
-    pub static PARSE_JSON: rt::ModuleCell<ParseJsonCallable> = const { rt::ModuleCell::new() };
+pub fn parse_json(text: String, source_path: Option<String>) -> Result<JsonValue, rt::TsonicError> {
+    JsonParser::new(text, source_path)?.parse()
 }
 
-pub type JsonStringCallable = rt::Callable<(Option<JsonValue>,), rt::TsonicResult<Option<String>>>;
-
-std::thread_local! {
-    pub static JSON_STRING: rt::ModuleCell<JsonStringCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type JsonBoolCallable = rt::Callable<(Option<JsonValue>,), rt::TsonicResult<Option<bool>>>;
-
-std::thread_local! {
-    pub static JSON_BOOL: rt::ModuleCell<JsonBoolCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type JsonNumberCallable = rt::Callable<(Option<JsonValue>,), rt::TsonicResult<Option<f64>>>;
-
-std::thread_local! {
-    pub static JSON_NUMBER: rt::ModuleCell<JsonNumberCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type JsonArrayCallable =
-    rt::Callable<(Option<JsonValue>,), rt::TsonicResult<Option<JsonArray>>>;
-
-std::thread_local! {
-    pub static JSON_ARRAY: rt::ModuleCell<JsonArrayCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type JsonObjectCallable =
-    rt::Callable<(Option<JsonValue>,), rt::TsonicResult<Option<JsonObject>>>;
-
-std::thread_local! {
-    pub static JSON_OBJECT: rt::ModuleCell<JsonObjectCallable> = const { rt::ModuleCell::new() };
-}
-
-#[doc(hidden)]
-pub fn module_init() {
+pub fn json_string(value: Option<JsonValue>) -> Option<String> {
+    if value.as_ref().is_some_and(|value| {
+        value
+            .dispatch
+            .clone()
+            .downcast_json_value_to_json_string()
+            .is_some()
+    })
     {
-        let module_value = rt::Callable::<
-            (String, Option<String>),
-            rt::TsonicResult<JsonValue>,
-        >::new(move |callable_arguments| {
-            let text = callable_arguments.0;
-            let source_path = callable_arguments.1;
-            JsonParser::new(text.clone(), source_path.clone())?.parse()
-        });
-        PARSE_JSON.with(|module_binding| module_binding.initialize(module_value))
-    };
+        Some({
+            let dispatch_receiver = &{
+                let downcast_value = &value;
+                JsonString {
+                    identity: downcast_value.as_ref().unwrap().identity.clone(),
+                    dispatch: downcast_value
+                        .as_ref()
+                        .unwrap()
+                        .dispatch
+                        .clone()
+                        .downcast_json_value_to_json_string()
+                        .unwrap(),
+                }
+            };
+            dispatch_receiver.dispatch.read_json_string_value()
+        })
+    } else {
+        Option::<String>::None
+    }
+}
+
+pub fn json_bool(value: Option<JsonValue>) -> Option<bool> {
+    if value.as_ref().is_some_and(|value| {
+        value
+            .dispatch
+            .clone()
+            .downcast_json_value_to_json_bool()
+            .is_some()
+    })
     {
-        let module_value_2 = rt::Callable::<
-            (Option<JsonValue>,),
-            rt::TsonicResult<Option<String>>,
-        >::new(move |callable_arguments_2| {
-            let value = callable_arguments_2.0;
-            Ok::<_, rt::TsonicError>(if value.as_ref().is_some_and(|value| {
-                value
-                    .dispatch
-                    .clone()
-                    .downcast_json_value_to_json_string()
-                    .is_some()
-            })
-            {
-                Some({
-                    let dispatch_receiver = &{
-                        let downcast_value = &value;
-                        JsonString {
-                            identity: downcast_value.as_ref().unwrap().identity.clone(),
-                            dispatch: downcast_value
-                                .as_ref()
-                                .unwrap()
-                                .dispatch
-                                .clone()
-                                .downcast_json_value_to_json_string()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver.dispatch.read_json_string_value()
-                })
-            } else {
-                Option::<String>::None
-            })
-        });
-        JSON_STRING.with(|module_binding_2| module_binding_2.initialize(module_value_2))
-    };
+        Some({
+            let dispatch_receiver = &{
+                let downcast_value = &value;
+                JsonBool {
+                    identity: downcast_value.as_ref().unwrap().identity.clone(),
+                    dispatch: downcast_value
+                        .as_ref()
+                        .unwrap()
+                        .dispatch
+                        .clone()
+                        .downcast_json_value_to_json_bool()
+                        .unwrap(),
+                }
+            };
+            dispatch_receiver.dispatch.read_json_bool_value()
+        })
+    } else {
+        Option::<bool>::None
+    }
+}
+
+pub fn json_number(value: Option<JsonValue>) -> Option<f64> {
+    if value.as_ref().is_some_and(|value| {
+        value
+            .dispatch
+            .clone()
+            .downcast_json_value_to_json_number()
+            .is_some()
+    })
     {
-        let module_value_3 = rt::Callable::<
-            (Option<JsonValue>,),
-            rt::TsonicResult<Option<bool>>,
-        >::new(move |callable_arguments_3| {
-            let value = callable_arguments_3.0;
-            Ok::<_, rt::TsonicError>(if value.as_ref().is_some_and(|value| {
-                value
-                    .dispatch
-                    .clone()
-                    .downcast_json_value_to_json_bool()
-                    .is_some()
-            })
-            {
-                Some({
-                    let dispatch_receiver_2 = &{
-                        let downcast_value_2 = &value;
-                        JsonBool {
-                            identity: downcast_value_2.as_ref().unwrap().identity.clone(),
-                            dispatch: downcast_value_2
-                                .as_ref()
-                                .unwrap()
-                                .dispatch
-                                .clone()
-                                .downcast_json_value_to_json_bool()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_2.dispatch.read_json_bool_value()
-                })
-            } else {
-                Option::<bool>::None
-            })
-        });
-        JSON_BOOL.with(|module_binding_3| module_binding_3.initialize(module_value_3))
-    };
+        Some({
+            let dispatch_receiver = &{
+                let downcast_value = &value;
+                JsonNumber {
+                    identity: downcast_value.as_ref().unwrap().identity.clone(),
+                    dispatch: downcast_value
+                        .as_ref()
+                        .unwrap()
+                        .dispatch
+                        .clone()
+                        .downcast_json_value_to_json_number()
+                        .unwrap(),
+                }
+            };
+            dispatch_receiver.dispatch.read_json_number_value()
+        })
+    } else {
+        Option::<f64>::None
+    }
+}
+
+pub fn json_array(value: Option<JsonValue>) -> Option<JsonArray> {
+    if value.as_ref().is_some_and(|value| {
+        value
+            .dispatch
+            .clone()
+            .downcast_json_value_to_json_array()
+            .is_some()
+    })
     {
-        let module_value_4 = rt::Callable::<
-            (Option<JsonValue>,),
-            rt::TsonicResult<Option<f64>>,
-        >::new(move |callable_arguments_4| {
-            let value = callable_arguments_4.0;
-            Ok::<_, rt::TsonicError>(if value.as_ref().is_some_and(|value| {
-                value
-                    .dispatch
-                    .clone()
-                    .downcast_json_value_to_json_number()
-                    .is_some()
-            })
-            {
-                Some({
-                    let dispatch_receiver_3 = &{
-                        let downcast_value_3 = &value;
-                        JsonNumber {
-                            identity: downcast_value_3.as_ref().unwrap().identity.clone(),
-                            dispatch: downcast_value_3
-                                .as_ref()
-                                .unwrap()
-                                .dispatch
-                                .clone()
-                                .downcast_json_value_to_json_number()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_3.dispatch.read_json_number_value()
-                })
-            } else {
-                Option::<f64>::None
-            })
-        });
-        JSON_NUMBER.with(|module_binding_4| module_binding_4.initialize(module_value_4))
-    };
-    {
-        let module_value_5 = rt::Callable::<
-            (Option<JsonValue>,),
-            rt::TsonicResult<Option<JsonArray>>,
-        >::new(move |callable_arguments_5| {
-            let value = callable_arguments_5.0;
-            Ok::<_, rt::TsonicError>(if value.as_ref().is_some_and(|value| {
-                value
+        Some({
+            let downcast_value = &value;
+            JsonArray {
+                identity: downcast_value.as_ref().unwrap().identity.clone(),
+                dispatch: downcast_value
+                    .as_ref()
+                    .unwrap()
                     .dispatch
                     .clone()
                     .downcast_json_value_to_json_array()
-                    .is_some()
-            })
-            {
-                Some({
-                    let downcast_value_4 = &value;
-                    JsonArray {
-                        identity: downcast_value_4.as_ref().unwrap().identity.clone(),
-                        dispatch: downcast_value_4
-                            .as_ref()
-                            .unwrap()
-                            .dispatch
-                            .clone()
-                            .downcast_json_value_to_json_array()
-                            .unwrap(),
-                    }
-                })
-            } else {
-                Option::<JsonArray>::None
-            })
-        });
-        JSON_ARRAY.with(|module_binding_5| module_binding_5.initialize(module_value_5))
-    };
+                    .unwrap(),
+            }
+        })
+    } else {
+        Option::<JsonArray>::None
+    }
+}
+
+pub fn json_object(value: Option<JsonValue>) -> Option<JsonObject> {
+    if value.as_ref().is_some_and(|value| {
+        value
+            .dispatch
+            .clone()
+            .downcast_json_value_to_json_object()
+            .is_some()
+    })
     {
-        let module_value_6 = rt::Callable::<
-            (Option<JsonValue>,),
-            rt::TsonicResult<Option<JsonObject>>,
-        >::new(move |callable_arguments_6| {
-            let value = callable_arguments_6.0;
-            Ok::<_, rt::TsonicError>(if value.as_ref().is_some_and(|value| {
-                value
+        Some({
+            let downcast_value = &value;
+            JsonObject {
+                identity: downcast_value.as_ref().unwrap().identity.clone(),
+                dispatch: downcast_value
+                    .as_ref()
+                    .unwrap()
                     .dispatch
                     .clone()
                     .downcast_json_value_to_json_object()
-                    .is_some()
-            })
-            {
-                Some({
-                    let downcast_value_5 = &value;
-                    JsonObject {
-                        identity: downcast_value_5.as_ref().unwrap().identity.clone(),
-                        dispatch: downcast_value_5
-                            .as_ref()
-                            .unwrap()
-                            .dispatch
-                            .clone()
-                            .downcast_json_value_to_json_object()
-                            .unwrap(),
-                    }
-                })
-            } else {
-                Option::<JsonObject>::None
-            })
-        });
-        JSON_OBJECT.with(|module_binding_6| module_binding_6.initialize(module_value_6))
-    };
+                    .unwrap(),
+            }
+        })
+    } else {
+        Option::<JsonObject>::None
+    }
 }

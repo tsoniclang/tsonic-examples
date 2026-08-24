@@ -4,23 +4,25 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct UrlSuffixSplitState {
-    pub(crate) path: String,
-    pub(crate) suffix: String,
+pub struct UrlSuffixSplitState {
+    pub path: String,
+    pub suffix: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct UrlSuffixSplit {
-    pub(crate) state: rt::ObjectHandle<UrlSuffixSplitState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<UrlSuffixSplitState>,
 }
 
 impl UrlSuffixSplit {
     pub fn new(path: String, suffix: String) -> UrlSuffixSplit {
-        let field_path: String = path.clone();
-        let field_suffix: String = suffix.clone();
+        let field_path: String = path;
+        let field_suffix: String = suffix;
         UrlSuffixSplit {
-            state: rt::ObjectHandle::new(UrlSuffixSplitState {
+            state: rt::ObjectRef::new(UrlSuffixSplitState {
                 path: field_path,
                 suffix: field_suffix,
             }),
@@ -28,50 +30,28 @@ impl UrlSuffixSplit {
     }
 }
 
-pub type SplitUrlSuffixCallable = rt::Callable<(String,), rt::TsonicResult<UrlSuffixSplit>>;
-
-std::thread_local! {
-    pub static SPLIT_URL_SUFFIX: rt::ModuleCell<SplitUrlSuffixCallable> = const { rt::ModuleCell::new() };
-}
-
-#[doc(hidden)]
-pub fn module_init() {
-    {
-        let module_value = rt::Callable::<(String,), rt::TsonicResult<UrlSuffixSplit>>::new(
-            move |callable_arguments| {
-                let url = callable_arguments.0;
-                let q: i32 =
-                    tsonic_rust_runtime::conversions::isize_to_i32(js_string::index_of_from_start(
-                        &url, "?",
-                    ))?;
-                let h: i32 =
-                    tsonic_rust_runtime::conversions::isize_to_i32(js_string::index_of_from_start(
-                        &url, "#",
-                    ))?;
-                let mut cut: i32 = -1;
-                if q >= 0 && h >= 0 {
-                    cut = if q < h { q } else { h };
-                } else {
-                    if q >= 0 {
-                        cut = q;
-                    } else {
-                        if h >= 0 {
-                            cut = h;
-                        }
-                    }
-                }
-                if cut < 0 {
-                    return Ok::<_, rt::TsonicError>(UrlSuffixSplit::new(
-                        url.clone(),
-                        String::from(""),
-                    ));
-                }
-                Ok::<_, rt::TsonicError>(UrlSuffixSplit::new(
-                    crate::utils::strings::substring_count(url.clone(), 0, cut)?,
-                    crate::utils::strings::substring_from(&url, cut)?,
-                ))
-            },
-        );
-        SPLIT_URL_SUFFIX.with(|module_binding| module_binding.initialize(module_value))
-    };
+pub fn split_url_suffix(url: String) -> Result<UrlSuffixSplit, rt::TsonicError> {
+    let q: i32 =
+        tsonic_rust_runtime::conversions::isize_to_i32(js_string::index_of_from_start(&url, "?"))?;
+    let h: i32 =
+        tsonic_rust_runtime::conversions::isize_to_i32(js_string::index_of_from_start(&url, "#"))?;
+    let mut cut: i32 = -1;
+    if q >= 0 && h >= 0 {
+        cut = if q < h { q } else { h };
+    } else {
+        if q >= 0 {
+            cut = q;
+        } else {
+            if h >= 0 {
+                cut = h;
+            }
+        }
+    }
+    if cut < 0 {
+        return Ok(UrlSuffixSplit::new(url.clone(), String::from("")));
+    }
+    Ok(UrlSuffixSplit::new(
+        crate::utils::strings::substring_count(url.clone(), 0, cut)?,
+        crate::utils::strings::substring_from(&url, cut)?,
+    ))
 }

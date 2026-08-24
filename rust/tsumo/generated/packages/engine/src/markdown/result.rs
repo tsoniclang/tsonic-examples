@@ -2,17 +2,19 @@
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct MarkdownResultState {
-    pub(crate) html: String,
-    pub(crate) summary_html: String,
-    pub(crate) plain_text: String,
-    pub(crate) table_of_contents: String,
+pub struct MarkdownResultState {
+    pub html: String,
+    pub summary_html: String,
+    pub plain_text: String,
+    pub table_of_contents: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct MarkdownResult {
-    pub(crate) state: rt::ObjectHandle<MarkdownResultState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<MarkdownResultState>,
 }
 
 impl MarkdownResult {
@@ -22,12 +24,12 @@ impl MarkdownResult {
         plain_text: String,
         table_of_contents: String,
     ) -> MarkdownResult {
-        let field_html: String = html.clone();
-        let field_summary_html: String = summary_html.clone();
-        let field_plain_text: String = plain_text.clone();
-        let field_table_of_contents: String = table_of_contents.clone();
+        let field_html: String = html;
+        let field_summary_html: String = summary_html;
+        let field_plain_text: String = plain_text;
+        let field_table_of_contents: String = table_of_contents;
         MarkdownResult {
-            state: rt::ObjectHandle::new(MarkdownResultState {
+            state: rt::ObjectRef::new(MarkdownResultState {
                 html: field_html,
                 summary_html: field_summary_html,
                 plain_text: field_plain_text,

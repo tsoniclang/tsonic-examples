@@ -4,9 +4,10 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn capture_content_diagnostic(
     operation: rt::Callable<(), rt::TsonicResult<()>>,
-) -> rt::TsonicResult<String> {
+) -> Result<String, rt::TsonicError> {
     let try_body: rt::TsonicResult<rt::Completion<String>> = rt::completion_region(|| {
         operation.call(())?;
         Ok(rt::Completion::Normal)
@@ -14,22 +15,29 @@ pub(crate) fn capture_content_diagnostic(
     let try_flow: rt::TsonicResult<rt::Completion<String>> = match try_body {
         Ok(completion) => Ok(completion),
         Err(error) => rt::completion_region(|| {
-            if matches!(error.clone(), rt::TsonicError::Project0(_)) {
-                return Ok(rt::Completion::Return(
-                    {
-                        let dispatch_receiver = &match error {
-                            rt::TsonicError::Project0(program_error) => program_error,
-                            _ => {
-                                unreachable!(
-                                    "checked flow selected a different program-error variant"
-                                )
-                            }
+            if matches!(
+                error.clone(),
+                rt::TsonicError::TsumoEngineError(tsumo_engine::program::TsonicError::TsumoError(_)),
+            )
+            {
+                return Ok(
+                    rt::Completion::Return({
+                        let dispatch_receiver_2 = &{
+                            let dispatch_receiver = &match error {
+                                rt::TsonicError::TsumoEngineError(tsumo_engine::program::TsonicError::TsumoError(program_error)) => {
+                                    program_error
+                                }
+                                _ => {
+                                    unreachable!(
+                                        "checked flow selected a different program-error variant"
+                                    )
+                                }
+                            };
+                            dispatch_receiver.dispatch.read_tsumo_error_diagnostic()
                         };
-                        dispatch_receiver.dispatch.read_tsumo_error_diagnostic()
-                    }
-                    .state
-                    .with(|state| state.code.clone()),
-                ));
+                        dispatch_receiver_2.dispatch.read_tsumo_diagnostic_code()
+                    }),
+                );
             }
             Err(error.clone())
         }),
@@ -47,19 +55,20 @@ pub(crate) fn capture_content_diagnostic(
     )))
 }
 
+#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn create_menu_entry(
     identity: String,
     parent: String,
     weight: i32,
     page_ref: String,
-) -> crate::node_modules::tsumo::engine::src::models::menu_entry::MenuEntry {
-    crate::node_modules::tsumo::engine::src::models::menu_entry::MenuEntry::new(
+) -> tsumo_engine::testing::MenuEntry {
+    tsumo_engine::testing::MenuEntry::new(
         identity.clone(),
         String::from(""),
-        page_ref.clone(),
+        page_ref,
         String::from(""),
         weight,
-        parent.clone(),
+        parent,
         identity.clone(),
         String::from(""),
         String::from(""),
@@ -68,18 +77,18 @@ pub(crate) fn create_menu_entry(
     )
 }
 
+#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn create_page(
-    site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext,
+    site: tsumo_engine::testing::SiteContext,
     route: String,
     slug: String,
-) -> crate::node_modules::tsumo::engine::src::models::page_context::PageContext {
-    let empty_html: crate::node_modules::tsumo::engine::src::utils::html::HtmlString =
-        crate::node_modules::tsumo::engine::src::utils::html::HtmlString::new(String::from(""));
-    let empty_pages: js_abi::JsArray<
-        crate::node_modules::tsumo::engine::src::models::page_context::PageContext,
-    > = js_abi::JsArray::from_dense(vec![]);
+) -> tsumo_engine::testing::PageContext {
+    let empty_html: tsumo_engine::testing::HtmlString =
+        tsumo_engine::testing::HtmlString::new(String::from(""));
+    let empty_pages: js_abi::JsArray<tsumo_engine::testing::PageContext> =
+        js_abi::JsArray::from_dense(vec![]);
     let empty_strings: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-    crate::node_modules::tsumo::engine::src::models::page_context::PageContext::new(
+    tsumo_engine::testing::PageContext::new(
         slug.clone(),
         String::from("2026-01-01T00:00:00.000Z"),
         String::from("2026-01-01T00:00:00.000Z"),
@@ -88,7 +97,7 @@ pub(crate) fn create_page(
         String::from("articles"),
         String::from("articles"),
         slug.clone(),
-        route.clone(),
+        route,
         String::from(""),
         empty_html.clone(),
         empty_html.clone(),
@@ -96,63 +105,102 @@ pub(crate) fn create_page(
         String::from(""),
         empty_strings.clone(),
         empty_strings.clone(),
-        site.state.with(|state| state.params.clone()),
-        Option::<crate::node_modules::tsumo::engine::src::models::page_file::PageFile>::None,
-        site.state.with(|state| state.language.clone()),
+        {
+            let dispatch_receiver = &site;
+            dispatch_receiver.dispatch.read_site_context_params()
+        },
+        Option::<tsumo_engine::testing::PageFile>::None,
+        {
+            let dispatch_receiver_2 = &site;
+            dispatch_receiver_2.dispatch.read_site_context_language()
+        },
         empty_pages.clone(),
-        Option::<crate::node_modules::tsumo::engine::src::template::values::scratch::ScratchStore>::None,
+        Option::<tsumo_engine::template::values::scratch::ScratchStore>::None,
         site.clone(),
         empty_pages.clone(),
-        Option::<crate::node_modules::tsumo::engine::src::models::page_context::PageContext>::None,
+        Option::<tsumo_engine::testing::PageContext>::None,
         empty_pages.clone(),
         Option::<String>::None,
     )
 }
 
+#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn create_source(
     source_path: String,
-    page: crate::node_modules::tsumo::engine::src::models::page_context::PageContext,
-) -> crate::node_modules::tsumo::engine::src::build::content_model::ContentPageSource {
-    let empty_menus: js_abi::JsArray<
-        crate::node_modules::tsumo::engine::src::frontmatter::menu::FrontMatterMenu,
-    > = js_abi::JsArray::from_dense(vec![]);
-    crate::node_modules::tsumo::engine::src::build::content_model::ContentPageSource::new(
+    page: tsumo_engine::testing::PageContext,
+) -> tsumo_engine::testing::ContentPageSource {
+    let empty_menus: js_abi::JsArray<tsumo_engine::testing::FrontMatterMenu> =
+        js_abi::JsArray::from_dense(vec![]);
+    tsumo_engine::testing::ContentPageSource::new(
         source_path.clone(),
-        page.state.with(|state| state.section.clone()),
-        page.state.with(|state| state.r#type.clone()),
-        page.state.with(|state| state.slug.clone()),
-        page.state.with(|state| state.title.clone()),
+        {
+            let dispatch_receiver = &page;
+            dispatch_receiver.dispatch.read_page_context_section()
+        },
+        {
+            let dispatch_receiver_2 = &page;
+            dispatch_receiver_2.dispatch.read_page_context_type()
+        },
+        {
+            let dispatch_receiver_3 = &page;
+            dispatch_receiver_3.dispatch.read_page_context_slug()
+        },
+        {
+            let dispatch_receiver_4 = &page;
+            dispatch_receiver_4.dispatch.read_page_context_title()
+        },
         js_abi::JsDate::from_string("2026-01-01T00:00:00.000Z"),
-        page.state.with(|state| state.date.clone()),
-        page.state.with(|state| state.lastmod.clone()),
+        {
+            let dispatch_receiver_5 = &page;
+            dispatch_receiver_5.dispatch.read_page_context_date()
+        },
+        {
+            let dispatch_receiver_6 = &page;
+            dispatch_receiver_6.dispatch.read_page_context_lastmod()
+        },
         false,
         false,
         String::from(""),
-        page.state.with(|state| state.tags.clone()),
-        page.state.with(|state| state.categories.clone()),
-        page.state.with(|state| state.params.clone()),
+        {
+            let dispatch_receiver_7 = &page;
+            dispatch_receiver_7.dispatch.read_page_context_tags()
+        },
+        {
+            let dispatch_receiver_8 = &page;
+            dispatch_receiver_8.dispatch.read_page_context_categories()
+        },
+        {
+            let dispatch_receiver_9 = &page;
+            dispatch_receiver_9.dispatch.read_page_context_params()
+        },
         String::from(""),
-        page.state.with(|state| state.rel_permalink.clone()),
+        {
+            let dispatch_receiver_10 = &page;
+            dispatch_receiver_10
+                .dispatch
+                .read_page_context_rel_permalink()
+        },
         String::from("articles/post/index.html"),
         Option::<String>::None,
-        crate::node_modules::tsumo::engine::src::models::page_file::PageFile::new(
-            source_path.clone(),
-            String::from("articles/"),
-            page.state.with(|state| state.slug.clone()),
-        ),
-        empty_menus.clone(),
+        tsumo_engine::testing::PageFile::new(source_path.clone(), String::from("articles/"), {
+            let dispatch_receiver_11 = &page;
+            dispatch_receiver_11.dispatch.read_page_context_slug()
+        }),
+        empty_menus,
     )
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) struct ContentAndMenuTestsState {}
 
+#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ContentAndMenuTests {
     pub(crate) state: rt::ObjectHandle<ContentAndMenuTestsState>,
 }
 
 impl ContentAndMenuTests {
+    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new() -> ContentAndMenuTests {
         ContentAndMenuTests {
             state: rt::ObjectHandle::new(ContentAndMenuTestsState {}),
@@ -161,40 +209,28 @@ impl ContentAndMenuTests {
 
     pub fn content_discovery_is_deterministic_and_excludes_drafts_before_claiming_routes(
         &self,
-    ) -> rt::TsonicResult<()> {
-        let root: String = crate::test_root::CREATE_TEST_DIRECTORY
-            .with(|module_binding| module_binding.load())
-            .call((String::from("content-discovery"),))?;
+    ) -> Result<(), rt::TsonicError> {
+        let root: String =
+            crate::test_root::create_test_directory(String::from("content-discovery"))?;
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[root.as_str(), "z.md"]),
-                    String::from("---\ntitle: Z\ndate: 2026-01-01T00:00:00Z\n---\nZ"),
-                ))?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[root.as_str(), "a.md"]),
-                    String::from("---\ntitle: A\ndate: 2026-01-01T00:00:00Z\n---\nA"),
-                ))?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[root.as_str(), "published.md"]),
-                    String::from("---\ntitle: Published\ndate: 2025-01-01T00:00:00Z\nslug: shared\n---\nPublished"),
-                ))?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[root.as_str(), "draft.md"]),
-                    String::from("---\ntitle: Draft\ndate: 2025-01-01T00:00:00Z\nslug: shared\ndraft: true\n---\nDraft"),
-                ))?;
-            let production: crate::node_modules::tsumo::engine::src::build::content_model::ContentInventory =
-                crate::node_modules::tsumo::engine::src::build::discover_content::discover_content(
-                    root.clone(),
-                    false,
-                )?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[root.as_str(), "z.md"]),
+                String::from("---\ntitle: Z\ndate: 2026-01-01T00:00:00Z\n---\nZ"),
+            )?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[root.as_str(), "a.md"]),
+                String::from("---\ntitle: A\ndate: 2026-01-01T00:00:00Z\n---\nA"),
+            )?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[root.as_str(), "published.md"]),
+                String::from("---\ntitle: Published\ndate: 2025-01-01T00:00:00Z\nslug: shared\n---\nPublished"),
+            )?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[root.as_str(), "draft.md"]),
+                String::from("---\ntitle: Draft\ndate: 2025-01-01T00:00:00Z\nslug: shared\ndraft: true\n---\nDraft"),
+            )?;
+            let production: tsumo_engine::build::content_model::ContentInventory =
+                tsumo_engine::testing::discover_content(root.clone(), false)?;
             crate::test_root::Assert::number_equal(
                 3.0,
                 Some(tsonic_rust_runtime::conversions::i32_to_f64(
@@ -204,69 +240,68 @@ impl ContentAndMenuTests {
                 )),
             )?;
             crate::test_root::Assert::r#true(
-                match production
-                    .state
-                    .with(|state| state.pages.clone())
-                    .get_number(0.0)
-                    .as_ref()
                 {
-                    Some(flow_value) => flow_value.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }
-                .state
-                .with(|state| state.rel_permalink.clone())
-                    == "/a/",
+                    let dispatch_receiver = &match production
+                        .state
+                        .with(|state| state.pages.clone())
+                        .get_number(0.0)
+                        .as_ref()
+                    {
+                        Some(flow_value) => flow_value.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    };
+                    dispatch_receiver
+                        .dispatch
+                        .read_content_page_source_rel_permalink()
+                } == "/a/",
             )?;
             crate::test_root::Assert::r#true(
-                match production
-                    .state
-                    .with(|state| state.pages.clone())
-                    .get_number(1.0)
-                    .as_ref()
                 {
-                    Some(flow_value_2) => flow_value_2.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }
-                .state
-                .with(|state| state.rel_permalink.clone())
-                    == "/z/",
+                    let dispatch_receiver_2 = &match production
+                        .state
+                        .with(|state| state.pages.clone())
+                        .get_number(1.0)
+                        .as_ref()
+                    {
+                        Some(flow_value_2) => flow_value_2.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    };
+                    dispatch_receiver_2
+                        .dispatch
+                        .read_content_page_source_rel_permalink()
+                } == "/z/",
             )?;
             crate::test_root::Assert::r#true(
-                match production
-                    .state
-                    .with(|state| state.pages.clone())
-                    .get_number(2.0)
-                    .as_ref()
                 {
-                    Some(flow_value_3) => flow_value_3.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }
-                .state
-                .with(|state| state.rel_permalink.clone())
-                    == "/shared/",
+                    let dispatch_receiver_3 = &match production
+                        .state
+                        .with(|state| state.pages.clone())
+                        .get_number(2.0)
+                        .as_ref()
+                    {
+                        Some(flow_value_3) => flow_value_3.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    };
+                    dispatch_receiver_3
+                        .dispatch
+                        .read_content_page_source_rel_permalink()
+                } == "/shared/",
             )?;
             crate::test_root::Assert::string_equal(
                 String::from("TSUMO_CONTENT_ROUTE_CONFLICT"),
-                Some(
-                    capture_content_diagnostic({
-                        let capture_root = root.clone();
-                        rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                            crate::node_modules::tsumo::engine::src::build::discover_content::discover_content(
-                                capture_root.clone(),
-                                true,
-                            )?;
-                            Ok::<_, rt::TsonicError>(())
-                        })
-                    })?,
-                ),
+                Some(capture_content_diagnostic({
+                    let capture_root = root.clone();
+                    rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
+                        tsumo_engine::testing::discover_content(capture_root.clone(), true)?;
+                        Ok::<_, rt::TsonicError>(())
+                    })
+                })?),
             )?;
             Ok(rt::Completion::Normal)
         });
         let try_flow = try_body;
         let finally_flow: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::DELETE_TEST_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((root.clone(),))?;
+            crate::test_root::delete_test_directory(root.clone())?;
             Ok(rt::Completion::Normal)
         });
         let try_flow: rt::TsonicResult<rt::Completion<()>> =
@@ -283,75 +318,59 @@ impl ContentAndMenuTests {
 
     pub fn content_routes_reject_escape_segments_and_duplicate_outputs(
         &self,
-    ) -> rt::TsonicResult<()> {
-        let escape_root: String = crate::test_root::CREATE_TEST_DIRECTORY
-            .with(|module_binding| module_binding.load())
-            .call((String::from("content-route-escape"),))?;
-        let conflict_root: String = crate::test_root::CREATE_TEST_DIRECTORY
-            .with(|module_binding| module_binding.load())
-            .call((String::from("content-route-conflict"),))?;
+    ) -> Result<(), rt::TsonicError> {
+        let escape_root: String =
+            crate::test_root::create_test_directory(String::from("content-route-escape"))?;
+        let conflict_root: String =
+            crate::test_root::create_test_directory(String::from("content-route-conflict"))?;
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[escape_root.as_str(), "bad.md"]),
-                    String::from("---\ntitle: Bad\nslug: ../outside\n---\nBad"),
-                ))?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[escape_root.as_str(), "bad.md"]),
+                String::from("---\ntitle: Bad\nslug: ../outside\n---\nBad"),
+            )?;
             crate::test_root::Assert::string_equal(
                 String::from("TSUMO_CONTENT_ROUTE_SEGMENT_INVALID"),
-                Some(
-                    capture_content_diagnostic({
-                        let capture_escape_root = escape_root.clone();
-                        rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                            crate::node_modules::tsumo::engine::src::build::discover_content::discover_content(
-                                capture_escape_root.clone(),
-                                false,
-                            )?;
-                            Ok::<_, rt::TsonicError>(())
-                        })
-                    })?,
-                ),
+                Some(capture_content_diagnostic({
+                    let capture_escape_root = escape_root.clone();
+                    rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
+                        tsumo_engine::testing::discover_content(
+                            capture_escape_root.clone(),
+                            false,
+                        )?;
+                        Ok::<_, rt::TsonicError>(())
+                    })
+                })?),
             )?;
-            crate::test_root::CREATE_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((tsonic_rust_node::path::join(&[conflict_root.as_str(), "guide"]),))?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[conflict_root.as_str(), "guide.md"]),
-                    String::from("---\ntitle: Guide\n---\nPage"),
-                ))?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[conflict_root.as_str(), "guide", "_index.md"]),
-                    String::from("---\ntitle: Guide index\n---\nList"),
-                ))?;
+            crate::test_root::create_directory(tsonic_rust_node::path::join(
+                &[conflict_root.as_str(), "guide"],
+            ))?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[conflict_root.as_str(), "guide.md"]),
+                String::from("---\ntitle: Guide\n---\nPage"),
+            )?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[conflict_root.as_str(), "guide", "_index.md"]),
+                String::from("---\ntitle: Guide index\n---\nList"),
+            )?;
             crate::test_root::Assert::string_equal(
                 String::from("TSUMO_CONTENT_ROUTE_CONFLICT"),
-                Some(
-                    capture_content_diagnostic({
-                        let capture_conflict_root = conflict_root.clone();
-                        rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
-                            crate::node_modules::tsumo::engine::src::build::discover_content::discover_content(
-                                capture_conflict_root.clone(),
-                                false,
-                            )?;
-                            Ok::<_, rt::TsonicError>(())
-                        })
-                    })?,
-                ),
+                Some(capture_content_diagnostic({
+                    let capture_conflict_root = conflict_root.clone();
+                    rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
+                        tsumo_engine::testing::discover_content(
+                            capture_conflict_root.clone(),
+                            false,
+                        )?;
+                        Ok::<_, rt::TsonicError>(())
+                    })
+                })?),
             )?;
             Ok(rt::Completion::Normal)
         });
         let try_flow = try_body;
         let finally_flow: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::DELETE_TEST_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((conflict_root.clone(),))?;
-            crate::test_root::DELETE_TEST_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((escape_root.clone(),))?;
+            crate::test_root::delete_test_directory(conflict_root.clone())?;
+            crate::test_root::delete_test_directory(escape_root.clone())?;
             Ok(rt::Completion::Normal)
         });
         let try_flow: rt::TsonicResult<rt::Completion<()>> =
@@ -366,11 +385,9 @@ impl ContentAndMenuTests {
         Ok(())
     }
 
-    pub fn menu_hierarchy_is_deterministic_and_fails_closed(&self) -> rt::TsonicResult<()> {
-        let hierarchy: js_abi::JsArray<
-            crate::node_modules::tsumo::engine::src::models::menu_entry::MenuEntry,
-        > = crate::node_modules::tsumo::engine::src::menus::build_menu_hierarchy(
-            js_abi::JsArray::from_dense(vec![
+    pub fn menu_hierarchy_is_deterministic_and_fails_closed(&self) -> Result<(), rt::TsonicError> {
+        let hierarchy: js_abi::JsArray<tsumo_engine::testing::MenuEntry> =
+            tsumo_engine::testing::build_menu_hierarchy(js_abi::JsArray::from_dense(vec![
                 create_menu_entry(String::from("beta"), String::from(""), 0, String::from("")),
                 create_menu_entry(
                     String::from("child"),
@@ -379,8 +396,7 @@ impl ContentAndMenuTests {
                     String::from(""),
                 ),
                 create_menu_entry(String::from("alpha"), String::from(""), 0, String::from("")),
-            ]),
-        )?;
+            ]))?;
         crate::test_root::Assert::number_equal(
             2.0,
             Some(tsonic_rust_runtime::conversions::i32_to_f64(
@@ -388,168 +404,159 @@ impl ContentAndMenuTests {
             )),
         )?;
         crate::test_root::Assert::r#true(
-            match hierarchy.get_number(0.0).as_ref() {
-                Some(flow_value) => flow_value.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            }
-            .state
-            .with(|state| state.identifier.clone())
-                == "alpha",
-        )?;
-        crate::test_root::Assert::r#true(
-            match match hierarchy.get_number(0.0).as_ref() {
-                Some(flow_value_2) => flow_value_2.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            }
-            .state
-            .with(|state| state.children.clone())
-            .get_number(0.0)
-            .as_ref()
             {
-                Some(flow_value_3) => flow_value_3.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            }
-            .state
-            .with(|state| state.identifier.clone())
-                == "child",
+                let dispatch_receiver = &match hierarchy.get_number(0.0).as_ref() {
+                    Some(flow_value) => flow_value.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                };
+                dispatch_receiver.dispatch.read_menu_entry_identifier()
+            } == "alpha",
         )?;
         crate::test_root::Assert::r#true(
-            match hierarchy.get_number(1.0).as_ref() {
-                Some(flow_value_4) => flow_value_4.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            }
-            .state
-            .with(|state| state.identifier.clone())
-                == "beta",
+            {
+                let dispatch_receiver_3 = &match {
+                    let dispatch_receiver_2 = &match hierarchy.get_number(0.0).as_ref() {
+                        Some(flow_value_2) => flow_value_2.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    };
+                    dispatch_receiver_2.dispatch.read_menu_entry_children()
+                }
+                .get_number(0.0)
+                .as_ref()
+                {
+                    Some(flow_value_3) => flow_value_3.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                };
+                dispatch_receiver_3.dispatch.read_menu_entry_identifier()
+            } == "child",
+        )?;
+        crate::test_root::Assert::r#true(
+            {
+                let dispatch_receiver_4 = &match hierarchy.get_number(1.0).as_ref() {
+                    Some(flow_value_4) => flow_value_4.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                };
+                dispatch_receiver_4.dispatch.read_menu_entry_identifier()
+            } == "beta",
         )?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_MENU_IDENTITY_DUPLICATE"),
-            Some(capture_content_diagnostic(rt::Callable::<(), rt::TsonicResult<()>>::new(
-                move |_callable_arguments| {
-                    crate::node_modules::tsumo::engine::src::menus::build_menu_hierarchy(
-                        js_abi::JsArray::from_dense(vec![
-                            create_menu_entry(
-                                String::from("same"),
-                                String::from(""),
-                                0,
-                                String::from(""),
-                            ),
-                            create_menu_entry(
-                                String::from("same"),
-                                String::from(""),
-                                1,
-                                String::from(""),
-                            ),
-                        ]),
-                    )?;
+            Some(capture_content_diagnostic(
+                rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
+                    tsumo_engine::testing::build_menu_hierarchy(js_abi::JsArray::from_dense(vec![
+                        create_menu_entry(
+                            String::from("same"),
+                            String::from(""),
+                            0,
+                            String::from(""),
+                        ),
+                        create_menu_entry(
+                            String::from("same"),
+                            String::from(""),
+                            1,
+                            String::from(""),
+                        ),
+                    ]))?;
                     Ok::<_, rt::TsonicError>(())
-                },
-            ))?),
+                }),
+            )?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_MENU_PARENT_NOT_FOUND"),
-            Some(capture_content_diagnostic(rt::Callable::<(), rt::TsonicResult<()>>::new(
-                move |_callable_arguments_2| {
-                    crate::node_modules::tsumo::engine::src::menus::build_menu_hierarchy(
-                        js_abi::JsArray::from_dense(vec![
-                            create_menu_entry(
-                                String::from("child"),
-                                String::from("missing"),
-                                0,
-                                String::from(""),
-                            ),
-                        ]),
-                    )?;
+            Some(capture_content_diagnostic(
+                rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
+                    tsumo_engine::testing::build_menu_hierarchy(js_abi::JsArray::from_dense(vec![
+                        create_menu_entry(
+                            String::from("child"),
+                            String::from("missing"),
+                            0,
+                            String::from(""),
+                        ),
+                    ]))?;
                     Ok::<_, rt::TsonicError>(())
-                },
-            ))?),
+                }),
+            )?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_MENU_PARENT_CYCLE"),
-            Some(capture_content_diagnostic(rt::Callable::<(), rt::TsonicResult<()>>::new(
-                move |_callable_arguments_3| {
-                    crate::node_modules::tsumo::engine::src::menus::build_menu_hierarchy(
-                        js_abi::JsArray::from_dense(vec![
-                            create_menu_entry(
-                                String::from("one"),
-                                String::from("two"),
-                                0,
-                                String::from(""),
-                            ),
-                            create_menu_entry(
-                                String::from("two"),
-                                String::from("one"),
-                                0,
-                                String::from(""),
-                            ),
-                        ]),
-                    )?;
+            Some(capture_content_diagnostic(
+                rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_3| {
+                    tsumo_engine::testing::build_menu_hierarchy(js_abi::JsArray::from_dense(vec![
+                        create_menu_entry(
+                            String::from("one"),
+                            String::from("two"),
+                            0,
+                            String::from(""),
+                        ),
+                        create_menu_entry(
+                            String::from("two"),
+                            String::from("one"),
+                            0,
+                            String::from(""),
+                        ),
+                    ]))?;
                     Ok::<_, rt::TsonicError>(())
-                },
-            ))?),
+                }),
+            )?),
         )?;
         Ok(())
     }
 
     pub fn menu_page_references_use_exact_routes_without_slug_fallback(
         &self,
-    ) -> rt::TsonicResult<()> {
-        let config: crate::node_modules::tsumo::engine::src::models::site_config::SiteConfig =
-            crate::node_modules::tsumo::engine::src::models::site_config::SiteConfig::new(
-                String::from("Test"),
-                String::from("https://example.invalid/"),
-                String::from("en"),
-                Option::<String>::None,
-                Option::<String>::None,
-            );
-        let site: crate::node_modules::tsumo::engine::src::models::site_context::SiteContext =
-            crate::node_modules::tsumo::engine::src::models::site_context::SiteContext::new(
-                config.clone(),
-                js_abi::JsArray::from_dense(vec![]),
-                Option::<crate::node_modules::tsumo::engine::src::models::language::LanguageConfig>::None,
-                Option::<js_abi::JsArray<crate::node_modules::tsumo::engine::src::models::language::LanguageContext>>::None,
-            )?;
-        let page: crate::node_modules::tsumo::engine::src::models::page_context::PageContext =
-            create_page(
-                site.clone(),
-                String::from("/articles/post/"),
-                String::from("post"),
-            );
-        let source: crate::node_modules::tsumo::engine::src::build::content_model::ContentPageSource =
+    ) -> Result<(), rt::TsonicError> {
+        let config: tsumo_engine::testing::SiteConfig = tsumo_engine::testing::SiteConfig::new(
+            String::from("Test"),
+            String::from("https://example.invalid/"),
+            String::from("en"),
+            Option::<String>::None,
+            Option::<String>::None,
+        );
+        let site: tsumo_engine::testing::SiteContext = tsumo_engine::testing::SiteContext::new(
+            config,
+            js_abi::JsArray::from_dense(vec![]),
+            Option::<tsumo_engine::models::language::LanguageConfig>::None,
+            Option::<js_abi::JsArray<tsumo_engine::testing::LanguageContext>>::None,
+        )?;
+        let page: tsumo_engine::testing::PageContext = create_page(
+            site.clone(),
+            String::from("/articles/post/"),
+            String::from("post"),
+        );
+        let source: tsumo_engine::testing::ContentPageSource =
             create_source(String::from("/content/articles/post.md"), page.clone());
-        let sources: js_abi::JsArray<
-            crate::node_modules::tsumo::engine::src::build::content_model::ContentPageSource,
-        > = js_abi::JsArray::from_dense(vec![source.clone()]);
-        let pages: js_abi::JsArray<
-            crate::node_modules::tsumo::engine::src::models::page_context::PageContext,
-        > = js_abi::JsArray::from_dense(vec![page.clone()]);
+        let sources: js_abi::JsArray<tsumo_engine::testing::ContentPageSource> =
+            js_abi::JsArray::from_dense(vec![source]);
+        let pages: js_abi::JsArray<tsumo_engine::testing::PageContext> =
+            js_abi::JsArray::from_dense(vec![page.clone()]);
         {
             let receiver = &site;
             let value = pages.clone();
-            receiver.state.with_mut(|state| state.pages = value)
+            {
+                let dispatch_receiver = receiver;
+                dispatch_receiver.dispatch.write_site_context_pages(value)
+            }
         };
-        let exact: crate::node_modules::tsumo::engine::src::models::menu_entry::MenuEntry =
-            create_menu_entry(
-                String::from("exact"),
-                String::from(""),
-                0,
-                String::from("/articles/post/"),
-            );
-        site
-            .state
-            .with(|state| state.menus.clone())
-            .set(
+        let exact: tsumo_engine::testing::MenuEntry = create_menu_entry(
+            String::from("exact"),
+            String::from(""),
+            0,
+            String::from("/articles/post/"),
+        );
+        { let dispatch_receiver_2 = &site; dispatch_receiver_2.dispatch.read_site_context_menus() }
+            .set_discard(
                 String::from("main"),
                 js_abi::JsArray::from_dense(vec![exact.clone()]),
             );
-        crate::node_modules::tsumo::engine::src::build::menu_resolution::configure_site_menus(
+        tsumo_engine::testing::configure_site_menus(
             sources.clone(),
             pages.clone(),
             site.clone(),
         )?;
-        let resolved_page: Option<
-            crate::node_modules::tsumo::engine::src::models::page_context::PageContext,
-        > = exact.state.with(|state| state.page.clone());
+        let resolved_page: Option<tsumo_engine::testing::PageContext> = {
+            let dispatch_receiver_3 = &exact;
+            dispatch_receiver_3.dispatch.read_menu_entry_page()
+        };
         crate::test_root::Assert::r#true(resolved_page.is_some())?;
         if resolved_page.is_none() {
             return Err(rt::TsonicError::from(rt::JsError::error(
@@ -558,17 +565,22 @@ impl ContentAndMenuTests {
         }
         crate::test_root::Assert::string_equal(
             String::from("/articles/post/"),
-            Some(match resolved_page.as_ref() {
-                Some(flow_value) => flow_value.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            }
-            .state
-            .with(|state| state.rel_permalink.clone())),
+            Some({
+                let dispatch_receiver_4 = &match resolved_page.as_ref() {
+                    Some(flow_value) => flow_value.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                };
+                dispatch_receiver_4
+                    .dispatch
+                    .read_page_context_rel_permalink()
+            }),
         )?;
-        site
-            .state
-            .with(|state| state.menus.clone())
-            .set(
+        {
+            let operation_input_0 = {
+                let dispatch_receiver_5 = &site;
+                dispatch_receiver_5.dispatch.read_site_context_menus()
+            };
+            operation_input_0.set_discard(
                 String::from("main"),
                 js_abi::JsArray::from_dense(vec![
                     create_menu_entry(
@@ -578,91 +590,78 @@ impl ContentAndMenuTests {
                         String::from("post"),
                     ),
                 ]),
-            );
+            )
+        };
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_MENU_PAGE_REF_NOT_FOUND"),
-            Some(
-                capture_content_diagnostic({
-                    let capture_sources = sources.clone();
-                    let capture_pages = pages.clone();
-                    let capture_site = site.clone();
-                    rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                        crate::node_modules::tsumo::engine::src::build::menu_resolution::configure_site_menus(
-                            capture_sources.clone(),
-                            capture_pages.clone(),
-                            capture_site.clone(),
-                        )?;
-                        Ok::<_, rt::TsonicError>(())
-                    })
-                })?,
-            ),
+            Some(capture_content_diagnostic({
+                let capture_sources = sources.clone();
+                let capture_pages = pages.clone();
+                let capture_site = site.clone();
+                rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
+                    tsumo_engine::testing::configure_site_menus(
+                        capture_sources.clone(),
+                        capture_pages.clone(),
+                        capture_site.clone(),
+                    )?;
+                    Ok::<_, rt::TsonicError>(())
+                })
+            })?),
         )?;
         Ok(())
     }
 
     pub fn page_graph_finalizes_home_ancestry_and_taxonomies_before_rendering(
         &self,
-    ) -> rt::TsonicResult<()> {
-        let root: String = crate::test_root::CREATE_TEST_DIRECTORY
-            .with(|module_binding| module_binding.load())
-            .call((String::from("standard-page-graph"),))?;
+    ) -> Result<(), rt::TsonicError> {
+        let root: String =
+            crate::test_root::create_test_directory(String::from("standard-page-graph"))?;
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::CREATE_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((tsonic_rust_node::path::join(&[root.as_str(), "posts", "series"]),))?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[root.as_str(), "posts", "_index.md"]),
-                    String::from("---\ntitle: Posts\n---\nPosts"),
-                ))?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[root.as_str(), "posts", "series", "_index.md"]),
-                    String::from("---\ntitle: Series\n---\nSeries"),
-                ))?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[root.as_str(), "posts", "series", "part.md"]),
-                    String::from("---\ntitle: Part\ndate: 2026-01-01T00:00:00Z\ntags: [alpha]\ncategories: [guides]\n---\nPart"),
-                ))?;
-            let config: crate::node_modules::tsumo::engine::src::models::site_config::SiteConfig =
-                crate::node_modules::tsumo::engine::src::models::site_config::SiteConfig::new(
-                    String::from("Test"),
-                    String::from("https://example.invalid/"),
-                    String::from("en"),
-                    Option::<String>::None,
-                    Option::<String>::None,
-                );
-            let graph: crate::node_modules::tsumo::engine::src::build::standard_page_graph::StandardPageGraph =
-                crate::node_modules::tsumo::engine::src::build::standard_page_graph::CREATE_STANDARD_PAGE_GRAPH
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        config.clone(),
-                        crate::node_modules::tsumo::engine::src::build::discover_content::discover_content(
-                            root.clone(),
-                            false,
-                        )?,
-                    ))?;
-            let taxonomies: crate::node_modules::tsumo::engine::src::build::standard_taxonomies::StandardTaxonomyGraph =
-                crate::node_modules::tsumo::engine::src::build::standard_taxonomies::CREATE_STANDARD_TAXONOMIES
-                    .with(|module_binding| module_binding.load())
-                    .call((graph.clone(),))?;
-            let page: crate::node_modules::tsumo::engine::src::models::page_context::PageContext =
-                match graph
-                    .state
-                    .with(|state| state.content_pages.clone())
-                    .get_number(0.0)
-                    .as_ref()
-                {
-                    Some(flow_value) => flow_value.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                };
-            let parent: Option<
-                crate::node_modules::tsumo::engine::src::models::page_context::PageContext,
-            > = page.state.with(|state| state.parent.clone());
+            crate::test_root::create_directory(tsonic_rust_node::path::join(
+                &[root.as_str(), "posts", "series"],
+            ))?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[root.as_str(), "posts", "_index.md"]),
+                String::from("---\ntitle: Posts\n---\nPosts"),
+            )?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[root.as_str(), "posts", "series", "_index.md"]),
+                String::from("---\ntitle: Series\n---\nSeries"),
+            )?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[root.as_str(), "posts", "series", "part.md"]),
+                String::from("---\ntitle: Part\ndate: 2026-01-01T00:00:00Z\ntags: [alpha]\ncategories: [guides]\n---\nPart"),
+            )?;
+            let config: tsumo_engine::testing::SiteConfig = tsumo_engine::testing::SiteConfig::new(
+                String::from("Test"),
+                String::from("https://example.invalid/"),
+                String::from("en"),
+                Option::<String>::None,
+                Option::<String>::None,
+            );
+            let graph: tsumo_engine::testing::StandardPageGraph =
+                tsumo_engine::testing::create_standard_page_graph(
+                    config,
+                    tsumo_engine::testing::discover_content(root.clone(), false)?,
+                )?;
+            let taxonomies: tsumo_engine::testing::StandardTaxonomyGraph =
+                tsumo_engine::testing::create_standard_taxonomies(graph.clone())?;
+            let page: tsumo_engine::testing::PageContext = match {
+                let dispatch_receiver = &graph;
+                dispatch_receiver
+                    .dispatch
+                    .read_standard_page_graph_content_pages()
+            }
+            .get_number(0.0)
+            .as_ref()
+            {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
+            let parent: Option<tsumo_engine::testing::PageContext> = {
+                let dispatch_receiver_2 = &page;
+                dispatch_receiver_2.dispatch.read_page_context_parent()
+            };
             crate::test_root::Assert::r#true(parent.is_some())?;
             if parent.is_none() {
                 return Err(rt::TsonicError::from(rt::JsError::error(
@@ -671,70 +670,91 @@ impl ContentAndMenuTests {
             }
             crate::test_root::Assert::string_equal(
                 String::from("/posts/series/"),
-                Some(match parent.as_ref() {
-                    Some(flow_value_2) => flow_value_2.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }
-                .state
-                .with(|state| state.rel_permalink.clone())),
+                Some({
+                    let dispatch_receiver_3 = &match parent.as_ref() {
+                        Some(flow_value_2) => flow_value_2.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    };
+                    dispatch_receiver_3
+                        .dispatch
+                        .read_page_context_rel_permalink()
+                }),
             )?;
             crate::test_root::Assert::number_equal(
                 3.0,
                 Some(tsonic_rust_runtime::conversions::i32_to_f64(
                     tsonic_rust_runtime::conversions::usize_to_i32(
-                        page.state.with(|state| state.ancestors.clone()).len(),
+                        {
+                            let dispatch_receiver_4 = &page;
+                            dispatch_receiver_4.dispatch.read_page_context_ancestors()
+                        }
+                        .len(),
                     )?,
                 )),
             )?;
             crate::test_root::Assert::string_equal(
                 String::from("/"),
-                Some(match page
-                    .state
-                    .with(|state| state.ancestors.clone())
+                Some({
+                    let dispatch_receiver_6 = &match {
+                        let dispatch_receiver_5 = &page;
+                        dispatch_receiver_5.dispatch.read_page_context_ancestors()
+                    }
                     .get_number(0.0)
                     .as_ref()
-                {
-                    Some(flow_value_3) => flow_value_3.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }
-                .state
-                .with(|state| state.rel_permalink.clone())),
+                    {
+                        Some(flow_value_3) => flow_value_3.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    };
+                    dispatch_receiver_6
+                        .dispatch
+                        .read_page_context_rel_permalink()
+                }),
             )?;
             crate::test_root::Assert::string_equal(
                 String::from("/posts/"),
-                Some(match page
-                    .state
-                    .with(|state| state.ancestors.clone())
+                Some({
+                    let dispatch_receiver_8 = &match {
+                        let dispatch_receiver_7 = &page;
+                        dispatch_receiver_7.dispatch.read_page_context_ancestors()
+                    }
                     .get_number(1.0)
                     .as_ref()
-                {
-                    Some(flow_value_4) => flow_value_4.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }
-                .state
-                .with(|state| state.rel_permalink.clone())),
+                    {
+                        Some(flow_value_4) => flow_value_4.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    };
+                    dispatch_receiver_8
+                        .dispatch
+                        .read_page_context_rel_permalink()
+                }),
             )?;
             crate::test_root::Assert::string_equal(
                 String::from("/posts/series/"),
-                Some(match page
-                    .state
-                    .with(|state| state.ancestors.clone())
+                Some({
+                    let dispatch_receiver_10 = &match {
+                        let dispatch_receiver_9 = &page;
+                        dispatch_receiver_9.dispatch.read_page_context_ancestors()
+                    }
                     .get_number(2.0)
                     .as_ref()
-                {
-                    Some(flow_value_5) => flow_value_5.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }
-                .state
-                .with(|state| state.rel_permalink.clone())),
+                    {
+                        Some(flow_value_5) => flow_value_5.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    };
+                    dispatch_receiver_10
+                        .dispatch
+                        .read_page_context_rel_permalink()
+                }),
             )?;
-            let home: Option<
-                crate::node_modules::tsumo::engine::src::models::page_context::PageContext,
-            > = graph
-                .state
-                .with(|state| state.site.clone())
-                .state
-                .with(|state| state.home.clone());
+            let home: Option<tsumo_engine::testing::PageContext> = {
+                let dispatch_receiver_12 = &{
+                    let dispatch_receiver_11 = &graph;
+                    dispatch_receiver_11
+                        .dispatch
+                        .read_standard_page_graph_site()
+                };
+                dispatch_receiver_12.dispatch.read_site_context_home()
+            };
             crate::test_root::Assert::r#true(home.is_some())?;
             if home.is_none() {
                 return Err(rt::TsonicError::from(rt::JsError::error(
@@ -743,24 +763,24 @@ impl ContentAndMenuTests {
             }
             crate::test_root::Assert::string_equal(
                 String::from("/"),
-                Some(match home.as_ref() {
-                    Some(flow_value_6) => flow_value_6.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }
-                .state
-                .with(|state| state.rel_permalink.clone())),
+                Some({
+                    let dispatch_receiver_13 = &match home.as_ref() {
+                        Some(flow_value_6) => flow_value_6.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    };
+                    dispatch_receiver_13
+                        .dispatch
+                        .read_page_context_rel_permalink()
+                }),
             )?;
             crate::test_root::Assert::number_equal(
                 1.0,
                 Some(tsonic_rust_runtime::conversions::i32_to_f64(
                     tsonic_rust_runtime::conversions::usize_to_i32(
-                        match home.as_ref() {
-                            Some(flow_value_7) => flow_value_7.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        }
-                        .state
-                        .with(|state| state.pages.clone())
-                        .len(),
+                        { let dispatch_receiver_14 = &match home.as_ref() {
+    Some(flow_value_7) => flow_value_7.clone(),
+    None => unreachable!("checked flow selected a missing optional value"),
+}; dispatch_receiver_14.dispatch.read_page_context_pages() }.len(),
                     )?,
                 )),
             )?;
@@ -768,51 +788,56 @@ impl ContentAndMenuTests {
                 2.0,
                 Some(tsonic_rust_runtime::conversions::i32_to_f64(
                     tsonic_rust_runtime::conversions::usize_to_i32(
-                        taxonomies
-                            .state
-                            .with(|state| state.taxonomies.clone())
-                            .len(),
+                        {
+                            let dispatch_receiver_15 = &taxonomies;
+                            dispatch_receiver_15
+                                .dispatch
+                                .read_standard_taxonomy_graph_taxonomies()
+                        }
+                        .len(),
                     )?,
                 )),
             )?;
             let tags: Option<
-                js_abi::JsMap<
-                    String,
-                    js_abi::JsArray<
-                        crate::node_modules::tsumo::engine::src::models::page_context::PageContext,
-                    >,
-                >,
-            > = graph
-                .state
-                .with(|state| state.site.clone())
-                .state
-                .with(|state| state.taxonomies.clone())
-                .get("tags");
+                js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::PageContext>>,
+            > = {
+                let dispatch_receiver_17 = &{
+                    let dispatch_receiver_16 = &graph;
+                    dispatch_receiver_16
+                        .dispatch
+                        .read_standard_page_graph_site()
+                };
+                dispatch_receiver_17.dispatch.read_site_context_taxonomies()
+            }
+            .get("tags");
             crate::test_root::Assert::r#true(tags.is_some())?;
             if tags.is_none() {
                 return Err(rt::TsonicError::from(rt::JsError::error(
                     "Expected tags taxonomy",
                 )));
             }
-            let tag_pages: Option<
-                js_abi::JsArray<
-                    crate::node_modules::tsumo::engine::src::models::page_context::PageContext,
-                >,
-            > = (match tags.as_ref() {
-    Some(flow_value_8) => flow_value_8.clone(),
-    None => unreachable!("checked flow selected a missing optional value"),
-}).get("alpha");
+            let tag_pages: Option<js_abi::JsArray<tsumo_engine::testing::PageContext>> = match tags
+                .as_ref()
+            {
+                Some(flow_value_8) => flow_value_8.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            }
+            .get("alpha");
             crate::test_root::Assert::r#true(tag_pages.is_some())?;
             crate::test_root::Assert::number_equal(
                 8.0,
                 Some(tsonic_rust_runtime::conversions::i32_to_f64(
                     tsonic_rust_runtime::conversions::usize_to_i32(
-                        graph
-                            .state
-                            .with(|state| state.site.clone())
-                            .state
-                            .with(|state| state.all_pages.clone())
-                            .len(),
+                        {
+                            let dispatch_receiver_19 = &{
+                                let dispatch_receiver_18 = &graph;
+                                dispatch_receiver_18
+                                    .dispatch
+                                    .read_standard_page_graph_site()
+                            };
+                            dispatch_receiver_19.dispatch.read_site_context_all_pages()
+                        }
+                        .len(),
                     )?,
                 )),
             )?;
@@ -820,9 +845,7 @@ impl ContentAndMenuTests {
         });
         let try_flow = try_body;
         let finally_flow: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::DELETE_TEST_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((root.clone(),))?;
+            crate::test_root::delete_test_directory(root.clone())?;
             Ok(rt::Completion::Normal)
         });
         let try_flow: rt::TsonicResult<rt::Completion<()>> =
@@ -844,96 +867,57 @@ impl Default for ContentAndMenuTests {
     }
 }
 
-pub type RunContentAndMenuTestsCallable = rt::Callable<(), rt::TsonicResult<()>>;
-
-std::thread_local! {
-    pub static RUN_CONTENT_AND_MENU_TESTS: rt::ModuleCell<RunContentAndMenuTestsCallable> = const { rt::ModuleCell::new() };
-}
-
-#[doc(hidden)]
-pub fn module_init() {
-    {
-        let module_value = rt::Callable::<(), rt::TsonicResult<()>>::new(
-            move |_callable_arguments| {
-                let tests: ContentAndMenuTests = ContentAndMenuTests::new();
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("content discovery is deterministic and excludes drafts before claiming routes"),
-                        {
-                            let capture_tests = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_2| {
-                                    capture_tests
-                                        .content_discovery_is_deterministic_and_excludes_drafts_before_claiming_routes()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("content routes reject escape segments and duplicate outputs"),
-                        {
-                            let capture_tests_2 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_3| {
-                                    capture_tests_2
-                                        .content_routes_reject_escape_segments_and_duplicate_outputs()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("menu hierarchy is deterministic and fails closed"),
-                        {
-                            let capture_tests_3 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_4| {
-                                    capture_tests_3
-                                        .menu_hierarchy_is_deterministic_and_fails_closed()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("menu page references use exact routes without slug fallback"),
-                        {
-                            let capture_tests_4 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_5| {
-                                    capture_tests_4
-                                        .menu_page_references_use_exact_routes_without_slug_fallback()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("page graph finalizes home ancestry and taxonomies before rendering"),
-                        {
-                            let capture_tests_5 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_6| {
-                                    capture_tests_5
-                                        .page_graph_finalizes_home_ancestry_and_taxonomies_before_rendering()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn run_content_and_menu_tests() -> Result<(), rt::TsonicError> {
+    let tests: ContentAndMenuTests = ContentAndMenuTests::new();
+    crate::test_root::run_test(
+        String::from("content discovery is deterministic and excludes drafts before claiming routes"),
+        {
+            let capture_tests = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
+                capture_tests
+                    .content_discovery_is_deterministic_and_excludes_drafts_before_claiming_routes()?;
                 Ok::<_, rt::TsonicError>(())
-            },
-        );
-        RUN_CONTENT_AND_MENU_TESTS.with(|module_binding| module_binding.initialize(module_value))
-    };
+            })
+        },
+    )?;
+    crate::test_root::run_test(
+        String::from("content routes reject escape segments and duplicate outputs"),
+        {
+            let capture_tests_2 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
+                capture_tests_2.content_routes_reject_escape_segments_and_duplicate_outputs()?;
+                Ok::<_, rt::TsonicError>(())
+            })
+        },
+    )?;
+    crate::test_root::run_test(String::from("menu hierarchy is deterministic and fails closed"), {
+        let capture_tests_3 = tests.clone();
+        rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_3| {
+            capture_tests_3.menu_hierarchy_is_deterministic_and_fails_closed()?;
+            Ok::<_, rt::TsonicError>(())
+        })
+    })?;
+    crate::test_root::run_test(
+        String::from("menu page references use exact routes without slug fallback"),
+        {
+            let capture_tests_4 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_4| {
+                capture_tests_4.menu_page_references_use_exact_routes_without_slug_fallback()?;
+                Ok::<_, rt::TsonicError>(())
+            })
+        },
+    )?;
+    crate::test_root::run_test(
+        String::from("page graph finalizes home ancestry and taxonomies before rendering"),
+        {
+            let capture_tests_5 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_5| {
+                capture_tests_5
+                    .page_graph_finalizes_home_ancestry_and_taxonomies_before_rendering()?;
+                Ok::<_, rt::TsonicError>(())
+            })
+        },
+    )?;
+    Ok(())
 }

@@ -2,21 +2,23 @@
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct MediaTypeState {
-    pub(crate) r#type: String,
+pub struct MediaTypeState {
+    pub r#type: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct MediaType {
-    pub(crate) state: rt::ObjectHandle<MediaTypeState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<MediaTypeState>,
 }
 
 impl MediaType {
     pub fn new(r#type: String) -> MediaType {
-        let field_r_type: String = r#type.clone();
+        let field_r_type: String = r#type;
         MediaType {
-            state: rt::ObjectHandle::new(MediaTypeState {
+            state: rt::ObjectRef::new(MediaTypeState {
                 r#type: field_r_type,
             }),
         }

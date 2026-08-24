@@ -9,11 +9,6 @@ namespace Tsumo.Engine
             get;
             private set;
         } = default(Func<string, bool>)!;
-        public static Func<string, System.DateTime?> parseDateTime
-        {
-            get;
-            private set;
-        } = default(Func<string, System.DateTime?>)!;
         public static Tsonic.CSharp.Js.JSArray<string> longWeekdays
         {
             get;
@@ -59,16 +54,12 @@ namespace Tsumo.Engine
             get;
             private set;
         } = default(Func<string, string, string?>)!;
-        public static Func<string, string> convertGoDateLayoutToDotNet
-        {
-            get;
-            private set;
-        } = default(Func<string, string>)!;
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
             Utils_int32.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
+            Utils_textBuilder.__tsonic_module_init();
             isNumberLiteral = (string token) =>
             {
                 if (token == "")
@@ -76,17 +67,6 @@ namespace Tsumo.Engine
                     return false;
                 }
                 return Utils_int32.parseInt32(token) is not null;
-            };
-            parseDateTime = (string value) =>
-            {
-                try
-                {
-                    return System.DateTime.Parse(value);
-                }
-                catch
-                {
-                    return null;
-                }
             };
             longWeekdays = new Tsonic.CSharp.Js.JSArray<string>(new string[] { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" });
             shortWeekdays = new Tsonic.CSharp.Js.JSArray<string>(new string[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" });
@@ -191,131 +171,131 @@ namespace Tsumo.Engine
                 double hour12Value = hourValue % 12 == 0 ? 12 : hourValue % 12;
                 string hour12 = hour12Value < 10 ? $"0{hour12Value}" : $"{hour12Value}";
                 int weekday = weekdayIndex(milliseconds);
-                System.Text.StringBuilder output = new System.Text.StringBuilder();
+                TextBuilder output = new TextBuilder();
                 int index = 0;
                 while (index < layout.Length)
                 {
                     string remaining = Tsonic.CSharp.Js.String.slice(layout, index);
                     if (Tsonic.CSharp.Js.String.startsWith(remaining, "Monday"))
                     {
-                        output.Append(longWeekdays[weekday]);
+                        output.append(longWeekdays[weekday]);
                         index += 6;
                     }
                     else
                     {
                         if (Tsonic.CSharp.Js.String.startsWith(remaining, "January"))
                         {
-                            output.Append(longMonths[monthIndex]);
+                            output.append(longMonths[monthIndex]);
                             index += 7;
                         }
                         else
                         {
                             if (Tsonic.CSharp.Js.String.startsWith(remaining, "2006"))
                             {
-                                output.Append(year);
+                                output.append(year);
                                 index += 4;
                             }
                             else
                             {
                                 if (Tsonic.CSharp.Js.String.startsWith(remaining, "Mon"))
                                 {
-                                    output.Append(shortWeekdays[weekday]);
+                                    output.append(shortWeekdays[weekday]);
                                     index += 3;
                                 }
                                 else
                                 {
                                     if (Tsonic.CSharp.Js.String.startsWith(remaining, "Jan"))
                                     {
-                                        output.Append(shortMonths[monthIndex]);
+                                        output.append(shortMonths[monthIndex]);
                                         index += 3;
                                     }
                                     else
                                     {
                                         if (Tsonic.CSharp.Js.String.startsWith(remaining, "PM"))
                                         {
-                                            output.Append(hourValue < 12 ? "AM" : "PM");
+                                            output.append(hourValue < 12 ? "AM" : "PM");
                                             index += 2;
                                         }
                                         else
                                         {
                                             if (Tsonic.CSharp.Js.String.startsWith(remaining, "pm"))
                                             {
-                                                output.Append(hourValue < 12 ? "am" : "pm");
+                                                output.append(hourValue < 12 ? "am" : "pm");
                                                 index += 2;
                                             }
                                             else
                                             {
                                                 if (Tsonic.CSharp.Js.String.startsWith(remaining, "06"))
                                                 {
-                                                    output.Append(Tsonic.CSharp.Js.String.slice(year, 2));
+                                                    output.append(Tsonic.CSharp.Js.String.slice(year, 2));
                                                     index += 2;
                                                 }
                                                 else
                                                 {
                                                     if (Tsonic.CSharp.Js.String.startsWith(remaining, "01"))
                                                     {
-                                                        output.Append(month);
+                                                        output.append(month);
                                                         index += 2;
                                                     }
                                                     else
                                                     {
                                                         if (Tsonic.CSharp.Js.String.startsWith(remaining, "02"))
                                                         {
-                                                            output.Append(day);
+                                                            output.append(day);
                                                             index += 2;
                                                         }
                                                         else
                                                         {
                                                             if (Tsonic.CSharp.Js.String.startsWith(remaining, "15"))
                                                             {
-                                                                output.Append(hour24);
+                                                                output.append(hour24);
                                                                 index += 2;
                                                             }
                                                             else
                                                             {
                                                                 if (Tsonic.CSharp.Js.String.startsWith(remaining, "03"))
                                                                 {
-                                                                    output.Append(hour12);
+                                                                    output.append(hour12);
                                                                     index += 2;
                                                                 }
                                                                 else
                                                                 {
                                                                     if (Tsonic.CSharp.Js.String.startsWith(remaining, "04"))
                                                                     {
-                                                                        output.Append(minute);
+                                                                        output.append(minute);
                                                                         index += 2;
                                                                     }
                                                                     else
                                                                     {
                                                                         if (Tsonic.CSharp.Js.String.startsWith(remaining, "05"))
                                                                         {
-                                                                            output.Append(second);
+                                                                            output.append(second);
                                                                             index += 2;
                                                                         }
                                                                         else
                                                                         {
                                                                             if (Tsonic.CSharp.Js.String.startsWith(remaining, "1"))
                                                                             {
-                                                                                output.Append(stripLeadingZero(month));
+                                                                                output.append(stripLeadingZero(month));
                                                                                 index += 1;
                                                                             }
                                                                             else
                                                                             {
                                                                                 if (Tsonic.CSharp.Js.String.startsWith(remaining, "2"))
                                                                                 {
-                                                                                    output.Append(stripLeadingZero(day));
+                                                                                    output.append(stripLeadingZero(day));
                                                                                     index += 1;
                                                                                 }
                                                                                 else
                                                                                 {
                                                                                     if (Tsonic.CSharp.Js.String.startsWith(remaining, "3"))
                                                                                     {
-                                                                                        output.Append($"{hour12Value}");
+                                                                                        output.append($"{hour12Value}");
                                                                                         index += 1;
                                                                                     }
                                                                                     else
                                                                                     {
-                                                                                        output.Append(Utils_strings.substringCount(layout, index, 1));
+                                                                                        output.append(Utils_strings.substringCount(layout, index, 1));
                                                                                         index += 1;
                                                                                     }
                                                                                 }
@@ -335,28 +315,7 @@ namespace Tsumo.Engine
                         }
                     }
                 }
-                return output.ToString();
-            };
-            convertGoDateLayoutToDotNet = (string layout) =>
-            {
-                string f = layout;
-                f = Utils_strings.replaceText(f, "Monday", "dddd");
-                f = Utils_strings.replaceText(f, "Mon", "ddd");
-                f = Utils_strings.replaceText(f, "January", "MMMM");
-                f = Utils_strings.replaceText(f, "Jan", "MMM");
-                f = Utils_strings.replaceText(f, "2006", "yyyy");
-                f = Utils_strings.replaceText(f, "06", "yy");
-                f = Utils_strings.replaceText(f, "02", "dd");
-                f = Utils_strings.replaceText(f, "2", "d");
-                f = Utils_strings.replaceText(f, "01", "MM");
-                f = Utils_strings.replaceText(f, "1", "M");
-                f = Utils_strings.replaceText(f, "15", "HH");
-                f = Utils_strings.replaceText(f, "03", "hh");
-                f = Utils_strings.replaceText(f, "3", "h");
-                f = Utils_strings.replaceText(f, "04", "mm");
-                f = Utils_strings.replaceText(f, "05", "ss");
-                f = Utils_strings.replaceText(f, "PM", "tt");
-                return f;
+                return output.toString();
             };
             return null;
         }

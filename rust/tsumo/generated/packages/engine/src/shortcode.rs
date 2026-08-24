@@ -6,25 +6,27 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ShortcodeCallState {
-    pub(crate) name: String,
-    pub(crate) params: js_abi::JsMap<String, crate::params::ParamValue>,
-    pub(crate) positional_params: js_abi::JsArray<String>,
-    pub(crate) is_named_params: bool,
-    pub(crate) inner: String,
-    pub(crate) is_markdown: bool,
-    pub(crate) is_self_closing: bool,
-    pub(crate) start_index: i32,
-    pub(crate) end_index: i32,
-    pub(crate) source_path: Option<String>,
-    pub(crate) line: i32,
-    pub(crate) column: i32,
+pub struct ShortcodeCallState {
+    pub name: String,
+    pub params: js_abi::JsMap<String, crate::params::ParamValue>,
+    pub positional_params: js_abi::JsArray<String>,
+    pub is_named_params: bool,
+    pub inner: String,
+    pub is_markdown: bool,
+    pub is_self_closing: bool,
+    pub start_index: i32,
+    pub end_index: i32,
+    pub source_path: Option<String>,
+    pub line: i32,
+    pub column: i32,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ShortcodeCall {
-    pub(crate) state: rt::ObjectHandle<ShortcodeCallState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<ShortcodeCallState>,
 }
 
 impl ShortcodeCall {
@@ -43,20 +45,20 @@ impl ShortcodeCall {
         line: i32,
         column: i32,
     ) -> ShortcodeCall {
-        let field_name: String = name.clone();
-        let field_params: js_abi::JsMap<String, crate::params::ParamValue> = params.clone();
-        let field_positional_params: js_abi::JsArray<String> = positional_params.clone();
+        let field_name: String = name;
+        let field_params: js_abi::JsMap<String, crate::params::ParamValue> = params;
+        let field_positional_params: js_abi::JsArray<String> = positional_params;
         let field_is_named_params: bool = is_named_params;
-        let field_inner: String = inner.clone();
+        let field_inner: String = inner;
         let field_is_markdown: bool = is_markdown;
         let field_is_self_closing: bool = is_self_closing;
         let field_start_index: i32 = start_index;
         let field_end_index: i32 = end_index;
-        let field_source_path: Option<String> = source_path.clone();
+        let field_source_path: Option<String> = source_path;
         let field_line: i32 = line;
         let field_column: i32 = column;
         ShortcodeCall {
-            state: rt::ObjectHandle::new(ShortcodeCallState {
+            state: rt::ObjectRef::new(ShortcodeCallState {
                 name: field_name,
                 params: field_params,
                 positional_params: field_positional_params,
@@ -74,22 +76,22 @@ impl ShortcodeCall {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ParseStateState {
-    pub(crate) text: String,
-    pub(crate) pos: i32,
+pub struct ParseStateState {
+    pub text: String,
+    pub pos: i32,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct ParseState {
-    pub(crate) state: rt::ObjectHandle<ParseStateState>,
+pub struct ParseState {
+    #[doc(hidden)]
+    pub state: rt::ObjectHandle<ParseStateState>,
 }
 
 impl ParseState {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new(text: String) -> ParseState {
-        let field_text: String = text.clone();
+        let field_text: String = text;
         let field_pos: i32 = 0;
         ParseState {
             state: rt::ObjectHandle::new(ParseStateState {
@@ -100,7 +102,7 @@ impl ParseState {
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn peek(&self, offset: i32) -> rt::TsonicResult<String> {
+    pub fn peek(&self, offset: i32) -> Result<String, rt::TsonicError> {
         let idx: i32 = self.state.with(|state| state.pos) + offset;
         Ok(if idx
             < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
@@ -118,7 +120,7 @@ impl ParseState {
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn peek_string(&self, length: i32) -> rt::TsonicResult<String> {
+    pub fn peek_string(&self, length: i32) -> Result<String, rt::TsonicError> {
         let remaining: i32 = tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
             &self.state.with(|state| state.text.clone()),
         ))? - self.state.with(|state| state.pos);
@@ -147,7 +149,7 @@ impl ParseState {
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn at_end(&self) -> rt::TsonicResult<bool> {
+    pub fn at_end(&self) -> Result<bool, rt::TsonicError> {
         Ok(
             self.state.with(|state| state.pos)
                 >= tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
@@ -157,7 +159,7 @@ impl ParseState {
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn skip_whitespace(&self) -> rt::TsonicResult<()> {
+    pub fn skip_whitespace(&self) -> Result<(), rt::TsonicError> {
         'loop_value: while !self.at_end()? {
             let c: String = self.peek(0)?;
             if c != " " && c != "\t" && c != "\n" && c != "\r" {
@@ -169,25 +171,25 @@ impl ParseState {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ShortcodePositionState {
-    pub(crate) line: i32,
-    pub(crate) column: i32,
+pub struct ShortcodePositionState {
+    pub line: i32,
+    pub column: i32,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct ShortcodePosition {
-    pub(crate) state: rt::ObjectHandle<ShortcodePositionState>,
+pub struct ShortcodePosition {
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<ShortcodePositionState>,
 }
 
 impl ShortcodePosition {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new(line: i32, column: i32) -> ShortcodePosition {
         let field_line: i32 = line;
         let field_column: i32 = column;
         ShortcodePosition {
-            state: rt::ObjectHandle::new(ShortcodePositionState {
+            state: rt::ObjectRef::new(ShortcodePositionState {
                 line: field_line,
                 column: field_column,
             }),
@@ -195,25 +197,25 @@ impl ShortcodePosition {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ShortcodeRangeState {
-    pub(crate) start: i32,
-    pub(crate) end: i32,
+pub struct ShortcodeRangeState {
+    pub start: i32,
+    pub end: i32,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct ShortcodeRange {
-    pub(crate) state: rt::ObjectHandle<ShortcodeRangeState>,
+pub struct ShortcodeRange {
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<ShortcodeRangeState>,
 }
 
 impl ShortcodeRange {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new(start: i32, end: i32) -> ShortcodeRange {
         let field_start: i32 = start;
         let field_end: i32 = end;
         ShortcodeRange {
-            state: rt::ObjectHandle::new(ShortcodeRangeState {
+            state: rt::ObjectRef::new(ShortcodeRangeState {
                 start: field_start,
                 end: field_end,
             }),
@@ -221,57 +223,43 @@ impl ShortcodeRange {
     }
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ShortcodeSourceMapState {
-    pub(crate) line_starts: js_abi::JsArray<i32>,
-    pub(crate) code_fences: js_abi::JsArray<ShortcodeRange>,
-}
-
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct ShortcodeSourceMap {
-    pub(crate) state: rt::ObjectHandle<ShortcodeSourceMapState>,
+pub struct ShortcodeSourceMap {
+    pub line_starts: js_abi::JsArray<i32>,
+    pub code_fences: js_abi::JsArray<ShortcodeRange>,
 }
 
 impl ShortcodeSourceMap {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn new(text: &str) -> rt::TsonicResult<ShortcodeSourceMap> {
+    pub fn new(text: String) -> Result<ShortcodeSourceMap, rt::TsonicError> {
         let field_line_starts: js_abi::JsArray<i32> = js_abi::JsArray::from_dense(vec![0]);
         {
             let mut index: i32 = 0;
-            while index < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(text))? {
-                let current: String = js_string::char_at(
-                    text,
-                    tsonic_rust_runtime::conversions::i32_to_f64(index),
-                )
-                .map_err(tsonic_rust_runtime::TsonicError::from)?;
+            while index < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&text))?
+            {
+                let current: String =
+                    js_string::char_at(&text, tsonic_rust_runtime::conversions::i32_to_f64(index))?;
                 if current == "\r" {
                     if index + 1
-                        < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(text))?
+                        < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&text))?
                         && js_string::char_at(
-                            text,
+                            &text,
                             tsonic_rust_runtime::conversions::i32_to_f64(index + 1),
-                        )
-                        .map_err(tsonic_rust_runtime::TsonicError::from)? == "\n"
+                        )? == "\n"
                     {
                         index += 1;
                     }
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        field_line_starts.push_many([
+                    field_line_starts.push_many_discard([
+                        tsonic_rust_runtime::conversions::f64_to_i32(
+                            tsonic_rust_runtime::conversions::i32_to_f64(index + 1),
+                        )?,
+                    ]);
+                } else {
+                    if current == "\n" {
+                        field_line_starts.push_many_discard([
                             tsonic_rust_runtime::conversions::f64_to_i32(
                                 tsonic_rust_runtime::conversions::i32_to_f64(index + 1),
                             )?,
-                        ]),
-                    )?;
-                } else {
-                    if current == "\n" {
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            field_line_starts.push_many([
-                                tsonic_rust_runtime::conversions::f64_to_i32(
-                                    tsonic_rust_runtime::conversions::i32_to_f64(index + 1),
-                                )?,
-                            ]),
-                        )?;
+                        ]);
                     }
                 }
                 index += 1;
@@ -283,21 +271,19 @@ impl ShortcodeSourceMap {
         let mut fence_character: String = String::from("");
         let mut fence_length: i32 = 0;
         let mut position: i32 = 0;
-        'loop_value_2: while position < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(text))? {
+        'loop_value_2: while position < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&text))? {
             let current: String = js_string::char_at(
-                text,
+                &text,
                 tsonic_rust_runtime::conversions::i32_to_f64(position),
-            )
-            .map_err(tsonic_rust_runtime::TsonicError::from)?;
+            )?;
             if fence_start < 0 && (current == "`" || current == "~") {
                 let mut length: i32 = 1;
                 while position + length
-                    < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(text))?
+                    < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&text))?
                     && js_string::char_at(
-                        text,
+                        &text,
                         tsonic_rust_runtime::conversions::i32_to_f64(position + length),
-                    )
-                    .map_err(tsonic_rust_runtime::TsonicError::from)? == current
+                    )? == current
                 {
                     length += 1;
                 }
@@ -307,12 +293,11 @@ impl ShortcodeSourceMap {
                     fence_length = length;
                     position += length;
                     while position
-                        < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(text))?
+                        < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&text))?
                         && js_string::char_at(
-                            text,
+                            &text,
                             tsonic_rust_runtime::conversions::i32_to_f64(position),
-                        )
-                        .map_err(tsonic_rust_runtime::TsonicError::from)? != "\n"
+                        )? != "\n"
                     {
                         position += 1;
                     }
@@ -322,20 +307,21 @@ impl ShortcodeSourceMap {
                 if fence_start >= 0 && current == fence_character {
                     let mut length: i32 = 1;
                     while position + length
-                        < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(text))?
+                        < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&text))?
                         && js_string::char_at(
-                            text,
+                            &text,
                             tsonic_rust_runtime::conversions::i32_to_f64(position + length),
-                        )
-                        .map_err(tsonic_rust_runtime::TsonicError::from)? == current
+                        )? == current
                     {
                         length += 1;
                     }
                     if length >= fence_length {
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            field_code_fences
-                                .push_many([ShortcodeRange::new(fence_start, position + length)]),
-                        )?;
+                        {
+                            let operation_input_0 = field_code_fences.clone();
+                            operation_input_0.push_many_discard([
+                                ShortcodeRange::new(fence_start, position + length),
+                            ])
+                        };
                         fence_start = -1;
                         fence_character = String::from("");
                         fence_length = 0;
@@ -347,36 +333,33 @@ impl ShortcodeSourceMap {
             position += 1;
         }
         if fence_start >= 0 {
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                field_code_fences.push_many([
+            {
+                let operation_input_0_2 = field_code_fences.clone();
+                operation_input_0_2.push_many_discard([
                     ShortcodeRange::new(
                         fence_start,
-                        tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(text))?,
+                        tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&text))?,
                     ),
-                ]),
-            )?;
+                ])
+            };
         }
         Ok(ShortcodeSourceMap {
-            state: rt::ObjectHandle::new(ShortcodeSourceMapState {
-                line_starts: field_line_starts,
-                code_fences: field_code_fences,
-            }),
+            line_starts: field_line_starts,
+            code_fences: field_code_fences,
         })
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn position_at(&self, offset: i32) -> rt::TsonicResult<ShortcodePosition> {
+    pub fn position_at(&self, offset: i32) -> Result<ShortcodePosition, rt::TsonicError> {
         let mut low: i32 = 0;
-        let mut high: i32 = tsonic_rust_runtime::conversions::usize_to_i32(
-            self.state.with(|state| state.line_starts.clone()).len(),
-        )? - 1;
+        let mut high: i32 =
+            tsonic_rust_runtime::conversions::usize_to_i32(self.line_starts.len())? - 1;
         while low <= high {
             let middle: i32 = tsonic_rust_runtime::conversions::f64_to_i32(
                 low as f64 + tsonic_rust_runtime::conversions::i32_to_f64((high - low) / 2).floor(),
             )?;
             if (match self
-                .state
-                .with(|state| state.line_starts.clone())
+                .line_starts
                 .get_number(tsonic_rust_runtime::conversions::i32_to_f64(middle))
                 .as_ref()
             {
@@ -394,8 +377,7 @@ impl ShortcodeSourceMap {
             line_index + 1,
             offset
                 - (match self
-                    .state
-                    .with(|state| state.line_starts.clone())
+                    .line_starts
                     .get_number(tsonic_rust_runtime::conversions::i32_to_f64(line_index))
                     .as_ref()
                 {
@@ -407,18 +389,16 @@ impl ShortcodeSourceMap {
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn is_in_code_block(&self, offset: i32) -> rt::TsonicResult<bool> {
+    pub fn is_in_code_block(&self, offset: i32) -> Result<bool, rt::TsonicError> {
         let mut low: i32 = 0;
-        let mut high: i32 = tsonic_rust_runtime::conversions::usize_to_i32(
-            self.state.with(|state| state.code_fences.clone()).len(),
-        )? - 1;
+        let mut high: i32 =
+            tsonic_rust_runtime::conversions::usize_to_i32(self.code_fences.len())? - 1;
         while low <= high {
             let middle: i32 = tsonic_rust_runtime::conversions::f64_to_i32(
                 low as f64 + tsonic_rust_runtime::conversions::i32_to_f64((high - low) / 2).floor(),
             )?;
             let range: ShortcodeRange = match self
-                .state
-                .with(|state| state.code_fences.clone())
+                .code_fences
                 .get_number(tsonic_rust_runtime::conversions::i32_to_f64(middle))
                 .as_ref()
             {
@@ -439,868 +419,671 @@ impl ShortcodeSourceMap {
     }
 }
 
-type ParseQuotedStringCallable =
-    rt::Callable<(ParseState, Option<String>, i32, i32), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub(crate) static PARSE_QUOTED_STRING: rt::ModuleCell<ParseQuotedStringCallable> = const { rt::ModuleCell::new() };
-}
-
-type ParseUnquotedValueCallable = rt::Callable<(ParseState,), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub(crate) static PARSE_UNQUOTED_VALUE: rt::ModuleCell<ParseUnquotedValueCallable> = const { rt::ModuleCell::new() };
-}
-
-type ParseParamsCallable =
-    rt::Callable<
-        (String, Option<String>, i32, i32),
-        rt::TsonicResult<rt::ObjectHandle<crate::shapes::IsNamedParamsPositionalShape>>,
-    >;
-
-std::thread_local! {
-    pub(crate) static PARSE_PARAMS: rt::ModuleCell<ParseParamsCallable> = const { rt::ModuleCell::new() };
-}
-
-type FindClosingTagCallable =
-    rt::Callable<
-        (String, String, i32, bool),
-        rt::TsonicResult<Option<rt::ObjectHandle<crate::shapes::EndPosInnerShape>>>,
-    >;
-
-std::thread_local! {
-    pub(crate) static FIND_CLOSING_TAG: rt::ModuleCell<FindClosingTagCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type ParseShortcodesCallable =
-    rt::Callable<(String, Option<String>), rt::TsonicResult<js_abi::JsArray<ShortcodeCall>>>;
-
-std::thread_local! {
-    pub static PARSE_SHORTCODES: rt::ModuleCell<ParseShortcodesCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type CollectShortcodeNamesCallable =
-    rt::Callable<(String, Option<String>), rt::TsonicResult<js_abi::JsMap<String, bool>>>;
-
-std::thread_local! {
-    pub static COLLECT_SHORTCODE_NAMES: rt::ModuleCell<CollectShortcodeNamesCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type InnerDeindentCallable = rt::Callable<(String,), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub static INNER_DEINDENT: rt::ModuleCell<InnerDeindentCallable> = const { rt::ModuleCell::new() };
-}
-
-#[doc(hidden)]
-pub fn module_init() {
-    {
-        let module_value = rt::Callable::<
-            (ParseState, Option<String>, i32, i32),
-            rt::TsonicResult<String>,
-        >::new(move |callable_arguments| {
-            let state = callable_arguments.0;
-            let source_path = callable_arguments.1;
-            let line = callable_arguments.2;
-            let column = callable_arguments.3;
-            let quote: String = state.peek(0)?;
-            if quote != "\"" && quote != "'" {
-                return Ok::<_, rt::TsonicError>(String::from(""));
-            }
+pub fn parse_quoted_string(
+    state: ParseState,
+    source_path: Option<String>,
+    line: i32,
+    column: i32,
+) -> Result<String, rt::TsonicError> {
+    let quote: String = state.peek(0)?;
+    if quote != "\"" && quote != "'" {
+        return Ok(String::from(""));
+    }
+    state.advance(1);
+    let mut result: String = String::from("");
+    let mut closed: bool = false;
+    'loop_value: while !state.at_end()? {
+        let c: String = state.peek(0)?;
+        if c == quote {
             state.advance(1);
-            let mut result: String = String::from("");
-            let mut closed: bool = false;
-            'loop_value: while !state.at_end()? {
-                let c: String = state.peek(0)?;
-                if c == quote {
-                    state.advance(1);
-                    closed = true;
-                    break 'loop_value;
-                }
-                if c == "\\" && !state.at_end()? {
-                    state.advance(1);
-                    {
-                        let current_2 = result.clone();
-                        result = format!("{}{}", current_2, state.peek(0)?)
-                    };
-                    state.advance(1);
-                    continue 'loop_value;
-                }
-                {
-                    let current_3 = result.clone();
-                    result = format!("{}{}", current_3, c.clone())
-                };
+            closed = true;
+            break 'loop_value;
+        }
+        if c == "\\" && !state.at_end()? {
+            state.advance(1);
+            result.push_str(&state.peek(0)?);
+            state.advance(1);
+            continue 'loop_value;
+        }
+        result.push_str(&c);
+        state.advance(1);
+    }
+    if !closed {
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_SHORTCODE_STRING_UNCLOSED"),
+            format!(
+                "{}{}{}",
+                String::from("Shortcode string opened with "),
+                quote,
+                String::from(" but is not closed"),
+            ),
+            source_path,
+            Some(tsonic_rust_runtime::conversions::i32_to_f64(line)),
+            Some(tsonic_rust_runtime::conversions::i32_to_f64(column)),
+        )));
+    }
+    Ok(result)
+}
+
+pub fn parse_unquoted_value(state: ParseState) -> Result<String, rt::TsonicError> {
+    let mut result: String = String::from("");
+    'loop_value: while !state.at_end()? {
+        let c: String = state.peek(0)?;
+        if c == " " || c == "\t" || c == "\n" || c == "\r" || c == ">" || c == "%" || c == "/" {
+            break 'loop_value;
+        }
+        result.push_str(&c);
+        state.advance(1);
+    }
+    Ok(result)
+}
+
+pub fn parse_params(
+    args_text: &str,
+    source_path: Option<String>,
+    line: i32,
+    column: i32,
+) -> Result<rt::ObjectHandle<crate::shapes::IsNamedParamsPositionalShape>, rt::TsonicError> {
+    let params: js_abi::JsMap<String, crate::params::ParamValue> = js_abi::JsMap::new();
+    let positional: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    let mut is_named: bool = false;
+    let state: ParseState = ParseState::new(js_string::trim(args_text));
+    'loop_value: while !state.at_end()? {
+        state.skip_whitespace()?;
+        if state.at_end()? {
+            break 'loop_value;
+        }
+        let peek2: String = state.peek_string(2)?;
+        if peek2 == ">}" || peek2 == "%}" || peek2 == "/>" || peek2 == "/%" {
+            break 'loop_value;
+        }
+        let mut key: String = String::from("");
+        #[expect(unused_assignments, reason = "checked source evaluation order")]
+        let mut value: String = String::from("");
+        let mut found_equals: bool = false;
+        'loop_value_2: while !state.at_end()? {
+            let c: String = state.peek(0)?;
+            if c == "=" && state.peek(1)? != "=" {
+                found_equals = true;
                 state.advance(1);
+                break 'loop_value_2;
             }
-            if !closed {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                    String::from("TSUMO_SHORTCODE_STRING_UNCLOSED"),
+            if c == " " || c == "\t" || c == "\n" || c == "\r" || c == ">" || c == "%" || c == "/" {
+                break 'loop_value_2;
+            }
+            if c == "\"" || c == "'" {
+                break 'loop_value_2;
+            }
+            key.push_str(&c);
+            state.advance(1);
+        }
+        if found_equals {
+            if key.is_empty() {
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+                    String::from("TSUMO_SHORTCODE_PARAMETER_INVALID"),
+                    String::from("Shortcode named parameters require a name"),
+                    source_path.clone(),
+                    Some(tsonic_rust_runtime::conversions::i32_to_f64(line)),
+                    Some(tsonic_rust_runtime::conversions::i32_to_f64(column)),
+                )));
+            }
+            if params.has(&key) {
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+                    String::from("TSUMO_SHORTCODE_PARAMETER_DUPLICATE"),
                     format!(
                         "{}{}{}",
-                        String::from("Shortcode string opened with "),
-                        rt::source_string(&quote),
-                        String::from(" but is not closed"),
+                        String::from("Shortcode parameter '"),
+                        key,
+                        String::from("' is declared more than once"),
                     ),
                     source_path.clone(),
                     Some(tsonic_rust_runtime::conversions::i32_to_f64(line)),
                     Some(tsonic_rust_runtime::conversions::i32_to_f64(column)),
                 )));
             }
-            Ok::<_, rt::TsonicError>(result.clone())
-        });
-        PARSE_QUOTED_STRING.with(|module_binding| module_binding.initialize(module_value))
-    };
-    {
-        let module_value_2 = rt::Callable::<(ParseState,), rt::TsonicResult<String>>::new(
-            move |callable_arguments_2| {
-                let state = callable_arguments_2.0;
-                let mut result: String = String::from("");
-                'loop_value_2: while !state.at_end()? {
-                    let c: String = state.peek(0)?;
-                    if c == " "
-                        || c == "\t"
-                        || c == "\n"
-                        || c == "\r"
-                        || c == ">"
-                        || c == "%"
-                        || c == "/"
-                    {
-                        break 'loop_value_2;
-                    }
-                    {
-                        let current_4 = result.clone();
-                        result = format!("{}{}", current_4, c.clone())
-                    };
-                    state.advance(1);
-                }
-                Ok::<_, rt::TsonicError>(result.clone())
-            },
-        );
-        PARSE_UNQUOTED_VALUE.with(|module_binding_2| module_binding_2.initialize(module_value_2))
-    };
-    {
-        let module_value_3 = rt::Callable::<
-            (String, Option<String>, i32, i32),
-            rt::TsonicResult<rt::ObjectHandle<crate::shapes::IsNamedParamsPositionalShape>>,
-        >::new(move |callable_arguments_3| {
-            let args_text = callable_arguments_3.0;
-            let source_path = callable_arguments_3.1;
-            let line = callable_arguments_3.2;
-            let column = callable_arguments_3.3;
-            let params: js_abi::JsMap<String, crate::params::ParamValue> = js_abi::JsMap::new();
-            let positional: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-            let mut is_named: bool = false;
-            let state: ParseState = ParseState::new(js_string::trim(&args_text));
-            'loop_value_3: while !state.at_end()? {
-                state.skip_whitespace()?;
-                if state.at_end()? {
-                    break 'loop_value_3;
-                }
-                let peek2: String = state.peek_string(2)?;
-                if peek2 == ">}" || peek2 == "%}" || peek2 == "/>" || peek2 == "/%" {
-                    break 'loop_value_3;
-                }
-                let mut key: String = String::from("");
-                #[expect(unused_assignments, reason = "checked source evaluation order")]
-                let mut value: String = String::from("");
-                let mut found_equals: bool = false;
-                'loop_value_4: while !state.at_end()? {
-                    let c: String = state.peek(0)?;
-                    if c == "=" && state.peek(1)? != "=" {
-                        found_equals = true;
-                        state.advance(1);
-                        break 'loop_value_4;
-                    }
-                    if c == " "
-                        || c == "\t"
-                        || c == "\n"
-                        || c == "\r"
-                        || c == ">"
-                        || c == "%"
-                        || c == "/"
-                    {
-                        break 'loop_value_4;
-                    }
-                    if c == "\"" || c == "'" {
-                        break 'loop_value_4;
-                    }
-                    {
-                        let current_5 = key.clone();
-                        key = format!("{}{}", current_5, c.clone())
-                    };
-                    state.advance(1);
-                }
-                if found_equals {
-                    if key.is_empty() {
-                        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                            String::from("TSUMO_SHORTCODE_PARAMETER_INVALID"),
-                            String::from("Shortcode named parameters require a name"),
-                            source_path.clone(),
-                            Some(tsonic_rust_runtime::conversions::i32_to_f64(line)),
-                            Some(tsonic_rust_runtime::conversions::i32_to_f64(column)),
-                        )));
-                    }
-                    if params.has(&key) {
-                        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                            String::from("TSUMO_SHORTCODE_PARAMETER_DUPLICATE"),
-                            format!(
-                                "{}{}{}",
-                                String::from("Shortcode parameter '"),
-                                rt::source_string(&key),
-                                String::from("' is declared more than once"),
-                            ),
-                            source_path.clone(),
-                            Some(tsonic_rust_runtime::conversions::i32_to_f64(line)),
-                            Some(tsonic_rust_runtime::conversions::i32_to_f64(column)),
-                        )));
-                    }
-                    is_named = true;
-                    state.skip_whitespace()?;
-                    if state.at_end()? {
-                        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                            String::from("TSUMO_SHORTCODE_PARAMETER_INVALID"),
-                            format!(
-                                "{}{}{}",
-                                String::from("Shortcode parameter '"),
-                                rt::source_string(&key),
-                                String::from("' requires a value"),
-                            ),
-                            source_path.clone(),
-                            Some(tsonic_rust_runtime::conversions::i32_to_f64(line)),
-                            Some(tsonic_rust_runtime::conversions::i32_to_f64(column)),
-                        )));
-                    }
-                    let q: String = state.peek(0)?;
-                    let quoted: bool = q == "\"" || q == "'";
-                    if quoted {
-                        value = PARSE_QUOTED_STRING
-                            .with(|module_binding| module_binding.load())
-                            .call((state.clone(), source_path.clone(), line, column))?;
-                    } else {
-                        value = PARSE_UNQUOTED_VALUE
-                            .with(|module_binding| module_binding.load())
-                            .call((state.clone(),))?;
-                    }
-                    if !quoted && value.is_empty() {
-                        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                            String::from("TSUMO_SHORTCODE_PARAMETER_INVALID"),
-                            format!(
-                                "{}{}{}",
-                                String::from("Shortcode parameter '"),
-                                rt::source_string(&key),
-                                String::from("' requires a value"),
-                            ),
-                            source_path.clone(),
-                            Some(tsonic_rust_runtime::conversions::i32_to_f64(line)),
-                            Some(tsonic_rust_runtime::conversions::i32_to_f64(column)),
-                        )));
-                    }
-                    params.set(key.clone(), if quoted {
-                        crate::params::ParamValue::string(value.clone())
-                    } else {
-                        crate::params::ParamValue::parse_scalar(&value)?
-                    });
-                } else {
-                    if key.is_empty() {
-                        let q: String = state.peek(0)?;
-                        if q == "\"" || q == "'" {
-                            key = PARSE_QUOTED_STRING
-                                .with(|module_binding| module_binding.load())
-                                .call((state.clone(), source_path.clone(), line, column))?;
-                        }
-                    }
-                    if !key.is_empty() {
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            positional.push_many([key.clone()]),
-                        )?;
-                    }
-                }
-            }
-            if is_named && tsonic_rust_runtime::conversions::usize_to_i32(positional.len())? > 0 {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                    String::from("TSUMO_SHORTCODE_PARAMETER_STYLE_MIXED"),
-                    String::from("Shortcode parameters cannot mix named and positional forms"),
+            is_named = true;
+            state.skip_whitespace()?;
+            if state.at_end()? {
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+                    String::from("TSUMO_SHORTCODE_PARAMETER_INVALID"),
+                    format!(
+                        "{}{}{}",
+                        String::from("Shortcode parameter '"),
+                        key,
+                        String::from("' requires a value"),
+                    ),
                     source_path.clone(),
                     Some(tsonic_rust_runtime::conversions::i32_to_f64(line)),
                     Some(tsonic_rust_runtime::conversions::i32_to_f64(column)),
                 )));
             }
-            Ok::<_, rt::TsonicError>({
-                let record_params = params.clone();
-                let record_positional = positional.clone();
-                let record_is_named = is_named;
-                rt::ObjectHandle::new(crate::shapes::IsNamedParamsPositionalShape {
-                    is_named: record_is_named,
-                    params: record_params,
-                    positional: record_positional,
-                })
-            })
-        });
-        PARSE_PARAMS.with(|module_binding_3| module_binding_3.initialize(module_value_3))
-    };
-    {
-        let module_value_4 = rt::Callable::<
-            (String, String, i32, bool),
-            rt::TsonicResult<Option<rt::ObjectHandle<crate::shapes::EndPosInnerShape>>>,
-        >::new(move |callable_arguments_4| {
-            let text = callable_arguments_4.0;
-            let name = callable_arguments_4.1;
-            let start_pos = callable_arguments_4.2;
-            let is_markdown = callable_arguments_4.3;
-            let open_tag: String = if is_markdown {
-                String::from("{{%")
+            let q: String = state.peek(0)?;
+            let quoted: bool = q == "\"" || q == "'";
+            if quoted {
+                value = parse_quoted_string(state.clone(), source_path.clone(), line, column)?;
             } else {
-                String::from("{{<")
-            };
-            let close_tag_prefix: String = if is_markdown {
-                format!(
-                    "{}{}{}",
-                    String::from("{{% /"),
-                    rt::source_string(&name),
-                    String::from(""),
-                )
-            } else {
-                format!(
-                    "{}{}{}",
-                    String::from("{{< /"),
-                    rt::source_string(&name),
-                    String::from(""),
-                )
-            };
-            let close_tag_prefix2: String = if is_markdown {
-                format!(
-                    "{}{}{}",
-                    String::from("{{% / "),
-                    rt::source_string(&name),
-                    String::from(""),
-                )
-            } else {
-                format!(
-                    "{}{}{}",
-                    String::from("{{< / "),
-                    rt::source_string(&name),
-                    String::from(""),
-                )
-            };
-            let mut depth: i32 = 1;
-            let mut pos: i32 = start_pos;
-            let inner_start: i32 = start_pos;
-            while pos < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&text))? {
-                let remaining: String = crate::utils::strings::substring_from(&text, pos)?;
-                if js_string::starts_with_from_start(&remaining, &open_tag) {
-                    let after_open: String = js_string::trim_start(
-                        &crate::utils::strings::substring_from(
-                            &text,
-                            pos
-                                + tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                                    &open_tag,
-                                ))?,
-                        )?,
-                    );
-                    if js_string::starts_with_from_start(
-                        &after_open,
-                        &format!("{}{}", name, String::from(" ")),
-                    )
-                        || js_string::starts_with_from_start(
-                            &after_open,
-                            &format!("{}{}", name, String::from(">")),
-                        )
-                        || js_string::starts_with_from_start(
-                            &after_open,
-                            &format!("{}{}", name, String::from("%")),
-                        )
-                    {
-                        depth += 1;
-                    }
-                }
-                if js_string::starts_with_from_start(&remaining, &close_tag_prefix)
-                    || js_string::starts_with_from_start(&remaining, &close_tag_prefix2)
-                {
-                    depth -= 1;
-                    if depth == 0 {
-                        let inner: String = crate::utils::strings::substring_count(
-                            text.clone(),
-                            inner_start,
-                            pos - inner_start,
-                        )?;
-                        let end_suffix: String = if is_markdown {
-                            String::from("%}}")
-                        } else {
-                            String::from(">}}")
-                        };
-                        let close_end: i32 = crate::utils::strings::index_of_text_from(
-                            &text,
-                            end_suffix.clone(),
-                            pos,
-                        )?;
-                        if close_end < 0 {
-                            return Ok::<_, rt::TsonicError>(
-                                Option::<rt::ObjectHandle<crate::shapes::EndPosInnerShape>>::None,
-                            );
-                        }
-                        return Ok::<_, rt::TsonicError>(Some({
-                            let record_inner = inner.clone();
-                            let record_end_pos = close_end
-                                + tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                                    &end_suffix,
-                                ))?;
-                            rt::ObjectHandle::new(crate::shapes::EndPosInnerShape {
-                                end_pos: record_end_pos,
-                                inner: record_inner,
-                            })
-                        }));
-                    }
-                }
-                pos += 1;
+                value = parse_unquoted_value(state.clone())?;
             }
-            Ok::<_, rt::TsonicError>(
-                Option::<rt::ObjectHandle<crate::shapes::EndPosInnerShape>>::None,
-            )
-        });
-        FIND_CLOSING_TAG.with(|module_binding_4| module_binding_4.initialize(module_value_4))
-    };
-    {
-        let module_value_5 = rt::Callable::<
-            (String, Option<String>),
-            rt::TsonicResult<js_abi::JsArray<ShortcodeCall>>,
-        >::new(move |callable_arguments_5| {
-            let text = callable_arguments_5.0;
-            let source_path = callable_arguments_5.1;
-            let results: js_abi::JsArray<ShortcodeCall> = js_abi::JsArray::from_dense(vec![]);
-            if !js_string::includes_from_start(&text, "{{<")
-                && !js_string::includes_from_start(&text, "{{%")
+            if !quoted && value.is_empty() {
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+                    String::from("TSUMO_SHORTCODE_PARAMETER_INVALID"),
+                    format!(
+                        "{}{}{}",
+                        String::from("Shortcode parameter '"),
+                        key,
+                        String::from("' requires a value"),
+                    ),
+                    source_path.clone(),
+                    Some(tsonic_rust_runtime::conversions::i32_to_f64(line)),
+                    Some(tsonic_rust_runtime::conversions::i32_to_f64(column)),
+                )));
+            }
             {
-                return Ok::<_, rt::TsonicError>(results.clone());
+                let operation_input_0 = params.clone();
+                operation_input_0.set_discard(key.clone(), if quoted {
+                    crate::params::ParamValue::string(value.clone())
+                } else {
+                    crate::params::ParamValue::parse_scalar(&value)?
+                })
+            };
+        } else {
+            if key.is_empty() {
+                let q: String = state.peek(0)?;
+                if q == "\"" || q == "'" {
+                    key = parse_quoted_string(state.clone(), source_path.clone(), line, column)?;
+                }
             }
-            let source_map: ShortcodeSourceMap = ShortcodeSourceMap::new(&text)?;
-            let mut pos: i32 = 0;
-            'loop_value_6: while pos < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&text))? {
-                let open_angle: i32 =
-                    crate::utils::strings::index_of_text_from(&text, String::from("{{<"), pos)?;
-                let open_percent: i32 =
-                    crate::utils::strings::index_of_text_from(&text, String::from("{{%"), pos)?;
-                let mut open_pos: i32 = -1;
-                let mut is_markdown: bool = false;
-                #[expect(clippy::collapsible_if, reason = "checked lexical regions")]
-                if open_angle >= 0 {
-                    if open_percent < 0 || open_angle <= open_percent {
-                        open_pos = open_angle;
-                        is_markdown = false;
-                    }
-                }
-                if open_pos < 0 && open_percent >= 0 {
-                    open_pos = open_percent;
-                    is_markdown = true;
-                }
-                if open_pos < 0 {
-                    break 'loop_value_6;
-                }
-                if source_map.is_in_code_block(open_pos)? {
-                    pos = open_pos + 3;
-                    continue 'loop_value_6;
-                }
-                let close_suffix: String = if is_markdown {
+            if !key.is_empty() {
+                positional.push_many_discard([key.clone()]);
+            }
+        }
+    }
+    if is_named && tsonic_rust_runtime::conversions::usize_to_i32(positional.len())? > 0 {
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_SHORTCODE_PARAMETER_STYLE_MIXED"),
+            String::from("Shortcode parameters cannot mix named and positional forms"),
+            source_path.clone(),
+            Some(tsonic_rust_runtime::conversions::i32_to_f64(line)),
+            Some(tsonic_rust_runtime::conversions::i32_to_f64(column)),
+        )));
+    }
+    Ok({
+        let record_params = params.clone();
+        let record_positional = positional.clone();
+        let record_is_named = is_named;
+        rt::ObjectHandle::new(crate::shapes::IsNamedParamsPositionalShape {
+            is_named: record_is_named,
+            params: record_params,
+            positional: record_positional,
+        })
+    })
+}
+
+pub fn find_closing_tag(
+    text: String,
+    name: String,
+    start_pos: i32,
+    is_markdown: bool,
+) -> Result<Option<rt::ObjectHandle<crate::shapes::EndPosInnerShape>>, rt::TsonicError> {
+    let open_tag: String = if is_markdown {
+        String::from("{{%")
+    } else {
+        String::from("{{<")
+    };
+    let close_tag_prefix: String = if is_markdown {
+        format!("{}{}", String::from("{{% /"), name)
+    } else {
+        format!("{}{}", String::from("{{< /"), name)
+    };
+    let close_tag_prefix2: String = if is_markdown {
+        format!("{}{}", String::from("{{% / "), name)
+    } else {
+        format!("{}{}", String::from("{{< / "), name)
+    };
+    let mut depth: i32 = 1;
+    let mut pos: i32 = start_pos;
+    let inner_start: i32 = start_pos;
+    while pos < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&text))? {
+        let remaining: String = crate::utils::strings::substring_from(&text, pos)?;
+        if js_string::starts_with_from_start(&remaining, &open_tag) {
+            let after_open: String = js_string::trim_start(&crate::utils::strings::substring_from(
+                &text,
+                pos + tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&open_tag))?,
+            )?);
+            if js_string::starts_with_from_start(
+                &after_open,
+                &format!("{}{}", name, String::from(" ")),
+            )
+                || js_string::starts_with_from_start(
+                    &after_open,
+                    &format!("{}{}", name, String::from(">")),
+                )
+                || js_string::starts_with_from_start(
+                    &after_open,
+                    &format!("{}{}", name, String::from("%")),
+                )
+            {
+                depth += 1;
+            }
+        }
+        if js_string::starts_with_from_start(&remaining, &close_tag_prefix)
+            || js_string::starts_with_from_start(&remaining, &close_tag_prefix2)
+        {
+            depth -= 1;
+            if depth == 0 {
+                let inner: String = crate::utils::strings::substring_count(
+                    text.clone(),
+                    inner_start,
+                    pos - inner_start,
+                )?;
+                let end_suffix: String = if is_markdown {
                     String::from("%}}")
                 } else {
                     String::from(">}}")
                 };
-                let close_pos: i32 = crate::utils::strings::index_of_text_from(
-                    &text,
-                    close_suffix.clone(),
-                    open_pos + 3,
-                )?;
-                if close_pos < 0 {
-                    let position: ShortcodePosition = source_map.position_at(open_pos)?;
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                        String::from("TSUMO_SHORTCODE_ACTION_UNCLOSED"),
-                        format!(
-                            "{}{}{}",
-                            String::from("Shortcode action opened with '"),
-                            rt::source_string(&if is_markdown {
-                                String::from("{{%")
-                            } else {
-                                String::from("{{<")
-                            },),
-                            String::from("' but is not closed"),
-                        ),
-                        source_path.clone(),
-                        Some(tsonic_rust_runtime::conversions::i32_to_f64(
-                            position.state.with(|state| state.line),
-                        )),
-                        Some(tsonic_rust_runtime::conversions::i32_to_f64(
-                            position.state.with(|state| state.column),
-                        )),
-                    )));
+                let close_end: i32 =
+                    crate::utils::strings::index_of_text_from(&text, end_suffix.clone(), pos)?;
+                if close_end < 0 {
+                    return Ok(Option::<rt::ObjectHandle<crate::shapes::EndPosInnerShape>>::None);
                 }
-                let content: String = js_string::trim(&crate::utils::strings::substring_count(
-                    text.clone(),
-                    open_pos + 3,
-                    close_pos - (open_pos + 3),
-                )?);
-                let is_self_closing: bool = js_string::ends_with_at_end(&content, "/");
-                let tag_content: String = if is_self_closing {
-                    js_string::trim(&crate::utils::strings::substring_count(
-                        content.clone(),
-                        0,
-                        tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                            &content,
-                        ))? - 1,
-                    )?)
-                } else {
-                    content.clone()
-                };
-                if js_string::starts_with_from_start(&tag_content, "/*") {
-                    pos =
-                        close_pos
-                            + tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                                &close_suffix,
-                            ))?;
-                    continue 'loop_value_6;
-                }
-                let first_space: i32 =
-                    tsonic_rust_runtime::conversions::isize_to_i32(js_string::index_of_from_start(
-                        &tag_content, " ",
-                    ))?;
-                let name: String = if first_space >= 0 {
-                    js_string::trim(&crate::utils::strings::substring_count(
-                        tag_content.clone(),
-                        0,
-                        first_space,
-                    )?)
-                } else {
-                    js_string::trim(&tag_content)
-                };
-                let args_text: String = if first_space >= 0 {
-                    crate::utils::strings::substring_from(&tag_content, first_space + 1)?
-                } else {
-                    String::from("")
-                };
-                if name.is_empty() || js_string::starts_with_from_start(&name, "/") {
-                    if js_string::starts_with_from_start(&name, "/") {
-                        let position: ShortcodePosition = source_map.position_at(open_pos)?;
-                        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                            String::from("TSUMO_SHORTCODE_CLOSE_UNEXPECTED"),
-                            format!(
-                                "{}{}{}",
-                                String::from("Unexpected shortcode closing action '"),
-                                rt::source_string(&name),
-                                String::from("'"),
-                            ),
-                            source_path.clone(),
-                            Some(tsonic_rust_runtime::conversions::i32_to_f64(
-                                position.state.with(|state| state.line),
-                            )),
-                            Some(tsonic_rust_runtime::conversions::i32_to_f64(
-                                position.state.with(|state| state.column),
-                            )),
-                        )));
-                    }
-                    pos =
-                        close_pos
-                            + tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                                &close_suffix,
-                            ))?;
-                    continue 'loop_value_6;
-                }
-                let position: ShortcodePosition = source_map.position_at(open_pos)?;
-                let parsed: rt::ObjectHandle<crate::shapes::IsNamedParamsPositionalShape> =
-                    PARSE_PARAMS
-                        .with(|module_binding| module_binding.load())
-                        .call((
-                            args_text.clone(),
-                            source_path.clone(),
-                            position.state.with(|state| state.line),
-                            position.state.with(|state| state.column),
+                return Ok(Some({
+                    let record_inner = inner.clone();
+                    let record_end_pos = close_end
+                        + tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
+                            &end_suffix,
                         ))?;
-                if is_self_closing {
-                    let call: ShortcodeCall = ShortcodeCall::new(
-                        name.clone(),
-                        parsed.with(|state| state.params.clone()),
-                        parsed.with(|state| state.positional.clone()),
-                        parsed.with(|state| state.is_named),
-                        String::from(""),
-                        is_markdown,
-                        true,
-                        open_pos,
-                        close_pos
-                            + tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                                &close_suffix,
-                            ))?,
-                        source_path.clone(),
-                        position.state.with(|state| state.line),
-                        position.state.with(|state| state.column),
-                    );
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        results.push_many([call.clone()]),
-                    )?;
-                    pos =
-                        close_pos
-                            + tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                                &close_suffix,
-                            ))?;
-                    continue 'loop_value_6;
-                }
-                let tag_end_pos: i32 = close_pos
+                    rt::ObjectHandle::new(crate::shapes::EndPosInnerShape {
+                        end_pos: record_end_pos,
+                        inner: record_inner,
+                    })
+                }));
+            }
+        }
+        pos += 1;
+    }
+    Ok(Option::<rt::ObjectHandle<crate::shapes::EndPosInnerShape>>::None)
+}
+
+pub fn parse_shortcodes(
+    text: String,
+    source_path: Option<String>,
+) -> Result<js_abi::JsArray<ShortcodeCall>, rt::TsonicError> {
+    let results: js_abi::JsArray<ShortcodeCall> = js_abi::JsArray::from_dense(vec![]);
+    if !js_string::includes_from_start(&text, "{{<")
+        && !js_string::includes_from_start(&text, "{{%")
+    {
+        return Ok(results);
+    }
+    let source_map: ShortcodeSourceMap = ShortcodeSourceMap::new(text.clone())?;
+    let mut pos: i32 = 0;
+    'loop_value: while pos < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&text))? {
+        let open_angle: i32 =
+            crate::utils::strings::index_of_text_from(&text, String::from("{{<"), pos)?;
+        let open_percent: i32 =
+            crate::utils::strings::index_of_text_from(&text, String::from("{{%"), pos)?;
+        let mut open_pos: i32 = -1;
+        let mut is_markdown: bool = false;
+        #[expect(clippy::collapsible_if, reason = "checked lexical regions")]
+        if open_angle >= 0 {
+            if open_percent < 0 || open_angle <= open_percent {
+                open_pos = open_angle;
+                is_markdown = false;
+            }
+        }
+        if open_pos < 0 && open_percent >= 0 {
+            open_pos = open_percent;
+            is_markdown = true;
+        }
+        if open_pos < 0 {
+            break 'loop_value;
+        }
+        if source_map.is_in_code_block(open_pos)? {
+            pos = open_pos + 3;
+            continue 'loop_value;
+        }
+        let close_suffix: String = if is_markdown {
+            String::from("%}}")
+        } else {
+            String::from(">}}")
+        };
+        let close_pos: i32 =
+            crate::utils::strings::index_of_text_from(&text, close_suffix.clone(), open_pos + 3)?;
+        if close_pos < 0 {
+            let position: ShortcodePosition = source_map.position_at(open_pos)?;
+            return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+                String::from("TSUMO_SHORTCODE_ACTION_UNCLOSED"),
+                format!(
+                    "{}{}{}",
+                    String::from("Shortcode action opened with '"),
+                    if is_markdown {
+                        String::from("{{%")
+                    } else {
+                        String::from("{{<")
+                    },
+                    String::from("' but is not closed"),
+                ),
+                source_path.clone(),
+                Some(tsonic_rust_runtime::conversions::i32_to_f64(
+                    position.state.with(|state| state.line),
+                )),
+                Some(tsonic_rust_runtime::conversions::i32_to_f64(
+                    position.state.with(|state| state.column),
+                )),
+            )));
+        }
+        let content: String = js_string::trim(&crate::utils::strings::substring_count(
+            text.clone(),
+            open_pos + 3,
+            close_pos - (open_pos + 3),
+        )?);
+        let is_self_closing: bool = js_string::ends_with_at_end(&content, "/");
+        let tag_content: String = if is_self_closing {
+            js_string::trim(&crate::utils::strings::substring_count(
+                content.clone(),
+                0,
+                tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&content))? - 1,
+            )?)
+        } else {
+            content.clone()
+        };
+        if js_string::starts_with_from_start(&tag_content, "/*") {
+            pos =
+                close_pos
                     + tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
                         &close_suffix,
                     ))?;
-                let close_result: Option<rt::ObjectHandle<crate::shapes::EndPosInnerShape>> =
-                    FIND_CLOSING_TAG
-                        .with(|module_binding| module_binding.load())
-                        .call((text.clone(), name.clone(), tag_end_pos, is_markdown))?;
-                if close_result.is_some() {
-                    let call: ShortcodeCall = ShortcodeCall::new(
-                        name.clone(),
-                        parsed.with(|state| state.params.clone()),
-                        parsed.with(|state| state.positional.clone()),
-                        parsed.with(|state| state.is_named),
-                        (match close_result.as_ref() {
+            continue 'loop_value;
+        }
+        let first_space: i32 =
+            tsonic_rust_runtime::conversions::isize_to_i32(js_string::index_of_from_start(
+                &tag_content, " ",
+            ))?;
+        let name: String = if first_space >= 0 {
+            js_string::trim(&crate::utils::strings::substring_count(
+                tag_content.clone(),
+                0,
+                first_space,
+            )?)
+        } else {
+            js_string::trim(&tag_content)
+        };
+        let args_text: String = if first_space >= 0 {
+            crate::utils::strings::substring_from(&tag_content, first_space + 1)?
+        } else {
+            String::from("")
+        };
+        if name.is_empty() || js_string::starts_with_from_start(&name, "/") {
+            if js_string::starts_with_from_start(&name, "/") {
+                let position: ShortcodePosition = source_map.position_at(open_pos)?;
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+                    String::from("TSUMO_SHORTCODE_CLOSE_UNEXPECTED"),
+                    format!(
+                        "{}{}{}",
+                        String::from("Unexpected shortcode closing action '"),
+                        name,
+                        String::from("'"),
+                    ),
+                    source_path.clone(),
+                    Some(tsonic_rust_runtime::conversions::i32_to_f64(
+                        position.state.with(|state| state.line),
+                    )),
+                    Some(tsonic_rust_runtime::conversions::i32_to_f64(
+                        position.state.with(|state| state.column),
+                    )),
+                )));
+            }
+            pos =
+                close_pos
+                    + tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
+                        &close_suffix,
+                    ))?;
+            continue 'loop_value;
+        }
+        let position: ShortcodePosition = source_map.position_at(open_pos)?;
+        let parsed: rt::ObjectHandle<crate::shapes::IsNamedParamsPositionalShape> = parse_params(
+            &args_text,
+            source_path.clone(),
+            position.state.with(|state| state.line),
+            position.state.with(|state| state.column),
+        )?;
+        if is_self_closing {
+            let call: ShortcodeCall = ShortcodeCall::new(
+                name.clone(),
+                parsed.with(|state| state.params.clone()),
+                parsed.with(|state| state.positional.clone()),
+                parsed.with(|state| state.is_named),
+                String::from(""),
+                is_markdown,
+                true,
+                open_pos,
+                close_pos
+                    + tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
+                        &close_suffix,
+                    ))?,
+                source_path.clone(),
+                position.state.with(|state| state.line),
+                position.state.with(|state| state.column),
+            );
+            results.push_many_discard([call.clone()]);
+            pos =
+                close_pos
+                    + tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
+                        &close_suffix,
+                    ))?;
+            continue 'loop_value;
+        }
+        let tag_end_pos: i32 = close_pos
+            + tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&close_suffix))?;
+        let close_result: Option<rt::ObjectHandle<crate::shapes::EndPosInnerShape>> =
+            find_closing_tag(text.clone(), name.clone(), tag_end_pos, is_markdown)?;
+        if close_result.is_some() {
+            let call: ShortcodeCall = ShortcodeCall::new(
+                name.clone(),
+                parsed.with(|state| state.params.clone()),
+                parsed.with(|state| state.positional.clone()),
+                parsed.with(|state| state.is_named),
+                (match close_result.as_ref() {
     Some(flow_value) => flow_value.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
 }).with(|state| {
-                            state.inner.clone()
-                        }),
-                        is_markdown,
-                        false,
-                        open_pos,
-                        (match close_result.as_ref() {
+                    state.inner.clone()
+                }),
+                is_markdown,
+                false,
+                open_pos,
+                (match close_result.as_ref() {
     Some(flow_value_2) => flow_value_2.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
 }).with(|state| {
-                            state.end_pos
-                        }),
-                        source_path.clone(),
-                        position.state.with(|state| state.line),
-                        position.state.with(|state| state.column),
-                    );
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        results.push_many([call.clone()]),
-                    )?;
-                    pos = (match close_result.as_ref() {
+                    state.end_pos
+                }),
+                source_path.clone(),
+                position.state.with(|state| state.line),
+                position.state.with(|state| state.column),
+            );
+            results.push_many_discard([call.clone()]);
+            pos = (match close_result.as_ref() {
     Some(flow_value_3) => flow_value_3.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
 }).with(|state| state.end_pos);
-                } else {
-                    let call: ShortcodeCall = ShortcodeCall::new(
-                        name.clone(),
-                        parsed.with(|state| state.params.clone()),
-                        parsed.with(|state| state.positional.clone()),
-                        parsed.with(|state| state.is_named),
-                        String::from(""),
-                        is_markdown,
-                        true,
-                        open_pos,
-                        tag_end_pos,
-                        source_path.clone(),
-                        position.state.with(|state| state.line),
-                        position.state.with(|state| state.column),
-                    );
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        results.push_many([call.clone()]),
-                    )?;
-                    pos = tag_end_pos;
-                }
-            }
-            Ok::<_, rt::TsonicError>(results.clone())
-        });
-        PARSE_SHORTCODES.with(|module_binding_5| module_binding_5.initialize(module_value_5))
-    };
+        } else {
+            let call: ShortcodeCall = ShortcodeCall::new(
+                name.clone(),
+                parsed.with(|state| state.params.clone()),
+                parsed.with(|state| state.positional.clone()),
+                parsed.with(|state| state.is_named),
+                String::from(""),
+                is_markdown,
+                true,
+                open_pos,
+                tag_end_pos,
+                source_path.clone(),
+                position.state.with(|state| state.line),
+                position.state.with(|state| state.column),
+            );
+            results.push_many_discard([call.clone()]);
+            pos = tag_end_pos;
+        }
+    }
+    Ok(results)
+}
+
+pub fn collect_shortcode_names(
+    text: String,
+    source_path: Option<String>,
+) -> Result<js_abi::JsMap<String, bool>, rt::TsonicError> {
+    let names: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
+    let pending: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![text]);
     {
-        let module_value_6 = rt::Callable::<
-            (String, Option<String>),
-            rt::TsonicResult<js_abi::JsMap<String, bool>>,
-        >::new(move |callable_arguments_6| {
-            let text = callable_arguments_6.0;
-            let source_path = callable_arguments_6.1;
-            let names: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
-            let pending: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![text.clone()]);
+        let mut pending_index: i32 = 0;
+        while pending_index < tsonic_rust_runtime::conversions::usize_to_i32(pending.len())? {
+            let calls: js_abi::JsArray<ShortcodeCall> = parse_shortcodes(
+                match pending
+                    .get_number(tsonic_rust_runtime::conversions::i32_to_f64(pending_index))
+                    .as_ref()
+                {
+                    Some(flow_value) => flow_value.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                },
+                source_path.clone(),
+            )?;
             {
-                let mut pending_index: i32 = 0;
-                while pending_index < tsonic_rust_runtime::conversions::usize_to_i32(pending.len())?
-                {
-                    let calls: js_abi::JsArray<ShortcodeCall> = PARSE_SHORTCODES
-                        .with(|module_binding| module_binding.load())
-                        .call((
-                            match pending
-                                .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
-                                    pending_index,
-                                ))
-                                .as_ref()
-                            {
-                                Some(flow_value_4) => flow_value_4.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                            source_path.clone(),
-                        ))?;
+                let mut call_index: i32 = 0;
+                while call_index < tsonic_rust_runtime::conversions::usize_to_i32(calls.len())? {
+                    let call: ShortcodeCall = match calls
+                        .get_number(tsonic_rust_runtime::conversions::i32_to_f64(call_index))
+                        .as_ref()
                     {
-                        let mut call_index: i32 = 0;
-                        while call_index
-                            < tsonic_rust_runtime::conversions::usize_to_i32(calls.len())?
+                        Some(flow_value_2) => flow_value_2.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    };
+                    {
+                        let operation_input_0 = names.clone();
+                        operation_input_0
+                            .set_discard(call.state.with(|state| state.name.clone()), true)
+                    };
+                    if !call.state.with(|state| state.inner.clone()).is_empty() {
                         {
-                            let call: ShortcodeCall = match calls
-                                .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
-                                    call_index,
-                                ))
-                                .as_ref()
-                            {
-                                Some(flow_value_5) => flow_value_5.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            };
-                            names.set(call.state.with(|state| state.name.clone()), true);
-                            if !call.state.with(|state| state.inner.clone()).is_empty() {
-                                tsonic_rust_runtime::conversions::usize_to_i32(
-                                    pending
-                                        .push_many([call.state.with(|state| state.inner.clone())]),
-                                )?;
-                            }
-                            call_index += 1;
-                        }
+                            let operation_input_0_2 = pending.clone();
+                            operation_input_0_2
+                                .push_many_discard([call.state.with(|state| state.inner.clone())])
+                        };
                     }
-                    pending_index += 1;
+                    call_index += 1;
                 }
             }
-            Ok::<_, rt::TsonicError>(names.clone())
-        });
-        COLLECT_SHORTCODE_NAMES.with(|module_binding_6| module_binding_6.initialize(module_value_6))
-    };
+            pending_index += 1;
+        }
+    }
+    Ok(names)
+}
+
+pub fn inner_deindent(inner: String) -> Result<String, rt::TsonicError> {
+    let lines: js_abi::JsArray<String> = js_string::split_all(&inner, "\n")?;
+    if tsonic_rust_runtime::conversions::usize_to_i32(lines.len())? == 0 {
+        return Ok(inner);
+    }
+    let mut min_indent: i32 = -1;
     {
-        let module_value_7 = rt::Callable::<(String,), rt::TsonicResult<String>>::new(
-            move |callable_arguments_7| {
-                let inner = callable_arguments_7.0;
-                let lines: js_abi::JsArray<String> = js_string::split_all(&inner, "\n")
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                if tsonic_rust_runtime::conversions::usize_to_i32(lines.len())? == 0 {
-                    return Ok::<_, rt::TsonicError>(inner.clone());
-                }
-                let mut min_indent: i32 = -1;
+        let mut i: i32 = 0;
+        'loop_value: while i < tsonic_rust_runtime::conversions::usize_to_i32(lines.len())? {
+            let line: String = match lines
+                .get_number(tsonic_rust_runtime::conversions::i32_to_f64(i))
+                .as_ref()
+            {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
+            if js_string::trim(&line).is_empty() {
+                i += 1;
+                continue 'loop_value;
+            }
+            let mut indent: i32 = 0;
+            {
+                let mut j: i32 = 0;
+                'loop_value_2: while j < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&line))?
                 {
-                    let mut i: i32 = 0;
-                    'loop_value_9: while i < tsonic_rust_runtime::conversions::usize_to_i32(lines.len())? {
-                        let line: String = match lines
-                            .get_number(tsonic_rust_runtime::conversions::i32_to_f64(i))
-                            .as_ref()
-                        {
-                            Some(flow_value_6) => flow_value_6.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        };
-                        if js_string::trim(&line).is_empty() {
-                            i += 1;
-                            continue 'loop_value_9;
+                    let c: String = crate::utils::strings::substring_count(line.clone(), j, 1)?;
+                    if c == " " {
+                        indent += 1;
+                    } else {
+                        if c == "\t" {
+                            indent += 4;
+                        } else {
+                            break 'loop_value_2;
                         }
-                        let mut indent: i32 = 0;
-                        {
-                            let mut j: i32 = 0;
-                            'loop_value_10: while j
-                                < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                                    &line,
-                                ))?
-                            {
-                                let c: String =
-                                    crate::utils::strings::substring_count(line.clone(), j, 1)?;
-                                if c == " " {
-                                    indent += 1;
-                                } else {
-                                    if c == "\t" {
-                                        indent += 4;
-                                    } else {
-                                        break 'loop_value_10;
-                                    }
-                                }
-                                j += 1;
-                            }
-                        }
-                        if min_indent < 0 || indent < min_indent {
-                            min_indent = indent;
-                        }
-                        i += 1;
                     }
+                    j += 1;
                 }
-                if min_indent <= 0 {
-                    return Ok::<_, rt::TsonicError>(inner.clone());
-                }
-                let result: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+            }
+            if min_indent < 0 || indent < min_indent {
+                min_indent = indent;
+            }
+            i += 1;
+        }
+    }
+    if min_indent <= 0 {
+        return Ok(inner);
+    }
+    let result: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    {
+        let mut i: i32 = 0;
+        'loop_value_3: while i < tsonic_rust_runtime::conversions::usize_to_i32(lines.len())? {
+            let line: String = match lines
+                .get_number(tsonic_rust_runtime::conversions::i32_to_f64(i))
+                .as_ref()
+            {
+                Some(flow_value_2) => flow_value_2.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
+            if js_string::trim(&line).is_empty() {
+                result.push_many_discard([line.clone()]);
+                i += 1;
+                continue 'loop_value_3;
+            }
+            let mut removed: i32 = 0;
+            let mut start_idx: i32 = 0;
+            {
+                let mut j: i32 = 0;
+                'loop_value_4: while j < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&line))?
+                    && removed < min_indent
                 {
-                    let mut i: i32 = 0;
-                    'loop_value_11: while i < tsonic_rust_runtime::conversions::usize_to_i32(lines.len())? {
-                        let line: String = match lines
-                            .get_number(tsonic_rust_runtime::conversions::i32_to_f64(i))
-                            .as_ref()
-                        {
-                            Some(flow_value_7) => flow_value_7.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        };
-                        if js_string::trim(&line).is_empty() {
-                            tsonic_rust_runtime::conversions::usize_to_i32(
-                                result.push_many([line.clone()]),
-                            )?;
-                            i += 1;
-                            continue 'loop_value_11;
+                    let c: String = crate::utils::strings::substring_count(line.clone(), j, 1)?;
+                    if c == " " {
+                        removed += 1;
+                        start_idx += 1;
+                    } else {
+                        if c == "\t" {
+                            removed += 4;
+                            start_idx += 1;
+                        } else {
+                            break 'loop_value_4;
                         }
-                        let mut removed: i32 = 0;
-                        let mut start_idx: i32 = 0;
-                        {
-                            let mut j: i32 = 0;
-                            'loop_value_12: while j
-                                < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                                    &line,
-                                ))?
-                                && removed < min_indent
-                            {
-                                let c: String =
-                                    crate::utils::strings::substring_count(line.clone(), j, 1)?;
-                                if c == " " {
-                                    removed += 1;
-                                    start_idx += 1;
-                                } else {
-                                    if c == "\t" {
-                                        removed += 4;
-                                        start_idx += 1;
-                                    } else {
-                                        break 'loop_value_12;
-                                    }
-                                }
-                                j += 1;
-                            }
-                        }
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            result.push_many([
-                                crate::utils::strings::substring_from(&line, start_idx)?,
-                            ]),
-                        )?;
-                        i += 1;
                     }
+                    j += 1;
                 }
-                let arr: js_abi::JsArray<String> = result.clone();
-                let mut out: String = String::from("");
-                {
-                    let mut i: i32 = 0;
-                    while i < tsonic_rust_runtime::conversions::usize_to_i32(arr.len())? {
-                        if i > 0 {
-                            {
-                                let current_6 = out.clone();
-                                out = format!("{}{}", current_6, String::from("\n"))
-                            };
-                        }
-                        {
-                            let current_7 = out.clone();
-                            out = format!("{}{}", current_7, match arr
-    .get_number(tsonic_rust_runtime::conversions::i32_to_f64(i))
-    .as_ref()
-{
-    Some(flow_value_8) => flow_value_8.clone(),
-    None => unreachable!("checked flow selected a missing optional value"),
-})
-                        };
-                        i += 1;
-                    }
-                }
-                Ok::<_, rt::TsonicError>(out.clone())
-            },
-        );
-        INNER_DEINDENT.with(|module_binding_7| module_binding_7.initialize(module_value_7))
-    };
+            }
+            {
+                let operation_input_0 = result.clone();
+                operation_input_0
+                    .push_many_discard([crate::utils::strings::substring_from(&line, start_idx)?])
+            };
+            i += 1;
+        }
+    }
+    let arr: js_abi::JsArray<String> = result.clone();
+    let mut out: String = String::from("");
+    for i in 0..tsonic_rust_runtime::conversions::usize_to_i32(arr.len())? {
+        if i > 0 {
+            out.push('\n');
+        }
+        out.push_str(&match arr
+            .get_number(tsonic_rust_runtime::conversions::i32_to_f64(i))
+            .as_ref()
+        {
+            Some(flow_value_3) => flow_value_3.clone(),
+            None => unreachable!("checked flow selected a missing optional value"),
+        });
+    }
+    Ok(out)
 }

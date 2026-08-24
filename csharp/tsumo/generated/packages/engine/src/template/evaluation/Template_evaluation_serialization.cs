@@ -19,11 +19,11 @@ namespace Tsumo.Engine
             get;
             private set;
         } = default(Func<string, string>)!;
-        public static Func<string, System.Uri> parseUrl
+        public static Func<string, ParsedUrl> parseUrl
         {
             get;
             private set;
-        } = default(Func<string, System.Uri>)!;
+        } = default(Func<string, ParsedUrl>)!;
         public static Func<string, string, string> trimStartCharacter
         {
             get;
@@ -49,7 +49,9 @@ namespace Tsumo.Engine
         {
             Diagnostics.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
+            Utils_textBuilder.__tsonic_module_init();
             Template_values.__tsonic_module_init();
+            Template_values_url.__tsonic_module_init();
             getPathExtension = (string path) =>
             {
                 int lastDot = Tsonic.CSharp.Js.String.lastIndexOf(path, ".");
@@ -89,25 +91,25 @@ namespace Tsumo.Engine
                 if (value is AnyArrayValue)
                 {
                     Tsonic.CSharp.Js.JSArray<TemplateValue> items = ((AnyArrayValue)value).value;
-                    System.Text.StringBuilder sb = new System.Text.StringBuilder();
-                    sb.Append("[");
+                    TextBuilder sb = new TextBuilder();
+                    sb.append("[");
                     bool first = true;
                     for (int i = 0; i < items.length; i++)
                     {
                         if (!first)
                         {
-                            sb.Append(",");
+                            sb.append(",");
                         }
                         first = false;
-                        sb.Append(toJson(items[i]));
+                        sb.append(toJson(items[i]));
                     }
-                    sb.Append("]");
-                    return sb.ToString();
+                    sb.append("]");
+                    return sb.toString();
                 }
                 if (value is DictValue)
                 {
-                    System.Text.StringBuilder sb_1 = new System.Text.StringBuilder();
-                    sb_1.Append("{");
+                    TextBuilder sb_1 = new TextBuilder();
+                    sb_1.append("{");
                     bool first_1 = true;
                     foreach (string k in ((DictValue)value).value.keys())
                     {
@@ -118,76 +120,73 @@ namespace Tsumo.Engine
                         }
                         if (!first_1)
                         {
-                            sb_1.Append(",");
+                            sb_1.append(",");
                         }
                         first_1 = false;
-                        sb_1.Append(toJsonString(k));
-                        sb_1.Append(":");
-                        sb_1.Append(toJson(v));
+                        sb_1.append(toJsonString(k));
+                        sb_1.append(":");
+                        sb_1.append(toJson(v));
                     }
-                    sb_1.Append("}");
-                    return sb_1.ToString();
+                    sb_1.append("}");
+                    return sb_1.toString();
                 }
                 return "null";
             };
             toJsonString = (string value) =>
             {
-                System.Text.StringBuilder sb = new System.Text.StringBuilder();
-                sb.Append("\"");
+                TextBuilder sb = new TextBuilder();
+                sb.append("\"");
                 for (int i = 0; i < value.Length; i++)
                 {
                     string ch = Utils_strings.substringCount(value, i, 1);
                     if (ch == "\\")
                     {
-                        sb.Append("\\\\");
+                        sb.append("\\\\");
                     }
                     else
                     {
                         if (ch == "\"")
                         {
-                            sb.Append("\\\"");
+                            sb.append("\\\"");
                         }
                         else
                         {
                             if (ch == "\n")
                             {
-                                sb.Append("\\n");
+                                sb.append("\\n");
                             }
                             else
                             {
                                 if (ch == "\r")
                                 {
-                                    sb.Append("\\r");
+                                    sb.append("\\r");
                                 }
                                 else
                                 {
                                     if (ch == "\t")
                                     {
-                                        sb.Append("\\t");
+                                        sb.append("\\t");
                                     }
                                     else
                                     {
-                                        sb.Append(ch);
+                                        sb.append(ch);
                                     }
                                 }
                             }
                         }
                     }
                 }
-                sb.Append("\"");
-                return sb.ToString();
+                sb.append("\"");
+                return sb.toString();
             };
             parseUrl = (string value) =>
             {
                 string trimmed = Tsonic.CSharp.Js.String.trim(value);
-                try
-                {
-                    return new System.Uri(trimmed, System.UriKind.RelativeOrAbsolute);
-                }
-                catch
+                if (Tsonic.CSharp.Js.String.includes(trimmed, "\0"))
                 {
                     throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_URL_INVALID", $"Invalid URL: {value}");
                 }
+                return new ParsedUrl(trimmed, Tsonic.CSharp.Node.url.parse(trimmed));
             };
             trimStartCharacter = (string value, string ch) =>
             {

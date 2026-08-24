@@ -7,13 +7,13 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 std::thread_local! {
+    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub(crate) static VERSION: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
 }
 
-pub(crate) fn run() -> rt::TsonicResult<()> {
-    let args: js_abi::JsArray<String> = tsonic_rust_node::process::argv()
-        .map_err(tsonic_rust_runtime::TsonicError::from)?
-        .slice_from(2.0);
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub(crate) fn run() -> Result<(), rt::TsonicError> {
+    let args: js_abi::JsArray<String> = tsonic_rust_node::process::argv()?.slice_from(2.0);
     let mut first: String = String::from("");
     #[expect(clippy::never_loop, reason = "authored iterator protocol")]
     'loop_value: for arg in args.iter_values() {
@@ -44,10 +44,9 @@ pub(crate) fn run() -> rt::TsonicResult<()> {
     if cmd == "build" || cmd == "gen" || cmd == "generate" {
     } else {
         crate::log_error_line::log_error_line(format!(
-            "{}{}{}",
+            "{}{}",
             String::from("Unknown command: "),
-            rt::source_string(&cmd),
-            String::from(""),
+            cmd,
         ));
         crate::print_usage::print_usage();
         tsonic_rust_node::process::set_exit_code(Some(2));
@@ -62,6 +61,7 @@ pub(crate) fn run() -> rt::TsonicResult<()> {
     Ok(())
 }
 
+#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn main() {
     let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
         run()?;
@@ -72,20 +72,26 @@ pub fn main() {
         Err(error) => rt::completion_region(|| {
             crate::log_error_line::log_error_line(if matches!(
                 error.clone(),
-                rt::TsonicError::Project0(_),
+                rt::TsonicError::TsumoEngineError(tsumo_engine::program::TsonicError::TsumoError(_)),
             )
             {
-                { let dispatch_receiver = &match error {
-    rt::TsonicError::Project0(program_error) => program_error,
-    _ => unreachable!("checked flow selected a different program-error variant"),
-}; dispatch_receiver.dispatch.read_tsumo_error_diagnostic() }.format()
+                let dispatch_receiver_2 = {
+                    let dispatch_receiver = &match error {
+                        rt::TsonicError::TsumoEngineError(tsumo_engine::program::TsonicError::TsumoError(program_error)) => {
+                            program_error
+                        }
+                        _ => {
+                            unreachable!("checked flow selected a different program-error variant")
+                        }
+                    };
+                    dispatch_receiver.dispatch.read_tsumo_error_diagnostic()
+                };
+                dispatch_receiver_2
+                    .dispatch
+                    .clone()
+                    .dispatch_tsumo_diagnostic_format()
             } else {
-                format!(
-                    "{}{}{}",
-                    String::from(""),
-                    rt::source_string(&error),
-                    String::from(""),
-                )
+                rt::source_string(&error)
             });
             tsonic_rust_node::process::set_exit_code(Some(1));
             rt::Completion::Normal

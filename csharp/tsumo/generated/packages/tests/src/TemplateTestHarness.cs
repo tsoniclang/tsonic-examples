@@ -49,9 +49,9 @@ namespace Tsumo.Tests
                 TestTemplateEnvironment environment = new TestTemplateEnvironment();
                 SiteContext site = createSite();
                 RenderScope scope = new RenderScope(root, root, site, environment, null);
-                System.Text.StringBuilder output = new System.Text.StringBuilder();
+                TextBuilder output = new TextBuilder();
                 template.renderInto(output, scope, environment, new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>());
-                return output.ToString();
+                return output.toString();
             };
             render = (string source) => renderWithRoot(source, new DictValue(new Tsonic.CSharp.Js.Map<string, TemplateValue>()));
             createPage = (SiteContext site, string title, string date, string kind) =>
@@ -67,15 +67,16 @@ namespace Tsumo.Tests
                 {
                     operation();
                 }
-                catch (System.Exception error)
+                catch (System.Exception __tsonic_catch0)
                 {
-                    if (error is TsumoError)
+                    Tsonic.CSharp.Runtime.TsValue error = Tsonic.CSharp.Runtime.TsThrownValueException.toValue(__tsonic_catch0);
+                    if (Tsonic.CSharp.Runtime.TsValue.IsDynamicInstanceOf<TsumoError>(error))
                     {
-                        return ((TsumoError)error).diagnostic.code;
+                        return Tsonic.CSharp.Runtime.TsValue.CastDynamic<TsumoError>(error).diagnostic.code;
                     }
                     throw;
                 }
-                throw new System.Exception("Expected a TsumoError diagnostic");
+                throw new Tsonic.CSharp.Runtime.Error("Expected a TsumoError diagnostic");
             };
             captureDiagnostic = (Action operation) =>
             {
@@ -83,15 +84,16 @@ namespace Tsumo.Tests
                 {
                     operation();
                 }
-                catch (System.Exception error)
+                catch (System.Exception __tsonic_catch0)
                 {
-                    if (error is TsumoError)
+                    Tsonic.CSharp.Runtime.TsValue error = Tsonic.CSharp.Runtime.TsThrownValueException.toValue(__tsonic_catch0);
+                    if (Tsonic.CSharp.Runtime.TsValue.IsDynamicInstanceOf<TsumoError>(error))
                     {
-                        return (TsumoError)error;
+                        return Tsonic.CSharp.Runtime.TsValue.CastDynamic<TsumoError>(error);
                     }
                     throw;
                 }
-                throw new System.Exception("Expected a TsumoError diagnostic");
+                throw new Tsonic.CSharp.Runtime.Error("Expected a TsumoError diagnostic");
             };
             return null;
         }
@@ -145,17 +147,17 @@ namespace Tsumo.Tests
         }
         public override string renderTemplate(Template template, TemplateValue context, SiteContext site, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> overrides, RenderState? state = null)
         {
-            System.Text.StringBuilder output = new System.Text.StringBuilder();
+            TextBuilder output = new TextBuilder();
             RenderScope scope = new RenderScope(context, context, site, this, null, state, template.sourcePath);
             template.renderInto(output, scope, this, overrides);
-            return output.ToString();
+            return output.toString();
         }
         public override string renderTextTemplate(Template template, TemplateValue context, SiteContext site, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> overrides, RenderState? state = null)
         {
-            System.Text.StringBuilder output = new System.Text.StringBuilder();
+            TextBuilder output = new TextBuilder();
             RenderScope scope = new RenderScope(context, context, site, this, null, state, template.sourcePath);
             template.renderTextInto(output, scope, this, overrides);
-            return output.ToString();
+            return output.toString();
         }
         public override string renderTemplateDefinition(Tsonic.CSharp.Js.JSArray<TemplateNode> nodes, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> definitions, string? sourcePath, TemplateValue context, SiteContext site, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> overrides, RenderState? state = null)
         {

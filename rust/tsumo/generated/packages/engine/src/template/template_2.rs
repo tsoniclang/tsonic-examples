@@ -4,127 +4,168 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct TemplateState {
-    pub(crate) nodes: js_abi::JsArray<crate::template::nodes::TemplateNode>,
-    pub(crate) defines:
-        js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    pub(crate) source_path: Option<String>,
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct Template {
-    pub(crate) state: rt::ObjectHandle<TemplateState>,
-}
-
-impl Template {
-    pub fn new(
-        nodes: js_abi::JsArray<crate::template::nodes::TemplateNode>,
-        defines: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-        source_path: Option<String>,
-    ) -> Template {
-        let field_nodes: js_abi::JsArray<crate::template::nodes::TemplateNode> = nodes.clone();
-        let field_defines: js_abi::JsMap<
-            String,
-            js_abi::JsArray<crate::template::nodes::TemplateNode>,
-        > = defines.clone();
-        let field_source_path: Option<String> = source_path.clone();
-        Template {
-            state: rt::ObjectHandle::new(TemplateState {
-                nodes: field_nodes,
-                defines: field_defines,
-                source_path: field_source_path,
-            }),
-        }
-    }
-
-    pub fn with_inherited_definitions(
+pub trait TemplateDispatch {
+    fn downcast_template_to_template(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn TemplateDispatch>>;
+    fn read_template_nodes(&self) -> js_abi::JsArray<crate::template::nodes::TemplateNode>;
+    fn write_template_nodes(&self, value: js_abi::JsArray<crate::template::nodes::TemplateNode>);
+    fn read_template_defines(
         &self,
+    ) -> js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>;
+    fn write_template_defines(
+        &self,
+        value: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+    );
+    fn read_template_source_path(&self) -> Option<String>;
+    fn write_template_source_path(&self, value: Option<String>);
+    fn dispatch_template_with_inherited_definitions(
+        self: std::rc::Rc<Self>,
         inherited: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    ) -> rt::TsonicResult<Template> {
-        if tsonic_rust_runtime::conversions::usize_to_i32(inherited.len())? == 0 {
-            return Ok(self.clone());
-        }
-        let definitions: js_abi::JsMap<
-            String,
-            js_abi::JsArray<crate::template::nodes::TemplateNode>,
-        > = js_abi::JsMap::new();
-        for name in inherited.keys() {
-            let inherited_body: Option<js_abi::JsArray<crate::template::nodes::TemplateNode>> =
-                inherited.get(&name);
-            if inherited_body.is_none() {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                    String::from("TSUMO_TEMPLATE_DEFINE_INVENTORY_INVALID"),
-                    format!(
-                        "{}{}{}",
-                        String::from("Inherited template definition '"),
-                        rt::source_string(&name),
-                        String::from("' has no body"),
-                    ),
-                    self.state.with(|state| state.source_path.clone()),
-                    None,
-                    None,
-                )));
-            }
-            definitions.set(name.clone(), match inherited_body.as_ref() {
-                Some(flow_value) => flow_value.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            });
-        }
-        for name in self.state.with(|state| state.defines.clone()).keys() {
-            let body: Option<js_abi::JsArray<crate::template::nodes::TemplateNode>> =
-                self.state.with(|state| state.defines.clone()).get(&name);
-            if body.is_none() {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                    String::from("TSUMO_TEMPLATE_DEFINE_INVENTORY_INVALID"),
-                    format!(
-                        "{}{}{}",
-                        String::from("Template definition '"),
-                        rt::source_string(&name),
-                        String::from("' has no body"),
-                    ),
-                    self.state.with(|state| state.source_path.clone()),
-                    None,
-                    None,
-                )));
-            }
-            let existing: Option<js_abi::JsArray<crate::template::nodes::TemplateNode>> =
-                definitions.get(&name);
-            if existing.is_some() {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                    String::from("TSUMO_TEMPLATE_DEFINE_CONFLICT"),
-                    format!(
-                        "{}{}{}",
-                        String::from("Template definition '"),
-                        rt::source_string(&name),
-                        String::from("' conflicts with an inherited definition"),
-                    ),
-                    self.state.with(|state| state.source_path.clone()),
-                    None,
-                    None,
-                )));
-            }
-            definitions.set(name.clone(), match body.as_ref() {
-                Some(flow_value_2) => flow_value_2.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            });
-        }
-        Ok(Template::new(
-            self.state.with(|state| state.nodes.clone()),
-            definitions.clone(),
-            self.state.with(|state| state.source_path.clone()),
-        ))
-    }
-
-    pub fn render(
-        &self,
+    ) -> Result<Template, rt::TsonicError>;
+    fn exact_template_with_inherited_definitions(
+        self: std::rc::Rc<Self>,
+        inherited: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+    ) -> Result<Template, rt::TsonicError>;
+    fn dispatch_template_render(
+        self: std::rc::Rc<Self>,
         root: crate::models::page_context::PageContext,
         env: crate::template::environment::TemplateEnvironment,
         overrides: Option<
             js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         >,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError>;
+    fn exact_template_render(
+        self: std::rc::Rc<Self>,
+        root: crate::models::page_context::PageContext,
+        env: crate::template::environment::TemplateEnvironment,
+        overrides: Option<
+            js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+        >,
+        state: Option<crate::template::scope::RenderState>,
+    ) -> Result<String, rt::TsonicError>;
+    fn dispatch_template_render_into(
+        self: std::rc::Rc<Self>,
+        sb: crate::utils::text_builder::TextBuilder,
+        scope: crate::template::scope::RenderScope,
+        env: crate::template::environment::TemplateEnvironment,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+    ) -> Result<(), rt::TsonicError>;
+    fn exact_template_render_into(
+        self: std::rc::Rc<Self>,
+        sb: crate::utils::text_builder::TextBuilder,
+        scope: crate::template::scope::RenderScope,
+        env: crate::template::environment::TemplateEnvironment,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+    ) -> Result<(), rt::TsonicError>;
+    fn dispatch_template_render_text_into(
+        self: std::rc::Rc<Self>,
+        sb: crate::utils::text_builder::TextBuilder,
+        scope: crate::template::scope::RenderScope,
+        env: crate::template::environment::TemplateEnvironment,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+    ) -> Result<(), rt::TsonicError>;
+    fn exact_template_render_text_into(
+        self: std::rc::Rc<Self>,
+        sb: crate::utils::text_builder::TextBuilder,
+        scope: crate::template::scope::RenderScope,
+        env: crate::template::environment::TemplateEnvironment,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+    ) -> Result<(), rt::TsonicError>;
+}
+
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct TemplateState {
+    pub nodes: js_abi::JsArray<crate::template::nodes::TemplateNode>,
+    pub defines: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+    pub source_path: Option<String>,
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+#[derive(Clone)]
+pub struct Template {
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn TemplateDispatch>,
+}
+
+impl std::fmt::Debug for Template {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("Template")
+    }
+}
+
+impl PartialEq for Template {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+    }
+}
+
+impl Eq for Template {}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub(crate) struct TemplateRoot {
+    identity: rt::ObjectIdentity,
+    state: rt::ObjectHandle<TemplateState>,
+}
+
+impl Template {
+    #[doc(hidden)]
+    pub fn initialize_state(
+        nodes: js_abi::JsArray<crate::template::nodes::TemplateNode>,
+        defines: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+        source_path: Option<String>,
+    ) -> TemplateState {
+        let field_nodes: js_abi::JsArray<crate::template::nodes::TemplateNode> = nodes;
+        let field_defines: js_abi::JsMap<
+            String,
+            js_abi::JsArray<crate::template::nodes::TemplateNode>,
+        > = defines;
+        let field_source_path: Option<String> = source_path;
+        TemplateState {
+            nodes: field_nodes,
+            defines: field_defines,
+            source_path: field_source_path,
+        }
+    }
+
+    pub fn new(
+        nodes: js_abi::JsArray<crate::template::nodes::TemplateNode>,
+        defines: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+        source_path: Option<String>,
+    ) -> Template {
+        let state = Template::initialize_state(nodes, defines, source_path);
+        let identity = rt::ObjectIdentity::new();
+        let root = std::rc::Rc::new(TemplateRoot {
+            identity: identity.clone(),
+            state: rt::ObjectHandle::new(state),
+        });
+        Template {
+            identity,
+            dispatch: root,
+        }
+    }
+}
+
+impl TemplateRoot {
+    fn exact_template_render(
+        self: std::rc::Rc<Self>,
+        root: crate::models::page_context::PageContext,
+        env: crate::template::environment::TemplateEnvironment,
+        overrides: Option<
+            js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+        >,
+        state: Option<crate::template::scope::RenderState>,
+    ) -> Result<String, rt::TsonicError> {
+        let project_this = Template {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
         let sb: crate::utils::text_builder::TextBuilder =
             crate::utils::text_builder::TextBuilder::new();
         let page_value: crate::template::values::page::PageValue =
@@ -144,43 +185,65 @@ impl Template {
                     dispatch: upcast_value_2.dispatch.clone(),
                 }
             },
-            root.state.with(|state| state.site.clone()),
+            {
+                let dispatch_receiver = &root;
+                dispatch_receiver.dispatch.read_page_context_site()
+            },
             env.clone(),
             Option::<crate::template::scope::RenderScope>::None,
-            state.clone(),
-            self.state.with(|state| state.source_path.clone()),
+            state,
+            {
+                let dispatch_receiver_2 = &project_this;
+                dispatch_receiver_2.dispatch.read_template_source_path()
+            },
         );
         let defs: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>> =
-            rt::option_coalesce(
-                overrides.clone(),
-                std::convert::identity,
-                js_abi::JsMap::new,
-            );
-        self.render_into(sb.clone(), scope.clone(), env.clone(), defs.clone())?;
-        Ok(sb.to_string())
+            rt::option_coalesce(overrides, std::convert::identity, js_abi::JsMap::new);
+        {
+            let dispatch_receiver_3 = project_this.clone();
+            dispatch_receiver_3
+                .dispatch
+                .clone()
+                .dispatch_template_render_into(sb.clone(), scope, env.clone(), defs)
+        }?;
+        Ok({
+            let dispatch_receiver_4 = sb.clone();
+            dispatch_receiver_4
+                .dispatch
+                .clone()
+                .dispatch_text_builder_to_string()
+        })
     }
 
-    pub fn render_into(
-        &self,
+    fn exact_template_render_into(
+        self: std::rc::Rc<Self>,
         sb: crate::utils::text_builder::TextBuilder,
         scope: crate::template::scope::RenderScope,
         env: crate::template::environment::TemplateEnvironment,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    ) -> rt::TsonicResult<()> {
+    ) -> Result<(), rt::TsonicError> {
+        let project_this = Template {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
         let control: crate::template::evaluation::render::TemplateControlFlow =
-            crate::template::evaluation::render::RENDER_TEMPLATE_NODES
-                .with(|module_binding| module_binding.load())
-                .call((
-                    self.state.with(|state| state.nodes.clone()),
-                    sb.clone(),
-                    scope.clone(),
-                    env.clone(),
-                    overrides.clone(),
-                    self.state.with(|state| state.defines.clone()),
-                    crate::template::evaluation::render::TemplateOutputMode::Html,
-                ))?;
+            crate::template::evaluation::render::render_template_nodes(
+                {
+                    let dispatch_receiver = &project_this;
+                    dispatch_receiver.dispatch.read_template_nodes()
+                },
+                sb,
+                scope,
+                env,
+                overrides,
+                {
+                    let dispatch_receiver_2 = &project_this;
+                    dispatch_receiver_2.dispatch.read_template_defines()
+                },
+                crate::template::evaluation::render::TemplateOutputMode::Html,
+            )?;
         if control != crate::template::evaluation::render::TemplateControlFlow::Normal {
-            return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+            return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                 String::from("TSUMO_TEMPLATE_CONTROL_FLOW_INVALID"),
                 String::from("Template loop control escaped the checked template root"),
                 None,
@@ -191,27 +254,35 @@ impl Template {
         Ok(())
     }
 
-    pub fn render_text_into(
-        &self,
+    fn exact_template_render_text_into(
+        self: std::rc::Rc<Self>,
         sb: crate::utils::text_builder::TextBuilder,
         scope: crate::template::scope::RenderScope,
         env: crate::template::environment::TemplateEnvironment,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    ) -> rt::TsonicResult<()> {
+    ) -> Result<(), rt::TsonicError> {
+        let project_this = Template {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
         let control: crate::template::evaluation::render::TemplateControlFlow =
-            crate::template::evaluation::render::RENDER_TEMPLATE_NODES
-                .with(|module_binding| module_binding.load())
-                .call((
-                    self.state.with(|state| state.nodes.clone()),
-                    sb.clone(),
-                    scope.clone(),
-                    env.clone(),
-                    overrides.clone(),
-                    self.state.with(|state| state.defines.clone()),
-                    crate::template::evaluation::render::TemplateOutputMode::Text,
-                ))?;
+            crate::template::evaluation::render::render_template_nodes(
+                {
+                    let dispatch_receiver = &project_this;
+                    dispatch_receiver.dispatch.read_template_nodes()
+                },
+                sb,
+                scope,
+                env,
+                overrides,
+                {
+                    let dispatch_receiver_2 = &project_this;
+                    dispatch_receiver_2.dispatch.read_template_defines()
+                },
+                crate::template::evaluation::render::TemplateOutputMode::Text,
+            )?;
         if control != crate::template::evaluation::render::TemplateControlFlow::Normal {
-            return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+            return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                 String::from("TSUMO_TEMPLATE_CONTROL_FLOW_INVALID"),
                 String::from("Template loop control escaped the checked template root"),
                 None,
@@ -220,5 +291,225 @@ impl Template {
             )));
         }
         Ok(())
+    }
+
+    fn exact_template_with_inherited_definitions(
+        self: std::rc::Rc<Self>,
+        inherited: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+    ) -> Result<Template, rt::TsonicError> {
+        let project_this = Template {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        if tsonic_rust_runtime::conversions::usize_to_i32(inherited.len())? == 0 {
+            return Ok(project_this.clone());
+        }
+        let definitions: js_abi::JsMap<
+            String,
+            js_abi::JsArray<crate::template::nodes::TemplateNode>,
+        > = js_abi::JsMap::new();
+        for name in inherited.keys() {
+            let inherited_body: Option<js_abi::JsArray<crate::template::nodes::TemplateNode>> =
+                inherited.get(&name);
+            if inherited_body.is_none() {
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+                    String::from("TSUMO_TEMPLATE_DEFINE_INVENTORY_INVALID"),
+                    format!(
+                        "{}{}{}",
+                        String::from("Inherited template definition '"),
+                        name,
+                        String::from("' has no body"),
+                    ),
+                    {
+                        let dispatch_receiver = &project_this;
+                        dispatch_receiver.dispatch.read_template_source_path()
+                    },
+                    None,
+                    None,
+                )));
+            }
+            definitions.set_discard(name.clone(), match inherited_body.as_ref() {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            });
+        }
+        for name in {
+            let dispatch_receiver_2 = &project_this;
+            dispatch_receiver_2.dispatch.read_template_defines()
+        }
+        .keys()
+        {
+            let body: Option<js_abi::JsArray<crate::template::nodes::TemplateNode>> = {
+                let dispatch_receiver_3 = &project_this;
+                dispatch_receiver_3.dispatch.read_template_defines()
+            }
+            .get(&name);
+            if body.is_none() {
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+                    String::from("TSUMO_TEMPLATE_DEFINE_INVENTORY_INVALID"),
+                    format!(
+                        "{}{}{}",
+                        String::from("Template definition '"),
+                        name,
+                        String::from("' has no body"),
+                    ),
+                    {
+                        let dispatch_receiver_4 = &project_this;
+                        dispatch_receiver_4.dispatch.read_template_source_path()
+                    },
+                    None,
+                    None,
+                )));
+            }
+            let existing: Option<js_abi::JsArray<crate::template::nodes::TemplateNode>> =
+                definitions.get(&name);
+            if existing.is_some() {
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+                    String::from("TSUMO_TEMPLATE_DEFINE_CONFLICT"),
+                    format!(
+                        "{}{}{}",
+                        String::from("Template definition '"),
+                        name,
+                        String::from("' conflicts with an inherited definition"),
+                    ),
+                    {
+                        let dispatch_receiver_5 = &project_this;
+                        dispatch_receiver_5.dispatch.read_template_source_path()
+                    },
+                    None,
+                    None,
+                )));
+            }
+            definitions.set_discard(name.clone(), match body.as_ref() {
+                Some(flow_value_2) => flow_value_2.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            });
+        }
+        Ok(Template::new(
+            {
+                let dispatch_receiver_6 = &project_this;
+                dispatch_receiver_6.dispatch.read_template_nodes()
+            },
+            definitions.clone(),
+            {
+                let dispatch_receiver_7 = &project_this;
+                dispatch_receiver_7.dispatch.read_template_source_path()
+            },
+        ))
+    }
+}
+
+impl TemplateDispatch for TemplateRoot {
+    fn downcast_template_to_template(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn TemplateDispatch>> {
+        Some(self)
+    }
+
+    fn read_template_nodes(&self) -> js_abi::JsArray<crate::template::nodes::TemplateNode> {
+        self.state.with(|state| state.nodes.clone())
+    }
+
+    fn write_template_nodes(&self, value: js_abi::JsArray<crate::template::nodes::TemplateNode>) {
+        self.state.with_mut(|state| state.nodes = value);
+    }
+
+    fn read_template_defines(
+        &self,
+    ) -> js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>> {
+        self.state.with(|state| state.defines.clone())
+    }
+
+    fn write_template_defines(
+        &self,
+        value: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+    ) {
+        self.state.with_mut(|state| state.defines = value);
+    }
+
+    fn read_template_source_path(&self) -> Option<String> {
+        self.state.with(|state| state.source_path.clone())
+    }
+
+    fn write_template_source_path(&self, value: Option<String>) {
+        self.state.with_mut(|state| state.source_path = value);
+    }
+
+    fn dispatch_template_with_inherited_definitions(
+        self: std::rc::Rc<Self>,
+        inherited: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+    ) -> Result<Template, rt::TsonicError> {
+        TemplateRoot::exact_template_with_inherited_definitions(self, inherited)
+    }
+
+    fn exact_template_with_inherited_definitions(
+        self: std::rc::Rc<Self>,
+        inherited: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+    ) -> Result<Template, rt::TsonicError> {
+        TemplateRoot::exact_template_with_inherited_definitions(self, inherited)
+    }
+
+    fn dispatch_template_render(
+        self: std::rc::Rc<Self>,
+        root: crate::models::page_context::PageContext,
+        env: crate::template::environment::TemplateEnvironment,
+        overrides: Option<
+            js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+        >,
+        state: Option<crate::template::scope::RenderState>,
+    ) -> Result<String, rt::TsonicError> {
+        TemplateRoot::exact_template_render(self, root, env, overrides, state)
+    }
+
+    fn exact_template_render(
+        self: std::rc::Rc<Self>,
+        root: crate::models::page_context::PageContext,
+        env: crate::template::environment::TemplateEnvironment,
+        overrides: Option<
+            js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+        >,
+        state: Option<crate::template::scope::RenderState>,
+    ) -> Result<String, rt::TsonicError> {
+        TemplateRoot::exact_template_render(self, root, env, overrides, state)
+    }
+
+    fn dispatch_template_render_into(
+        self: std::rc::Rc<Self>,
+        sb: crate::utils::text_builder::TextBuilder,
+        scope: crate::template::scope::RenderScope,
+        env: crate::template::environment::TemplateEnvironment,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+    ) -> Result<(), rt::TsonicError> {
+        TemplateRoot::exact_template_render_into(self, sb, scope, env, overrides)
+    }
+
+    fn exact_template_render_into(
+        self: std::rc::Rc<Self>,
+        sb: crate::utils::text_builder::TextBuilder,
+        scope: crate::template::scope::RenderScope,
+        env: crate::template::environment::TemplateEnvironment,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+    ) -> Result<(), rt::TsonicError> {
+        TemplateRoot::exact_template_render_into(self, sb, scope, env, overrides)
+    }
+
+    fn dispatch_template_render_text_into(
+        self: std::rc::Rc<Self>,
+        sb: crate::utils::text_builder::TextBuilder,
+        scope: crate::template::scope::RenderScope,
+        env: crate::template::environment::TemplateEnvironment,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+    ) -> Result<(), rt::TsonicError> {
+        TemplateRoot::exact_template_render_text_into(self, sb, scope, env, overrides)
+    }
+
+    fn exact_template_render_text_into(
+        self: std::rc::Rc<Self>,
+        sb: crate::utils::text_builder::TextBuilder,
+        scope: crate::template::scope::RenderScope,
+        env: crate::template::environment::TemplateEnvironment,
+        overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+    ) -> Result<(), rt::TsonicError> {
+        TemplateRoot::exact_template_render_text_into(self, sb, scope, env, overrides)
     }
 }

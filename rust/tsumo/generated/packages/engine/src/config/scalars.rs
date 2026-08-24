@@ -2,28 +2,27 @@
 
 use crate::program as rt;
 
-pub(crate) fn parse_scalar_text(
+pub fn parse_scalar_text(
     value: String,
     format: crate::utils::structured_scalars::StructuredScalarFormat,
     source_path: Option<String>,
     line: i32,
-) -> rt::TsonicResult<crate::params::ParamValue> {
+) -> Result<crate::params::ParamValue, rt::TsonicError> {
     crate::utils::structured_scalars::parse_structured_scalar(&value, format, {
         let capture_source_path = source_path.clone();
         let capture_line = line;
-        rt::Callable::<
-            (String,),
-            rt::TsonicResult<crate::diagnostics::TsumoError>,
-        >::new(move |callable_arguments| {
-            let message = callable_arguments.0;
-            Ok::<_, rt::TsonicError>(crate::diagnostics::create_tsumo_error(
-                String::from("TSUMO_CONFIG_SYNTAX_INVALID"),
-                message.clone(),
-                capture_source_path.clone(),
-                Some(tsonic_rust_runtime::conversions::i32_to_f64(capture_line)),
-                Some(1.0),
-            ))
-        })
+        rt::Callable::<(String,), rt::TsonicResult<crate::diagnostics::TsumoError>>::new(
+            move |callable_arguments| {
+                let message = callable_arguments.0;
+                Ok::<_, rt::TsonicError>(crate::diagnostics::create_tsumo_error(
+                    String::from("TSUMO_CONFIG_SYNTAX_INVALID"),
+                    message,
+                    capture_source_path.clone(),
+                    Some(tsonic_rust_runtime::conversions::i32_to_f64(capture_line)),
+                    Some(1.0),
+                ))
+            },
+        )
     })
 }
 
@@ -32,8 +31,8 @@ pub fn parse_config_param(
     format: crate::utils::structured_scalars::StructuredScalarFormat,
     source_path: Option<String>,
     line: i32,
-) -> rt::TsonicResult<crate::params::ParamValue> {
-    parse_scalar_text(value.clone(), format, source_path.clone(), line)
+) -> Result<crate::params::ParamValue, rt::TsonicError> {
+    parse_scalar_text(value, format, source_path, line)
 }
 
 pub fn parse_config_string(
@@ -42,20 +41,25 @@ pub fn parse_config_string(
     format: crate::utils::structured_scalars::StructuredScalarFormat,
     source_path: Option<String>,
     line: i32,
-) -> rt::TsonicResult<String> {
+) -> Result<String, rt::TsonicError> {
     let parsed: crate::params::ParamValue =
-        parse_scalar_text(value.clone(), format, source_path.clone(), line)?;
-    if parsed.state.with(|state| state.kind)
-        == crate::params::PARAM_KIND_STRING.with(|module_binding| module_binding.load())
+        parse_scalar_text(value, format, source_path.clone(), line)?;
+    if {
+        let dispatch_receiver = &parsed;
+        dispatch_receiver.dispatch.read_param_value_kind()
+    } == crate::params::PARAM_KIND_STRING.with(|module_binding| module_binding.load())
     {
-        return Ok(parsed.state.with(|state| state.string_value.clone()));
+        return Ok({
+            let dispatch_receiver_2 = &parsed;
+            dispatch_receiver_2.dispatch.read_param_value_string_value()
+        });
     }
-    Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+    Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
         String::from("TSUMO_CONFIG_INVALID_FIELD"),
         format!(
             "{}{}{}",
             String::from("Configuration field '"),
-            rt::source_string(&field),
+            field,
             String::from("' requires a string"),
         ),
         source_path.clone(),
@@ -70,20 +74,25 @@ pub fn parse_config_int(
     format: crate::utils::structured_scalars::StructuredScalarFormat,
     source_path: Option<String>,
     line: i32,
-) -> rt::TsonicResult<i32> {
+) -> Result<i32, rt::TsonicError> {
     let parsed: crate::params::ParamValue =
-        parse_scalar_text(value.clone(), format, source_path.clone(), line)?;
-    if parsed.state.with(|state| state.kind)
-        == crate::params::PARAM_KIND_NUMBER.with(|module_binding| module_binding.load())
+        parse_scalar_text(value, format, source_path.clone(), line)?;
+    if {
+        let dispatch_receiver = &parsed;
+        dispatch_receiver.dispatch.read_param_value_kind()
+    } == crate::params::PARAM_KIND_NUMBER.with(|module_binding| module_binding.load())
     {
-        return Ok(parsed.state.with(|state| state.number_value));
+        return Ok({
+            let dispatch_receiver_2 = &parsed;
+            dispatch_receiver_2.dispatch.read_param_value_number_value()
+        });
     }
-    Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+    Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
         String::from("TSUMO_CONFIG_INVALID_FIELD"),
         format!(
             "{}{}{}",
             String::from("Configuration field '"),
-            rt::source_string(&field),
+            field,
             String::from("' requires a 32-bit integer"),
         ),
         source_path.clone(),

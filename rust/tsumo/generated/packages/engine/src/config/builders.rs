@@ -4,24 +4,26 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct MenuEntryBuilderState {
-    pub(crate) name: String,
-    pub(crate) url: String,
-    pub(crate) page_ref: String,
-    pub(crate) title: String,
-    pub(crate) weight: i32,
-    pub(crate) parent: String,
-    pub(crate) identifier: String,
-    pub(crate) pre: String,
-    pub(crate) post: String,
-    pub(crate) menu: String,
-    pub(crate) params: js_abi::JsMap<String, crate::params::ParamValue>,
+pub struct MenuEntryBuilderState {
+    pub name: String,
+    pub url: String,
+    pub page_ref: String,
+    pub title: String,
+    pub weight: i32,
+    pub parent: String,
+    pub identifier: String,
+    pub pre: String,
+    pub post: String,
+    pub menu: String,
+    pub params: js_abi::JsMap<String, crate::params::ParamValue>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct MenuEntryBuilder {
-    pub(crate) state: rt::ObjectHandle<MenuEntryBuilderState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectHandle<MenuEntryBuilderState>,
 }
 
 impl MenuEntryBuilder {
@@ -35,7 +37,7 @@ impl MenuEntryBuilder {
         let field_identifier: String = String::from("");
         let field_pre: String = String::from("");
         let field_post: String = String::from("");
-        let field_menu: String = menu.clone();
+        let field_menu: String = menu;
         let field_params: js_abi::JsMap<String, crate::params::ParamValue> = js_abi::JsMap::new();
         MenuEntryBuilder {
             state: rt::ObjectHandle::new(MenuEntryBuilderState {
@@ -71,18 +73,20 @@ impl MenuEntryBuilder {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct LanguageConfigBuilderState {
-    pub(crate) lang: String,
-    pub(crate) language_name: String,
-    pub(crate) language_direction: String,
-    pub(crate) content_dir: String,
-    pub(crate) weight: i32,
+pub struct LanguageConfigBuilderState {
+    pub lang: String,
+    pub language_name: String,
+    pub language_direction: String,
+    pub content_dir: String,
+    pub weight: i32,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct LanguageConfigBuilder {
-    pub(crate) state: rt::ObjectHandle<LanguageConfigBuilderState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectHandle<LanguageConfigBuilderState>,
 }
 
 impl LanguageConfigBuilder {
@@ -116,14 +120,7 @@ impl LanguageConfigBuilder {
                     .with(|state| state.content_dir.clone())
             }),
             std::convert::identity,
-            || {
-                format!(
-                    "{}{}{}",
-                    String::from("content."),
-                    rt::source_string(&lang),
-                    String::from(""),
-                )
-            },
+            || format!("{}{}", String::from("content."), lang),
         );
         let field_weight: i32 = rt::option_coalesce(
             source

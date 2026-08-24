@@ -4,8 +4,9 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait TaxonomiesValueDispatch:
+pub trait TaxonomiesValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_taxonomies_value_to_taxonomies_value(
@@ -15,17 +16,27 @@ pub(crate) trait TaxonomiesValueDispatch:
     fn write_taxonomies_value_site(&self, value: crate::models::site_context::SiteContext);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct TaxonomiesValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) site: crate::models::site_context::SiteContext,
+pub struct TaxonomiesValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub site: crate::models::site_context::SiteContext,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct TaxonomiesValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn TaxonomiesValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn TaxonomiesValueDispatch>,
+}
+
+impl std::fmt::Debug for TaxonomiesValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("TaxonomiesValue")
+    }
 }
 
 impl PartialEq for TaxonomiesValue {
@@ -43,11 +54,12 @@ pub(crate) struct TaxonomiesValueRoot {
 }
 
 impl TaxonomiesValue {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         site: crate::models::site_context::SiteContext,
     ) -> TaxonomiesValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_site: crate::models::site_context::SiteContext = site.clone();
+        let field_site: crate::models::site_context::SiteContext = site;
         TaxonomiesValueState {
             base: base_state,
             site: field_site,
@@ -376,8 +388,9 @@ impl TaxonomiesValueDispatch for TaxonomiesValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait TaxonomyTermsValueDispatch:
+pub trait TaxonomyTermsValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_taxonomy_terms_value_to_taxonomy_terms_value(
@@ -394,19 +407,28 @@ pub(crate) trait TaxonomyTermsValueDispatch:
     fn write_taxonomy_terms_value_site(&self, value: crate::models::site_context::SiteContext);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct TaxonomyTermsValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) terms:
-        js_abi::JsMap<String, js_abi::JsArray<crate::models::page_context::PageContext>>,
-    pub(crate) site: crate::models::site_context::SiteContext,
+pub struct TaxonomyTermsValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub terms: js_abi::JsMap<String, js_abi::JsArray<crate::models::page_context::PageContext>>,
+    pub site: crate::models::site_context::SiteContext,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct TaxonomyTermsValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn TaxonomyTermsValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn TaxonomyTermsValueDispatch>,
+}
+
+impl std::fmt::Debug for TaxonomyTermsValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("TaxonomyTermsValue")
+    }
 }
 
 impl PartialEq for TaxonomyTermsValue {
@@ -424,7 +446,8 @@ pub(crate) struct TaxonomyTermsValueRoot {
 }
 
 impl TaxonomyTermsValue {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         terms: js_abi::JsMap<String, js_abi::JsArray<crate::models::page_context::PageContext>>,
         site: crate::models::site_context::SiteContext,
     ) -> TaxonomyTermsValueState {
@@ -432,8 +455,8 @@ impl TaxonomyTermsValue {
         let field_terms: js_abi::JsMap<
             String,
             js_abi::JsArray<crate::models::page_context::PageContext>,
-        > = terms.clone();
-        let field_site: crate::models::site_context::SiteContext = site.clone();
+        > = terms;
+        let field_site: crate::models::site_context::SiteContext = site;
         TaxonomyTermsValueState {
             base: base_state,
             terms: field_terms,

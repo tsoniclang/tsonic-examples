@@ -195,7 +195,7 @@ namespace Tsumo.Engine
                 Tsonic.CSharp.Js.JSArray<string> targets = collectWatchTargets(req);
                 Tsonic.CSharp.Js.Map<string, WatchEntryState> snapshot = WatchSnapshot.createWatchSnapshot(targets);
                 bool rebuilding = false;
-                Tsonic.CSharp.Js.Timers.setInterval(() =>
+                Tsonic.CSharp.Node.timers.setInterval(() =>
                 {
                     if (rebuilding)
                     {
@@ -214,9 +214,10 @@ namespace Tsumo.Engine
                         onRebuild(result.outputDir);
                         logLine($"[tsumo] rebuilt → {result.outputDir}");
                     }
-                    catch (System.Exception error)
+                    catch (System.Exception __tsonic_catch0)
                     {
-                        string message = error is TsumoError ? ((TsumoError)error).diagnostic.format() : $"{error}";
+                        Tsonic.CSharp.Runtime.TsValue error = Tsonic.CSharp.Runtime.TsThrownValueException.toValue(__tsonic_catch0);
+                        string message = Tsonic.CSharp.Runtime.TsValue.IsDynamicInstanceOf<TsumoError>(error) ? Tsonic.CSharp.Runtime.TsValue.CastDynamic<TsumoError>(error).diagnostic.format() : $"{error}";
                         logErrorLine($"[tsumo] rebuild failed: {message}");
                     }
                     finally

@@ -21,6 +21,7 @@ namespace Tsumo.Engine
             Markdown.__tsonic_module_init();
             Params.__tsonic_module_init();
             Utils_html.__tsonic_module_init();
+            Utils_int32.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
             Template_contexts.__tsonic_module_init();
             Template_functions_functionContext.__tsonic_module_init();
@@ -35,7 +36,6 @@ namespace Tsumo.Engine
             Template_evaluation_pageSemantics.__tsonic_module_init();
             Template_evaluation_pathSemantics.__tsonic_module_init();
             Template_evaluation_propertySemantics.__tsonic_module_init();
-            Template_evaluation_scalarSemantics.__tsonic_module_init();
             Template_evaluation_serialization.__tsonic_module_init();
             Template_evaluation_urlQuerySemantics.__tsonic_module_init();
             Template_evaluation_valueDiagnostics.__tsonic_module_init();
@@ -144,9 +144,10 @@ namespace Tsumo.Engine
                 {
                     return Template_runtimeHelpers.nil;
                 }
-                if (Template_evaluation_scalarSemantics.isNumberLiteral(t))
+                int? number = Utils_int32.parseInt32(t);
+                if (number is not null)
                 {
-                    return new NumberValue(System.Int32.Parse(t));
+                    return new NumberValue(number.Value);
                 }
                 return new StringValue(t);
             };
@@ -201,7 +202,7 @@ namespace Tsumo.Engine
                 }
                 if (receiver is PageResourcesValue)
                 {
-                    PageResourcesValue pageResources = (PageResourcesValue)(PageResourcesValue)receiver;
+                    PageResourcesValue pageResources = (PageResourcesValue)receiver;
                     TemplateValue? result_1 = Template_evaluation_pageResourceSemantics.callPageResourcesMethod(pageResources, method, args);
                     if (result_1 is not null)
                     {
@@ -210,7 +211,7 @@ namespace Tsumo.Engine
                 }
                 if (receiver is PageResourceCollectionValue)
                 {
-                    PageResourceCollectionValue pageResources_1 = (PageResourceCollectionValue)(PageResourceCollectionValue)receiver;
+                    PageResourceCollectionValue pageResources_1 = (PageResourceCollectionValue)receiver;
                     TemplateValue? result_2 = Template_evaluation_pageResourceSemantics.callPageResourceCollectionMethod(pageResources_1, method, args);
                     if (result_2 is not null)
                     {
@@ -311,7 +312,7 @@ namespace Tsumo.Engine
                 }
                 if (receiver is PageArrayValue)
                 {
-                    TemplateValue? result_3 = Template_evaluation_pageSemantics.callPageCollectionMethod((PageArrayValue)(PageArrayValue)receiver, method, args);
+                    TemplateValue? result_3 = Template_evaluation_pageSemantics.callPageCollectionMethod((PageArrayValue)receiver, method, args);
                     if (result_3 is not null)
                     {
                         return result_3;

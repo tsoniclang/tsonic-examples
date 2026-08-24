@@ -4,34 +4,32 @@ use crate::program as rt;
 
 pub fn build_site(
     request: crate::build::BuildRequest,
-) -> rt::TsonicResult<crate::build::BuildResult> {
-    let site_dir: String = tsonic_rust_node::path::resolve(&[{
-        let dispatch_receiver = &request;
-        dispatch_receiver.dispatch.read_build_request_site_dir()
-    }
-    .as_str()])
-    .map_err(tsonic_rust_runtime::TsonicError::from)?;
-    let docs: Option<crate::docs::config::LoadedDocsConfig> = crate::docs::config::LOAD_DOCS_CONFIG
-        .with(|module_binding| module_binding.load())
-        .call((site_dir.clone(),))?;
+) -> Result<crate::build::BuildResult, rt::TsonicError> {
+    let site_dir: String = tsonic_rust_node::path::resolve(
+        &[{
+            let dispatch_receiver = &request;
+            dispatch_receiver.dispatch.read_build_request_site_dir()
+        }
+        .as_str()],
+    )?;
+    let docs: Option<crate::docs::config::LoadedDocsConfig> =
+        crate::docs::config::load_docs_config(site_dir.clone())?;
     let publication: crate::output_publication::OutputPublication =
-        crate::output_publication::BEGIN_OUTPUT_PUBLICATION
-            .with(|module_binding| module_binding.load())
-            .call((
-                site_dir.clone(),
-                {
-                    let dispatch_receiver_2 = &request;
-                    dispatch_receiver_2
-                        .dispatch
-                        .read_build_request_destination_dir()
-                },
-                !{
-                    let dispatch_receiver_3 = &request;
-                    dispatch_receiver_3
-                        .dispatch
-                        .read_build_request_clean_destination_dir()
-                },
-            ))?;
+        crate::output_publication::begin_output_publication(
+            site_dir.clone(),
+            {
+                let dispatch_receiver_2 = &request;
+                dispatch_receiver_2
+                    .dispatch
+                    .read_build_request_destination_dir()
+            },
+            !{
+                let dispatch_receiver_3 = &request;
+                dispatch_receiver_3
+                    .dispatch
+                    .read_build_request_clean_destination_dir()
+            },
+        )?;
     let try_body: rt::TsonicResult<rt::Completion<crate::build::BuildResult>> =
         rt::completion_region(|| {
             let pages_built: f64 = if docs.is_none() {
@@ -64,7 +62,7 @@ pub fn build_site(
         Ok(completion) => Ok(completion),
         Err(error) => rt::completion_region(|| {
             publication.abort()?;
-            Err(error.clone())
+            Err(error)
         }),
     };
     let try_flow = try_flow?;

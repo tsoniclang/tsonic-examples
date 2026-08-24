@@ -11,23 +11,22 @@ pub fn parse_front_matter_param(
     format: crate::utils::structured_scalars::StructuredScalarFormat,
     source_path: Option<String>,
     line: Option<i32>,
-) -> rt::TsonicResult<crate::params::ParamValue> {
+) -> Result<crate::params::ParamValue, rt::TsonicError> {
     crate::utils::structured_scalars::parse_structured_scalar(&value, format, {
         let capture_source_path = source_path.clone();
         let capture_line = line;
-        rt::Callable::<
-            (String,),
-            rt::TsonicResult<crate::diagnostics::TsumoError>,
-        >::new(move |callable_arguments| {
-            let message = callable_arguments.0;
-            Ok::<_, rt::TsonicError>(crate::diagnostics::create_tsumo_error(
-                String::from("TSUMO_FRONTMATTER_SCALAR_INVALID"),
-                message.clone(),
-                capture_source_path.clone(),
-                capture_line.map(tsonic_rust_runtime::conversions::i32_to_f64),
-                Some(1.0),
-            ))
-        })
+        rt::Callable::<(String,), rt::TsonicResult<crate::diagnostics::TsumoError>>::new(
+            move |callable_arguments| {
+                let message = callable_arguments.0;
+                Ok::<_, rt::TsonicError>(crate::diagnostics::create_tsumo_error(
+                    String::from("TSUMO_FRONTMATTER_SCALAR_INVALID"),
+                    message,
+                    capture_source_path.clone(),
+                    capture_line.map(tsonic_rust_runtime::conversions::i32_to_f64),
+                    Some(1.0),
+                ))
+            },
+        )
     })
 }
 
@@ -37,20 +36,25 @@ pub fn parse_front_matter_string(
     format: crate::utils::structured_scalars::StructuredScalarFormat,
     source_path: Option<String>,
     line: Option<i32>,
-) -> rt::TsonicResult<String> {
+) -> Result<String, rt::TsonicError> {
     let parsed: crate::params::ParamValue =
-        parse_front_matter_param(value.clone(), format, source_path.clone(), line)?;
-    if parsed.state.with(|state| state.kind)
-        == crate::params::PARAM_KIND_STRING.with(|module_binding| module_binding.load())
+        parse_front_matter_param(value, format, source_path.clone(), line)?;
+    if {
+        let dispatch_receiver = &parsed;
+        dispatch_receiver.dispatch.read_param_value_kind()
+    } == crate::params::PARAM_KIND_STRING.with(|module_binding| module_binding.load())
     {
-        return Ok(parsed.state.with(|state| state.string_value.clone()));
+        return Ok({
+            let dispatch_receiver_2 = &parsed;
+            dispatch_receiver_2.dispatch.read_param_value_string_value()
+        });
     }
-    Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+    Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
         String::from("TSUMO_FRONTMATTER_FIELD_INVALID"),
         format!(
             "{}{}{}",
             String::from("Front matter field '"),
-            rt::source_string(&field),
+            field,
             String::from("' requires a string"),
         ),
         source_path.clone(),
@@ -65,25 +69,24 @@ pub fn record_front_matter_field(
     context: String,
     source_path: Option<String>,
     line: Option<i32>,
-) -> rt::TsonicResult<()> {
+) -> Result<(), rt::TsonicError> {
     let normalized: String = js_string::to_lower_case(&field);
     if fields.has(&normalized) {
-        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_FRONTMATTER_FIELD_DUPLICATE"),
             format!(
-                "{}{}{}{}{}",
-                String::from(""),
-                rt::source_string(&context),
+                "{}{}{}{}",
+                context,
                 String::from(" field '"),
-                rt::source_string(&field),
+                field,
                 String::from("' is declared more than once"),
             ),
-            source_path.clone(),
+            source_path,
             line.map(tsonic_rust_runtime::conversions::i32_to_f64),
             Some(1.0),
         )));
     }
-    fields.add(normalized.clone());
+    fields.add_discard(normalized.clone());
     Ok(())
 }
 
@@ -93,18 +96,20 @@ pub fn parse_front_matter_int(
     format: crate::utils::structured_scalars::StructuredScalarFormat,
     source_path: Option<String>,
     line: Option<i32>,
-) -> rt::TsonicResult<i32> {
+) -> Result<i32, rt::TsonicError> {
     let parsed: crate::params::ParamValue =
-        parse_front_matter_param(value.clone(), format, source_path.clone(), line)?;
-    if parsed.state.with(|state| state.kind)
-        != crate::params::PARAM_KIND_NUMBER.with(|module_binding| module_binding.load())
+        parse_front_matter_param(value, format, source_path.clone(), line)?;
+    if {
+        let dispatch_receiver = &parsed;
+        dispatch_receiver.dispatch.read_param_value_kind()
+    } != crate::params::PARAM_KIND_NUMBER.with(|module_binding| module_binding.load())
     {
-        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_FRONTMATTER_INVALID_INTEGER"),
             format!(
                 "{}{}{}",
                 String::from("Front matter field '"),
-                rt::source_string(&field),
+                field,
                 String::from("' requires a 32-bit integer"),
             ),
             source_path.clone(),
@@ -112,7 +117,10 @@ pub fn parse_front_matter_int(
             Some(1.0),
         )));
     }
-    Ok(parsed.state.with(|state| state.number_value))
+    Ok({
+        let dispatch_receiver_2 = &parsed;
+        dispatch_receiver_2.dispatch.read_param_value_number_value()
+    })
 }
 
 pub fn parse_front_matter_string_array(
@@ -121,17 +129,17 @@ pub fn parse_front_matter_string_array(
     format: crate::utils::structured_scalars::StructuredScalarFormat,
     source_path: Option<String>,
     line: Option<i32>,
-) -> rt::TsonicResult<js_abi::JsArray<String>> {
+) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
     let trimmed: String = js_string::trim(value);
     if !js_string::starts_with_from_start(&trimmed, "[")
         || !js_string::ends_with_at_end(&trimmed, "]")
     {
-        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_FRONTMATTER_INVALID_STRING_ARRAY"),
             format!(
                 "{}{}{}",
                 String::from("Front matter field '"),
-                rt::source_string(&field),
+                field,
                 String::from("' requires a string array"),
             ),
             source_path.clone(),
@@ -157,8 +165,7 @@ pub fn parse_front_matter_string_array(
             let current: String = if index
                 < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&inner))?
             {
-                js_string::char_at(&inner, tsonic_rust_runtime::conversions::i32_to_f64(index))
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?
+                js_string::char_at(&inner, tsonic_rust_runtime::conversions::i32_to_f64(index))?
             } else {
                 String::from(",")
             };
@@ -193,12 +200,12 @@ pub fn parse_front_matter_string_array(
                 index - start,
             )?);
             if item.is_empty() {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                     String::from("TSUMO_FRONTMATTER_INVALID_STRING_ARRAY"),
                     format!(
                         "{}{}{}",
                         String::from("Front matter field '"),
-                        rt::source_string(&field),
+                        field,
                         String::from("' contains an empty array item"),
                     ),
                     source_path.clone(),
@@ -206,8 +213,9 @@ pub fn parse_front_matter_string_array(
                     Some(1.0),
                 )));
             }
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                values.push_many([
+            {
+                let operation_input_0 = values.clone();
+                operation_input_0.push_many_discard([
                     parse_front_matter_string(
                         item.clone(),
                         field.clone(),
@@ -215,19 +223,19 @@ pub fn parse_front_matter_string_array(
                         source_path.clone(),
                         line,
                     )?,
-                ]),
-            )?;
+                ])
+            };
             start = index + 1;
             index += 1;
         }
     }
     if !quote.is_empty() {
-        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_FRONTMATTER_STRING_INVALID"),
             format!(
                 "{}{}{}",
                 String::from("Front matter field '"),
-                rt::source_string(&field),
+                field,
                 String::from("' contains an unterminated string"),
             ),
             source_path.clone(),
@@ -235,7 +243,7 @@ pub fn parse_front_matter_string_array(
             Some(1.0),
         )));
     }
-    Ok(values.clone())
+    Ok(values)
 }
 
 pub fn apply_front_matter_scalar(
@@ -245,7 +253,7 @@ pub fn apply_front_matter_scalar(
     format: crate::utils::structured_scalars::StructuredScalarFormat,
     source_path: Option<String>,
     line: Option<i32>,
-) -> rt::TsonicResult<()> {
+) -> Result<(), rt::TsonicError> {
     let key: String = js_string::to_lower_case(&js_string::trim(key_raw));
     let value: String = js_string::trim(value_raw);
     if key == "title" {
@@ -271,14 +279,9 @@ pub fn apply_front_matter_scalar(
             )?;
             let milliseconds: f64 = js_abi::JsDate::parse(&authored);
             if js_abi::number_is_nan(milliseconds) {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                     String::from("TSUMO_FRONTMATTER_INVALID_DATE"),
-                    format!(
-                        "{}{}{}",
-                        String::from("Invalid front matter date: "),
-                        rt::source_string(&authored),
-                        String::from(""),
-                    ),
+                    format!("{}{}", String::from("Invalid front matter date: "), authored),
                     source_path.clone(),
                     line.map(tsonic_rust_runtime::conversions::i32_to_f64),
                     Some(1.0),
@@ -293,15 +296,17 @@ pub fn apply_front_matter_scalar(
             if key == "draft" {
                 let parsed: crate::params::ParamValue =
                     parse_front_matter_param(value.clone(), format, source_path.clone(), line)?;
-                if parsed.state.with(|state| state.kind)
-                    != crate::params::PARAM_KIND_BOOL.with(|module_binding| module_binding.load())
+                if {
+                    let dispatch_receiver = &parsed;
+                    dispatch_receiver.dispatch.read_param_value_kind()
+                } != crate::params::PARAM_KIND_BOOL.with(|module_binding| module_binding.load())
                 {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                    return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                         String::from("TSUMO_FRONTMATTER_INVALID_BOOL"),
                         format!(
                             "{}{}{}",
                             String::from("Front matter field '"),
-                            rt::source_string(&js_string::trim(key_raw)),
+                            js_string::trim(key_raw),
                             String::from("' requires true or false"),
                         ),
                         source_path.clone(),
@@ -311,7 +316,10 @@ pub fn apply_front_matter_scalar(
                 }
                 {
                     let receiver_3 = &front_matter;
-                    let value_4 = parsed.state.with(|state| state.bool_value);
+                    let value_4 = {
+                        let dispatch_receiver_2 = &parsed;
+                        dispatch_receiver_2.dispatch.read_param_value_bool_value()
+                    };
                     receiver_3.state.with_mut(|state| state.draft = value_4)
                 };
             } else {
@@ -397,10 +405,11 @@ pub fn apply_front_matter_scalar(
                                                 .with_mut(|state| state.categories = value_10)
                                         };
                                     } else {
-                                        front_matter
-                                            .state
-                                            .with(|state| state.params.clone())
-                                            .set(
+                                        {
+                                            let operation_input_0 = front_matter
+                                                .state
+                                                .with(|state| state.params.clone());
+                                            operation_input_0.set_discard(
                                                 js_string::trim(key_raw),
                                                 parse_front_matter_param(
                                                     value.clone(),
@@ -408,7 +417,8 @@ pub fn apply_front_matter_scalar(
                                                     source_path.clone(),
                                                     line,
                                                 )?,
-                                            );
+                                            )
+                                        };
                                     }
                                 }
                             }

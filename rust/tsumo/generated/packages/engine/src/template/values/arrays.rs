@@ -4,8 +4,9 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait StringArrayValueDispatch:
+pub trait StringArrayValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_string_array_value_to_string_array_value(
@@ -15,17 +16,27 @@ pub(crate) trait StringArrayValueDispatch:
     fn write_string_array_value_value(&self, value: js_abi::JsArray<String>);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct StringArrayValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: js_abi::JsArray<String>,
+pub struct StringArrayValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: js_abi::JsArray<String>,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct StringArrayValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn StringArrayValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn StringArrayValueDispatch>,
+}
+
+impl std::fmt::Debug for StringArrayValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("StringArrayValue")
+    }
 }
 
 impl PartialEq for StringArrayValue {
@@ -43,9 +54,10 @@ pub(crate) struct StringArrayValueRoot {
 }
 
 impl StringArrayValue {
-    pub(crate) fn initialize_state(value: js_abi::JsArray<String>) -> StringArrayValueState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: js_abi::JsArray<String>) -> StringArrayValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: js_abi::JsArray<String> = value.clone();
+        let field_value: js_abi::JsArray<String> = value;
         StringArrayValueState {
             base: base_state,
             value: field_value,
@@ -374,8 +386,9 @@ impl StringArrayValueDispatch for StringArrayValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait AnyArrayValueDispatch:
+pub trait AnyArrayValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_any_array_value_to_page_resource_collection_value(
@@ -397,17 +410,27 @@ pub(crate) trait AnyArrayValueDispatch:
     );
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct AnyArrayValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: js_abi::JsArray<crate::template::values::base::TemplateValue>,
+pub struct AnyArrayValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: js_abi::JsArray<crate::template::values::base::TemplateValue>,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct AnyArrayValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn AnyArrayValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn AnyArrayValueDispatch>,
+}
+
+impl std::fmt::Debug for AnyArrayValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("AnyArrayValue")
+    }
 }
 
 impl PartialEq for AnyArrayValue {
@@ -425,12 +448,12 @@ pub(crate) struct AnyArrayValueRoot {
 }
 
 impl AnyArrayValue {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         value: js_abi::JsArray<crate::template::values::base::TemplateValue>,
     ) -> AnyArrayValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: js_abi::JsArray<crate::template::values::base::TemplateValue> =
-            value.clone();
+        let field_value: js_abi::JsArray<crate::template::values::base::TemplateValue> = value;
         AnyArrayValueState {
             base: base_state,
             value: field_value,

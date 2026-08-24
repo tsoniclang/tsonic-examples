@@ -4,195 +4,313 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct SearchDocumentState {
-    pub(crate) title: String,
-    pub(crate) url: String,
-    pub(crate) mount: String,
-    pub(crate) text: String,
+pub trait SearchDocumentDispatch {
+    fn downcast_search_document_to_search_document(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn SearchDocumentDispatch>>;
+    fn read_search_document_title(&self) -> String;
+    fn write_search_document_title(&self, value: String);
+    fn read_search_document_url(&self) -> String;
+    fn write_search_document_url(&self, value: String);
+    fn read_search_document_mount(&self) -> String;
+    fn write_search_document_mount(&self, value: String);
+    fn read_search_document_text(&self) -> String;
+    fn write_search_document_text(&self, value: String);
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct SearchDocumentState {
+    pub title: String,
+    pub url: String,
+    pub mount: String,
+    pub text: String,
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+#[derive(Clone)]
 pub struct SearchDocument {
-    pub(crate) state: rt::ObjectHandle<SearchDocumentState>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn SearchDocumentDispatch>,
+}
+
+impl std::fmt::Debug for SearchDocument {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("SearchDocument")
+    }
+}
+
+impl PartialEq for SearchDocument {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+    }
+}
+
+impl Eq for SearchDocument {}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub(crate) struct SearchDocumentRoot {
+    identity: rt::ObjectIdentity,
+    state: rt::ObjectHandle<SearchDocumentState>,
 }
 
 impl SearchDocument {
+    #[doc(hidden)]
+    pub fn initialize_state(
+        title: String,
+        url: String,
+        mount: String,
+        text: String,
+    ) -> SearchDocumentState {
+        let field_title: String = title;
+        let field_url: String = url;
+        let field_mount: String = mount;
+        let field_text: String = text;
+        SearchDocumentState {
+            title: field_title,
+            url: field_url,
+            mount: field_mount,
+            text: field_text,
+        }
+    }
+
     pub fn new(title: String, url: String, mount: String, text: String) -> SearchDocument {
-        let field_title: String = title.clone();
-        let field_url: String = url.clone();
-        let field_mount: String = mount.clone();
-        let field_text: String = text.clone();
+        let state = SearchDocument::initialize_state(title, url, mount, text);
+        let identity = rt::ObjectIdentity::new();
+        let root = std::rc::Rc::new(SearchDocumentRoot {
+            identity: identity.clone(),
+            state: rt::ObjectHandle::new(state),
+        });
         SearchDocument {
-            state: rt::ObjectHandle::new(SearchDocumentState {
-                title: field_title,
-                url: field_url,
-                mount: field_mount,
-                text: field_text,
-            }),
+            identity,
+            dispatch: root,
         }
     }
 }
 
-type EscapeJsonStringCallable = rt::Callable<(String,), rt::TsonicResult<String>>;
+impl SearchDocumentDispatch for SearchDocumentRoot {
+    fn downcast_search_document_to_search_document(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn SearchDocumentDispatch>> {
+        Some(self)
+    }
 
-std::thread_local! {
-    pub(crate) static ESCAPE_JSON_STRING: rt::ModuleCell<EscapeJsonStringCallable> = const { rt::ModuleCell::new() };
+    fn read_search_document_title(&self) -> String {
+        self.state.with(|state| state.title.clone())
+    }
+
+    fn write_search_document_title(&self, value: String) {
+        self.state.with_mut(|state| state.title = value);
+    }
+
+    fn read_search_document_url(&self) -> String {
+        self.state.with(|state| state.url.clone())
+    }
+
+    fn write_search_document_url(&self, value: String) {
+        self.state.with_mut(|state| state.url = value);
+    }
+
+    fn read_search_document_mount(&self) -> String {
+        self.state.with(|state| state.mount.clone())
+    }
+
+    fn write_search_document_mount(&self, value: String) {
+        self.state.with_mut(|state| state.mount = value);
+    }
+
+    fn read_search_document_text(&self) -> String {
+        self.state.with(|state| state.text.clone())
+    }
+
+    fn write_search_document_text(&self, value: String) {
+        self.state.with_mut(|state| state.text = value);
+    }
 }
 
-type CompareSearchDocumentsCallable =
-    rt::Callable<(SearchDocument, SearchDocument), rt::TsonicResult<f64>>;
-
-std::thread_local! {
-    pub(crate) static COMPARE_SEARCH_DOCUMENTS: rt::ModuleCell<CompareSearchDocumentsCallable> = const { rt::ModuleCell::new() };
+pub fn escape_json_string(input: String) -> Result<String, rt::TsonicError> {
+    let mut value: String = input;
+    value = crate::utils::strings::replace_text(&value, String::from("\\"), String::from("\\\\"))?;
+    value = crate::utils::strings::replace_text(&value, String::from("\""), String::from("\\\""))?;
+    value = crate::utils::strings::replace_text(&value, String::from("\r"), String::from("\\r"))?;
+    value = crate::utils::strings::replace_text(&value, String::from("\n"), String::from("\\n"))?;
+    value = crate::utils::strings::replace_text(&value, String::from("\t"), String::from("\\t"))?;
+    Ok(value)
 }
 
-pub type RenderSearchIndexJsonCallable =
-    rt::Callable<(js_abi::JsArray<SearchDocument>,), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub static RENDER_SEARCH_INDEX_JSON: rt::ModuleCell<RenderSearchIndexJsonCallable> = const { rt::ModuleCell::new() };
-}
-
-#[doc(hidden)]
-pub fn module_init() {
-    {
-        let module_value =
-            rt::Callable::<(String,), rt::TsonicResult<String>>::new(move |callable_arguments| {
-                let input = callable_arguments.0;
-                let mut value: String = input.clone();
-                value = crate::utils::strings::replace_text(
-                    &value,
-                    String::from("\\"),
-                    String::from("\\\\"),
-                )?;
-                value = crate::utils::strings::replace_text(
-                    &value,
-                    String::from("\""),
-                    String::from("\\\""),
-                )?;
-                value = crate::utils::strings::replace_text(
-                    &value,
-                    String::from("\r"),
-                    String::from("\\r"),
-                )?;
-                value = crate::utils::strings::replace_text(
-                    &value,
-                    String::from("\n"),
-                    String::from("\\n"),
-                )?;
-                value = crate::utils::strings::replace_text(
-                    &value,
-                    String::from("\t"),
-                    String::from("\\t"),
-                )?;
-                Ok::<_, rt::TsonicError>(value.clone())
-            });
-        ESCAPE_JSON_STRING.with(|module_binding| module_binding.initialize(module_value))
-    };
-    {
-        let module_value_2 = rt::Callable::<
-            (SearchDocument, SearchDocument),
-            rt::TsonicResult<f64>,
-        >::new(move |callable_arguments_2| {
-            let left = callable_arguments_2.0;
-            let right = callable_arguments_2.1;
-            let url: i32 = crate::utils::strings::compare_text(
-                left.state.with(|state| state.url.clone()),
-                right.state.with(|state| state.url.clone()),
-            );
-            if url != 0 {
-                return Ok::<_, rt::TsonicError>(tsonic_rust_runtime::conversions::i32_to_f64(url));
-            }
-            let mount: i32 = crate::utils::strings::compare_text(
-                left.state.with(|state| state.mount.clone()),
-                right.state.with(|state| state.mount.clone()),
-            );
-            Ok::<_, rt::TsonicError>(if mount != 0 {
-                tsonic_rust_runtime::conversions::i32_to_f64(mount)
-            } else {
-                tsonic_rust_runtime::conversions::i32_to_f64(crate::utils::strings::compare_text(
-                    left.state.with(|state| state.title.clone()),
-                    right.state.with(|state| state.title.clone()),
-                ))
-            })
-        });
-        COMPARE_SEARCH_DOCUMENTS
-            .with(|module_binding_2| module_binding_2.initialize(module_value_2))
-    };
-    {
-        let module_value_3 = rt::Callable::<
-            (js_abi::JsArray<SearchDocument>,),
-            rt::TsonicResult<String>,
-        >::new(move |callable_arguments_3| {
-            let documents = callable_arguments_3.0;
-            let ordered: js_abi::JsArray<SearchDocument> = js_abi::JsArray::from_dense(vec![]);
+pub fn compare_search_documents(left: SearchDocument, right: SearchDocument) -> f64 {
+    let url: i32 = crate::utils::strings::compare_text(
+        {
+            let dispatch_receiver = &left;
+            dispatch_receiver.dispatch.read_search_document_url()
+        },
+        {
+            let dispatch_receiver_2 = &right;
+            dispatch_receiver_2.dispatch.read_search_document_url()
+        },
+    );
+    if url != 0 {
+        return tsonic_rust_runtime::conversions::i32_to_f64(url);
+    }
+    let mount: i32 = crate::utils::strings::compare_text(
+        {
+            let dispatch_receiver_3 = &left;
+            dispatch_receiver_3.dispatch.read_search_document_mount()
+        },
+        {
+            let dispatch_receiver_4 = &right;
+            dispatch_receiver_4.dispatch.read_search_document_mount()
+        },
+    );
+    if mount != 0 {
+        tsonic_rust_runtime::conversions::i32_to_f64(mount)
+    } else {
+        tsonic_rust_runtime::conversions::i32_to_f64(crate::utils::strings::compare_text(
             {
-                let mut index: f64 = 0.0;
-                while index
-                    < (tsonic_rust_runtime::conversions::usize_to_i32(documents.len())? as f64)
-                {
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        ordered.push_many([match documents.get_number(index).as_ref() {
-                            Some(flow_value) => flow_value.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        }]),
-                    )?;
-                    index += 1.0;
-                }
-            }
-            ordered.try_sort(|left, right| {
-                COMPARE_SEARCH_DOCUMENTS
-                    .with(|module_binding| module_binding.load())
-                    .call((left.clone(), right.clone()))
-            })?;
-            let output: crate::utils::text_builder::TextBuilder =
-                crate::utils::text_builder::TextBuilder::new();
-            output.append(String::from("["))?;
+                let dispatch_receiver_5 = &left;
+                dispatch_receiver_5.dispatch.read_search_document_title()
+            },
             {
-                let mut index: f64 = 0.0;
-                while index
-                    < (tsonic_rust_runtime::conversions::usize_to_i32(ordered.len())? as f64)
+                let dispatch_receiver_6 = &right;
+                dispatch_receiver_6.dispatch.read_search_document_title()
+            },
+        ))
+    }
+}
+
+pub fn render_search_index_json(
+    documents: js_abi::JsArray<SearchDocument>,
+) -> Result<String, rt::TsonicError> {
+    let ordered: js_abi::JsArray<SearchDocument> = js_abi::JsArray::from_dense(vec![]);
+    {
+        let mut index: f64 = 0.0;
+        while index < (tsonic_rust_runtime::conversions::usize_to_i32(documents.len())? as f64) {
+            {
+                let operation_input_0 = ordered.clone();
+                operation_input_0.push_many_discard([match documents.get_number(index).as_ref() {
+                    Some(flow_value) => flow_value.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }])
+            };
+            index += 1.0;
+        }
+    }
+    ordered.sort(compare_search_documents);
+    let output: crate::utils::text_builder::TextBuilder =
+        crate::utils::text_builder::TextBuilder::new();
+    {
+        let dispatch_receiver = output.clone();
+        dispatch_receiver
+            .dispatch
+            .clone()
+            .dispatch_text_builder_append(String::from("["))
+    }?;
+    {
+        let mut index: f64 = 0.0;
+        while index < (tsonic_rust_runtime::conversions::usize_to_i32(ordered.len())? as f64) {
+            let document: SearchDocument = match ordered.get_number(index).as_ref() {
+                Some(flow_value_2) => flow_value_2.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
+            if index > 0.0 {
                 {
-                    let document: SearchDocument = match ordered.get_number(index).as_ref() {
-                        Some(flow_value_2) => flow_value_2.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    };
-                    if index > 0.0 {
-                        output.append(String::from(","))?;
-                    }
-                    output.append(String::from("{\"title\":\""))?;
-                    output.append(
-                        ESCAPE_JSON_STRING
-                            .with(|module_binding| module_binding.load())
-                            .call((document.state.with(|state| state.title.clone()),))?,
-                    )?;
-                    output.append(String::from("\",\"url\":\""))?;
-                    output.append(
-                        ESCAPE_JSON_STRING
-                            .with(|module_binding| module_binding.load())
-                            .call((document.state.with(|state| state.url.clone()),))?,
-                    )?;
-                    output.append(String::from("\",\"mount\":\""))?;
-                    output.append(
-                        ESCAPE_JSON_STRING
-                            .with(|module_binding| module_binding.load())
-                            .call((document.state.with(|state| state.mount.clone()),))?,
-                    )?;
-                    output.append(String::from("\",\"text\":\""))?;
-                    output.append(
-                        ESCAPE_JSON_STRING
-                            .with(|module_binding| module_binding.load())
-                            .call((document.state.with(|state| state.text.clone()),))?,
-                    )?;
-                    output.append(String::from("\"}"))?;
-                    index += 1.0;
-                }
+                    let dispatch_receiver_2 = output.clone();
+                    dispatch_receiver_2
+                        .dispatch
+                        .clone()
+                        .dispatch_text_builder_append(String::from(","))
+                }?;
             }
-            output.append(String::from("]"))?;
-            Ok::<_, rt::TsonicError>(output.to_string())
-        });
-        RENDER_SEARCH_INDEX_JSON
-            .with(|module_binding_3| module_binding_3.initialize(module_value_3))
-    };
+            {
+                let dispatch_receiver_3 = output.clone();
+                dispatch_receiver_3
+                    .dispatch
+                    .clone()
+                    .dispatch_text_builder_append(String::from("{\"title\":\""))
+            }?;
+            {
+                let dispatch_receiver_5 = output.clone();
+                dispatch_receiver_5.dispatch.clone().dispatch_text_builder_append(
+                    escape_json_string({
+                        let dispatch_receiver_4 = &document;
+                        dispatch_receiver_4.dispatch.read_search_document_title()
+                    })?,
+                )
+            }?;
+            {
+                let dispatch_receiver_6 = output.clone();
+                dispatch_receiver_6
+                    .dispatch
+                    .clone()
+                    .dispatch_text_builder_append(String::from("\",\"url\":\""))
+            }?;
+            {
+                let dispatch_receiver_8 = output.clone();
+                dispatch_receiver_8.dispatch.clone().dispatch_text_builder_append(
+                    escape_json_string({
+                        let dispatch_receiver_7 = &document;
+                        dispatch_receiver_7.dispatch.read_search_document_url()
+                    })?,
+                )
+            }?;
+            {
+                let dispatch_receiver_9 = output.clone();
+                dispatch_receiver_9
+                    .dispatch
+                    .clone()
+                    .dispatch_text_builder_append(String::from("\",\"mount\":\""))
+            }?;
+            {
+                let dispatch_receiver_11 = output.clone();
+                dispatch_receiver_11.dispatch.clone().dispatch_text_builder_append(
+                    escape_json_string({
+                        let dispatch_receiver_10 = &document;
+                        dispatch_receiver_10.dispatch.read_search_document_mount()
+                    })?,
+                )
+            }?;
+            {
+                let dispatch_receiver_12 = output.clone();
+                dispatch_receiver_12
+                    .dispatch
+                    .clone()
+                    .dispatch_text_builder_append(String::from("\",\"text\":\""))
+            }?;
+            {
+                let dispatch_receiver_14 = output.clone();
+                dispatch_receiver_14.dispatch.clone().dispatch_text_builder_append(
+                    escape_json_string({
+                        let dispatch_receiver_13 = &document;
+                        dispatch_receiver_13.dispatch.read_search_document_text()
+                    })?,
+                )
+            }?;
+            {
+                let dispatch_receiver_15 = output.clone();
+                dispatch_receiver_15
+                    .dispatch
+                    .clone()
+                    .dispatch_text_builder_append(String::from("\"}"))
+            }?;
+            index += 1.0;
+        }
+    }
+    {
+        let dispatch_receiver_16 = output.clone();
+        dispatch_receiver_16
+            .dispatch
+            .clone()
+            .dispatch_text_builder_append(String::from("]"))
+    }?;
+    Ok({
+        let dispatch_receiver_17 = output.clone();
+        dispatch_receiver_17
+            .dispatch
+            .clone()
+            .dispatch_text_builder_to_string()
+    })
 }

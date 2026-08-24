@@ -4,10 +4,9 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait DictValueDispatch:
-    crate::template::values::base::TemplateValueDispatch
-{
+pub trait DictValueDispatch: crate::template::values::base::TemplateValueDispatch {
     fn downcast_dict_value_to_dict_value(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn DictValueDispatch>>;
@@ -20,17 +19,27 @@ pub(crate) trait DictValueDispatch:
     );
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct DictValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: js_abi::JsMap<String, crate::template::values::base::TemplateValue>,
+pub struct DictValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: js_abi::JsMap<String, crate::template::values::base::TemplateValue>,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct DictValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn DictValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn DictValueDispatch>,
+}
+
+impl std::fmt::Debug for DictValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("DictValue")
+    }
 }
 
 impl PartialEq for DictValue {
@@ -48,12 +57,13 @@ pub(crate) struct DictValueRoot {
 }
 
 impl DictValue {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         value: js_abi::JsMap<String, crate::template::values::base::TemplateValue>,
     ) -> DictValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: js_abi::JsMap<String, crate::template::values::base::TemplateValue> =
-            value.clone();
+            value;
         DictValueState {
             base: base_state,
             value: field_value,

@@ -2,28 +2,245 @@
 
 use crate::program as rt;
 
-pub fn create_markdown_batch() -> tsumo_platform::MarkdownBatch {
-    tsumo_platform::MarkdownBatch::new()
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct TsumoMarkdownBatchState {
+    batch: tsumo_platform::MarkdownBatch,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct TsumoMarkdownBatch {
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<TsumoMarkdownBatchState>,
+}
+
+impl TsumoMarkdownBatch {
+    pub fn new() -> TsumoMarkdownBatch {
+        let field_batch: tsumo_platform::MarkdownBatch = tsumo_platform::MarkdownBatch::new();
+        TsumoMarkdownBatch {
+            state: rt::ObjectRef::new(TsumoMarkdownBatchState { batch: field_batch }),
+        }
+    }
+
+    pub fn add_source(&self, source: String) -> Result<i32, rt::TsonicError> {
+        self.state
+            .with(|state| state.batch.clone())
+            .add_source(&source)
+            .map_err(rt::TsonicError::from)
+    }
+
+    pub fn render(&self) -> Result<(), rt::TsonicError> {
+        self.state.with(|state| state.batch.clone()).render()?;
+        Ok(())
+    }
+
+    pub fn take_result(
+        &self,
+        index: i32,
+    ) -> Result<crate::markdown::result::MarkdownResult, rt::TsonicError> {
+        let result: tsumo_platform::MarkdownBatchResult = self.state
+            .with(|state| state.batch.clone())
+            .take_result(index)?;
+        Ok(crate::markdown::result::MarkdownResult::new(
+            result.html.clone(),
+            result.summary_html.clone(),
+            result.plain_text.clone(),
+            result.table_of_contents.clone(),
+        ))
+    }
+}
+
+impl Default for TsumoMarkdownBatch {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+pub fn create_markdown_batch() -> TsumoMarkdownBatch {
+    TsumoMarkdownBatch::new()
+}
+
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct TsumoMarkdownSourcePlanState {
+    pub full_source: String,
+    pub summary_source: String,
+    pub table_of_contents_source: String,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct TsumoMarkdownSourcePlan {
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<TsumoMarkdownSourcePlanState>,
+}
+
+impl TsumoMarkdownSourcePlan {
+    pub fn new(
+        full_source: String,
+        summary_source: String,
+        table_of_contents_source: String,
+    ) -> TsumoMarkdownSourcePlan {
+        let field_full_source: String = full_source;
+        let field_summary_source: String = summary_source;
+        let field_table_of_contents_source: String = table_of_contents_source;
+        TsumoMarkdownSourcePlan {
+            state: rt::ObjectRef::new(TsumoMarkdownSourcePlanState {
+                full_source: field_full_source,
+                summary_source: field_summary_source,
+                table_of_contents_source: field_table_of_contents_source,
+            }),
+        }
+    }
+}
+
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct TsumoMarkdownOccurrenceState {
+    pub kind: String,
+    pub destination: String,
+    pub plain_text: String,
+    pub title: String,
+    pub level: i32,
+    pub anchor: String,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct TsumoMarkdownOccurrence {
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<TsumoMarkdownOccurrenceState>,
+}
+
+impl TsumoMarkdownOccurrence {
+    pub fn new(
+        kind: String,
+        destination: String,
+        plain_text: String,
+        title: String,
+        level: i32,
+        anchor: String,
+    ) -> TsumoMarkdownOccurrence {
+        let field_kind: String = kind;
+        let field_destination: String = destination;
+        let field_plain_text: String = plain_text;
+        let field_title: String = title;
+        let field_level: i32 = level;
+        let field_anchor: String = anchor;
+        TsumoMarkdownOccurrence {
+            state: rt::ObjectRef::new(TsumoMarkdownOccurrenceState {
+                kind: field_kind,
+                destination: field_destination,
+                plain_text: field_plain_text,
+                title: field_title,
+                level: field_level,
+                anchor: field_anchor,
+            }),
+        }
+    }
+}
+
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct TsumoMarkdownDocumentState {
+    document: tsumo_platform::MarkdownDocument,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct TsumoMarkdownDocument {
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<TsumoMarkdownDocumentState>,
+}
+
+impl TsumoMarkdownDocument {
+    pub fn new(source: String) -> TsumoMarkdownDocument {
+        let field_document: tsumo_platform::MarkdownDocument =
+            tsumo_platform::MarkdownDocument::new(&source);
+        TsumoMarkdownDocument {
+            state: rt::ObjectRef::new(TsumoMarkdownDocumentState {
+                document: field_document,
+            }),
+        }
+    }
+
+    pub fn occurrence_count(&self) -> i32 {
+        self.state
+            .with(|state| state.document.clone())
+            .occurrence_count()
+    }
+
+    pub fn occurrence(&self, index: i32) -> Result<TsumoMarkdownOccurrence, rt::TsonicError> {
+        let occurrence: tsumo_platform::MarkdownOccurrence = self.state
+            .with(|state| state.document.clone())
+            .occurrence(index)?;
+        Ok(TsumoMarkdownOccurrence::new(
+            occurrence.kind.clone(),
+            occurrence.destination.clone(),
+            occurrence.plain_text.clone(),
+            occurrence.title.clone(),
+            occurrence.level,
+            occurrence.anchor.clone(),
+        ))
+    }
+
+    pub fn replace_url(&self, index: i32, value: String) -> Result<(), rt::TsonicError> {
+        self.state
+            .with(|state| state.document.clone())
+            .replace_url(index, &value)?;
+        Ok(())
+    }
+
+    pub fn occurrence_html(&self, index: i32) -> Result<String, rt::TsonicError> {
+        self.state
+            .with(|state| state.document.clone())
+            .occurrence_html(index)
+            .map_err(rt::TsonicError::from)
+    }
+
+    pub fn replace_html(&self, index: i32, value: String) -> Result<(), rt::TsonicError> {
+        self.state
+            .with(|state| state.document.clone())
+            .replace_html(index, &value)?;
+        Ok(())
+    }
+
+    pub fn render(&self) -> String {
+        self.state.with(|state| state.document.clone()).render()
+    }
+
+    pub fn plain_text(&self) -> String {
+        self.state.with(|state| state.document.clone()).plain_text()
+    }
+
+    pub fn table_of_contents(&self) -> String {
+        self.state
+            .with(|state| state.document.clone())
+            .table_of_contents()
+    }
 }
 
 pub fn create_markdown_source_plan(
     source: String,
-) -> rt::TsonicResult<tsumo_platform::MarkdownSourcePlan> {
-    Ok(tsumo_platform::create_markdown_source_plan(&source)?)
+) -> Result<TsumoMarkdownSourcePlan, rt::TsonicError> {
+    let plan: tsumo_platform::MarkdownSourcePlan =
+        tsumo_platform::create_markdown_source_plan(&source)?;
+    Ok(TsumoMarkdownSourcePlan::new(
+        plan.full_source.clone(),
+        plan.summary_source.clone(),
+        plan.toc_source.clone(),
+    ))
 }
 
-pub fn create_markdown_document(source: String) -> tsumo_platform::MarkdownDocument {
-    tsumo_platform::MarkdownDocument::new(&source)
+pub fn create_markdown_document(source: String) -> TsumoMarkdownDocument {
+    TsumoMarkdownDocument::new(source)
 }
 
 pub fn render_markdown_html(source: String) -> String {
-    create_markdown_document(source.clone()).render()
+    create_markdown_document(source).render()
 }
 
 pub fn render_markdown_plain_text(source: String) -> String {
-    create_markdown_document(source.clone()).plain_text()
+    create_markdown_document(source).plain_text()
 }
 
 pub fn render_markdown_table_of_contents(source: String) -> String {
-    create_markdown_document(source.clone()).table_of_contents()
+    create_markdown_document(source).table_of_contents()
 }

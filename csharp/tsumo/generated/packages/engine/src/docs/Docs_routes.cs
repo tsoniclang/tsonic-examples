@@ -100,7 +100,7 @@ namespace Tsumo.Engine
             };
             discoverDocsMountRoutes = (DocsMountConfig mount) =>
             {
-                if (!System.IO.Directory.Exists(mount.sourceDir))
+                if (!Fs.dirExists(mount.sourceDir))
                 {
                     throw Diagnostics.createTsumoError("TSUMO_DOCS_MOUNT_MISSING", $"Docs mount not found: {mount.sourceDir}");
                 }
@@ -113,7 +113,7 @@ namespace Tsumo.Engine
                 for (int fileIndex = 0; fileIndex < files.length; fileIndex++)
                 {
                     string sourcePath = files[fileIndex];
-                    string relPath = normalizeSlashes(System.IO.Path.GetRelativePath(mount.sourceDir, sourcePath));
+                    string relPath = normalizeSlashes(Tsonic.CSharp.Node.path.relative(mount.sourceDir, sourcePath));
                     if (relPath == "" || relPath == ".." || Tsonic.CSharp.Js.String.startsWith(relPath, "../"))
                     {
                         throw Diagnostics.createTsumoError("TSUMO_DOCS_SOURCE_PATH_INVALID", $"Docs source is outside its mount: {sourcePath}");

@@ -5,30 +5,71 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 std::thread_local! {
-    pub(crate) static OPEN_GRAPH_SOURCE: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
+    pub static OPEN_GRAPH_SOURCE: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
 }
 
 std::thread_local! {
-    pub(crate) static TWITTER_CARDS_SOURCE: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
+    pub static TWITTER_CARDS_SOURCE: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
 }
 
 std::thread_local! {
-    pub(crate) static SCHEMA_SOURCE: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
+    pub static SCHEMA_SOURCE: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
 }
 
 std::thread_local! {
-    pub(crate) static PAGINATION_SOURCE: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
+    pub static PAGINATION_SOURCE: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
 }
 
 std::thread_local! {
-    pub(crate) static PAGE_IMAGES_SOURCE: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
+    pub static PAGE_IMAGES_SOURCE: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
 }
 
-pub type GetEmbeddedTemplateSourceCallable =
-    rt::Callable<(String,), rt::TsonicResult<Option<String>>>;
-
-std::thread_local! {
-    pub static GET_EMBEDDED_TEMPLATE_SOURCE: rt::ModuleCell<GetEmbeddedTemplateSourceCallable> = const { rt::ModuleCell::new() };
+pub fn get_embedded_template_source(path: &str) -> Option<String> {
+    let normalized: String = js_string::to_lower_case(path);
+    if normalized == "_internal/opengraph.html" {
+        return Some(OPEN_GRAPH_SOURCE.with(|module_binding| module_binding.load()));
+    }
+    if normalized == "_internal/twitter_cards.html" {
+        return Some(TWITTER_CARDS_SOURCE.with(|module_binding| module_binding.load()));
+    }
+    if normalized == "_internal/schema.html" {
+        return Some(SCHEMA_SOURCE.with(|module_binding| module_binding.load()));
+    }
+    if normalized == "_internal/pagination.html" {
+        return Some(PAGINATION_SOURCE.with(|module_binding| module_binding.load()));
+    }
+    if normalized == "_internal/disqus.html" {
+        return Some(String::from(""));
+    }
+    if normalized == "_internal/google_analytics.html" {
+        return Some(String::from(""));
+    }
+    if normalized == "partials/opengraph.html" || normalized == "_partials/opengraph.html" {
+        return Some(OPEN_GRAPH_SOURCE.with(|module_binding| module_binding.load()));
+    }
+    if normalized == "partials/twitter_cards.html" || normalized == "_partials/twitter_cards.html" {
+        return Some(TWITTER_CARDS_SOURCE.with(|module_binding| module_binding.load()));
+    }
+    if normalized == "partials/schema.html" || normalized == "_partials/schema.html" {
+        return Some(SCHEMA_SOURCE.with(|module_binding| module_binding.load()));
+    }
+    if normalized == "partials/pagination.html" || normalized == "_partials/pagination.html" {
+        return Some(PAGINATION_SOURCE.with(|module_binding| module_binding.load()));
+    }
+    if normalized == "partials/_funcs/get-page-images.html"
+        || normalized == "_partials/_funcs/get-page-images.html"
+    {
+        return Some(PAGE_IMAGES_SOURCE.with(|module_binding| module_binding.load()));
+    }
+    if normalized == "partials/disqus.html" || normalized == "_partials/disqus.html" {
+        return Some(String::from(""));
+    }
+    if normalized == "partials/google_analytics.html"
+        || normalized == "_partials/google_analytics.html"
+    {
+        return Some(String::from(""));
+    }
+    Option::<String>::None
 }
 
 #[doc(hidden)]
@@ -50,107 +91,7 @@ pub fn module_init() {
         PAGINATION_SOURCE.with(|module_binding_4| module_binding_4.initialize(module_value_4))
     };
     {
-        let module_value_5 = format!(
-            "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
-            String::from("{{ $imgs := slice }}"),
-            String::from("{{ $imgParams := .Params.images }}"),
-            String::from("{{ $resources := .Resources.ByType \"image\" }}"),
-            String::from("{{ if not $imgParams }}"),
-            String::from("{{ $featured := $resources.GetMatch \"*feature*\" }}"),
-            String::from("{{ if not $featured }}{{ $featured = $resources.GetMatch \"{*cover*,*thumbnail*}\" }}{{ end }}"),
-            String::from("{{ with $featured }}{{ $imgs = $imgs | append (dict \"Image\" . \"RelPermalink\" .RelPermalink \"Permalink\" .Permalink) }}{{ end }}"),
-            String::from("{{ end }}"),
-            String::from("{{ if and (not $imgParams) (not $imgs) }}{{ with site.Params.images }}{{ $imgParams = first 1 . }}{{ end }}{{ end }}"),
-            String::from("{{ range $imgParams }}"),
-            String::from("{{ $img := . }}{{ $url := urls.Parse $img }}"),
-            String::from("{{ if eq $url.Scheme \"\" }}"),
-            String::from("{{ with or ($resources.GetMatch $img) (resources.GetMatch $img) }}"),
-            String::from("{{ $imgs = $imgs | append (dict \"Image\" . \"RelPermalink\" .RelPermalink \"Permalink\" .Permalink) }}"),
-            String::from("{{ else }}"),
-            String::from("{{ $imgs = $imgs | append (dict \"RelPermalink\" (relURL $img) \"Permalink\" (absURL $img)) }}"),
-            String::from("{{ end }}"),
-            String::from("{{ else }}"),
-            String::from("{{ $imgs = $imgs | append (dict \"RelPermalink\" $img \"Permalink\" $img) }}"),
-            String::from("{{ end }}{{ end }}{{ return $imgs }}"),
-        );
+        let module_value_5 = String::from("{{ $imgs := slice }}{{ $imgParams := .Params.images }}{{ $resources := .Resources.ByType \"image\" }}{{ if not $imgParams }}{{ $featured := $resources.GetMatch \"*feature*\" }}{{ if not $featured }}{{ $featured = $resources.GetMatch \"{*cover*,*thumbnail*}\" }}{{ end }}{{ with $featured }}{{ $imgs = $imgs | append (dict \"Image\" . \"RelPermalink\" .RelPermalink \"Permalink\" .Permalink) }}{{ end }}{{ end }}{{ if and (not $imgParams) (not $imgs) }}{{ with site.Params.images }}{{ $imgParams = first 1 . }}{{ end }}{{ end }}{{ range $imgParams }}{{ $img := . }}{{ $url := urls.Parse $img }}{{ if eq $url.Scheme \"\" }}{{ with or ($resources.GetMatch $img) (resources.GetMatch $img) }}{{ $imgs = $imgs | append (dict \"Image\" . \"RelPermalink\" .RelPermalink \"Permalink\" .Permalink) }}{{ else }}{{ $imgs = $imgs | append (dict \"RelPermalink\" (relURL $img) \"Permalink\" (absURL $img)) }}{{ end }}{{ else }}{{ $imgs = $imgs | append (dict \"RelPermalink\" $img \"Permalink\" $img) }}{{ end }}{{ end }}{{ return $imgs }}");
         PAGE_IMAGES_SOURCE.with(|module_binding_5| module_binding_5.initialize(module_value_5))
-    };
-    {
-        let module_value_6 = rt::Callable::<(String,), rt::TsonicResult<Option<String>>>::new(
-            move |callable_arguments| {
-                let path = callable_arguments.0;
-                let normalized: String = js_string::to_lower_case(&path);
-                if normalized == "_internal/opengraph.html" {
-                    return Ok::<_, rt::TsonicError>(Some(
-                        OPEN_GRAPH_SOURCE.with(|module_binding| module_binding.load()),
-                    ));
-                }
-                if normalized == "_internal/twitter_cards.html" {
-                    return Ok::<_, rt::TsonicError>(Some(
-                        TWITTER_CARDS_SOURCE.with(|module_binding| module_binding.load()),
-                    ));
-                }
-                if normalized == "_internal/schema.html" {
-                    return Ok::<_, rt::TsonicError>(Some(
-                        SCHEMA_SOURCE.with(|module_binding| module_binding.load()),
-                    ));
-                }
-                if normalized == "_internal/pagination.html" {
-                    return Ok::<_, rt::TsonicError>(Some(
-                        PAGINATION_SOURCE.with(|module_binding| module_binding.load()),
-                    ));
-                }
-                if normalized == "_internal/disqus.html" {
-                    return Ok::<_, rt::TsonicError>(Some(String::from("")));
-                }
-                if normalized == "_internal/google_analytics.html" {
-                    return Ok::<_, rt::TsonicError>(Some(String::from("")));
-                }
-                if normalized == "partials/opengraph.html"
-                    || normalized == "_partials/opengraph.html"
-                {
-                    return Ok::<_, rt::TsonicError>(Some(
-                        OPEN_GRAPH_SOURCE.with(|module_binding| module_binding.load()),
-                    ));
-                }
-                if normalized == "partials/twitter_cards.html"
-                    || normalized == "_partials/twitter_cards.html"
-                {
-                    return Ok::<_, rt::TsonicError>(Some(
-                        TWITTER_CARDS_SOURCE.with(|module_binding| module_binding.load()),
-                    ));
-                }
-                if normalized == "partials/schema.html" || normalized == "_partials/schema.html" {
-                    return Ok::<_, rt::TsonicError>(Some(
-                        SCHEMA_SOURCE.with(|module_binding| module_binding.load()),
-                    ));
-                }
-                if normalized == "partials/pagination.html"
-                    || normalized == "_partials/pagination.html"
-                {
-                    return Ok::<_, rt::TsonicError>(Some(
-                        PAGINATION_SOURCE.with(|module_binding| module_binding.load()),
-                    ));
-                }
-                if normalized == "partials/_funcs/get-page-images.html"
-                    || normalized == "_partials/_funcs/get-page-images.html"
-                {
-                    return Ok::<_, rt::TsonicError>(Some(
-                        PAGE_IMAGES_SOURCE.with(|module_binding| module_binding.load()),
-                    ));
-                }
-                if normalized == "partials/disqus.html" || normalized == "_partials/disqus.html" {
-                    return Ok::<_, rt::TsonicError>(Some(String::from("")));
-                }
-                if normalized == "partials/google_analytics.html"
-                    || normalized == "_partials/google_analytics.html"
-                {
-                    return Ok::<_, rt::TsonicError>(Some(String::from("")));
-                }
-                Ok::<_, rt::TsonicError>(Option::<String>::None)
-            },
-        );
-        GET_EMBEDDED_TEMPLATE_SOURCE
-            .with(|module_binding_6| module_binding_6.initialize(module_value_6))
     };
 }

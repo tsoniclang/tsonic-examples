@@ -10,8 +10,11 @@ pub fn resolve_theme_dir(
     site_dir: String,
     config: crate::models::site_config::SiteConfig,
     themes_dir_raw: Option<String>,
-) -> rt::TsonicResult<Option<String>> {
-    let config_theme: Option<String> = config.state.with(|state| state.theme.clone());
+) -> Result<Option<String>, rt::TsonicError> {
+    let config_theme: Option<String> = {
+        let dispatch_receiver = &config;
+        dispatch_receiver.dispatch.read_site_config_theme()
+    };
     if config_theme.is_none() {
         return Ok(Option::<String>::None);
     }
@@ -22,7 +25,7 @@ pub fn resolve_theme_dir(
     if theme_name.is_empty() {
         return Ok(Option::<String>::None);
     }
-    let themes_dir: Option<String> = themes_dir_raw.clone();
+    let themes_dir: Option<String> = themes_dir_raw;
     let custom_themes_dir: String = if themes_dir.is_some() {
         js_string::trim(&match themes_dir.as_ref() {
             Some(flow_value_2) => flow_value_2.clone(),
@@ -39,19 +42,13 @@ pub fn resolve_theme_dir(
         };
         let candidate: String =
             tsonic_rust_node::path::join(&[themes_base.as_str(), theme_name.as_str()]);
-        if crate::fs::DIR_EXISTS
-            .with(|module_binding| module_binding.load())
-            .call((candidate.clone(),))?
-        {
-            return Ok(Some(candidate.clone()));
+        if crate::fs::dir_exists(candidate.clone())? {
+            return Ok(Some(candidate));
         }
     }
     let theme_dir: String =
         tsonic_rust_node::path::join(&[site_dir.as_str(), "themes", theme_name.as_str()]);
-    Ok(if crate::fs::DIR_EXISTS
-        .with(|module_binding| module_binding.load())
-        .call((theme_dir.clone(),))?
-    {
+    Ok(if crate::fs::dir_exists(theme_dir.clone())? {
         Some(theme_dir.clone())
     } else {
         Option::<String>::None
@@ -61,7 +58,7 @@ pub fn resolve_theme_dir(
 pub fn select_template(
     env: crate::layouts::LayoutEnvironment,
     candidates: js_abi::JsArray<String>,
-) -> rt::TsonicResult<Option<String>> {
+) -> Result<Option<String>, rt::TsonicError> {
     {
         let mut i: f64 = 0.0;
         while i < (tsonic_rust_runtime::conversions::usize_to_i32(candidates.len())? as f64) {
@@ -91,37 +88,35 @@ pub fn render_with_base(
     base_path_raw: Option<String>,
     main_path: String,
     ctx: crate::models::page_context::PageContext,
-) -> rt::TsonicResult<String> {
+) -> Result<String, rt::TsonicError> {
     let main: Option<crate::template::template_2::Template> = {
         let dispatch_receiver = env.clone();
         dispatch_receiver
             .dispatch
             .clone()
-            .dispatch_layout_environment_get_template(main_path.clone())
+            .dispatch_layout_environment_get_template(main_path)
     }?;
     if main.is_none() {
         return Ok(String::from(""));
     }
-    let base_path: Option<String> = base_path_raw.clone();
+    let base_path: Option<String> = base_path_raw;
     if base_path.is_some() {
         let base: Option<crate::template::template_2::Template> = {
             let dispatch_receiver_2 = env.clone();
-            dispatch_receiver_2
-                .dispatch
-                .clone()
-                .dispatch_layout_environment_get_template(
-                    match base_path.as_ref() {
-                        Some(flow_value) => flow_value.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                )
+            dispatch_receiver_2.dispatch.clone().dispatch_layout_environment_get_template(
+                match base_path.as_ref() {
+                    Some(flow_value) => flow_value.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                },
+            )
         }?;
         if base.is_some() {
-            return match base.as_ref() {
-                Some(flow_value_3) => flow_value_3.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            }
-            .render(
+            return {
+                let dispatch_receiver_4 = match base.as_ref() {
+                    Some(flow_value_3) => flow_value_3.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                };
+                dispatch_receiver_4.dispatch.clone().dispatch_template_render(
                     ctx.clone(),
                     {
                         let upcast_value = env.clone();
@@ -130,29 +125,34 @@ pub fn render_with_base(
                             dispatch: upcast_value.dispatch.clone(),
                         }
                     },
-                    Some(match main.as_ref() {
-                        Some(flow_value_2) => flow_value_2.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }
-                    .state
-                    .with(|state| state.defines.clone())),
+                    Some({
+                        let dispatch_receiver_3 = &match main.as_ref() {
+                            Some(flow_value_2) => flow_value_2.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        };
+                        dispatch_receiver_3.dispatch.read_template_defines()
+                    }),
                     None,
-                );
+                )
+            };
         }
     }
-    (match main.as_ref() {
-    Some(flow_value_4) => flow_value_4.clone(),
-    None => unreachable!("checked flow selected a missing optional value"),
-}).render(
-        ctx.clone(),
-        {
-            let upcast_value_2 = env.clone();
-            crate::template::environment::TemplateEnvironment {
-                identity: upcast_value_2.identity.clone(),
-                dispatch: upcast_value_2.dispatch.clone(),
-            }
-        },
-        None,
-        None,
-    )
+    {
+        let dispatch_receiver_5 = match main.as_ref() {
+            Some(flow_value_4) => flow_value_4.clone(),
+            None => unreachable!("checked flow selected a missing optional value"),
+        };
+        dispatch_receiver_5.dispatch.clone().dispatch_template_render(
+            ctx.clone(),
+            {
+                let upcast_value_2 = env.clone();
+                crate::template::environment::TemplateEnvironment {
+                    identity: upcast_value_2.identity.clone(),
+                    dispatch: upcast_value_2.dispatch.clone(),
+                }
+            },
+            None,
+            None,
+        )
+    }
 }

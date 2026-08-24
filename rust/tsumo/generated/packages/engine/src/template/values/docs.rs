@@ -4,8 +4,9 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait DocsMountValueDispatch:
+pub trait DocsMountValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_docs_mount_value_to_docs_mount_value(
@@ -15,17 +16,27 @@ pub(crate) trait DocsMountValueDispatch:
     fn write_docs_mount_value_value(&self, value: crate::docs::models::DocsMountContext);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct DocsMountValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: crate::docs::models::DocsMountContext,
+pub struct DocsMountValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: crate::docs::models::DocsMountContext,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct DocsMountValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn DocsMountValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn DocsMountValueDispatch>,
+}
+
+impl std::fmt::Debug for DocsMountValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("DocsMountValue")
+    }
 }
 
 impl PartialEq for DocsMountValue {
@@ -43,11 +54,10 @@ pub(crate) struct DocsMountValueRoot {
 }
 
 impl DocsMountValue {
-    pub(crate) fn initialize_state(
-        value: crate::docs::models::DocsMountContext,
-    ) -> DocsMountValueState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: crate::docs::models::DocsMountContext) -> DocsMountValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: crate::docs::models::DocsMountContext = value.clone();
+        let field_value: crate::docs::models::DocsMountContext = value;
         DocsMountValueState {
             base: base_state,
             value: field_value,
@@ -376,8 +386,9 @@ impl DocsMountValueDispatch for DocsMountValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait DocsMountArrayValueDispatch:
+pub trait DocsMountArrayValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_docs_mount_array_value_to_docs_mount_array_value(
@@ -392,17 +403,27 @@ pub(crate) trait DocsMountArrayValueDispatch:
     );
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct DocsMountArrayValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: js_abi::JsArray<crate::docs::models::DocsMountContext>,
+pub struct DocsMountArrayValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: js_abi::JsArray<crate::docs::models::DocsMountContext>,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct DocsMountArrayValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn DocsMountArrayValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn DocsMountArrayValueDispatch>,
+}
+
+impl std::fmt::Debug for DocsMountArrayValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("DocsMountArrayValue")
+    }
 }
 
 impl PartialEq for DocsMountArrayValue {
@@ -420,11 +441,12 @@ pub(crate) struct DocsMountArrayValueRoot {
 }
 
 impl DocsMountArrayValue {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         value: js_abi::JsArray<crate::docs::models::DocsMountContext>,
     ) -> DocsMountArrayValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: js_abi::JsArray<crate::docs::models::DocsMountContext> = value.clone();
+        let field_value: js_abi::JsArray<crate::docs::models::DocsMountContext> = value;
         DocsMountArrayValueState {
             base: base_state,
             value: field_value,
@@ -760,8 +782,9 @@ impl DocsMountArrayValueDispatch for DocsMountArrayValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait NavItemValueDispatch:
+pub trait NavItemValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_nav_item_value_to_nav_item_value(
@@ -771,17 +794,27 @@ pub(crate) trait NavItemValueDispatch:
     fn write_nav_item_value_value(&self, value: crate::docs::models::NavItem);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct NavItemValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: crate::docs::models::NavItem,
+pub struct NavItemValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: crate::docs::models::NavItem,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct NavItemValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn NavItemValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn NavItemValueDispatch>,
+}
+
+impl std::fmt::Debug for NavItemValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("NavItemValue")
+    }
 }
 
 impl PartialEq for NavItemValue {
@@ -799,9 +832,10 @@ pub(crate) struct NavItemValueRoot {
 }
 
 impl NavItemValue {
-    pub(crate) fn initialize_state(value: crate::docs::models::NavItem) -> NavItemValueState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: crate::docs::models::NavItem) -> NavItemValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: crate::docs::models::NavItem = value.clone();
+        let field_value: crate::docs::models::NavItem = value;
         NavItemValueState {
             base: base_state,
             value: field_value,
@@ -1130,8 +1164,9 @@ impl NavItemValueDispatch for NavItemValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait NavArrayValueDispatch:
+pub trait NavArrayValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_nav_array_value_to_nav_array_value(
@@ -1141,17 +1176,27 @@ pub(crate) trait NavArrayValueDispatch:
     fn write_nav_array_value_value(&self, value: js_abi::JsArray<crate::docs::models::NavItem>);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct NavArrayValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: js_abi::JsArray<crate::docs::models::NavItem>,
+pub struct NavArrayValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: js_abi::JsArray<crate::docs::models::NavItem>,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct NavArrayValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn NavArrayValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn NavArrayValueDispatch>,
+}
+
+impl std::fmt::Debug for NavArrayValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("NavArrayValue")
+    }
 }
 
 impl PartialEq for NavArrayValue {
@@ -1169,11 +1214,12 @@ pub(crate) struct NavArrayValueRoot {
 }
 
 impl NavArrayValue {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         value: js_abi::JsArray<crate::docs::models::NavItem>,
     ) -> NavArrayValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: js_abi::JsArray<crate::docs::models::NavItem> = value.clone();
+        let field_value: js_abi::JsArray<crate::docs::models::NavItem> = value;
         NavArrayValueState {
             base: base_state,
             value: field_value,

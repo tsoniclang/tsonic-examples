@@ -6,25 +6,25 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct TomlStatementState {
-    pub(crate) text: String,
-    pub(crate) line: i32,
+pub struct TomlStatementState {
+    pub text: String,
+    pub line: i32,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct TomlStatement {
-    pub(crate) state: rt::ObjectHandle<TomlStatementState>,
+pub struct TomlStatement {
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<TomlStatementState>,
 }
 
 impl TomlStatement {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new(text: String, line: i32) -> TomlStatement {
-        let field_text: String = text.clone();
+        let field_text: String = text;
         let field_line: i32 = line;
         TomlStatement {
-            state: rt::ObjectHandle::new(TomlStatementState {
+            state: rt::ObjectRef::new(TomlStatementState {
                 text: field_text,
                 line: field_line,
             }),
@@ -32,147 +32,563 @@ impl TomlStatement {
     }
 }
 
-type TomlErrorCallable =
-    rt::Callable<(String, Option<String>, i32), rt::TsonicResult<crate::diagnostics::TsumoError>>;
-
-std::thread_local! {
-    pub(crate) static TOML_ERROR: rt::ModuleCell<TomlErrorCallable> = const { rt::ModuleCell::new() };
+pub fn toml_error(
+    message: String,
+    source_path: Option<String>,
+    line: i32,
+) -> crate::diagnostics::TsumoError {
+    crate::diagnostics::create_tsumo_error(
+        String::from("TSUMO_TEMPLATE_DATA_TOML_INVALID"),
+        message,
+        source_path,
+        Some(tsonic_rust_runtime::conversions::i32_to_f64(line)),
+        Some(1.0),
+    )
 }
 
-type ScalarToTemplateValueCallable =
-    rt::Callable<
-        (crate::params::ParamValue,),
-        rt::TsonicResult<crate::template::values::base::TemplateValue>,
-    >;
-
-std::thread_local! {
-    pub(crate) static SCALAR_TO_TEMPLATE_VALUE: rt::ModuleCell<ScalarToTemplateValueCallable> = const { rt::ModuleCell::new() };
+pub fn scalar_to_template_value(
+    value: crate::params::ParamValue,
+) -> crate::template::values::base::TemplateValue {
+    if {
+        let dispatch_receiver = &value;
+        dispatch_receiver.dispatch.read_param_value_kind()
+    } == crate::params::PARAM_KIND_BOOL.with(|module_binding| module_binding.load())
+    {
+        return {
+            let upcast_value = crate::template::values::primitives::BoolValue::new({
+                let dispatch_receiver_2 = &value;
+                dispatch_receiver_2.dispatch.read_param_value_bool_value()
+            });
+            crate::template::values::base::TemplateValue {
+                identity: upcast_value.identity.clone(),
+                dispatch: upcast_value.dispatch.clone(),
+            }
+        };
+    }
+    if {
+        let dispatch_receiver_3 = &value;
+        dispatch_receiver_3.dispatch.read_param_value_kind()
+    } == crate::params::PARAM_KIND_NUMBER.with(|module_binding| module_binding.load())
+    {
+        return {
+            let upcast_value_2 = crate::template::values::primitives::NumberValue::new({
+                let dispatch_receiver_4 = &value;
+                dispatch_receiver_4.dispatch.read_param_value_number_value()
+            });
+            crate::template::values::base::TemplateValue {
+                identity: upcast_value_2.identity.clone(),
+                dispatch: upcast_value_2.dispatch.clone(),
+            }
+        };
+    }
+    {
+        let upcast_value_3 = crate::template::values::primitives::StringValue::new({
+            let dispatch_receiver_5 = &value;
+            dispatch_receiver_5.dispatch.read_param_value_string_value()
+        });
+        crate::template::values::base::TemplateValue {
+            identity: upcast_value_3.identity.clone(),
+            dispatch: upcast_value_3.dispatch.clone(),
+        }
+    }
 }
 
-type StatementIsCompleteCallable = rt::Callable<(String,), rt::TsonicResult<bool>>;
-
-std::thread_local! {
-    pub(crate) static STATEMENT_IS_COMPLETE: rt::ModuleCell<StatementIsCompleteCallable> = const { rt::ModuleCell::new() };
+pub fn statement_is_complete(text: String) -> Result<bool, rt::TsonicError> {
+    let mut square_depth: i32 = 0;
+    let mut object_depth: i32 = 0;
+    let mut quote: String = String::from("");
+    let mut escaped: bool = false;
+    'loop_value: for index in
+        0..tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&text))?
+    {
+        let character: String =
+            js_string::char_at(&text, tsonic_rust_runtime::conversions::i32_to_f64(index))?;
+        if escaped {
+            escaped = false;
+            continue 'loop_value;
+        }
+        if quote == "\"" && character == "\\" {
+            escaped = true;
+            continue 'loop_value;
+        }
+        if character == "\"" || character == "'" {
+            if quote.is_empty() {
+                quote = character.clone();
+            } else {
+                if quote == character {
+                    quote = String::from("");
+                }
+            }
+            continue 'loop_value;
+        }
+        if !quote.is_empty() {
+            continue 'loop_value;
+        }
+        if character == "[" {
+            square_depth += 1;
+        } else {
+            if character == "]" {
+                square_depth -= 1;
+            } else {
+                if character == "{" {
+                    object_depth += 1;
+                } else {
+                    if character == "}" {
+                        object_depth -= 1;
+                    }
+                }
+            }
+        }
+        if square_depth < 0 || object_depth < 0 {
+            return Ok(true);
+        }
+    }
+    Ok(quote.is_empty() && square_depth == 0 && object_depth == 0)
 }
 
-type CollectTomlStatementsCallable =
-    rt::Callable<(String, Option<String>), rt::TsonicResult<js_abi::JsArray<TomlStatement>>>;
-
-std::thread_local! {
-    pub(crate) static COLLECT_TOML_STATEMENTS: rt::ModuleCell<CollectTomlStatementsCallable> = const { rt::ModuleCell::new() };
+pub fn collect_toml_statements(
+    text: &str,
+    source_path: Option<String>,
+) -> Result<js_abi::JsArray<TomlStatement>, rt::TsonicError> {
+    let normalized: String =
+        js_string::replace_all(&js_string::replace_all(text, "\r\n", "\n")?, "\r", "\n")?;
+    let lines: js_abi::JsArray<String> = js_string::split_all(&normalized, "\n")?;
+    let statements: js_abi::JsArray<TomlStatement> = js_abi::JsArray::from_dense(vec![]);
+    let mut pending: String = String::from("");
+    let mut pending_line: i32 = 0;
+    {
+        let mut index: i32 = 0;
+        'loop_value: while index < tsonic_rust_runtime::conversions::usize_to_i32(lines.len())? {
+            let line: String = js_string::trim(
+                &crate::utils::structured_scalars::strip_structured_comment(
+                    match lines
+                        .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
+                        .as_ref()
+                    {
+                        Some(flow_value) => flow_value.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
+                    crate::utils::structured_scalars::StructuredScalarFormat::Toml,
+                )?,
+            );
+            if line.is_empty() {
+                index += 1;
+                continue 'loop_value;
+            }
+            if pending.is_empty() {
+                pending = line.clone();
+                pending_line = index + 1;
+            } else {
+                pending.push(' ');
+                pending.push_str(&line);
+            }
+            if !statement_is_complete(pending.clone())? {
+                index += 1;
+                continue 'loop_value;
+            }
+            {
+                let operation_input_0 = statements.clone();
+                operation_input_0
+                    .push_many_discard([TomlStatement::new(pending.clone(), pending_line)])
+            };
+            pending = String::from("");
+            pending_line = 0;
+            index += 1;
+        }
+    }
+    if !pending.is_empty() {
+        return Err(rt::TsonicError::TsumoError(toml_error(
+            String::from("TOML statement is incomplete"),
+            source_path,
+            pending_line,
+        )));
+    }
+    Ok(statements)
 }
 
-type SplitTomlKeyCallable =
-    rt::Callable<(String, Option<String>, i32), rt::TsonicResult<js_abi::JsArray<String>>>;
-
-std::thread_local! {
-    pub(crate) static SPLIT_TOML_KEY: rt::ModuleCell<SplitTomlKeyCallable> = const { rt::ModuleCell::new() };
+pub fn split_toml_key(
+    text: &str,
+    source_path: Option<String>,
+    line: i32,
+) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
+    let segments: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    let mut start: i32 = 0;
+    let mut quote: String = String::from("");
+    let mut escaped: bool = false;
+    {
+        let mut index: i32 = 0;
+        'loop_value: while index <= tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(text))? {
+            let character: String = if index
+                < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(text))?
+            {
+                js_string::char_at(text, tsonic_rust_runtime::conversions::i32_to_f64(index))?
+            } else {
+                String::from(".")
+            };
+            if escaped {
+                escaped = false;
+                index += 1;
+                continue 'loop_value;
+            }
+            if quote == "\"" && character == "\\" {
+                escaped = true;
+                index += 1;
+                continue 'loop_value;
+            }
+            if character == "\"" || character == "'" {
+                if quote.is_empty() {
+                    quote = character.clone();
+                } else {
+                    if quote == character {
+                        quote = String::from("");
+                    }
+                }
+                index += 1;
+                continue 'loop_value;
+            }
+            if character != "." || !quote.is_empty() {
+                index += 1;
+                continue 'loop_value;
+            }
+            let raw: String = js_string::trim(&js_string::slice_to(
+                text,
+                tsonic_rust_runtime::conversions::i32_to_f64(start),
+                tsonic_rust_runtime::conversions::i32_to_f64(index),
+            )?);
+            if raw.is_empty() {
+                return Err(rt::TsonicError::TsumoError(toml_error(
+                    String::from("TOML key segment cannot be empty"),
+                    source_path.clone(),
+                    line,
+                )));
+            }
+            if js_string::starts_with_from_start(&raw, "\"")
+                || js_string::starts_with_from_start(&raw, "'")
+            {
+                let parsed: crate::params::ParamValue =
+                    crate::utils::structured_scalars::parse_structured_scalar(
+                        &raw,
+                        crate::utils::structured_scalars::StructuredScalarFormat::Toml,
+                        {
+                            let capture_source_path = source_path.clone();
+                            let capture_line = line;
+                            rt::Callable::<
+                                (String,),
+                                rt::TsonicResult<crate::diagnostics::TsumoError>,
+                            >::new(move |callable_arguments| {
+                                let message = callable_arguments.0;
+                                Ok::<_, rt::TsonicError>(toml_error(
+                                    message,
+                                    capture_source_path.clone(),
+                                    capture_line,
+                                ))
+                            })
+                        },
+                    )?;
+                if {
+                    let dispatch_receiver = &parsed;
+                    dispatch_receiver.dispatch.read_param_value_kind()
+                } != crate::params::PARAM_KIND_STRING.with(|module_binding| module_binding.load())
+                {
+                    return Err(rt::TsonicError::TsumoError(toml_error(
+                        String::from("Quoted TOML key must be a string"),
+                        source_path.clone(),
+                        line,
+                    )));
+                }
+                {
+                    let operation_input_0 = segments.clone();
+                    operation_input_0.push_many_discard([{
+                        let dispatch_receiver_2 = &parsed;
+                        dispatch_receiver_2.dispatch.read_param_value_string_value()
+                    }])
+                };
+            } else {
+                if !js_abi::regexp_test_native(
+                    &js_abi::regexp_new_native("^[A-Za-z0-9_-]+$", "")?,
+                    &raw,
+                )?
+                {
+                    return Err(rt::TsonicError::TsumoError(toml_error(
+                        format!(
+                            "{}{}{}",
+                            String::from("TOML key segment '"),
+                            raw,
+                            String::from("' is invalid"),
+                        ),
+                        source_path.clone(),
+                        line,
+                    )));
+                }
+                segments.push_many_discard([raw.clone()]);
+            }
+            start = index + 1;
+            index += 1;
+        }
+    }
+    if !quote.is_empty() {
+        return Err(rt::TsonicError::TsumoError(toml_error(
+            String::from("TOML key contains an unterminated quote"),
+            source_path.clone(),
+            line,
+        )));
+    }
+    Ok(segments)
 }
 
-type AssignmentSeparatorCallable =
-    rt::Callable<(String, Option<String>, i32), rt::TsonicResult<i32>>;
-
-std::thread_local! {
-    pub(crate) static ASSIGNMENT_SEPARATOR: rt::ModuleCell<AssignmentSeparatorCallable> = const { rt::ModuleCell::new() };
+pub fn assignment_separator(
+    text: String,
+    source_path: Option<String>,
+    line: i32,
+) -> Result<i32, rt::TsonicError> {
+    let mut square_depth: i32 = 0;
+    let mut object_depth: i32 = 0;
+    let mut quote: String = String::from("");
+    let mut escaped: bool = false;
+    'loop_value: for index in
+        0..tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&text))?
+    {
+        let character: String =
+            js_string::char_at(&text, tsonic_rust_runtime::conversions::i32_to_f64(index))?;
+        if escaped {
+            escaped = false;
+            continue 'loop_value;
+        }
+        if quote == "\"" && character == "\\" {
+            escaped = true;
+            continue 'loop_value;
+        }
+        if character == "\"" || character == "'" {
+            if quote.is_empty() {
+                quote = character.clone();
+            } else {
+                if quote == character {
+                    quote = String::from("");
+                }
+            }
+            continue 'loop_value;
+        }
+        if !quote.is_empty() {
+            continue 'loop_value;
+        }
+        if character == "[" {
+            square_depth += 1;
+        } else {
+            if character == "]" {
+                square_depth -= 1;
+            } else {
+                if character == "{" {
+                    object_depth += 1;
+                } else {
+                    if character == "}" {
+                        object_depth -= 1;
+                    } else {
+                        if character == "=" && square_depth == 0 && object_depth == 0 {
+                            return Ok(index);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Err(rt::TsonicError::TsumoError(toml_error(
+        String::from("TOML assignment requires an '=' separator"),
+        source_path,
+        line,
+    )))
 }
 
-type RequireDictionaryCallable =
-    rt::Callable<
-        (
-            crate::template::values::base::TemplateValue,
-            String,
-            Option<String>,
-            i32,
-        ),
-        rt::TsonicResult<crate::template::values::dict::DictValue>,
-    >;
-
-std::thread_local! {
-    pub(crate) static REQUIRE_DICTIONARY: rt::ModuleCell<RequireDictionaryCallable> = const { rt::ModuleCell::new() };
+pub fn require_dictionary(
+    value: crate::template::values::base::TemplateValue,
+    context: String,
+    source_path: Option<String>,
+    line: i32,
+) -> Result<crate::template::values::dict::DictValue, rt::TsonicError> {
+    if value
+        .dispatch
+        .clone()
+        .downcast_template_value_to_dict_value()
+        .is_some()
+    {
+        return Ok({
+            let downcast_value = &value;
+            crate::template::values::dict::DictValue {
+                identity: downcast_value.identity.clone(),
+                dispatch: downcast_value
+                    .dispatch
+                    .clone()
+                    .downcast_template_value_to_dict_value()
+                    .unwrap(),
+            }
+        });
+    }
+    Err(rt::TsonicError::TsumoError(toml_error(
+        format!("{}{}", context, String::from(" conflicts with a non-table value")),
+        source_path,
+        line,
+    )))
 }
 
-type EnsureDictionaryPathCallable =
-    rt::Callable<
-        (
-            crate::template::values::dict::DictValue,
-            js_abi::JsArray<String>,
-            Option<String>,
-            i32,
-        ),
-        rt::TsonicResult<crate::template::values::dict::DictValue>,
-    >;
-
-std::thread_local! {
-    pub(crate) static ENSURE_DICTIONARY_PATH: rt::ModuleCell<EnsureDictionaryPathCallable> = const { rt::ModuleCell::new() };
+pub fn ensure_dictionary_path(
+    root: crate::template::values::dict::DictValue,
+    segments: js_abi::JsArray<String>,
+    source_path: Option<String>,
+    line: i32,
+) -> Result<crate::template::values::dict::DictValue, rt::TsonicError> {
+    let mut current: crate::template::values::dict::DictValue = root;
+    {
+        let mut index: i32 = 0;
+        'loop_value: while index < tsonic_rust_runtime::conversions::usize_to_i32(segments.len())? {
+            let segment: String = match segments
+                .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
+                .as_ref()
+            {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
+            let existing: Option<crate::template::values::base::TemplateValue> = {
+                let dispatch_receiver = &current;
+                dispatch_receiver.dispatch.read_dict_value_value()
+            }
+            .get(&segment);
+            if existing.is_none() {
+                let created: crate::template::values::dict::DictValue =
+                    crate::template::values::dict::DictValue::new(js_abi::JsMap::new());
+                {
+                    let dispatch_receiver_2 = &current;
+                    dispatch_receiver_2.dispatch.read_dict_value_value()
+                }
+                .set_discard(segment.clone(), {
+                    let upcast_value = created.clone();
+                    crate::template::values::base::TemplateValue {
+                        identity: upcast_value.identity.clone(),
+                        dispatch: upcast_value.dispatch.clone(),
+                    }
+                });
+                current = created.clone();
+                index += 1;
+                continue 'loop_value;
+            }
+            current = require_dictionary(
+                match existing.as_ref() {
+                    Some(flow_value_2) => flow_value_2.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                },
+                format!(
+                    "{}{}{}",
+                    String::from("TOML table '"),
+                    segments.join("."),
+                    String::from("'"),
+                ),
+                source_path.clone(),
+                line,
+            )?;
+            index += 1;
+        }
+    }
+    Ok(current)
 }
 
-type SetTomlValueCallable =
-    rt::Callable<
-        (
-            crate::template::values::dict::DictValue,
-            js_abi::JsArray<String>,
-            crate::template::values::base::TemplateValue,
-            Option<String>,
-            i32,
-        ),
-        rt::TsonicResult<()>,
-    >;
-
-std::thread_local! {
-    pub(crate) static SET_TOML_VALUE: rt::ModuleCell<SetTomlValueCallable> = const { rt::ModuleCell::new() };
+pub fn set_toml_value(
+    table: crate::template::values::dict::DictValue,
+    key: js_abi::JsArray<String>,
+    value: crate::template::values::base::TemplateValue,
+    source_path: Option<String>,
+    line: i32,
+) -> Result<(), rt::TsonicError> {
+    let parent_segments: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    {
+        let mut index: i32 = 0;
+        while index < tsonic_rust_runtime::conversions::usize_to_i32(key.len())? - 1 {
+            {
+                let operation_input_0 = parent_segments.clone();
+                operation_input_0.push_many_discard([match key
+                    .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
+                    .as_ref()
+                {
+                    Some(flow_value) => flow_value.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }])
+            };
+            index += 1;
+        }
+    }
+    let parent: crate::template::values::dict::DictValue =
+        ensure_dictionary_path(table, parent_segments.clone(), source_path.clone(), line)?;
+    let name: String = match {
+        let operation_input_0_2 = key.clone();
+        operation_input_0_2.get_number(tsonic_rust_runtime::conversions::i32_to_f64(
+            tsonic_rust_runtime::conversions::usize_to_i32(key.len())? - 1,
+        ))
+    }
+    .as_ref()
+    {
+        Some(flow_value_2) => flow_value_2.clone(),
+        None => unreachable!("checked flow selected a missing optional value"),
+    };
+    if { let dispatch_receiver = &parent; dispatch_receiver.dispatch.read_dict_value_value() }
+        .has(&name)
+    {
+        return Err(rt::TsonicError::TsumoError(toml_error(
+            format!(
+                "{}{}{}",
+                String::from("TOML key '"),
+                key.join("."),
+                String::from("' is declared more than once"),
+            ),
+            source_path.clone(),
+            line,
+        )));
+    }
+    { let dispatch_receiver_2 = &parent; dispatch_receiver_2.dispatch.read_dict_value_value() }
+        .set_discard(name.clone(), value);
+    Ok(())
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct TomlValueReaderState {
-    pub(crate) text: String,
-    pub(crate) index: i32,
-    pub(crate) source_path: Option<String>,
-    pub(crate) line: i32,
-}
-
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct TomlValueReader {
-    pub(crate) state: rt::ObjectHandle<TomlValueReaderState>,
+pub struct TomlValueReader {
+    pub text: String,
+    pub index: i32,
+    pub source_path: Option<String>,
+    pub line: i32,
 }
 
 impl TomlValueReader {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new(text: String, source_path: Option<String>, line: i32) -> TomlValueReader {
-        let field_text: String = text.clone();
+        let field_text: String = text;
         let field_index: i32 = 0;
-        let field_source_path: Option<String> = source_path.clone();
+        let field_source_path: Option<String> = source_path;
         let field_line: i32 = line;
         TomlValueReader {
-            state: rt::ObjectHandle::new(TomlValueReaderState {
-                text: field_text,
-                index: field_index,
-                source_path: field_source_path,
-                line: field_line,
-            }),
+            text: field_text,
+            index: field_index,
+            source_path: field_source_path,
+            line: field_line,
         }
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn parse(&self) -> rt::TsonicResult<crate::template::values::base::TemplateValue> {
+    pub fn parse(
+        &mut self,
+    ) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
         let value: crate::template::values::base::TemplateValue = self.parse_value()?;
         self.skip_whitespace()?;
-        if self.state.with(|state| state.index)
-            != tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                &self.state.with(|state| state.text.clone()),
-            ))?
+        if self.index
+            != tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&self.text))?
         {
             return Err(
-                rt::TsonicError::from(
-                    self.error(String::from("Unexpected trailing TOML value content"))?,
+                rt::TsonicError::TsumoError(
+                    self.error(String::from("Unexpected trailing TOML value content")),
                 ),
             );
         }
-        Ok(value.clone())
+        Ok(value)
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn parse_value(&self) -> rt::TsonicResult<crate::template::values::base::TemplateValue> {
+    pub fn parse_value(
+        &mut self,
+    ) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
         self.skip_whitespace()?;
         let character: String = self.peek()?;
         if character == "\"" || character == "'" {
@@ -188,35 +604,31 @@ impl TomlValueReader {
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn parse_string(&self) -> rt::TsonicResult<crate::template::values::base::TemplateValue> {
-        let start: i32 = self.state.with(|state| state.index);
+    pub fn parse_string(
+        &mut self,
+    ) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
+        let start: i32 = self.index;
         let quote: String = self.next()?;
         if self.peek()? == quote
-            && self.state.with(|state| state.index) + 1
-                < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                    &self.state.with(|state| state.text.clone()),
-                ))?
-            && js_string::char_at(
-                &self.state.with(|state| state.text.clone()),
-                tsonic_rust_runtime::conversions::i32_to_f64(
-                    self.state.with(|state| state.index) + 1,
-                ),
-            )
-            .map_err(tsonic_rust_runtime::TsonicError::from)? == quote
+            && self.index + 1
+                < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&self.text))?
+            && {
+                let operation_input_0 = self.text.clone();
+                js_string::char_at(
+                    &operation_input_0,
+                    tsonic_rust_runtime::conversions::i32_to_f64(self.index + 1),
+                )
+            }? == quote
         {
             return Err(
-                rt::TsonicError::from(
-                    self.error(
-                        String::from("Multiline TOML strings are not supported by the data contract"),
-                    )?,
-                ),
+                rt::TsonicError::TsumoError(self.error(
+                    String::from("Multiline TOML strings are not supported by the data contract"),
+                )),
             );
         }
         let mut escaped: bool = false;
-        'loop_value: while self.state.with(|state| state.index)
-            < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                &self.state.with(|state| state.text.clone()),
-            ))?
+        'loop_value: while self.index
+            < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&self.text))?
         {
             let character: String = self.next()?;
             if escaped {
@@ -230,17 +642,18 @@ impl TomlValueReader {
             if character != quote {
                 continue 'loop_value;
             }
-            let raw: String = js_string::slice_to(
-                &self.state.with(|state| state.text.clone()),
-                tsonic_rust_runtime::conversions::i32_to_f64(start),
-                tsonic_rust_runtime::conversions::i32_to_f64(self.state.with(|state| state.index)),
-            )
-            .map_err(tsonic_rust_runtime::TsonicError::from)?;
-            let source_path: Option<String> = self.state.with(|state| state.source_path.clone());
-            let line: i32 = self.state.with(|state| state.line);
-            return SCALAR_TO_TEMPLATE_VALUE
-                .with(|module_binding| module_binding.load())
-                .call((crate::utils::structured_scalars::parse_structured_scalar(
+            let raw: String = {
+                let operation_input_0_2 = self.text.clone();
+                js_string::slice_to(
+                    &operation_input_0_2,
+                    tsonic_rust_runtime::conversions::i32_to_f64(start),
+                    tsonic_rust_runtime::conversions::i32_to_f64(self.index),
+                )
+            }?;
+            let source_path: Option<String> = self.source_path.clone();
+            let line: i32 = self.line;
+            return Ok(scalar_to_template_value(
+                crate::utils::structured_scalars::parse_structured_scalar(
                     &raw,
                     crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                     {
@@ -251,34 +664,39 @@ impl TomlValueReader {
                             rt::TsonicResult<crate::diagnostics::TsumoError>,
                         >::new(move |callable_arguments| {
                             let message = callable_arguments.0;
-                            TOML_ERROR
-                                .with(|module_binding| module_binding.load())
-                                .call((message.clone(), capture_source_path.clone(), capture_line))
+                            Ok::<_, rt::TsonicError>(toml_error(
+                                message,
+                                capture_source_path.clone(),
+                                capture_line,
+                            ))
                         })
                     },
-                )?,));
+                )?,
+            ));
         }
-        Err(rt::TsonicError::from(self.error(String::from("TOML string is unterminated"))?))
+        Err(rt::TsonicError::TsumoError(self.error(String::from("TOML string is unterminated"))))
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn parse_array(&self) -> rt::TsonicResult<crate::template::values::base::TemplateValue> {
+    pub fn parse_array(
+        &mut self,
+    ) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
         self.expect(String::from("["))?;
         let items: js_abi::JsArray<crate::template::values::base::TemplateValue> =
             js_abi::JsArray::from_dense(vec![]);
         self.skip_whitespace()?;
         if self.peek()? == "]" {
             {
-                let update_receiver = self;
-                update_receiver.state.with_mut(|state| {
-                    let update_location = &mut state.index;
+                let update_receiver = &mut *self;
+                {
+                    let update_location = &mut update_receiver.index;
                     let update_previous = *update_location;
                     let update_next = update_previous + 1;
                     {
                         *update_location = update_next;
                         update_next
                     }
-                })
+                }
             };
             return Ok({
                 let upcast_value =
@@ -290,21 +708,24 @@ impl TomlValueReader {
             });
         }
         loop {
-            tsonic_rust_runtime::conversions::usize_to_i32(items.push_many([self.parse_value()?]))?;
+            {
+                let operation_input_0 = items.clone();
+                operation_input_0.push_many_discard([self.parse_value()?])
+            };
             self.skip_whitespace()?;
             let separator: String = self.peek()?;
             if separator == "]" {
                 {
-                    let update_receiver_2 = self;
-                    update_receiver_2.state.with_mut(|state| {
-                        let update_location_2 = &mut state.index;
+                    let update_receiver_2 = &mut *self;
+                    {
+                        let update_location_2 = &mut update_receiver_2.index;
                         let update_previous_2 = *update_location_2;
                         let update_next_2 = update_previous_2 + 1;
                         {
                             *update_location_2 = update_next_2;
                             update_next_2
                         }
-                    })
+                    }
                 };
                 return Ok({
                     let upcast_value_2 =
@@ -317,36 +738,36 @@ impl TomlValueReader {
             }
             if separator != "," {
                 return Err(
-                    rt::TsonicError::from(
-                        self.error(String::from("TOML array entries must be separated by commas"))?,
+                    rt::TsonicError::TsumoError(
+                        self.error(String::from("TOML array entries must be separated by commas")),
                     ),
                 );
             }
             {
-                let update_receiver_3 = self;
-                update_receiver_3.state.with_mut(|state| {
-                    let update_location_3 = &mut state.index;
+                let update_receiver_3 = &mut *self;
+                {
+                    let update_location_3 = &mut update_receiver_3.index;
                     let update_previous_3 = *update_location_3;
                     let update_next_3 = update_previous_3 + 1;
                     {
                         *update_location_3 = update_next_3;
                         update_next_3
                     }
-                })
+                }
             };
             self.skip_whitespace()?;
             if self.peek()? == "]" {
                 {
-                    let update_receiver_4 = self;
-                    update_receiver_4.state.with_mut(|state| {
-                        let update_location_4 = &mut state.index;
+                    let update_receiver_4 = &mut *self;
+                    {
+                        let update_location_4 = &mut update_receiver_4.index;
                         let update_previous_4 = *update_location_4;
                         let update_next_4 = update_previous_4 + 1;
                         {
                             *update_location_4 = update_next_4;
                             update_next_4
                         }
-                    })
+                    }
                 };
                 return Ok({
                     let upcast_value_3 =
@@ -362,27 +783,27 @@ impl TomlValueReader {
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_inline_table(
-        &self,
-    ) -> rt::TsonicResult<crate::template::values::base::TemplateValue> {
+        &mut self,
+    ) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
         self.expect(String::from("{"))?;
         let fields: crate::template::values::dict::DictValue =
             crate::template::values::dict::DictValue::new(js_abi::JsMap::new());
         self.skip_whitespace()?;
         if self.peek()? == "}" {
             {
-                let update_receiver = self;
-                update_receiver.state.with_mut(|state| {
-                    let update_location = &mut state.index;
+                let update_receiver = &mut *self;
+                {
+                    let update_location = &mut update_receiver.index;
                     let update_previous = *update_location;
                     let update_next = update_previous + 1;
                     {
                         *update_location = update_next;
                         update_next
                     }
-                })
+                }
             };
             return Ok({
-                let upcast_value = fields.clone();
+                let upcast_value = fields;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value.identity.clone(),
                     dispatch: upcast_value.dispatch.clone(),
@@ -390,44 +811,42 @@ impl TomlValueReader {
             });
         }
         loop {
-            let key_start: i32 = self.state.with(|state| state.index);
+            let key_start: i32 = self.index;
             let mut quote: String = String::from("");
             let mut escaped: bool = false;
-            'loop_value_2: while self.state.with(|state| state.index)
-                < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                    &self.state.with(|state| state.text.clone()),
-                ))?
+            'loop_value_2: while self.index
+                < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&self.text))?
             {
                 let character: String = self.peek()?;
                 if escaped {
                     escaped = false;
                     {
-                        let update_receiver_2 = self;
-                        update_receiver_2.state.with_mut(|state| {
-                            let update_location_2 = &mut state.index;
+                        let update_receiver_2 = &mut *self;
+                        {
+                            let update_location_2 = &mut update_receiver_2.index;
                             let update_previous_2 = *update_location_2;
                             let update_next_2 = update_previous_2 + 1;
                             {
                                 *update_location_2 = update_next_2;
                                 update_next_2
                             }
-                        })
+                        }
                     };
                     continue 'loop_value_2;
                 }
                 if quote == "\"" && character == "\\" {
                     escaped = true;
                     {
-                        let update_receiver_3 = self;
-                        update_receiver_3.state.with_mut(|state| {
-                            let update_location_3 = &mut state.index;
+                        let update_receiver_3 = &mut *self;
+                        {
+                            let update_location_3 = &mut update_receiver_3.index;
                             let update_previous_3 = *update_location_3;
                             let update_next_3 = update_previous_3 + 1;
                             {
                                 *update_location_3 = update_next_3;
                                 update_next_3
                             }
-                        })
+                        }
                     };
                     continue 'loop_value_2;
                 }
@@ -440,16 +859,16 @@ impl TomlValueReader {
                         }
                     }
                     {
-                        let update_receiver_4 = self;
-                        update_receiver_4.state.with_mut(|state| {
-                            let update_location_4 = &mut state.index;
+                        let update_receiver_4 = &mut *self;
+                        {
+                            let update_location_4 = &mut update_receiver_4.index;
                             let update_previous_4 = *update_location_4;
                             let update_next_4 = update_previous_4 + 1;
                             {
                                 *update_location_4 = update_next_4;
                                 update_next_4
                             }
-                        })
+                        }
                     };
                     continue 'loop_value_2;
                 }
@@ -457,74 +876,70 @@ impl TomlValueReader {
                     break 'loop_value_2;
                 }
                 {
-                    let update_receiver_5 = self;
-                    update_receiver_5.state.with_mut(|state| {
-                        let update_location_5 = &mut state.index;
+                    let update_receiver_5 = &mut *self;
+                    {
+                        let update_location_5 = &mut update_receiver_5.index;
                         let update_previous_5 = *update_location_5;
                         let update_next_5 = update_previous_5 + 1;
                         {
                             *update_location_5 = update_next_5;
                             update_next_5
                         }
-                    })
+                    }
                 };
             }
             if self.peek()? != "=" {
                 return Err(
-                    rt::TsonicError::from(
-                        self.error(String::from("TOML inline table entry requires '='"))?,
+                    rt::TsonicError::TsumoError(
+                        self.error(String::from("TOML inline table entry requires '='")),
                     ),
                 );
             }
-            let key: js_abi::JsArray<String> = SPLIT_TOML_KEY
-                .with(|module_binding| module_binding.load())
-                .call((
-                    js_string::trim(&js_string::slice_to(
-                        &self.state.with(|state| state.text.clone()),
+            let key: js_abi::JsArray<String> = split_toml_key(
+                &js_string::trim(&{
+                    let operation_input_0 = self.text.clone();
+                    js_string::slice_to(
+                        &operation_input_0,
                         tsonic_rust_runtime::conversions::i32_to_f64(key_start),
-                        tsonic_rust_runtime::conversions::i32_to_f64(
-                            self.state.with(|state| state.index),
-                        ),
+                        tsonic_rust_runtime::conversions::i32_to_f64(self.index),
                     )
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?),
-                    self.state.with(|state| state.source_path.clone()),
-                    self.state.with(|state| state.line),
-                ))?;
+                }?),
+                self.source_path.clone(),
+                self.line,
+            )?;
             {
-                let update_receiver_6 = self;
-                update_receiver_6.state.with_mut(|state| {
-                    let update_location_6 = &mut state.index;
+                let update_receiver_6 = &mut *self;
+                {
+                    let update_location_6 = &mut update_receiver_6.index;
                     let update_previous_6 = *update_location_6;
                     let update_next_6 = update_previous_6 + 1;
                     {
                         *update_location_6 = update_next_6;
                         update_next_6
                     }
-                })
+                }
             };
-            SET_TOML_VALUE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    fields.clone(),
-                    key.clone(),
-                    self.parse_value()?,
-                    self.state.with(|state| state.source_path.clone()),
-                    self.state.with(|state| state.line),
-                ))?;
+            set_toml_value(
+                fields.clone(),
+                key.clone(),
+                self.parse_value()?,
+                self.source_path.clone(),
+                self.line,
+            )?;
             self.skip_whitespace()?;
             let separator: String = self.peek()?;
             if separator == "}" {
                 {
-                    let update_receiver_7 = self;
-                    update_receiver_7.state.with_mut(|state| {
-                        let update_location_7 = &mut state.index;
+                    let update_receiver_7 = &mut *self;
+                    {
+                        let update_location_7 = &mut update_receiver_7.index;
                         let update_previous_7 = *update_location_7;
                         let update_next_7 = update_previous_7 + 1;
                         {
                             *update_location_7 = update_next_7;
                             update_next_7
                         }
-                    })
+                    }
                 };
                 return Ok({
                     let upcast_value_2 = fields.clone();
@@ -536,32 +951,28 @@ impl TomlValueReader {
             }
             if separator != "," {
                 return Err(
-                    rt::TsonicError::from(
-                        self.error(
-                            String::from("TOML inline table entries must be separated by commas"),
-                        )?,
-                    ),
+                    rt::TsonicError::TsumoError(self.error(
+                        String::from("TOML inline table entries must be separated by commas"),
+                    )),
                 );
             }
             {
-                let update_receiver_8 = self;
-                update_receiver_8.state.with_mut(|state| {
-                    let update_location_8 = &mut state.index;
+                let update_receiver_8 = &mut *self;
+                {
+                    let update_location_8 = &mut update_receiver_8.index;
                     let update_previous_8 = *update_location_8;
                     let update_next_8 = update_previous_8 + 1;
                     {
                         *update_location_8 = update_next_8;
                         update_next_8
                     }
-                })
+                }
             };
             self.skip_whitespace()?;
             if self.peek()? == "}" {
                 return Err(
-                    rt::TsonicError::from(
-                        self.error(
-                            String::from("TOML inline tables do not allow a trailing comma"),
-                        )?,
+                    rt::TsonicError::TsumoError(
+                        self.error(String::from("TOML inline tables do not allow a trailing comma")),
                     ),
                 );
             }
@@ -570,55 +981,52 @@ impl TomlValueReader {
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_bare_scalar(
-        &self,
-    ) -> rt::TsonicResult<crate::template::values::base::TemplateValue> {
-        let start: i32 = self.state.with(|state| state.index);
-        'loop_value: while self.state.with(|state| state.index)
-            < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                &self.state.with(|state| state.text.clone()),
-            ))?
+        &mut self,
+    ) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
+        let start: i32 = self.index;
+        'loop_value: while self.index
+            < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&self.text))?
         {
             let character: String = self.peek()?;
             if character == ","
                 || character == "]"
                 || character == "}"
-                || js_abi::JsRegExp::new("\\s", "")?
-                    .test(&character)
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?
+                || js_abi::regexp_test_native(&js_abi::regexp_new_native("\\s", "")?, &character)?
             {
                 break 'loop_value;
             }
             {
-                let update_receiver = self;
-                update_receiver.state.with_mut(|state| {
-                    let update_location = &mut state.index;
+                let update_receiver = &mut *self;
+                {
+                    let update_location = &mut update_receiver.index;
                     let update_previous = *update_location;
                     let update_next = update_previous + 1;
                     {
                         *update_location = update_next;
                         update_next
                     }
-                })
+                }
             };
         }
-        let raw: String = js_string::trim(&js_string::slice_to(
-            &self.state.with(|state| state.text.clone()),
-            tsonic_rust_runtime::conversions::i32_to_f64(start),
-            tsonic_rust_runtime::conversions::i32_to_f64(self.state.with(|state| state.index)),
-        )
-        .map_err(tsonic_rust_runtime::TsonicError::from)?);
+        let raw: String = js_string::trim(&{
+            let operation_input_0 = self.text.clone();
+            js_string::slice_to(
+                &operation_input_0,
+                tsonic_rust_runtime::conversions::i32_to_f64(start),
+                tsonic_rust_runtime::conversions::i32_to_f64(self.index),
+            )
+        }?);
         if raw.is_empty() {
             return Err(
-                rt::TsonicError::from(self.error(String::from("TOML value cannot be empty"))?),
+                rt::TsonicError::TsumoError(self.error(String::from("TOML value cannot be empty"))),
             );
         }
-        let source_path: Option<String> = self.state.with(|state| state.source_path.clone());
-        let line: i32 = self.state.with(|state| state.line);
+        let source_path: Option<String> = self.source_path.clone();
+        let line: i32 = self.line;
         let try_body: rt::TsonicResult<rt::Completion<crate::template::values::base::TemplateValue>> =
             rt::completion_region(|| {
-                Ok(rt::Completion::Return(SCALAR_TO_TEMPLATE_VALUE
-                    .with(|module_binding| module_binding.load())
-                    .call((crate::utils::structured_scalars::parse_structured_scalar(
+                Ok(rt::Completion::Return(scalar_to_template_value(
+                    crate::utils::structured_scalars::parse_structured_scalar(
                         &raw,
                         crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                         {
@@ -629,27 +1037,31 @@ impl TomlValueReader {
                                 rt::TsonicResult<crate::diagnostics::TsumoError>,
                             >::new(move |callable_arguments| {
                                 let message = callable_arguments.0;
-                                TOML_ERROR
-                                    .with(|module_binding| module_binding.load())
-                                    .call((
-                                        message.clone(),
-                                        capture_source_path.clone(),
-                                        capture_line,
-                                    ))
+                                Ok::<_, rt::TsonicError>(toml_error(
+                                    message,
+                                    capture_source_path.clone(),
+                                    capture_line,
+                                ))
                             })
                         },
-                    )?,))?))
+                    )?,
+                )))
             });
         let try_flow: rt::TsonicResult<rt::Completion<crate::template::values::base::TemplateValue>> =
             match try_body {
                 Ok(completion) => Ok(completion),
                 Err(error) => rt::completion_region(|| {
-                    if js_abi::JsRegExp::new("^\\d{4}-\\d{2}-\\d{2}(?:[Tt ][0-9:.+-]+[Zz]?)?$", "")?
-                        .test(&raw)
-                        .map_err(tsonic_rust_runtime::TsonicError::from)?
-                        || js_abi::JsRegExp::new("^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?$", "")?
-                            .test(&raw)
-                            .map_err(tsonic_rust_runtime::TsonicError::from)?
+                    if js_abi::regexp_test_native(
+                        &js_abi::regexp_new_native(
+                            "^\\d{4}-\\d{2}-\\d{2}(?:[Tt ][0-9:.+-]+[Zz]?)?$",
+                            "",
+                        )?,
+                        &raw,
+                    )?
+                        || js_abi::regexp_test_native(
+                            &js_abi::regexp_new_native("^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?$", "")?,
+                            &raw,
+                        )?
                     {
                         return Ok(rt::Completion::Return({
                             let upcast_value =
@@ -660,7 +1072,7 @@ impl TomlValueReader {
                             }
                         }));
                     }
-                    Err(error.clone())
+                    Err(error)
                 }),
             };
         let try_flow = try_flow?;
@@ -676,1072 +1088,345 @@ impl TomlValueReader {
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn skip_whitespace(&self) -> rt::TsonicResult<()> {
-        while self.state.with(|state| state.index)
-            < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                &self.state.with(|state| state.text.clone()),
-            ))?
-            && js_abi::JsRegExp::new("\\s", "")?
-                .test(&js_string::char_at(
-                    &self.state.with(|state| state.text.clone()),
-                    tsonic_rust_runtime::conversions::i32_to_f64(
-                        self.state.with(|state| state.index),
-                    ),
+    pub fn skip_whitespace(&mut self) -> Result<(), rt::TsonicError> {
+        while self.index
+            < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&self.text))?
+            && {
+                let operation_input_0 = js_abi::regexp_new_native("\\s", "")?;
+                js_abi::regexp_test_native(
+                    &operation_input_0,
+                    &{
+                        let operation_input_0_2 = self.text.clone();
+                        js_string::char_at(
+                            &operation_input_0_2,
+                            tsonic_rust_runtime::conversions::i32_to_f64(self.index),
+                        )
+                    }?,
                 )
-                .map_err(tsonic_rust_runtime::TsonicError::from)?)
-                .map_err(tsonic_rust_runtime::TsonicError::from)?
+            }?
         {
             {
-                let update_receiver = self;
-                update_receiver.state.with_mut(|state| {
-                    let update_location = &mut state.index;
+                let update_receiver = &mut *self;
+                {
+                    let update_location = &mut update_receiver.index;
                     let update_previous = *update_location;
                     let update_next = update_previous + 1;
                     {
                         *update_location = update_next;
                         update_next
                     }
-                })
+                }
             };
         }
         Ok(())
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn peek(&self) -> rt::TsonicResult<String> {
-        Ok(if self.state.with(|state| state.index)
-            < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                &self.state.with(|state| state.text.clone()),
-            ))?
+    pub fn peek(&self) -> Result<String, rt::TsonicError> {
+        Ok(if self.index
+            < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&self.text))?
         {
-            js_string::char_at(
-                &self.state.with(|state| state.text.clone()),
-                tsonic_rust_runtime::conversions::i32_to_f64(self.state.with(|state| state.index)),
-            )
-            .map_err(tsonic_rust_runtime::TsonicError::from)?
+            {
+                let operation_input_0 = self.text.clone();
+                js_string::char_at(
+                    &operation_input_0,
+                    tsonic_rust_runtime::conversions::i32_to_f64(self.index),
+                )
+            }?
         } else {
             String::from("")
         })
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn next(&self) -> rt::TsonicResult<String> {
-        if self.state.with(|state| state.index)
-            >= tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                &self.state.with(|state| state.text.clone()),
-            ))?
+    #[expect(clippy::should_implement_trait, reason = "authored method contract")]
+    pub fn next(&mut self) -> Result<String, rt::TsonicError> {
+        if self.index
+            >= tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&self.text))?
         {
             return Err(
-                rt::TsonicError::from(self.error(String::from("Unexpected end of TOML value"))?),
+                rt::TsonicError::TsumoError(
+                    self.error(String::from("Unexpected end of TOML value")),
+                ),
             );
         }
-        Ok(
+        {
+            let operation_input_0 = self.text.clone();
             js_string::char_at(
-                &self.state.with(|state| state.text.clone()),
+                &operation_input_0,
                 tsonic_rust_runtime::conversions::i32_to_f64({
-                    let update_receiver = self;
-                    update_receiver.state.with_mut(|state| {
-                        let update_location = &mut state.index;
+                    let update_receiver = &mut *self;
+                    {
+                        let update_location = &mut update_receiver.index;
                         let update_previous = *update_location;
                         let update_next = update_previous + 1;
                         {
                             *update_location = update_next;
                             update_previous
                         }
-                    })
+                    }
                 }),
             )
-            .map_err(tsonic_rust_runtime::TsonicError::from)?,
-        )
+        }
+        .map_err(rt::TsonicError::from)
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn expect(&self, character: String) -> rt::TsonicResult<()> {
+    pub fn expect(&mut self, character: String) -> Result<(), rt::TsonicError> {
         if self.next()? != character {
             return Err(
-                rt::TsonicError::from(
-                    self.error(format!(
-                        "{}{}{}",
-                        String::from("Expected '"),
-                        rt::source_string(&character),
-                        String::from("'"),
-                    ))?,
-                ),
+                rt::TsonicError::TsumoError(self.error(format!(
+                    "{}{}{}",
+                    String::from("Expected '"),
+                    character,
+                    String::from("'"),
+                ))),
             );
         }
         Ok(())
     }
 
     #[allow(dead_code, reason = "preserves the checked source contract")]
-    pub fn error(&self, message: String) -> rt::TsonicResult<crate::diagnostics::TsumoError> {
-        TOML_ERROR
-            .with(|module_binding| module_binding.load())
-            .call((
-                message.clone(),
-                self.state.with(|state| state.source_path.clone()),
-                self.state.with(|state| state.line),
-            ))
+    pub fn error(&self, message: String) -> crate::diagnostics::TsumoError {
+        toml_error(message, self.source_path.clone(), self.line)
     }
 }
 
-pub type ParseTomlTemplateDataCallable =
-    rt::Callable<
-        (String, Option<String>),
-        rt::TsonicResult<crate::template::values::dict::DictValue>,
-    >;
-
-std::thread_local! {
-    pub static PARSE_TOML_TEMPLATE_DATA: rt::ModuleCell<ParseTomlTemplateDataCallable> = const { rt::ModuleCell::new() };
-}
-
-#[doc(hidden)]
-pub fn module_init() {
+pub fn parse_toml_template_data(
+    text: String,
+    source_path: Option<String>,
+) -> Result<crate::template::values::dict::DictValue, rt::TsonicError> {
+    let root: crate::template::values::dict::DictValue =
+        crate::template::values::dict::DictValue::new(js_abi::JsMap::new());
+    let mut current_table: crate::template::values::dict::DictValue = root.clone();
+    let declared_tables: js_abi::JsSet<String> = js_abi::JsSet::new();
+    let statements: js_abi::JsArray<TomlStatement> =
+        collect_toml_statements(&text, source_path.clone())?;
     {
-        let module_value = rt::Callable::<
-            (String, Option<String>, i32),
-            rt::TsonicResult<crate::diagnostics::TsumoError>,
-        >::new(move |callable_arguments| {
-            let message = callable_arguments.0;
-            let source_path = callable_arguments.1;
-            let line = callable_arguments.2;
-            Ok::<_, rt::TsonicError>(crate::diagnostics::create_tsumo_error(
-                String::from("TSUMO_TEMPLATE_DATA_TOML_INVALID"),
-                message.clone(),
-                source_path.clone(),
-                Some(tsonic_rust_runtime::conversions::i32_to_f64(line)),
-                Some(1.0),
-            ))
-        });
-        TOML_ERROR.with(|module_binding| module_binding.initialize(module_value))
-    };
-    {
-        let module_value_2 = rt::Callable::<
-            (crate::params::ParamValue,),
-            rt::TsonicResult<crate::template::values::base::TemplateValue>,
-        >::new(move |callable_arguments_2| {
-            let value = callable_arguments_2.0;
-            if value.state.with(|state| state.kind)
-                == crate::params::PARAM_KIND_BOOL.with(|module_binding| module_binding.load())
-            {
-                return Ok::<_, rt::TsonicError>({
-                    let upcast_value = crate::template::values::primitives::BoolValue::new(
-                        value.state.with(|state| state.bool_value),
-                    );
-                    crate::template::values::base::TemplateValue {
-                        identity: upcast_value.identity.clone(),
-                        dispatch: upcast_value.dispatch.clone(),
-                    }
-                });
-            }
-            if value.state.with(|state| state.kind)
-                == crate::params::PARAM_KIND_NUMBER.with(|module_binding| module_binding.load())
-            {
-                return Ok::<_, rt::TsonicError>({
-                    let upcast_value_2 = crate::template::values::primitives::NumberValue::new(
-                        value.state.with(|state| state.number_value),
-                    );
-                    crate::template::values::base::TemplateValue {
-                        identity: upcast_value_2.identity.clone(),
-                        dispatch: upcast_value_2.dispatch.clone(),
-                    }
-                });
-            }
-            Ok::<_, rt::TsonicError>({
-                let upcast_value_3 = crate::template::values::primitives::StringValue::new(
-                    value.state.with(|state| state.string_value.clone()),
-                );
-                crate::template::values::base::TemplateValue {
-                    identity: upcast_value_3.identity.clone(),
-                    dispatch: upcast_value_3.dispatch.clone(),
-                }
-            })
-        });
-        SCALAR_TO_TEMPLATE_VALUE
-            .with(|module_binding_2| module_binding_2.initialize(module_value_2))
-    };
-    {
-        let module_value_3 =
-            rt::Callable::<(String,), rt::TsonicResult<bool>>::new(move |callable_arguments_3| {
-                let text = callable_arguments_3.0;
-                let mut square_depth: i32 = 0;
-                let mut object_depth: i32 = 0;
-                let mut quote: String = String::from("");
-                let mut escaped: bool = false;
-                {
-                    let mut index: i32 = 0;
-                    'loop_value: while index
-                        < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&text))?
-                    {
-                        let character: String = js_string::char_at(
-                            &text,
-                            tsonic_rust_runtime::conversions::i32_to_f64(index),
-                        )
-                        .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                        if escaped {
-                            escaped = false;
-                            index += 1;
-                            continue 'loop_value;
-                        }
-                        if quote == "\"" && character == "\\" {
-                            escaped = true;
-                            index += 1;
-                            continue 'loop_value;
-                        }
-                        if character == "\"" || character == "'" {
-                            if quote.is_empty() {
-                                quote = character.clone();
-                            } else {
-                                if quote == character {
-                                    quote = String::from("");
-                                }
-                            }
-                            index += 1;
-                            continue 'loop_value;
-                        }
-                        if !quote.is_empty() {
-                            index += 1;
-                            continue 'loop_value;
-                        }
-                        if character == "[" {
-                            square_depth += 1;
-                        } else {
-                            if character == "]" {
-                                square_depth -= 1;
-                            } else {
-                                if character == "{" {
-                                    object_depth += 1;
-                                } else {
-                                    if character == "}" {
-                                        object_depth -= 1;
-                                    }
-                                }
-                            }
-                        }
-                        if square_depth < 0 || object_depth < 0 {
-                            return Ok::<_, rt::TsonicError>(true);
-                        }
-                        index += 1;
-                    }
-                }
-                Ok::<_, rt::TsonicError>(quote.is_empty() && square_depth == 0 && object_depth == 0)
-            });
-        STATEMENT_IS_COMPLETE.with(|module_binding_3| module_binding_3.initialize(module_value_3))
-    };
-    {
-        let module_value_4 = rt::Callable::<
-            (String, Option<String>),
-            rt::TsonicResult<js_abi::JsArray<TomlStatement>>,
-        >::new(move |callable_arguments_4| {
-            let text = callable_arguments_4.0;
-            let source_path = callable_arguments_4.1;
-            let normalized: String = js_string::replace_all(
-                &js_string::replace_all(&text, "\r\n", "\n")
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?,
-                "\r",
-                "\n",
-            )
-            .map_err(tsonic_rust_runtime::TsonicError::from)?;
-            let lines: js_abi::JsArray<String> = js_string::split_all(&normalized, "\n")
-                .map_err(tsonic_rust_runtime::TsonicError::from)?;
-            let statements: js_abi::JsArray<TomlStatement> = js_abi::JsArray::from_dense(vec![]);
-            let mut pending: String = String::from("");
-            let mut pending_line: i32 = 0;
-            {
-                let mut index: i32 = 0;
-                'loop_value_2: while index < tsonic_rust_runtime::conversions::usize_to_i32(lines.len())? {
-                    let line: String = js_string::trim(
-                        &crate::utils::structured_scalars::strip_structured_comment(
-                            match lines
-                                .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
-                                .as_ref()
-                            {
-                                Some(flow_value) => flow_value.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                            crate::utils::structured_scalars::StructuredScalarFormat::Toml,
-                        )?,
-                    );
-                    if line.is_empty() {
-                        index += 1;
-                        continue 'loop_value_2;
-                    }
-                    if pending.is_empty() {
-                        pending = line.clone();
-                        pending_line = index + 1;
-                    } else {
-                        {
-                            let current_2 = pending.clone();
-                            pending = format!("{}{}{}", current_2, String::from(" "), line)
-                        };
-                    }
-                    if !STATEMENT_IS_COMPLETE
-                        .with(|module_binding| module_binding.load())
-                        .call((pending.clone(),))?
-                    {
-                        index += 1;
-                        continue 'loop_value_2;
-                    }
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        statements.push_many([TomlStatement::new(pending.clone(), pending_line)]),
-                    )?;
-                    pending = String::from("");
-                    pending_line = 0;
-                    index += 1;
-                }
-            }
-            if !pending.is_empty() {
-                return Err(
-                    rt::TsonicError::from(
-                        TOML_ERROR
-                            .with(|module_binding| module_binding.load())
-                            .call((
-                                String::from("TOML statement is incomplete"),
-                                source_path.clone(),
-                                pending_line,
-                            ))?,
-                    ),
-                );
-            }
-            Ok::<_, rt::TsonicError>(statements.clone())
-        });
-        COLLECT_TOML_STATEMENTS.with(|module_binding_4| module_binding_4.initialize(module_value_4))
-    };
-    {
-        let module_value_5 = rt::Callable::<
-            (String, Option<String>, i32),
-            rt::TsonicResult<js_abi::JsArray<String>>,
-        >::new(move |callable_arguments_5| {
-            let text = callable_arguments_5.0;
-            let source_path = callable_arguments_5.1;
-            let line = callable_arguments_5.2;
-            let segments: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-            let mut start: i32 = 0;
-            let mut quote: String = String::from("");
-            let mut escaped: bool = false;
-            {
-                let mut index: i32 = 0;
-                'loop_value_3: while index
-                    <= tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&text))?
-                {
-                    let character: String = if index
-                        < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&text))?
-                    {
-                        js_string::char_at(
-                            &text,
-                            tsonic_rust_runtime::conversions::i32_to_f64(index),
-                        )
-                        .map_err(tsonic_rust_runtime::TsonicError::from)?
-                    } else {
-                        String::from(".")
-                    };
-                    if escaped {
-                        escaped = false;
-                        index += 1;
-                        continue 'loop_value_3;
-                    }
-                    if quote == "\"" && character == "\\" {
-                        escaped = true;
-                        index += 1;
-                        continue 'loop_value_3;
-                    }
-                    if character == "\"" || character == "'" {
-                        if quote.is_empty() {
-                            quote = character.clone();
-                        } else {
-                            if quote == character {
-                                quote = String::from("");
-                            }
-                        }
-                        index += 1;
-                        continue 'loop_value_3;
-                    }
-                    if character != "." || !quote.is_empty() {
-                        index += 1;
-                        continue 'loop_value_3;
-                    }
-                    let raw: String = js_string::trim(&js_string::slice_to(
-                        &text,
-                        tsonic_rust_runtime::conversions::i32_to_f64(start),
-                        tsonic_rust_runtime::conversions::i32_to_f64(index),
-                    )
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?);
-                    if raw.is_empty() {
-                        return Err(
-                            rt::TsonicError::from(
-                                TOML_ERROR
-                                    .with(|module_binding| module_binding.load())
-                                    .call((
-                                        String::from("TOML key segment cannot be empty"),
-                                        source_path.clone(),
-                                        line,
-                                    ))?,
-                            ),
-                        );
-                    }
-                    if js_string::starts_with_from_start(&raw, "\"")
-                        || js_string::starts_with_from_start(&raw, "'")
-                    {
-                        let parsed: crate::params::ParamValue =
-                            crate::utils::structured_scalars::parse_structured_scalar(
-                                &raw,
-                                crate::utils::structured_scalars::StructuredScalarFormat::Toml,
-                                {
-                                    let capture_source_path = source_path.clone();
-                                    let capture_line = line;
-                                    rt::Callable::<
-                                        (String,),
-                                        rt::TsonicResult<crate::diagnostics::TsumoError>,
-                                    >::new(move |callable_arguments_6| {
-                                        let message = callable_arguments_6.0;
-                                        TOML_ERROR
-                                            .with(|module_binding| module_binding.load())
-                                            .call((
-                                                message.clone(),
-                                                capture_source_path.clone(),
-                                                capture_line,
-                                            ))
-                                    })
-                                },
-                            )?;
-                        if parsed.state.with(|state| state.kind)
-                            != crate::params::PARAM_KIND_STRING
-                                .with(|module_binding| module_binding.load())
-                        {
-                            return Err(
-                                rt::TsonicError::from(
-                                    TOML_ERROR
-                                        .with(|module_binding| module_binding.load())
-                                        .call((
-                                            String::from("Quoted TOML key must be a string"),
-                                            source_path.clone(),
-                                            line,
-                                        ))?,
-                                ),
-                            );
-                        }
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            segments
-                                .push_many([parsed.state.with(|state| state.string_value.clone())]),
-                        )?;
-                    } else {
-                        if !js_abi::JsRegExp::new("^[A-Za-z0-9_-]+$", "")?
-                            .test(&raw)
-                            .map_err(tsonic_rust_runtime::TsonicError::from)?
-                        {
-                            return Err(
-                                rt::TsonicError::from(
-                                    TOML_ERROR
-                                        .with(|module_binding| module_binding.load())
-                                        .call((
-                                            format!(
-                                                "{}{}{}",
-                                                String::from("TOML key segment '"),
-                                                rt::source_string(&raw),
-                                                String::from("' is invalid"),
-                                            ),
-                                            source_path.clone(),
-                                            line,
-                                        ))?,
-                                ),
-                            );
-                        }
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            segments.push_many([raw.clone()]),
-                        )?;
-                    }
-                    start = index + 1;
-                    index += 1;
-                }
-            }
-            if !quote.is_empty() {
-                return Err(
-                    rt::TsonicError::from(
-                        TOML_ERROR
-                            .with(|module_binding| module_binding.load())
-                            .call((
-                                String::from("TOML key contains an unterminated quote"),
-                                source_path.clone(),
-                                line,
-                            ))?,
-                    ),
-                );
-            }
-            Ok::<_, rt::TsonicError>(segments.clone())
-        });
-        SPLIT_TOML_KEY.with(|module_binding_5| module_binding_5.initialize(module_value_5))
-    };
-    {
-        let module_value_6 = rt::Callable::<
-            (String, Option<String>, i32),
-            rt::TsonicResult<i32>,
-        >::new(move |callable_arguments_7| {
-            let text = callable_arguments_7.0;
-            let source_path = callable_arguments_7.1;
-            let line = callable_arguments_7.2;
-            let mut square_depth: i32 = 0;
-            let mut object_depth: i32 = 0;
-            let mut quote: String = String::from("");
-            let mut escaped: bool = false;
-            {
-                let mut index: i32 = 0;
-                'loop_value_4: while index
-                    < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&text))?
-                {
-                    let character: String = js_string::char_at(
-                        &text,
-                        tsonic_rust_runtime::conversions::i32_to_f64(index),
-                    )
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                    if escaped {
-                        escaped = false;
-                        index += 1;
-                        continue 'loop_value_4;
-                    }
-                    if quote == "\"" && character == "\\" {
-                        escaped = true;
-                        index += 1;
-                        continue 'loop_value_4;
-                    }
-                    if character == "\"" || character == "'" {
-                        if quote.is_empty() {
-                            quote = character.clone();
-                        } else {
-                            if quote == character {
-                                quote = String::from("");
-                            }
-                        }
-                        index += 1;
-                        continue 'loop_value_4;
-                    }
-                    if !quote.is_empty() {
-                        index += 1;
-                        continue 'loop_value_4;
-                    }
-                    if character == "[" {
-                        square_depth += 1;
-                    } else {
-                        if character == "]" {
-                            square_depth -= 1;
-                        } else {
-                            if character == "{" {
-                                object_depth += 1;
-                            } else {
-                                if character == "}" {
-                                    object_depth -= 1;
-                                } else {
-                                    if character == "=" && square_depth == 0 && object_depth == 0 {
-                                        return Ok::<_, rt::TsonicError>(index);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    index += 1;
-                }
-            }
-            Err(
-                rt::TsonicError::from(
-                    TOML_ERROR
-                        .with(|module_binding| module_binding.load())
-                        .call((
-                            String::from("TOML assignment requires an '=' separator"),
-                            source_path.clone(),
-                            line,
-                        ))?,
-                ),
-            )
-        });
-        ASSIGNMENT_SEPARATOR.with(|module_binding_6| module_binding_6.initialize(module_value_6))
-    };
-    {
-        let module_value_7 = rt::Callable::<
-            (
-                crate::template::values::base::TemplateValue,
-                String,
-                Option<String>,
-                i32,
-            ),
-            rt::TsonicResult<crate::template::values::dict::DictValue>,
-        >::new(move |callable_arguments_8| {
-            let value = callable_arguments_8.0;
-            let context = callable_arguments_8.1;
-            let source_path = callable_arguments_8.2;
-            let line = callable_arguments_8.3;
-            if value
-                .dispatch
-                .clone()
-                .downcast_template_value_to_dict_value()
-                .is_some()
-            {
-                return Ok::<_, rt::TsonicError>({
-                    let downcast_value = &value;
-                    crate::template::values::dict::DictValue {
-                        identity: downcast_value.identity.clone(),
-                        dispatch: downcast_value
-                            .dispatch
-                            .clone()
-                            .downcast_template_value_to_dict_value()
-                            .unwrap(),
-                    }
-                });
-            }
-            Err(
-                rt::TsonicError::from(
-                    TOML_ERROR
-                        .with(|module_binding| module_binding.load())
-                        .call((
-                            format!(
-                                "{}{}{}",
-                                String::from(""),
-                                rt::source_string(&context),
-                                String::from(" conflicts with a non-table value"),
-                            ),
-                            source_path.clone(),
-                            line,
-                        ))?,
-                ),
-            )
-        });
-        REQUIRE_DICTIONARY.with(|module_binding_7| module_binding_7.initialize(module_value_7))
-    };
-    {
-        let module_value_8 = rt::Callable::<
-            (
-                crate::template::values::dict::DictValue,
-                js_abi::JsArray<String>,
-                Option<String>,
-                i32,
-            ),
-            rt::TsonicResult<crate::template::values::dict::DictValue>,
-        >::new(move |callable_arguments_9| {
-            let root = callable_arguments_9.0;
-            let segments = callable_arguments_9.1;
-            let source_path = callable_arguments_9.2;
-            let line = callable_arguments_9.3;
-            let mut current: crate::template::values::dict::DictValue = root.clone();
-            {
-                let mut index: i32 = 0;
-                'loop_value_5: while index < tsonic_rust_runtime::conversions::usize_to_i32(segments.len())? {
-                    let segment: String = match segments
-                        .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
-                        .as_ref()
-                    {
-                        Some(flow_value_2) => flow_value_2.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    };
-                    let existing: Option<crate::template::values::base::TemplateValue> = {
-                        let dispatch_receiver = &current;
-                        dispatch_receiver.dispatch.read_dict_value_value()
-                    }
-                    .get(&segment);
-                    if existing.is_none() {
-                        let created: crate::template::values::dict::DictValue =
-                            crate::template::values::dict::DictValue::new(js_abi::JsMap::new());
-                        {
-                            let dispatch_receiver_2 = &current;
-                            dispatch_receiver_2.dispatch.read_dict_value_value()
-                        }
-                        .set(segment.clone(), {
-                            let upcast_value_4 = created.clone();
-                            crate::template::values::base::TemplateValue {
-                                identity: upcast_value_4.identity.clone(),
-                                dispatch: upcast_value_4.dispatch.clone(),
-                            }
-                        });
-                        current = created.clone();
-                        index += 1;
-                        continue 'loop_value_5;
-                    }
-                    current = REQUIRE_DICTIONARY
-                        .with(|module_binding| module_binding.load())
-                        .call((
-                            match existing.as_ref() {
-                                Some(flow_value_3) => flow_value_3.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                            format!(
-                                "{}{}{}",
-                                String::from("TOML table '"),
-                                rt::source_string(&segments.join(".")),
-                                String::from("'"),
-                            ),
-                            source_path.clone(),
-                            line,
-                        ))?;
-                    index += 1;
-                }
-            }
-            Ok::<_, rt::TsonicError>(current.clone())
-        });
-        ENSURE_DICTIONARY_PATH.with(|module_binding_8| module_binding_8.initialize(module_value_8))
-    };
-    {
-        let module_value_9 = rt::Callable::<
-            (
-                crate::template::values::dict::DictValue,
-                js_abi::JsArray<String>,
-                crate::template::values::base::TemplateValue,
-                Option<String>,
-                i32,
-            ),
-            rt::TsonicResult<()>,
-        >::new(move |callable_arguments_10| {
-            let table = callable_arguments_10.0;
-            let key = callable_arguments_10.1;
-            let value = callable_arguments_10.2;
-            let source_path = callable_arguments_10.3;
-            let line = callable_arguments_10.4;
-            let parent_segments: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-            {
-                let mut index: i32 = 0;
-                while index < tsonic_rust_runtime::conversions::usize_to_i32(key.len())? - 1 {
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        parent_segments.push_many([match key
-                            .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
-                            .as_ref()
-                        {
-                            Some(flow_value_4) => flow_value_4.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        }]),
-                    )?;
-                    index += 1;
-                }
-            }
-            let parent: crate::template::values::dict::DictValue = ENSURE_DICTIONARY_PATH
-                .with(|module_binding| module_binding.load())
-                .call((
-                    table.clone(),
-                    parent_segments.clone(),
-                    source_path.clone(),
-                    line,
-                ))?;
-            let name: String = match key
-                .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
-                    tsonic_rust_runtime::conversions::usize_to_i32(key.len())? - 1,
-                ))
+        let mut index: i32 = 0;
+        'loop_value: while index < tsonic_rust_runtime::conversions::usize_to_i32(statements.len())? {
+            let statement: TomlStatement = match statements
+                .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
                 .as_ref()
             {
-                Some(flow_value_5) => flow_value_5.clone(),
+                Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            if {
-                let dispatch_receiver_3 = &parent;
-                dispatch_receiver_3.dispatch.read_dict_value_value()
-            }
-            .has(&name)
+            let raw: String = js_string::trim(&statement.state.with(|state| state.text.clone()));
+            if js_string::starts_with_from_start(&raw, "[[")
+                && js_string::ends_with_at_end(&raw, "]]")
             {
-                return Err(
-                    rt::TsonicError::from(
-                        TOML_ERROR
-                            .with(|module_binding| module_binding.load())
-                            .call((
-                                format!(
-                                    "{}{}{}",
-                                    String::from("TOML key '"),
-                                    rt::source_string(&key.join(".")),
-                                    String::from("' is declared more than once"),
-                                ),
-                                source_path.clone(),
-                                line,
-                            ))?,
-                    ),
-                );
-            }
-            {
-                let dispatch_receiver_4 = &parent;
-                dispatch_receiver_4.dispatch.read_dict_value_value()
-            }
-            .set(name.clone(), value.clone());
-            Ok::<_, rt::TsonicError>(())
-        });
-        SET_TOML_VALUE.with(|module_binding_9| module_binding_9.initialize(module_value_9))
-    };
-    {
-        let module_value_10 = rt::Callable::<
-            (String, Option<String>),
-            rt::TsonicResult<crate::template::values::dict::DictValue>,
-        >::new(move |callable_arguments_11| {
-            let text = callable_arguments_11.0;
-            let source_path = callable_arguments_11.1;
-            let root: crate::template::values::dict::DictValue =
-                crate::template::values::dict::DictValue::new(js_abi::JsMap::new());
-            let mut current_table: crate::template::values::dict::DictValue = root.clone();
-            let declared_tables: js_abi::JsSet<String> = js_abi::JsSet::new();
-            let statements: js_abi::JsArray<TomlStatement> = COLLECT_TOML_STATEMENTS
-                .with(|module_binding| module_binding.load())
-                .call((text.clone(), source_path.clone()))?;
-            {
-                let mut index: i32 = 0;
-                'loop_value_7: while index < tsonic_rust_runtime::conversions::usize_to_i32(statements.len())? {
-                    let statement: TomlStatement = match statements
-                        .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
-                        .as_ref()
-                    {
-                        Some(flow_value_6) => flow_value_6.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    };
-                    let raw: String =
-                        js_string::trim(&statement.state.with(|state| state.text.clone()));
-                    if js_string::starts_with_from_start(&raw, "[[")
-                        && js_string::ends_with_at_end(&raw, "]]")
-                    {
-                        let path: js_abi::JsArray<String> = SPLIT_TOML_KEY
-                            .with(|module_binding| module_binding.load())
-                            .call((
-                                js_string::trim(&js_string::slice_to(
+                let path: js_abi::JsArray<String> = split_toml_key(
+                    &js_string::trim(&{
+                        let operation_input_0 = raw.clone();
+                        js_string::slice_to(
+                            &operation_input_0,
+                            2.0,
+                            tsonic_rust_runtime::conversions::i32_to_f64(
+                                tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
                                     &raw,
-                                    2.0,
-                                    tsonic_rust_runtime::conversions::i32_to_f64(
-                                        tsonic_rust_runtime::conversions::usize_to_i32(
-                                            js_string::js_len(&raw),
-                                        )? - 2,
-                                    ),
-                                )
-                                .map_err(tsonic_rust_runtime::TsonicError::from)?),
-                                source_path.clone(),
-                                statement.state.with(|state| state.line),
-                            ))?;
-                        if tsonic_rust_runtime::conversions::usize_to_i32(path.len())? == 0 {
-                            return Err(
-                                rt::TsonicError::from(
-                                    TOML_ERROR
-                                        .with(|module_binding| module_binding.load())
-                                        .call((
-                                            String::from("TOML array table name cannot be empty"),
-                                            source_path.clone(),
-                                            statement.state.with(|state| state.line),
-                                        ))?,
-                                ),
-                            );
-                        }
-                        let parent_segments: js_abi::JsArray<String> =
-                            js_abi::JsArray::from_dense(vec![]);
+                                ))? - 2,
+                            ),
+                        )
+                    }?),
+                    source_path.clone(),
+                    statement.state.with(|state| state.line),
+                )?;
+                if tsonic_rust_runtime::conversions::usize_to_i32(path.len())? == 0 {
+                    return Err(rt::TsonicError::TsumoError(toml_error(
+                        String::from("TOML array table name cannot be empty"),
+                        source_path.clone(),
+                        statement.state.with(|state| state.line),
+                    )));
+                }
+                let parent_segments: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+                {
+                    let mut path_index: i32 = 0;
+                    while path_index
+                        < tsonic_rust_runtime::conversions::usize_to_i32(path.len())? - 1
+                    {
                         {
-                            let mut path_index: i32 = 0;
-                            while path_index
-                                < tsonic_rust_runtime::conversions::usize_to_i32(path.len())? - 1
+                            let operation_input_0_2 = parent_segments.clone();
+                            operation_input_0_2.push_many_discard([match path
+                                .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
+                                    path_index,
+                                ))
+                                .as_ref()
                             {
-                                tsonic_rust_runtime::conversions::usize_to_i32(
-                                    parent_segments.push_many([match path
-                                        .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
-                                            path_index,
-                                        ))
-                                        .as_ref()
-                                    {
-                                        Some(flow_value_7) => flow_value_7.clone(),
-                                        None => {
-                                            unreachable!(
-                                                "checked flow selected a missing optional value"
-                                            )
-                                        }
-                                    }]),
-                                )?;
-                                path_index += 1;
-                            }
-                        }
-                        let parent: crate::template::values::dict::DictValue =
-                            ENSURE_DICTIONARY_PATH
-                                .with(|module_binding| module_binding.load())
-                                .call((
-                                    root.clone(),
-                                    parent_segments.clone(),
-                                    source_path.clone(),
-                                    statement.state.with(|state| state.line),
-                                ))?;
-                        let name: String = match path
-                            .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
-                                tsonic_rust_runtime::conversions::usize_to_i32(path.len())? - 1,
-                            ))
-                            .as_ref()
-                        {
-                            Some(flow_value_8) => flow_value_8.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        };
-                        let existing: Option<crate::template::values::base::TemplateValue> = {
-                            let dispatch_receiver_5 = &parent;
-                            dispatch_receiver_5.dispatch.read_dict_value_value()
-                        }
-                        .get(&name);
-                        let entries: crate::template::values::arrays::AnyArrayValue;
-                        if existing.is_none() {
-                            entries = crate::template::values::arrays::AnyArrayValue::new(
-                                js_abi::JsArray::from_dense(vec![]),
-                            );
-                            {
-                                let dispatch_receiver_6 = &parent;
-                                dispatch_receiver_6.dispatch.read_dict_value_value()
-                            }
-                            .set(name.clone(), {
-                                let upcast_value_5 = entries.clone();
-                                crate::template::values::base::TemplateValue {
-                                    identity: upcast_value_5.identity.clone(),
-                                    dispatch: upcast_value_5.dispatch.clone(),
-                                }
-                            });
-                        } else {
-                            if match existing.as_ref() {
-                                Some(flow_value_9) => flow_value_9.clone(),
+                                Some(flow_value_2) => flow_value_2.clone(),
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
-                            }
-                            .dispatch
-                            .clone()
-                            .downcast_template_value_to_any_array_value()
-                            .is_some()
-                            {
-                                entries = {
-                                    let downcast_value_2 = &existing;
-                                    crate::template::values::arrays::AnyArrayValue {
-                                        identity: downcast_value_2
-                                            .as_ref()
-                                            .unwrap()
-                                            .identity
-                                            .clone(),
-                                        dispatch: downcast_value_2
-                                            .as_ref()
-                                            .unwrap()
-                                            .dispatch
-                                            .clone()
-                                            .downcast_template_value_to_any_array_value()
-                                            .unwrap(),
-                                    }
-                                };
-                            } else {
-                                return Err(
-                                    rt::TsonicError::from(
-                                        TOML_ERROR
-                                            .with(|module_binding| module_binding.load())
-                                            .call((
-                                                format!(
-                                                    "{}{}{}",
-                                                    String::from("TOML array table '"),
-                                                    rt::source_string(&path.join(".")),
-                                                    String::from("' conflicts with another value"),
-                                                ),
-                                                source_path.clone(),
-                                                statement.state.with(|state| state.line),
-                                            ))?,
-                                    ),
-                                );
-                            }
-                        }
-                        current_table =
-                            crate::template::values::dict::DictValue::new(js_abi::JsMap::new());
-                        tsonic_rust_runtime::conversions::usize_to_i32({
-                            let dispatch_receiver_7 = &entries;
-                            dispatch_receiver_7.dispatch.read_any_array_value_value()
-                        }
-                        .push_many([{
-                                let upcast_value_6 = current_table.clone();
-                                crate::template::values::base::TemplateValue {
-                                    identity: upcast_value_6.identity.clone(),
-                                    dispatch: upcast_value_6.dispatch.clone(),
-                                }
-                            }]))?;
-                        index += 1;
-                        continue 'loop_value_7;
+                            }])
+                        };
+                        path_index += 1;
                     }
-                    if js_string::starts_with_from_start(&raw, "[")
-                        && js_string::ends_with_at_end(&raw, "]")
+                }
+                let parent: crate::template::values::dict::DictValue = ensure_dictionary_path(
+                    root.clone(),
+                    parent_segments.clone(),
+                    source_path.clone(),
+                    statement.state.with(|state| state.line),
+                )?;
+                let name: String = match {
+                    let operation_input_0_3 = path.clone();
+                    operation_input_0_3.get_number(tsonic_rust_runtime::conversions::i32_to_f64(
+                        tsonic_rust_runtime::conversions::usize_to_i32(path.len())? - 1,
+                    ))
+                }
+                .as_ref()
+                {
+                    Some(flow_value_3) => flow_value_3.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                };
+                let existing: Option<crate::template::values::base::TemplateValue> = {
+                    let dispatch_receiver = &parent;
+                    dispatch_receiver.dispatch.read_dict_value_value()
+                }
+                .get(&name);
+                let entries: crate::template::values::arrays::AnyArrayValue;
+                if existing.is_none() {
+                    entries = crate::template::values::arrays::AnyArrayValue::new(
+                        js_abi::JsArray::from_dense(vec![]),
+                    );
                     {
-                        let path: js_abi::JsArray<String> = SPLIT_TOML_KEY
-                            .with(|module_binding| module_binding.load())
-                            .call((
-                                js_string::trim(&js_string::slice_to(
-                                    &raw,
-                                    1.0,
-                                    tsonic_rust_runtime::conversions::i32_to_f64(
-                                        tsonic_rust_runtime::conversions::usize_to_i32(
-                                            js_string::js_len(&raw),
-                                        )? - 1,
-                                    ),
-                                )
-                                .map_err(tsonic_rust_runtime::TsonicError::from)?),
-                                source_path.clone(),
-                                statement.state.with(|state| state.line),
-                            ))?;
-                        let identity: String = path.join(".");
-                        if declared_tables.has(&identity) {
-                            return Err(
-                                rt::TsonicError::from(
-                                    TOML_ERROR
-                                        .with(|module_binding| module_binding.load())
-                                        .call((
-                                            format!(
-                                                "{}{}{}",
-                                                String::from("TOML table '"),
-                                                rt::source_string(&identity),
-                                                String::from("' is declared more than once"),
-                                            ),
-                                            source_path.clone(),
-                                            statement.state.with(|state| state.line),
-                                        ))?,
-                                ),
-                            );
-                        }
-                        declared_tables.add(identity.clone());
-                        current_table = ENSURE_DICTIONARY_PATH
-                            .with(|module_binding| module_binding.load())
-                            .call((
-                                root.clone(),
-                                path.clone(),
-                                source_path.clone(),
-                                statement.state.with(|state| state.line),
-                            ))?;
-                        index += 1;
-                        continue 'loop_value_7;
+                        let dispatch_receiver_2 = &parent;
+                        dispatch_receiver_2.dispatch.read_dict_value_value()
                     }
-                    let separator: i32 = ASSIGNMENT_SEPARATOR
-                        .with(|module_binding| module_binding.load())
-                        .call((
-                            raw.clone(),
+                    .set_discard(name.clone(), {
+                        let upcast_value = entries.clone();
+                        crate::template::values::base::TemplateValue {
+                            identity: upcast_value.identity.clone(),
+                            dispatch: upcast_value.dispatch.clone(),
+                        }
+                    });
+                } else {
+                    if match existing.as_ref() {
+                        Some(flow_value_4) => flow_value_4.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }
+                    .dispatch
+                    .clone()
+                    .downcast_template_value_to_any_array_value()
+                    .is_some()
+                    {
+                        entries = {
+                            let downcast_value = &existing;
+                            crate::template::values::arrays::AnyArrayValue {
+                                identity: downcast_value.as_ref().unwrap().identity.clone(),
+                                dispatch: downcast_value
+                                    .as_ref()
+                                    .unwrap()
+                                    .dispatch
+                                    .clone()
+                                    .downcast_template_value_to_any_array_value()
+                                    .unwrap(),
+                            }
+                        };
+                    } else {
+                        return Err(rt::TsonicError::TsumoError(toml_error(
+                            format!(
+                                "{}{}{}",
+                                String::from("TOML array table '"),
+                                path.join("."),
+                                String::from("' conflicts with another value"),
+                            ),
                             source_path.clone(),
                             statement.state.with(|state| state.line),
-                        ))?;
-                    let key: js_abi::JsArray<String> = SPLIT_TOML_KEY
-                        .with(|module_binding| module_binding.load())
-                        .call((
-                            js_string::trim(&js_string::slice_to(
-                                &raw,
-                                0.0,
-                                tsonic_rust_runtime::conversions::i32_to_f64(separator),
-                            )
-                            .map_err(tsonic_rust_runtime::TsonicError::from)?),
-                            source_path.clone(),
-                            statement.state.with(|state| state.line),
-                        ))?;
-                    let value_text: String = js_string::trim(&js_string::slice(
-                        &raw,
-                        tsonic_rust_runtime::conversions::i32_to_f64(separator + 1),
-                        None,
-                    )
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?);
-                    let value: crate::template::values::base::TemplateValue = TomlValueReader::new(
-                        value_text.clone(),
+                        )));
+                    }
+                }
+                current_table = crate::template::values::dict::DictValue::new(js_abi::JsMap::new());
+                {
+                    let dispatch_receiver_3 = &entries;
+                    dispatch_receiver_3.dispatch.read_any_array_value_value()
+                }
+                .push_many_discard([{
+                        let upcast_value_2 = current_table.clone();
+                        crate::template::values::base::TemplateValue {
+                            identity: upcast_value_2.identity.clone(),
+                            dispatch: upcast_value_2.dispatch.clone(),
+                        }
+                    }]);
+                index += 1;
+                continue 'loop_value;
+            }
+            if js_string::starts_with_from_start(&raw, "[")
+                && js_string::ends_with_at_end(&raw, "]")
+            {
+                let path: js_abi::JsArray<String> = split_toml_key(
+                    &js_string::trim(&{
+                        let operation_input_0_4 = raw.clone();
+                        js_string::slice_to(
+                            &operation_input_0_4,
+                            1.0,
+                            tsonic_rust_runtime::conversions::i32_to_f64(
+                                tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
+                                    &raw,
+                                ))? - 1,
+                            ),
+                        )
+                    }?),
+                    source_path.clone(),
+                    statement.state.with(|state| state.line),
+                )?;
+                let identity: String = path.join(".");
+                if declared_tables.has(&identity) {
+                    return Err(rt::TsonicError::TsumoError(toml_error(
+                        format!(
+                            "{}{}{}",
+                            String::from("TOML table '"),
+                            identity,
+                            String::from("' is declared more than once"),
+                        ),
                         source_path.clone(),
                         statement.state.with(|state| state.line),
-                    )
-                    .parse()?;
-                    SET_TOML_VALUE
-                        .with(|module_binding| module_binding.load())
-                        .call((
-                            current_table.clone(),
-                            key.clone(),
-                            value.clone(),
-                            source_path.clone(),
-                            statement.state.with(|state| state.line),
-                        ))?;
-                    index += 1;
+                    )));
                 }
+                declared_tables.add_discard(identity.clone());
+                current_table = ensure_dictionary_path(
+                    root.clone(),
+                    path.clone(),
+                    source_path.clone(),
+                    statement.state.with(|state| state.line),
+                )?;
+                index += 1;
+                continue 'loop_value;
             }
-            Ok::<_, rt::TsonicError>(root.clone())
-        });
-        PARSE_TOML_TEMPLATE_DATA
-            .with(|module_binding_10| module_binding_10.initialize(module_value_10))
-    };
+            let separator: i32 = assignment_separator(
+                raw.clone(),
+                source_path.clone(),
+                statement.state.with(|state| state.line),
+            )?;
+            let key: js_abi::JsArray<String> = split_toml_key(
+                &js_string::trim(&js_string::slice_to(
+                    &raw,
+                    0.0,
+                    tsonic_rust_runtime::conversions::i32_to_f64(separator),
+                )?),
+                source_path.clone(),
+                statement.state.with(|state| state.line),
+            )?;
+            let value_text: String = js_string::trim(&js_string::slice(
+                &raw,
+                tsonic_rust_runtime::conversions::i32_to_f64(separator + 1),
+                None,
+            )?);
+            let value: crate::template::values::base::TemplateValue = TomlValueReader::new(
+                value_text.clone(),
+                source_path.clone(),
+                statement.state.with(|state| state.line),
+            )
+            .parse()?;
+            set_toml_value(
+                current_table.clone(),
+                key.clone(),
+                value.clone(),
+                source_path.clone(),
+                statement.state.with(|state| state.line),
+            )?;
+            index += 1;
+        }
+    }
+    Ok(root)
 }

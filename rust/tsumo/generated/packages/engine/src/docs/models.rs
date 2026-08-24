@@ -4,23 +4,98 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct DocsMountConfigState {
-    pub(crate) name: String,
-    pub(crate) source_dir: String,
-    pub(crate) url_prefix: String,
-    pub(crate) repo_url: Option<String>,
-    pub(crate) repo_branch: String,
-    pub(crate) repo_path: Option<String>,
-    pub(crate) nav_path: Option<String>,
+pub trait DocsMountConfigDispatch {
+    fn downcast_docs_mount_config_to_docs_mount_config(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn DocsMountConfigDispatch>>;
+    fn read_docs_mount_config_name(&self) -> String;
+    fn write_docs_mount_config_name(&self, value: String);
+    fn read_docs_mount_config_source_dir(&self) -> String;
+    fn write_docs_mount_config_source_dir(&self, value: String);
+    fn read_docs_mount_config_url_prefix(&self) -> String;
+    fn write_docs_mount_config_url_prefix(&self, value: String);
+    fn read_docs_mount_config_repo_url(&self) -> Option<String>;
+    fn write_docs_mount_config_repo_url(&self, value: Option<String>);
+    fn read_docs_mount_config_repo_branch(&self) -> String;
+    fn write_docs_mount_config_repo_branch(&self, value: String);
+    fn read_docs_mount_config_repo_path(&self) -> Option<String>;
+    fn write_docs_mount_config_repo_path(&self, value: Option<String>);
+    fn read_docs_mount_config_nav_path(&self) -> Option<String>;
+    fn write_docs_mount_config_nav_path(&self, value: Option<String>);
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct DocsMountConfigState {
+    pub name: String,
+    pub source_dir: String,
+    pub url_prefix: String,
+    pub repo_url: Option<String>,
+    pub repo_branch: String,
+    pub repo_path: Option<String>,
+    pub nav_path: Option<String>,
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+#[derive(Clone)]
 pub struct DocsMountConfig {
-    pub(crate) state: rt::ObjectHandle<DocsMountConfigState>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn DocsMountConfigDispatch>,
+}
+
+impl std::fmt::Debug for DocsMountConfig {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("DocsMountConfig")
+    }
+}
+
+impl PartialEq for DocsMountConfig {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+    }
+}
+
+impl Eq for DocsMountConfig {}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub(crate) struct DocsMountConfigRoot {
+    identity: rt::ObjectIdentity,
+    state: rt::ObjectHandle<DocsMountConfigState>,
 }
 
 impl DocsMountConfig {
+    #[doc(hidden)]
+    pub fn initialize_state(
+        name: String,
+        source_dir: String,
+        url_prefix: String,
+        repo_url: Option<String>,
+        repo_branch: String,
+        repo_path: Option<String>,
+        nav_path: Option<String>,
+    ) -> DocsMountConfigState {
+        let field_name: String = name;
+        let field_source_dir: String = source_dir;
+        let field_url_prefix: String = url_prefix;
+        let field_repo_url: Option<String> = repo_url;
+        let field_repo_branch: String = repo_branch;
+        let field_repo_path: Option<String> = repo_path;
+        let field_nav_path: Option<String> = nav_path;
+        DocsMountConfigState {
+            name: field_name,
+            source_dir: field_source_dir,
+            url_prefix: field_url_prefix,
+            repo_url: field_repo_url,
+            repo_branch: field_repo_branch,
+            repo_path: field_repo_path,
+            nav_path: field_nav_path,
+        }
+    }
+
     pub fn new(
         name: String,
         source_dir: String,
@@ -30,40 +105,106 @@ impl DocsMountConfig {
         repo_path: Option<String>,
         nav_path: Option<String>,
     ) -> DocsMountConfig {
-        let field_name: String = name.clone();
-        let field_source_dir: String = source_dir.clone();
-        let field_url_prefix: String = url_prefix.clone();
-        let field_repo_url: Option<String> = repo_url.clone();
-        let field_repo_branch: String = repo_branch.clone();
-        let field_repo_path: Option<String> = repo_path.clone();
-        let field_nav_path: Option<String> = nav_path.clone();
+        let state = DocsMountConfig::initialize_state(
+            name,
+            source_dir,
+            url_prefix,
+            repo_url,
+            repo_branch,
+            repo_path,
+            nav_path,
+        );
+        let identity = rt::ObjectIdentity::new();
+        let root = std::rc::Rc::new(DocsMountConfigRoot {
+            identity: identity.clone(),
+            state: rt::ObjectHandle::new(state),
+        });
         DocsMountConfig {
-            state: rt::ObjectHandle::new(DocsMountConfigState {
-                name: field_name,
-                source_dir: field_source_dir,
-                url_prefix: field_url_prefix,
-                repo_url: field_repo_url,
-                repo_branch: field_repo_branch,
-                repo_path: field_repo_path,
-                nav_path: field_nav_path,
-            }),
+            identity,
+            dispatch: root,
         }
     }
 }
 
+impl DocsMountConfigDispatch for DocsMountConfigRoot {
+    fn downcast_docs_mount_config_to_docs_mount_config(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn DocsMountConfigDispatch>> {
+        Some(self)
+    }
+
+    fn read_docs_mount_config_name(&self) -> String {
+        self.state.with(|state| state.name.clone())
+    }
+
+    fn write_docs_mount_config_name(&self, value: String) {
+        self.state.with_mut(|state| state.name = value);
+    }
+
+    fn read_docs_mount_config_source_dir(&self) -> String {
+        self.state.with(|state| state.source_dir.clone())
+    }
+
+    fn write_docs_mount_config_source_dir(&self, value: String) {
+        self.state.with_mut(|state| state.source_dir = value);
+    }
+
+    fn read_docs_mount_config_url_prefix(&self) -> String {
+        self.state.with(|state| state.url_prefix.clone())
+    }
+
+    fn write_docs_mount_config_url_prefix(&self, value: String) {
+        self.state.with_mut(|state| state.url_prefix = value);
+    }
+
+    fn read_docs_mount_config_repo_url(&self) -> Option<String> {
+        self.state.with(|state| state.repo_url.clone())
+    }
+
+    fn write_docs_mount_config_repo_url(&self, value: Option<String>) {
+        self.state.with_mut(|state| state.repo_url = value);
+    }
+
+    fn read_docs_mount_config_repo_branch(&self) -> String {
+        self.state.with(|state| state.repo_branch.clone())
+    }
+
+    fn write_docs_mount_config_repo_branch(&self, value: String) {
+        self.state.with_mut(|state| state.repo_branch = value);
+    }
+
+    fn read_docs_mount_config_repo_path(&self) -> Option<String> {
+        self.state.with(|state| state.repo_path.clone())
+    }
+
+    fn write_docs_mount_config_repo_path(&self, value: Option<String>) {
+        self.state.with_mut(|state| state.repo_path = value);
+    }
+
+    fn read_docs_mount_config_nav_path(&self) -> Option<String> {
+        self.state.with(|state| state.nav_path.clone())
+    }
+
+    fn write_docs_mount_config_nav_path(&self, value: Option<String>) {
+        self.state.with_mut(|state| state.nav_path = value);
+    }
+}
+
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct DocsSiteConfigState {
-    pub(crate) mounts: js_abi::JsArray<DocsMountConfig>,
-    pub(crate) strict_links: bool,
-    pub(crate) generate_search_index: bool,
-    pub(crate) search_index_file_name: String,
-    pub(crate) home_mount: Option<String>,
-    pub(crate) site_name: String,
+pub struct DocsSiteConfigState {
+    pub mounts: js_abi::JsArray<DocsMountConfig>,
+    pub strict_links: bool,
+    pub generate_search_index: bool,
+    pub search_index_file_name: String,
+    pub home_mount: Option<String>,
+    pub site_name: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct DocsSiteConfig {
-    pub(crate) state: rt::ObjectHandle<DocsSiteConfigState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<DocsSiteConfigState>,
 }
 
 impl DocsSiteConfig {
@@ -75,14 +216,14 @@ impl DocsSiteConfig {
         home_mount: Option<String>,
         site_name: String,
     ) -> DocsSiteConfig {
-        let field_mounts: js_abi::JsArray<DocsMountConfig> = mounts.clone();
+        let field_mounts: js_abi::JsArray<DocsMountConfig> = mounts;
         let field_strict_links: bool = strict_links;
         let field_generate_search_index: bool = generate_search_index;
-        let field_search_index_file_name: String = search_index_file_name.clone();
-        let field_home_mount: Option<String> = home_mount.clone();
-        let field_site_name: String = site_name.clone();
+        let field_search_index_file_name: String = search_index_file_name;
+        let field_home_mount: Option<String> = home_mount;
+        let field_site_name: String = site_name;
         DocsSiteConfig {
-            state: rt::ObjectHandle::new(DocsSiteConfigState {
+            state: rt::ObjectRef::new(DocsSiteConfigState {
                 mounts: field_mounts,
                 strict_links: field_strict_links,
                 generate_search_index: field_generate_search_index,
@@ -94,19 +235,21 @@ impl DocsSiteConfig {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct NavItemState {
-    pub(crate) title: String,
-    pub(crate) url: String,
-    pub(crate) children: js_abi::JsArray<NavItem>,
-    pub(crate) is_section: bool,
-    pub(crate) is_current: bool,
-    pub(crate) order: i32,
+pub struct NavItemState {
+    pub title: String,
+    pub url: String,
+    pub children: js_abi::JsArray<NavItem>,
+    pub is_section: bool,
+    pub is_current: bool,
+    pub order: i32,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct NavItem {
-    pub(crate) state: rt::ObjectHandle<NavItemState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<NavItemState>,
 }
 
 impl NavItem {
@@ -118,14 +261,14 @@ impl NavItem {
         is_current: bool,
         order: i32,
     ) -> NavItem {
-        let field_title: String = title.clone();
-        let field_url: String = url.clone();
-        let field_children: js_abi::JsArray<NavItem> = children.clone();
+        let field_title: String = title;
+        let field_url: String = url;
+        let field_children: js_abi::JsArray<NavItem> = children;
         let field_is_section: bool = is_section;
         let field_is_current: bool = is_current;
         let field_order: i32 = order;
         NavItem {
-            state: rt::ObjectHandle::new(NavItemState {
+            state: rt::ObjectRef::new(NavItemState {
                 title: field_title,
                 url: field_url,
                 children: field_children,
@@ -137,16 +280,18 @@ impl NavItem {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct DocsMountContextState {
-    pub(crate) name: String,
-    pub(crate) url_prefix: String,
-    pub(crate) nav: js_abi::JsArray<NavItem>,
+pub struct DocsMountContextState {
+    pub name: String,
+    pub url_prefix: String,
+    pub nav: js_abi::JsArray<NavItem>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct DocsMountContext {
-    pub(crate) state: rt::ObjectHandle<DocsMountContextState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<DocsMountContextState>,
 }
 
 impl DocsMountContext {
@@ -155,11 +300,11 @@ impl DocsMountContext {
         url_prefix: String,
         nav: js_abi::JsArray<NavItem>,
     ) -> DocsMountContext {
-        let field_name: String = name.clone();
-        let field_url_prefix: String = url_prefix.clone();
-        let field_nav: js_abi::JsArray<NavItem> = nav.clone();
+        let field_name: String = name;
+        let field_url_prefix: String = url_prefix;
+        let field_nav: js_abi::JsArray<NavItem> = nav;
         DocsMountContext {
-            state: rt::ObjectHandle::new(DocsMountContextState {
+            state: rt::ObjectRef::new(DocsMountContextState {
                 name: field_name,
                 url_prefix: field_url_prefix,
                 nav: field_nav,

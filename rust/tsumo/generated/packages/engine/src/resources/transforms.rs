@@ -9,14 +9,24 @@ use crate::program as rt;
 pub fn concatenate_resources(
     target_path: String,
     resources: js_abi::JsArray<crate::resources::models::Resource>,
-) -> rt::TsonicResult<crate::resources::models::Resource> {
-    let target: String = crate::resources::paths::NORMALIZE_RESOURCE_RELATIVE_PATH
-        .with(|module_binding| module_binding.load())
-        .call((target_path.clone(),))?;
+) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+    let target: String = crate::resources::paths::normalize_resource_relative_path(target_path)?;
     let identity: crate::utils::text_builder::TextBuilder =
         crate::utils::text_builder::TextBuilder::new();
-    identity.append(String::from("concat:"))?;
-    identity.append(target.clone())?;
+    {
+        let dispatch_receiver = identity.clone();
+        dispatch_receiver
+            .dispatch
+            .clone()
+            .dispatch_text_builder_append(String::from("concat:"))
+    }?;
+    {
+        let dispatch_receiver_2 = identity.clone();
+        dispatch_receiver_2
+            .dispatch
+            .clone()
+            .dispatch_text_builder_append(target.clone())
+    }?;
     let text: crate::utils::text_builder::TextBuilder =
         crate::utils::text_builder::TextBuilder::new();
     {
@@ -29,37 +39,64 @@ pub fn concatenate_resources(
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            identity.append(format!(
-                "{}{}",
-                String::from("|"),
-                resource.state.with(|state| state.id.clone()),
-            ))?;
-            if text.read_text_builder_length() > 0 {
-                text.append(String::from("\n"))?;
+            {
+                let dispatch_receiver_4 = identity.clone();
+                dispatch_receiver_4.dispatch.clone().dispatch_text_builder_append(format!(
+                    "{}{}",
+                    String::from("|"),
+                    {
+                        let dispatch_receiver_3 = &resource;
+                        dispatch_receiver_3.dispatch.read_resource_id()
+                    },
+                ))
+            }?;
+            if text.dispatch.clone().read_text_builder_length() > 0 {
+                {
+                    let dispatch_receiver_5 = text.clone();
+                    dispatch_receiver_5
+                        .dispatch
+                        .clone()
+                        .dispatch_text_builder_append(String::from("\n"))
+                }?;
             }
-            text.append(crate::resources::text::read_resource_text(
-                resource.clone(),
-                String::from("resources.Concat"),
-            )?)?;
+            {
+                let dispatch_receiver_6 = text.clone();
+                dispatch_receiver_6
+                    .dispatch
+                    .clone()
+                    .dispatch_text_builder_append(crate::resources::text::read_resource_text(
+                        resource.clone(),
+                        String::from("resources.Concat"),
+                    )?)
+            }?;
             index += 1.0;
         }
     }
-    let content: String = text.to_string();
+    let content: String = {
+        let dispatch_receiver_7 = text.clone();
+        dispatch_receiver_7
+            .dispatch
+            .clone()
+            .dispatch_text_builder_to_string()
+    };
     let path: crate::resources::paths::ResourcePathParts =
-        crate::resources::paths::SPLIT_RESOURCE_PATH
-            .with(|module_binding| module_binding.load())
-            .call((target.clone(),))?;
+        crate::resources::paths::split_resource_path(target.clone())?;
     let file: crate::resources::paths::ResourceFileNameParts =
-        crate::resources::paths::SPLIT_RESOURCE_FILE_NAME
-            .with(|module_binding| module_binding.load())
-            .call((path.state.with(|state| state.file_name.clone()),))?;
+        crate::resources::paths::split_resource_file_name(
+            path.state.with(|state| state.file_name.clone()),
+        )?;
     Ok(crate::resources::models::Resource::new(
-        identity.to_string(),
+        {
+            let dispatch_receiver_8 = identity.clone();
+            dispatch_receiver_8
+                .dispatch
+                .clone()
+                .dispatch_text_builder_to_string()
+        },
         Option::<String>::None,
         true,
         Some(target.clone()),
-        tsonic_rust_node::buffer::Buffer::from_string_enc(&content, "utf8")
-            .map_err(tsonic_rust_runtime::TsonicError::from)?,
+        tsonic_rust_node::buffer::Buffer::from_string_enc(&content, "utf8")?,
         Some(content.clone()),
         crate::resources::models::ResourceData::new(String::from("")),
         Some(crate::resources::media_types::resource_media_type_for_extension(
@@ -73,39 +110,34 @@ pub fn concatenate_resources(
 pub fn create_string_resource(
     name: String,
     content: String,
-) -> rt::TsonicResult<crate::resources::models::Resource> {
-    let normalized_name: String = crate::resources::paths::NORMALIZE_RESOURCE_RELATIVE_PATH
-        .with(|module_binding| module_binding.load())
-        .call((name.clone(),))?;
+) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+    let normalized_name: String = crate::resources::paths::normalize_resource_relative_path(name)?;
     let path: crate::resources::paths::ResourcePathParts =
-        crate::resources::paths::SPLIT_RESOURCE_PATH
-            .with(|module_binding| module_binding.load())
-            .call((normalized_name.clone(),))?;
+        crate::resources::paths::split_resource_path(normalized_name.clone())?;
     let file: crate::resources::paths::ResourceFileNameParts =
-        crate::resources::paths::SPLIT_RESOURCE_FILE_NAME
-            .with(|module_binding| module_binding.load())
-            .call((path.state.with(|state| state.file_name.clone()),))?;
-    let content_hash: String = tsonic_rust_node::crypto::create_hash("sha256")
-        .map_err(tsonic_rust_runtime::TsonicError::from)?
-        .update_buffer_owned(&tsonic_rust_node::buffer::Buffer::from_string_enc(&content, "utf8")
-            .map_err(tsonic_rust_runtime::TsonicError::from)?)
-        .map_err(tsonic_rust_runtime::TsonicError::from)?
-        .digest_string("hex")
-        .map_err(tsonic_rust_runtime::TsonicError::from)?;
+        crate::resources::paths::split_resource_file_name(
+            path.state.with(|state| state.file_name.clone()),
+        )?;
+    let content_hash: String = {
+        let mut operation_input_0 = tsonic_rust_node::crypto::create_hash("sha256")?;
+        operation_input_0.update_buffer_owned(&tsonic_rust_node::buffer::Buffer::from_string_enc(
+            &content,
+            "utf8",
+        )?)
+    }?
+    .digest_string("hex")?;
     Ok(crate::resources::models::Resource::new(
         format!(
-            "{}{}{}{}{}",
+            "{}{}{}{}",
             String::from("fromString:"),
-            rt::source_string(&normalized_name),
+            normalized_name,
             String::from(":"),
-            rt::source_string(&content_hash),
-            String::from(""),
+            content_hash,
         ),
         Option::<String>::None,
         true,
         Some(normalized_name.clone()),
-        tsonic_rust_node::buffer::Buffer::from_string_enc(&content, "utf8")
-            .map_err(tsonic_rust_runtime::TsonicError::from)?,
+        tsonic_rust_node::buffer::Buffer::from_string_enc(&content, "utf8")?,
         Some(content.clone()),
         crate::resources::models::ResourceData::new(String::from("")),
         Some(crate::resources::media_types::resource_media_type_for_extension(
@@ -118,11 +150,13 @@ pub fn create_string_resource(
 
 pub fn minify_resource(
     resource: crate::resources::models::Resource,
-) -> rt::TsonicResult<crate::resources::models::Resource> {
+) -> Result<crate::resources::models::Resource, rt::TsonicError> {
     let identity: String = format!(
-        "{}{}{}",
-        String::from(""),
-        rt::source_string(&resource.state.with(|state| state.id.clone())),
+        "{}{}",
+        {
+            let dispatch_receiver = &resource;
+            dispatch_receiver.dispatch.read_resource_id()
+        },
         String::from("|minify"),
     );
     let resource_text: String = crate::resources::text::read_resource_text(
@@ -132,8 +166,7 @@ pub fn minify_resource(
     let lines: js_abi::JsArray<String> = js_string::split_all(
         &crate::utils::strings::replace_line_endings(&resource_text, String::from("\n"))?,
         "\n",
-    )
-    .map_err(tsonic_rust_runtime::TsonicError::from)?;
+    )?;
     let output: crate::utils::text_builder::TextBuilder =
         crate::utils::text_builder::TextBuilder::new();
     {
@@ -147,84 +180,120 @@ pub fn minify_resource(
                 index += 1.0;
                 continue 'loop_value;
             }
-            if output.read_text_builder_length() > 0 {
-                output.append(String::from("\n"))?;
+            if output.dispatch.clone().read_text_builder_length() > 0 {
+                {
+                    let dispatch_receiver_2 = output.clone();
+                    dispatch_receiver_2
+                        .dispatch
+                        .clone()
+                        .dispatch_text_builder_append(String::from("\n"))
+                }?;
             }
-            output.append(line.clone())?;
+            {
+                let dispatch_receiver_3 = output.clone();
+                dispatch_receiver_3
+                    .dispatch
+                    .clone()
+                    .dispatch_text_builder_append(line.clone())
+            }?;
             index += 1.0;
         }
     }
-    let text: String = output.to_string();
+    let text: String = {
+        let dispatch_receiver_4 = output.clone();
+        dispatch_receiver_4
+            .dispatch
+            .clone()
+            .dispatch_text_builder_to_string()
+    };
     Ok(crate::resources::models::Resource::new(
-        identity.clone(),
-        resource.state.with(|state| state.source_path.clone()),
-        resource.state.with(|state| state.publishable),
-        resource.state.with(|state| state.output_rel_path.clone()),
-        tsonic_rust_node::buffer::Buffer::from_string_enc(&text, "utf8")
-            .map_err(tsonic_rust_runtime::TsonicError::from)?,
+        identity,
+        {
+            let dispatch_receiver_5 = &resource;
+            dispatch_receiver_5.dispatch.read_resource_source_path()
+        },
+        {
+            let dispatch_receiver_6 = &resource;
+            dispatch_receiver_6.dispatch.read_resource_publishable()
+        },
+        {
+            let dispatch_receiver_7 = &resource;
+            dispatch_receiver_7.dispatch.read_resource_output_rel_path()
+        },
+        tsonic_rust_node::buffer::Buffer::from_string_enc(&text, "utf8")?,
         Some(text.clone()),
-        resource.state.with(|state| state.data.clone()),
-        Some(resource.state.with(|state| state.media_type.clone())),
-        Some(resource.state.with(|state| state.width)),
-        Some(resource.state.with(|state| state.height)),
+        {
+            let dispatch_receiver_8 = &resource;
+            dispatch_receiver_8.dispatch.read_resource_data()
+        },
+        Some({
+            let dispatch_receiver_9 = &resource;
+            dispatch_receiver_9.dispatch.read_resource_media_type()
+        }),
+        Some({
+            let dispatch_receiver_10 = &resource;
+            dispatch_receiver_10.dispatch.read_resource_width()
+        }),
+        Some({
+            let dispatch_receiver_11 = &resource;
+            dispatch_receiver_11.dispatch.read_resource_height()
+        }),
     ))
 }
 
 pub fn fingerprint_resource(
     resource: crate::resources::models::Resource,
-) -> rt::TsonicResult<crate::resources::models::Resource> {
-    let hash: tsonic_rust_node::crypto::Hash = tsonic_rust_node::crypto::create_hash("sha256")
-        .map_err(tsonic_rust_runtime::TsonicError::from)?
-        .update_buffer_owned(&resource.state.with(|state| state.bytes.clone()))
-        .map_err(tsonic_rust_runtime::TsonicError::from)?;
+) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+    let hash: tsonic_rust_node::crypto::Hash = {
+        let mut operation_input_0 = tsonic_rust_node::crypto::create_hash("sha256")?;
+        operation_input_0.update_buffer_owned(&{
+            let dispatch_receiver = &resource;
+            dispatch_receiver.dispatch.read_resource_bytes()
+        })
+    }?;
     let integrity: String = format!(
-        "{}{}{}",
+        "{}{}",
         String::from("sha256-"),
-        rt::source_string(&hash
-            .digest_string("base64")
-            .map_err(tsonic_rust_runtime::TsonicError::from)?,),
-        String::from(""),
+        hash.digest_string("base64")?,
     );
-    let full_hex: String = tsonic_rust_node::crypto::create_hash("sha256")
-        .map_err(tsonic_rust_runtime::TsonicError::from)?
-        .update_buffer_owned(&resource.state.with(|state| state.bytes.clone()))
-        .map_err(tsonic_rust_runtime::TsonicError::from)?
-        .digest_string("hex")
-        .map_err(tsonic_rust_runtime::TsonicError::from)?;
-    let short_hex: String = crate::utils::strings::substring_count(full_hex.clone(), 0, 16)?;
-    let output_path: Option<String> = resource.state.with(|state| state.output_rel_path.clone());
+    let full_hex: String = {
+        let mut operation_input_0_2 = tsonic_rust_node::crypto::create_hash("sha256")?;
+        operation_input_0_2.update_buffer_owned(&{
+            let dispatch_receiver_2 = &resource;
+            dispatch_receiver_2.dispatch.read_resource_bytes()
+        })
+    }?
+    .digest_string("hex")?;
+    let short_hex: String = crate::utils::strings::substring_count(full_hex, 0, 16)?;
+    let output_path: Option<String> = {
+        let dispatch_receiver_3 = &resource;
+        dispatch_receiver_3.dispatch.read_resource_output_rel_path()
+    };
     let mut hashed_path: Option<String> = Option::<String>::None;
     if output_path.is_some() {
         let path: crate::resources::paths::ResourcePathParts =
-            crate::resources::paths::SPLIT_RESOURCE_PATH
-                .with(|module_binding| module_binding.load())
-                .call((match output_path.as_ref() {
-                    Some(flow_value) => flow_value.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                },))?;
+            crate::resources::paths::split_resource_path(match output_path.as_ref() {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            })?;
         let file: crate::resources::paths::ResourceFileNameParts =
-            crate::resources::paths::SPLIT_RESOURCE_FILE_NAME
-                .with(|module_binding| module_binding.load())
-                .call((path.state.with(|state| state.file_name.clone()),))?;
+            crate::resources::paths::split_resource_file_name(
+                path.state.with(|state| state.file_name.clone()),
+            )?;
         let hashed_file: String = if file.state.with(|state| state.extension.clone()).is_empty() {
             format!(
-                "{}{}{}{}{}",
-                String::from(""),
-                rt::source_string(&file.state.with(|state| state.base_name.clone())),
+                "{}{}{}",
+                file.state.with(|state| state.base_name.clone()),
                 String::from("."),
-                rt::source_string(&short_hex),
-                String::from(""),
+                short_hex,
             )
         } else {
             format!(
-                "{}{}{}{}{}{}{}",
-                String::from(""),
-                rt::source_string(&file.state.with(|state| state.base_name.clone())),
+                "{}{}{}{}",
+                file.state.with(|state| state.base_name.clone()),
                 String::from("."),
-                rt::source_string(&short_hex),
-                String::from(""),
-                rt::source_string(&file.state.with(|state| state.extension.clone())),
-                String::from(""),
+                short_hex,
+                file.state.with(|state| state.extension.clone()),
             )
         };
         hashed_path = Some(format!(
@@ -235,52 +304,94 @@ pub fn fingerprint_resource(
     }
     Ok(crate::resources::models::Resource::new(
         format!(
-            "{}{}{}",
-            String::from(""),
-            rt::source_string(&resource.state.with(|state| state.id.clone())),
+            "{}{}",
+            {
+                let dispatch_receiver_4 = &resource;
+                dispatch_receiver_4.dispatch.read_resource_id()
+            },
             String::from("|fingerprint"),
         ),
-        resource.state.with(|state| state.source_path.clone()),
-        resource.state.with(|state| state.publishable),
+        {
+            let dispatch_receiver_5 = &resource;
+            dispatch_receiver_5.dispatch.read_resource_source_path()
+        },
+        {
+            let dispatch_receiver_6 = &resource;
+            dispatch_receiver_6.dispatch.read_resource_publishable()
+        },
         hashed_path.clone(),
-        resource.state.with(|state| state.bytes.clone()),
-        resource.state.with(|state| state.text.clone()),
-        crate::resources::models::ResourceData::new(integrity.clone()),
-        Some(resource.state.with(|state| state.media_type.clone())),
-        Some(resource.state.with(|state| state.width)),
-        Some(resource.state.with(|state| state.height)),
+        {
+            let dispatch_receiver_7 = &resource;
+            dispatch_receiver_7.dispatch.read_resource_bytes()
+        },
+        {
+            let dispatch_receiver_8 = &resource;
+            dispatch_receiver_8.dispatch.read_resource_text()
+        },
+        crate::resources::models::ResourceData::new(integrity),
+        Some({
+            let dispatch_receiver_9 = &resource;
+            dispatch_receiver_9.dispatch.read_resource_media_type()
+        }),
+        Some({
+            let dispatch_receiver_10 = &resource;
+            dispatch_receiver_10.dispatch.read_resource_width()
+        }),
+        Some({
+            let dispatch_receiver_11 = &resource;
+            dispatch_receiver_11.dispatch.read_resource_height()
+        }),
     ))
 }
 
 pub fn copy_resource(
     target_path: String,
     resource: crate::resources::models::Resource,
-) -> rt::TsonicResult<crate::resources::models::Resource> {
+) -> Result<crate::resources::models::Resource, rt::TsonicError> {
     Ok(crate::resources::models::Resource::new(
         format!(
-            "{}{}{}{}{}",
-            String::from(""),
-            rt::source_string(&resource.state.with(|state| state.id.clone())),
+            "{}{}{}",
+            {
+                let dispatch_receiver = &resource;
+                dispatch_receiver.dispatch.read_resource_id()
+            },
             String::from("|copy:"),
-            rt::source_string(
-                &crate::resources::paths::NORMALIZE_RESOURCE_RELATIVE_PATH
-                    .with(|module_binding| module_binding.load())
-                    .call((target_path.clone(),))?,
-            ),
-            String::from(""),
+            crate::resources::paths::normalize_resource_relative_path(target_path.clone())?,
         ),
-        resource.state.with(|state| state.source_path.clone()),
-        resource.state.with(|state| state.publishable),
-        Some(
-            crate::resources::paths::NORMALIZE_RESOURCE_RELATIVE_PATH
-                .with(|module_binding| module_binding.load())
-                .call((target_path.clone(),))?,
-        ),
-        resource.state.with(|state| state.bytes.clone()),
-        resource.state.with(|state| state.text.clone()),
-        resource.state.with(|state| state.data.clone()),
-        Some(resource.state.with(|state| state.media_type.clone())),
-        Some(resource.state.with(|state| state.width)),
-        Some(resource.state.with(|state| state.height)),
+        {
+            let dispatch_receiver_2 = &resource;
+            dispatch_receiver_2.dispatch.read_resource_source_path()
+        },
+        {
+            let dispatch_receiver_3 = &resource;
+            dispatch_receiver_3.dispatch.read_resource_publishable()
+        },
+        Some(crate::resources::paths::normalize_resource_relative_path(
+            target_path.clone(),
+        )?),
+        {
+            let dispatch_receiver_4 = &resource;
+            dispatch_receiver_4.dispatch.read_resource_bytes()
+        },
+        {
+            let dispatch_receiver_5 = &resource;
+            dispatch_receiver_5.dispatch.read_resource_text()
+        },
+        {
+            let dispatch_receiver_6 = &resource;
+            dispatch_receiver_6.dispatch.read_resource_data()
+        },
+        Some({
+            let dispatch_receiver_7 = &resource;
+            dispatch_receiver_7.dispatch.read_resource_media_type()
+        }),
+        Some({
+            let dispatch_receiver_8 = &resource;
+            dispatch_receiver_8.dispatch.read_resource_width()
+        }),
+        Some({
+            let dispatch_receiver_9 = &resource;
+            dispatch_receiver_9.dispatch.read_resource_height()
+        }),
     ))
 }

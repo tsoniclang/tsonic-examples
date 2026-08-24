@@ -2,26 +2,28 @@
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct OutputFormatState {
-    pub(crate) rel: String,
-    pub(crate) media_type: crate::models::media_type::MediaType,
-    pub(crate) permalink: String,
+pub struct OutputFormatState {
+    pub rel: String,
+    pub media_type: crate::models::media_type::MediaType,
+    pub permalink: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct OutputFormat {
-    pub(crate) state: rt::ObjectHandle<OutputFormatState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<OutputFormatState>,
 }
 
 impl OutputFormat {
     pub fn new(rel: String, media_type: String, permalink: String) -> OutputFormat {
-        let field_rel: String = rel.clone();
+        let field_rel: String = rel;
         let field_media_type: crate::models::media_type::MediaType =
-            crate::models::media_type::MediaType::new(media_type.clone());
-        let field_permalink: String = permalink.clone();
+            crate::models::media_type::MediaType::new(media_type);
+        let field_permalink: String = permalink;
         OutputFormat {
-            state: rt::ObjectHandle::new(OutputFormatState {
+            state: rt::ObjectRef::new(OutputFormatState {
                 rel: field_rel,
                 media_type: field_media_type,
                 permalink: field_permalink,

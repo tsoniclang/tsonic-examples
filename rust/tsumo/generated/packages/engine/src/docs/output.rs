@@ -6,58 +6,81 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct DocsOutputClaimsState {
-    pub(crate) sources_by_output_path: js_abi::JsMap<String, String>,
+pub trait DocsOutputClaimsDispatch {
+    fn downcast_docs_output_claims_to_docs_output_claims(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn DocsOutputClaimsDispatch>>;
+    fn read_docs_output_claims_sources_by_output_path(&self) -> js_abi::JsMap<String, String>;
+    fn write_docs_output_claims_sources_by_output_path(&self, value: js_abi::JsMap<String, String>);
+    fn dispatch_docs_output_claims_add(
+        self: std::rc::Rc<Self>,
+        output_rel_path: String,
+        source_path: String,
+    ) -> Result<(), rt::TsonicError>;
+    fn exact_docs_output_claims_add(
+        self: std::rc::Rc<Self>,
+        output_rel_path: String,
+        source_path: String,
+    ) -> Result<(), rt::TsonicError>;
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct DocsOutputClaimsState {
+    pub sources_by_output_path: js_abi::JsMap<String, String>,
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+#[derive(Clone)]
 pub struct DocsOutputClaims {
-    pub(crate) state: rt::ObjectHandle<DocsOutputClaimsState>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn DocsOutputClaimsDispatch>,
+}
+
+impl std::fmt::Debug for DocsOutputClaims {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("DocsOutputClaims")
+    }
+}
+
+impl PartialEq for DocsOutputClaims {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+    }
+}
+
+impl Eq for DocsOutputClaims {}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub(crate) struct DocsOutputClaimsRoot {
+    identity: rt::ObjectIdentity,
+    state: rt::ObjectHandle<DocsOutputClaimsState>,
 }
 
 impl DocsOutputClaims {
-    pub fn new() -> DocsOutputClaims {
+    #[doc(hidden)]
+    pub fn initialize_state() -> DocsOutputClaimsState {
         let field_sources_by_output_path: js_abi::JsMap<String, String> = js_abi::JsMap::new();
-        DocsOutputClaims {
-            state: rt::ObjectHandle::new(DocsOutputClaimsState {
-                sources_by_output_path: field_sources_by_output_path,
-            }),
+        DocsOutputClaimsState {
+            sources_by_output_path: field_sources_by_output_path,
         }
     }
 
-    pub fn add(&self, output_rel_path: String, source_path: String) -> rt::TsonicResult<()> {
-        let key: String = js_string::to_lower_case(&output_rel_path);
-        let previous: Option<String> = self
-            .state
-            .with(|state| state.sources_by_output_path.clone())
-            .get(&key);
-        if previous.is_some() {
-            return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                String::from("TSUMO_DOCS_ROUTE_CONFLICT"),
-                format!(
-                    "{}{}{}{}{}{}{}",
-                    String::from("Docs sources '"),
-                    rt::source_string(&match previous.as_ref() {
-                        Some(flow_value) => flow_value.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },),
-                    String::from("' and '"),
-                    rt::source_string(&source_path),
-                    String::from("' both map to '"),
-                    rt::source_string(&output_rel_path),
-                    String::from("'"),
-                ),
-                None,
-                None,
-                None,
-            )));
+    pub fn new() -> DocsOutputClaims {
+        let state = DocsOutputClaims::initialize_state();
+        let identity = rt::ObjectIdentity::new();
+        let root = std::rc::Rc::new(DocsOutputClaimsRoot {
+            identity: identity.clone(),
+            state: rt::ObjectHandle::new(state),
+        });
+        DocsOutputClaims {
+            identity,
+            dispatch: root,
         }
-        self
-            .state
-            .with(|state| state.sources_by_output_path.clone())
-            .set(key.clone(), source_path.clone());
-        Ok(())
     }
 }
 
@@ -67,108 +90,158 @@ impl Default for DocsOutputClaims {
     }
 }
 
-pub type ResolveDocsOutputPathCallable = rt::Callable<(String, String), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub static RESOLVE_DOCS_OUTPUT_PATH: rt::ModuleCell<ResolveDocsOutputPathCallable> = const { rt::ModuleCell::new() };
+impl DocsOutputClaimsRoot {
+    fn exact_docs_output_claims_add(
+        self: std::rc::Rc<Self>,
+        output_rel_path: String,
+        source_path: String,
+    ) -> Result<(), rt::TsonicError> {
+        let project_this = DocsOutputClaims {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        let key: String = js_string::to_lower_case(&output_rel_path);
+        let previous: Option<String> = {
+            let dispatch_receiver = &project_this;
+            dispatch_receiver
+                .dispatch
+                .read_docs_output_claims_sources_by_output_path()
+        }
+        .get(&key);
+        if previous.is_some() {
+            return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+                String::from("TSUMO_DOCS_ROUTE_CONFLICT"),
+                format!(
+                    "{}{}{}{}{}{}{}",
+                    String::from("Docs sources '"),
+                    match previous.as_ref() {
+                        Some(flow_value) => flow_value.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
+                    String::from("' and '"),
+                    source_path,
+                    String::from("' both map to '"),
+                    output_rel_path,
+                    String::from("'"),
+                ),
+                None,
+                None,
+                None,
+            )));
+        }
+        {
+            let dispatch_receiver_2 = &project_this;
+            dispatch_receiver_2
+                .dispatch
+                .read_docs_output_claims_sources_by_output_path()
+        }
+        .set_discard(key.clone(), source_path.clone());
+        Ok(())
+    }
 }
 
-pub type DocsOutputPathForPermalinkCallable = rt::Callable<(String,), rt::TsonicResult<String>>;
+impl DocsOutputClaimsDispatch for DocsOutputClaimsRoot {
+    fn downcast_docs_output_claims_to_docs_output_claims(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn DocsOutputClaimsDispatch>> {
+        Some(self)
+    }
 
-std::thread_local! {
-    pub static DOCS_OUTPUT_PATH_FOR_PERMALINK: rt::ModuleCell<DocsOutputPathForPermalinkCallable> = const { rt::ModuleCell::new() };
+    fn read_docs_output_claims_sources_by_output_path(&self) -> js_abi::JsMap<String, String> {
+        self.state
+            .with(|state| state.sources_by_output_path.clone())
+    }
+
+    fn write_docs_output_claims_sources_by_output_path(
+        &self,
+        value: js_abi::JsMap<String, String>,
+    ) {
+        self.state
+            .with_mut(|state| state.sources_by_output_path = value);
+    }
+
+    fn dispatch_docs_output_claims_add(
+        self: std::rc::Rc<Self>,
+        output_rel_path: String,
+        source_path: String,
+    ) -> Result<(), rt::TsonicError> {
+        DocsOutputClaimsRoot::exact_docs_output_claims_add(self, output_rel_path, source_path)
+    }
+
+    fn exact_docs_output_claims_add(
+        self: std::rc::Rc<Self>,
+        output_rel_path: String,
+        source_path: String,
+    ) -> Result<(), rt::TsonicError> {
+        DocsOutputClaimsRoot::exact_docs_output_claims_add(self, output_rel_path, source_path)
+    }
 }
 
-#[doc(hidden)]
-pub fn module_init() {
+pub fn resolve_docs_output_path(
+    output_root: String,
+    relative_path: String,
+) -> Result<String, rt::TsonicError> {
+    let normalized: String = js_string::replace_all(&relative_path, "\\", "/")?;
+    if js_string::starts_with_from_start(&normalized, "/")
+        || tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&normalized))? >= 2
+            && js_string::char_at(&normalized, 1.0)? == ":"
     {
-        let module_value = rt::Callable::<(String, String), rt::TsonicResult<String>>::new(
-            move |callable_arguments| {
-                let output_root = callable_arguments.0;
-                let relative_path = callable_arguments.1;
-                let normalized: String = js_string::replace_all(&relative_path, "\\", "/")
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                if js_string::starts_with_from_start(&normalized, "/")
-                    || tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                        &normalized,
-                    ))? >= 2
-                        && js_string::char_at(&normalized, 1.0)
-                            .map_err(tsonic_rust_runtime::TsonicError::from)?
-                            == ":"
-                {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                        String::from("TSUMO_DOCS_OUTPUT_PATH_ABSOLUTE"),
-                        format!(
-                            "{}{}{}",
-                            String::from("Docs output path must be relative: "),
-                            rt::source_string(&relative_path),
-                            String::from(""),
-                        ),
-                        None,
-                        None,
-                        None,
-                    )));
-                }
-                let root: String = tsonic_rust_node::path::resolve(&[output_root.as_str()])
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                let candidate: String = tsonic_rust_node::path::resolve(&[
-                    root.as_str(),
-                    normalized.as_str(),
-                ])
-                .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                if !crate::utils::paths::path_contains_or_equals(root.clone(), candidate.clone()) {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                        String::from("TSUMO_DOCS_OUTPUT_PATH_ESCAPES_ROOT"),
-                        format!(
-                            "{}{}{}",
-                            String::from("Docs output path escapes its root: "),
-                            rt::source_string(&relative_path),
-                            String::from(""),
-                        ),
-                        None,
-                        None,
-                        None,
-                    )));
-                }
-                Ok::<_, rt::TsonicError>(candidate.clone())
-            },
-        );
-        RESOLVE_DOCS_OUTPUT_PATH.with(|module_binding| module_binding.initialize(module_value))
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_DOCS_OUTPUT_PATH_ABSOLUTE"),
+            format!(
+                "{}{}",
+                String::from("Docs output path must be relative: "),
+                relative_path,
+            ),
+            None,
+            None,
+            None,
+        )));
+    }
+    let root: String = tsonic_rust_node::path::resolve(&[output_root.as_str()])?;
+    let candidate: String =
+        tsonic_rust_node::path::resolve(&[root.as_str(), normalized.as_str()])?;
+    if !crate::utils::paths::path_contains_or_equals(root.clone(), candidate.clone()) {
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_DOCS_OUTPUT_PATH_ESCAPES_ROOT"),
+            format!(
+                "{}{}",
+                String::from("Docs output path escapes its root: "),
+                relative_path,
+            ),
+            None,
+            None,
+            None,
+        )));
+    }
+    Ok(candidate)
+}
+
+pub fn docs_output_path_for_permalink(permalink: &str) -> Result<String, rt::TsonicError> {
+    let normalized: String = js_string::replace_all(permalink, "\\", "/")?;
+    let trimmed: String = if js_string::starts_with_from_start(&normalized, "/") {
+        js_string::substring_from(&normalized, 1.0)?
+    } else {
+        normalized.clone()
     };
-    {
-        let module_value_2 =
-            rt::Callable::<(String,), rt::TsonicResult<String>>::new(move |callable_arguments_2| {
-                let permalink = callable_arguments_2.0;
-                let normalized: String = js_string::replace_all(&permalink, "\\", "/")
-                    .map_err(tsonic_rust_runtime::TsonicError::from)?;
-                let trimmed: String = if js_string::starts_with_from_start(&normalized, "/") {
-                    js_string::substring_from(&normalized, 1.0)
-                        .map_err(tsonic_rust_runtime::TsonicError::from)?
-                } else {
-                    normalized.clone()
-                };
-                let without_trailing_slash: String =
-                    if js_string::ends_with_at_end(&trimmed, "/") {
-                        js_string::substring(
-                            &trimmed,
-                            0.0,
-                            tsonic_rust_runtime::conversions::i32_to_f64(
-                                tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                                    &trimmed,
-                                ))? - 1,
-                            ),
-                        )
-                        .map_err(tsonic_rust_runtime::TsonicError::from)?
-                    } else {
-                        trimmed.clone()
-                    };
-                Ok::<_, rt::TsonicError>(if without_trailing_slash.is_empty() {
-                    String::from("index.html")
-                } else {
-                    format!("{}{}", without_trailing_slash, String::from("/index.html"))
-                })
-            });
-        DOCS_OUTPUT_PATH_FOR_PERMALINK
-            .with(|module_binding_2| module_binding_2.initialize(module_value_2))
+    let without_trailing_slash: String = if js_string::ends_with_at_end(&trimmed, "/") {
+        {
+            let operation_input_0 = trimmed.clone();
+            js_string::substring(
+                &operation_input_0,
+                0.0,
+                tsonic_rust_runtime::conversions::i32_to_f64(
+                    tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&trimmed))?
+                        - 1,
+                ),
+            )
+        }?
+    } else {
+        trimmed.clone()
     };
+    Ok(if without_trailing_slash.is_empty() {
+        String::from("index.html")
+    } else {
+        format!("{}{}", without_trailing_slash, String::from("/index.html"))
+    })
 }

@@ -2,22 +2,12 @@
 
 use crate::program as rt;
 
-pub(crate) fn create_markdown_result(
-    result: tsumo_platform::MarkdownBatchResult,
-) -> crate::markdown::result::MarkdownResult {
-    crate::markdown::result::MarkdownResult::new(
-        result.html.clone(),
-        result.summary_html.clone(),
-        result.plain_text.clone(),
-        result.table_of_contents.clone(),
-    )
-}
-
 pub fn render_markdown(
     markdown_raw: String,
-) -> rt::TsonicResult<crate::markdown::result::MarkdownResult> {
-    let batch: tsumo_platform::MarkdownBatch = crate::markdown::platform::create_markdown_batch();
-    let index: i32 = batch.add_source(&markdown_raw)?;
+) -> Result<crate::markdown::result::MarkdownResult, rt::TsonicError> {
+    let batch: crate::markdown::platform::TsumoMarkdownBatch =
+        crate::markdown::platform::create_markdown_batch();
+    let index: i32 = batch.add_source(markdown_raw)?;
     batch.render()?;
-    Ok(create_markdown_result(batch.take_result(index)?))
+    batch.take_result(index)
 }

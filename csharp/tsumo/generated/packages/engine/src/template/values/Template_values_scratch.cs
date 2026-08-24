@@ -47,7 +47,7 @@ namespace Tsumo.Engine
             }
             if (cur is AnyArrayValue)
             {
-                AnyArrayValue curArray = (AnyArrayValue)(AnyArrayValue)cur;
+                AnyArrayValue curArray = (AnyArrayValue)cur;
                 Tsonic.CSharp.Js.JSArray<TemplateValue> mergedList = new Tsonic.CSharp.Js.JSArray<TemplateValue>(new TemplateValue[] { });
                 for (int i = 0; i < curArray.value.length; i++)
                 {
@@ -84,7 +84,7 @@ namespace Tsumo.Engine
             {
                 if (cur is DictValue)
                 {
-                    DictValue dict = (DictValue)(DictValue)cur;
+                    DictValue dict = (DictValue)cur;
                     dict.value.set(key, value);
                     return;
                 }
@@ -100,7 +100,7 @@ namespace Tsumo.Engine
             {
                 if (cur is DictValue)
                 {
-                    DictValue dict = (DictValue)(DictValue)cur;
+                    DictValue dict = (DictValue)cur;
                     dict.value.delete(key);
                 }
             }

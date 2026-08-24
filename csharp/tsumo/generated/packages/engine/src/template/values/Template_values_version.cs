@@ -9,6 +9,8 @@ namespace Tsumo.Engine
         {
             Template_values_base.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
+            Utils_int32.__tsonic_module_init();
+            Diagnostics.__tsonic_module_init();
             return null;
         }
         public static void __tsonic_module_init()
@@ -81,7 +83,12 @@ namespace Tsumo.Engine
             {
                 return 0;
             }
-            return System.Int32.Parse(numStr);
+            int? value = Utils_int32.parseInt32(numStr);
+            if (value is null)
+            {
+                throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_VERSION_COMPONENT_OUT_OF_RANGE", $"Version component '{numStr}' is outside the supported int32 range");
+            }
+            return value.Value;
         }
     }
 }

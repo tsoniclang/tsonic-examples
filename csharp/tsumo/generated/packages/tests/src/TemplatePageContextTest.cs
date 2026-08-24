@@ -43,14 +43,14 @@ namespace Tsumo.Tests
             environment.templates.set("_partials/templates/_funcs/child", Node_modules_Tsumo_engine_src_template_parser_parseTemplate.parseTemplate("child={{ . }}", "_partials/templates/_funcs/child.html"));
             Template parent = Node_modules_Tsumo_engine_src_template_parser_parseTemplate.parseTemplate("{{ partial \"_funcs/child\" \"exact\" }}", "_partials/templates/parent.html");
             RenderScope parentScope = new RenderScope(new PageValue(root), new PageValue(root), site, environment, null, null, parent.sourcePath);
-            System.Text.StringBuilder output = new System.Text.StringBuilder();
+            TextBuilder output = new TextBuilder();
             parent.renderInto(output, parentScope, environment, new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>());
-            Xunit.Assert.Equal("child=exact", output.ToString());
+            Xunit.Assert.Equal("child=exact", output.toString());
             Template pageTemplate = Node_modules_Tsumo_engine_src_template_parser_parseTemplate.parseTemplate("{{ .Render \"summary\" }}", null);
-            System.Text.StringBuilder pageOutput = new System.Text.StringBuilder();
+            TextBuilder pageOutput = new TextBuilder();
             RenderScope pageScope = new RenderScope(new PageValue(newer), new PageValue(newer), site, environment, null);
             pageTemplate.renderInto(pageOutput, pageScope, environment, new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>());
-            Xunit.Assert.Equal("<summary>Newer</summary>", pageOutput.ToString());
+            Xunit.Assert.Equal("<summary>Newer</summary>", pageOutput.toString());
         }
         [Xunit.FactAttribute]
         public void page_taxonomy_terms_follow_explicit_graph_relations()
@@ -99,14 +99,14 @@ namespace Tsumo.Tests
         public void page_resources_use_the_published_bundle_inventory()
         {
             string root = TestRoot.createTestDirectory("template-page-resources");
-            string siteDirectory = System.IO.Path.Combine(root, "site");
-            string bundleDirectory = System.IO.Path.Combine(siteDirectory, "content", "article");
-            string outputDirectory = System.IO.Path.Combine(root, "output");
+            string siteDirectory = Tsonic.CSharp.Node.path.join(root, "site");
+            string bundleDirectory = Tsonic.CSharp.Node.path.join(siteDirectory, "content", "article");
+            string outputDirectory = Tsonic.CSharp.Node.path.join(root, "output");
             try
             {
-                System.IO.Directory.CreateDirectory(bundleDirectory);
-                System.IO.File.WriteAllText(System.IO.Path.Combine(bundleDirectory, "cover.svg"), "<svg></svg>");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(bundleDirectory, "notes.txt"), "notes");
+                TestRoot.createDirectory(bundleDirectory);
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(bundleDirectory, "cover.svg"), "<svg></svg>");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(bundleDirectory, "notes.txt"), "notes");
                 ResourceManager manager = new ResourceManager(siteDirectory, null, outputDirectory);
                 TestTemplateEnvironment environment = new TestTemplateEnvironment(manager);
                 SiteContext site = TemplateTestHarness.createSite();

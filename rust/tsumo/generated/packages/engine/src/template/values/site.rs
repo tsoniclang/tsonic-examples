@@ -4,10 +4,9 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait SiteValueDispatch:
-    crate::template::values::base::TemplateValueDispatch
-{
+pub trait SiteValueDispatch: crate::template::values::base::TemplateValueDispatch {
     fn downcast_site_value_to_site_value(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn SiteValueDispatch>>;
@@ -15,17 +14,27 @@ pub(crate) trait SiteValueDispatch:
     fn write_site_value_value(&self, value: crate::models::site_context::SiteContext);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct SiteValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: crate::models::site_context::SiteContext,
+pub struct SiteValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: crate::models::site_context::SiteContext,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct SiteValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn SiteValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn SiteValueDispatch>,
+}
+
+impl std::fmt::Debug for SiteValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("SiteValue")
+    }
 }
 
 impl PartialEq for SiteValue {
@@ -43,11 +52,10 @@ pub(crate) struct SiteValueRoot {
 }
 
 impl SiteValue {
-    pub(crate) fn initialize_state(
-        value: crate::models::site_context::SiteContext,
-    ) -> SiteValueState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: crate::models::site_context::SiteContext) -> SiteValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: crate::models::site_context::SiteContext = value.clone();
+        let field_value: crate::models::site_context::SiteContext = value;
         SiteValueState {
             base: base_state,
             value: field_value,
@@ -376,8 +384,9 @@ impl SiteValueDispatch for SiteValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait LanguageValueDispatch:
+pub trait LanguageValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_language_value_to_language_value(
@@ -387,17 +396,27 @@ pub(crate) trait LanguageValueDispatch:
     fn write_language_value_value(&self, value: crate::models::language::LanguageContext);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct LanguageValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: crate::models::language::LanguageContext,
+pub struct LanguageValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: crate::models::language::LanguageContext,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct LanguageValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn LanguageValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn LanguageValueDispatch>,
+}
+
+impl std::fmt::Debug for LanguageValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("LanguageValue")
+    }
 }
 
 impl PartialEq for LanguageValue {
@@ -415,11 +434,10 @@ pub(crate) struct LanguageValueRoot {
 }
 
 impl LanguageValue {
-    pub(crate) fn initialize_state(
-        value: crate::models::language::LanguageContext,
-    ) -> LanguageValueState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: crate::models::language::LanguageContext) -> LanguageValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: crate::models::language::LanguageContext = value.clone();
+        let field_value: crate::models::language::LanguageContext = value;
         LanguageValueState {
             base: base_state,
             value: field_value,
@@ -748,10 +766,9 @@ impl LanguageValueDispatch for LanguageValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait SitesValueDispatch:
-    crate::template::values::base::TemplateValueDispatch
-{
+pub trait SitesValueDispatch: crate::template::values::base::TemplateValueDispatch {
     fn downcast_sites_value_to_sites_value(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn SitesValueDispatch>>;
@@ -759,17 +776,27 @@ pub(crate) trait SitesValueDispatch:
     fn write_sites_value_value(&self, value: crate::models::site_context::SiteContext);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct SitesValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: crate::models::site_context::SiteContext,
+pub struct SitesValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: crate::models::site_context::SiteContext,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct SitesValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn SitesValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn SitesValueDispatch>,
+}
+
+impl std::fmt::Debug for SitesValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("SitesValue")
+    }
 }
 
 impl PartialEq for SitesValue {
@@ -787,11 +814,10 @@ pub(crate) struct SitesValueRoot {
 }
 
 impl SitesValue {
-    pub(crate) fn initialize_state(
-        value: crate::models::site_context::SiteContext,
-    ) -> SitesValueState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: crate::models::site_context::SiteContext) -> SitesValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: crate::models::site_context::SiteContext = value.clone();
+        let field_value: crate::models::site_context::SiteContext = value;
         SitesValueState {
             base: base_state,
             value: field_value,
@@ -1120,8 +1146,9 @@ impl SitesValueDispatch for SitesValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait SitesArrayValueDispatch:
+pub trait SitesArrayValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_sites_array_value_to_sites_array_value(
@@ -1136,17 +1163,27 @@ pub(crate) trait SitesArrayValueDispatch:
     );
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct SitesArrayValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: js_abi::JsArray<crate::models::site_context::SiteContext>,
+pub struct SitesArrayValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: js_abi::JsArray<crate::models::site_context::SiteContext>,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct SitesArrayValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn SitesArrayValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn SitesArrayValueDispatch>,
+}
+
+impl std::fmt::Debug for SitesArrayValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("SitesArrayValue")
+    }
 }
 
 impl PartialEq for SitesArrayValue {
@@ -1164,11 +1201,12 @@ pub(crate) struct SitesArrayValueRoot {
 }
 
 impl SitesArrayValue {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         value: js_abi::JsArray<crate::models::site_context::SiteContext>,
     ) -> SitesArrayValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: js_abi::JsArray<crate::models::site_context::SiteContext> = value.clone();
+        let field_value: js_abi::JsArray<crate::models::site_context::SiteContext> = value;
         SitesArrayValueState {
             base: base_state,
             value: field_value,

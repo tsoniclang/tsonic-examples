@@ -89,23 +89,23 @@ namespace Tsumo.Engine
                 {
                     return null;
                 }
-                double index = 2;
+                int index = 2;
                 while (index < bytes.length - 1)
                 {
-                    if (bytes.readUInt8(System.Convert.ToInt32(index)) != 255)
+                    if (bytes.readUInt8(index) != 255)
                     {
                         index++;
                         continue;
                     }
-                    byte marker = bytes.readUInt8(System.Convert.ToInt32(index + 1));
+                    byte marker = bytes.readUInt8(index + 1);
                     if (marker == 192 || marker == 194)
                     {
                         if (index + 9 >= bytes.length)
                         {
                             return null;
                         }
-                        int height = (bytes.readUInt8(System.Convert.ToInt32(index + 5)) << shift8) | bytes.readUInt8(System.Convert.ToInt32(index + 6));
-                        int width = (bytes.readUInt8(System.Convert.ToInt32(index + 7)) << shift8) | bytes.readUInt8(System.Convert.ToInt32(index + 8));
+                        int height = (bytes.readUInt8(index + 5) << shift8) | bytes.readUInt8(index + 6);
+                        int width = (bytes.readUInt8(index + 7) << shift8) | bytes.readUInt8(index + 8);
                         return new ImageDimensions(width, height);
                     }
                     if (marker == 216 || marker == 217 || marker == 1 || (marker >= 208 && marker <= 215))
@@ -117,7 +117,7 @@ namespace Tsumo.Engine
                     {
                         return null;
                     }
-                    int length = (bytes.readUInt8(System.Convert.ToInt32(index + 2)) << shift8) | bytes.readUInt8(System.Convert.ToInt32(index + 3));
+                    int length = (bytes.readUInt8(index + 2) << shift8) | bytes.readUInt8(index + 3);
                     if (length < 2)
                     {
                         return null;

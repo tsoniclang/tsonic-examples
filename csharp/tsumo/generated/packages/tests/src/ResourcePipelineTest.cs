@@ -20,15 +20,16 @@ namespace Tsumo.Tests
                 {
                     operation();
                 }
-                catch (System.Exception error)
+                catch (System.Exception __tsonic_catch0)
                 {
-                    if (error is TsumoError)
+                    Tsonic.CSharp.Runtime.TsValue error = Tsonic.CSharp.Runtime.TsThrownValueException.toValue(__tsonic_catch0);
+                    if (Tsonic.CSharp.Runtime.TsValue.IsDynamicInstanceOf<TsumoError>(error))
                     {
-                        return ((TsumoError)error).diagnostic.code;
+                        return Tsonic.CSharp.Runtime.TsValue.CastDynamic<TsumoError>(error).diagnostic.code;
                     }
                     throw;
                 }
-                throw new System.Exception("Expected a resource diagnostic");
+                throw new Tsonic.CSharp.Runtime.Error("Expected a resource diagnostic");
             };
             return null;
         }
@@ -89,23 +90,23 @@ namespace Tsumo.Tests
         public void file_resources_publish_raw_bytes_and_decode_only_for_text_operations()
         {
             string root = TestRoot.createTestDirectory("resource-bytes");
-            string siteDir = System.IO.Path.Combine(root, "site");
-            string outputDir = System.IO.Path.Combine(root, "output");
+            string siteDir = Tsonic.CSharp.Node.path.join(root, "site");
+            string outputDir = Tsonic.CSharp.Node.path.join(root, "output");
             try
             {
-                string assetsDir = System.IO.Path.Combine(siteDir, "assets");
-                System.IO.Directory.CreateDirectory(assetsDir);
+                string assetsDir = Tsonic.CSharp.Node.path.join(siteDir, "assets");
+                TestRoot.createDirectory(assetsDir);
                 Tsonic.CSharp.Node.Buffer sourceBytes = Tsonic.CSharp.Node.Buffer.from(new int[] { 97, 160, 98 });
-                Tsonic.CSharp.Node.fs.writeFileSync(System.IO.Path.Combine(assetsDir, "legacy.js"), sourceBytes);
+                Tsonic.CSharp.Node.fs.writeFileSync(Tsonic.CSharp.Node.path.join(assetsDir, "legacy.js"), sourceBytes);
                 ResourceManager manager = new ResourceManager(siteDir, null, outputDir);
                 Resource? resource = manager.get("legacy.js");
                 Xunit.Assert.True(resource is not null && resource.text is null);
                 if (resource is null)
                 {
-                    throw new System.Exception("Expected legacy.js resource");
+                    throw new Tsonic.CSharp.Runtime.Error("Expected legacy.js resource");
                 }
                 manager.ensurePublished(resource);
-                Tsonic.CSharp.Node.Buffer published = Tsonic.CSharp.Node.fs.readFileSync(System.IO.Path.Combine(outputDir, "legacy.js"));
+                Tsonic.CSharp.Node.Buffer published = Tsonic.CSharp.Node.fs.readFileSync(Tsonic.CSharp.Node.path.join(outputDir, "legacy.js"));
                 Xunit.Assert.Equal<double>(3, published.length);
                 Xunit.Assert.Equal<double>(160, published.readUInt8(1));
                 Xunit.Assert.Equal("TSUMO_RESOURCE_TEXT_ENCODING_INVALID", ResourcePipelineTest.captureResourceDiagnostic(() =>
@@ -140,18 +141,18 @@ namespace Tsumo.Tests
         public void resource_lookup_is_sorted_and_site_assets_override_theme_assets()
         {
             string root = TestRoot.createTestDirectory("resources");
-            string siteDir = System.IO.Path.Combine(root, "site");
-            string themeDir = System.IO.Path.Combine(root, "theme");
-            string outputDir = System.IO.Path.Combine(root, "output");
+            string siteDir = Tsonic.CSharp.Node.path.join(root, "site");
+            string themeDir = Tsonic.CSharp.Node.path.join(root, "theme");
+            string outputDir = Tsonic.CSharp.Node.path.join(root, "output");
             try
             {
-                System.IO.Directory.CreateDirectory(System.IO.Path.Combine(siteDir, "assets"));
-                System.IO.Directory.CreateDirectory(System.IO.Path.Combine(themeDir, "assets"));
-                System.IO.File.WriteAllText(System.IO.Path.Combine(siteDir, "assets", "z.txt"), "site-z");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(siteDir, "assets", "a.txt"), "site-a");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(siteDir, "assets", "main.ts"), "export const value = 1;");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(themeDir, "assets", "a.txt"), "theme-a");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(themeDir, "assets", "m.txt"), "theme-m");
+                TestRoot.createDirectory(Tsonic.CSharp.Node.path.join(siteDir, "assets"));
+                TestRoot.createDirectory(Tsonic.CSharp.Node.path.join(themeDir, "assets"));
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(siteDir, "assets", "z.txt"), "site-z");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(siteDir, "assets", "a.txt"), "site-a");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(siteDir, "assets", "main.ts"), "export const value = 1;");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(themeDir, "assets", "a.txt"), "theme-a");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(themeDir, "assets", "m.txt"), "theme-m");
                 ResourceManager manager = new ResourceManager(siteDir, themeDir, outputDir);
                 Tsonic.CSharp.Js.JSArray<Resource> matched = manager.match("*.txt");
                 Xunit.Assert.Equal<double>(3, matched.length);

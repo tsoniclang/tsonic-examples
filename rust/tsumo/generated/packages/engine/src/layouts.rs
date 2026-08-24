@@ -6,8 +6,9 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait LayoutEnvironmentDispatch:
+pub trait LayoutEnvironmentDispatch:
     crate::template::environment::TemplateEnvironmentDispatch
 {
     fn downcast_layout_environment_to_build_environment(
@@ -37,10 +38,7 @@ pub(crate) trait LayoutEnvironmentDispatch:
         value: js_abi::JsMap<String, crate::template::template_2::Template>,
     );
     fn read_layout_environment_missing_logical_template_paths(&self) -> js_abi::JsSet<String>;
-    fn write_layout_environment_missing_logical_template_paths(
-        &self,
-        value: js_abi::JsSet<String>,
-    );
+    fn write_layout_environment_missing_logical_template_paths(&self, value: js_abi::JsSet<String>);
     fn read_layout_environment_shortcode_template_by_name(
         &self,
     ) -> js_abi::JsMap<String, crate::template::template_2::Template>;
@@ -74,7 +72,7 @@ pub(crate) trait LayoutEnvironmentDispatch:
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, rt::TsonicError>;
     fn exact_layout_environment_render_text_template_source(
         self: std::rc::Rc<Self>,
         source: String,
@@ -82,7 +80,7 @@ pub(crate) trait LayoutEnvironmentDispatch:
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, rt::TsonicError>;
     fn dispatch_layout_environment_render_template(
         self: std::rc::Rc<Self>,
         template: crate::template::template_2::Template,
@@ -90,7 +88,7 @@ pub(crate) trait LayoutEnvironmentDispatch:
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, rt::TsonicError>;
     fn exact_layout_environment_render_template(
         self: std::rc::Rc<Self>,
         template: crate::template::template_2::Template,
@@ -98,7 +96,7 @@ pub(crate) trait LayoutEnvironmentDispatch:
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, rt::TsonicError>;
     fn dispatch_layout_environment_render_text_template(
         self: std::rc::Rc<Self>,
         template: crate::template::template_2::Template,
@@ -106,7 +104,7 @@ pub(crate) trait LayoutEnvironmentDispatch:
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, rt::TsonicError>;
     fn exact_layout_environment_render_text_template(
         self: std::rc::Rc<Self>,
         template: crate::template::template_2::Template,
@@ -114,7 +112,7 @@ pub(crate) trait LayoutEnvironmentDispatch:
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, rt::TsonicError>;
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     fn dispatch_layout_environment_render_template_definition(
         self: std::rc::Rc<Self>,
@@ -125,7 +123,7 @@ pub(crate) trait LayoutEnvironmentDispatch:
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, rt::TsonicError>;
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     fn exact_layout_environment_render_template_definition(
         self: std::rc::Rc<Self>,
@@ -136,90 +134,96 @@ pub(crate) trait LayoutEnvironmentDispatch:
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, rt::TsonicError>;
     fn dispatch_layout_environment_get_template(
         self: std::rc::Rc<Self>,
         rel_path_raw: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>>;
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError>;
     fn exact_layout_environment_get_template(
         self: std::rc::Rc<Self>,
         rel_path_raw: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>>;
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError>;
     fn dispatch_layout_environment_get_template_source_relative_path(
         self: std::rc::Rc<Self>,
         source_path: String,
-    ) -> rt::TsonicResult<Option<String>>;
+    ) -> Result<Option<String>, rt::TsonicError>;
     fn exact_layout_environment_get_template_source_relative_path(
         self: std::rc::Rc<Self>,
         source_path: String,
-    ) -> rt::TsonicResult<Option<String>>;
+    ) -> Result<Option<String>, rt::TsonicError>;
     fn dispatch_layout_environment_render_page_view(
         self: std::rc::Rc<Self>,
         page: crate::models::page_context::PageContext,
         view_raw: String,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<Option<String>>;
+    ) -> Result<Option<String>, rt::TsonicError>;
     fn exact_layout_environment_render_page_view(
         self: std::rc::Rc<Self>,
         page: crate::models::page_context::PageContext,
         view_raw: String,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<Option<String>>;
+    ) -> Result<Option<String>, rt::TsonicError>;
     fn dispatch_layout_environment_get_shortcode_template(
         self: std::rc::Rc<Self>,
         name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>>;
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError>;
     fn exact_layout_environment_get_shortcode_template(
         self: std::rc::Rc<Self>,
         name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>>;
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError>;
     fn dispatch_layout_environment_get_render_hook_template(
         self: std::rc::Rc<Self>,
         hook_name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>>;
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError>;
     fn exact_layout_environment_get_render_hook_template(
         self: std::rc::Rc<Self>,
         hook_name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>>;
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError>;
     fn dispatch_layout_environment_get_i18n(
         self: std::rc::Rc<Self>,
         lang: String,
         key: String,
         count: Option<i32>,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, rt::TsonicError>;
     fn exact_layout_environment_get_i18n(
         self: std::rc::Rc<Self>,
         lang: String,
         key: String,
         count: Option<i32>,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, rt::TsonicError>;
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct LayoutEnvironmentState {
-    pub(crate) base: crate::template::environment::TemplateEnvironmentState,
-    pub(crate) site_layouts_dir: String,
-    pub(crate) theme_layouts_dir: Option<String>,
-    pub(crate) mounted_layout_dirs: js_abi::JsArray<String>,
-    pub(crate) parsed_template_by_source:
-        js_abi::JsMap<String, crate::template::template_2::Template>,
-    pub(crate) template_by_logical_path:
-        js_abi::JsMap<String, crate::template::template_2::Template>,
-    pub(crate) missing_logical_template_paths: js_abi::JsSet<String>,
-    pub(crate) shortcode_template_by_name:
-        js_abi::JsMap<String, crate::template::template_2::Template>,
-    pub(crate) missing_shortcode_names: js_abi::JsSet<String>,
-    pub(crate) render_hook_template_by_name:
-        js_abi::JsMap<String, crate::template::template_2::Template>,
-    pub(crate) missing_render_hook_names: js_abi::JsSet<String>,
-    pub(crate) i18n_store: crate::i18n::I18nStore,
+pub struct LayoutEnvironmentState {
+    #[doc(hidden)]
+    pub base: crate::template::environment::TemplateEnvironmentState,
+    pub site_layouts_dir: String,
+    pub theme_layouts_dir: Option<String>,
+    pub mounted_layout_dirs: js_abi::JsArray<String>,
+    pub parsed_template_by_source: js_abi::JsMap<String, crate::template::template_2::Template>,
+    pub template_by_logical_path: js_abi::JsMap<String, crate::template::template_2::Template>,
+    pub missing_logical_template_paths: js_abi::JsSet<String>,
+    pub shortcode_template_by_name: js_abi::JsMap<String, crate::template::template_2::Template>,
+    pub missing_shortcode_names: js_abi::JsSet<String>,
+    pub render_hook_template_by_name: js_abi::JsMap<String, crate::template::template_2::Template>,
+    pub missing_render_hook_names: js_abi::JsSet<String>,
+    pub i18n_store: crate::i18n::I18nStore,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct LayoutEnvironment {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn LayoutEnvironmentDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn LayoutEnvironmentDispatch>,
+}
+
+impl std::fmt::Debug for LayoutEnvironment {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("LayoutEnvironment")
+    }
 }
 
 impl PartialEq for LayoutEnvironment {
@@ -237,20 +241,20 @@ pub(crate) struct LayoutEnvironmentRoot {
 }
 
 impl LayoutEnvironment {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         site_dir: String,
         theme_dir_raw: Option<String>,
         mounts_raw: Option<js_abi::JsArray<crate::models::site_config::ModuleMount>>,
         build_time: Option<js_abi::JsDate>,
         site_data: Option<crate::template::values::dict::DictValue>,
-    ) -> rt::TsonicResult<LayoutEnvironmentState> {
+    ) -> Result<LayoutEnvironmentState, rt::TsonicError> {
         let base_state = crate::template::environment::TemplateEnvironment::initialize_state(
-            build_time.clone(),
-            site_data.clone(),
+            build_time,
+            site_data,
         );
-        let theme_dir: Option<String> = theme_dir_raw.clone();
-        let mounts: Option<js_abi::JsArray<crate::models::site_config::ModuleMount>> =
-            mounts_raw.clone();
+        let theme_dir: Option<String> = theme_dir_raw;
+        let mounts: Option<js_abi::JsArray<crate::models::site_config::ModuleMount>> = mounts_raw;
         let field_site_layouts_dir: String =
             tsonic_rust_node::path::join(&[site_dir.as_str(), "layouts"]);
         let field_theme_layouts_dir: Option<String> = if theme_dir.is_some() {
@@ -289,16 +293,18 @@ impl LayoutEnvironment {
         let field_missing_render_hook_names: js_abi::JsSet<String> = js_abi::JsSet::new();
         let field_i18n_store: crate::i18n::I18nStore = crate::i18n::I18nStore::new();
         if theme_dir.is_some() {
-            field_i18n_store
-                .load_from_dir(tsonic_rust_node::path::join(
-                    &[
+            {
+                let dispatch_receiver = field_i18n_store.clone();
+                dispatch_receiver.dispatch.clone().dispatch_i18n_store_load_from_dir(
+                    tsonic_rust_node::path::join(&[
                         (match theme_dir.as_ref() {
     Some(flow_value_2) => flow_value_2.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
 }).as_str(),
                         "i18n",
-                    ],
-                ))?;
+                    ]),
+                )
+            }?;
         }
         if mounts.is_some() {
             {
@@ -321,33 +327,56 @@ impl LayoutEnvironment {
                         Some(flow_value_5) => flow_value_5.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
-                    if mount.state.with(|state| state.target.clone()) != "i18n" {
+                    if {
+                        let dispatch_receiver_2 = &mount;
+                        dispatch_receiver_2.dispatch.read_module_mount_target()
+                    } != "i18n"
+                    {
                         i -= 1;
                         continue 'loop_value;
                     }
-                    let mount_path: String = if tsonic_rust_node::path::is_absolute(&mount
-                        .state
-                        .with(|state| state.source.clone()))
-                    {
-                        mount.state.with(|state| state.source.clone())
-                    } else {
-                        tsonic_rust_node::path::join(&[
-                            site_dir.as_str(),
-                            mount.state.with(|state| state.source.clone()).as_str(),
-                        ])
+                    let mount_path: String = {
+                        let conditional_test = tsonic_rust_node::path::is_absolute(&{
+                            let dispatch_receiver_3 = &mount;
+                            dispatch_receiver_3.dispatch.read_module_mount_source()
+                        });
+                        if conditional_test {
+                            let dispatch_receiver_4 = &mount;
+                            dispatch_receiver_4.dispatch.read_module_mount_source()
+                        } else {
+                            let operation_input_0 = site_dir.clone();
+                            tsonic_rust_node::path::join(&[
+                                operation_input_0.as_str(),
+                                {
+                                    let dispatch_receiver_5 = &mount;
+                                    dispatch_receiver_5.dispatch.read_module_mount_source()
+                                }
+                                .as_str(),
+                            ])
+                        }
                     };
-                    if crate::fs::DIR_EXISTS
-                        .with(|module_binding| module_binding.load())
-                        .call((mount_path.clone(),))?
-                    {
-                        field_i18n_store.load_from_dir(mount_path.clone())?;
+                    if crate::fs::dir_exists(mount_path.clone())? {
+                        {
+                            let dispatch_receiver_6 = field_i18n_store.clone();
+                            dispatch_receiver_6
+                                .dispatch
+                                .clone()
+                                .dispatch_i18n_store_load_from_dir(mount_path.clone())
+                        }?;
                     }
                     i -= 1;
                 }
             }
         }
-        field_i18n_store
-            .load_from_dir(tsonic_rust_node::path::join(&[site_dir.as_str(), "i18n"]))?;
+        {
+            let dispatch_receiver_7 = field_i18n_store.clone();
+            dispatch_receiver_7
+                .dispatch
+                .clone()
+                .dispatch_i18n_store_load_from_dir(tsonic_rust_node::path::join(
+                    &[site_dir.as_str(), "i18n"],
+                ))
+        }?;
         if mounts.is_some() {
             {
                 let mut i: f64 = 0.0;
@@ -368,25 +397,33 @@ impl LayoutEnvironment {
                         Some(flow_value_8) => flow_value_8.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
-                    if mount.state.with(|state| state.target.clone()) == "layouts" {
-                        let mount_path: String = if tsonic_rust_node::path::is_absolute(&mount
-                            .state
-                            .with(|state| state.source.clone()))
-                        {
-                            mount.state.with(|state| state.source.clone())
-                        } else {
-                            tsonic_rust_node::path::join(&[
-                                site_dir.as_str(),
-                                mount.state.with(|state| state.source.clone()).as_str(),
-                            ])
+                    if {
+                        let dispatch_receiver_8 = &mount;
+                        dispatch_receiver_8.dispatch.read_module_mount_target()
+                    } == "layouts"
+                    {
+                        let mount_path: String = {
+                            let conditional_test_2 = tsonic_rust_node::path::is_absolute(&{
+                                let dispatch_receiver_9 = &mount;
+                                dispatch_receiver_9.dispatch.read_module_mount_source()
+                            });
+                            if conditional_test_2 {
+                                let dispatch_receiver_10 = &mount;
+                                dispatch_receiver_10.dispatch.read_module_mount_source()
+                            } else {
+                                let operation_input_0_2 = site_dir.clone();
+                                tsonic_rust_node::path::join(&[
+                                    operation_input_0_2.as_str(),
+                                    {
+                                        let dispatch_receiver_11 = &mount;
+                                        dispatch_receiver_11.dispatch.read_module_mount_source()
+                                    }
+                                    .as_str(),
+                                ])
+                            }
                         };
-                        if crate::fs::DIR_EXISTS
-                            .with(|module_binding| module_binding.load())
-                            .call((mount_path.clone(),))?
-                        {
-                            tsonic_rust_runtime::conversions::usize_to_i32(
-                                field_mounted_layout_dirs.push_many([mount_path.clone()]),
-                            )?;
+                        if crate::fs::dir_exists(mount_path.clone())? {
+                            field_mounted_layout_dirs.push_many_discard([mount_path.clone()]);
                         }
                     }
                     i += 1.0;
@@ -415,7 +452,7 @@ impl LayoutEnvironment {
         mounts_raw: Option<js_abi::JsArray<crate::models::site_config::ModuleMount>>,
         build_time: Option<js_abi::JsDate>,
         site_data: Option<crate::template::values::dict::DictValue>,
-    ) -> rt::TsonicResult<LayoutEnvironment> {
+    ) -> Result<LayoutEnvironment, rt::TsonicError> {
         let state = LayoutEnvironment::initialize_state(
             site_dir,
             theme_dir_raw,
@@ -441,24 +478,29 @@ impl LayoutEnvironmentRoot {
         lang: String,
         key: String,
         count: Option<i32>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         let project_this = LayoutEnvironment {
             identity: self.identity.clone(),
             dispatch: self.clone(),
         };
         {
-            let dispatch_receiver = &project_this;
-            dispatch_receiver
+            let dispatch_receiver_2 = {
+                let dispatch_receiver = &project_this;
+                dispatch_receiver
+                    .dispatch
+                    .read_layout_environment_i18n_store()
+            };
+            dispatch_receiver_2
                 .dispatch
-                .read_layout_environment_i18n_store()
+                .clone()
+                .dispatch_i18n_store_translate(&lang, key, count)
         }
-        .translate(&lang, key.clone(), count)
     }
 
     fn exact_layout_environment_get_render_hook_template(
         self: std::rc::Rc<Self>,
         hook_name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         let project_this = LayoutEnvironment {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -518,18 +560,20 @@ impl LayoutEnvironmentRoot {
                 .read_layout_environment_theme_layouts_dir()
         };
         if theme_layouts_dir.is_some() {
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                candidates.push_many([tsonic_rust_node::path::join(&[
+            {
+                let operation_input_0 = candidates.clone();
+                operation_input_0.push_many_discard([tsonic_rust_node::path::join(&[
                     (match theme_layouts_dir.as_ref() {
     Some(flow_value_2) => flow_value_2.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
 }).as_str(),
                     "_markup",
                     format!("{}{}", hook_name, String::from(".html")).as_str(),
-                ])]),
-            )?;
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                candidates.push_many([tsonic_rust_node::path::join(&[
+                ])])
+            };
+            {
+                let operation_input_0_2 = candidates.clone();
+                operation_input_0_2.push_many_discard([tsonic_rust_node::path::join(&[
                     (match theme_layouts_dir.as_ref() {
     Some(flow_value_3) => flow_value_3.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
@@ -537,8 +581,8 @@ impl LayoutEnvironmentRoot {
                     "_default",
                     "_markup",
                     format!("{}{}", hook_name, String::from(".html")).as_str(),
-                ])]),
-            )?;
+                ])])
+            };
         }
         {
             let mut i: f64 = 0.0;
@@ -557,25 +601,27 @@ impl LayoutEnvironmentRoot {
                     Some(flow_value_4) => flow_value_4.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-                tsonic_rust_runtime::conversions::usize_to_i32(
-                    candidates.push_many([
+                {
+                    let operation_input_0_3 = candidates.clone();
+                    operation_input_0_3.push_many_discard([
                         tsonic_rust_node::path::join(&[
                             dir.as_str(),
                             "_markup",
                             format!("{}{}", hook_name, String::from(".html")).as_str(),
                         ]),
-                    ]),
-                )?;
-                tsonic_rust_runtime::conversions::usize_to_i32(
-                    candidates.push_many([
+                    ])
+                };
+                {
+                    let operation_input_0_4 = candidates.clone();
+                    operation_input_0_4.push_many_discard([
                         tsonic_rust_node::path::join(&[
                             dir.as_str(),
                             "_default",
                             "_markup",
                             format!("{}{}", hook_name, String::from(".html")).as_str(),
                         ]),
-                    ]),
-                )?;
+                    ])
+                };
                 i += 1.0;
             }
         }
@@ -587,10 +633,7 @@ impl LayoutEnvironmentRoot {
                     Some(flow_value_5) => flow_value_5.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-                if crate::fs::FILE_EXISTS
-                    .with(|module_binding| module_binding.load())
-                    .call((candidate.clone(),))?
-                {
+                if crate::fs::file_exists(candidate.clone())? {
                     resolved = Some(candidate.clone());
                     break 'loop_value_2;
                 }
@@ -604,32 +647,28 @@ impl LayoutEnvironmentRoot {
                     .dispatch
                     .read_layout_environment_missing_render_hook_names()
             }
-            .add(hook_name.clone());
+            .add_discard(hook_name.clone());
             return Ok(Option::<crate::template::template_2::Template>::None);
         }
         let tpl: crate::template::template_2::Template =
-            crate::template::parser::parse_template::PARSE_TEMPLATE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    crate::fs::READ_TEXT_FILE
-                        .with(|module_binding| module_binding.load())
-                        .call((match resolved.as_ref() {
-                            Some(flow_value_6) => flow_value_6.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },))?,
-                    Some(match resolved.as_ref() {
-                        Some(flow_value_7) => flow_value_7.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }),
-                ))?;
+            crate::template::parser::parse_template::parse_template(
+                crate::fs::read_text_file(match resolved.as_ref() {
+                    Some(flow_value_6) => flow_value_6.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                })?,
+                Some(match resolved.as_ref() {
+                    Some(flow_value_7) => flow_value_7.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }),
+            )?;
         {
             let dispatch_receiver_9 = &project_this;
             dispatch_receiver_9
                 .dispatch
                 .read_layout_environment_render_hook_template_by_name()
         }
-        .set(hook_name.clone(), tpl.clone());
-        Ok(Some(tpl.clone()))
+        .set_discard(hook_name.clone(), tpl.clone());
+        Ok(Some(tpl))
     }
 
     fn exact_layout_environment_get_resource_manager(
@@ -641,7 +680,7 @@ impl LayoutEnvironmentRoot {
     fn exact_layout_environment_get_shortcode_template(
         self: std::rc::Rc<Self>,
         name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         let project_this = LayoutEnvironment {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -700,26 +739,28 @@ impl LayoutEnvironmentRoot {
                 .read_layout_environment_theme_layouts_dir()
         };
         if theme_layouts_dir.is_some() {
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                candidates.push_many([tsonic_rust_node::path::join(&[
+            {
+                let operation_input_0 = candidates.clone();
+                operation_input_0.push_many_discard([tsonic_rust_node::path::join(&[
                     (match theme_layouts_dir.as_ref() {
     Some(flow_value_2) => flow_value_2.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
 }).as_str(),
                     "shortcodes",
                     format!("{}{}", name, String::from(".html")).as_str(),
-                ])]),
-            )?;
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                candidates.push_many([tsonic_rust_node::path::join(&[
+                ])])
+            };
+            {
+                let operation_input_0_2 = candidates.clone();
+                operation_input_0_2.push_many_discard([tsonic_rust_node::path::join(&[
                     (match theme_layouts_dir.as_ref() {
     Some(flow_value_3) => flow_value_3.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
 }).as_str(),
                     "_shortcodes",
                     format!("{}{}", name, String::from(".html")).as_str(),
-                ])]),
-            )?;
+                ])])
+            };
         }
         {
             let mut i: f64 = 0.0;
@@ -738,24 +779,26 @@ impl LayoutEnvironmentRoot {
                     Some(flow_value_4) => flow_value_4.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-                tsonic_rust_runtime::conversions::usize_to_i32(
-                    candidates.push_many([
+                {
+                    let operation_input_0_3 = candidates.clone();
+                    operation_input_0_3.push_many_discard([
                         tsonic_rust_node::path::join(&[
                             dir.as_str(),
                             "shortcodes",
                             format!("{}{}", name, String::from(".html")).as_str(),
                         ]),
-                    ]),
-                )?;
-                tsonic_rust_runtime::conversions::usize_to_i32(
-                    candidates.push_many([
+                    ])
+                };
+                {
+                    let operation_input_0_4 = candidates.clone();
+                    operation_input_0_4.push_many_discard([
                         tsonic_rust_node::path::join(&[
                             dir.as_str(),
                             "_shortcodes",
                             format!("{}{}", name, String::from(".html")).as_str(),
                         ]),
-                    ]),
-                )?;
+                    ])
+                };
                 i += 1.0;
             }
         }
@@ -767,10 +810,7 @@ impl LayoutEnvironmentRoot {
                     Some(flow_value_5) => flow_value_5.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-                if crate::fs::FILE_EXISTS
-                    .with(|module_binding| module_binding.load())
-                    .call((candidate.clone(),))?
-                {
+                if crate::fs::file_exists(candidate.clone())? {
                     resolved = Some(candidate.clone());
                     break 'loop_value_2;
                 }
@@ -784,38 +824,34 @@ impl LayoutEnvironmentRoot {
                     .dispatch
                     .read_layout_environment_missing_shortcode_names()
             }
-            .add(name.clone());
+            .add_discard(name.clone());
             return Ok(Option::<crate::template::template_2::Template>::None);
         }
         let tpl: crate::template::template_2::Template =
-            crate::template::parser::parse_template::PARSE_TEMPLATE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    crate::fs::READ_TEXT_FILE
-                        .with(|module_binding| module_binding.load())
-                        .call((match resolved.as_ref() {
-                            Some(flow_value_6) => flow_value_6.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },))?,
-                    Some(match resolved.as_ref() {
-                        Some(flow_value_7) => flow_value_7.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }),
-                ))?;
+            crate::template::parser::parse_template::parse_template(
+                crate::fs::read_text_file(match resolved.as_ref() {
+                    Some(flow_value_6) => flow_value_6.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                })?,
+                Some(match resolved.as_ref() {
+                    Some(flow_value_7) => flow_value_7.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }),
+            )?;
         {
             let dispatch_receiver_9 = &project_this;
             dispatch_receiver_9
                 .dispatch
                 .read_layout_environment_shortcode_template_by_name()
         }
-        .set(name.clone(), tpl.clone());
-        Ok(Some(tpl.clone()))
+        .set_discard(name.clone(), tpl.clone());
+        Ok(Some(tpl))
     }
 
     fn exact_layout_environment_get_template(
         self: std::rc::Rc<Self>,
         rel_path_raw: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         let project_this = LayoutEnvironment {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -852,49 +888,43 @@ impl LayoutEnvironmentRoot {
         }
         let relative_paths: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
         if !tsonic_rust_node::path::extname(&rel_path).is_empty() {
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                relative_paths.push_many([rel_path.clone()]),
-            )?;
+            relative_paths.push_many_discard([rel_path.clone()]);
         } else {
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                relative_paths.push_many([format!("{}{}", rel_path, String::from(".html"))]),
-            )?;
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                relative_paths.push_many([format!("{}{}", rel_path, String::from(".htm"))]),
-            )?;
+            relative_paths.push_many_discard([format!("{}{}", rel_path, String::from(".html"))]);
+            relative_paths.push_many_discard([format!("{}{}", rel_path, String::from(".htm"))]);
         }
         let candidates: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
         {
             let mut i: f64 = 0.0;
             while i < (tsonic_rust_runtime::conversions::usize_to_i32(relative_paths.len())? as f64)
             {
-                tsonic_rust_runtime::conversions::usize_to_i32(
-                    candidates.push_many([tsonic_rust_node::path::join(&[
-                        {
+                {
+                    let operation_input_0 = candidates.clone();
+                    operation_input_0.push_many_discard([{
+                        let operation_input_0_2 = {
                             let dispatch_receiver_3 = &project_this;
                             dispatch_receiver_3
                                 .dispatch
                                 .read_layout_environment_site_layouts_dir()
-                        }
-                        .as_str(),
-                        crate::utils::strings::replace_text(
-                            &match relative_paths.get_number(i).as_ref() {
-                                Some(flow_value_2) => flow_value_2.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                            slash.clone(),
-                            format!(
-                                "{}{}{}",
-                                String::from(""),
-                                rt::source_string(&String::from(tsonic_rust_node::path::sep())),
-                                String::from(""),
-                            ),
-                        )?
-                        .as_str(),
-                    ])]),
-                )?;
+                        };
+                        tsonic_rust_node::path::join(&[
+                            operation_input_0_2.as_str(),
+                            crate::utils::strings::replace_text(
+                                &match relative_paths.get_number(i).as_ref() {
+                                    Some(flow_value_2) => flow_value_2.clone(),
+                                    None => {
+                                        unreachable!(
+                                            "checked flow selected a missing optional value"
+                                        )
+                                    }
+                                },
+                                slash.clone(),
+                                String::from(tsonic_rust_node::path::sep()),
+                            )?
+                            .as_str(),
+                        ])
+                    }])
+                };
                 i += 1.0;
             }
         }
@@ -910,32 +940,33 @@ impl LayoutEnvironmentRoot {
                 while i
                     < (tsonic_rust_runtime::conversions::usize_to_i32(relative_paths.len())? as f64)
                 {
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        candidates.push_many([tsonic_rust_node::path::join(&[
-                            (match theme_layouts_dir.as_ref() {
-    Some(flow_value_3) => flow_value_3.clone(),
-    None => unreachable!("checked flow selected a missing optional value"),
-}).as_str(),
-                            crate::utils::strings::replace_text(
-                                &match relative_paths.get_number(i).as_ref() {
-                                    Some(flow_value_4) => flow_value_4.clone(),
-                                    None => {
-                                        unreachable!(
-                                            "checked flow selected a missing optional value"
-                                        )
-                                    }
-                                },
-                                slash.clone(),
-                                format!(
-                                    "{}{}{}",
-                                    String::from(""),
-                                    rt::source_string(&String::from(tsonic_rust_node::path::sep())),
-                                    String::from(""),
-                                ),
-                            )?
-                            .as_str(),
-                        ])]),
-                    )?;
+                    {
+                        let operation_input_0_3 = candidates.clone();
+                        operation_input_0_3.push_many_discard([{
+                            let operation_input_0_4 = match theme_layouts_dir.as_ref() {
+                                Some(flow_value_3) => flow_value_3.clone(),
+                                None => {
+                                    unreachable!("checked flow selected a missing optional value")
+                                }
+                            };
+                            tsonic_rust_node::path::join(&[
+                                operation_input_0_4.as_str(),
+                                crate::utils::strings::replace_text(
+                                    &match relative_paths.get_number(i).as_ref() {
+                                        Some(flow_value_4) => flow_value_4.clone(),
+                                        None => {
+                                            unreachable!(
+                                                "checked flow selected a missing optional value"
+                                            )
+                                        }
+                                    },
+                                    slash.clone(),
+                                    String::from(tsonic_rust_node::path::sep()),
+                                )?
+                                .as_str(),
+                            ])
+                        }])
+                    };
                     i += 1.0;
                 }
             }
@@ -950,42 +981,43 @@ impl LayoutEnvironmentRoot {
                     while path_index
                         < (tsonic_rust_runtime::conversions::usize_to_i32(relative_paths.len())? as f64)
                     {
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            candidates.push_many([tsonic_rust_node::path::join(&[
-                                (match {
-    let dispatch_receiver_6 = &project_this;
-    dispatch_receiver_6
-        .dispatch
-        .read_layout_environment_mounted_layout_dirs()
-}
-.get_number(i)
-.as_ref()
-{
-    Some(flow_value_5) => flow_value_5.clone(),
-    None => unreachable!("checked flow selected a missing optional value"),
-}).as_str(),
-                                crate::utils::strings::replace_text(
-                                    &match relative_paths.get_number(path_index).as_ref() {
-                                        Some(flow_value_6) => flow_value_6.clone(),
-                                        None => {
-                                            unreachable!(
-                                                "checked flow selected a missing optional value"
-                                            )
-                                        }
-                                    },
-                                    slash.clone(),
-                                    format!(
-                                        "{}{}{}",
-                                        String::from(""),
-                                        rt::source_string(&String::from(
-                                            tsonic_rust_node::path::sep(),
-                                        ),),
-                                        String::from(""),
-                                    ),
-                                )?
-                                .as_str(),
-                            ])]),
-                        )?;
+                        {
+                            let operation_input_0_5 = candidates.clone();
+                            operation_input_0_5.push_many_discard([{
+                                let operation_input_0_6 = match {
+                                    let dispatch_receiver_6 = &project_this;
+                                    dispatch_receiver_6
+                                        .dispatch
+                                        .read_layout_environment_mounted_layout_dirs()
+                                }
+                                .get_number(i)
+                                .as_ref()
+                                {
+                                    Some(flow_value_5) => flow_value_5.clone(),
+                                    None => {
+                                        unreachable!(
+                                            "checked flow selected a missing optional value"
+                                        )
+                                    }
+                                };
+                                tsonic_rust_node::path::join(&[
+                                    operation_input_0_6.as_str(),
+                                    crate::utils::strings::replace_text(
+                                        &match relative_paths.get_number(path_index).as_ref() {
+                                            Some(flow_value_6) => flow_value_6.clone(),
+                                            None => {
+                                                unreachable!(
+                                                    "checked flow selected a missing optional value"
+                                                )
+                                            }
+                                        },
+                                        slash.clone(),
+                                        String::from(tsonic_rust_node::path::sep()),
+                                    )?
+                                    .as_str(),
+                                ])
+                            }])
+                        };
                         path_index += 1.0;
                     }
                 }
@@ -1000,10 +1032,7 @@ impl LayoutEnvironmentRoot {
                     Some(flow_value_7) => flow_value_7.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-                if crate::fs::FILE_EXISTS
-                    .with(|module_binding| module_binding.load())
-                    .call((candidate.clone(),))?
-                {
+                if crate::fs::file_exists(candidate.clone())? {
                     resolved = Some(candidate.clone());
                     break 'loop_value_5;
                 }
@@ -1019,14 +1048,14 @@ impl LayoutEnvironmentRoot {
                     < (tsonic_rust_runtime::conversions::usize_to_i32(relative_paths.len())? as f64)
                 {
                     let candidate_source: Option<String> =
-                        crate::template::embedded_templates::GET_EMBEDDED_TEMPLATE_SOURCE
-                            .with(|module_binding| module_binding.load())
-                            .call((match relative_paths.get_number(i).as_ref() {
+                        crate::template::embedded_templates::get_embedded_template_source(
+                            &match relative_paths.get_number(i).as_ref() {
                                 Some(flow_value_8) => flow_value_8.clone(),
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
-                            },))?;
+                            },
+                        );
                     if candidate_source.is_none() {
                         i += 1.0;
                         continue 'loop_value_6;
@@ -1049,19 +1078,18 @@ impl LayoutEnvironmentRoot {
                         .dispatch
                         .read_layout_environment_missing_logical_template_paths()
                 }
-                .add(rel_path.clone());
+                .add_discard(rel_path.clone());
                 return Ok(Option::<crate::template::template_2::Template>::None);
             }
             let embedded_key: String = format!(
-                "{}{}{}",
+                "{}{}",
                 String::from("embedded:"),
-                rt::source_string(
-                    &js_string::to_lower_case(&match embedded_path.as_ref() {
+                js_string::to_lower_case(
+                    &match embedded_path.as_ref() {
                         Some(flow_value_11) => flow_value_11.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
-                    }),
+                    },
                 ),
-                String::from(""),
             );
             let embedded_cached: Option<crate::template::template_2::Template> = {
                 let dispatch_receiver_8 = &project_this;
@@ -1077,7 +1105,7 @@ impl LayoutEnvironmentRoot {
                         .dispatch
                         .read_layout_environment_template_by_logical_path()
                 }
-                .set(rel_path.clone(), match embedded_cached.as_ref() {
+                .set_discard(rel_path.clone(), match embedded_cached.as_ref() {
                     Some(flow_value_12) => flow_value_12.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 });
@@ -1087,30 +1115,28 @@ impl LayoutEnvironmentRoot {
                 }));
             }
             let embedded: crate::template::template_2::Template =
-                crate::template::parser::parse_template::PARSE_TEMPLATE
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        match embedded_source.as_ref() {
-                            Some(flow_value_14) => flow_value_14.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },
-                        Some(embedded_key.clone()),
-                    ))?;
+                crate::template::parser::parse_template::parse_template(
+                    match embedded_source.as_ref() {
+                        Some(flow_value_14) => flow_value_14.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
+                    Some(embedded_key.clone()),
+                )?;
             {
                 let dispatch_receiver_10 = &project_this;
                 dispatch_receiver_10
                     .dispatch
                     .read_layout_environment_parsed_template_by_source()
             }
-            .set(embedded_key.clone(), embedded.clone());
+            .set_discard(embedded_key.clone(), embedded.clone());
             {
                 let dispatch_receiver_11 = &project_this;
                 dispatch_receiver_11
                     .dispatch
                     .read_layout_environment_template_by_logical_path()
             }
-            .set(rel_path.clone(), embedded.clone());
-            return Ok(Some(embedded.clone()));
+            .set_discard(rel_path.clone(), embedded.clone());
+            return Ok(Some(embedded));
         }
         let cached: Option<crate::template::template_2::Template> = {
             let dispatch_receiver_12 = &project_this;
@@ -1129,7 +1155,7 @@ impl LayoutEnvironmentRoot {
                     .dispatch
                     .read_layout_environment_template_by_logical_path()
             }
-            .set(rel_path.clone(), match cached.as_ref() {
+            .set_discard(rel_path.clone(), match cached.as_ref() {
                 Some(flow_value_16) => flow_value_16.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             });
@@ -1138,29 +1164,25 @@ impl LayoutEnvironmentRoot {
                 None => unreachable!("checked flow selected a missing optional value"),
             }));
         }
-        let text: String = crate::fs::READ_TEXT_FILE
-            .with(|module_binding| module_binding.load())
-            .call((match resolved.as_ref() {
-                Some(flow_value_18) => flow_value_18.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            },))?;
+        let text: String = crate::fs::read_text_file(match resolved.as_ref() {
+            Some(flow_value_18) => flow_value_18.clone(),
+            None => unreachable!("checked flow selected a missing optional value"),
+        })?;
         let tpl: crate::template::template_2::Template =
-            crate::template::parser::parse_template::PARSE_TEMPLATE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    text.clone(),
-                    Some(match resolved.as_ref() {
-                        Some(flow_value_19) => flow_value_19.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }),
-                ))?;
+            crate::template::parser::parse_template::parse_template(
+                text,
+                Some(match resolved.as_ref() {
+                    Some(flow_value_19) => flow_value_19.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }),
+            )?;
         {
             let dispatch_receiver_14 = &project_this;
             dispatch_receiver_14
                 .dispatch
                 .read_layout_environment_parsed_template_by_source()
         }
-        .set(
+        .set_discard(
                 match resolved.as_ref() {
                     Some(flow_value_20) => flow_value_20.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
@@ -1173,20 +1195,19 @@ impl LayoutEnvironmentRoot {
                 .dispatch
                 .read_layout_environment_template_by_logical_path()
         }
-        .set(rel_path.clone(), tpl.clone());
-        Ok(Some(tpl.clone()))
+        .set_discard(rel_path.clone(), tpl.clone());
+        Ok(Some(tpl))
     }
 
     fn exact_layout_environment_get_template_source_relative_path(
         self: std::rc::Rc<Self>,
         source_path: String,
-    ) -> rt::TsonicResult<Option<String>> {
+    ) -> Result<Option<String>, rt::TsonicError> {
         let project_this = LayoutEnvironment {
             identity: self.identity.clone(),
             dispatch: self.clone(),
         };
-        let source: String = tsonic_rust_node::path::resolve(&[source_path.as_str()])
-            .map_err(tsonic_rust_runtime::TsonicError::from)?;
+        let source: String = tsonic_rust_node::path::resolve(&[source_path.as_str()])?;
         let roots: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![{
             let dispatch_receiver = &project_this;
             dispatch_receiver
@@ -1200,45 +1221,43 @@ impl LayoutEnvironmentRoot {
                 .read_layout_environment_theme_layouts_dir()
         };
         if theme_layouts_dir.is_some() {
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                roots.push_many([match theme_layouts_dir.as_ref() {
-                    Some(flow_value) => flow_value.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }]),
-            )?;
+            roots.push_many_discard([match theme_layouts_dir.as_ref() {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            }]);
         }
         {
             let mut index: f64 = 0.0;
             while index
                 < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_3 = &project_this; dispatch_receiver_3.dispatch.read_layout_environment_mounted_layout_dirs() }.len())? as f64)
             {
-                tsonic_rust_runtime::conversions::usize_to_i32(roots.push_many([match {
-                    let dispatch_receiver_4 = &project_this;
-                    dispatch_receiver_4
-                        .dispatch
-                        .read_layout_environment_mounted_layout_dirs()
-                }
-                .get_number(index)
-                .as_ref()
                 {
-                    Some(flow_value_2) => flow_value_2.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }]))?;
+                    let operation_input_0 = roots.clone();
+                    operation_input_0.push_many_discard([match {
+                        let dispatch_receiver_4 = &project_this;
+                        dispatch_receiver_4
+                            .dispatch
+                            .read_layout_environment_mounted_layout_dirs()
+                    }
+                    .get_number(index)
+                    .as_ref()
+                    {
+                        Some(flow_value_2) => flow_value_2.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }])
+                };
                 index += 1.0;
             }
         }
         {
             let mut index: f64 = 0.0;
             'loop_value_2: while index < (tsonic_rust_runtime::conversions::usize_to_i32(roots.len())? as f64) {
-                let root: String = tsonic_rust_node::path::resolve(&[match roots
-                    .get_number(index)
-                    .as_ref()
-                {
-                    Some(flow_value_3) => flow_value_3.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }
-                .as_str()])
-                .map_err(tsonic_rust_runtime::TsonicError::from)?;
+                let root: String = tsonic_rust_node::path::resolve(
+                    &[(match roots.get_number(index).as_ref() {
+    Some(flow_value_3) => flow_value_3.clone(),
+    None => unreachable!("checked flow selected a missing optional value"),
+}).as_str()],
+                )?;
                 if !crate::utils::paths::path_contains_or_equals(root.clone(), source.clone()) {
                     index += 1.0;
                     continue 'loop_value_2;
@@ -1260,61 +1279,67 @@ impl LayoutEnvironmentRoot {
         page: crate::models::page_context::PageContext,
         view_raw: String,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<Option<String>> {
+    ) -> Result<Option<String>, rt::TsonicError> {
         let project_this = LayoutEnvironment {
             identity: self.identity.clone(),
             dispatch: self.clone(),
         };
-        let view: String =
-            crate::template::paths::normalize_template_relative_path(view_raw.clone())?;
+        let view: String = crate::template::paths::normalize_template_relative_path(view_raw)?;
         if view.is_empty() {
             return Ok(Option::<String>::None);
         }
         let candidates: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-        if !js_string::trim(&page.state.with(|state| state.r#type.clone())).is_empty() {
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                candidates
-                    .push_many([
-                        format!(
-                            "{}{}{}{}{}",
-                            String::from(""),
-                            rt::source_string(&page.state.with(|state| state.r#type.clone())),
-                            String::from("/"),
-                            rt::source_string(&view),
-                            String::from(""),
-                        ),
-                    ]),
-            )?;
-        }
-        if !js_string::trim(&page.state.with(|state| state.section.clone())).is_empty()
-            && page.state.with(|state| state.section.clone())
-                != page.state.with(|state| state.r#type.clone())
+        if !js_string::trim(&{
+            let dispatch_receiver = &page;
+            dispatch_receiver.dispatch.read_page_context_type()
+        })
+        .is_empty()
         {
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                candidates
-                    .push_many([
-                        format!(
-                            "{}{}{}{}{}",
-                            String::from(""),
-                            rt::source_string(&page.state.with(|state| state.section.clone())),
-                            String::from("/"),
-                            rt::source_string(&view),
-                            String::from(""),
-                        ),
-                    ]),
-            )?;
-        }
-        tsonic_rust_runtime::conversions::usize_to_i32(
-            candidates.push_many([
-                format!(
+            {
+                let operation_input_0 = candidates.clone();
+                operation_input_0.push_many_discard([format!(
                     "{}{}{}",
-                    String::from("_default/"),
-                    rt::source_string(&view),
-                    String::from(""),
-                ),
-            ]),
-        )?;
-        tsonic_rust_runtime::conversions::usize_to_i32(candidates.push_many([view.clone()]))?;
+                    {
+                        let dispatch_receiver_2 = &page;
+                        dispatch_receiver_2.dispatch.read_page_context_type()
+                    },
+                    String::from("/"),
+                    view,
+                )])
+            };
+        }
+        if !js_string::trim(&{
+            let dispatch_receiver_3 = &page;
+            dispatch_receiver_3.dispatch.read_page_context_section()
+        })
+        .is_empty()
+            && {
+                let dispatch_receiver_4 = &page;
+                dispatch_receiver_4.dispatch.read_page_context_section()
+            } != {
+                let dispatch_receiver_5 = &page;
+                dispatch_receiver_5.dispatch.read_page_context_type()
+            }
+        {
+            {
+                let operation_input_0_2 = candidates.clone();
+                operation_input_0_2.push_many_discard([format!(
+                    "{}{}{}",
+                    {
+                        let dispatch_receiver_6 = &page;
+                        dispatch_receiver_6.dispatch.read_page_context_section()
+                    },
+                    String::from("/"),
+                    view,
+                )])
+            };
+        }
+        {
+            let operation_input_0_3 = candidates.clone();
+            operation_input_0_3
+                .push_many_discard([format!("{}{}", String::from("_default/"), view)])
+        };
+        candidates.push_many_discard([view.clone()]);
         let template_path: Option<String> = SELECT_TEMPLATE_PATH
             .with(|module_binding| module_binding.load())
             .call((project_this.clone(), candidates.clone()))?;
@@ -1322,16 +1347,13 @@ impl LayoutEnvironmentRoot {
             return Ok(Option::<String>::None);
         }
         let template: Option<crate::template::template_2::Template> = {
-            let dispatch_receiver = project_this.clone();
-            dispatch_receiver
-                .dispatch
-                .clone()
-                .dispatch_layout_environment_get_template(
-                    match template_path.as_ref() {
-                        Some(flow_value) => flow_value.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                )
+            let dispatch_receiver_7 = project_this.clone();
+            dispatch_receiver_7.dispatch.clone().dispatch_layout_environment_get_template(
+                match template_path.as_ref() {
+                    Some(flow_value) => flow_value.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                },
+            )
         }?;
         if template.is_none() {
             return Ok(Option::<String>::None);
@@ -1339,26 +1361,26 @@ impl LayoutEnvironmentRoot {
         let context: crate::template::values::page::PageValue =
             crate::template::values::page::PageValue::new(page.clone());
         Ok(Some({
-            let dispatch_receiver_2 = project_this.clone();
-            dispatch_receiver_2
-                .dispatch
-                .clone()
-                .dispatch_layout_environment_render_template(
-                    match template.as_ref() {
-                        Some(flow_value_2) => flow_value_2.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                    {
-                        let upcast_value = context.clone();
-                        crate::template::values::base::TemplateValue {
-                            identity: upcast_value.identity.clone(),
-                            dispatch: upcast_value.dispatch.clone(),
-                        }
-                    },
-                    page.state.with(|state| state.site.clone()),
-                    js_abi::JsMap::new(),
-                    state.clone(),
-                )
+            let dispatch_receiver_9 = project_this.clone();
+            dispatch_receiver_9.dispatch.clone().dispatch_layout_environment_render_template(
+                match template.as_ref() {
+                    Some(flow_value_2) => flow_value_2.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                },
+                {
+                    let upcast_value = context;
+                    crate::template::values::base::TemplateValue {
+                        identity: upcast_value.identity.clone(),
+                        dispatch: upcast_value.dispatch.clone(),
+                    }
+                },
+                {
+                    let dispatch_receiver_8 = &page;
+                    dispatch_receiver_8.dispatch.read_page_context_site()
+                },
+                js_abi::JsMap::new(),
+                state,
+            )
         }?))
     }
 
@@ -1369,7 +1391,7 @@ impl LayoutEnvironmentRoot {
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         let project_this = LayoutEnvironment {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -1379,7 +1401,7 @@ impl LayoutEnvironmentRoot {
         let scope: crate::template::scope::RenderScope = crate::template::scope::RenderScope::new(
             context.clone(),
             context.clone(),
-            site.clone(),
+            site,
             {
                 let upcast_value = project_this.clone();
                 crate::template::environment::TemplateEnvironment {
@@ -1388,22 +1410,34 @@ impl LayoutEnvironmentRoot {
                 }
             },
             Option::<crate::template::scope::RenderScope>::None,
-            state.clone(),
-            template.state.with(|state| state.source_path.clone()),
-        );
-        template.render_into(
-            output.clone(),
-            scope.clone(),
+            state,
             {
-                let upcast_value_2 = project_this.clone();
-                crate::template::environment::TemplateEnvironment {
-                    identity: upcast_value_2.identity.clone(),
-                    dispatch: upcast_value_2.dispatch.clone(),
-                }
+                let dispatch_receiver = &template;
+                dispatch_receiver.dispatch.read_template_source_path()
             },
-            overrides.clone(),
-        )?;
-        Ok(output.to_string())
+        );
+        {
+            let dispatch_receiver_2 = template.clone();
+            dispatch_receiver_2.dispatch.clone().dispatch_template_render_into(
+                output.clone(),
+                scope,
+                {
+                    let upcast_value_2 = project_this.clone();
+                    crate::template::environment::TemplateEnvironment {
+                        identity: upcast_value_2.identity.clone(),
+                        dispatch: upcast_value_2.dispatch.clone(),
+                    }
+                },
+                overrides,
+            )
+        }?;
+        Ok({
+            let dispatch_receiver_3 = output.clone();
+            dispatch_receiver_3
+                .dispatch
+                .clone()
+                .dispatch_text_builder_to_string()
+        })
     }
 
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
@@ -1416,7 +1450,7 @@ impl LayoutEnvironmentRoot {
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         let project_this = LayoutEnvironment {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -1427,15 +1461,11 @@ impl LayoutEnvironmentRoot {
                 .dispatch
                 .clone()
                 .dispatch_layout_environment_render_template(
-                    crate::template::template_2::Template::new(
-                        nodes.clone(),
-                        definitions.clone(),
-                        source_path.clone(),
-                    ),
-                    context.clone(),
-                    site.clone(),
-                    overrides.clone(),
-                    state.clone(),
+                    crate::template::template_2::Template::new(nodes, definitions, source_path),
+                    context,
+                    site,
+                    overrides,
+                    state,
                 )
         }
     }
@@ -1447,7 +1477,7 @@ impl LayoutEnvironmentRoot {
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         let project_this = LayoutEnvironment {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -1457,7 +1487,7 @@ impl LayoutEnvironmentRoot {
         let scope: crate::template::scope::RenderScope = crate::template::scope::RenderScope::new(
             context.clone(),
             context.clone(),
-            site.clone(),
+            site,
             {
                 let upcast_value = project_this.clone();
                 crate::template::environment::TemplateEnvironment {
@@ -1466,22 +1496,34 @@ impl LayoutEnvironmentRoot {
                 }
             },
             Option::<crate::template::scope::RenderScope>::None,
-            state.clone(),
-            template.state.with(|state| state.source_path.clone()),
-        );
-        template.render_text_into(
-            output.clone(),
-            scope.clone(),
+            state,
             {
-                let upcast_value_2 = project_this.clone();
-                crate::template::environment::TemplateEnvironment {
-                    identity: upcast_value_2.identity.clone(),
-                    dispatch: upcast_value_2.dispatch.clone(),
-                }
+                let dispatch_receiver = &template;
+                dispatch_receiver.dispatch.read_template_source_path()
             },
-            overrides.clone(),
-        )?;
-        Ok(output.to_string())
+        );
+        {
+            let dispatch_receiver_2 = template.clone();
+            dispatch_receiver_2.dispatch.clone().dispatch_template_render_text_into(
+                output.clone(),
+                scope,
+                {
+                    let upcast_value_2 = project_this.clone();
+                    crate::template::environment::TemplateEnvironment {
+                        identity: upcast_value_2.identity.clone(),
+                        dispatch: upcast_value_2.dispatch.clone(),
+                    }
+                },
+                overrides,
+            )
+        }?;
+        Ok({
+            let dispatch_receiver_3 = output.clone();
+            dispatch_receiver_3
+                .dispatch
+                .clone()
+                .dispatch_text_builder_to_string()
+        })
     }
 
     fn exact_layout_environment_render_text_template_source(
@@ -1491,7 +1533,7 @@ impl LayoutEnvironmentRoot {
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         let project_this = LayoutEnvironment {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -1502,20 +1544,18 @@ impl LayoutEnvironmentRoot {
                 .dispatch
                 .clone()
                 .dispatch_layout_environment_render_text_template(
-                    crate::template::parser::parse_template::PARSE_TEMPLATE
-                        .with(|module_binding| module_binding.load())
-                        .call((source.clone(), None))?,
-                    context.clone(),
-                    site.clone(),
-                    overrides.clone(),
-                    state.clone(),
+                    crate::template::parser::parse_template::parse_template(source, None)?,
+                    context,
+                    site,
+                    overrides,
+                    state,
                 )
         }
     }
 
     fn exact_template_environment_finalize_deferred_templates(
         self: std::rc::Rc<Self>,
-    ) -> rt::TsonicResult<js_abi::JsMap<String, String>> {
+    ) -> Result<js_abi::JsMap<String, String>, rt::TsonicError> {
         let project_this = crate::template::environment::TemplateEnvironment {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -1527,7 +1567,7 @@ impl LayoutEnvironmentRoot {
                 .read_template_environment_deferred_phase()
         } == "finalizing"
         {
-            return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+            return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                 String::from("TSUMO_TEMPLATE_DEFER_LIFECYCLE_INVALID"),
                 String::from("Deferred-template finalization is already running"),
                 None,
@@ -1626,7 +1666,7 @@ impl LayoutEnvironmentRoot {
                     .state
                     .with(|state| state.result.clone());
                 if result.is_none() {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                    return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                         String::from("TSUMO_TEMPLATE_DEFER_LIFECYCLE_INVALID"),
                         String::from("A deferred template has no finalized output"),
                         None,
@@ -1634,16 +1674,20 @@ impl LayoutEnvironmentRoot {
                         None,
                     )));
                 }
-                results.set(placement.state.with(|state| state.token.clone()), match result
-                    .as_ref()
                 {
-                    Some(flow_value_3) => flow_value_3.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                });
+                    let operation_input_0 = results.clone();
+                    operation_input_0.set_discard(
+                        placement.state.with(|state| state.token.clone()),
+                        match result.as_ref() {
+                            Some(flow_value_3) => flow_value_3.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        },
+                    )
+                };
                 index += 1.0;
             }
         }
-        Ok(results.clone())
+        Ok(results)
     }
 
     fn exact_template_environment_get_environment_variable(
@@ -1673,14 +1717,14 @@ impl LayoutEnvironmentRoot {
         _lang: String,
         _key: String,
         _count: Option<i32>,
-    ) -> rt::TsonicResult<String> {
-        Ok(_key.clone())
+    ) -> Result<String, rt::TsonicError> {
+        Ok(_key)
     }
 
     fn exact_template_environment_get_render_hook_template(
         self: std::rc::Rc<Self>,
         _hook_name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         Ok(Option::<crate::template::template_2::Template>::None)
     }
 
@@ -1693,7 +1737,7 @@ impl LayoutEnvironmentRoot {
     fn exact_template_environment_get_shortcode_template(
         self: std::rc::Rc<Self>,
         _name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         Ok(Option::<crate::template::template_2::Template>::None)
     }
 
@@ -1715,8 +1759,8 @@ impl LayoutEnvironmentRoot {
     fn exact_template_environment_get_template(
         self: std::rc::Rc<Self>,
         _rel_path: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
-        Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
+        Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_TEMPLATE_ENVIRONMENT_OPERATION_UNAVAILABLE"),
             String::from("TemplateEnvironment.getTemplate is not implemented"),
             None,
@@ -1728,7 +1772,7 @@ impl LayoutEnvironmentRoot {
     fn exact_template_environment_get_template_source_relative_path(
         self: std::rc::Rc<Self>,
         _source_path: String,
-    ) -> rt::TsonicResult<Option<String>> {
+    ) -> Result<Option<String>, rt::TsonicError> {
         Ok(Option::<String>::None)
     }
 
@@ -1744,7 +1788,7 @@ impl LayoutEnvironmentRoot {
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: crate::template::scope::RenderState,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         let project_this = crate::template::environment::TemplateEnvironment {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -1756,7 +1800,7 @@ impl LayoutEnvironmentRoot {
                 .read_template_environment_deferred_phase()
         } != "collecting"
         {
-            return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+            return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                 String::from("TSUMO_TEMPLATE_DEFER_LIFECYCLE_INVALID"),
                 String::from("templates.Defer cannot register work after deferred-template finalization begins"),
                 None,
@@ -1791,18 +1835,12 @@ impl LayoutEnvironmentRoot {
                         Some(flow_value) => flow_value.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
-                    if candidate.state.with(|state| state.key.clone()) == Some(match {
-    let dispatch_receiver_5 = &value;
-    dispatch_receiver_5
-        .dispatch
-        .read_deferred_template_value_key()
-}
-.as_ref()
-{
-    Some(flow_value_2) => flow_value_2.clone(),
-    None => unreachable!("checked flow selected a missing optional value"),
-})
-                        && candidate.state.with(|state| state.source_path.clone()) == source_path
+                    if candidate.state.with(|state| state.key.clone()) == {
+                        let dispatch_receiver_5 = &value;
+                        dispatch_receiver_5
+                            .dispatch
+                            .read_deferred_template_value_key()
+                    } && candidate.state.with(|state| state.source_path.clone()) == source_path
                         && candidate.state.with(|state| state.source_text.clone()) == source_text
                         && candidate.state.with(|state| state.source_segment_index)
                             == source_segment_index
@@ -1817,25 +1855,25 @@ impl LayoutEnvironmentRoot {
         if request.is_none() {
             request = Some(crate::template::environment::DeferredTemplateRequest::new(
                 value.clone(),
-                body.clone(),
-                definitions.clone(),
+                body,
+                definitions,
                 source_path.clone(),
                 source_text.clone(),
                 source_segment_index,
-                site.clone(),
-                overrides.clone(),
-                state.clone(),
+                site,
+                overrides,
+                state,
             ));
-            tsonic_rust_runtime::conversions::usize_to_i32({
+            {
                 let dispatch_receiver_6 = &project_this;
                 dispatch_receiver_6
                     .dispatch
                     .read_template_environment_deferred_requests()
             }
-            .push_many([match request.as_ref() {
-                    Some(flow_value_3) => flow_value_3.clone(),
+            .push_many_discard([match request.as_ref() {
+                    Some(flow_value_2) => flow_value_2.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
-                }]))?;
+                }]);
         }
         let ordinal: i32 = tsonic_rust_runtime::conversions::usize_to_i32(
             {
@@ -1852,22 +1890,22 @@ impl LayoutEnvironmentRoot {
             rt::source_string(&ordinal),
             String::from("\0"),
         );
-        tsonic_rust_runtime::conversions::usize_to_i32(
-            {
+        {
+            let operation_input_0 = {
                 let dispatch_receiver_8 = &project_this;
                 dispatch_receiver_8
                     .dispatch
                     .read_template_environment_deferred_placements()
-            }
-            .push_many([crate::template::environment::DeferredTemplatePlacement::new(
-                    token.clone(),
-                    match request.as_ref() {
-                        Some(flow_value_4) => flow_value_4.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                )]),
-        )?;
-        Ok(token.clone())
+            };
+            operation_input_0.push_many_discard([crate::template::environment::DeferredTemplatePlacement::new(
+                token.clone(),
+                match request.as_ref() {
+                    Some(flow_value_3) => flow_value_3.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                },
+            )])
+        };
+        Ok(token)
     }
 
     fn exact_template_environment_render_page_view(
@@ -1875,7 +1913,7 @@ impl LayoutEnvironmentRoot {
         _page: crate::models::page_context::PageContext,
         _view: String,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<Option<String>> {
+    ) -> Result<Option<String>, rt::TsonicError> {
         Ok(Option::<String>::None)
     }
 
@@ -1886,8 +1924,8 @@ impl LayoutEnvironmentRoot {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
-        Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+    ) -> Result<String, rt::TsonicError> {
+        Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_TEMPLATE_ENVIRONMENT_OPERATION_UNAVAILABLE"),
             String::from("TemplateEnvironment.renderTemplate is not implemented"),
             None,
@@ -1906,8 +1944,8 @@ impl LayoutEnvironmentRoot {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
-        Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+    ) -> Result<String, rt::TsonicError> {
+        Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_TEMPLATE_ENVIRONMENT_OPERATION_UNAVAILABLE"),
             String::from("TemplateEnvironment.renderTemplateDefinition is not implemented"),
             None,
@@ -1923,8 +1961,8 @@ impl LayoutEnvironmentRoot {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
-        Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+    ) -> Result<String, rt::TsonicError> {
+        Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_TEMPLATE_ENVIRONMENT_OPERATION_UNAVAILABLE"),
             String::from("TemplateEnvironment.renderTextTemplate is not implemented"),
             None,
@@ -1940,8 +1978,8 @@ impl LayoutEnvironmentRoot {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
-        Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+    ) -> Result<String, rt::TsonicError> {
+        Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_TEMPLATE_ENVIRONMENT_OPERATION_UNAVAILABLE"),
             String::from("TemplateEnvironment.renderTextTemplateSource is not implemented"),
             None,
@@ -1955,7 +1993,7 @@ impl LayoutEnvironmentRoot {
         name: String,
         caller_source_path: Option<String>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    ) -> rt::TsonicResult<Option<crate::template::environment::PartialTemplateResolution>> {
+    ) -> Result<Option<crate::template::environment::PartialTemplateResolution>, rt::TsonicError> {
         let project_this = crate::template::environment::TemplateEnvironment {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -1972,15 +2010,12 @@ impl LayoutEnvironmentRoot {
                     .dispatch
                     .clone()
                     .dispatch_template_environment_get_template_source_relative_path(
-                        selected_source_path.clone(),
+                        selected_source_path,
                     )
             }?;
         }
         let candidates: js_abi::JsArray<String> =
-            crate::template::paths::partial_template_candidates(
-                name.clone(),
-                caller_relative_path.clone(),
-            )?;
+            crate::template::paths::partial_template_candidates(name, caller_relative_path.clone())?;
         {
             let mut index: f64 = 0.0;
             while index < (tsonic_rust_runtime::conversions::usize_to_i32(candidates.len())? as f64)
@@ -2010,16 +2045,24 @@ impl LayoutEnvironmentRoot {
                         .dispatch_template_environment_get_template(candidate.clone())
                 }?;
                 if template.is_some() {
-                    let selected: crate::template::template_2::Template = match template.as_ref() {
-                        Some(flow_value_4) => flow_value_4.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }
-                    .with_inherited_definitions(definitions.clone())?;
+                    let selected: crate::template::template_2::Template = {
+                        let dispatch_receiver_3 = match template.as_ref() {
+                            Some(flow_value_4) => flow_value_4.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        };
+                        dispatch_receiver_3
+                            .dispatch
+                            .clone()
+                            .dispatch_template_with_inherited_definitions(definitions.clone())
+                    }?;
                     return Ok(Some(crate::template::environment::PartialTemplateResolution::new(
                         String::from("template"),
                         Option::<js_abi::JsArray<crate::template::nodes::TemplateNode>>::None,
                         Some(selected.clone()),
-                        selected.state.with(|state| state.source_path.clone()),
+                        {
+                            let dispatch_receiver_4 = &selected;
+                            dispatch_receiver_4.dispatch.read_template_source_path()
+                        },
                     )));
                 }
                 index += 1.0;
@@ -2038,7 +2081,7 @@ impl LayoutEnvironmentRoot {
         };
         {
             let receiver = &project_this;
-            let value_2 = value.clone();
+            let value_2 = value;
             {
                 let dispatch_receiver = receiver;
                 dispatch_receiver
@@ -2051,7 +2094,7 @@ impl LayoutEnvironmentRoot {
     fn exact_template_environment_source_file_exists(
         self: std::rc::Rc<Self>,
         _path: String,
-    ) -> rt::TsonicResult<bool> {
+    ) -> Result<bool, rt::TsonicError> {
         Ok(false)
     }
 }
@@ -2080,8 +2123,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     }
 
     fn write_template_environment_is_production(&self, value: bool) {
-        self
-            .state
+        self.state
             .with_mut(|state| state.base.is_production = value);
     }
 
@@ -2096,8 +2138,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     fn read_template_environment_deferred_requests(
         &self,
     ) -> js_abi::JsArray<crate::template::environment::DeferredTemplateRequest> {
-        self
-            .state
+        self.state
             .with(|state| state.base.deferred_requests.clone())
     }
 
@@ -2105,16 +2146,14 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
         &self,
         value: js_abi::JsArray<crate::template::environment::DeferredTemplateRequest>,
     ) {
-        self
-            .state
+        self.state
             .with_mut(|state| state.base.deferred_requests = value);
     }
 
     fn read_template_environment_deferred_placements(
         &self,
     ) -> js_abi::JsArray<crate::template::environment::DeferredTemplatePlacement> {
-        self
-            .state
+        self.state
             .with(|state| state.base.deferred_placements.clone())
     }
 
@@ -2122,8 +2161,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
         &self,
         value: js_abi::JsArray<crate::template::environment::DeferredTemplatePlacement>,
     ) {
-        self
-            .state
+        self.state
             .with_mut(|state| state.base.deferred_placements = value);
     }
 
@@ -2132,8 +2170,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     }
 
     fn write_template_environment_deferred_phase(&self, value: String) {
-        self
-            .state
+        self.state
             .with_mut(|state| state.base.deferred_phase = value);
     }
 
@@ -2172,7 +2209,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: crate::template::scope::RenderState,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_register_deferred_template(
             self,
             value,
@@ -2198,7 +2235,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: crate::template::scope::RenderState,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_register_deferred_template(
             self,
             value,
@@ -2215,13 +2252,13 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
 
     fn dispatch_template_environment_finalize_deferred_templates(
         self: std::rc::Rc<Self>,
-    ) -> rt::TsonicResult<js_abi::JsMap<String, String>> {
+    ) -> Result<js_abi::JsMap<String, String>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_finalize_deferred_templates(self)
     }
 
     fn exact_template_environment_finalize_deferred_templates(
         self: std::rc::Rc<Self>,
-    ) -> rt::TsonicResult<js_abi::JsMap<String, String>> {
+    ) -> Result<js_abi::JsMap<String, String>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_finalize_deferred_templates(self)
     }
 
@@ -2280,35 +2317,35 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     fn dispatch_template_environment_source_file_exists(
         self: std::rc::Rc<Self>,
         _path: String,
-    ) -> rt::TsonicResult<bool> {
+    ) -> Result<bool, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_source_file_exists(self, _path)
     }
 
     fn exact_template_environment_source_file_exists(
         self: std::rc::Rc<Self>,
         _path: String,
-    ) -> rt::TsonicResult<bool> {
+    ) -> Result<bool, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_source_file_exists(self, _path)
     }
 
     fn dispatch_template_environment_get_template(
         self: std::rc::Rc<Self>,
         rel_path_raw: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_template(self, rel_path_raw)
     }
 
     fn exact_template_environment_get_template(
         self: std::rc::Rc<Self>,
         _rel_path: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_get_template(self, _rel_path)
     }
 
     fn dispatch_template_environment_get_template_source_relative_path(
         self: std::rc::Rc<Self>,
         source_path: String,
-    ) -> rt::TsonicResult<Option<String>> {
+    ) -> Result<Option<String>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_template_source_relative_path(
             self,
             source_path,
@@ -2318,7 +2355,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     fn exact_template_environment_get_template_source_relative_path(
         self: std::rc::Rc<Self>,
         _source_path: String,
-    ) -> rt::TsonicResult<Option<String>> {
+    ) -> Result<Option<String>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_get_template_source_relative_path(
             self,
             _source_path,
@@ -2330,7 +2367,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
         name: String,
         caller_source_path: Option<String>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    ) -> rt::TsonicResult<Option<crate::template::environment::PartialTemplateResolution>> {
+    ) -> Result<Option<crate::template::environment::PartialTemplateResolution>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_resolve_partial_template(
             self,
             name,
@@ -2344,7 +2381,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
         name: String,
         caller_source_path: Option<String>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    ) -> rt::TsonicResult<Option<crate::template::environment::PartialTemplateResolution>> {
+    ) -> Result<Option<crate::template::environment::PartialTemplateResolution>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_resolve_partial_template(
             self,
             name,
@@ -2358,7 +2395,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
         page: crate::models::page_context::PageContext,
         view_raw: String,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<Option<String>> {
+    ) -> Result<Option<String>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_render_page_view(
             self,
             page,
@@ -2372,7 +2409,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
         _page: crate::models::page_context::PageContext,
         _view: String,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<Option<String>> {
+    ) -> Result<Option<String>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_render_page_view(
             self,
             _page,
@@ -2384,28 +2421,28 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     fn dispatch_template_environment_get_shortcode_template(
         self: std::rc::Rc<Self>,
         name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_shortcode_template(self, name)
     }
 
     fn exact_template_environment_get_shortcode_template(
         self: std::rc::Rc<Self>,
         _name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_get_shortcode_template(self, _name)
     }
 
     fn dispatch_template_environment_get_render_hook_template(
         self: std::rc::Rc<Self>,
         hook_name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_render_hook_template(self, hook_name)
     }
 
     fn exact_template_environment_get_render_hook_template(
         self: std::rc::Rc<Self>,
         _hook_name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_get_render_hook_template(self, _hook_name)
     }
 
@@ -2428,7 +2465,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_render_text_template_source(
             self,
             source,
@@ -2446,7 +2483,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_render_text_template_source(
             self,
             _source,
@@ -2464,7 +2501,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_render_template(
             self,
             template,
@@ -2482,7 +2519,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_render_template(
             self,
             _template,
@@ -2500,7 +2537,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_render_text_template(
             self,
             template,
@@ -2518,7 +2555,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_render_text_template(
             self,
             _template,
@@ -2538,7 +2575,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_render_template_definition(
             self,
             nodes,
@@ -2560,7 +2597,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_render_template_definition(
             self,
             _nodes,
@@ -2578,7 +2615,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
         lang: String,
         key: String,
         count: Option<i32>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_i18n(self, lang, key, count)
     }
 
@@ -2587,7 +2624,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
         _lang: String,
         _key: String,
         _count: Option<i32>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_get_i18n(self, _lang, _key, _count)
     }
 }
@@ -2626,16 +2663,14 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
     }
 
     fn write_layout_environment_mounted_layout_dirs(&self, value: js_abi::JsArray<String>) {
-        self
-            .state
+        self.state
             .with_mut(|state| state.mounted_layout_dirs = value);
     }
 
     fn read_layout_environment_parsed_template_by_source(
         &self,
     ) -> js_abi::JsMap<String, crate::template::template_2::Template> {
-        self
-            .state
+        self.state
             .with(|state| state.parsed_template_by_source.clone())
     }
 
@@ -2643,16 +2678,14 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
         &self,
         value: js_abi::JsMap<String, crate::template::template_2::Template>,
     ) {
-        self
-            .state
+        self.state
             .with_mut(|state| state.parsed_template_by_source = value);
     }
 
     fn read_layout_environment_template_by_logical_path(
         &self,
     ) -> js_abi::JsMap<String, crate::template::template_2::Template> {
-        self
-            .state
+        self.state
             .with(|state| state.template_by_logical_path.clone())
     }
 
@@ -2660,14 +2693,12 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
         &self,
         value: js_abi::JsMap<String, crate::template::template_2::Template>,
     ) {
-        self
-            .state
+        self.state
             .with_mut(|state| state.template_by_logical_path = value);
     }
 
     fn read_layout_environment_missing_logical_template_paths(&self) -> js_abi::JsSet<String> {
-        self
-            .state
+        self.state
             .with(|state| state.missing_logical_template_paths.clone())
     }
 
@@ -2675,16 +2706,14 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
         &self,
         value: js_abi::JsSet<String>,
     ) {
-        self
-            .state
+        self.state
             .with_mut(|state| state.missing_logical_template_paths = value);
     }
 
     fn read_layout_environment_shortcode_template_by_name(
         &self,
     ) -> js_abi::JsMap<String, crate::template::template_2::Template> {
-        self
-            .state
+        self.state
             .with(|state| state.shortcode_template_by_name.clone())
     }
 
@@ -2692,28 +2721,24 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
         &self,
         value: js_abi::JsMap<String, crate::template::template_2::Template>,
     ) {
-        self
-            .state
+        self.state
             .with_mut(|state| state.shortcode_template_by_name = value);
     }
 
     fn read_layout_environment_missing_shortcode_names(&self) -> js_abi::JsSet<String> {
-        self
-            .state
+        self.state
             .with(|state| state.missing_shortcode_names.clone())
     }
 
     fn write_layout_environment_missing_shortcode_names(&self, value: js_abi::JsSet<String>) {
-        self
-            .state
+        self.state
             .with_mut(|state| state.missing_shortcode_names = value);
     }
 
     fn read_layout_environment_render_hook_template_by_name(
         &self,
     ) -> js_abi::JsMap<String, crate::template::template_2::Template> {
-        self
-            .state
+        self.state
             .with(|state| state.render_hook_template_by_name.clone())
     }
 
@@ -2721,20 +2746,17 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
         &self,
         value: js_abi::JsMap<String, crate::template::template_2::Template>,
     ) {
-        self
-            .state
+        self.state
             .with_mut(|state| state.render_hook_template_by_name = value);
     }
 
     fn read_layout_environment_missing_render_hook_names(&self) -> js_abi::JsSet<String> {
-        self
-            .state
+        self.state
             .with(|state| state.missing_render_hook_names.clone())
     }
 
     fn write_layout_environment_missing_render_hook_names(&self, value: js_abi::JsSet<String>) {
-        self
-            .state
+        self.state
             .with_mut(|state| state.missing_render_hook_names = value);
     }
 
@@ -2765,7 +2787,7 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_render_text_template_source(
             self,
             source,
@@ -2783,7 +2805,7 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_render_text_template_source(
             self,
             source,
@@ -2801,7 +2823,7 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_render_template(
             self,
             template,
@@ -2819,7 +2841,7 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_render_template(
             self,
             template,
@@ -2837,7 +2859,7 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_render_text_template(
             self,
             template,
@@ -2855,7 +2877,7 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_render_text_template(
             self,
             template,
@@ -2875,7 +2897,7 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_render_template_definition(
             self,
             nodes,
@@ -2897,7 +2919,7 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_render_template_definition(
             self,
             nodes,
@@ -2913,21 +2935,21 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
     fn dispatch_layout_environment_get_template(
         self: std::rc::Rc<Self>,
         rel_path_raw: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_template(self, rel_path_raw)
     }
 
     fn exact_layout_environment_get_template(
         self: std::rc::Rc<Self>,
         rel_path_raw: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_template(self, rel_path_raw)
     }
 
     fn dispatch_layout_environment_get_template_source_relative_path(
         self: std::rc::Rc<Self>,
         source_path: String,
-    ) -> rt::TsonicResult<Option<String>> {
+    ) -> Result<Option<String>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_template_source_relative_path(
             self,
             source_path,
@@ -2937,7 +2959,7 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
     fn exact_layout_environment_get_template_source_relative_path(
         self: std::rc::Rc<Self>,
         source_path: String,
-    ) -> rt::TsonicResult<Option<String>> {
+    ) -> Result<Option<String>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_template_source_relative_path(
             self,
             source_path,
@@ -2949,7 +2971,7 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
         page: crate::models::page_context::PageContext,
         view_raw: String,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<Option<String>> {
+    ) -> Result<Option<String>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_render_page_view(
             self,
             page,
@@ -2963,7 +2985,7 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
         page: crate::models::page_context::PageContext,
         view_raw: String,
         state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<Option<String>> {
+    ) -> Result<Option<String>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_render_page_view(
             self,
             page,
@@ -2975,28 +2997,28 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
     fn dispatch_layout_environment_get_shortcode_template(
         self: std::rc::Rc<Self>,
         name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_shortcode_template(self, name)
     }
 
     fn exact_layout_environment_get_shortcode_template(
         self: std::rc::Rc<Self>,
         name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_shortcode_template(self, name)
     }
 
     fn dispatch_layout_environment_get_render_hook_template(
         self: std::rc::Rc<Self>,
         hook_name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_render_hook_template(self, hook_name)
     }
 
     fn exact_layout_environment_get_render_hook_template(
         self: std::rc::Rc<Self>,
         hook_name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_render_hook_template(self, hook_name)
     }
 
@@ -3005,7 +3027,7 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
         lang: String,
         key: String,
         count: Option<i32>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_i18n(self, lang, key, count)
     }
 
@@ -3014,16 +3036,16 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
         lang: String,
         key: String,
         count: Option<i32>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_i18n(self, lang, key, count)
     }
 }
 
-type SelectTemplatePathCallable =
+pub type SelectTemplatePathCallable =
     rt::Callable<(LayoutEnvironment, js_abi::JsArray<String>), rt::TsonicResult<Option<String>>>;
 
 std::thread_local! {
-    pub(crate) static SELECT_TEMPLATE_PATH: rt::ModuleCell<SelectTemplatePathCallable> = const { rt::ModuleCell::new() };
+    pub static SELECT_TEMPLATE_PATH: rt::ModuleCell<SelectTemplatePathCallable> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]

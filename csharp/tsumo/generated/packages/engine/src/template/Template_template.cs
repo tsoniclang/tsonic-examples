@@ -7,6 +7,7 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
+            Utils_textBuilder.__tsonic_module_init();
             Diagnostics.__tsonic_module_init();
             Models.__tsonic_module_init();
             Template_values.__tsonic_module_init();
@@ -65,14 +66,14 @@ namespace Tsumo.Engine
         }
         public string render(PageContext root, TemplateEnvironment env, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>? overrides = null, RenderState? state = null)
         {
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            TextBuilder sb = new TextBuilder();
             PageValue pageValue = new PageValue(root);
             RenderScope scope = new RenderScope(pageValue, pageValue, root.site, env, null, state, this.sourcePath);
             Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> defs = overrides ?? new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>();
             this.renderInto(sb, scope, env, defs);
-            return sb.ToString();
+            return sb.toString();
         }
-        public void renderInto(System.Text.StringBuilder sb, RenderScope scope, TemplateEnvironment env, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> overrides)
+        public void renderInto(TextBuilder sb, RenderScope scope, TemplateEnvironment env, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> overrides)
         {
             string control = Template_evaluation_render.renderTemplateNodes(this.nodes, sb, scope, env, overrides, this.defines, "html");
             if (control != "normal")
@@ -80,7 +81,7 @@ namespace Tsumo.Engine
                 throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_CONTROL_FLOW_INVALID", "Template loop control escaped the checked template root");
             }
         }
-        public void renderTextInto(System.Text.StringBuilder sb, RenderScope scope, TemplateEnvironment env, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> overrides)
+        public void renderTextInto(TextBuilder sb, RenderScope scope, TemplateEnvironment env, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> overrides)
         {
             string control = Template_evaluation_render.renderTemplateNodes(this.nodes, sb, scope, env, overrides, this.defines, "text");
             if (control != "normal")

@@ -4,31 +4,29 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct DeferredTemplateRequestState {
-    pub(crate) key: Option<String>,
-    pub(crate) body: js_abi::JsArray<crate::template::nodes::TemplateNode>,
-    pub(crate) definitions:
-        js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    pub(crate) source_path: Option<String>,
-    pub(crate) source_text: String,
-    pub(crate) source_segment_index: i32,
-    pub(crate) data: crate::template::values::base::TemplateValue,
-    pub(crate) site: crate::models::site_context::SiteContext,
-    pub(crate) overrides:
-        js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    pub(crate) state: crate::template::scope::RenderState,
-    pub(crate) result: Option<String>,
+pub struct DeferredTemplateRequestState {
+    pub key: Option<String>,
+    pub body: js_abi::JsArray<crate::template::nodes::TemplateNode>,
+    pub definitions: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+    pub source_path: Option<String>,
+    pub source_text: String,
+    pub source_segment_index: i32,
+    pub data: crate::template::values::base::TemplateValue,
+    pub site: crate::models::site_context::SiteContext,
+    pub overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+    pub state: crate::template::scope::RenderState,
+    pub result: Option<String>,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct DeferredTemplateRequest {
-    pub(crate) state: rt::ObjectHandle<DeferredTemplateRequestState>,
+pub struct DeferredTemplateRequest {
+    #[doc(hidden)]
+    pub state: rt::ObjectHandle<DeferredTemplateRequestState>,
 }
 
 impl DeferredTemplateRequest {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     pub fn new(
         value: crate::template::values::deferred::DeferredTemplateValue,
@@ -47,13 +45,13 @@ impl DeferredTemplateRequest {
                 .dispatch
                 .read_deferred_template_value_key()
         };
-        let field_body: js_abi::JsArray<crate::template::nodes::TemplateNode> = body.clone();
+        let field_body: js_abi::JsArray<crate::template::nodes::TemplateNode> = body;
         let field_definitions: js_abi::JsMap<
             String,
             js_abi::JsArray<crate::template::nodes::TemplateNode>,
-        > = definitions.clone();
-        let field_source_path: Option<String> = source_path.clone();
-        let field_source_text: String = source_text.clone();
+        > = definitions;
+        let field_source_path: Option<String> = source_path;
+        let field_source_text: String = source_text;
         let field_source_segment_index: i32 = source_segment_index;
         let field_data: crate::template::values::base::TemplateValue = {
             let dispatch_receiver_2 = &value;
@@ -61,12 +59,12 @@ impl DeferredTemplateRequest {
                 .dispatch
                 .read_deferred_template_value_data()
         };
-        let field_site: crate::models::site_context::SiteContext = site.clone();
+        let field_site: crate::models::site_context::SiteContext = site;
         let field_overrides: js_abi::JsMap<
             String,
             js_abi::JsArray<crate::template::nodes::TemplateNode>,
-        > = overrides.clone();
-        let field_state: crate::template::scope::RenderState = state.clone();
+        > = overrides;
+        let field_state: crate::template::scope::RenderState = state;
         let field_result: Option<String> = Option::<String>::None;
         DeferredTemplateRequest {
             state: rt::ObjectHandle::new(DeferredTemplateRequestState {
@@ -86,25 +84,25 @@ impl DeferredTemplateRequest {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct DeferredTemplatePlacementState {
-    pub(crate) token: String,
-    pub(crate) request: DeferredTemplateRequest,
+pub struct DeferredTemplatePlacementState {
+    pub token: String,
+    pub request: DeferredTemplateRequest,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct DeferredTemplatePlacement {
-    pub(crate) state: rt::ObjectHandle<DeferredTemplatePlacementState>,
+pub struct DeferredTemplatePlacement {
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<DeferredTemplatePlacementState>,
 }
 
 impl DeferredTemplatePlacement {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new(token: String, request: DeferredTemplateRequest) -> DeferredTemplatePlacement {
-        let field_token: String = token.clone();
-        let field_request: DeferredTemplateRequest = request.clone();
+        let field_token: String = token;
+        let field_request: DeferredTemplateRequest = request;
         DeferredTemplatePlacement {
-            state: rt::ObjectHandle::new(DeferredTemplatePlacementState {
+            state: rt::ObjectRef::new(DeferredTemplatePlacementState {
                 token: field_token,
                 request: field_request,
             }),
@@ -112,17 +110,19 @@ impl DeferredTemplatePlacement {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct PartialTemplateResolutionState {
-    pub(crate) kind: String,
-    pub(crate) definition: Option<js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    pub(crate) template: Option<crate::template::template_2::Template>,
-    pub(crate) source_path: Option<String>,
+pub struct PartialTemplateResolutionState {
+    pub kind: String,
+    pub definition: Option<js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+    pub template: Option<crate::template::template_2::Template>,
+    pub source_path: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct PartialTemplateResolution {
-    pub(crate) state: rt::ObjectHandle<PartialTemplateResolutionState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<PartialTemplateResolutionState>,
 }
 
 impl PartialTemplateResolution {
@@ -132,13 +132,13 @@ impl PartialTemplateResolution {
         template: Option<crate::template::template_2::Template>,
         source_path: Option<String>,
     ) -> PartialTemplateResolution {
-        let field_kind: String = kind.clone();
+        let field_kind: String = kind;
         let field_definition: Option<js_abi::JsArray<crate::template::nodes::TemplateNode>> =
-            definition.clone();
-        let field_template: Option<crate::template::template_2::Template> = template.clone();
-        let field_source_path: Option<String> = source_path.clone();
+            definition;
+        let field_template: Option<crate::template::template_2::Template> = template;
+        let field_source_path: Option<String> = source_path;
         PartialTemplateResolution {
-            state: rt::ObjectHandle::new(PartialTemplateResolutionState {
+            state: rt::ObjectRef::new(PartialTemplateResolutionState {
                 kind: field_kind,
                 definition: field_definition,
                 template: field_template,
@@ -148,8 +148,9 @@ impl PartialTemplateResolution {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait TemplateEnvironmentDispatch {
+pub trait TemplateEnvironmentDispatch {
     fn downcast_template_environment_to_build_environment(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn crate::env::BuildEnvironmentDispatch>>;
@@ -180,10 +181,7 @@ pub(crate) trait TemplateEnvironmentDispatch {
     fn read_template_environment_deferred_phase(&self) -> String;
     fn write_template_environment_deferred_phase(&self, value: String);
     fn read_template_environment_site_data(&self) -> crate::template::values::dict::DictValue;
-    fn write_template_environment_site_data(
-        &self,
-        value: crate::template::values::dict::DictValue,
-    );
+    fn write_template_environment_site_data(&self, value: crate::template::values::dict::DictValue);
     fn read_template_environment_global_store(
         &self,
     ) -> crate::template::values::scratch::ScratchStore;
@@ -203,7 +201,7 @@ pub(crate) trait TemplateEnvironmentDispatch {
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: crate::template::scope::RenderState,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, rt::TsonicError>;
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     fn exact_template_environment_register_deferred_template(
         self: std::rc::Rc<Self>,
@@ -216,13 +214,13 @@ pub(crate) trait TemplateEnvironmentDispatch {
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: crate::template::scope::RenderState,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, rt::TsonicError>;
     fn dispatch_template_environment_finalize_deferred_templates(
         self: std::rc::Rc<Self>,
-    ) -> rt::TsonicResult<js_abi::JsMap<String, String>>;
+    ) -> Result<js_abi::JsMap<String, String>, rt::TsonicError>;
     fn exact_template_environment_finalize_deferred_templates(
         self: std::rc::Rc<Self>,
-    ) -> rt::TsonicResult<js_abi::JsMap<String, String>>;
+    ) -> Result<js_abi::JsMap<String, String>, rt::TsonicError>;
     fn dispatch_template_environment_get_environment_variable(
         self: std::rc::Rc<Self>,
         _name: String,
@@ -254,67 +252,67 @@ pub(crate) trait TemplateEnvironmentDispatch {
     fn dispatch_template_environment_source_file_exists(
         self: std::rc::Rc<Self>,
         _path: String,
-    ) -> rt::TsonicResult<bool>;
+    ) -> Result<bool, rt::TsonicError>;
     fn exact_template_environment_source_file_exists(
         self: std::rc::Rc<Self>,
         _path: String,
-    ) -> rt::TsonicResult<bool>;
+    ) -> Result<bool, rt::TsonicError>;
     fn dispatch_template_environment_get_template(
         self: std::rc::Rc<Self>,
         _rel_path: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>>;
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError>;
     fn exact_template_environment_get_template(
         self: std::rc::Rc<Self>,
         _rel_path: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>>;
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError>;
     fn dispatch_template_environment_get_template_source_relative_path(
         self: std::rc::Rc<Self>,
         _source_path: String,
-    ) -> rt::TsonicResult<Option<String>>;
+    ) -> Result<Option<String>, rt::TsonicError>;
     fn exact_template_environment_get_template_source_relative_path(
         self: std::rc::Rc<Self>,
         _source_path: String,
-    ) -> rt::TsonicResult<Option<String>>;
+    ) -> Result<Option<String>, rt::TsonicError>;
     fn dispatch_template_environment_resolve_partial_template(
         self: std::rc::Rc<Self>,
         name: String,
         caller_source_path: Option<String>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    ) -> rt::TsonicResult<Option<PartialTemplateResolution>>;
+    ) -> Result<Option<PartialTemplateResolution>, rt::TsonicError>;
     fn exact_template_environment_resolve_partial_template(
         self: std::rc::Rc<Self>,
         name: String,
         caller_source_path: Option<String>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    ) -> rt::TsonicResult<Option<PartialTemplateResolution>>;
+    ) -> Result<Option<PartialTemplateResolution>, rt::TsonicError>;
     fn dispatch_template_environment_render_page_view(
         self: std::rc::Rc<Self>,
         _page: crate::models::page_context::PageContext,
         _view: String,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<Option<String>>;
+    ) -> Result<Option<String>, rt::TsonicError>;
     fn exact_template_environment_render_page_view(
         self: std::rc::Rc<Self>,
         _page: crate::models::page_context::PageContext,
         _view: String,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<Option<String>>;
+    ) -> Result<Option<String>, rt::TsonicError>;
     fn dispatch_template_environment_get_shortcode_template(
         self: std::rc::Rc<Self>,
         _name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>>;
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError>;
     fn exact_template_environment_get_shortcode_template(
         self: std::rc::Rc<Self>,
         _name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>>;
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError>;
     fn dispatch_template_environment_get_render_hook_template(
         self: std::rc::Rc<Self>,
         _hook_name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>>;
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError>;
     fn exact_template_environment_get_render_hook_template(
         self: std::rc::Rc<Self>,
         _hook_name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>>;
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError>;
     fn dispatch_template_environment_get_resource_manager(
         self: std::rc::Rc<Self>,
     ) -> Option<crate::resources::manager::ResourceManager>;
@@ -328,7 +326,7 @@ pub(crate) trait TemplateEnvironmentDispatch {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, rt::TsonicError>;
     fn exact_template_environment_render_text_template_source(
         self: std::rc::Rc<Self>,
         _source: String,
@@ -336,7 +334,7 @@ pub(crate) trait TemplateEnvironmentDispatch {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, rt::TsonicError>;
     fn dispatch_template_environment_render_template(
         self: std::rc::Rc<Self>,
         _template: crate::template::template_2::Template,
@@ -344,7 +342,7 @@ pub(crate) trait TemplateEnvironmentDispatch {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, rt::TsonicError>;
     fn exact_template_environment_render_template(
         self: std::rc::Rc<Self>,
         _template: crate::template::template_2::Template,
@@ -352,7 +350,7 @@ pub(crate) trait TemplateEnvironmentDispatch {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, rt::TsonicError>;
     fn dispatch_template_environment_render_text_template(
         self: std::rc::Rc<Self>,
         _template: crate::template::template_2::Template,
@@ -360,7 +358,7 @@ pub(crate) trait TemplateEnvironmentDispatch {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, rt::TsonicError>;
     fn exact_template_environment_render_text_template(
         self: std::rc::Rc<Self>,
         _template: crate::template::template_2::Template,
@@ -368,7 +366,7 @@ pub(crate) trait TemplateEnvironmentDispatch {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, rt::TsonicError>;
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     fn dispatch_template_environment_render_template_definition(
         self: std::rc::Rc<Self>,
@@ -379,7 +377,7 @@ pub(crate) trait TemplateEnvironmentDispatch {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, rt::TsonicError>;
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     fn exact_template_environment_render_template_definition(
         self: std::rc::Rc<Self>,
@@ -390,37 +388,46 @@ pub(crate) trait TemplateEnvironmentDispatch {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, rt::TsonicError>;
     fn dispatch_template_environment_get_i18n(
         self: std::rc::Rc<Self>,
         _lang: String,
         _key: String,
         _count: Option<i32>,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, rt::TsonicError>;
     fn exact_template_environment_get_i18n(
         self: std::rc::Rc<Self>,
         _lang: String,
         _key: String,
         _count: Option<i32>,
-    ) -> rt::TsonicResult<String>;
+    ) -> Result<String, rt::TsonicError>;
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct TemplateEnvironmentState {
-    pub(crate) is_production: bool,
-    pub(crate) build_time: js_abi::JsDate,
-    pub(crate) deferred_requests: js_abi::JsArray<DeferredTemplateRequest>,
-    pub(crate) deferred_placements: js_abi::JsArray<DeferredTemplatePlacement>,
-    pub(crate) deferred_phase: String,
-    pub(crate) site_data: crate::template::values::dict::DictValue,
-    pub(crate) global_store: crate::template::values::scratch::ScratchStore,
+pub struct TemplateEnvironmentState {
+    pub is_production: bool,
+    pub build_time: js_abi::JsDate,
+    pub deferred_requests: js_abi::JsArray<DeferredTemplateRequest>,
+    pub deferred_placements: js_abi::JsArray<DeferredTemplatePlacement>,
+    pub deferred_phase: String,
+    pub site_data: crate::template::values::dict::DictValue,
+    pub global_store: crate::template::values::scratch::ScratchStore,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct TemplateEnvironment {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn TemplateEnvironmentDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn TemplateEnvironmentDispatch>,
+}
+
+impl std::fmt::Debug for TemplateEnvironment {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("TemplateEnvironment")
+    }
 }
 
 impl PartialEq for TemplateEnvironment {
@@ -438,26 +445,23 @@ pub(crate) struct TemplateEnvironmentRoot {
 }
 
 impl TemplateEnvironment {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         build_time: Option<js_abi::JsDate>,
         site_data: Option<crate::template::values::dict::DictValue>,
     ) -> TemplateEnvironmentState {
         let field_is_production: bool = true;
-        let field_build_time: js_abi::JsDate = rt::option_coalesce(
-            build_time.clone(),
-            std::convert::identity,
-            js_abi::JsDate::new,
-        );
+        let field_build_time: js_abi::JsDate =
+            rt::option_coalesce(build_time, std::convert::identity, js_abi::JsDate::new);
         let field_deferred_requests: js_abi::JsArray<DeferredTemplateRequest> =
             js_abi::JsArray::from_dense(vec![]);
         let field_deferred_placements: js_abi::JsArray<DeferredTemplatePlacement> =
             js_abi::JsArray::from_dense(vec![]);
         let field_deferred_phase: String = String::from("collecting");
-        let field_site_data: crate::template::values::dict::DictValue = rt::option_coalesce(
-            site_data.clone(),
-            std::convert::identity,
-            || crate::template::values::dict::DictValue::new(js_abi::JsMap::new()),
-        );
+        let field_site_data: crate::template::values::dict::DictValue =
+            rt::option_coalesce(site_data, std::convert::identity, || {
+                crate::template::values::dict::DictValue::new(js_abi::JsMap::new())
+            });
         let field_global_store: crate::template::values::scratch::ScratchStore =
             crate::template::values::scratch::ScratchStore::new();
         TemplateEnvironmentState {
@@ -491,7 +495,7 @@ impl TemplateEnvironment {
 impl TemplateEnvironmentRoot {
     fn exact_template_environment_finalize_deferred_templates(
         self: std::rc::Rc<Self>,
-    ) -> rt::TsonicResult<js_abi::JsMap<String, String>> {
+    ) -> Result<js_abi::JsMap<String, String>, rt::TsonicError> {
         let project_this = TemplateEnvironment {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -503,7 +507,7 @@ impl TemplateEnvironmentRoot {
                 .read_template_environment_deferred_phase()
         } == "finalizing"
         {
-            return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+            return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                 String::from("TSUMO_TEMPLATE_DEFER_LIFECYCLE_INVALID"),
                 String::from("Deferred-template finalization is already running"),
                 None,
@@ -602,7 +606,7 @@ impl TemplateEnvironmentRoot {
                     .state
                     .with(|state| state.result.clone());
                 if result.is_none() {
-                    return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                    return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                         String::from("TSUMO_TEMPLATE_DEFER_LIFECYCLE_INVALID"),
                         String::from("A deferred template has no finalized output"),
                         None,
@@ -610,16 +614,20 @@ impl TemplateEnvironmentRoot {
                         None,
                     )));
                 }
-                results.set(placement.state.with(|state| state.token.clone()), match result
-                    .as_ref()
                 {
-                    Some(flow_value_3) => flow_value_3.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                });
+                    let operation_input_0 = results.clone();
+                    operation_input_0.set_discard(
+                        placement.state.with(|state| state.token.clone()),
+                        match result.as_ref() {
+                            Some(flow_value_3) => flow_value_3.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        },
+                    )
+                };
                 index += 1.0;
             }
         }
-        Ok(results.clone())
+        Ok(results)
     }
 
     fn exact_template_environment_get_environment_variable(
@@ -649,14 +657,14 @@ impl TemplateEnvironmentRoot {
         _lang: String,
         _key: String,
         _count: Option<i32>,
-    ) -> rt::TsonicResult<String> {
-        Ok(_key.clone())
+    ) -> Result<String, rt::TsonicError> {
+        Ok(_key)
     }
 
     fn exact_template_environment_get_render_hook_template(
         self: std::rc::Rc<Self>,
         _hook_name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         Ok(Option::<crate::template::template_2::Template>::None)
     }
 
@@ -669,7 +677,7 @@ impl TemplateEnvironmentRoot {
     fn exact_template_environment_get_shortcode_template(
         self: std::rc::Rc<Self>,
         _name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         Ok(Option::<crate::template::template_2::Template>::None)
     }
 
@@ -691,8 +699,8 @@ impl TemplateEnvironmentRoot {
     fn exact_template_environment_get_template(
         self: std::rc::Rc<Self>,
         _rel_path: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
-        Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
+        Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_TEMPLATE_ENVIRONMENT_OPERATION_UNAVAILABLE"),
             String::from("TemplateEnvironment.getTemplate is not implemented"),
             None,
@@ -704,7 +712,7 @@ impl TemplateEnvironmentRoot {
     fn exact_template_environment_get_template_source_relative_path(
         self: std::rc::Rc<Self>,
         _source_path: String,
-    ) -> rt::TsonicResult<Option<String>> {
+    ) -> Result<Option<String>, rt::TsonicError> {
         Ok(Option::<String>::None)
     }
 
@@ -720,7 +728,7 @@ impl TemplateEnvironmentRoot {
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: crate::template::scope::RenderState,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         let project_this = TemplateEnvironment {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -732,7 +740,7 @@ impl TemplateEnvironmentRoot {
                 .read_template_environment_deferred_phase()
         } != "collecting"
         {
-            return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+            return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                 String::from("TSUMO_TEMPLATE_DEFER_LIFECYCLE_INVALID"),
                 String::from("templates.Defer cannot register work after deferred-template finalization begins"),
                 None,
@@ -766,18 +774,12 @@ impl TemplateEnvironmentRoot {
                         Some(flow_value) => flow_value.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
-                    if candidate.state.with(|state| state.key.clone()) == Some(match {
-    let dispatch_receiver_5 = &value;
-    dispatch_receiver_5
-        .dispatch
-        .read_deferred_template_value_key()
-}
-.as_ref()
-{
-    Some(flow_value_2) => flow_value_2.clone(),
-    None => unreachable!("checked flow selected a missing optional value"),
-})
-                        && candidate.state.with(|state| state.source_path.clone()) == source_path
+                    if candidate.state.with(|state| state.key.clone()) == {
+                        let dispatch_receiver_5 = &value;
+                        dispatch_receiver_5
+                            .dispatch
+                            .read_deferred_template_value_key()
+                    } && candidate.state.with(|state| state.source_path.clone()) == source_path
                         && candidate.state.with(|state| state.source_text.clone()) == source_text
                         && candidate.state.with(|state| state.source_segment_index)
                             == source_segment_index
@@ -792,25 +794,25 @@ impl TemplateEnvironmentRoot {
         if request.is_none() {
             request = Some(DeferredTemplateRequest::new(
                 value.clone(),
-                body.clone(),
-                definitions.clone(),
+                body,
+                definitions,
                 source_path.clone(),
                 source_text.clone(),
                 source_segment_index,
-                site.clone(),
-                overrides.clone(),
-                state.clone(),
+                site,
+                overrides,
+                state,
             ));
-            tsonic_rust_runtime::conversions::usize_to_i32({
+            {
                 let dispatch_receiver_6 = &project_this;
                 dispatch_receiver_6
                     .dispatch
                     .read_template_environment_deferred_requests()
             }
-            .push_many([match request.as_ref() {
-                    Some(flow_value_3) => flow_value_3.clone(),
+            .push_many_discard([match request.as_ref() {
+                    Some(flow_value_2) => flow_value_2.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
-                }]))?;
+                }]);
         }
         let ordinal: i32 = tsonic_rust_runtime::conversions::usize_to_i32(
             {
@@ -827,17 +829,20 @@ impl TemplateEnvironmentRoot {
             rt::source_string(&ordinal),
             String::from("\0"),
         );
-        tsonic_rust_runtime::conversions::usize_to_i32({
-            let dispatch_receiver_8 = &project_this;
-            dispatch_receiver_8
-                .dispatch
-                .read_template_environment_deferred_placements()
-        }
-        .push_many([DeferredTemplatePlacement::new(token.clone(), match request.as_ref() {
-                Some(flow_value_4) => flow_value_4.clone(),
+        {
+            let operation_input_0 = {
+                let dispatch_receiver_8 = &project_this;
+                dispatch_receiver_8
+                    .dispatch
+                    .read_template_environment_deferred_placements()
+            };
+            operation_input_0.push_many_discard([DeferredTemplatePlacement::new(token.clone(), match request.as_ref()
+            {
+                Some(flow_value_3) => flow_value_3.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
-            })]))?;
-        Ok(token.clone())
+            })])
+        };
+        Ok(token)
     }
 
     fn exact_template_environment_render_page_view(
@@ -845,7 +850,7 @@ impl TemplateEnvironmentRoot {
         _page: crate::models::page_context::PageContext,
         _view: String,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<Option<String>> {
+    ) -> Result<Option<String>, rt::TsonicError> {
         Ok(Option::<String>::None)
     }
 
@@ -856,8 +861,8 @@ impl TemplateEnvironmentRoot {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
-        Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+    ) -> Result<String, rt::TsonicError> {
+        Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_TEMPLATE_ENVIRONMENT_OPERATION_UNAVAILABLE"),
             String::from("TemplateEnvironment.renderTemplate is not implemented"),
             None,
@@ -876,8 +881,8 @@ impl TemplateEnvironmentRoot {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
-        Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+    ) -> Result<String, rt::TsonicError> {
+        Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_TEMPLATE_ENVIRONMENT_OPERATION_UNAVAILABLE"),
             String::from("TemplateEnvironment.renderTemplateDefinition is not implemented"),
             None,
@@ -893,8 +898,8 @@ impl TemplateEnvironmentRoot {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
-        Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+    ) -> Result<String, rt::TsonicError> {
+        Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_TEMPLATE_ENVIRONMENT_OPERATION_UNAVAILABLE"),
             String::from("TemplateEnvironment.renderTextTemplate is not implemented"),
             None,
@@ -910,8 +915,8 @@ impl TemplateEnvironmentRoot {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
-        Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+    ) -> Result<String, rt::TsonicError> {
+        Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_TEMPLATE_ENVIRONMENT_OPERATION_UNAVAILABLE"),
             String::from("TemplateEnvironment.renderTextTemplateSource is not implemented"),
             None,
@@ -925,7 +930,7 @@ impl TemplateEnvironmentRoot {
         name: String,
         caller_source_path: Option<String>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    ) -> rt::TsonicResult<Option<PartialTemplateResolution>> {
+    ) -> Result<Option<PartialTemplateResolution>, rt::TsonicError> {
         let project_this = TemplateEnvironment {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -942,15 +947,12 @@ impl TemplateEnvironmentRoot {
                     .dispatch
                     .clone()
                     .dispatch_template_environment_get_template_source_relative_path(
-                        selected_source_path.clone(),
+                        selected_source_path,
                     )
             }?;
         }
         let candidates: js_abi::JsArray<String> =
-            crate::template::paths::partial_template_candidates(
-                name.clone(),
-                caller_relative_path.clone(),
-            )?;
+            crate::template::paths::partial_template_candidates(name, caller_relative_path.clone())?;
         {
             let mut index: f64 = 0.0;
             while index < (tsonic_rust_runtime::conversions::usize_to_i32(candidates.len())? as f64)
@@ -980,16 +982,24 @@ impl TemplateEnvironmentRoot {
                         .dispatch_template_environment_get_template(candidate.clone())
                 }?;
                 if template.is_some() {
-                    let selected: crate::template::template_2::Template = match template.as_ref() {
-                        Some(flow_value_4) => flow_value_4.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }
-                    .with_inherited_definitions(definitions.clone())?;
+                    let selected: crate::template::template_2::Template = {
+                        let dispatch_receiver_3 = match template.as_ref() {
+                            Some(flow_value_4) => flow_value_4.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        };
+                        dispatch_receiver_3
+                            .dispatch
+                            .clone()
+                            .dispatch_template_with_inherited_definitions(definitions.clone())
+                    }?;
                     return Ok(Some(PartialTemplateResolution::new(
                         String::from("template"),
                         Option::<js_abi::JsArray<crate::template::nodes::TemplateNode>>::None,
                         Some(selected.clone()),
-                        selected.state.with(|state| state.source_path.clone()),
+                        {
+                            let dispatch_receiver_4 = &selected;
+                            dispatch_receiver_4.dispatch.read_template_source_path()
+                        },
                     )));
                 }
                 index += 1.0;
@@ -1008,7 +1018,7 @@ impl TemplateEnvironmentRoot {
         };
         {
             let receiver = &project_this;
-            let value_2 = value.clone();
+            let value_2 = value;
             {
                 let dispatch_receiver = receiver;
                 dispatch_receiver
@@ -1021,7 +1031,7 @@ impl TemplateEnvironmentRoot {
     fn exact_template_environment_source_file_exists(
         self: std::rc::Rc<Self>,
         _path: String,
-    ) -> rt::TsonicResult<bool> {
+    ) -> Result<bool, rt::TsonicError> {
         Ok(false)
     }
 }
@@ -1084,8 +1094,7 @@ impl TemplateEnvironmentDispatch for TemplateEnvironmentRoot {
         &self,
         value: js_abi::JsArray<DeferredTemplatePlacement>,
     ) {
-        self
-            .state
+        self.state
             .with_mut(|state| state.deferred_placements = value);
     }
 
@@ -1132,7 +1141,7 @@ impl TemplateEnvironmentDispatch for TemplateEnvironmentRoot {
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: crate::template::scope::RenderState,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_register_deferred_template(
             self,
             value,
@@ -1158,7 +1167,7 @@ impl TemplateEnvironmentDispatch for TemplateEnvironmentRoot {
         site: crate::models::site_context::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         state: crate::template::scope::RenderState,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_register_deferred_template(
             self,
             value,
@@ -1175,13 +1184,13 @@ impl TemplateEnvironmentDispatch for TemplateEnvironmentRoot {
 
     fn dispatch_template_environment_finalize_deferred_templates(
         self: std::rc::Rc<Self>,
-    ) -> rt::TsonicResult<js_abi::JsMap<String, String>> {
+    ) -> Result<js_abi::JsMap<String, String>, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_finalize_deferred_templates(self)
     }
 
     fn exact_template_environment_finalize_deferred_templates(
         self: std::rc::Rc<Self>,
-    ) -> rt::TsonicResult<js_abi::JsMap<String, String>> {
+    ) -> Result<js_abi::JsMap<String, String>, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_finalize_deferred_templates(self)
     }
 
@@ -1240,35 +1249,35 @@ impl TemplateEnvironmentDispatch for TemplateEnvironmentRoot {
     fn dispatch_template_environment_source_file_exists(
         self: std::rc::Rc<Self>,
         _path: String,
-    ) -> rt::TsonicResult<bool> {
+    ) -> Result<bool, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_source_file_exists(self, _path)
     }
 
     fn exact_template_environment_source_file_exists(
         self: std::rc::Rc<Self>,
         _path: String,
-    ) -> rt::TsonicResult<bool> {
+    ) -> Result<bool, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_source_file_exists(self, _path)
     }
 
     fn dispatch_template_environment_get_template(
         self: std::rc::Rc<Self>,
         _rel_path: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_get_template(self, _rel_path)
     }
 
     fn exact_template_environment_get_template(
         self: std::rc::Rc<Self>,
         _rel_path: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_get_template(self, _rel_path)
     }
 
     fn dispatch_template_environment_get_template_source_relative_path(
         self: std::rc::Rc<Self>,
         _source_path: String,
-    ) -> rt::TsonicResult<Option<String>> {
+    ) -> Result<Option<String>, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_get_template_source_relative_path(
             self,
             _source_path,
@@ -1278,7 +1287,7 @@ impl TemplateEnvironmentDispatch for TemplateEnvironmentRoot {
     fn exact_template_environment_get_template_source_relative_path(
         self: std::rc::Rc<Self>,
         _source_path: String,
-    ) -> rt::TsonicResult<Option<String>> {
+    ) -> Result<Option<String>, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_get_template_source_relative_path(
             self,
             _source_path,
@@ -1290,7 +1299,7 @@ impl TemplateEnvironmentDispatch for TemplateEnvironmentRoot {
         name: String,
         caller_source_path: Option<String>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    ) -> rt::TsonicResult<Option<PartialTemplateResolution>> {
+    ) -> Result<Option<PartialTemplateResolution>, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_resolve_partial_template(
             self,
             name,
@@ -1304,7 +1313,7 @@ impl TemplateEnvironmentDispatch for TemplateEnvironmentRoot {
         name: String,
         caller_source_path: Option<String>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    ) -> rt::TsonicResult<Option<PartialTemplateResolution>> {
+    ) -> Result<Option<PartialTemplateResolution>, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_resolve_partial_template(
             self,
             name,
@@ -1318,7 +1327,7 @@ impl TemplateEnvironmentDispatch for TemplateEnvironmentRoot {
         _page: crate::models::page_context::PageContext,
         _view: String,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<Option<String>> {
+    ) -> Result<Option<String>, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_render_page_view(
             self,
             _page,
@@ -1332,7 +1341,7 @@ impl TemplateEnvironmentDispatch for TemplateEnvironmentRoot {
         _page: crate::models::page_context::PageContext,
         _view: String,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<Option<String>> {
+    ) -> Result<Option<String>, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_render_page_view(
             self,
             _page,
@@ -1344,21 +1353,21 @@ impl TemplateEnvironmentDispatch for TemplateEnvironmentRoot {
     fn dispatch_template_environment_get_shortcode_template(
         self: std::rc::Rc<Self>,
         _name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_get_shortcode_template(self, _name)
     }
 
     fn exact_template_environment_get_shortcode_template(
         self: std::rc::Rc<Self>,
         _name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_get_shortcode_template(self, _name)
     }
 
     fn dispatch_template_environment_get_render_hook_template(
         self: std::rc::Rc<Self>,
         _hook_name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_get_render_hook_template(
             self,
             _hook_name,
@@ -1368,7 +1377,7 @@ impl TemplateEnvironmentDispatch for TemplateEnvironmentRoot {
     fn exact_template_environment_get_render_hook_template(
         self: std::rc::Rc<Self>,
         _hook_name: String,
-    ) -> rt::TsonicResult<Option<crate::template::template_2::Template>> {
+    ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_get_render_hook_template(
             self,
             _hook_name,
@@ -1394,7 +1403,7 @@ impl TemplateEnvironmentDispatch for TemplateEnvironmentRoot {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_render_text_template_source(
             self,
             _source,
@@ -1412,7 +1421,7 @@ impl TemplateEnvironmentDispatch for TemplateEnvironmentRoot {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_render_text_template_source(
             self,
             _source,
@@ -1430,7 +1439,7 @@ impl TemplateEnvironmentDispatch for TemplateEnvironmentRoot {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_render_template(
             self,
             _template,
@@ -1448,7 +1457,7 @@ impl TemplateEnvironmentDispatch for TemplateEnvironmentRoot {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_render_template(
             self,
             _template,
@@ -1466,7 +1475,7 @@ impl TemplateEnvironmentDispatch for TemplateEnvironmentRoot {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_render_text_template(
             self,
             _template,
@@ -1484,7 +1493,7 @@ impl TemplateEnvironmentDispatch for TemplateEnvironmentRoot {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_render_text_template(
             self,
             _template,
@@ -1504,7 +1513,7 @@ impl TemplateEnvironmentDispatch for TemplateEnvironmentRoot {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_render_template_definition(
             self,
             _nodes,
@@ -1526,7 +1535,7 @@ impl TemplateEnvironmentDispatch for TemplateEnvironmentRoot {
         _site: crate::models::site_context::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _state: Option<crate::template::scope::RenderState>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_render_template_definition(
             self,
             _nodes,
@@ -1544,7 +1553,7 @@ impl TemplateEnvironmentDispatch for TemplateEnvironmentRoot {
         _lang: String,
         _key: String,
         _count: Option<i32>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_get_i18n(self, _lang, _key, _count)
     }
 
@@ -1553,7 +1562,7 @@ impl TemplateEnvironmentDispatch for TemplateEnvironmentRoot {
         _lang: String,
         _key: String,
         _count: Option<i32>,
-    ) -> rt::TsonicResult<String> {
+    ) -> Result<String, rt::TsonicError> {
         TemplateEnvironmentRoot::exact_template_environment_get_i18n(self, _lang, _key, _count)
     }
 }

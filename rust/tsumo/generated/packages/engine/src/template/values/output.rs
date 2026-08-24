@@ -2,8 +2,9 @@
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait OutputFormatsValueDispatch:
+pub trait OutputFormatsValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_output_formats_value_to_output_formats_value(
@@ -13,17 +14,27 @@ pub(crate) trait OutputFormatsValueDispatch:
     fn write_output_formats_value_site(&self, value: crate::models::site_context::SiteContext);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct OutputFormatsValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) site: crate::models::site_context::SiteContext,
+pub struct OutputFormatsValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub site: crate::models::site_context::SiteContext,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct OutputFormatsValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn OutputFormatsValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn OutputFormatsValueDispatch>,
+}
+
+impl std::fmt::Debug for OutputFormatsValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("OutputFormatsValue")
+    }
 }
 
 impl PartialEq for OutputFormatsValue {
@@ -41,11 +52,12 @@ pub(crate) struct OutputFormatsValueRoot {
 }
 
 impl OutputFormatsValue {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         site: crate::models::site_context::SiteContext,
     ) -> OutputFormatsValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_site: crate::models::site_context::SiteContext = site.clone();
+        let field_site: crate::models::site_context::SiteContext = site;
         OutputFormatsValueState {
             base: base_state,
             site: field_site,
@@ -374,8 +386,9 @@ impl OutputFormatsValueDispatch for OutputFormatsValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait OutputFormatValueDispatch:
+pub trait OutputFormatValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_output_format_value_to_output_format_value(
@@ -385,17 +398,27 @@ pub(crate) trait OutputFormatValueDispatch:
     fn write_output_format_value_value(&self, value: crate::models::output_format::OutputFormat);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct OutputFormatValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: crate::models::output_format::OutputFormat,
+pub struct OutputFormatValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: crate::models::output_format::OutputFormat,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct OutputFormatValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn OutputFormatValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn OutputFormatValueDispatch>,
+}
+
+impl std::fmt::Debug for OutputFormatValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("OutputFormatValue")
+    }
 }
 
 impl PartialEq for OutputFormatValue {
@@ -413,11 +436,12 @@ pub(crate) struct OutputFormatValueRoot {
 }
 
 impl OutputFormatValue {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         value: crate::models::output_format::OutputFormat,
     ) -> OutputFormatValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: crate::models::output_format::OutputFormat = value.clone();
+        let field_value: crate::models::output_format::OutputFormat = value;
         OutputFormatValueState {
             base: base_state,
             value: field_value,
@@ -746,8 +770,9 @@ impl OutputFormatValueDispatch for OutputFormatValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait OutputFormatsGetValueDispatch:
+pub trait OutputFormatsGetValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_output_formats_get_value_to_output_formats_get_value(
@@ -757,17 +782,27 @@ pub(crate) trait OutputFormatsGetValueDispatch:
     fn write_output_formats_get_value_site(&self, value: crate::models::site_context::SiteContext);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct OutputFormatsGetValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) site: crate::models::site_context::SiteContext,
+pub struct OutputFormatsGetValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub site: crate::models::site_context::SiteContext,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct OutputFormatsGetValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn OutputFormatsGetValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn OutputFormatsGetValueDispatch>,
+}
+
+impl std::fmt::Debug for OutputFormatsGetValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("OutputFormatsGetValue")
+    }
 }
 
 impl PartialEq for OutputFormatsGetValue {
@@ -785,11 +820,12 @@ pub(crate) struct OutputFormatsGetValueRoot {
 }
 
 impl OutputFormatsGetValue {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         site: crate::models::site_context::SiteContext,
     ) -> OutputFormatsGetValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_site: crate::models::site_context::SiteContext = site.clone();
+        let field_site: crate::models::site_context::SiteContext = site;
         OutputFormatsGetValueState {
             base: base_state,
             site: field_site,

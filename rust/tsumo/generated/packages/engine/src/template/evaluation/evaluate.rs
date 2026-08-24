@@ -6,19 +6,19 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct TemplateEvaluationContextState {
-    pub(crate) scope: crate::template::scope::RenderScope,
-    pub(crate) environment: crate::template::environment::TemplateEnvironment,
-    pub(crate) overrides:
-        js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    pub(crate) defines:
-        js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+pub struct TemplateEvaluationContextState {
+    pub scope: crate::template::scope::RenderScope,
+    pub environment: crate::template::environment::TemplateEnvironment,
+    pub overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
+    pub defines: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct TemplateEvaluationContext {
-    pub(crate) state: rt::ObjectHandle<TemplateEvaluationContextState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<TemplateEvaluationContextState>,
 }
 
 impl TemplateEvaluationContext {
@@ -28,19 +28,18 @@ impl TemplateEvaluationContext {
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         defines: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
     ) -> TemplateEvaluationContext {
-        let field_scope: crate::template::scope::RenderScope = scope.clone();
-        let field_environment: crate::template::environment::TemplateEnvironment =
-            environment.clone();
+        let field_scope: crate::template::scope::RenderScope = scope;
+        let field_environment: crate::template::environment::TemplateEnvironment = environment;
         let field_overrides: js_abi::JsMap<
             String,
             js_abi::JsArray<crate::template::nodes::TemplateNode>,
-        > = overrides.clone();
+        > = overrides;
         let field_defines: js_abi::JsMap<
             String,
             js_abi::JsArray<crate::template::nodes::TemplateNode>,
-        > = defines.clone();
+        > = defines;
         TemplateEvaluationContext {
-            state: rt::ObjectHandle::new(TemplateEvaluationContextState {
+            state: rt::ObjectRef::new(TemplateEvaluationContextState {
                 scope: field_scope,
                 environment: field_environment,
                 overrides: field_overrides,
@@ -56,13 +55,9 @@ pub fn evaluate_pipeline(
     environment: crate::template::environment::TemplateEnvironment,
     overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
     defines: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-) -> rt::TsonicResult<crate::template::values::base::TemplateValue> {
-    let context: TemplateEvaluationContext = TemplateEvaluationContext::new(
-        scope.clone(),
-        environment.clone(),
-        overrides.clone(),
-        defines.clone(),
-    );
+) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
+    let context: TemplateEvaluationContext =
+        TemplateEvaluationContext::new(scope, environment, overrides, defines);
     if tsonic_rust_runtime::conversions::usize_to_i32(
         pipeline.state.with(|state| state.stages.clone()).len(),
     )? == 0
@@ -101,14 +96,14 @@ pub fn evaluate_pipeline(
             index += 1.0;
         }
     }
-    Ok(value.clone())
+    Ok(value)
 }
 
-pub(crate) fn evaluate_command(
+pub fn evaluate_command(
     command: crate::template::syntax::expressions::Command,
     context: TemplateEvaluationContext,
     piped: Option<crate::template::values::base::TemplateValue>,
-) -> rt::TsonicResult<crate::template::values::base::TemplateValue> {
+) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
     if tsonic_rust_runtime::conversions::usize_to_i32(
         command.state.with(|state| state.args.clone()).len(),
     )? == 0
@@ -119,8 +114,9 @@ pub(crate) fn evaluate_command(
             context.clone(),
         );
     }
-    let head: crate::template::syntax::expressions::Expr =
-        command.state.with(|state| state.head.clone());
+    let head: crate::template::syntax::expressions::Expr = command
+        .state
+        .with(|state| state.head.clone());
     if head
         .dispatch
         .clone()
@@ -134,26 +130,29 @@ pub(crate) fn evaluate_command(
             while index
                 < (tsonic_rust_runtime::conversions::usize_to_i32(command.state.with(|state| state.args.clone()).len())? as f64)
             {
-                tsonic_rust_runtime::conversions::usize_to_i32(args.push_many([evaluate_expression(
-                    match command
-                        .state
-                        .with(|state| state.args.clone())
-                        .get_number(index)
-                        .as_ref()
-                    {
-                        Some(flow_value) => flow_value.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                    context.clone(),
-                )?]))?;
+                {
+                    let operation_input_0 = args.clone();
+                    operation_input_0.push_many_discard([evaluate_expression(
+                        match command
+                            .state
+                            .with(|state| state.args.clone())
+                            .get_number(index)
+                            .as_ref()
+                        {
+                            Some(flow_value) => flow_value.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        },
+                        context.clone(),
+                    )?])
+                };
                 index += 1.0;
             }
         }
         if piped.is_some() {
-            tsonic_rust_runtime::conversions::usize_to_i32(args.push_many([match piped.as_ref() {
+            args.push_many_discard([match piped.as_ref() {
                 Some(flow_value_2) => flow_value_2.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
-            }]))?;
+            }]);
         }
         return crate::template::functions::call_function::call_template_function(
             {
@@ -241,8 +240,9 @@ pub(crate) fn evaluate_command(
                 while index
                     < ((tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_5 = &{ let downcast_value_5 = &head; crate::template::syntax::expressions::AccessExpr { identity: downcast_value_5.identity.clone(), dispatch: downcast_value_5.dispatch.clone().downcast_expr_to_access_expr().unwrap() } }; dispatch_receiver_5.dispatch.read_access_expr_segments() }.len())? - 1) as f64)
                 {
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        receiver_segments.push_many([match {
+                    {
+                        let operation_input_0_2 = receiver_segments.clone();
+                        operation_input_0_2.push_many_discard([match {
                             let dispatch_receiver_6 = &{
                                 let downcast_value_6 = &head;
                                 crate::template::syntax::expressions::AccessExpr {
@@ -261,8 +261,8 @@ pub(crate) fn evaluate_command(
                         {
                             Some(flow_value_3) => flow_value_3.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
-                        }]),
-                    )?;
+                        }])
+                    };
                     index += 1.0;
                 }
             }
@@ -279,44 +279,48 @@ pub(crate) fn evaluate_command(
             while index
                 < (tsonic_rust_runtime::conversions::usize_to_i32(command.state.with(|state| state.args.clone()).len())? as f64)
             {
-                tsonic_rust_runtime::conversions::usize_to_i32(args.push_many([evaluate_expression(
-                    match command
-                        .state
-                        .with(|state| state.args.clone())
-                        .get_number(index)
-                        .as_ref()
-                    {
-                        Some(flow_value_4) => flow_value_4.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                    context.clone(),
-                )?]))?;
+                {
+                    let operation_input_0_3 = args.clone();
+                    operation_input_0_3.push_many_discard([evaluate_expression(
+                        match command
+                            .state
+                            .with(|state| state.args.clone())
+                            .get_number(index)
+                            .as_ref()
+                        {
+                            Some(flow_value_4) => flow_value_4.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        },
+                        context.clone(),
+                    )?])
+                };
                 index += 1.0;
             }
         }
         if piped.is_some() {
-            tsonic_rust_runtime::conversions::usize_to_i32(args.push_many([match piped.as_ref() {
+            args.push_many_discard([match piped.as_ref() {
                 Some(flow_value_5) => flow_value_5.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
-            }]))?;
+            }]);
         }
         return crate::template::evaluation::expression_semantics::call_method(
             receiver.clone(),
             match {
-                let dispatch_receiver_7 = &{
-                    let downcast_value_7 = &head;
-                    crate::template::syntax::expressions::AccessExpr {
-                        identity: downcast_value_7.identity.clone(),
-                        dispatch: downcast_value_7
-                            .dispatch
-                            .clone()
-                            .downcast_expr_to_access_expr()
-                            .unwrap(),
-                    }
+                let operation_input_0_4 = {
+                    let dispatch_receiver_7 = &{
+                        let downcast_value_7 = &head;
+                        crate::template::syntax::expressions::AccessExpr {
+                            identity: downcast_value_7.identity.clone(),
+                            dispatch: downcast_value_7
+                                .dispatch
+                                .clone()
+                                .downcast_expr_to_access_expr()
+                                .unwrap(),
+                        }
+                    };
+                    dispatch_receiver_7.dispatch.read_access_expr_segments()
                 };
-                dispatch_receiver_7.dispatch.read_access_expr_segments()
-            }
-            .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
+                operation_input_0_4.get_number(tsonic_rust_runtime::conversions::i32_to_f64(
                     tsonic_rust_runtime::conversions::usize_to_i32(
                         {
                             let dispatch_receiver_8 = &{
@@ -335,6 +339,7 @@ pub(crate) fn evaluate_command(
                         .len(),
                     )? - 1,
                 ))
+            }
             .as_ref()
             {
                 Some(flow_value_6) => flow_value_6.clone(),
@@ -356,10 +361,10 @@ pub(crate) fn evaluate_command(
     evaluate_expression(head.clone(), context.clone())
 }
 
-pub(crate) fn evaluate_expression(
+pub fn evaluate_expression(
     expression: crate::template::syntax::expressions::Expr,
     context: TemplateEvaluationContext,
-) -> rt::TsonicResult<crate::template::values::base::TemplateValue> {
+) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
     if expression
         .dispatch
         .clone()
@@ -393,10 +398,7 @@ pub(crate) fn evaluate_expression(
             || token == "resources"
             || token == "page"
             || js_string::starts_with_from_start(&token, "page.")
-            || crate::template::parser::tokens::PARSE_STRING_LITERAL
-                .with(|module_binding| module_binding.load())
-                .call((token.clone(),))?
-                .is_some()
+            || crate::template::parser::tokens::parse_string_literal(token.clone())?.is_some()
             || token == "true"
             || token == "false"
             || token == "nil"
@@ -492,7 +494,7 @@ pub(crate) fn evaluate_expression(
             context.clone(),
         )?;
         return crate::template::evaluation::property_semantics::resolve_path(
-            value.clone(),
+            value,
             {
                 let dispatch_receiver_5 = &{
                     let downcast_value_5 = &expression;
@@ -510,7 +512,7 @@ pub(crate) fn evaluate_expression(
             context.state.with(|state| state.scope.clone()),
         );
     }
-    Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+    Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
         String::from("TSUMO_TEMPLATE_EXPRESSION_INVALID"),
         String::from("The parsed template expression has no supported evaluation form"),
         None,

@@ -2,8 +2,9 @@
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait ResourceNamespaceValueDispatch:
+pub trait ResourceNamespaceValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_resource_namespace_value_to_resource_namespace_value(
@@ -11,16 +12,26 @@ pub(crate) trait ResourceNamespaceValueDispatch:
     ) -> Option<std::rc::Rc<dyn ResourceNamespaceValueDispatch>>;
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ResourceNamespaceValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
+pub struct ResourceNamespaceValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct ResourceNamespaceValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn ResourceNamespaceValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn ResourceNamespaceValueDispatch>,
+}
+
+impl std::fmt::Debug for ResourceNamespaceValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("ResourceNamespaceValue")
+    }
 }
 
 impl PartialEq for ResourceNamespaceValue {
@@ -38,7 +49,8 @@ pub(crate) struct ResourceNamespaceValueRoot {
 }
 
 impl ResourceNamespaceValue {
-    pub(crate) fn initialize_state() -> ResourceNamespaceValueState {
+    #[doc(hidden)]
+    pub fn initialize_state() -> ResourceNamespaceValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         ResourceNamespaceValueState { base: base_state }
     }
@@ -361,8 +373,9 @@ impl ResourceNamespaceValueDispatch for ResourceNamespaceValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait ResourceDataValueDispatch:
+pub trait ResourceDataValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_resource_data_value_to_resource_data_value(
@@ -372,17 +385,27 @@ pub(crate) trait ResourceDataValueDispatch:
     fn write_resource_data_value_value(&self, value: crate::resources::models::ResourceData);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ResourceDataValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: crate::resources::models::ResourceData,
+pub struct ResourceDataValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: crate::resources::models::ResourceData,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct ResourceDataValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn ResourceDataValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn ResourceDataValueDispatch>,
+}
+
+impl std::fmt::Debug for ResourceDataValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("ResourceDataValue")
+    }
 }
 
 impl PartialEq for ResourceDataValue {
@@ -400,11 +423,12 @@ pub(crate) struct ResourceDataValueRoot {
 }
 
 impl ResourceDataValue {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         value: crate::resources::models::ResourceData,
     ) -> ResourceDataValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: crate::resources::models::ResourceData = value.clone();
+        let field_value: crate::resources::models::ResourceData = value;
         ResourceDataValueState {
             base: base_state,
             value: field_value,
@@ -731,8 +755,9 @@ impl ResourceDataValueDispatch for ResourceDataValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait ResourceValueDispatch:
+pub trait ResourceValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_resource_value_to_resource_value(
@@ -744,18 +769,28 @@ pub(crate) trait ResourceValueDispatch:
     fn write_resource_value_manager(&self, value: crate::resources::manager::ResourceManager);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ResourceValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: crate::resources::models::Resource,
-    pub(crate) manager: crate::resources::manager::ResourceManager,
+pub struct ResourceValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: crate::resources::models::Resource,
+    pub manager: crate::resources::manager::ResourceManager,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct ResourceValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn ResourceValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn ResourceValueDispatch>,
+}
+
+impl std::fmt::Debug for ResourceValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("ResourceValue")
+    }
 }
 
 impl PartialEq for ResourceValue {
@@ -773,13 +808,14 @@ pub(crate) struct ResourceValueRoot {
 }
 
 impl ResourceValue {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         manager: crate::resources::manager::ResourceManager,
         value: crate::resources::models::Resource,
     ) -> ResourceValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_manager: crate::resources::manager::ResourceManager = manager.clone();
-        let field_value: crate::resources::models::Resource = value.clone();
+        let field_manager: crate::resources::manager::ResourceManager = manager;
+        let field_value: crate::resources::models::Resource = value;
         ResourceValueState {
             base: base_state,
             value: field_value,

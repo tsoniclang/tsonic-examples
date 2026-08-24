@@ -6,7 +6,7 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-pub(crate) fn sort_resource_paths(paths: js_abi::JsArray<String>) -> rt::TsonicResult<()> {
+pub fn sort_resource_paths(paths: js_abi::JsArray<String>) -> Result<(), rt::TsonicError> {
     {
         let mut left_index: f64 = 0.0;
         while left_index < (tsonic_rust_runtime::conversions::usize_to_i32(paths.len())? as f64) {
@@ -24,12 +24,8 @@ pub(crate) fn sort_resource_paths(paths: js_abi::JsArray<String>) -> rt::TsonicR
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     if crate::utils::strings::compare_text(
-                        crate::resources::paths::NORMALIZE_RESOURCE_SLASHES
-                            .with(|module_binding| module_binding.load())
-                            .call((left.clone(),))?,
-                        crate::resources::paths::NORMALIZE_RESOURCE_SLASHES
-                            .with(|module_binding| module_binding.load())
-                            .call((right.clone(),))?,
+                        crate::resources::paths::normalize_resource_slashes(&left)?,
+                        crate::resources::paths::normalize_resource_slashes(&right)?,
                     ) <= 0
                     {
                         right_index += 1.0;
@@ -46,9 +42,9 @@ pub(crate) fn sort_resource_paths(paths: js_abi::JsArray<String>) -> rt::TsonicR
     Ok(())
 }
 
-pub(crate) fn sort_resources_by_identity(
+pub fn sort_resources_by_identity(
     resources: js_abi::JsArray<crate::resources::models::Resource>,
-) -> rt::TsonicResult<()> {
+) -> Result<(), rt::TsonicError> {
     {
         let mut left_index: f64 = 0.0;
         while left_index < (tsonic_rust_runtime::conversions::usize_to_i32(resources.len())? as f64)
@@ -73,8 +69,14 @@ pub(crate) fn sort_resources_by_identity(
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     if crate::utils::strings::compare_text(
-                        left.state.with(|state| state.id.clone()),
-                        right.state.with(|state| state.id.clone()),
+                        {
+                            let dispatch_receiver = &left;
+                            dispatch_receiver.dispatch.read_resource_id()
+                        },
+                        {
+                            let dispatch_receiver_2 = &right;
+                            dispatch_receiver_2.dispatch.read_resource_id()
+                        },
                     ) <= 0
                     {
                         right_index += 1.0;
@@ -91,32 +93,229 @@ pub(crate) fn sort_resources_by_identity(
     Ok(())
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ResourceManagerState {
-    pub(crate) site_dir: String,
-    pub(crate) theme_dir: Option<String>,
-    pub(crate) output_dir: String,
-    pub(crate) site_assets_dir: String,
-    pub(crate) theme_assets_dir: Option<String>,
-    pub(crate) cache: js_abi::JsMap<String, crate::resources::models::Resource>,
-    pub(crate) site_asset_files: js_abi::JsArray<String>,
-    pub(crate) theme_asset_files: js_abi::JsArray<String>,
+pub trait ResourceManagerDispatch {
+    fn downcast_resource_manager_to_resource_manager(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn ResourceManagerDispatch>>;
+    fn read_resource_manager_site_dir(&self) -> String;
+    fn write_resource_manager_site_dir(&self, value: String);
+    fn read_resource_manager_theme_dir(&self) -> Option<String>;
+    fn write_resource_manager_theme_dir(&self, value: Option<String>);
+    fn read_resource_manager_output_dir(&self) -> String;
+    fn write_resource_manager_output_dir(&self, value: String);
+    fn read_resource_manager_site_assets_dir(&self) -> String;
+    fn write_resource_manager_site_assets_dir(&self, value: String);
+    fn read_resource_manager_theme_assets_dir(&self) -> Option<String>;
+    fn write_resource_manager_theme_assets_dir(&self, value: Option<String>);
+    fn read_resource_manager_cache(
+        &self,
+    ) -> js_abi::JsMap<String, crate::resources::models::Resource>;
+    fn write_resource_manager_cache(
+        &self,
+        value: js_abi::JsMap<String, crate::resources::models::Resource>,
+    );
+    fn read_resource_manager_site_asset_files(&self) -> js_abi::JsArray<String>;
+    fn write_resource_manager_site_asset_files(&self, value: js_abi::JsArray<String>);
+    fn read_resource_manager_theme_asset_files(&self) -> js_abi::JsArray<String>;
+    fn write_resource_manager_theme_asset_files(&self, value: js_abi::JsArray<String>);
+    fn dispatch_resource_manager_resolve_asset_full_path(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+    ) -> Result<Option<String>, rt::TsonicError>;
+    fn exact_resource_manager_resolve_asset_full_path(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+    ) -> Result<Option<String>, rt::TsonicError>;
+    fn dispatch_resource_manager_get(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+    ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError>;
+    fn exact_resource_manager_get(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+    ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError>;
+    fn dispatch_resource_manager_load_file(
+        self: std::rc::Rc<Self>,
+        identity: String,
+        full_path: String,
+        output_rel_path: String,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
+    fn exact_resource_manager_load_file(
+        self: std::rc::Rc<Self>,
+        identity: String,
+        full_path: String,
+        output_rel_path: String,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
+    fn dispatch_resource_manager_get_match(
+        self: std::rc::Rc<Self>,
+        pattern: String,
+    ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError>;
+    fn exact_resource_manager_get_match(
+        self: std::rc::Rc<Self>,
+        pattern: String,
+    ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError>;
+    fn dispatch_resource_manager_match(
+        self: std::rc::Rc<Self>,
+        pattern: String,
+    ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError>;
+    fn exact_resource_manager_match(
+        self: std::rc::Rc<Self>,
+        pattern: String,
+    ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError>;
+    fn dispatch_resource_manager_by_type(
+        self: std::rc::Rc<Self>,
+        media_type: String,
+    ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError>;
+    fn exact_resource_manager_by_type(
+        self: std::rc::Rc<Self>,
+        media_type: String,
+    ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError>;
+    fn dispatch_resource_manager_concat(
+        self: std::rc::Rc<Self>,
+        target_path: String,
+        resources: js_abi::JsArray<crate::resources::models::Resource>,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
+    fn exact_resource_manager_concat(
+        self: std::rc::Rc<Self>,
+        target_path: String,
+        resources: js_abi::JsArray<crate::resources::models::Resource>,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
+    fn dispatch_resource_manager_from_string(
+        self: std::rc::Rc<Self>,
+        name: String,
+        content: String,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
+    fn exact_resource_manager_from_string(
+        self: std::rc::Rc<Self>,
+        name: String,
+        content: String,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
+    fn dispatch_resource_manager_minify(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
+    fn exact_resource_manager_minify(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
+    fn dispatch_resource_manager_fingerprint(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
+    fn exact_resource_manager_fingerprint(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
+    fn dispatch_resource_manager_copy(
+        self: std::rc::Rc<Self>,
+        target_path: String,
+        resource: crate::resources::models::Resource,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
+    fn exact_resource_manager_copy(
+        self: std::rc::Rc<Self>,
+        target_path: String,
+        resource: crate::resources::models::Resource,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
+    fn dispatch_resource_manager_sass_compile(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
+    fn exact_resource_manager_sass_compile(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
+    fn dispatch_resource_manager_javascript_build(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+        options: crate::resources::javascript_provider::JavaScriptBuildOptions,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
+    fn exact_resource_manager_javascript_build(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+        options: crate::resources::javascript_provider::JavaScriptBuildOptions,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
+    fn dispatch_resource_manager_resize(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+        specification: String,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
+    fn exact_resource_manager_resize(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+        specification: String,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
+    fn dispatch_resource_manager_ensure_published(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> Result<(), rt::TsonicError>;
+    fn exact_resource_manager_ensure_published(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> Result<(), rt::TsonicError>;
+    fn dispatch_resource_manager_cache_resource(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> crate::resources::models::Resource;
+    fn exact_resource_manager_cache_resource(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> crate::resources::models::Resource;
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct ResourceManagerState {
+    pub site_dir: String,
+    pub theme_dir: Option<String>,
+    pub output_dir: String,
+    pub site_assets_dir: String,
+    pub theme_assets_dir: Option<String>,
+    pub cache: js_abi::JsMap<String, crate::resources::models::Resource>,
+    pub site_asset_files: js_abi::JsArray<String>,
+    pub theme_asset_files: js_abi::JsArray<String>,
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+#[derive(Clone)]
 pub struct ResourceManager {
-    pub(crate) state: rt::ObjectHandle<ResourceManagerState>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn ResourceManagerDispatch>,
+}
+
+impl std::fmt::Debug for ResourceManager {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("ResourceManager")
+    }
+}
+
+impl PartialEq for ResourceManager {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+    }
+}
+
+impl Eq for ResourceManager {}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub(crate) struct ResourceManagerRoot {
+    identity: rt::ObjectIdentity,
+    state: rt::ObjectHandle<ResourceManagerState>,
 }
 
 impl ResourceManager {
-    pub fn new(
+    #[doc(hidden)]
+    pub fn initialize_state(
         site_dir: String,
         theme_dir: Option<String>,
         output_dir: String,
-    ) -> rt::TsonicResult<ResourceManager> {
+    ) -> Result<ResourceManagerState, rt::TsonicError> {
         let field_site_dir: String = site_dir.clone();
         let field_theme_dir: Option<String> = theme_dir.clone();
-        let field_output_dir: String = output_dir.clone();
+        let field_output_dir: String = output_dir;
         let field_site_assets_dir: String =
             tsonic_rust_node::path::join(&[site_dir.as_str(), "assets"]);
         let field_theme_assets_dir: Option<String> = if theme_dir.is_none() {
@@ -134,150 +333,629 @@ impl ResourceManager {
         };
         let field_cache: js_abi::JsMap<String, crate::resources::models::Resource> =
             js_abi::JsMap::new();
-        let field_site_asset_files: js_abi::JsArray<String> = crate::fs::LIST_FILES_RECURSIVE
-            .with(|module_binding| module_binding.load())
-            .call((field_site_assets_dir.clone(), String::from("*")))?;
+        let field_site_asset_files: js_abi::JsArray<String> =
+            crate::fs::list_files_recursive(field_site_assets_dir.clone(), String::from("*"))?;
         sort_resource_paths(field_site_asset_files.clone())?;
         let theme_assets_dir: Option<String> = field_theme_assets_dir.clone();
         let field_theme_asset_files: js_abi::JsArray<String> = if theme_assets_dir.is_none() {
             js_abi::JsArray::from_dense(vec![])
         } else {
-            crate::fs::LIST_FILES_RECURSIVE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    match theme_assets_dir.as_ref() {
-                        Some(flow_value_2) => flow_value_2.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                    String::from("*"),
-                ))?
-        };
-        sort_resource_paths(field_theme_asset_files.clone())?;
-        Ok(ResourceManager {
-            state: rt::ObjectHandle::new(ResourceManagerState {
-                site_dir: field_site_dir,
-                theme_dir: field_theme_dir,
-                output_dir: field_output_dir,
-                site_assets_dir: field_site_assets_dir,
-                theme_assets_dir: field_theme_assets_dir,
-                cache: field_cache,
-                site_asset_files: field_site_asset_files,
-                theme_asset_files: field_theme_asset_files,
-            }),
-        })
-    }
-
-    pub fn resolve_asset_full_path(
-        &self,
-        relative_path: String,
-    ) -> rt::TsonicResult<Option<String>> {
-        let normalized: String = crate::resources::paths::NORMALIZE_RESOURCE_RELATIVE_PATH
-            .with(|module_binding| module_binding.load())
-            .call((relative_path.clone(),))?;
-        if normalized.is_empty() {
-            return Ok(Option::<String>::None);
-        }
-        let site_path: String = crate::resources::paths::RESOLVE_CONTAINED_RESOURCE_PATH
-            .with(|module_binding| module_binding.load())
-            .call((
-                self.state.with(|state| state.site_assets_dir.clone()),
-                normalized.clone(),
-            ))?;
-        if crate::fs::FILE_EXISTS
-            .with(|module_binding| module_binding.load())
-            .call((site_path.clone(),))?
-        {
-            return Ok(Some(site_path.clone()));
-        }
-        let theme_assets_dir: Option<String> =
-            self.state.with(|state| state.theme_assets_dir.clone());
-        if theme_assets_dir.is_none() {
-            return Ok(Option::<String>::None);
-        }
-        let theme_path: String = crate::resources::paths::RESOLVE_CONTAINED_RESOURCE_PATH
-            .with(|module_binding| module_binding.load())
-            .call((
+            crate::fs::list_files_recursive(
                 match theme_assets_dir.as_ref() {
-                    Some(flow_value) => flow_value.clone(),
+                    Some(flow_value_2) => flow_value_2.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
-                normalized.clone(),
-            ))?;
-        Ok(if crate::fs::FILE_EXISTS
-            .with(|module_binding| module_binding.load())
-            .call((theme_path.clone(),))?
-        {
-            Some(theme_path.clone())
-        } else {
-            Option::<String>::None
+                String::from("*"),
+            )?
+        };
+        sort_resource_paths(field_theme_asset_files.clone())?;
+        Ok(ResourceManagerState {
+            site_dir: field_site_dir,
+            theme_dir: field_theme_dir,
+            output_dir: field_output_dir,
+            site_assets_dir: field_site_assets_dir,
+            theme_assets_dir: field_theme_assets_dir,
+            cache: field_cache,
+            site_asset_files: field_site_asset_files,
+            theme_asset_files: field_theme_asset_files,
         })
     }
 
-    pub fn get(
-        &self,
+    pub fn new(
+        site_dir: String,
+        theme_dir: Option<String>,
+        output_dir: String,
+    ) -> Result<ResourceManager, rt::TsonicError> {
+        let state = ResourceManager::initialize_state(site_dir, theme_dir, output_dir)?;
+        let identity = rt::ObjectIdentity::new();
+        let root = std::rc::Rc::new(ResourceManagerRoot {
+            identity: identity.clone(),
+            state: rt::ObjectHandle::new(state),
+        });
+        Ok(ResourceManager {
+            identity,
+            dispatch: root,
+        })
+    }
+}
+
+impl ResourceManagerRoot {
+    fn exact_resource_manager_by_type(
+        self: std::rc::Rc<Self>,
+        media_type: String,
+    ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError> {
+        let project_this = ResourceManager {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        let result: js_abi::JsArray<crate::resources::models::Resource> =
+            js_abi::JsArray::from_dense(vec![]);
+        let selected: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
+        {
+            let mut index: f64 = 0.0;
+            'loop_value: while index
+                < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver = &project_this; dispatch_receiver.dispatch.read_resource_manager_site_asset_files() }.len())? as f64)
+            {
+                let full_path: String = match {
+                    let dispatch_receiver_2 = &project_this;
+                    dispatch_receiver_2
+                        .dispatch
+                        .read_resource_manager_site_asset_files()
+                }
+                .get_number(index)
+                .as_ref()
+                {
+                    Some(flow_value) => flow_value.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                };
+                let relative_path: String = crate::resources::paths::normalize_resource_slashes(
+                    &tsonic_rust_node::path::relative(
+                        &{
+                            let dispatch_receiver_3 = &project_this;
+                            dispatch_receiver_3
+                                .dispatch
+                                .read_resource_manager_site_assets_dir()
+                        },
+                        &full_path,
+                    ),
+                )?;
+                let resource: Option<crate::resources::models::Resource> = {
+                    let dispatch_receiver_4 = project_this.clone();
+                    dispatch_receiver_4
+                        .dispatch
+                        .clone()
+                        .dispatch_resource_manager_get(relative_path.clone())
+                }?;
+                if resource.is_none()
+                    || !crate::resources::media_types::resource_matches_media_type(
+                        &{
+                            let dispatch_receiver_5 = &match resource.as_ref() {
+                                Some(flow_value_2) => flow_value_2.clone(),
+                                None => {
+                                    unreachable!("checked flow selected a missing optional value")
+                                }
+                            };
+                            dispatch_receiver_5.dispatch.read_resource_media_type()
+                        },
+                        &media_type,
+                    )
+                {
+                    index += 1.0;
+                    continue 'loop_value;
+                }
+                result.push_many_discard([match resource.as_ref() {
+                    Some(flow_value_3) => flow_value_3.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }]);
+                selected.set_discard(relative_path.clone(), true);
+                index += 1.0;
+            }
+        }
+        let theme_assets_dir: Option<String> = {
+            let dispatch_receiver_6 = &project_this;
+            dispatch_receiver_6
+                .dispatch
+                .read_resource_manager_theme_assets_dir()
+        };
+        if theme_assets_dir.is_some() {
+            {
+                let mut index: f64 = 0.0;
+                'loop_value_2: while index
+                    < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_7 = &project_this; dispatch_receiver_7.dispatch.read_resource_manager_theme_asset_files() }.len())? as f64)
+                {
+                    let full_path: String = match {
+                        let dispatch_receiver_8 = &project_this;
+                        dispatch_receiver_8
+                            .dispatch
+                            .read_resource_manager_theme_asset_files()
+                    }
+                    .get_number(index)
+                    .as_ref()
+                    {
+                        Some(flow_value_4) => flow_value_4.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    };
+                    let relative_path: String =
+                        crate::resources::paths::normalize_resource_slashes(
+                            &tsonic_rust_node::path::relative(
+                                &match theme_assets_dir.as_ref() {
+                                    Some(flow_value_5) => flow_value_5.clone(),
+                                    None => {
+                                        unreachable!(
+                                            "checked flow selected a missing optional value"
+                                        )
+                                    }
+                                },
+                                &full_path,
+                            ),
+                        )?;
+                    if selected.has(&relative_path) {
+                        index += 1.0;
+                        continue 'loop_value_2;
+                    }
+                    let resource: Option<crate::resources::models::Resource> = {
+                        let dispatch_receiver_9 = project_this.clone();
+                        dispatch_receiver_9
+                            .dispatch
+                            .clone()
+                            .dispatch_resource_manager_get(relative_path.clone())
+                    }?;
+                    if resource.is_some()
+                        && crate::resources::media_types::resource_matches_media_type(
+                            &{
+                                let dispatch_receiver_10 = &match resource.as_ref() {
+                                    Some(flow_value_6) => flow_value_6.clone(),
+                                    None => {
+                                        unreachable!(
+                                            "checked flow selected a missing optional value"
+                                        )
+                                    }
+                                };
+                                dispatch_receiver_10.dispatch.read_resource_media_type()
+                            },
+                            &media_type,
+                        )
+                    {
+                        result.push_many_discard([match resource.as_ref() {
+                            Some(flow_value_7) => flow_value_7.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        }]);
+                    }
+                    index += 1.0;
+                }
+            }
+        }
+        sort_resources_by_identity(result.clone())?;
+        Ok(result)
+    }
+
+    fn exact_resource_manager_cache_resource(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> crate::resources::models::Resource {
+        let project_this = ResourceManager {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        let cached: Option<crate::resources::models::Resource> = {
+            let operation_input_0 = {
+                let dispatch_receiver = &project_this;
+                dispatch_receiver.dispatch.read_resource_manager_cache()
+            };
+            operation_input_0.get(&{
+                let dispatch_receiver_2 = &resource;
+                dispatch_receiver_2.dispatch.read_resource_id()
+            })
+        };
+        if cached.is_some() {
+            return match cached.as_ref() {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
+        }
+        {
+            let operation_input_0_2 = {
+                let dispatch_receiver_3 = &project_this;
+                dispatch_receiver_3.dispatch.read_resource_manager_cache()
+            };
+            operation_input_0_2.set_discard(
+                {
+                    let dispatch_receiver_4 = &resource;
+                    dispatch_receiver_4.dispatch.read_resource_id()
+                },
+                resource.clone(),
+            )
+        };
+        resource
+    }
+
+    fn exact_resource_manager_concat(
+        self: std::rc::Rc<Self>,
+        target_path: String,
+        resources: js_abi::JsArray<crate::resources::models::Resource>,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        let project_this = ResourceManager {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        Ok({
+            let dispatch_receiver = project_this.clone();
+            dispatch_receiver
+                .dispatch
+                .clone()
+                .dispatch_resource_manager_cache_resource(
+                    crate::resources::transforms::concatenate_resources(target_path, resources)?,
+                )
+        })
+    }
+
+    fn exact_resource_manager_copy(
+        self: std::rc::Rc<Self>,
+        target_path: String,
+        resource: crate::resources::models::Resource,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        let project_this = ResourceManager {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        Ok({
+            let dispatch_receiver = project_this.clone();
+            dispatch_receiver
+                .dispatch
+                .clone()
+                .dispatch_resource_manager_cache_resource(
+                    crate::resources::transforms::copy_resource(target_path, resource)?,
+                )
+        })
+    }
+
+    fn exact_resource_manager_ensure_published(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> Result<(), rt::TsonicError> {
+        let project_this = ResourceManager {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        if !{
+            let dispatch_receiver = &resource;
+            dispatch_receiver.dispatch.read_resource_publishable()
+        } {
+            return Ok(());
+        }
+        let output_rel_path: Option<String> = {
+            let dispatch_receiver_2 = &resource;
+            dispatch_receiver_2.dispatch.read_resource_output_rel_path()
+        };
+        if output_rel_path.is_none() {
+            return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+                String::from("TSUMO_RESOURCE_OUTPUT_PATH_MISSING"),
+                String::from("Publishable resource has no output path"),
+                None,
+                None,
+                None,
+            )));
+        }
+        let normalized: String = crate::resources::paths::normalize_resource_relative_path(
+            match output_rel_path.as_ref() {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            },
+        )?;
+        if normalized.is_empty() {
+            return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+                String::from("TSUMO_RESOURCE_OUTPUT_PATH_MISSING"),
+                String::from("Publishable resource has an empty output path"),
+                None,
+                None,
+                None,
+            )));
+        }
+        let destination: String = crate::resources::paths::resolve_contained_resource_path(
+            {
+                let dispatch_receiver_3 = &project_this;
+                dispatch_receiver_3
+                    .dispatch
+                    .read_resource_manager_output_dir()
+            },
+            normalized.clone(),
+        )?;
+        let directory: String = tsonic_rust_node::path::dirname(&destination);
+        if !directory.is_empty() {
+            crate::fs::ensure_dir(directory.clone())?;
+        }
+        {
+            let operation_input_0 = destination.clone();
+            tsonic_rust_node::fs::write_file_sync_buffer(
+                &operation_input_0,
+                &{
+                    let dispatch_receiver_4 = &resource;
+                    dispatch_receiver_4.dispatch.read_resource_bytes()
+                },
+            )
+        }?;
+        Ok(())
+    }
+
+    fn exact_resource_manager_fingerprint(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        let project_this = ResourceManager {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        Ok({
+            let dispatch_receiver = project_this.clone();
+            dispatch_receiver
+                .dispatch
+                .clone()
+                .dispatch_resource_manager_cache_resource(
+                    crate::resources::transforms::fingerprint_resource(resource)?,
+                )
+        })
+    }
+
+    fn exact_resource_manager_from_string(
+        self: std::rc::Rc<Self>,
+        name: String,
+        content: String,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        let project_this = ResourceManager {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        Ok({
+            let dispatch_receiver = project_this.clone();
+            dispatch_receiver
+                .dispatch
+                .clone()
+                .dispatch_resource_manager_cache_resource(
+                    crate::resources::transforms::create_string_resource(name, content)?,
+                )
+        })
+    }
+
+    fn exact_resource_manager_get(
+        self: std::rc::Rc<Self>,
         relative_path: String,
-    ) -> rt::TsonicResult<Option<crate::resources::models::Resource>> {
-        let normalized: String = crate::resources::paths::NORMALIZE_RESOURCE_RELATIVE_PATH
-            .with(|module_binding| module_binding.load())
-            .call((relative_path.clone(),))?;
+    ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError> {
+        let project_this = ResourceManager {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        let normalized: String =
+            crate::resources::paths::normalize_resource_relative_path(relative_path)?;
         if normalized.is_empty() {
             return Ok(Option::<crate::resources::models::Resource>::None);
         }
-        let identity: String = format!(
-            "{}{}{}",
-            String::from("get:"),
-            rt::source_string(&normalized),
-            String::from(""),
-        );
-        let full_path: Option<String> = self.resolve_asset_full_path(normalized.clone())?;
+        let identity: String = format!("{}{}", String::from("get:"), normalized);
+        let full_path: Option<String> = {
+            let dispatch_receiver = project_this.clone();
+            dispatch_receiver
+                .dispatch
+                .clone()
+                .dispatch_resource_manager_resolve_asset_full_path(normalized.clone())
+        }?;
         if full_path.is_none() {
             return Ok(Option::<crate::resources::models::Resource>::None);
         }
-        Ok(Some(self
-            .load_file(
-                identity.clone(),
+        Ok(Some({
+            let dispatch_receiver_2 = project_this.clone();
+            dispatch_receiver_2.dispatch.clone().dispatch_resource_manager_load_file(
+                identity,
                 match full_path.as_ref() {
                     Some(flow_value) => flow_value.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
                 normalized.clone(),
-            )?))
+            )
+        }?))
     }
 
-    pub fn load_file(
-        &self,
-        identity: String,
-        full_path: String,
-        output_rel_path: String,
-    ) -> rt::TsonicResult<crate::resources::models::Resource> {
-        let cached: Option<crate::resources::models::Resource> =
-            self.state.with(|state| state.cache.clone()).get(&identity);
+    fn exact_resource_manager_get_match(
+        self: std::rc::Rc<Self>,
+        pattern: String,
+    ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError> {
+        let project_this = ResourceManager {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        let normalized: String =
+            crate::resources::paths::normalize_resource_relative_path(pattern)?;
+        if normalized.is_empty() {
+            return Ok(Option::<crate::resources::models::Resource>::None);
+        }
+        if !js_string::includes_from_start(&normalized, "*") {
+            return {
+                let dispatch_receiver = project_this.clone();
+                dispatch_receiver
+                    .dispatch
+                    .clone()
+                    .dispatch_resource_manager_get(normalized.clone())
+            };
+        }
+        {
+            let mut index: f64 = 0.0;
+            while index
+                < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_2 = &project_this; dispatch_receiver_2.dispatch.read_resource_manager_site_asset_files() }.len())? as f64)
+            {
+                let full_path: String = match {
+                    let dispatch_receiver_3 = &project_this;
+                    dispatch_receiver_3
+                        .dispatch
+                        .read_resource_manager_site_asset_files()
+                }
+                .get_number(index)
+                .as_ref()
+                {
+                    Some(flow_value) => flow_value.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                };
+                let relative_path: String = crate::resources::paths::normalize_resource_slashes(
+                    &tsonic_rust_node::path::relative(
+                        &{
+                            let dispatch_receiver_4 = &project_this;
+                            dispatch_receiver_4
+                                .dispatch
+                                .read_resource_manager_site_assets_dir()
+                        },
+                        &full_path,
+                    ),
+                )?;
+                if crate::resources::glob::resource_glob_matches(
+                    normalized.clone(),
+                    relative_path.clone(),
+                )?
+                {
+                    return {
+                        let dispatch_receiver_5 = project_this.clone();
+                        dispatch_receiver_5
+                            .dispatch
+                            .clone()
+                            .dispatch_resource_manager_get(relative_path.clone())
+                    };
+                }
+                index += 1.0;
+            }
+        }
+        let theme_assets_dir: Option<String> = {
+            let dispatch_receiver_6 = &project_this;
+            dispatch_receiver_6
+                .dispatch
+                .read_resource_manager_theme_assets_dir()
+        };
+        if theme_assets_dir.is_some() {
+            {
+                let mut index: f64 = 0.0;
+                while index
+                    < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_7 = &project_this; dispatch_receiver_7.dispatch.read_resource_manager_theme_asset_files() }.len())? as f64)
+                {
+                    let full_path: String = match {
+                        let dispatch_receiver_8 = &project_this;
+                        dispatch_receiver_8
+                            .dispatch
+                            .read_resource_manager_theme_asset_files()
+                    }
+                    .get_number(index)
+                    .as_ref()
+                    {
+                        Some(flow_value_2) => flow_value_2.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    };
+                    let relative_path: String =
+                        crate::resources::paths::normalize_resource_slashes(
+                            &tsonic_rust_node::path::relative(
+                                &match theme_assets_dir.as_ref() {
+                                    Some(flow_value_3) => flow_value_3.clone(),
+                                    None => {
+                                        unreachable!(
+                                            "checked flow selected a missing optional value"
+                                        )
+                                    }
+                                },
+                                &full_path,
+                            ),
+                        )?;
+                    if crate::resources::glob::resource_glob_matches(
+                        normalized.clone(),
+                        relative_path.clone(),
+                    )?
+                    {
+                        return {
+                            let dispatch_receiver_9 = project_this.clone();
+                            dispatch_receiver_9
+                                .dispatch
+                                .clone()
+                                .dispatch_resource_manager_get(relative_path.clone())
+                        };
+                    }
+                    index += 1.0;
+                }
+            }
+        }
+        Ok(Option::<crate::resources::models::Resource>::None)
+    }
+
+    fn exact_resource_manager_javascript_build(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+        options: crate::resources::javascript_provider::JavaScriptBuildOptions,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        let project_this = ResourceManager {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        let identity: String = format!(
+            "{}{}{}",
+            {
+                let dispatch_receiver = &resource;
+                dispatch_receiver.dispatch.read_resource_id()
+            },
+            String::from("|js-build:"),
+            options.cache_key()?,
+        );
+        let cached: Option<crate::resources::models::Resource> = {
+            let dispatch_receiver_2 = &project_this;
+            dispatch_receiver_2.dispatch.read_resource_manager_cache()
+        }
+        .get(&identity);
         if cached.is_some() {
             return Ok(match cached.as_ref() {
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             });
         }
-        if !crate::fs::FILE_EXISTS
-            .with(|module_binding| module_binding.load())
-            .call((full_path.clone(),))?
-        {
-            return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+        Ok({
+            let dispatch_receiver_3 = project_this.clone();
+            dispatch_receiver_3
+                .dispatch
+                .clone()
+                .dispatch_resource_manager_cache_resource(
+                    crate::resources::javascript_provider::build_java_script_resource(
+                        resource.clone(),
+                        options.clone(),
+                    )?,
+                )
+        })
+    }
+
+    fn exact_resource_manager_load_file(
+        self: std::rc::Rc<Self>,
+        identity: String,
+        full_path: String,
+        output_rel_path: String,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        let project_this = ResourceManager {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        let cached: Option<crate::resources::models::Resource> = {
+            let dispatch_receiver = &project_this;
+            dispatch_receiver.dispatch.read_resource_manager_cache()
+        }
+        .get(&identity);
+        if cached.is_some() {
+            return Ok(match cached.as_ref() {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            });
+        }
+        if !crate::fs::file_exists(full_path.clone())? {
+            return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                 String::from("TSUMO_RESOURCE_SOURCE_MISSING"),
                 format!(
-                    "{}{}{}",
+                    "{}{}",
                     String::from("Resource source file does not exist: "),
-                    rt::source_string(&full_path),
-                    String::from(""),
+                    full_path,
                 ),
                 None,
                 None,
                 None,
             )));
         }
-        let bytes: tsonic_rust_node::buffer::Buffer = crate::fs::READ_BINARY_FILE
-            .with(|module_binding| module_binding.load())
-            .call((full_path.clone(),))?;
+        let bytes: tsonic_rust_node::buffer::Buffer =
+            crate::fs::read_binary_file(full_path.clone())?;
         let extension: String =
             js_string::to_lower_case(&tsonic_rust_node::path::extname(&full_path));
         let media_type: String =
@@ -302,139 +980,66 @@ impl ResourceManager {
             identity.clone(),
             Some(full_path.clone()),
             true,
-            Some(output_rel_path.clone()),
+            Some(output_rel_path),
             bytes.clone(),
             Option::<String>::None,
             crate::resources::models::ResourceData::new(String::from("")),
-            Some(media_type.clone()),
+            Some(media_type),
             Some(width),
             Some(height),
         );
-        self
-            .state
-            .with(|state| state.cache.clone())
-            .set(identity.clone(), resource.clone());
-        Ok(resource.clone())
-    }
-
-    pub fn get_match(
-        &self,
-        pattern: String,
-    ) -> rt::TsonicResult<Option<crate::resources::models::Resource>> {
-        let normalized: String = crate::resources::paths::NORMALIZE_RESOURCE_RELATIVE_PATH
-            .with(|module_binding| module_binding.load())
-            .call((pattern.clone(),))?;
-        if normalized.is_empty() {
-            return Ok(Option::<crate::resources::models::Resource>::None);
-        }
-        if !js_string::includes_from_start(&normalized, "*") {
-            return self.get(normalized.clone());
-        }
         {
-            let mut index: f64 = 0.0;
-            while index
-                < (tsonic_rust_runtime::conversions::usize_to_i32(self.state.with(|state| state.site_asset_files.clone()).len())? as f64)
-            {
-                let full_path: String = match self
-                    .state
-                    .with(|state| state.site_asset_files.clone())
-                    .get_number(index)
-                    .as_ref()
-                {
-                    Some(flow_value) => flow_value.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                };
-                let relative_path: String = crate::resources::paths::NORMALIZE_RESOURCE_SLASHES
-                    .with(|module_binding| module_binding.load())
-                    .call((tsonic_rust_node::path::relative(
-                        &self.state.with(|state| state.site_assets_dir.clone()),
-                        &full_path,
-                    ),))?;
-                if crate::resources::glob::resource_glob_matches(
-                    normalized.clone(),
-                    relative_path.clone(),
-                )?
-                {
-                    return self.get(relative_path.clone());
-                }
-                index += 1.0;
-            }
+            let dispatch_receiver_2 = &project_this;
+            dispatch_receiver_2.dispatch.read_resource_manager_cache()
         }
-        let theme_assets_dir: Option<String> =
-            self.state.with(|state| state.theme_assets_dir.clone());
-        if theme_assets_dir.is_some() {
-            {
-                let mut index: f64 = 0.0;
-                while index
-                    < (tsonic_rust_runtime::conversions::usize_to_i32(self.state.with(|state| state.theme_asset_files.clone()).len())? as f64)
-                {
-                    let full_path: String = match self
-                        .state
-                        .with(|state| state.theme_asset_files.clone())
-                        .get_number(index)
-                        .as_ref()
-                    {
-                        Some(flow_value_2) => flow_value_2.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    };
-                    let relative_path: String = crate::resources::paths::NORMALIZE_RESOURCE_SLASHES
-                        .with(|module_binding| module_binding.load())
-                        .call((tsonic_rust_node::path::relative(
-                            &match theme_assets_dir.as_ref() {
-                                Some(flow_value_3) => flow_value_3.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                            &full_path,
-                        ),))?;
-                    if crate::resources::glob::resource_glob_matches(
-                        normalized.clone(),
-                        relative_path.clone(),
-                    )?
-                    {
-                        return self.get(relative_path.clone());
-                    }
-                    index += 1.0;
-                }
-            }
-        }
-        Ok(Option::<crate::resources::models::Resource>::None)
+        .set_discard(identity.clone(), resource.clone());
+        Ok(resource)
     }
 
-    pub fn r#match(
-        &self,
+    fn exact_resource_manager_match(
+        self: std::rc::Rc<Self>,
         pattern: String,
-    ) -> rt::TsonicResult<js_abi::JsArray<crate::resources::models::Resource>> {
-        let normalized: String = crate::resources::paths::NORMALIZE_RESOURCE_RELATIVE_PATH
-            .with(|module_binding| module_binding.load())
-            .call((pattern.clone(),))?;
+    ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError> {
+        let project_this = ResourceManager {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        let normalized: String =
+            crate::resources::paths::normalize_resource_relative_path(pattern)?;
         let result: js_abi::JsArray<crate::resources::models::Resource> =
             js_abi::JsArray::from_dense(vec![]);
         if normalized.is_empty() {
-            return Ok(result.clone());
+            return Ok(result);
         }
         let selected: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
         {
             let mut index: f64 = 0.0;
             'loop_value: while index
-                < (tsonic_rust_runtime::conversions::usize_to_i32(self.state.with(|state| state.site_asset_files.clone()).len())? as f64)
+                < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver = &project_this; dispatch_receiver.dispatch.read_resource_manager_site_asset_files() }.len())? as f64)
             {
-                let full_path: String = match self
-                    .state
-                    .with(|state| state.site_asset_files.clone())
-                    .get_number(index)
-                    .as_ref()
+                let full_path: String = match {
+                    let dispatch_receiver_2 = &project_this;
+                    dispatch_receiver_2
+                        .dispatch
+                        .read_resource_manager_site_asset_files()
+                }
+                .get_number(index)
+                .as_ref()
                 {
                     Some(flow_value) => flow_value.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-                let relative_path: String = crate::resources::paths::NORMALIZE_RESOURCE_SLASHES
-                    .with(|module_binding| module_binding.load())
-                    .call((tsonic_rust_node::path::relative(
-                        &self.state.with(|state| state.site_assets_dir.clone()),
+                let relative_path: String = crate::resources::paths::normalize_resource_slashes(
+                    &tsonic_rust_node::path::relative(
+                        &{
+                            let dispatch_receiver_3 = &project_this;
+                            dispatch_receiver_3
+                                .dispatch
+                                .read_resource_manager_site_assets_dir()
+                        },
                         &full_path,
-                    ),))?;
+                    ),
+                )?;
                 if !crate::resources::glob::resource_glob_matches(
                     normalized.clone(),
                     relative_path.clone(),
@@ -443,50 +1048,63 @@ impl ResourceManager {
                     index += 1.0;
                     continue 'loop_value;
                 }
-                let resource: Option<crate::resources::models::Resource> =
-                    self.get(relative_path.clone())?;
+                let resource: Option<crate::resources::models::Resource> = {
+                    let dispatch_receiver_4 = project_this.clone();
+                    dispatch_receiver_4
+                        .dispatch
+                        .clone()
+                        .dispatch_resource_manager_get(relative_path.clone())
+                }?;
                 if resource.is_none() {
                     index += 1.0;
                     continue 'loop_value;
                 }
-                tsonic_rust_runtime::conversions::usize_to_i32(result.push_many([match resource
-                    .as_ref()
-                {
+                result.push_many_discard([match resource.as_ref() {
                     Some(flow_value_2) => flow_value_2.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
-                }]))?;
-                selected.set(relative_path.clone(), true);
+                }]);
+                selected.set_discard(relative_path.clone(), true);
                 index += 1.0;
             }
         }
-        let theme_assets_dir: Option<String> =
-            self.state.with(|state| state.theme_assets_dir.clone());
+        let theme_assets_dir: Option<String> = {
+            let dispatch_receiver_5 = &project_this;
+            dispatch_receiver_5
+                .dispatch
+                .read_resource_manager_theme_assets_dir()
+        };
         if theme_assets_dir.is_some() {
             {
                 let mut index: f64 = 0.0;
                 'loop_value_2: while index
-                    < (tsonic_rust_runtime::conversions::usize_to_i32(self.state.with(|state| state.theme_asset_files.clone()).len())? as f64)
+                    < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_6 = &project_this; dispatch_receiver_6.dispatch.read_resource_manager_theme_asset_files() }.len())? as f64)
                 {
-                    let full_path: String = match self
-                        .state
-                        .with(|state| state.theme_asset_files.clone())
-                        .get_number(index)
-                        .as_ref()
+                    let full_path: String = match {
+                        let dispatch_receiver_7 = &project_this;
+                        dispatch_receiver_7
+                            .dispatch
+                            .read_resource_manager_theme_asset_files()
+                    }
+                    .get_number(index)
+                    .as_ref()
                     {
                         Some(flow_value_3) => flow_value_3.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
-                    let relative_path: String = crate::resources::paths::NORMALIZE_RESOURCE_SLASHES
-                        .with(|module_binding| module_binding.load())
-                        .call((tsonic_rust_node::path::relative(
-                            &match theme_assets_dir.as_ref() {
-                                Some(flow_value_4) => flow_value_4.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                            &full_path,
-                        ),))?;
+                    let relative_path: String =
+                        crate::resources::paths::normalize_resource_slashes(
+                            &tsonic_rust_node::path::relative(
+                                &match theme_assets_dir.as_ref() {
+                                    Some(flow_value_4) => flow_value_4.clone(),
+                                    None => {
+                                        unreachable!(
+                                            "checked flow selected a missing optional value"
+                                        )
+                                    }
+                                },
+                                &full_path,
+                            ),
+                        )?;
                     if selected.has(&relative_path)
                         || !crate::resources::glob::resource_glob_matches(
                             normalized.clone(),
@@ -496,204 +1114,158 @@ impl ResourceManager {
                         index += 1.0;
                         continue 'loop_value_2;
                     }
-                    let resource: Option<crate::resources::models::Resource> =
-                        self.get(relative_path.clone())?;
+                    let resource: Option<crate::resources::models::Resource> = {
+                        let dispatch_receiver_8 = project_this.clone();
+                        dispatch_receiver_8
+                            .dispatch
+                            .clone()
+                            .dispatch_resource_manager_get(relative_path.clone())
+                    }?;
                     if resource.is_some() {
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            result.push_many([match resource.as_ref() {
-                                Some(flow_value_5) => flow_value_5.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            }]),
-                        )?;
-                    }
-                    index += 1.0;
-                }
-            }
-        }
-        sort_resources_by_identity(result.clone())?;
-        Ok(result.clone())
-    }
-
-    pub fn by_type(
-        &self,
-        media_type: String,
-    ) -> rt::TsonicResult<js_abi::JsArray<crate::resources::models::Resource>> {
-        let result: js_abi::JsArray<crate::resources::models::Resource> =
-            js_abi::JsArray::from_dense(vec![]);
-        let selected: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
-        {
-            let mut index: f64 = 0.0;
-            'loop_value: while index
-                < (tsonic_rust_runtime::conversions::usize_to_i32(self.state.with(|state| state.site_asset_files.clone()).len())? as f64)
-            {
-                let full_path: String = match self
-                    .state
-                    .with(|state| state.site_asset_files.clone())
-                    .get_number(index)
-                    .as_ref()
-                {
-                    Some(flow_value) => flow_value.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                };
-                let relative_path: String = crate::resources::paths::NORMALIZE_RESOURCE_SLASHES
-                    .with(|module_binding| module_binding.load())
-                    .call((tsonic_rust_node::path::relative(
-                        &self.state.with(|state| state.site_assets_dir.clone()),
-                        &full_path,
-                    ),))?;
-                let resource: Option<crate::resources::models::Resource> =
-                    self.get(relative_path.clone())?;
-                if resource.is_none()
-                    || !crate::resources::media_types::resource_matches_media_type(
-                        &match resource.as_ref() {
-                            Some(flow_value_2) => flow_value_2.clone(),
+                        result.push_many_discard([match resource.as_ref() {
+                            Some(flow_value_5) => flow_value_5.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
-                        }
-                        .state
-                        .with(|state| state.media_type.clone()),
-                        &media_type,
-                    )
-                {
-                    index += 1.0;
-                    continue 'loop_value;
-                }
-                tsonic_rust_runtime::conversions::usize_to_i32(result.push_many([match resource
-                    .as_ref()
-                {
-                    Some(flow_value_3) => flow_value_3.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }]))?;
-                selected.set(relative_path.clone(), true);
-                index += 1.0;
-            }
-        }
-        let theme_assets_dir: Option<String> =
-            self.state.with(|state| state.theme_assets_dir.clone());
-        if theme_assets_dir.is_some() {
-            {
-                let mut index: f64 = 0.0;
-                'loop_value_2: while index
-                    < (tsonic_rust_runtime::conversions::usize_to_i32(self.state.with(|state| state.theme_asset_files.clone()).len())? as f64)
-                {
-                    let full_path: String = match self
-                        .state
-                        .with(|state| state.theme_asset_files.clone())
-                        .get_number(index)
-                        .as_ref()
-                    {
-                        Some(flow_value_4) => flow_value_4.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    };
-                    let relative_path: String = crate::resources::paths::NORMALIZE_RESOURCE_SLASHES
-                        .with(|module_binding| module_binding.load())
-                        .call((tsonic_rust_node::path::relative(
-                            &match theme_assets_dir.as_ref() {
-                                Some(flow_value_5) => flow_value_5.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                            &full_path,
-                        ),))?;
-                    if selected.has(&relative_path) {
-                        index += 1.0;
-                        continue 'loop_value_2;
-                    }
-                    let resource: Option<crate::resources::models::Resource> =
-                        self.get(relative_path.clone())?;
-                    if resource.is_some()
-                        && crate::resources::media_types::resource_matches_media_type(
-                            &match resource.as_ref() {
-                                Some(flow_value_6) => flow_value_6.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            }
-                            .state
-                            .with(|state| state.media_type.clone()),
-                            &media_type,
-                        )
-                    {
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            result.push_many([match resource.as_ref() {
-                                Some(flow_value_7) => flow_value_7.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            }]),
-                        )?;
+                        }]);
                     }
                     index += 1.0;
                 }
             }
         }
         sort_resources_by_identity(result.clone())?;
-        Ok(result.clone())
+        Ok(result)
     }
 
-    pub fn concat(
-        &self,
-        target_path: String,
-        resources: js_abi::JsArray<crate::resources::models::Resource>,
-    ) -> rt::TsonicResult<crate::resources::models::Resource> {
-        Ok(self.cache_resource(crate::resources::transforms::concatenate_resources(
-            target_path.clone(),
-            resources.clone(),
-        )?))
-    }
-
-    pub fn from_string(
-        &self,
-        name: String,
-        content: String,
-    ) -> rt::TsonicResult<crate::resources::models::Resource> {
-        Ok(self.cache_resource(crate::resources::transforms::create_string_resource(
-            name.clone(),
-            content.clone(),
-        )?))
-    }
-
-    pub fn minify(
-        &self,
+    fn exact_resource_manager_minify(
+        self: std::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
-    ) -> rt::TsonicResult<crate::resources::models::Resource> {
-        Ok(self.cache_resource(crate::resources::transforms::minify_resource(resource.clone())?))
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        let project_this = ResourceManager {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        Ok({
+            let dispatch_receiver = project_this.clone();
+            dispatch_receiver
+                .dispatch
+                .clone()
+                .dispatch_resource_manager_cache_resource(
+                    crate::resources::transforms::minify_resource(resource)?,
+                )
+        })
     }
 
-    pub fn fingerprint(
-        &self,
+    fn exact_resource_manager_resize(
+        self: std::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
-    ) -> rt::TsonicResult<crate::resources::models::Resource> {
-        Ok(self.cache_resource(crate::resources::transforms::fingerprint_resource(
-            resource.clone(),
-        )?))
-    }
-
-    pub fn copy(
-        &self,
-        target_path: String,
-        resource: crate::resources::models::Resource,
-    ) -> rt::TsonicResult<crate::resources::models::Resource> {
-        Ok(self.cache_resource(crate::resources::transforms::copy_resource(
-            target_path.clone(),
-            resource.clone(),
-        )?))
-    }
-
-    pub fn sass_compile(
-        &self,
-        resource: crate::resources::models::Resource,
-    ) -> rt::TsonicResult<crate::resources::models::Resource> {
+        specification: String,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        let project_this = ResourceManager {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
         let identity: String = format!(
             "{}{}{}",
-            String::from(""),
-            rt::source_string(&resource.state.with(|state| state.id.clone())),
+            {
+                let dispatch_receiver = &resource;
+                dispatch_receiver.dispatch.read_resource_id()
+            },
+            String::from("|resize:"),
+            specification,
+        );
+        let cached: Option<crate::resources::models::Resource> = {
+            let dispatch_receiver_2 = &project_this;
+            dispatch_receiver_2.dispatch.read_resource_manager_cache()
+        }
+        .get(&identity);
+        if cached.is_some() {
+            return Ok(match cached.as_ref() {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            });
+        }
+        Ok({
+            let dispatch_receiver_3 = project_this.clone();
+            dispatch_receiver_3
+                .dispatch
+                .clone()
+                .dispatch_resource_manager_cache_resource(
+                    crate::resources::image_provider::resize_image_resource(
+                        resource.clone(),
+                        specification.clone(),
+                    )?,
+                )
+        })
+    }
+
+    fn exact_resource_manager_resolve_asset_full_path(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+    ) -> Result<Option<String>, rt::TsonicError> {
+        let project_this = ResourceManager {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        let normalized: String =
+            crate::resources::paths::normalize_resource_relative_path(relative_path)?;
+        if normalized.is_empty() {
+            return Ok(Option::<String>::None);
+        }
+        let site_path: String = crate::resources::paths::resolve_contained_resource_path(
+            {
+                let dispatch_receiver = &project_this;
+                dispatch_receiver
+                    .dispatch
+                    .read_resource_manager_site_assets_dir()
+            },
+            normalized.clone(),
+        )?;
+        if crate::fs::file_exists(site_path.clone())? {
+            return Ok(Some(site_path));
+        }
+        let theme_assets_dir: Option<String> = {
+            let dispatch_receiver_2 = &project_this;
+            dispatch_receiver_2
+                .dispatch
+                .read_resource_manager_theme_assets_dir()
+        };
+        if theme_assets_dir.is_none() {
+            return Ok(Option::<String>::None);
+        }
+        let theme_path: String = crate::resources::paths::resolve_contained_resource_path(
+            match theme_assets_dir.as_ref() {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            },
+            normalized.clone(),
+        )?;
+        Ok(if crate::fs::file_exists(theme_path.clone())? {
+            Some(theme_path.clone())
+        } else {
+            Option::<String>::None
+        })
+    }
+
+    fn exact_resource_manager_sass_compile(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        let project_this = ResourceManager {
+            identity: self.identity.clone(),
+            dispatch: self.clone(),
+        };
+        let identity: String = format!(
+            "{}{}",
+            {
+                let dispatch_receiver = &resource;
+                dispatch_receiver.dispatch.read_resource_id()
+            },
             String::from("|sass"),
         );
-        let cached: Option<crate::resources::models::Resource> =
-            self.state.with(|state| state.cache.clone()).get(&identity);
+        let cached: Option<crate::resources::models::Resource> = {
+            let dispatch_receiver_2 = &project_this;
+            dispatch_receiver_2.dispatch.read_resource_manager_cache()
+        }
+        .get(&identity);
         if cached.is_some() {
             return Ok(match cached.as_ref() {
                 Some(flow_value) => flow_value.clone(),
@@ -701,172 +1273,378 @@ impl ResourceManager {
             });
         }
         let load_paths: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-        let source_path: Option<String> = resource.state.with(|state| state.source_path.clone());
+        let source_path: Option<String> = {
+            let dispatch_receiver_3 = &resource;
+            dispatch_receiver_3.dispatch.read_resource_source_path()
+        };
         if source_path.is_some() {
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                load_paths.push_many([tsonic_rust_node::path::dirname(&match source_path.as_ref()
-                {
-                    Some(flow_value_2) => flow_value_2.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                })]),
-            )?;
-        }
-        tsonic_rust_runtime::conversions::usize_to_i32(
-            load_paths
-                .push_many([self.state.with(|state| state.site_assets_dir.clone())]),
-        )?;
-        let theme_assets_dir: Option<String> =
-            self.state.with(|state| state.theme_assets_dir.clone());
-        if theme_assets_dir.is_some() {
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                load_paths.push_many([match theme_assets_dir.as_ref() {
-                    Some(flow_value_3) => flow_value_3.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }]),
-            )?;
-        }
-        Ok(self.cache_resource(crate::resources::sass_provider::compile_sass_resource(
-            resource.clone(),
-            load_paths.clone(),
-        )?))
-    }
-
-    pub fn javascript_build(
-        &self,
-        resource: crate::resources::models::Resource,
-        options: crate::resources::javascript_provider::JavaScriptBuildOptions,
-    ) -> rt::TsonicResult<crate::resources::models::Resource> {
-        let identity: String = format!(
-            "{}{}{}{}{}",
-            String::from(""),
-            rt::source_string(&resource.state.with(|state| state.id.clone())),
-            String::from("|js-build:"),
-            rt::source_string(&options.cache_key()?),
-            String::from(""),
-        );
-        let cached: Option<crate::resources::models::Resource> =
-            self.state.with(|state| state.cache.clone()).get(&identity);
-        if cached.is_some() {
-            return Ok(match cached.as_ref() {
-                Some(flow_value) => flow_value.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            });
-        }
-        Ok(
-            self
-                .cache_resource(
-                    crate::resources::javascript_provider::BUILD_JAVA_SCRIPT_RESOURCE
-                        .with(|module_binding| module_binding.load())
-                        .call((resource.clone(), options.clone()))?,
-                ),
-        )
-    }
-
-    pub fn resize(
-        &self,
-        resource: crate::resources::models::Resource,
-        specification: String,
-    ) -> rt::TsonicResult<crate::resources::models::Resource> {
-        let identity: String = format!(
-            "{}{}{}{}{}",
-            String::from(""),
-            rt::source_string(&resource.state.with(|state| state.id.clone())),
-            String::from("|resize:"),
-            rt::source_string(&specification),
-            String::from(""),
-        );
-        let cached: Option<crate::resources::models::Resource> =
-            self.state.with(|state| state.cache.clone()).get(&identity);
-        if cached.is_some() {
-            return Ok(match cached.as_ref() {
-                Some(flow_value) => flow_value.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            });
-        }
-        Ok(
-            self
-                .cache_resource(
-                    crate::resources::image_provider::RESIZE_IMAGE_RESOURCE
-                        .with(|module_binding| module_binding.load())
-                        .call((resource.clone(), specification.clone()))?,
-                ),
-        )
-    }
-
-    pub fn ensure_published(
-        &self,
-        resource: crate::resources::models::Resource,
-    ) -> rt::TsonicResult<()> {
-        if !resource.state.with(|state| state.publishable) {
-            return Ok(());
-        }
-        let output_rel_path: Option<String> =
-            resource.state.with(|state| state.output_rel_path.clone());
-        if output_rel_path.is_none() {
-            return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                String::from("TSUMO_RESOURCE_OUTPUT_PATH_MISSING"),
-                String::from("Publishable resource has no output path"),
-                None,
-                None,
-                None,
-            )));
-        }
-        let normalized: String = crate::resources::paths::NORMALIZE_RESOURCE_RELATIVE_PATH
-            .with(|module_binding| module_binding.load())
-            .call((match output_rel_path.as_ref() {
-                Some(flow_value) => flow_value.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            },))?;
-        if normalized.is_empty() {
-            return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
-                String::from("TSUMO_RESOURCE_OUTPUT_PATH_MISSING"),
-                String::from("Publishable resource has an empty output path"),
-                None,
-                None,
-                None,
-            )));
-        }
-        let destination: String = crate::resources::paths::RESOLVE_CONTAINED_RESOURCE_PATH
-            .with(|module_binding| module_binding.load())
-            .call((
-                self.state.with(|state| state.output_dir.clone()),
-                normalized.clone(),
-            ))?;
-        let directory: String = tsonic_rust_node::path::dirname(&destination);
-        if !directory.is_empty() {
-            crate::fs::ENSURE_DIR
-                .with(|module_binding| module_binding.load())
-                .call((directory.clone(),))?;
-        }
-        tsonic_rust_node::fs::write_file_sync_buffer(
-            &destination,
-            &resource.state.with(|state| state.bytes.clone()),
-        )
-        .map_err(tsonic_rust_runtime::TsonicError::from)?;
-        Ok(())
-    }
-
-    pub fn cache_resource(
-        &self,
-        resource: crate::resources::models::Resource,
-    ) -> crate::resources::models::Resource {
-        let cached: Option<crate::resources::models::Resource> = self
-            .state
-            .with(|state| state.cache.clone())
-            .get(&resource.state.with(|state| state.id.clone()));
-        if cached.is_some() {
-            return match cached.as_ref() {
-                Some(flow_value) => flow_value.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
+            {
+                let operation_input_0 = load_paths.clone();
+                operation_input_0.push_many_discard([tsonic_rust_node::path::dirname(
+                    &match source_path.as_ref() {
+                        Some(flow_value_2) => flow_value_2.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
+                )])
             };
         }
-        self
-            .state
-            .with(|state| state.cache.clone())
-            .set(
-                resource.state.with(|state| state.id.clone()),
-                resource.clone(),
-            );
-        resource.clone()
+        {
+            let operation_input_0_2 = load_paths.clone();
+            operation_input_0_2.push_many_discard([{
+                let dispatch_receiver_4 = &project_this;
+                dispatch_receiver_4
+                    .dispatch
+                    .read_resource_manager_site_assets_dir()
+            }])
+        };
+        let theme_assets_dir: Option<String> = {
+            let dispatch_receiver_5 = &project_this;
+            dispatch_receiver_5
+                .dispatch
+                .read_resource_manager_theme_assets_dir()
+        };
+        if theme_assets_dir.is_some() {
+            load_paths.push_many_discard([match theme_assets_dir.as_ref() {
+                Some(flow_value_3) => flow_value_3.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            }]);
+        }
+        Ok({
+            let dispatch_receiver_6 = project_this.clone();
+            dispatch_receiver_6
+                .dispatch
+                .clone()
+                .dispatch_resource_manager_cache_resource(
+                    crate::resources::sass_provider::compile_sass_resource(
+                        resource.clone(),
+                        load_paths.clone(),
+                    )?,
+                )
+        })
+    }
+}
+
+impl ResourceManagerDispatch for ResourceManagerRoot {
+    fn downcast_resource_manager_to_resource_manager(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn ResourceManagerDispatch>> {
+        Some(self)
+    }
+
+    fn read_resource_manager_site_dir(&self) -> String {
+        self.state.with(|state| state.site_dir.clone())
+    }
+
+    fn write_resource_manager_site_dir(&self, value: String) {
+        self.state.with_mut(|state| state.site_dir = value);
+    }
+
+    fn read_resource_manager_theme_dir(&self) -> Option<String> {
+        self.state.with(|state| state.theme_dir.clone())
+    }
+
+    fn write_resource_manager_theme_dir(&self, value: Option<String>) {
+        self.state.with_mut(|state| state.theme_dir = value);
+    }
+
+    fn read_resource_manager_output_dir(&self) -> String {
+        self.state.with(|state| state.output_dir.clone())
+    }
+
+    fn write_resource_manager_output_dir(&self, value: String) {
+        self.state.with_mut(|state| state.output_dir = value);
+    }
+
+    fn read_resource_manager_site_assets_dir(&self) -> String {
+        self.state.with(|state| state.site_assets_dir.clone())
+    }
+
+    fn write_resource_manager_site_assets_dir(&self, value: String) {
+        self.state.with_mut(|state| state.site_assets_dir = value);
+    }
+
+    fn read_resource_manager_theme_assets_dir(&self) -> Option<String> {
+        self.state.with(|state| state.theme_assets_dir.clone())
+    }
+
+    fn write_resource_manager_theme_assets_dir(&self, value: Option<String>) {
+        self.state.with_mut(|state| state.theme_assets_dir = value);
+    }
+
+    fn read_resource_manager_cache(
+        &self,
+    ) -> js_abi::JsMap<String, crate::resources::models::Resource> {
+        self.state.with(|state| state.cache.clone())
+    }
+
+    fn write_resource_manager_cache(
+        &self,
+        value: js_abi::JsMap<String, crate::resources::models::Resource>,
+    ) {
+        self.state.with_mut(|state| state.cache = value);
+    }
+
+    fn read_resource_manager_site_asset_files(&self) -> js_abi::JsArray<String> {
+        self.state.with(|state| state.site_asset_files.clone())
+    }
+
+    fn write_resource_manager_site_asset_files(&self, value: js_abi::JsArray<String>) {
+        self.state.with_mut(|state| state.site_asset_files = value);
+    }
+
+    fn read_resource_manager_theme_asset_files(&self) -> js_abi::JsArray<String> {
+        self.state.with(|state| state.theme_asset_files.clone())
+    }
+
+    fn write_resource_manager_theme_asset_files(&self, value: js_abi::JsArray<String>) {
+        self.state.with_mut(|state| state.theme_asset_files = value);
+    }
+
+    fn dispatch_resource_manager_resolve_asset_full_path(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+    ) -> Result<Option<String>, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_resolve_asset_full_path(self, relative_path)
+    }
+
+    fn exact_resource_manager_resolve_asset_full_path(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+    ) -> Result<Option<String>, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_resolve_asset_full_path(self, relative_path)
+    }
+
+    fn dispatch_resource_manager_get(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+    ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_get(self, relative_path)
+    }
+
+    fn exact_resource_manager_get(
+        self: std::rc::Rc<Self>,
+        relative_path: String,
+    ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_get(self, relative_path)
+    }
+
+    fn dispatch_resource_manager_load_file(
+        self: std::rc::Rc<Self>,
+        identity: String,
+        full_path: String,
+        output_rel_path: String,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_load_file(
+            self,
+            identity,
+            full_path,
+            output_rel_path,
+        )
+    }
+
+    fn exact_resource_manager_load_file(
+        self: std::rc::Rc<Self>,
+        identity: String,
+        full_path: String,
+        output_rel_path: String,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_load_file(
+            self,
+            identity,
+            full_path,
+            output_rel_path,
+        )
+    }
+
+    fn dispatch_resource_manager_get_match(
+        self: std::rc::Rc<Self>,
+        pattern: String,
+    ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_get_match(self, pattern)
+    }
+
+    fn exact_resource_manager_get_match(
+        self: std::rc::Rc<Self>,
+        pattern: String,
+    ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_get_match(self, pattern)
+    }
+
+    fn dispatch_resource_manager_match(
+        self: std::rc::Rc<Self>,
+        pattern: String,
+    ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_match(self, pattern)
+    }
+
+    fn exact_resource_manager_match(
+        self: std::rc::Rc<Self>,
+        pattern: String,
+    ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_match(self, pattern)
+    }
+
+    fn dispatch_resource_manager_by_type(
+        self: std::rc::Rc<Self>,
+        media_type: String,
+    ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_by_type(self, media_type)
+    }
+
+    fn exact_resource_manager_by_type(
+        self: std::rc::Rc<Self>,
+        media_type: String,
+    ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_by_type(self, media_type)
+    }
+
+    fn dispatch_resource_manager_concat(
+        self: std::rc::Rc<Self>,
+        target_path: String,
+        resources: js_abi::JsArray<crate::resources::models::Resource>,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_concat(self, target_path, resources)
+    }
+
+    fn exact_resource_manager_concat(
+        self: std::rc::Rc<Self>,
+        target_path: String,
+        resources: js_abi::JsArray<crate::resources::models::Resource>,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_concat(self, target_path, resources)
+    }
+
+    fn dispatch_resource_manager_from_string(
+        self: std::rc::Rc<Self>,
+        name: String,
+        content: String,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_from_string(self, name, content)
+    }
+
+    fn exact_resource_manager_from_string(
+        self: std::rc::Rc<Self>,
+        name: String,
+        content: String,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_from_string(self, name, content)
+    }
+
+    fn dispatch_resource_manager_minify(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_minify(self, resource)
+    }
+
+    fn exact_resource_manager_minify(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_minify(self, resource)
+    }
+
+    fn dispatch_resource_manager_fingerprint(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_fingerprint(self, resource)
+    }
+
+    fn exact_resource_manager_fingerprint(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_fingerprint(self, resource)
+    }
+
+    fn dispatch_resource_manager_copy(
+        self: std::rc::Rc<Self>,
+        target_path: String,
+        resource: crate::resources::models::Resource,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_copy(self, target_path, resource)
+    }
+
+    fn exact_resource_manager_copy(
+        self: std::rc::Rc<Self>,
+        target_path: String,
+        resource: crate::resources::models::Resource,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_copy(self, target_path, resource)
+    }
+
+    fn dispatch_resource_manager_sass_compile(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_sass_compile(self, resource)
+    }
+
+    fn exact_resource_manager_sass_compile(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_sass_compile(self, resource)
+    }
+
+    fn dispatch_resource_manager_javascript_build(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+        options: crate::resources::javascript_provider::JavaScriptBuildOptions,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_javascript_build(self, resource, options)
+    }
+
+    fn exact_resource_manager_javascript_build(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+        options: crate::resources::javascript_provider::JavaScriptBuildOptions,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_javascript_build(self, resource, options)
+    }
+
+    fn dispatch_resource_manager_resize(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+        specification: String,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_resize(self, resource, specification)
+    }
+
+    fn exact_resource_manager_resize(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+        specification: String,
+    ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_resize(self, resource, specification)
+    }
+
+    fn dispatch_resource_manager_ensure_published(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> Result<(), rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_ensure_published(self, resource)
+    }
+
+    fn exact_resource_manager_ensure_published(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> Result<(), rt::TsonicError> {
+        ResourceManagerRoot::exact_resource_manager_ensure_published(self, resource)
+    }
+
+    fn dispatch_resource_manager_cache_resource(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> crate::resources::models::Resource {
+        ResourceManagerRoot::exact_resource_manager_cache_resource(self, resource)
+    }
+
+    fn exact_resource_manager_cache_resource(
+        self: std::rc::Rc<Self>,
+        resource: crate::resources::models::Resource,
+    ) -> crate::resources::models::Resource {
+        ResourceManagerRoot::exact_resource_manager_cache_resource(self, resource)
     }
 }

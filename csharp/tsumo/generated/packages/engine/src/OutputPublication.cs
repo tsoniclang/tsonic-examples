@@ -64,7 +64,11 @@ namespace Tsumo.Engine
                 {
                     if (Fs.dirExists(destinationDir))
                     {
-                        Tsonic.CSharp.Node.fs.rmSync(backupDir, true);
+                        Tsonic.CSharp.Node.fs.rmSync(backupDir, new Tsonic.CSharp.Node.RmOptions
+                        {
+                            recursive = true,
+                            force = true,
+                        });
                     }
                     else
                     {
@@ -77,7 +81,11 @@ namespace Tsumo.Engine
                     string entry = entries[index];
                     if (Tsonic.CSharp.Js.String.startsWith(entry, stageNamePrefix))
                     {
-                        Tsonic.CSharp.Node.fs.rmSync(Tsonic.CSharp.Node.path.resolve(parentDir, entry), true);
+                        Tsonic.CSharp.Node.fs.rmSync(Tsonic.CSharp.Node.path.resolve(parentDir, entry), new Tsonic.CSharp.Node.RmOptions
+                        {
+                            recursive = true,
+                            force = true,
+                        });
                     }
                 }
             };
@@ -121,14 +129,22 @@ namespace Tsumo.Engine
             }
             if (previousOutputMoved && Fs.dirExists(this.backupDir))
             {
-                Tsonic.CSharp.Node.fs.rmSync(this.backupDir, true);
+                Tsonic.CSharp.Node.fs.rmSync(this.backupDir, new Tsonic.CSharp.Node.RmOptions
+                {
+                    recursive = true,
+                    force = true,
+                });
             }
         }
         public void abort()
         {
             if (Fs.dirExists(this.stagingDir))
             {
-                Tsonic.CSharp.Node.fs.rmSync(this.stagingDir, true);
+                Tsonic.CSharp.Node.fs.rmSync(this.stagingDir, new Tsonic.CSharp.Node.RmOptions
+                {
+                    recursive = true,
+                    force = true,
+                });
             }
             if (!Fs.dirExists(this.backupDir))
             {
@@ -136,7 +152,11 @@ namespace Tsumo.Engine
             }
             if (Fs.dirExists(this.destinationDir))
             {
-                Tsonic.CSharp.Node.fs.rmSync(this.backupDir, true);
+                Tsonic.CSharp.Node.fs.rmSync(this.backupDir, new Tsonic.CSharp.Node.RmOptions
+                {
+                    recursive = true,
+                    force = true,
+                });
             }
             else
             {

@@ -6,13 +6,13 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-pub(crate) fn to_absolute_url(base_url: String, rel_permalink: String) -> rt::TsonicResult<String> {
-    let base: String = crate::utils::text::ensure_trailing_slash(base_url.clone());
+pub fn to_absolute_url(base_url: String, rel_permalink: String) -> Result<String, rt::TsonicError> {
+    let base: String = crate::utils::text::ensure_trailing_slash(base_url);
     if base.is_empty() {
-        return Ok(rel_permalink.clone());
+        return Ok(rel_permalink);
     }
     if rel_permalink == "/" {
-        return Ok(base.clone());
+        return Ok(base);
     }
     let rel: String = if js_string::starts_with_from_start(&rel_permalink, "/") {
         crate::utils::strings::substring_from(&rel_permalink, 1)?
@@ -22,11 +22,11 @@ pub(crate) fn to_absolute_url(base_url: String, rel_permalink: String) -> rt::Ts
     Ok(format!("{}{}", base, rel))
 }
 
-pub(crate) fn escape_xml(value: String) -> rt::TsonicResult<String> {
-    crate::utils::html::escape_html(value.clone())
+pub fn escape_xml(value: String) -> Result<String, rt::TsonicError> {
+    crate::utils::html::escape_html(value)
 }
 
-pub(crate) fn wrap_cdata(raw: String) -> rt::TsonicResult<String> {
+pub fn wrap_cdata(raw: String) -> Result<String, rt::TsonicError> {
     Ok(format!(
         "{}{}{}",
         String::from("<![CDATA["),
@@ -39,10 +39,10 @@ pub(crate) fn wrap_cdata(raw: String) -> rt::TsonicResult<String> {
     ))
 }
 
-pub(crate) fn parse_page_date(value: String, fallback: js_abi::JsDate) -> js_abi::JsDate {
+pub fn parse_page_date(value: String, fallback: js_abi::JsDate) -> js_abi::JsDate {
     let milliseconds: f64 = js_abi::JsDate::parse(&value);
     if js_abi::number_is_nan(milliseconds) {
-        fallback.clone()
+        fallback
     } else {
         js_abi::JsDate::from_millis(milliseconds)
     }
@@ -52,7 +52,7 @@ pub fn render_rss(
     config: crate::models::site_config::SiteConfig,
     pages: js_abi::JsArray<crate::models::page_context::PageContext>,
     build_time: js_abi::JsDate,
-) -> rt::TsonicResult<String> {
+) -> Result<String, rt::TsonicError> {
     let out: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
         String::from("<?xml version=\"1.0\" encoding=\"utf-8\"?>"),
         String::from("<rss version=\"2.0\" xmlns:content=\"http://purl.org/rss/1.0/modules/content/\">"),
@@ -60,38 +60,48 @@ pub fn render_rss(
         format!(
             "{}{}{}",
             String::from("<title>"),
-            rt::source_string(&escape_xml(config.state.with(|state| state.title.clone()))?),
+            escape_xml({
+                let dispatch_receiver = &config;
+                dispatch_receiver.dispatch.read_site_config_title()
+            })?,
             String::from("</title>"),
         ),
         format!(
             "{}{}{}",
             String::from("<link>"),
-            rt::source_string(&escape_xml(to_absolute_url(
-                config.state.with(|state| state.base_url.clone()),
+            escape_xml(to_absolute_url(
+                {
+                    let dispatch_receiver_2 = &config;
+                    dispatch_receiver_2.dispatch.read_site_config_base_url()
+                },
                 String::from("/"),
-            )?)?,),
+            )?)?,
             String::from("</link>"),
         ),
         format!(
             "{}{}{}",
             String::from("<description>"),
-            rt::source_string(&escape_xml(config.state.with(|state| state.title.clone()))?),
+            escape_xml({
+                let dispatch_receiver_3 = &config;
+                dispatch_receiver_3.dispatch.read_site_config_title()
+            })?,
             String::from("</description>"),
         ),
         format!(
             "{}{}{}",
             String::from("<language>"),
-            rt::source_string(&escape_xml(
-                config.state.with(|state| state.language_code.clone()),
-            )?),
+            escape_xml({
+                let dispatch_receiver_4 = &config;
+                dispatch_receiver_4
+                    .dispatch
+                    .read_site_config_language_code()
+            })?,
             String::from("</language>"),
         ),
         format!(
             "{}{}{}",
             String::from("<lastBuildDate>"),
-            rt::source_string(&build_time
-                .to_iso_string()
-                .map_err(tsonic_rust_runtime::TsonicError::from)?,),
+            build_time.to_iso_string()?,
             String::from("</lastBuildDate>"),
         ),
         String::from("<generator>tsumo</generator>"),
@@ -105,101 +115,107 @@ pub fn render_rss(
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let link: String = to_absolute_url(
-                config.state.with(|state| state.base_url.clone()),
-                page.state.with(|state| state.rel_permalink.clone()),
+                {
+                    let dispatch_receiver_5 = &config;
+                    dispatch_receiver_5.dispatch.read_site_config_base_url()
+                },
+                {
+                    let dispatch_receiver_6 = &page;
+                    dispatch_receiver_6
+                        .dispatch
+                        .read_page_context_rel_permalink()
+                },
             )?;
             let pub_date: String = parse_page_date(
-                page.state.with(|state| state.date.clone()),
+                {
+                    let dispatch_receiver_7 = &page;
+                    dispatch_receiver_7.dispatch.read_page_context_date()
+                },
                 build_time.clone(),
             )
-            .to_iso_string()
-            .map_err(tsonic_rust_runtime::TsonicError::from)?;
-            tsonic_rust_runtime::conversions::usize_to_i32(out.push_many([String::from("<item>")]))?;
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                out
-                    .push_many([
-                        format!(
-                            "{}{}{}",
-                            String::from("<title>"),
-                            rt::source_string(&escape_xml(
-                                page.state.with(|state| state.title.clone()),
-                            )?,),
-                            String::from("</title>"),
-                        ),
-                    ]),
-            )?;
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                out.push_many([
+            .to_iso_string()?;
+            out.push_many_discard([String::from("<item>")]);
+            {
+                let operation_input_0 = out.clone();
+                operation_input_0.push_many_discard([format!(
+                    "{}{}{}",
+                    String::from("<title>"),
+                    escape_xml({
+                        let dispatch_receiver_8 = &page;
+                        dispatch_receiver_8.dispatch.read_page_context_title()
+                    })?,
+                    String::from("</title>"),
+                )])
+            };
+            {
+                let operation_input_0_2 = out.clone();
+                operation_input_0_2.push_many_discard([
                     format!(
                         "{}{}{}",
                         String::from("<link>"),
-                        rt::source_string(&escape_xml(link.clone())?),
+                        escape_xml(link.clone())?,
                         String::from("</link>"),
                     ),
-                ]),
-            )?;
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                out.push_many([
+                ])
+            };
+            {
+                let operation_input_0_3 = out.clone();
+                operation_input_0_3.push_many_discard([
                     format!(
                         "{}{}{}",
                         String::from("<guid isPermaLink=\"true\">"),
-                        rt::source_string(&escape_xml(link.clone())?),
+                        escape_xml(link.clone())?,
                         String::from("</guid>"),
                     ),
-                ]),
-            )?;
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                out.push_many([
+                ])
+            };
+            {
+                let operation_input_0_4 = out.clone();
+                operation_input_0_4.push_many_discard([
                     format!(
                         "{}{}{}",
                         String::from("<pubDate>"),
-                        rt::source_string(&pub_date),
+                        pub_date,
                         String::from("</pubDate>"),
                     ),
-                ]),
-            )?;
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                out
-                    .push_many([
-                        format!(
-                            "{}{}{}",
-                            String::from("<description>"),
-                            rt::source_string(&wrap_cdata(
-                                page
-                                    .state
-                                    .with(|state| state.summary.clone())
-                                    .state
-                                    .with(|state| state.value.clone()),
-                            )?,),
-                            String::from("</description>"),
-                        ),
-                    ]),
-            )?;
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                out
-                    .push_many([
-                        format!(
-                            "{}{}{}",
-                            String::from("<content:encoded>"),
-                            rt::source_string(&wrap_cdata(
-                                page
-                                    .state
-                                    .with(|state| state.content.clone())
-                                    .state
-                                    .with(|state| state.value.clone()),
-                            )?,),
-                            String::from("</content:encoded>"),
-                        ),
-                    ]),
-            )?;
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                out.push_many([String::from("</item>")]),
-            )?;
+                ])
+            };
+            {
+                let operation_input_0_5 = out.clone();
+                operation_input_0_5.push_many_discard([format!(
+                    "{}{}{}",
+                    String::from("<description>"),
+                    wrap_cdata({
+                        let dispatch_receiver_10 = &{
+                            let dispatch_receiver_9 = &page;
+                            dispatch_receiver_9.dispatch.read_page_context_summary()
+                        };
+                        dispatch_receiver_10.dispatch.read_html_string_value()
+                    })?,
+                    String::from("</description>"),
+                )])
+            };
+            {
+                let operation_input_0_6 = out.clone();
+                operation_input_0_6.push_many_discard([format!(
+                    "{}{}{}",
+                    String::from("<content:encoded>"),
+                    wrap_cdata({
+                        let dispatch_receiver_12 = &{
+                            let dispatch_receiver_11 = &page;
+                            dispatch_receiver_11.dispatch.read_page_context_content()
+                        };
+                        dispatch_receiver_12.dispatch.read_html_string_value()
+                    })?,
+                    String::from("</content:encoded>"),
+                )])
+            };
+            out.push_many_discard([String::from("</item>")]);
             i += 1.0;
         }
     }
-    tsonic_rust_runtime::conversions::usize_to_i32(out.push_many([String::from("</channel>")]))?;
-    tsonic_rust_runtime::conversions::usize_to_i32(out.push_many([String::from("</rss>")]))?;
+    out.push_many_discard([String::from("</channel>")]);
+    out.push_many_discard([String::from("</rss>")]);
     Ok(format!("{}{}", out.join("\n"), String::from("\n")))
 }
 
@@ -207,10 +223,8 @@ pub fn render_sitemap(
     config: crate::models::site_config::SiteConfig,
     rel_permalinks: js_abi::JsArray<String>,
     build_time: js_abi::JsDate,
-) -> rt::TsonicResult<String> {
-    let build_timestamp: String = build_time
-        .to_iso_string()
-        .map_err(tsonic_rust_runtime::TsonicError::from)?;
+) -> Result<String, rt::TsonicError> {
+    let build_timestamp: String = build_time.to_iso_string()?;
     let out: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
         String::from("<?xml version=\"1.0\" encoding=\"utf-8\"?>"),
         String::from("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">"),
@@ -223,32 +237,37 @@ pub fn render_sitemap(
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let loc: String = to_absolute_url(
-                config.state.with(|state| state.base_url.clone()),
+                {
+                    let dispatch_receiver = &config;
+                    dispatch_receiver.dispatch.read_site_config_base_url()
+                },
                 rel.clone(),
             )?;
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                out.push_many([
+            {
+                let operation_input_0 = out.clone();
+                operation_input_0.push_many_discard([
                     format!(
                         "{}{}{}{}{}",
                         String::from("<url><loc>"),
-                        rt::source_string(&escape_xml(loc.clone())?),
+                        escape_xml(loc.clone())?,
                         String::from("</loc><lastmod>"),
-                        rt::source_string(&build_timestamp),
+                        build_timestamp,
                         String::from("</lastmod></url>"),
                     ),
-                ]),
-            )?;
+                ])
+            };
             i += 1.0;
         }
     }
-    tsonic_rust_runtime::conversions::usize_to_i32(out.push_many([String::from("</urlset>")]))?;
+    out.push_many_discard([String::from("</urlset>")]);
     Ok(format!("{}{}", out.join("\n"), String::from("\n")))
 }
 
 pub fn render_robots_txt(config: crate::models::site_config::SiteConfig) -> String {
-    let base: String = crate::utils::text::ensure_trailing_slash(
-        config.state.with(|state| state.base_url.clone()),
-    );
+    let base: String = crate::utils::text::ensure_trailing_slash({
+        let dispatch_receiver = &config;
+        dispatch_receiver.dispatch.read_site_config_base_url()
+    });
     let sitemap_url: String = if base.is_empty() {
         String::from("/sitemap.xml")
     } else {
@@ -257,7 +276,7 @@ pub fn render_robots_txt(config: crate::models::site_config::SiteConfig) -> Stri
     format!(
         "{}{}{}",
         String::from("User-agent: *\nAllow: /\nSitemap: "),
-        rt::source_string(&sitemap_url),
+        sitemap_url,
         String::from("\n"),
     )
 }

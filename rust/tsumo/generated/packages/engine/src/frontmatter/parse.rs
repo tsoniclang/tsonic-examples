@@ -6,15 +6,13 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-pub(crate) fn try_parse_json_front_matter(
+pub fn try_parse_json_front_matter(
     text: String,
     source_path: Option<String>,
-) -> rt::TsonicResult<Option<crate::frontmatter::parsed_content::ParsedContent>> {
+) -> Result<Option<crate::frontmatter::parsed_content::ParsedContent>, rt::TsonicError> {
     let start: i32 = 0;
     if tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&text))? == 0
-        || js_string::char_at(&text, tsonic_rust_runtime::conversions::i32_to_f64(start))
-            .map_err(tsonic_rust_runtime::TsonicError::from)?
-            != "{"
+        || js_string::char_at(&text, tsonic_rust_runtime::conversions::i32_to_f64(start))? != "{"
     {
         return Ok(Option::<crate::frontmatter::parsed_content::ParsedContent>::None);
     }
@@ -25,11 +23,8 @@ pub(crate) fn try_parse_json_front_matter(
     {
         let mut index: i32 = start;
         'loop_value: while index < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&text))? {
-            let current: String = js_string::char_at(
-                &text,
-                tsonic_rust_runtime::conversions::i32_to_f64(index),
-            )
-            .map_err(tsonic_rust_runtime::TsonicError::from)?;
+            let current: String =
+                js_string::char_at(&text, tsonic_rust_runtime::conversions::i32_to_f64(index))?;
             if in_string && escaped {
                 escaped = false;
                 index += 1;
@@ -64,7 +59,7 @@ pub(crate) fn try_parse_json_front_matter(
         }
     }
     if end < 0 {
-        return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_FRONTMATTER_JSON_UNCLOSED"),
             String::from("JSON front matter has no closing object delimiter"),
             source_path.clone(),
@@ -75,17 +70,17 @@ pub(crate) fn try_parse_json_front_matter(
     let input: String = crate::utils::strings::substring_count(text.clone(), start, end - start)?;
     let body: String = js_string::trim_start(&crate::utils::strings::substring_from(&text, end)?);
     Ok(Some(crate::frontmatter::parsed_content::ParsedContent::new(
-        crate::frontmatter::json::parse_json_front_matter(input.clone(), source_path.clone())?,
-        body.clone(),
+        crate::frontmatter::json::parse_json_front_matter(input, source_path.clone())?,
+        body,
     )))
 }
 
-pub(crate) fn parse_delimited_front_matter(
+pub fn parse_delimited_front_matter(
     lines: js_abi::JsArray<String>,
     delimiter: String,
     format: String,
     source_path: Option<String>,
-) -> rt::TsonicResult<crate::frontmatter::parsed_content::ParsedContent> {
+) -> Result<crate::frontmatter::parsed_content::ParsedContent, rt::TsonicError> {
     let front_matter_lines: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     #[expect(unused_assignments, reason = "checked source evaluation order")]
     let mut body_start: i32 = tsonic_rust_runtime::conversions::usize_to_i32(lines.len())?;
@@ -120,30 +115,30 @@ pub(crate) fn parse_delimited_front_matter(
                     body.clone(),
                 ));
             }
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                front_matter_lines.push_many([match lines
+            {
+                let operation_input_0 = front_matter_lines.clone();
+                operation_input_0.push_many_discard([match lines
                     .get_number(tsonic_rust_runtime::conversions::i32_to_f64(index))
                     .as_ref()
                 {
                     Some(flow_value_2) => flow_value_2.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
-                }]),
-            )?;
+                }])
+            };
             index += 1;
         }
     }
-    Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+    Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
         String::from("TSUMO_FRONTMATTER_DELIMITER_UNCLOSED"),
         format!(
-            "{}{}{}{}{}",
-            String::from(""),
-            rt::source_string(&if format == "yaml" {
+            "{}{}{}{}",
+            if format == "yaml" {
                 String::from("YAML")
             } else {
                 String::from("TOML")
-            },),
+            },
             String::from(" front matter is missing its closing "),
-            rt::source_string(&delimiter),
+            delimiter,
             String::from(" delimiter"),
         ),
         source_path.clone(),
@@ -155,7 +150,7 @@ pub(crate) fn parse_delimited_front_matter(
 pub fn parse_content(
     text: String,
     source_path: Option<String>,
-) -> rt::TsonicResult<crate::frontmatter::parsed_content::ParsedContent> {
+) -> Result<crate::frontmatter::parsed_content::ParsedContent, rt::TsonicError> {
     let json: Option<crate::frontmatter::parsed_content::ParsedContent> =
         try_parse_json_front_matter(text.clone(), source_path.clone())?;
     if json.is_some() {
@@ -166,8 +161,7 @@ pub fn parse_content(
     }
     let normalized: String =
         crate::utils::strings::replace_line_endings(&text, String::from("\n"))?;
-    let lines: js_abi::JsArray<String> = js_string::split_all(&normalized, "\n")
-        .map_err(tsonic_rust_runtime::TsonicError::from)?;
+    let lines: js_abi::JsArray<String> = js_string::split_all(&normalized, "\n")?;
     if tsonic_rust_runtime::conversions::usize_to_i32(lines.len())? == 0 {
         return Ok(crate::frontmatter::parsed_content::ParsedContent::new(
             crate::frontmatter::data::FrontMatter::new(),

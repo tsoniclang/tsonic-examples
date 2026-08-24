@@ -4,22 +4,29 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn capture_tsumo_diagnostic(
     operation: rt::Callable<(), rt::TsonicResult<()>>,
-) -> rt::TsonicResult<crate::node_modules::tsumo::engine::src::diagnostics::TsumoDiagnostic> {
-    let try_body: rt::TsonicResult<rt::Completion<crate::node_modules::tsumo::engine::src::diagnostics::TsumoDiagnostic>> =
+) -> Result<tsumo_engine::TsumoDiagnostic, rt::TsonicError> {
+    let try_body: rt::TsonicResult<rt::Completion<tsumo_engine::TsumoDiagnostic>> =
         rt::completion_region(|| {
             operation.call(())?;
             Ok(rt::Completion::Normal)
         });
-    let try_flow: rt::TsonicResult<rt::Completion<crate::node_modules::tsumo::engine::src::diagnostics::TsumoDiagnostic>> =
-        match try_body {
-            Ok(completion) => Ok(completion),
-            Err(error) => rt::completion_region(|| {
-                if matches!(error.clone(), rt::TsonicError::Project0(_)) {
-                    return Ok(rt::Completion::Return({
+    let try_flow: rt::TsonicResult<rt::Completion<tsumo_engine::TsumoDiagnostic>> = match try_body {
+        Ok(completion) => Ok(completion),
+        Err(error) => rt::completion_region(|| {
+            if matches!(
+                error.clone(),
+                rt::TsonicError::TsumoEngineError(tsumo_engine::program::TsonicError::TsumoError(_)),
+            )
+            {
+                return Ok(
+                    rt::Completion::Return({
                         let dispatch_receiver = &match error {
-                            rt::TsonicError::Project0(program_error) => program_error,
+                            rt::TsonicError::TsumoEngineError(tsumo_engine::program::TsonicError::TsumoError(program_error)) => {
+                                program_error
+                            }
                             _ => {
                                 unreachable!(
                                     "checked flow selected a different program-error variant"
@@ -27,11 +34,12 @@ pub(crate) fn capture_tsumo_diagnostic(
                             }
                         };
                         dispatch_receiver.dispatch.read_tsumo_error_diagnostic()
-                    }));
-                }
-                Err(error.clone())
-            }),
-        };
+                    }),
+                );
+            }
+            Err(error.clone())
+        }),
+    };
     let try_flow = try_flow?;
     match try_flow {
         rt::Completion::Normal => {}
@@ -48,109 +56,98 @@ pub(crate) fn capture_tsumo_diagnostic(
 #[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) struct FilesystemBoundaryTestsState {}
 
+#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct FilesystemBoundaryTests {
-    pub(crate) state: rt::ObjectHandle<FilesystemBoundaryTestsState>,
+    pub(crate) state: rt::ObjectRef<FilesystemBoundaryTestsState>,
 }
 
 impl FilesystemBoundaryTests {
+    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new() -> FilesystemBoundaryTests {
         FilesystemBoundaryTests {
-            state: rt::ObjectHandle::new(FilesystemBoundaryTestsState {}),
+            state: rt::ObjectRef::new(FilesystemBoundaryTestsState {}),
         }
     }
 
-    pub fn recursive_discovery_is_sorted_and_rejects_links(&self) -> rt::TsonicResult<()> {
-        let root: String = crate::test_root::CREATE_TEST_DIRECTORY
-            .with(|module_binding| module_binding.load())
-            .call((String::from("filesystem-discovery"),))?;
+    pub fn recursive_discovery_is_sorted_and_rejects_links(&self) -> Result<(), rt::TsonicError> {
+        let root: String =
+            crate::test_root::create_test_directory(String::from("filesystem-discovery"))?;
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
             let source: String = tsonic_rust_node::path::join(&[root.as_str(), "source"]);
             let nested: String = tsonic_rust_node::path::join(&[source.as_str(), "a"]);
             let outside: String = tsonic_rust_node::path::join(&[root.as_str(), "outside"]);
-            crate::test_root::CREATE_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((nested.clone(),))?;
-            crate::test_root::CREATE_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((outside.clone(),))?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[source.as_str(), "z.txt"]),
-                    String::from("z"),
-                ))?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[nested.as_str(), "b.txt"]),
-                    String::from("b"),
-                ))?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[nested.as_str(), "a.txt"]),
-                    String::from("a"),
-                ))?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((
-                    tsonic_rust_node::path::join(&[outside.as_str(), "outside.txt"]),
-                    String::from("outside"),
-                ))?;
+            crate::test_root::create_directory(nested.clone())?;
+            crate::test_root::create_directory(outside.clone())?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[source.as_str(), "z.txt"]),
+                String::from("z"),
+            )?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[nested.as_str(), "b.txt"]),
+                String::from("b"),
+            )?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[nested.as_str(), "a.txt"]),
+                String::from("a"),
+            )?;
+            crate::test_root::write_text_file(
+                tsonic_rust_node::path::join(&[outside.as_str(), "outside.txt"]),
+                String::from("outside"),
+            )?;
             crate::test_root::Assert::string_array_equal(
                 js_abi::JsArray::from_dense(vec![
                     tsonic_rust_node::path::join(&[nested.as_str(), "a.txt"]),
                     tsonic_rust_node::path::join(&[nested.as_str(), "b.txt"]),
                     tsonic_rust_node::path::join(&[source.as_str(), "z.txt"]),
                 ]),
-                crate::node_modules::tsumo::engine::src::fs::LIST_FILES_RECURSIVE
-                    .with(|module_binding| module_binding.load())
-                    .call((source.clone(), String::from("*.txt")))?,
+                tsumo_engine::testing::list_files_recursive(source.clone(), String::from("*.txt"))?,
             )?;
             crate::test_root::Assert::string_array_equal(
                 js_abi::JsArray::from_dense(vec![
                     tsonic_rust_node::path::join(&[source.as_str(), "z.txt"]),
                 ]),
-                crate::node_modules::tsumo::engine::src::fs::LIST_FILES_TOP_DIRECTORY
-                    .with(|module_binding| module_binding.load())
-                    .call((source.clone(), String::from("*.txt")))?,
+                tsumo_engine::testing::list_files_top_directory(
+                    source.clone(),
+                    String::from("*.txt"),
+                )?,
             )?;
             crate::test_root::Assert::string_array_equal(
                 js_abi::JsArray::from_dense(vec![nested.clone()]),
-                crate::node_modules::tsumo::engine::src::fs::LIST_DIRECTORIES_TOP_DIRECTORY
-                    .with(|module_binding| module_binding.load())
-                    .call((source.clone(),))?,
+                tsumo_engine::testing::list_directories_top_directory(source.clone())?,
             )?;
-            let link: String = tsonic_rust_node::path::join(&[source.as_str(), "linked-directory"]);
-            crate::test_root::CREATE_SYMBOLIC_LINK
-                .with(|module_binding| module_binding.load())
-                .call((outside.clone(), link.clone()))?;
-            let diagnostic: crate::node_modules::tsumo::engine::src::diagnostics::TsumoDiagnostic =
-                capture_tsumo_diagnostic({
-                    let capture_source = source.clone();
-                    rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                        crate::node_modules::tsumo::engine::src::fs::LIST_FILES_RECURSIVE
-                            .with(|module_binding| module_binding.load())
-                            .call((capture_source.clone(), String::from("*")))?;
-                        Ok::<_, rt::TsonicError>(())
-                    })
-                })?;
+            let link: String =
+                tsonic_rust_node::path::join(&[source.as_str(), "linked-directory"]);
+            crate::test_root::create_symbolic_link(
+                outside.clone(),
+                link.clone(),
+            )?;
+            let diagnostic: tsumo_engine::TsumoDiagnostic = capture_tsumo_diagnostic({
+                let capture_source = source.clone();
+                rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
+                    tsumo_engine::testing::list_files_recursive(
+                        capture_source.clone(),
+                        String::from("*"),
+                    )?;
+                    Ok::<_, rt::TsonicError>(())
+                })
+            })?;
             crate::test_root::Assert::string_equal(
                 String::from("TSUMO_FILESYSTEM_LINK_UNSUPPORTED"),
-                Some(diagnostic.state.with(|state| state.code.clone())),
+                Some({
+                    let dispatch_receiver = &diagnostic;
+                    dispatch_receiver.dispatch.read_tsumo_diagnostic_code()
+                }),
             )?;
-            crate::test_root::Assert::string_equal(
-                link.clone(),
-                diagnostic.state.with(|state| state.file.clone()),
-            )?;
+            crate::test_root::Assert::string_equal(link.clone(), {
+                let dispatch_receiver_2 = &diagnostic;
+                dispatch_receiver_2.dispatch.read_tsumo_diagnostic_file()
+            })?;
             Ok(rt::Completion::Normal)
         });
         let try_flow = try_body;
         let finally_flow: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::DELETE_TEST_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((root.clone(),))?;
+            crate::test_root::delete_test_directory(root.clone())?;
             Ok(rt::Completion::Normal)
         });
         let try_flow: rt::TsonicResult<rt::Completion<()>> =
@@ -165,75 +162,58 @@ impl FilesystemBoundaryTests {
         Ok(())
     }
 
-    pub fn watch_snapshots_detect_file_changes_and_use_link_policy(&self) -> rt::TsonicResult<()> {
-        let root: String = crate::test_root::CREATE_TEST_DIRECTORY
-            .with(|module_binding| module_binding.load())
-            .call((String::from("watch-snapshot"),))?;
+    pub fn watch_snapshots_detect_file_changes_and_use_link_policy(
+        &self,
+    ) -> Result<(), rt::TsonicError> {
+        let root: String =
+            crate::test_root::create_test_directory(String::from("watch-snapshot"))?;
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
             let watched: String = tsonic_rust_node::path::join(&[root.as_str(), "watched"]);
-            crate::test_root::CREATE_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((watched.clone(),))?;
+            crate::test_root::create_directory(watched.clone())?;
             let file: String = tsonic_rust_node::path::join(&[watched.as_str(), "page.md"]);
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((file.clone(), String::from("before")))?;
-            let initial: js_abi::JsMap<
-                String,
-                crate::node_modules::tsumo::engine::src::watch_snapshot::WatchEntryState,
-            > = crate::node_modules::tsumo::engine::src::watch_snapshot::CREATE_WATCH_SNAPSHOT
-                .with(|module_binding| module_binding.load())
-                .call((js_abi::JsArray::from_dense(vec![watched.clone()]),))?;
-            crate::test_root::Assert::r#true(
-                crate::node_modules::tsumo::engine::src::watch_snapshot::WATCH_SNAPSHOTS_EQUAL
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        initial.clone(),
-                        crate::node_modules::tsumo::engine::src::watch_snapshot::CREATE_WATCH_SNAPSHOT
-                            .with(|module_binding| module_binding.load())
-                            .call((js_abi::JsArray::from_dense(vec![watched.clone()]),))?,
-                    ))?,
+            crate::test_root::write_text_file(file.clone(), String::from("before"))?;
+            let initial: js_abi::JsMap<String, tsumo_engine::watch_snapshot::WatchEntryState> =
+                tsumo_engine::testing::create_watch_snapshot(js_abi::JsArray::from_dense(vec![
+                    watched.clone(),
+                ]))?;
+            crate::test_root::Assert::r#true(tsumo_engine::testing::watch_snapshots_equal(
+                initial.clone(),
+                tsumo_engine::testing::create_watch_snapshot(js_abi::JsArray::from_dense(vec![
+                    watched.clone(),
+                ]))?,
+            )?)?;
+            crate::test_root::write_text_file(
+                file.clone(),
+                String::from("after with a different size"),
             )?;
-            crate::test_root::WRITE_TEXT_FILE
-                .with(|module_binding| module_binding.load())
-                .call((file.clone(), String::from("after with a different size")))?;
-            crate::test_root::Assert::r#false(
-                crate::node_modules::tsumo::engine::src::watch_snapshot::WATCH_SNAPSHOTS_EQUAL
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        initial.clone(),
-                        crate::node_modules::tsumo::engine::src::watch_snapshot::CREATE_WATCH_SNAPSHOT
-                            .with(|module_binding| module_binding.load())
-                            .call((js_abi::JsArray::from_dense(vec![watched.clone()]),))?,
-                    ))?,
-            )?;
+            crate::test_root::Assert::r#false(tsumo_engine::testing::watch_snapshots_equal(
+                initial.clone(),
+                tsumo_engine::testing::create_watch_snapshot(js_abi::JsArray::from_dense(vec![
+                    watched.clone(),
+                ]))?,
+            )?)?;
             let link: String = tsonic_rust_node::path::join(&[watched.as_str(), "linked-file.md"]);
-            crate::test_root::CREATE_SYMBOLIC_LINK
-                .with(|module_binding| module_binding.load())
-                .call((file.clone(), link.clone()))?;
+            crate::test_root::create_symbolic_link(file.clone(), link)?;
             crate::test_root::Assert::string_equal(
                 String::from("TSUMO_FILESYSTEM_LINK_UNSUPPORTED"),
-                Some(
-                    capture_tsumo_diagnostic({
+                Some({
+                    let dispatch_receiver = &capture_tsumo_diagnostic({
                         let capture_watched = watched.clone();
                         rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                            crate::node_modules::tsumo::engine::src::watch_snapshot::CREATE_WATCH_SNAPSHOT
-                                .with(|module_binding| module_binding.load())
-                                .call((js_abi::JsArray::from_dense(vec![capture_watched.clone()]),))?;
+                            tsumo_engine::testing::create_watch_snapshot(
+                                js_abi::JsArray::from_dense(vec![capture_watched.clone()]),
+                            )?;
                             Ok::<_, rt::TsonicError>(())
                         })
-                    })?
-                    .state
-                    .with(|state| state.code.clone()),
-                ),
+                    })?;
+                    dispatch_receiver.dispatch.read_tsumo_diagnostic_code()
+                }),
             )?;
             Ok(rt::Completion::Normal)
         });
         let try_flow = try_body;
         let finally_flow: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::DELETE_TEST_DIRECTORY
-                .with(|module_binding| module_binding.load())
-                .call((root.clone(),))?;
+            crate::test_root::delete_test_directory(root.clone())?;
             Ok(rt::Completion::Normal)
         });
         let try_flow: rt::TsonicResult<rt::Completion<()>> =
@@ -255,50 +235,25 @@ impl Default for FilesystemBoundaryTests {
     }
 }
 
-pub type RunFilesystemBoundaryTestsCallable = rt::Callable<(), rt::TsonicResult<()>>;
-
-std::thread_local! {
-    pub static RUN_FILESYSTEM_BOUNDARY_TESTS: rt::ModuleCell<RunFilesystemBoundaryTestsCallable> = const { rt::ModuleCell::new() };
-}
-
-#[doc(hidden)]
-pub fn module_init() {
-    {
-        let module_value =
-            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                let tests: FilesystemBoundaryTests = FilesystemBoundaryTests::new();
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("recursive discovery is sorted and rejects links"),
-                        {
-                            let capture_tests = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_2| {
-                                    capture_tests
-                                        .recursive_discovery_is_sorted_and_rejects_links()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
-                crate::test_root::RUN_TEST
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        String::from("watch snapshots detect file changes and use link policy"),
-                        {
-                            let capture_tests_2 = tests.clone();
-                            rt::Callable::<(), rt::TsonicResult<()>>::new(
-                                move |_callable_arguments_3| {
-                                    capture_tests_2
-                                        .watch_snapshots_detect_file_changes_and_use_link_policy()?;
-                                    Ok::<_, rt::TsonicError>(())
-                                },
-                            )
-                        },
-                    ))?;
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub fn run_filesystem_boundary_tests() -> Result<(), rt::TsonicError> {
+    let tests: FilesystemBoundaryTests = FilesystemBoundaryTests::new();
+    crate::test_root::run_test(String::from("recursive discovery is sorted and rejects links"), {
+        let capture_tests = tests.clone();
+        rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
+            capture_tests.recursive_discovery_is_sorted_and_rejects_links()?;
+            Ok::<_, rt::TsonicError>(())
+        })
+    })?;
+    crate::test_root::run_test(
+        String::from("watch snapshots detect file changes and use link policy"),
+        {
+            let capture_tests_2 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
+                capture_tests_2.watch_snapshots_detect_file_changes_and_use_link_policy()?;
                 Ok::<_, rt::TsonicError>(())
-            });
-        RUN_FILESYSTEM_BOUNDARY_TESTS.with(|module_binding| module_binding.initialize(module_value))
-    };
+            })
+        },
+    )?;
+    Ok(())
 }

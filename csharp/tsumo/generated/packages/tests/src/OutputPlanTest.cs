@@ -20,15 +20,16 @@ namespace Tsumo.Tests
                 {
                     operation();
                 }
-                catch (System.Exception error)
+                catch (System.Exception __tsonic_catch0)
                 {
-                    if (error is TsumoError)
+                    Tsonic.CSharp.Runtime.TsValue error = Tsonic.CSharp.Runtime.TsThrownValueException.toValue(__tsonic_catch0);
+                    if (Tsonic.CSharp.Runtime.TsValue.IsDynamicInstanceOf<TsumoError>(error))
                     {
-                        return ((TsumoError)error).diagnostic.code;
+                        return Tsonic.CSharp.Runtime.TsValue.CastDynamic<TsumoError>(error).diagnostic.code;
                     }
                     throw;
                 }
-                throw new System.Exception("Expected an output-plan diagnostic");
+                throw new Tsonic.CSharp.Runtime.Error("Expected an output-plan diagnostic");
             };
             return null;
         }
@@ -57,17 +58,17 @@ namespace Tsumo.Tests
         public void static_layers_have_one_explicit_precedence_policy()
         {
             string root = TestRoot.createTestDirectory("output-plan-static");
-            string theme = System.IO.Path.Combine(root, "theme");
-            string site = System.IO.Path.Combine(root, "site");
-            string output = System.IO.Path.Combine(root, "output");
+            string theme = Tsonic.CSharp.Node.path.join(root, "theme");
+            string site = Tsonic.CSharp.Node.path.join(root, "site");
+            string output = Tsonic.CSharp.Node.path.join(root, "output");
             try
             {
-                System.IO.Directory.CreateDirectory(theme);
-                System.IO.Directory.CreateDirectory(site);
-                System.IO.File.WriteAllText(System.IO.Path.Combine(theme, "style.css"), "theme");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(theme, "robots.txt"), "theme robots");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(site, "style.css"), "site");
-                System.IO.File.WriteAllText(System.IO.Path.Combine(site, "robots.txt"), "site robots");
+                TestRoot.createDirectory(theme);
+                TestRoot.createDirectory(site);
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(theme, "style.css"), "theme");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(theme, "robots.txt"), "theme robots");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(site, "style.css"), "site");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(site, "robots.txt"), "site robots");
                 SiteOutputPlan plan = new SiteOutputPlan();
                 plan.addDirectory(theme, "", "theme static", "theme-static");
                 plan.addDirectory(site, "", "site static", "site-static");
@@ -75,9 +76,9 @@ namespace Tsumo.Tests
                 plan.addText("index.html", "home", "home");
                 Xunit.Assert.Equal<double>(1, plan.generatedOutputCount());
                 plan.render(output);
-                Xunit.Assert.Equal("site", System.IO.File.ReadAllText(System.IO.Path.Combine(output, "style.css")));
-                Xunit.Assert.Equal("site robots", System.IO.File.ReadAllText(System.IO.Path.Combine(output, "robots.txt")));
-                Xunit.Assert.Equal("home", System.IO.File.ReadAllText(System.IO.Path.Combine(output, "index.html")));
+                Xunit.Assert.Equal("site", TestRoot.readTextFile(Tsonic.CSharp.Node.path.join(output, "style.css")));
+                Xunit.Assert.Equal("site robots", TestRoot.readTextFile(Tsonic.CSharp.Node.path.join(output, "robots.txt")));
+                Xunit.Assert.Equal("home", TestRoot.readTextFile(Tsonic.CSharp.Node.path.join(output, "index.html")));
             }
             finally
             {
@@ -90,8 +91,8 @@ namespace Tsumo.Tests
             string root = TestRoot.createTestDirectory("output-plan-bundle");
             try
             {
-                string asset = System.IO.Path.Combine(root, "index.html");
-                System.IO.File.WriteAllText(asset, "asset");
+                string asset = Tsonic.CSharp.Node.path.join(root, "index.html");
+                TestRoot.writeTextFile(asset, "asset");
                 SiteOutputPlan plan = new SiteOutputPlan();
                 plan.addText("index.html", "generated", "home");
                 Xunit.Assert.Equal("TSUMO_OUTPUT_PATH_CONFLICT", OutputPlanTest.captureOutputDiagnostic(() =>
@@ -108,7 +109,7 @@ namespace Tsumo.Tests
         public void deferred_replacements_snapshot_outputs_before_mutation()
         {
             string root = TestRoot.createTestDirectory("output-plan-deferred");
-            string output = System.IO.Path.Combine(root, "output");
+            string output = Tsonic.CSharp.Node.path.join(root, "output");
             try
             {
                 SiteOutputPlan plan = new SiteOutputPlan();
@@ -118,8 +119,8 @@ namespace Tsumo.Tests
                 results.set("<deferred-token>", "ready");
                 plan.applyDeferredTemplateResults(results);
                 plan.render(output);
-                Xunit.Assert.Equal("before:ready:after", System.IO.File.ReadAllText(System.IO.Path.Combine(output, "first.html")));
-                Xunit.Assert.Equal("unchanged", System.IO.File.ReadAllText(System.IO.Path.Combine(output, "second.html")));
+                Xunit.Assert.Equal("before:ready:after", TestRoot.readTextFile(Tsonic.CSharp.Node.path.join(output, "first.html")));
+                Xunit.Assert.Equal("unchanged", TestRoot.readTextFile(Tsonic.CSharp.Node.path.join(output, "second.html")));
             }
             finally
             {

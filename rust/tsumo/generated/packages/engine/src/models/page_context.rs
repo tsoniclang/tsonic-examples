@@ -4,44 +4,226 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct PageContextState {
-    pub(crate) title: String,
-    pub(crate) date: String,
-    pub(crate) lastmod: String,
-    pub(crate) draft: bool,
-    pub(crate) kind: String,
-    pub(crate) section: String,
-    pub(crate) r#type: String,
-    pub(crate) slug: String,
-    pub(crate) rel_permalink: String,
-    pub(crate) plain: String,
-    pub(crate) table_of_contents: crate::utils::html::HtmlString,
-    pub(crate) content: crate::utils::html::HtmlString,
-    pub(crate) summary: crate::utils::html::HtmlString,
-    pub(crate) description: String,
-    pub(crate) tags: js_abi::JsArray<String>,
-    pub(crate) categories: js_abi::JsArray<String>,
-    pub(crate) params: js_abi::JsMap<String, crate::params::ParamValue>,
-    pub(crate) file: Option<crate::models::page_file::PageFile>,
-    pub(crate) language: crate::models::language::LanguageContext,
-    pub(crate) translations: js_abi::JsArray<PageContext>,
-    pub(crate) store: Option<crate::template::values::scratch::ScratchStore>,
-    pub(crate) site: crate::models::site_context::SiteContext,
-    pub(crate) pages: js_abi::JsArray<PageContext>,
-    pub(crate) layout: Option<String>,
-    pub(crate) parent: Option<PageContext>,
-    pub(crate) ancestors: js_abi::JsArray<PageContext>,
-    pub(crate) resource_source_dir: Option<String>,
-    pub(crate) shortcode_names: js_abi::JsMap<String, bool>,
+pub trait PageContextDispatch {
+    fn downcast_page_context_to_page_context(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn PageContextDispatch>>;
+    fn read_page_context_title(&self) -> String;
+    fn write_page_context_title(&self, value: String);
+    fn read_page_context_date(&self) -> String;
+    fn write_page_context_date(&self, value: String);
+    fn read_page_context_lastmod(&self) -> String;
+    fn write_page_context_lastmod(&self, value: String);
+    fn read_page_context_draft(&self) -> bool;
+    fn write_page_context_draft(&self, value: bool);
+    fn read_page_context_kind(&self) -> String;
+    fn write_page_context_kind(&self, value: String);
+    fn read_page_context_section(&self) -> String;
+    fn write_page_context_section(&self, value: String);
+    fn read_page_context_type(&self) -> String;
+    fn write_page_context_type(&self, value: String);
+    fn read_page_context_slug(&self) -> String;
+    fn write_page_context_slug(&self, value: String);
+    fn read_page_context_rel_permalink(&self) -> String;
+    fn write_page_context_rel_permalink(&self, value: String);
+    fn read_page_context_plain(&self) -> String;
+    fn write_page_context_plain(&self, value: String);
+    fn read_page_context_table_of_contents(&self) -> crate::utils::html::HtmlString;
+    fn write_page_context_table_of_contents(&self, value: crate::utils::html::HtmlString);
+    fn read_page_context_content(&self) -> crate::utils::html::HtmlString;
+    fn write_page_context_content(&self, value: crate::utils::html::HtmlString);
+    fn read_page_context_summary(&self) -> crate::utils::html::HtmlString;
+    fn write_page_context_summary(&self, value: crate::utils::html::HtmlString);
+    fn read_page_context_description(&self) -> String;
+    fn write_page_context_description(&self, value: String);
+    fn read_page_context_tags(&self) -> js_abi::JsArray<String>;
+    fn write_page_context_tags(&self, value: js_abi::JsArray<String>);
+    fn read_page_context_categories(&self) -> js_abi::JsArray<String>;
+    fn write_page_context_categories(&self, value: js_abi::JsArray<String>);
+    fn read_page_context_params(&self) -> js_abi::JsMap<String, crate::params::ParamValue>;
+    fn write_page_context_params(&self, value: js_abi::JsMap<String, crate::params::ParamValue>);
+    fn read_page_context_file(&self) -> Option<crate::models::page_file::PageFile>;
+    fn write_page_context_file(&self, value: Option<crate::models::page_file::PageFile>);
+    fn read_page_context_language(&self) -> crate::models::language::LanguageContext;
+    fn write_page_context_language(&self, value: crate::models::language::LanguageContext);
+    fn read_page_context_translations(&self) -> js_abi::JsArray<PageContext>;
+    fn write_page_context_translations(&self, value: js_abi::JsArray<PageContext>);
+    fn read_page_context_store(&self) -> Option<crate::template::values::scratch::ScratchStore>;
+    fn write_page_context_store(
+        &self,
+        value: Option<crate::template::values::scratch::ScratchStore>,
+    );
+    fn read_page_context_site(&self) -> crate::models::site_context::SiteContext;
+    fn write_page_context_site(&self, value: crate::models::site_context::SiteContext);
+    fn read_page_context_pages(&self) -> js_abi::JsArray<PageContext>;
+    fn write_page_context_pages(&self, value: js_abi::JsArray<PageContext>);
+    fn read_page_context_layout(&self) -> Option<String>;
+    fn write_page_context_layout(&self, value: Option<String>);
+    fn read_page_context_parent(&self) -> Option<PageContext>;
+    fn write_page_context_parent(&self, value: Option<PageContext>);
+    fn read_page_context_ancestors(&self) -> js_abi::JsArray<PageContext>;
+    fn write_page_context_ancestors(&self, value: js_abi::JsArray<PageContext>);
+    fn read_page_context_resource_source_dir(&self) -> Option<String>;
+    fn write_page_context_resource_source_dir(&self, value: Option<String>);
+    fn read_page_context_shortcode_names(&self) -> js_abi::JsMap<String, bool>;
+    fn write_page_context_shortcode_names(&self, value: js_abi::JsMap<String, bool>);
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct PageContextState {
+    pub title: String,
+    pub date: String,
+    pub lastmod: String,
+    pub draft: bool,
+    pub kind: String,
+    pub section: String,
+    pub r#type: String,
+    pub slug: String,
+    pub rel_permalink: String,
+    pub plain: String,
+    pub table_of_contents: crate::utils::html::HtmlString,
+    pub content: crate::utils::html::HtmlString,
+    pub summary: crate::utils::html::HtmlString,
+    pub description: String,
+    pub tags: js_abi::JsArray<String>,
+    pub categories: js_abi::JsArray<String>,
+    pub params: js_abi::JsMap<String, crate::params::ParamValue>,
+    pub file: Option<crate::models::page_file::PageFile>,
+    pub language: crate::models::language::LanguageContext,
+    pub translations: js_abi::JsArray<PageContext>,
+    pub store: Option<crate::template::values::scratch::ScratchStore>,
+    pub site: crate::models::site_context::SiteContext,
+    pub pages: js_abi::JsArray<PageContext>,
+    pub layout: Option<String>,
+    pub parent: Option<PageContext>,
+    pub ancestors: js_abi::JsArray<PageContext>,
+    pub resource_source_dir: Option<String>,
+    pub shortcode_names: js_abi::JsMap<String, bool>,
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+#[derive(Clone)]
 pub struct PageContext {
-    pub(crate) state: rt::ObjectHandle<PageContextState>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn PageContextDispatch>,
+}
+
+impl std::fmt::Debug for PageContext {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("PageContext")
+    }
+}
+
+impl PartialEq for PageContext {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+    }
+}
+
+impl Eq for PageContext {}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub(crate) struct PageContextRoot {
+    identity: rt::ObjectIdentity,
+    state: rt::ObjectHandle<PageContextState>,
 }
 
 impl PageContext {
+    #[doc(hidden)]
+    #[expect(clippy::too_many_arguments, reason = "checked source signature")]
+    pub fn initialize_state(
+        title: String,
+        date: String,
+        lastmod: String,
+        draft: bool,
+        kind: String,
+        section: String,
+        r#type: String,
+        slug: String,
+        rel_permalink: String,
+        plain: String,
+        table_of_contents: crate::utils::html::HtmlString,
+        content: crate::utils::html::HtmlString,
+        summary: crate::utils::html::HtmlString,
+        description: String,
+        tags: js_abi::JsArray<String>,
+        categories: js_abi::JsArray<String>,
+        params: js_abi::JsMap<String, crate::params::ParamValue>,
+        file: Option<crate::models::page_file::PageFile>,
+        language: crate::models::language::LanguageContext,
+        translations: js_abi::JsArray<PageContext>,
+        store: Option<crate::template::values::scratch::ScratchStore>,
+        site: crate::models::site_context::SiteContext,
+        pages: js_abi::JsArray<PageContext>,
+        parent: Option<PageContext>,
+        ancestors: js_abi::JsArray<PageContext>,
+        layout: Option<String>,
+    ) -> PageContextState {
+        let field_title: String = title;
+        let field_date: String = date;
+        let field_lastmod: String = lastmod;
+        let field_draft: bool = draft;
+        let field_kind: String = kind;
+        let field_section: String = section;
+        let field_type: String = r#type;
+        let field_slug: String = slug;
+        let field_rel_permalink: String = rel_permalink;
+        let field_plain: String = plain;
+        let field_table_of_contents: crate::utils::html::HtmlString = table_of_contents;
+        let field_content: crate::utils::html::HtmlString = content;
+        let field_summary: crate::utils::html::HtmlString = summary;
+        let field_description: String = description;
+        let field_tags: js_abi::JsArray<String> = tags;
+        let field_categories: js_abi::JsArray<String> = categories;
+        let field_params: js_abi::JsMap<String, crate::params::ParamValue> = params;
+        let field_file: Option<crate::models::page_file::PageFile> = file;
+        let field_language: crate::models::language::LanguageContext = language;
+        let field_translations: js_abi::JsArray<PageContext> = translations;
+        let field_store: Option<crate::template::values::scratch::ScratchStore> = store;
+        let field_site: crate::models::site_context::SiteContext = site;
+        let field_pages: js_abi::JsArray<PageContext> = pages;
+        let field_layout: Option<String> = layout;
+        let field_parent: Option<PageContext> = parent;
+        let field_ancestors: js_abi::JsArray<PageContext> = ancestors;
+        let field_resource_source_dir: Option<String> = Option::<String>::None;
+        let field_shortcode_names: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
+        PageContextState {
+            title: field_title,
+            date: field_date,
+            lastmod: field_lastmod,
+            draft: field_draft,
+            kind: field_kind,
+            section: field_section,
+            r#type: field_type,
+            slug: field_slug,
+            rel_permalink: field_rel_permalink,
+            plain: field_plain,
+            table_of_contents: field_table_of_contents,
+            content: field_content,
+            summary: field_summary,
+            description: field_description,
+            tags: field_tags,
+            categories: field_categories,
+            params: field_params,
+            file: field_file,
+            language: field_language,
+            translations: field_translations,
+            store: field_store,
+            site: field_site,
+            pages: field_pages,
+            layout: field_layout,
+            parent: field_parent,
+            ancestors: field_ancestors,
+            resource_source_dir: field_resource_source_dir,
+            shortcode_names: field_shortcode_names,
+        }
+    }
+
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     pub fn new(
         title: String,
@@ -71,65 +253,278 @@ impl PageContext {
         ancestors: js_abi::JsArray<PageContext>,
         layout: Option<String>,
     ) -> PageContext {
-        let field_title: String = title.clone();
-        let field_date: String = date.clone();
-        let field_lastmod: String = lastmod.clone();
-        let field_draft: bool = draft;
-        let field_kind: String = kind.clone();
-        let field_section: String = section.clone();
-        let field_r_type: String = r#type.clone();
-        let field_slug: String = slug.clone();
-        let field_rel_permalink: String = rel_permalink.clone();
-        let field_plain: String = plain.clone();
-        let field_table_of_contents: crate::utils::html::HtmlString = table_of_contents.clone();
-        let field_content: crate::utils::html::HtmlString = content.clone();
-        let field_summary: crate::utils::html::HtmlString = summary.clone();
-        let field_description: String = description.clone();
-        let field_tags: js_abi::JsArray<String> = tags.clone();
-        let field_categories: js_abi::JsArray<String> = categories.clone();
-        let field_params: js_abi::JsMap<String, crate::params::ParamValue> = params.clone();
-        let field_file: Option<crate::models::page_file::PageFile> = file.clone();
-        let field_language: crate::models::language::LanguageContext = language.clone();
-        let field_translations: js_abi::JsArray<PageContext> = translations.clone();
-        let field_store: Option<crate::template::values::scratch::ScratchStore> = store.clone();
-        let field_site: crate::models::site_context::SiteContext = site.clone();
-        let field_pages: js_abi::JsArray<PageContext> = pages.clone();
-        let field_layout: Option<String> = layout.clone();
-        let field_parent: Option<PageContext> = parent.clone();
-        let field_ancestors: js_abi::JsArray<PageContext> = ancestors.clone();
-        let field_resource_source_dir: Option<String> = Option::<String>::None;
-        let field_shortcode_names: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
+        let state = PageContext::initialize_state(
+            title,
+            date,
+            lastmod,
+            draft,
+            kind,
+            section,
+            r#type,
+            slug,
+            rel_permalink,
+            plain,
+            table_of_contents,
+            content,
+            summary,
+            description,
+            tags,
+            categories,
+            params,
+            file,
+            language,
+            translations,
+            store,
+            site,
+            pages,
+            parent,
+            ancestors,
+            layout,
+        );
+        let identity = rt::ObjectIdentity::new();
+        let root = std::rc::Rc::new(PageContextRoot {
+            identity: identity.clone(),
+            state: rt::ObjectHandle::new(state),
+        });
         PageContext {
-            state: rt::ObjectHandle::new(PageContextState {
-                title: field_title,
-                date: field_date,
-                lastmod: field_lastmod,
-                draft: field_draft,
-                kind: field_kind,
-                section: field_section,
-                r#type: field_r_type,
-                slug: field_slug,
-                rel_permalink: field_rel_permalink,
-                plain: field_plain,
-                table_of_contents: field_table_of_contents,
-                content: field_content,
-                summary: field_summary,
-                description: field_description,
-                tags: field_tags,
-                categories: field_categories,
-                params: field_params,
-                file: field_file,
-                language: field_language,
-                translations: field_translations,
-                store: field_store,
-                site: field_site,
-                pages: field_pages,
-                layout: field_layout,
-                parent: field_parent,
-                ancestors: field_ancestors,
-                resource_source_dir: field_resource_source_dir,
-                shortcode_names: field_shortcode_names,
-            }),
+            identity,
+            dispatch: root,
         }
+    }
+}
+
+impl PageContextDispatch for PageContextRoot {
+    fn downcast_page_context_to_page_context(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn PageContextDispatch>> {
+        Some(self)
+    }
+
+    fn read_page_context_title(&self) -> String {
+        self.state.with(|state| state.title.clone())
+    }
+
+    fn write_page_context_title(&self, value: String) {
+        self.state.with_mut(|state| state.title = value);
+    }
+
+    fn read_page_context_date(&self) -> String {
+        self.state.with(|state| state.date.clone())
+    }
+
+    fn write_page_context_date(&self, value: String) {
+        self.state.with_mut(|state| state.date = value);
+    }
+
+    fn read_page_context_lastmod(&self) -> String {
+        self.state.with(|state| state.lastmod.clone())
+    }
+
+    fn write_page_context_lastmod(&self, value: String) {
+        self.state.with_mut(|state| state.lastmod = value);
+    }
+
+    fn read_page_context_draft(&self) -> bool {
+        self.state.with(|state| state.draft)
+    }
+
+    fn write_page_context_draft(&self, value: bool) {
+        self.state.with_mut(|state| state.draft = value);
+    }
+
+    fn read_page_context_kind(&self) -> String {
+        self.state.with(|state| state.kind.clone())
+    }
+
+    fn write_page_context_kind(&self, value: String) {
+        self.state.with_mut(|state| state.kind = value);
+    }
+
+    fn read_page_context_section(&self) -> String {
+        self.state.with(|state| state.section.clone())
+    }
+
+    fn write_page_context_section(&self, value: String) {
+        self.state.with_mut(|state| state.section = value);
+    }
+
+    fn read_page_context_type(&self) -> String {
+        self.state.with(|state| state.r#type.clone())
+    }
+
+    fn write_page_context_type(&self, value: String) {
+        self.state.with_mut(|state| state.r#type = value);
+    }
+
+    fn read_page_context_slug(&self) -> String {
+        self.state.with(|state| state.slug.clone())
+    }
+
+    fn write_page_context_slug(&self, value: String) {
+        self.state.with_mut(|state| state.slug = value);
+    }
+
+    fn read_page_context_rel_permalink(&self) -> String {
+        self.state.with(|state| state.rel_permalink.clone())
+    }
+
+    fn write_page_context_rel_permalink(&self, value: String) {
+        self.state.with_mut(|state| state.rel_permalink = value);
+    }
+
+    fn read_page_context_plain(&self) -> String {
+        self.state.with(|state| state.plain.clone())
+    }
+
+    fn write_page_context_plain(&self, value: String) {
+        self.state.with_mut(|state| state.plain = value);
+    }
+
+    fn read_page_context_table_of_contents(&self) -> crate::utils::html::HtmlString {
+        self.state.with(|state| state.table_of_contents.clone())
+    }
+
+    fn write_page_context_table_of_contents(&self, value: crate::utils::html::HtmlString) {
+        self.state.with_mut(|state| state.table_of_contents = value);
+    }
+
+    fn read_page_context_content(&self) -> crate::utils::html::HtmlString {
+        self.state.with(|state| state.content.clone())
+    }
+
+    fn write_page_context_content(&self, value: crate::utils::html::HtmlString) {
+        self.state.with_mut(|state| state.content = value);
+    }
+
+    fn read_page_context_summary(&self) -> crate::utils::html::HtmlString {
+        self.state.with(|state| state.summary.clone())
+    }
+
+    fn write_page_context_summary(&self, value: crate::utils::html::HtmlString) {
+        self.state.with_mut(|state| state.summary = value);
+    }
+
+    fn read_page_context_description(&self) -> String {
+        self.state.with(|state| state.description.clone())
+    }
+
+    fn write_page_context_description(&self, value: String) {
+        self.state.with_mut(|state| state.description = value);
+    }
+
+    fn read_page_context_tags(&self) -> js_abi::JsArray<String> {
+        self.state.with(|state| state.tags.clone())
+    }
+
+    fn write_page_context_tags(&self, value: js_abi::JsArray<String>) {
+        self.state.with_mut(|state| state.tags = value);
+    }
+
+    fn read_page_context_categories(&self) -> js_abi::JsArray<String> {
+        self.state.with(|state| state.categories.clone())
+    }
+
+    fn write_page_context_categories(&self, value: js_abi::JsArray<String>) {
+        self.state.with_mut(|state| state.categories = value);
+    }
+
+    fn read_page_context_params(&self) -> js_abi::JsMap<String, crate::params::ParamValue> {
+        self.state.with(|state| state.params.clone())
+    }
+
+    fn write_page_context_params(&self, value: js_abi::JsMap<String, crate::params::ParamValue>) {
+        self.state.with_mut(|state| state.params = value);
+    }
+
+    fn read_page_context_file(&self) -> Option<crate::models::page_file::PageFile> {
+        self.state.with(|state| state.file.clone())
+    }
+
+    fn write_page_context_file(&self, value: Option<crate::models::page_file::PageFile>) {
+        self.state.with_mut(|state| state.file = value);
+    }
+
+    fn read_page_context_language(&self) -> crate::models::language::LanguageContext {
+        self.state.with(|state| state.language.clone())
+    }
+
+    fn write_page_context_language(&self, value: crate::models::language::LanguageContext) {
+        self.state.with_mut(|state| state.language = value);
+    }
+
+    fn read_page_context_translations(&self) -> js_abi::JsArray<PageContext> {
+        self.state.with(|state| state.translations.clone())
+    }
+
+    fn write_page_context_translations(&self, value: js_abi::JsArray<PageContext>) {
+        self.state.with_mut(|state| state.translations = value);
+    }
+
+    fn read_page_context_store(&self) -> Option<crate::template::values::scratch::ScratchStore> {
+        self.state.with(|state| state.store.clone())
+    }
+
+    fn write_page_context_store(
+        &self,
+        value: Option<crate::template::values::scratch::ScratchStore>,
+    ) {
+        self.state.with_mut(|state| state.store = value);
+    }
+
+    fn read_page_context_site(&self) -> crate::models::site_context::SiteContext {
+        self.state.with(|state| state.site.clone())
+    }
+
+    fn write_page_context_site(&self, value: crate::models::site_context::SiteContext) {
+        self.state.with_mut(|state| state.site = value);
+    }
+
+    fn read_page_context_pages(&self) -> js_abi::JsArray<PageContext> {
+        self.state.with(|state| state.pages.clone())
+    }
+
+    fn write_page_context_pages(&self, value: js_abi::JsArray<PageContext>) {
+        self.state.with_mut(|state| state.pages = value);
+    }
+
+    fn read_page_context_layout(&self) -> Option<String> {
+        self.state.with(|state| state.layout.clone())
+    }
+
+    fn write_page_context_layout(&self, value: Option<String>) {
+        self.state.with_mut(|state| state.layout = value);
+    }
+
+    fn read_page_context_parent(&self) -> Option<PageContext> {
+        self.state.with(|state| state.parent.clone())
+    }
+
+    fn write_page_context_parent(&self, value: Option<PageContext>) {
+        self.state.with_mut(|state| state.parent = value);
+    }
+
+    fn read_page_context_ancestors(&self) -> js_abi::JsArray<PageContext> {
+        self.state.with(|state| state.ancestors.clone())
+    }
+
+    fn write_page_context_ancestors(&self, value: js_abi::JsArray<PageContext>) {
+        self.state.with_mut(|state| state.ancestors = value);
+    }
+
+    fn read_page_context_resource_source_dir(&self) -> Option<String> {
+        self.state.with(|state| state.resource_source_dir.clone())
+    }
+
+    fn write_page_context_resource_source_dir(&self, value: Option<String>) {
+        self.state
+            .with_mut(|state| state.resource_source_dir = value);
+    }
+
+    fn read_page_context_shortcode_names(&self) -> js_abi::JsMap<String, bool> {
+        self.state.with(|state| state.shortcode_names.clone())
+    }
+
+    fn write_page_context_shortcode_names(&self, value: js_abi::JsMap<String, bool>) {
+        self.state.with_mut(|state| state.shortcode_names = value);
     }
 }

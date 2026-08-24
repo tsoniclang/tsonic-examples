@@ -24,7 +24,7 @@ namespace Tsumo.Engine
                 {
                     DocsMarkdownRoute route = routes[index];
                     ParsedContent parsed = Frontmatter_parse.parseContent(Fs.readTextFile(route.sourcePath), route.sourcePath);
-                    DocsContentRoute content = new DocsContentRoute(route, parsed, Tsonic.CSharp.Node.fs.statSync(route.sourcePath).mtime);
+                    DocsContentRoute content = new DocsContentRoute(route, parsed, new Tsonic.CSharp.Js.Date(Tsonic.CSharp.Node.fs.statSync(route.sourcePath).mtimeMs));
                     if (route.isIndex)
                     {
                         indexByDirectory.set(route.dirKey, content);

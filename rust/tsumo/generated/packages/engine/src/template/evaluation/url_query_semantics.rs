@@ -6,12 +6,12 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-pub(crate) fn is_hex_digit(value: &str) -> bool {
+pub fn is_hex_digit(value: &str) -> bool {
     let code: f64 = js_string::char_code_at(value, 0.0);
     (48.0..=57.0).contains(&code) || (65.0..=70.0).contains(&code) || (97.0..=102.0).contains(&code)
 }
 
-pub(crate) fn decode_query_component(value: String) -> rt::TsonicResult<String> {
+pub fn decode_query_component(value: String) -> Result<String, rt::TsonicError> {
     {
         let mut index: f64 = 0.0;
         'loop_value: while index
@@ -39,7 +39,7 @@ pub(crate) fn decode_query_component(value: String) -> rt::TsonicResult<String> 
                     1,
                 )?)
             {
-                return Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                     String::from("TSUMO_TEMPLATE_URL_QUERY_INVALID"),
                     String::from("URL query contains an invalid percent escape"),
                     None,
@@ -59,7 +59,7 @@ pub(crate) fn decode_query_component(value: String) -> rt::TsonicResult<String> 
     let try_flow: rt::TsonicResult<rt::Completion<String>> = match try_body {
         Ok(completion) => Ok(completion),
         Err(__error) => rt::completion_region(|| {
-            Err(rt::TsonicError::from(crate::diagnostics::create_tsumo_error(
+            Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                 String::from("TSUMO_TEMPLATE_URL_QUERY_INVALID"),
                 String::from("URL query contains invalid UTF-8 data"),
                 None,
@@ -82,15 +82,12 @@ pub(crate) fn decode_query_component(value: String) -> rt::TsonicResult<String> 
 
 pub fn parse_url_query(
     raw_query: String,
-) -> rt::TsonicResult<crate::template::values::url::UrlQueryValue> {
+) -> Result<crate::template::values::url::UrlQueryValue, rt::TsonicError> {
     let values: js_abi::JsMap<String, js_abi::JsArray<String>> = js_abi::JsMap::new();
     if raw_query.is_empty() {
-        return Ok(crate::template::values::url::UrlQueryValue::new(
-            values.clone(),
-        ));
+        return Ok(crate::template::values::url::UrlQueryValue::new(values.clone()));
     }
-    let fields: js_abi::JsArray<String> =
-        js_string::split_all(&raw_query, "&").map_err(tsonic_rust_runtime::TsonicError::from)?;
+    let fields: js_abi::JsArray<String> = js_string::split_all(&raw_query, "&")?;
     {
         let mut index: f64 = 0.0;
         'loop_value: while index < (tsonic_rust_runtime::conversions::usize_to_i32(fields.len())? as f64) {
@@ -120,28 +117,25 @@ pub fn parse_url_query(
             let value: String = decode_query_component(raw_value.clone())?;
             let existing: Option<js_abi::JsArray<String>> = values.get(&name);
             if existing.is_none() {
-                values.set(name.clone(), js_abi::JsArray::from_dense(vec![value.clone()]));
+                values.set_discard(name.clone(), js_abi::JsArray::from_dense(vec![value.clone()]));
             } else {
-                tsonic_rust_runtime::conversions::usize_to_i32(
-                    match existing.as_ref() {
-                        Some(flow_value_2) => flow_value_2.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }
-                    .push_many([value.clone()]),
-                )?;
+                (match existing.as_ref() {
+    Some(flow_value_2) => flow_value_2.clone(),
+    None => unreachable!("checked flow selected a missing optional value"),
+}).push_many_discard([
+                    value.clone(),
+                ]);
             }
             index += 1.0;
         }
     }
-    Ok(crate::template::values::url::UrlQueryValue::new(
-        values.clone(),
-    ))
+    Ok(crate::template::values::url::UrlQueryValue::new(values.clone()))
 }
 
 pub fn get_url_query_value(
     query: js_abi::JsMap<String, js_abi::JsArray<String>>,
     name: String,
-) -> rt::TsonicResult<Option<String>> {
+) -> Result<Option<String>, rt::TsonicError> {
     let values: Option<js_abi::JsArray<String>> = query.get(&name);
     Ok({
         let conditional_test = values.is_none()
@@ -155,16 +149,18 @@ pub fn get_url_query_value(
         if conditional_test {
             Option::<String>::None
         } else {
-            Some(match match values.as_ref() {
-                Some(flow_value_2) => flow_value_2.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            }
-            .get_number(0.0)
-            .as_ref()
-            {
-                Some(flow_value_3) => flow_value_3.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            })
+            Some(
+                match match values.as_ref() {
+                    Some(flow_value_2) => flow_value_2.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }
+                .get_number(0.0)
+                .as_ref()
+                {
+                    Some(flow_value_3) => flow_value_3.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                },
+            )
         }
     })
 }

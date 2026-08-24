@@ -4,8 +4,9 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait ExprDispatch {
+pub trait ExprDispatch {
     fn downcast_expr_to_access_expr(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn AccessExprDispatch>>;
@@ -21,14 +22,23 @@ pub(crate) trait ExprDispatch {
     ) -> Option<std::rc::Rc<dyn TokenExprDispatch>>;
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct ExprState {}
+pub struct ExprState {}
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct Expr {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn ExprDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn ExprDispatch>,
+}
+
+impl std::fmt::Debug for Expr {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("Expr")
+    }
 }
 
 impl PartialEq for Expr {
@@ -46,7 +56,8 @@ pub(crate) struct ExprRoot {
 }
 
 impl Expr {
-    pub(crate) fn initialize_state() -> ExprState {
+    #[doc(hidden)]
+    pub fn initialize_state() -> ExprState {
         ExprState {}
     }
 
@@ -100,8 +111,9 @@ impl ExprDispatch for ExprRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait TokenExprDispatch: ExprDispatch {
+pub trait TokenExprDispatch: ExprDispatch {
     fn downcast_token_expr_to_token_expr(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn TokenExprDispatch>>;
@@ -109,17 +121,27 @@ pub(crate) trait TokenExprDispatch: ExprDispatch {
     fn write_token_expr_token(&self, value: String);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct TokenExprState {
-    pub(crate) base: ExprState,
-    pub(crate) token: String,
+pub struct TokenExprState {
+    #[doc(hidden)]
+    pub base: ExprState,
+    pub token: String,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct TokenExpr {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn TokenExprDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn TokenExprDispatch>,
+}
+
+impl std::fmt::Debug for TokenExpr {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("TokenExpr")
+    }
 }
 
 impl PartialEq for TokenExpr {
@@ -137,9 +159,10 @@ pub(crate) struct TokenExprRoot {
 }
 
 impl TokenExpr {
-    pub(crate) fn initialize_state(token: String) -> TokenExprState {
+    #[doc(hidden)]
+    pub fn initialize_state(token: String) -> TokenExprState {
         let base_state = Expr::initialize_state();
-        let field_token: String = token.clone();
+        let field_token: String = token;
         TokenExprState {
             base: base_state,
             token: field_token,
@@ -206,8 +229,9 @@ impl TokenExprDispatch for TokenExprRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait PipelineExprDispatch: ExprDispatch {
+pub trait PipelineExprDispatch: ExprDispatch {
     fn downcast_pipeline_expr_to_pipeline_expr(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn PipelineExprDispatch>>;
@@ -215,17 +239,27 @@ pub(crate) trait PipelineExprDispatch: ExprDispatch {
     fn write_pipeline_expr_pipeline(&self, value: Pipeline);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct PipelineExprState {
-    pub(crate) base: ExprState,
-    pub(crate) pipeline: Pipeline,
+pub struct PipelineExprState {
+    #[doc(hidden)]
+    pub base: ExprState,
+    pub pipeline: Pipeline,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct PipelineExpr {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn PipelineExprDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn PipelineExprDispatch>,
+}
+
+impl std::fmt::Debug for PipelineExpr {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("PipelineExpr")
+    }
 }
 
 impl PartialEq for PipelineExpr {
@@ -243,9 +277,10 @@ pub(crate) struct PipelineExprRoot {
 }
 
 impl PipelineExpr {
-    pub(crate) fn initialize_state(pipeline: Pipeline) -> PipelineExprState {
+    #[doc(hidden)]
+    pub fn initialize_state(pipeline: Pipeline) -> PipelineExprState {
         let base_state = Expr::initialize_state();
-        let field_pipeline: Pipeline = pipeline.clone();
+        let field_pipeline: Pipeline = pipeline;
         PipelineExprState {
             base: base_state,
             pipeline: field_pipeline,
@@ -312,8 +347,9 @@ impl PipelineExprDispatch for PipelineExprRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait CommandExprDispatch: ExprDispatch {
+pub trait CommandExprDispatch: ExprDispatch {
     fn downcast_command_expr_to_command_expr(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn CommandExprDispatch>>;
@@ -321,17 +357,27 @@ pub(crate) trait CommandExprDispatch: ExprDispatch {
     fn write_command_expr_command(&self, value: Command);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct CommandExprState {
-    pub(crate) base: ExprState,
-    pub(crate) command: Command,
+pub struct CommandExprState {
+    #[doc(hidden)]
+    pub base: ExprState,
+    pub command: Command,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct CommandExpr {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn CommandExprDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn CommandExprDispatch>,
+}
+
+impl std::fmt::Debug for CommandExpr {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("CommandExpr")
+    }
 }
 
 impl PartialEq for CommandExpr {
@@ -349,9 +395,10 @@ pub(crate) struct CommandExprRoot {
 }
 
 impl CommandExpr {
-    pub(crate) fn initialize_state(command: Command) -> CommandExprState {
+    #[doc(hidden)]
+    pub fn initialize_state(command: Command) -> CommandExprState {
         let base_state = Expr::initialize_state();
-        let field_command: Command = command.clone();
+        let field_command: Command = command;
         CommandExprState {
             base: base_state,
             command: field_command,
@@ -418,8 +465,9 @@ impl CommandExprDispatch for CommandExprRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait AccessExprDispatch: ExprDispatch {
+pub trait AccessExprDispatch: ExprDispatch {
     fn downcast_access_expr_to_access_expr(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn AccessExprDispatch>>;
@@ -429,18 +477,28 @@ pub(crate) trait AccessExprDispatch: ExprDispatch {
     fn write_access_expr_segments(&self, value: js_abi::JsArray<String>);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct AccessExprState {
-    pub(crate) base_2: ExprState,
-    pub(crate) base: Expr,
-    pub(crate) segments: js_abi::JsArray<String>,
+pub struct AccessExprState {
+    #[doc(hidden)]
+    pub base_2: ExprState,
+    pub base: Expr,
+    pub segments: js_abi::JsArray<String>,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct AccessExpr {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn AccessExprDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn AccessExprDispatch>,
+}
+
+impl std::fmt::Debug for AccessExpr {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("AccessExpr")
+    }
 }
 
 impl PartialEq for AccessExpr {
@@ -458,13 +516,11 @@ pub(crate) struct AccessExprRoot {
 }
 
 impl AccessExpr {
-    pub(crate) fn initialize_state(
-        base: Expr,
-        segments: js_abi::JsArray<String>,
-    ) -> AccessExprState {
+    #[doc(hidden)]
+    pub fn initialize_state(base: Expr, segments: js_abi::JsArray<String>) -> AccessExprState {
         let base_state = Expr::initialize_state();
-        let field_base: Expr = base.clone();
-        let field_segments: js_abi::JsArray<String> = segments.clone();
+        let field_base: Expr = base;
+        let field_segments: js_abi::JsArray<String> = segments;
         AccessExprState {
             base_2: base_state,
             base: field_base,
@@ -540,23 +596,25 @@ impl AccessExprDispatch for AccessExprRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct CommandState {
-    pub(crate) head: Expr,
-    pub(crate) args: js_abi::JsArray<Expr>,
+pub struct CommandState {
+    pub head: Expr,
+    pub args: js_abi::JsArray<Expr>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Command {
-    pub(crate) state: rt::ObjectHandle<CommandState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<CommandState>,
 }
 
 impl Command {
     pub fn new(head: Expr, args: js_abi::JsArray<Expr>) -> Command {
-        let field_head: Expr = head.clone();
-        let field_args: js_abi::JsArray<Expr> = args.clone();
+        let field_head: Expr = head;
+        let field_args: js_abi::JsArray<Expr> = args;
         Command {
-            state: rt::ObjectHandle::new(CommandState {
+            state: rt::ObjectRef::new(CommandState {
                 head: field_head,
                 args: field_args,
             }),
@@ -564,21 +622,23 @@ impl Command {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct PipelineState {
-    pub(crate) stages: js_abi::JsArray<Command>,
+pub struct PipelineState {
+    pub stages: js_abi::JsArray<Command>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Pipeline {
-    pub(crate) state: rt::ObjectHandle<PipelineState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<PipelineState>,
 }
 
 impl Pipeline {
     pub fn new(stages: js_abi::JsArray<Command>) -> Pipeline {
-        let field_stages: js_abi::JsArray<Command> = stages.clone();
+        let field_stages: js_abi::JsArray<Command> = stages;
         Pipeline {
-            state: rt::ObjectHandle::new(PipelineState {
+            state: rt::ObjectRef::new(PipelineState {
                 stages: field_stages,
             }),
         }

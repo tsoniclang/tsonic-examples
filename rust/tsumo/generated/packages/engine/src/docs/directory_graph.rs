@@ -9,10 +9,10 @@ use crate::program as rt;
 pub fn add_docs_directory_with_parents(
     directory: &str,
     directories: js_abi::JsMap<String, bool>,
-) -> rt::TsonicResult<()> {
+) -> Result<(), rt::TsonicError> {
     let mut current: String = js_string::trim(directory);
     loop {
-        directories.set(current.clone(), true);
+        directories.set_discard(current.clone(), true);
         if current.is_empty() {
             return Ok(());
         }
@@ -28,7 +28,7 @@ pub fn add_docs_directory_with_parents(
     }
 }
 
-pub fn docs_directory_depth(directory: String) -> rt::TsonicResult<i32> {
+pub fn docs_directory_depth(directory: String) -> Result<i32, rt::TsonicError> {
     if directory.is_empty() {
         return Ok(0);
     }
@@ -46,7 +46,7 @@ pub fn docs_directory_depth(directory: String) -> rt::TsonicResult<i32> {
     }
 }
 
-pub fn docs_parent_directory(directory: String) -> rt::TsonicResult<String> {
+pub fn docs_parent_directory(directory: String) -> Result<String, rt::TsonicError> {
     let separator: i32 =
         tsonic_rust_runtime::conversions::isize_to_i32(js_string::last_index_of_from_end(
             &directory, "/",
@@ -58,7 +58,7 @@ pub fn docs_parent_directory(directory: String) -> rt::TsonicResult<String> {
     })
 }
 
-pub fn docs_directory_name(directory: String) -> rt::TsonicResult<String> {
+pub fn docs_directory_name(directory: String) -> Result<String, rt::TsonicError> {
     let separator: i32 =
         tsonic_rust_runtime::conversions::isize_to_i32(js_string::last_index_of_from_end(
             &directory, "/",
@@ -74,30 +74,43 @@ pub fn assign_docs_page_ancestry(
     page: crate::models::page_context::PageContext,
     parent: Option<crate::models::page_context::PageContext>,
     ancestors: js_abi::JsArray<crate::models::page_context::PageContext>,
-) -> rt::TsonicResult<()> {
+) -> Result<(), rt::TsonicError> {
     {
         let receiver = &page;
-        let value = parent.clone();
-        receiver.state.with_mut(|state| state.parent = value)
+        let value = parent;
+        {
+            let dispatch_receiver = receiver;
+            dispatch_receiver.dispatch.write_page_context_parent(value)
+        }
     };
     {
         let receiver_2 = &page;
         let value_2 = ancestors.clone();
-        receiver_2.state.with_mut(|state| state.ancestors = value_2)
+        {
+            let dispatch_receiver_2 = receiver_2;
+            dispatch_receiver_2
+                .dispatch
+                .write_page_context_ancestors(value_2)
+        }
     };
-    if page.state.with(|state| state.kind.clone()) == "page" {
+    if {
+        let dispatch_receiver_3 = &page;
+        dispatch_receiver_3.dispatch.read_page_context_kind()
+    } == "page"
+    {
         return Ok(());
     }
     {
         let mut index: f64 = 0.0;
         while index
-            < (tsonic_rust_runtime::conversions::usize_to_i32(page.state.with(|state| state.pages.clone()).len())? as f64)
+            < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver_4 = &page; dispatch_receiver_4.dispatch.read_page_context_pages() }.len())? as f64)
         {
-            let child: crate::models::page_context::PageContext = match page
-                .state
-                .with(|state| state.pages.clone())
-                .get_number(index)
-                .as_ref()
+            let child: crate::models::page_context::PageContext = match {
+                let dispatch_receiver_5 = &page;
+                dispatch_receiver_5.dispatch.read_page_context_pages()
+            }
+            .get_number(index)
+            .as_ref()
             {
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
@@ -109,21 +122,20 @@ pub fn assign_docs_page_ancestry(
                 while ancestor_index
                     < (tsonic_rust_runtime::conversions::usize_to_i32(ancestors.len())? as f64)
                 {
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        child_ancestors.push_many([match ancestors
+                    {
+                        let operation_input_0 = child_ancestors.clone();
+                        operation_input_0.push_many_discard([match ancestors
                             .get_number(ancestor_index)
                             .as_ref()
                         {
                             Some(flow_value_2) => flow_value_2.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
-                        }]),
-                    )?;
+                        }])
+                    };
                     ancestor_index += 1.0;
                 }
             }
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                child_ancestors.push_many([page.clone()]),
-            )?;
+            child_ancestors.push_many_discard([page.clone()]);
             assign_docs_page_ancestry(
                 child.clone(),
                 Some(page.clone()),

@@ -7,26 +7,32 @@ use tsonic_rust_js::string as js_string;
 pub fn param_to_template_value(
     value: crate::params::ParamValue,
 ) -> crate::template::values::base::TemplateValue {
-    if value.state.with(|state| state.kind)
-        == crate::params::PARAM_KIND_BOOL.with(|module_binding| module_binding.load())
+    if {
+        let dispatch_receiver = &value;
+        dispatch_receiver.dispatch.read_param_value_kind()
+    } == crate::params::PARAM_KIND_BOOL.with(|module_binding| module_binding.load())
     {
         return {
-            let upcast_value = crate::template::values::primitives::BoolValue::new(
-                value.state.with(|state| state.bool_value),
-            );
+            let upcast_value = crate::template::values::primitives::BoolValue::new({
+                let dispatch_receiver_2 = &value;
+                dispatch_receiver_2.dispatch.read_param_value_bool_value()
+            });
             crate::template::values::base::TemplateValue {
                 identity: upcast_value.identity.clone(),
                 dispatch: upcast_value.dispatch.clone(),
             }
         };
     }
-    if value.state.with(|state| state.kind)
-        == crate::params::PARAM_KIND_NUMBER.with(|module_binding| module_binding.load())
+    if {
+        let dispatch_receiver_3 = &value;
+        dispatch_receiver_3.dispatch.read_param_value_kind()
+    } == crate::params::PARAM_KIND_NUMBER.with(|module_binding| module_binding.load())
     {
         return {
-            let upcast_value_2 = crate::template::values::primitives::NumberValue::new(
-                value.state.with(|state| state.number_value),
-            );
+            let upcast_value_2 = crate::template::values::primitives::NumberValue::new({
+                let dispatch_receiver_4 = &value;
+                dispatch_receiver_4.dispatch.read_param_value_number_value()
+            });
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_2.identity.clone(),
                 dispatch: upcast_value_2.dispatch.clone(),
@@ -34,9 +40,10 @@ pub fn param_to_template_value(
         };
     }
     {
-        let upcast_value_3 = crate::template::values::primitives::StringValue::new(
-            value.state.with(|state| state.string_value.clone()),
-        );
+        let upcast_value_3 = crate::template::values::primitives::StringValue::new({
+            let dispatch_receiver_5 = &value;
+            dispatch_receiver_5.dispatch.read_param_value_string_value()
+        });
         crate::template::values::base::TemplateValue {
             identity: upcast_value_3.identity.clone(),
             dispatch: upcast_value_3.dispatch.clone(),

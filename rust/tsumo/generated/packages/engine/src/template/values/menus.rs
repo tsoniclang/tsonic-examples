@@ -4,8 +4,9 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait MenuEntryValueDispatch:
+pub trait MenuEntryValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_menu_entry_value_to_menu_entry_value(
@@ -17,18 +18,28 @@ pub(crate) trait MenuEntryValueDispatch:
     fn write_menu_entry_value_site(&self, value: crate::models::site_context::SiteContext);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct MenuEntryValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: crate::models::menu_entry::MenuEntry,
-    pub(crate) site: crate::models::site_context::SiteContext,
+pub struct MenuEntryValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: crate::models::menu_entry::MenuEntry,
+    pub site: crate::models::site_context::SiteContext,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct MenuEntryValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn MenuEntryValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn MenuEntryValueDispatch>,
+}
+
+impl std::fmt::Debug for MenuEntryValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("MenuEntryValue")
+    }
 }
 
 impl PartialEq for MenuEntryValue {
@@ -46,13 +57,14 @@ pub(crate) struct MenuEntryValueRoot {
 }
 
 impl MenuEntryValue {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         value: crate::models::menu_entry::MenuEntry,
         site: crate::models::site_context::SiteContext,
     ) -> MenuEntryValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: crate::models::menu_entry::MenuEntry = value.clone();
-        let field_site: crate::models::site_context::SiteContext = site.clone();
+        let field_value: crate::models::menu_entry::MenuEntry = value;
+        let field_site: crate::models::site_context::SiteContext = site;
         MenuEntryValueState {
             base: base_state,
             value: field_value,
@@ -393,8 +405,9 @@ impl MenuEntryValueDispatch for MenuEntryValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait MenuArrayValueDispatch:
+pub trait MenuArrayValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_menu_array_value_to_menu_array_value(
@@ -409,18 +422,28 @@ pub(crate) trait MenuArrayValueDispatch:
     fn write_menu_array_value_site(&self, value: crate::models::site_context::SiteContext);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct MenuArrayValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
-    pub(crate) site: crate::models::site_context::SiteContext,
+pub struct MenuArrayValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
+    pub site: crate::models::site_context::SiteContext,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct MenuArrayValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn MenuArrayValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn MenuArrayValueDispatch>,
+}
+
+impl std::fmt::Debug for MenuArrayValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("MenuArrayValue")
+    }
 }
 
 impl PartialEq for MenuArrayValue {
@@ -438,13 +461,14 @@ pub(crate) struct MenuArrayValueRoot {
 }
 
 impl MenuArrayValue {
-    pub(crate) fn initialize_state(
+    #[doc(hidden)]
+    pub fn initialize_state(
         value: js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
         site: crate::models::site_context::SiteContext,
     ) -> MenuArrayValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: js_abi::JsArray<crate::models::menu_entry::MenuEntry> = value.clone();
-        let field_site: crate::models::site_context::SiteContext = site.clone();
+        let field_value: js_abi::JsArray<crate::models::menu_entry::MenuEntry> = value;
+        let field_site: crate::models::site_context::SiteContext = site;
         MenuArrayValueState {
             base: base_state,
             value: field_value,
@@ -788,10 +812,9 @@ impl MenuArrayValueDispatch for MenuArrayValueRoot {
     }
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait MenusValueDispatch:
-    crate::template::values::base::TemplateValueDispatch
-{
+pub trait MenusValueDispatch: crate::template::values::base::TemplateValueDispatch {
     fn downcast_menus_value_to_menus_value(
         self: std::rc::Rc<Self>,
     ) -> Option<std::rc::Rc<dyn MenusValueDispatch>>;
@@ -799,17 +822,27 @@ pub(crate) trait MenusValueDispatch:
     fn write_menus_value_site(&self, value: crate::models::site_context::SiteContext);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct MenusValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) site: crate::models::site_context::SiteContext,
+pub struct MenusValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub site: crate::models::site_context::SiteContext,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct MenusValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn MenusValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn MenusValueDispatch>,
+}
+
+impl std::fmt::Debug for MenusValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("MenusValue")
+    }
 }
 
 impl PartialEq for MenusValue {
@@ -827,11 +860,10 @@ pub(crate) struct MenusValueRoot {
 }
 
 impl MenusValue {
-    pub(crate) fn initialize_state(
-        site: crate::models::site_context::SiteContext,
-    ) -> MenusValueState {
+    #[doc(hidden)]
+    pub fn initialize_state(site: crate::models::site_context::SiteContext) -> MenusValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_site: crate::models::site_context::SiteContext = site.clone();
+        let field_site: crate::models::site_context::SiteContext = site;
         MenusValueState {
             base: base_state,
             site: field_site,

@@ -7,26 +7,26 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 std::thread_local! {
-    pub(crate) static WORD_SEPARATOR_SPACE: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
+    pub static WORD_SEPARATOR_SPACE: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
 }
 
 std::thread_local! {
-    pub(crate) static WORD_SEPARATOR_DASH: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
+    pub static WORD_SEPARATOR_DASH: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
 }
 
 std::thread_local! {
-    pub(crate) static WORD_SEPARATOR_UNDERSCORE: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
+    pub static WORD_SEPARATOR_UNDERSCORE: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
 }
 
 std::thread_local! {
-    pub(crate) static WORD_SEPARATOR_DOT: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
+    pub static WORD_SEPARATOR_DOT: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
 }
 
 std::thread_local! {
-    pub(crate) static WORD_SEPARATOR_SLASH: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
+    pub static WORD_SEPARATOR_SLASH: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
 }
 
-pub(crate) fn is_word_separator(ch: String) -> bool {
+pub fn is_word_separator(ch: String) -> bool {
     ch == WORD_SEPARATOR_SPACE.with(|module_binding| module_binding.load())
         || ch == WORD_SEPARATOR_DASH.with(|module_binding| module_binding.load())
         || ch == WORD_SEPARATOR_UNDERSCORE.with(|module_binding| module_binding.load())
@@ -34,10 +34,9 @@ pub(crate) fn is_word_separator(ch: String) -> bool {
         || ch == WORD_SEPARATOR_SLASH.with(|module_binding| module_binding.load())
 }
 
-pub fn slugify(input: &str) -> rt::TsonicResult<String> {
+pub fn slugify(input: &str) -> Result<String, rt::TsonicError> {
     let lower: String = js_string::to_lower_case(&js_string::trim(input));
-    let chars: js_abi::JsArray<String> =
-        js_string::split_all(&lower, "").map_err(tsonic_rust_runtime::TsonicError::from)?;
+    let chars: js_abi::JsArray<String> = js_string::split_all(&lower, "")?;
     let output: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     let mut wrote_dash: bool = false;
     {
@@ -47,11 +46,10 @@ pub fn slugify(input: &str) -> rt::TsonicResult<String> {
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let is_alpha_numeric: bool = js_abi::JsRegExp::new("^[a-z0-9]$", "i")?
-                .test(&ch)
-                .map_err(tsonic_rust_runtime::TsonicError::from)?;
+            let is_alpha_numeric: bool =
+                js_abi::regexp_test_native(&js_abi::regexp_new_native("^[a-z0-9]$", "i")?, &ch)?;
             if is_alpha_numeric {
-                tsonic_rust_runtime::conversions::usize_to_i32(output.push_many([ch.clone()]))?;
+                output.push_many_discard([ch.clone()]);
                 wrote_dash = false;
                 i += 1.0;
                 continue 'loop_value;
@@ -60,12 +58,9 @@ pub fn slugify(input: &str) -> rt::TsonicResult<String> {
                 && tsonic_rust_runtime::conversions::usize_to_i32(output.len())? > 0
                 && !wrote_dash
             {
-                tsonic_rust_runtime::conversions::usize_to_i32(
-                    output
-                        .push_many([
-                            WORD_SEPARATOR_DASH.with(|module_binding| module_binding.load()),
-                        ]),
-                )?;
+                output.push_many_discard([
+                    WORD_SEPARATOR_DASH.with(|module_binding| module_binding.load()),
+                ]);
                 wrote_dash = true;
             }
             i += 1.0;
@@ -73,12 +68,12 @@ pub fn slugify(input: &str) -> rt::TsonicResult<String> {
     }
     let mut out: String = output.join("");
     while js_string::starts_with_from_start(&out, "-") {
-        out = js_string::substring_from(&out, 1.0).map_err(tsonic_rust_runtime::TsonicError::from)?;
+        out = js_string::substring_from(&out, 1.0)?;
     }
-    crate::utils::strings::trim_end_char(&out, String::from("-"))
+    crate::utils::strings::trim_end_char(out.clone(), String::from("-"))
 }
 
-pub fn humanize_slug(slug: String) -> rt::TsonicResult<String> {
+pub fn humanize_slug(slug: String) -> Result<String, rt::TsonicError> {
     let parts: js_abi::JsArray<String> = js_string::split_all(
         &crate::utils::strings::replace_text(
             &crate::utils::strings::replace_text(&slug, String::from("_"), String::from("-"))?,
@@ -86,8 +81,7 @@ pub fn humanize_slug(slug: String) -> rt::TsonicResult<String> {
             String::from("-"),
         )?,
         "-",
-    )
-    .map_err(tsonic_rust_runtime::TsonicError::from)?;
+    )?;
     let words: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     {
         let mut i: f64 = 0.0;
@@ -112,18 +106,18 @@ pub fn humanize_slug(slug: String) -> rt::TsonicResult<String> {
                 i += 1.0;
                 continue 'loop_value;
             }
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                words.push_many([
+            {
+                let operation_input_0 = words.clone();
+                operation_input_0.push_many_discard([
                     format!(
                         "{}{}",
                         js_string::to_upper_case(
                             &crate::utils::strings::substring_count(part.clone(), 0, 1)?,
                         ),
-                        js_string::substring_from(&part, 1.0)
-                            .map_err(tsonic_rust_runtime::TsonicError::from)?,
+                        js_string::substring_from(&part, 1.0)?,
                     ),
-                ]),
-            )?;
+                ])
+            };
             i += 1.0;
         }
     }
@@ -132,7 +126,7 @@ pub fn humanize_slug(slug: String) -> rt::TsonicResult<String> {
 
 pub fn ensure_trailing_slash(url: String) -> String {
     if url.is_empty() {
-        return url.clone();
+        return url;
     }
     if js_string::ends_with_at_end(&url, "/") {
         url.clone()

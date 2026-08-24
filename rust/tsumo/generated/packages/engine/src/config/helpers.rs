@@ -4,7 +4,9 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
-pub fn try_get_first_existing(paths: js_abi::JsArray<String>) -> rt::TsonicResult<Option<String>> {
+pub fn try_get_first_existing(
+    paths: js_abi::JsArray<String>,
+) -> Result<Option<String>, rt::TsonicError> {
     {
         let mut i: f64 = 0.0;
         while i < (tsonic_rust_runtime::conversions::usize_to_i32(paths.len())? as f64) {
@@ -12,10 +14,7 @@ pub fn try_get_first_existing(paths: js_abi::JsArray<String>) -> rt::TsonicResul
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            if crate::fs::FILE_EXISTS
-                .with(|module_binding| module_binding.load())
-                .call((p.clone(),))?
-            {
+            if crate::fs::file_exists(p.clone())? {
                 return Ok(Some(p.clone()));
             }
             i += 1.0;
@@ -26,19 +25,19 @@ pub fn try_get_first_existing(paths: js_abi::JsArray<String>) -> rt::TsonicResul
 
 pub fn sort_languages(
     langs: js_abi::JsArray<crate::models::language::LanguageConfig>,
-) -> rt::TsonicResult<js_abi::JsArray<crate::models::language::LanguageConfig>> {
+) -> Result<js_abi::JsArray<crate::models::language::LanguageConfig>, rt::TsonicError> {
     let copy: js_abi::JsArray<crate::models::language::LanguageConfig> =
         js_abi::JsArray::from_dense(vec![]);
     {
         let mut i: f64 = 0.0;
         while i < (tsonic_rust_runtime::conversions::usize_to_i32(langs.len())? as f64) {
-            tsonic_rust_runtime::conversions::usize_to_i32(copy.push_many([match langs
-                .get_number(i)
-                .as_ref()
             {
-                Some(flow_value) => flow_value.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            }]))?;
+                let operation_input_0 = copy.clone();
+                operation_input_0.push_many_discard([match langs.get_number(i).as_ref() {
+                    Some(flow_value) => flow_value.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }])
+            };
             i += 1.0;
         }
     }

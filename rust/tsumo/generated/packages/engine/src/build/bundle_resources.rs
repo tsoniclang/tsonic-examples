@@ -9,11 +9,9 @@ pub fn add_bundle_resources(
     output_prefix: String,
     owner: String,
     output_plan: crate::build::output_plan::SiteOutputPlan,
-) -> rt::TsonicResult<()> {
+) -> Result<(), rt::TsonicError> {
     let files: js_abi::JsArray<crate::resources::page_bundle::PageBundleResourceFile> =
-        crate::resources::page_bundle::DISCOVER_PAGE_BUNDLE_RESOURCE_FILES
-            .with(|module_binding| module_binding.load())
-            .call((source_dir.clone(),))?;
+        crate::resources::page_bundle::discover_page_bundle_resource_files(source_dir)?;
     {
         let mut index: f64 = 0.0;
         while index < (tsonic_rust_runtime::conversions::usize_to_i32(files.len())? as f64) {
@@ -28,20 +26,21 @@ pub fn add_bundle_resources(
                 file.state.with(|state| state.relative_path.clone())
             } else {
                 format!(
-                    "{}{}{}{}{}",
-                    String::from(""),
-                    rt::source_string(&output_prefix),
+                    "{}{}{}",
+                    output_prefix,
                     String::from("/"),
-                    rt::source_string(&file.state.with(|state| state.relative_path.clone())),
-                    String::from(""),
+                    file.state.with(|state| state.relative_path.clone()),
                 )
             };
-            output_plan.add_asset(
-                output_path.clone(),
-                file.state.with(|state| state.source_path.clone()),
-                owner.clone(),
-                crate::build::output_plan::AssetLayer::Bundle,
-            )?;
+            {
+                let dispatch_receiver = output_plan.clone();
+                dispatch_receiver.dispatch.clone().dispatch_site_output_plan_add_asset(
+                    output_path.clone(),
+                    file.state.with(|state| state.source_path.clone()),
+                    owner.clone(),
+                    crate::build::output_plan::AssetLayer::Bundle,
+                )
+            }?;
             index += 1.0;
         }
     }

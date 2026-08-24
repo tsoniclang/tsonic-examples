@@ -4,15 +4,17 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct WatchEntryStateState {
-    pub(crate) modified_at: f64,
-    pub(crate) size: f64,
+pub struct WatchEntryStateState {
+    pub modified_at: f64,
+    pub size: f64,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct WatchEntryState {
-    pub(crate) state: rt::ObjectHandle<WatchEntryStateState>,
+    #[doc(hidden)]
+    pub state: rt::ObjectRef<WatchEntryStateState>,
 }
 
 impl WatchEntryState {
@@ -20,7 +22,7 @@ impl WatchEntryState {
         let field_modified_at: f64 = modified_at;
         let field_size: f64 = size;
         WatchEntryState {
-            state: rt::ObjectHandle::new(WatchEntryStateState {
+            state: rt::ObjectRef::new(WatchEntryStateState {
                 modified_at: field_modified_at,
                 size: field_size,
             }),
@@ -28,173 +30,106 @@ impl WatchEntryState {
     }
 }
 
-type AddFileStateCallable =
-    rt::Callable<(js_abi::JsMap<String, WatchEntryState>, String), rt::TsonicResult<()>>;
-
-std::thread_local! {
-    pub(crate) static ADD_FILE_STATE: rt::ModuleCell<AddFileStateCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type CreateWatchSnapshotCallable =
-    rt::Callable<
-        (js_abi::JsArray<String>,),
-        rt::TsonicResult<js_abi::JsMap<String, WatchEntryState>>,
-    >;
-
-std::thread_local! {
-    pub static CREATE_WATCH_SNAPSHOT: rt::ModuleCell<CreateWatchSnapshotCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type WatchSnapshotsEqualCallable =
-    rt::Callable<
-        (
-            js_abi::JsMap<String, WatchEntryState>,
-            js_abi::JsMap<String, WatchEntryState>,
-        ),
-        rt::TsonicResult<bool>,
-    >;
-
-std::thread_local! {
-    pub static WATCH_SNAPSHOTS_EQUAL: rt::ModuleCell<WatchSnapshotsEqualCallable> = const { rt::ModuleCell::new() };
-}
-
-#[doc(hidden)]
-pub fn module_init() {
+pub fn add_file_state(
+    snapshot: js_abi::JsMap<String, WatchEntryState>,
+    path: String,
+) -> Result<(), rt::TsonicError> {
+    crate::fs::REJECT_FILESYSTEM_LINK
+        .with(|module_binding| module_binding.load())
+        .call((path.clone(),))?;
+    let stats: tsonic_rust_node::fs::Stats = tsonic_rust_node::fs::stat_sync(&path)?;
     {
-        let module_value = rt::Callable::<
-            (js_abi::JsMap<String, WatchEntryState>, String),
-            rt::TsonicResult<()>,
-        >::new(move |callable_arguments| {
-            let snapshot = callable_arguments.0;
-            let path = callable_arguments.1;
-            crate::fs::REJECT_FILESYSTEM_LINK
-                .with(|module_binding| module_binding.load())
-                .call((path.clone(),))?;
-            let stats: tsonic_rust_node::fs::Stats = tsonic_rust_node::fs::stat_sync(&path)
-                .map_err(tsonic_rust_runtime::TsonicError::from)?;
-            snapshot.set(
-                path.clone(),
-                WatchEntryState::new(
-                    stats.mtime_ms(),
-                    tsonic_rust_runtime::conversions::u64_to_f64(stats.size),
-                ),
-            );
-            Ok::<_, rt::TsonicError>(())
-        });
-        ADD_FILE_STATE.with(|module_binding| module_binding.initialize(module_value))
-    };
-    {
-        let module_value_2 = rt::Callable::<
-            (js_abi::JsArray<String>,),
-            rt::TsonicResult<js_abi::JsMap<String, WatchEntryState>>,
-        >::new(move |callable_arguments_2| {
-            let targets = callable_arguments_2.0;
-            let snapshot: js_abi::JsMap<String, WatchEntryState> = js_abi::JsMap::new();
-            {
-                let mut i: f64 = 0.0;
-                'loop_value: while i < (tsonic_rust_runtime::conversions::usize_to_i32(targets.len())? as f64) {
-                    let target: String = match targets.get_number(i).as_ref() {
-                        Some(flow_value) => flow_value.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    };
-                    if crate::fs::FILE_EXISTS
-                        .with(|module_binding| module_binding.load())
-                        .call((target.clone(),))?
-                    {
-                        ADD_FILE_STATE
-                            .with(|module_binding| module_binding.load())
-                            .call((snapshot.clone(), target.clone()))?;
-                        i += 1.0;
-                        continue 'loop_value;
-                    }
-                    if !crate::fs::DIR_EXISTS
-                        .with(|module_binding| module_binding.load())
-                        .call((target.clone(),))?
-                    {
-                        i += 1.0;
-                        continue 'loop_value;
-                    }
-                    let files: js_abi::JsArray<String> = crate::fs::LIST_FILES_RECURSIVE
-                        .with(|module_binding| module_binding.load())
-                        .call((target.clone(), String::from("*")))?;
-                    {
-                        let mut j: f64 = 0.0;
-                        while j
-                            < (tsonic_rust_runtime::conversions::usize_to_i32(files.len())? as f64)
-                        {
-                            ADD_FILE_STATE
-                                .with(|module_binding| module_binding.load())
-                                .call((
-                                    snapshot.clone(),
-                                    match files.get_number(j).as_ref() {
-                                        Some(flow_value_2) => flow_value_2.clone(),
-                                        None => {
-                                            unreachable!(
-                                                "checked flow selected a missing optional value"
-                                            )
-                                        }
-                                    },
-                                ))?;
-                            j += 1.0;
-                        }
-                    }
-                    i += 1.0;
-                }
-            }
-            Ok::<_, rt::TsonicError>(snapshot.clone())
-        });
-        CREATE_WATCH_SNAPSHOT.with(|module_binding_2| module_binding_2.initialize(module_value_2))
-    };
-    {
-        let module_value_3 = rt::Callable::<
-            (
-                js_abi::JsMap<String, WatchEntryState>,
-                js_abi::JsMap<String, WatchEntryState>,
+        let operation_input_0 = snapshot;
+        operation_input_0.set_discard(
+            path.clone(),
+            WatchEntryState::new(
+                stats.mtime_ms(),
+                tsonic_rust_runtime::conversions::u64_to_f64(stats.size),
             ),
-            rt::TsonicResult<bool>,
-        >::new(move |callable_arguments_3| {
-            let left = callable_arguments_3.0;
-            let right = callable_arguments_3.1;
-            if tsonic_rust_runtime::conversions::usize_to_i32(left.len())?
-                != tsonic_rust_runtime::conversions::usize_to_i32(right.len())?
-            {
-                return Ok::<_, rt::TsonicError>(false);
+        )
+    };
+    Ok(())
+}
+
+pub fn create_watch_snapshot(
+    targets: js_abi::JsArray<String>,
+) -> Result<js_abi::JsMap<String, WatchEntryState>, rt::TsonicError> {
+    let snapshot: js_abi::JsMap<String, WatchEntryState> = js_abi::JsMap::new();
+    {
+        let mut i: f64 = 0.0;
+        'loop_value: while i < (tsonic_rust_runtime::conversions::usize_to_i32(targets.len())? as f64) {
+            let target: String = match targets.get_number(i).as_ref() {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
+            if crate::fs::file_exists(target.clone())? {
+                add_file_state(snapshot.clone(), target.clone())?;
+                i += 1.0;
+                continue 'loop_value;
             }
-            for file_path in left.keys() {
-                let state: Option<WatchEntryState> = left.get(&file_path);
-                let other: Option<WatchEntryState> = right.get(&file_path);
-                if state.is_none()
-                    || other.is_none()
-                    || match state.as_ref() {
-                        Some(flow_value_3) => flow_value_3.clone(),
+            if !crate::fs::dir_exists(target.clone())? {
+                i += 1.0;
+                continue 'loop_value;
+            }
+            let files: js_abi::JsArray<String> =
+                crate::fs::list_files_recursive(target.clone(), String::from("*"))?;
+            {
+                let mut j: f64 = 0.0;
+                while j < (tsonic_rust_runtime::conversions::usize_to_i32(files.len())? as f64) {
+                    add_file_state(snapshot.clone(), match files.get_number(j).as_ref() {
+                        Some(flow_value_2) => flow_value_2.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
-                    }
-                    .state
-                    .with(|state| state.modified_at)
-                        != match other.as_ref() {
-                            Some(flow_value_4) => flow_value_4.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        }
-                        .state
-                        .with(|state| state.modified_at)
-                    || match state.as_ref() {
-                        Some(flow_value_5) => flow_value_5.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }
-                    .state
-                    .with(|state| state.size)
-                        != match other.as_ref() {
-                            Some(flow_value_6) => flow_value_6.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        }
-                        .state
-                        .with(|state| state.size)
-                {
-                    return Ok::<_, rt::TsonicError>(false);
+                    })?;
+                    j += 1.0;
                 }
             }
-            Ok::<_, rt::TsonicError>(true)
-        });
-        WATCH_SNAPSHOTS_EQUAL.with(|module_binding_3| module_binding_3.initialize(module_value_3))
-    };
+            i += 1.0;
+        }
+    }
+    Ok(snapshot)
+}
+
+pub fn watch_snapshots_equal(
+    left: js_abi::JsMap<String, WatchEntryState>,
+    right: js_abi::JsMap<String, WatchEntryState>,
+) -> Result<bool, rt::TsonicError> {
+    if tsonic_rust_runtime::conversions::usize_to_i32(left.len())?
+        != tsonic_rust_runtime::conversions::usize_to_i32(right.len())?
+    {
+        return Ok(false);
+    }
+    for file_path in left.keys() {
+        let state: Option<WatchEntryState> = left.get(&file_path);
+        let other: Option<WatchEntryState> = right.get(&file_path);
+        if state.is_none()
+            || other.is_none()
+            || match state.as_ref() {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            }
+            .state
+            .with(|state| state.modified_at)
+                != match other.as_ref() {
+                    Some(flow_value_2) => flow_value_2.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }
+                .state
+                .with(|state| state.modified_at)
+            || match state.as_ref() {
+                Some(flow_value_3) => flow_value_3.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            }
+            .state
+            .with(|state| state.size)
+                != match other.as_ref() {
+                    Some(flow_value_4) => flow_value_4.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }
+                .state
+                .with(|state| state.size)
+        {
+            return Ok(false);
+        }
+    }
+    Ok(true)
 }

@@ -2,29 +2,116 @@
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct PageFileState {
-    pub(crate) filename: String,
-    pub(crate) dir: String,
-    pub(crate) base_file_name: String,
+pub trait PageFileDispatch {
+    fn downcast_page_file_to_page_file(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn PageFileDispatch>>;
+    fn read_page_file_filename(&self) -> String;
+    fn write_page_file_filename(&self, value: String);
+    fn read_page_file_dir(&self) -> String;
+    fn write_page_file_dir(&self, value: String);
+    fn read_page_file_base_file_name(&self) -> String;
+    fn write_page_file_base_file_name(&self, value: String);
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[doc(hidden)]
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub struct PageFileState {
+    pub filename: String,
+    pub dir: String,
+    pub base_file_name: String,
+}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+#[derive(Clone)]
 pub struct PageFile {
-    pub(crate) state: rt::ObjectHandle<PageFileState>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn PageFileDispatch>,
+}
+
+impl std::fmt::Debug for PageFile {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("PageFile")
+    }
+}
+
+impl PartialEq for PageFile {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+    }
+}
+
+impl Eq for PageFile {}
+
+#[allow(dead_code, reason = "preserves the checked source contract")]
+pub(crate) struct PageFileRoot {
+    identity: rt::ObjectIdentity,
+    state: rt::ObjectHandle<PageFileState>,
 }
 
 impl PageFile {
-    pub fn new(filename: String, dir: String, base_file_name: String) -> PageFile {
-        let field_filename: String = filename.clone();
-        let field_dir: String = dir.clone();
-        let field_base_file_name: String = base_file_name.clone();
-        PageFile {
-            state: rt::ObjectHandle::new(PageFileState {
-                filename: field_filename,
-                dir: field_dir,
-                base_file_name: field_base_file_name,
-            }),
+    #[doc(hidden)]
+    pub fn initialize_state(
+        filename: String,
+        dir: String,
+        base_file_name: String,
+    ) -> PageFileState {
+        let field_filename: String = filename;
+        let field_dir: String = dir;
+        let field_base_file_name: String = base_file_name;
+        PageFileState {
+            filename: field_filename,
+            dir: field_dir,
+            base_file_name: field_base_file_name,
         }
+    }
+
+    pub fn new(filename: String, dir: String, base_file_name: String) -> PageFile {
+        let state = PageFile::initialize_state(filename, dir, base_file_name);
+        let identity = rt::ObjectIdentity::new();
+        let root = std::rc::Rc::new(PageFileRoot {
+            identity: identity.clone(),
+            state: rt::ObjectHandle::new(state),
+        });
+        PageFile {
+            identity,
+            dispatch: root,
+        }
+    }
+}
+
+impl PageFileDispatch for PageFileRoot {
+    fn downcast_page_file_to_page_file(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn PageFileDispatch>> {
+        Some(self)
+    }
+
+    fn read_page_file_filename(&self) -> String {
+        self.state.with(|state| state.filename.clone())
+    }
+
+    fn write_page_file_filename(&self, value: String) {
+        self.state.with_mut(|state| state.filename = value);
+    }
+
+    fn read_page_file_dir(&self) -> String {
+        self.state.with(|state| state.dir.clone())
+    }
+
+    fn write_page_file_dir(&self, value: String) {
+        self.state.with_mut(|state| state.dir = value);
+    }
+
+    fn read_page_file_base_file_name(&self) -> String {
+        self.state.with(|state| state.base_file_name.clone())
+    }
+
+    fn write_page_file_base_file_name(&self, value: String) {
+        self.state.with_mut(|state| state.base_file_name = value);
     }
 }

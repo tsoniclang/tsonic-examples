@@ -37,6 +37,7 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
+            Utils_textBuilder.__tsonic_module_init();
             Diagnostics.__tsonic_module_init();
             Models.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
@@ -568,7 +569,7 @@ namespace Tsumo.Engine
                 {
                     TemplateValue v = args[0];
                     string s = Template_runtimeHelpers.toPlainString(v);
-                    System.Text.StringBuilder sb = new System.Text.StringBuilder();
+                    TextBuilder sb = new TextBuilder();
                     bool inTag = false;
                     for (int i_16 = 0; i_16 < s.Length; i_16 = Utils_strings.nextCodePointIndex(s, i_16))
                     {
@@ -585,10 +586,10 @@ namespace Tsumo.Engine
                         }
                         if (!inTag)
                         {
-                            sb.Append(ch);
+                            sb.append(ch);
                         }
                     }
-                    return new StringValue(sb.ToString());
+                    return new StringValue(sb.toString());
                 }
                 if (name == "cond" && args.length >= 3)
                 {
@@ -713,7 +714,7 @@ namespace Tsumo.Engine
                     {
                         if (keyValue is NumberValue)
                         {
-                            int idx = ((NumberValue)(NumberValue)keyValue).value;
+                            int idx = ((NumberValue)keyValue).value;
                             if (idx < 0 || idx >= ((AnyArrayValue)container_1).value.length)
                             {
                                 return Template_runtimeHelpers.nil;
@@ -725,7 +726,7 @@ namespace Tsumo.Engine
                     {
                         if (keyValue is NumberValue)
                         {
-                            int idx_1 = ((NumberValue)(NumberValue)keyValue).value;
+                            int idx_1 = ((NumberValue)keyValue).value;
                             return idx_1 >= 0 && idx_1 < ((PageArrayValue)container_1).value.length ? new PageValue(((PageArrayValue)container_1).value[idx_1]) : Template_runtimeHelpers.nil;
                         }
                     }

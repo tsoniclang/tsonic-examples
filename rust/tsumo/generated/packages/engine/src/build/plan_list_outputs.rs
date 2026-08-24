@@ -10,17 +10,20 @@ pub fn plan_list_outputs(
     templates: crate::build::standard_templates::StandardTemplates,
     output_plan: crate::build::output_plan::SiteOutputPlan,
     sitemap_urls: js_abi::JsMap<String, bool>,
-) -> rt::TsonicResult<()> {
+) -> Result<(), rt::TsonicError> {
     {
         let mut index: f64 = 0.0;
         'loop_value: while index
-            < (tsonic_rust_runtime::conversions::usize_to_i32(graph.state.with(|state| state.list_routes.clone()).len())? as f64)
+            < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver = &graph; dispatch_receiver.dispatch.read_standard_page_graph_list_routes() }.len())? as f64)
         {
-            let route: String = match graph
-                .state
-                .with(|state| state.list_routes.clone())
-                .get_number(index)
-                .as_ref()
+            let route: String = match {
+                let dispatch_receiver_2 = &graph;
+                dispatch_receiver_2
+                    .dispatch
+                    .read_standard_page_graph_list_routes()
+            }
+            .get_number(index)
+            .as_ref()
             {
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
@@ -29,10 +32,13 @@ pub fn plan_list_outputs(
                 index += 1.0;
                 continue 'loop_value;
             }
-            let page: Option<crate::models::page_context::PageContext> = graph
-                .state
-                .with(|state| state.list_pages_by_route.clone())
-                .get(&route);
+            let page: Option<crate::models::page_context::PageContext> = {
+                let dispatch_receiver_3 = &graph;
+                dispatch_receiver_3
+                    .dispatch
+                    .read_standard_page_graph_list_pages_by_route()
+            }
+            .get(&route);
             if page.is_none() {
                 index += 1.0;
                 continue 'loop_value;
@@ -48,25 +54,33 @@ pub fn plan_list_outputs(
                     },
                     js_abi::JsArray::from_dense(vec![
                         format!(
-                            "{}{}{}",
-                            String::from(""),
-                            rt::source_string(&(match page.as_ref() {
-    Some(flow_value_2) => flow_value_2.clone(),
-    None => unreachable!("checked flow selected a missing optional value"),
-}).state.with(
-                                |state| state.r#type.clone()
-                            )),
+                            "{}{}",
+                            {
+                                let dispatch_receiver_4 = &match page.as_ref() {
+                                    Some(flow_value_2) => flow_value_2.clone(),
+                                    None => {
+                                        unreachable!(
+                                            "checked flow selected a missing optional value"
+                                        )
+                                    }
+                                };
+                                dispatch_receiver_4.dispatch.read_page_context_type()
+                            },
                             String::from("/list.html"),
                         ),
                         format!(
-                            "{}{}{}",
-                            String::from(""),
-                            rt::source_string(&(match page.as_ref() {
-    Some(flow_value_3) => flow_value_3.clone(),
-    None => unreachable!("checked flow selected a missing optional value"),
-}).state.with(
-                                |state| state.section.clone()
-                            )),
+                            "{}{}",
+                            {
+                                let dispatch_receiver_5 = &match page.as_ref() {
+                                    Some(flow_value_3) => flow_value_3.clone(),
+                                    None => {
+                                        unreachable!(
+                                            "checked flow selected a missing optional value"
+                                        )
+                                    }
+                                };
+                                dispatch_receiver_5.dispatch.read_page_context_section()
+                            },
                             String::from("/list.html"),
                         ),
                         String::from("_default/list.html"),
@@ -86,25 +100,33 @@ pub fn plan_list_outputs(
                     },
                     js_abi::JsArray::from_dense(vec![
                         format!(
-                            "{}{}{}",
-                            String::from(""),
-                            rt::source_string(&(match page.as_ref() {
-    Some(flow_value_4) => flow_value_4.clone(),
-    None => unreachable!("checked flow selected a missing optional value"),
-}).state.with(
-                                |state| state.r#type.clone()
-                            )),
+                            "{}{}",
+                            {
+                                let dispatch_receiver_6 = &match page.as_ref() {
+                                    Some(flow_value_4) => flow_value_4.clone(),
+                                    None => {
+                                        unreachable!(
+                                            "checked flow selected a missing optional value"
+                                        )
+                                    }
+                                };
+                                dispatch_receiver_6.dispatch.read_page_context_type()
+                            },
                             String::from("/baseof.html"),
                         ),
                         format!(
-                            "{}{}{}",
-                            String::from(""),
-                            rt::source_string(&(match page.as_ref() {
-    Some(flow_value_5) => flow_value_5.clone(),
-    None => unreachable!("checked flow selected a missing optional value"),
-}).state.with(
-                                |state| state.section.clone()
-                            )),
+                            "{}{}",
+                            {
+                                let dispatch_receiver_7 = &match page.as_ref() {
+                                    Some(flow_value_5) => flow_value_5.clone(),
+                                    None => {
+                                        unreachable!(
+                                            "checked flow selected a missing optional value"
+                                        )
+                                    }
+                                };
+                                dispatch_receiver_7.dispatch.read_page_context_section()
+                            },
                             String::from("/baseof.html"),
                         ),
                         String::from("_default/baseof.html"),
@@ -113,45 +135,52 @@ pub fn plan_list_outputs(
                 Some,
                 || templates.state.with(|state| state.base.clone()),
             );
-            output_plan.add_text(
-                crate::build::site_routes::site_output_path(
-                    crate::build::site_routes::split_site_path(route.clone())?,
-                )?,
-                crate::build::layout::render_with_base(
+            {
+                let dispatch_receiver_8 = output_plan.clone();
+                dispatch_receiver_8.dispatch.clone().dispatch_site_output_plan_add_text(
+                    crate::build::site_routes::site_output_path(
+                        crate::build::site_routes::split_site_path(route.clone())?,
+                    )?,
+                    crate::build::layout::render_with_base(
+                        {
+                            let upcast_value_3 = environment.clone();
+                            crate::layouts::LayoutEnvironment {
+                                identity: upcast_value_3.identity.clone(),
+                                dispatch: upcast_value_3.dispatch.clone(),
+                            }
+                        },
+                        base.clone(),
+                        main.clone(),
+                        match page.as_ref() {
+                            Some(flow_value_6) => flow_value_6.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        },
+                    )?,
+                    format!("{}{}{}", String::from("section '"), route, String::from("'")),
+                )
+            }?;
+            {
+                let operation_input_0 = sitemap_urls.clone();
+                operation_input_0.set_discard(
                     {
-                        let upcast_value_3 = environment.clone();
-                        crate::layouts::LayoutEnvironment {
-                            identity: upcast_value_3.identity.clone(),
-                            dispatch: upcast_value_3.dispatch.clone(),
-                        }
+                        let dispatch_receiver_9 = &match page.as_ref() {
+                            Some(flow_value_7) => flow_value_7.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        };
+                        dispatch_receiver_9
+                            .dispatch
+                            .read_page_context_rel_permalink()
                     },
-                    base.clone(),
-                    main.clone(),
-                    match page.as_ref() {
-                        Some(flow_value_6) => flow_value_6.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                )?,
-                format!(
-                    "{}{}{}",
-                    String::from("section '"),
-                    rt::source_string(&route),
-                    String::from("'"),
-                ),
-            )?;
-            sitemap_urls.set(
-                match page.as_ref() {
-                    Some(flow_value_7) => flow_value_7.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }
-                .state
-                .with(|state| state.rel_permalink.clone()),
-                true,
-            );
-            let bundle_source: Option<String> = graph
-                .state
-                .with(|state| state.bundle_source_by_page.clone())
-                .get_eq(&match page.as_ref() {
+                    true,
+                )
+            };
+            let bundle_source: Option<String> = {
+                let dispatch_receiver_10 = &graph;
+                dispatch_receiver_10
+                    .dispatch
+                    .read_standard_page_graph_bundle_source_by_page()
+            }
+            .get_eq(&match page.as_ref() {
                 Some(flow_value_8) => flow_value_8.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             });
@@ -162,12 +191,7 @@ pub fn plan_list_outputs(
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                     route.clone(),
-                    format!(
-                        "{}{}{}",
-                        String::from("section bundle '"),
-                        rt::source_string(&route),
-                        String::from("'"),
-                    ),
+                    format!("{}{}{}", String::from("section bundle '"), route, String::from("'")),
                     output_plan.clone(),
                 )?;
             }

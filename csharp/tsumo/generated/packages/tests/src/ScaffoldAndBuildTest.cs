@@ -13,6 +13,7 @@ namespace Tsumo.Tests
         private static object? __tsonic_module_init_core()
         {
             Node_modules_Tsumo_engine_src_index.__tsonic_module_init();
+            Node_modules_Tsumo_engine_src_testing.__tsonic_module_init();
             TestRoot.__tsonic_module_init();
             captureScaffoldDiagnostic = (Action operation) =>
             {
@@ -20,15 +21,16 @@ namespace Tsumo.Tests
                 {
                     operation();
                 }
-                catch (System.Exception error)
+                catch (System.Exception __tsonic_catch0)
                 {
-                    if (error is TsumoError)
+                    Tsonic.CSharp.Runtime.TsValue error = Tsonic.CSharp.Runtime.TsThrownValueException.toValue(__tsonic_catch0);
+                    if (Tsonic.CSharp.Runtime.TsValue.IsDynamicInstanceOf<TsumoError>(error))
                     {
-                        return ((TsumoError)error).diagnostic.code;
+                        return Tsonic.CSharp.Runtime.TsValue.CastDynamic<TsumoError>(error).diagnostic.code;
                     }
                     throw;
                 }
-                throw new System.Exception("Expected a scaffold diagnostic");
+                throw new Tsonic.CSharp.Runtime.Error("Expected a scaffold diagnostic");
             };
             return null;
         }
@@ -51,11 +53,11 @@ namespace Tsumo.Tests
                 req.destinationDir = outDir;
                 req.cleanDestinationDir = true;
                 BuildResult result = Node_modules_Tsumo_engine_src_buildSite.buildSite(req);
-                Xunit.Assert.True(System.IO.Directory.Exists(outDir));
-                Xunit.Assert.True(System.IO.File.Exists(System.IO.Path.Combine(outDir, "index.html")));
-                Xunit.Assert.True(System.IO.File.Exists(System.IO.Path.Combine(outDir, "posts", "hello-world", "index.html")));
+                Xunit.Assert.True(TestRoot.directoryExists(outDir));
+                Xunit.Assert.True(TestRoot.fileExists(Tsonic.CSharp.Node.path.join(outDir, "index.html")));
+                Xunit.Assert.True(TestRoot.fileExists(Tsonic.CSharp.Node.path.join(outDir, "posts", "hello-world", "index.html")));
                 Xunit.Assert.Equal<double>(12, result.pagesBuilt);
-                Xunit.Assert.Equal<double>(13, System.IO.Directory.GetFiles(outDir, "*", System.IO.SearchOption.AllDirectories).Length);
+                Xunit.Assert.Equal<double>(13, Node_modules_Tsumo_engine_src_fs.listFilesRecursive(outDir, "*").length);
             }
             finally
             {
@@ -77,7 +79,7 @@ namespace Tsumo.Tests
                 req.cleanDestinationDir = true;
                 req.buildDrafts = false;
                 Node_modules_Tsumo_engine_src_buildSite.buildSite(req);
-                Xunit.Assert.True(!System.IO.File.Exists(System.IO.Path.Combine(outDir, "posts", "my-draft", "index.html")));
+                Xunit.Assert.True(!TestRoot.fileExists(Tsonic.CSharp.Node.path.join(outDir, "posts", "my-draft", "index.html")));
             }
             finally
             {
@@ -99,7 +101,7 @@ namespace Tsumo.Tests
                 req.cleanDestinationDir = true;
                 req.buildDrafts = true;
                 Node_modules_Tsumo_engine_src_buildSite.buildSite(req);
-                Xunit.Assert.True(System.IO.File.Exists(System.IO.Path.Combine(outDir, "posts", "my-post", "index.html")));
+                Xunit.Assert.True(TestRoot.fileExists(Tsonic.CSharp.Node.path.join(outDir, "posts", "my-post", "index.html")));
             }
             finally
             {
@@ -113,14 +115,14 @@ namespace Tsumo.Tests
             string root = TestRoot.createTestDirectory("scaffold-boundaries");
             try
             {
-                string occupied = System.IO.Path.Combine(root, "occupied");
-                System.IO.Directory.CreateDirectory(occupied);
-                System.IO.File.WriteAllText(System.IO.Path.Combine(occupied, "keep.txt"), "keep");
+                string occupied = Tsonic.CSharp.Node.path.join(root, "occupied");
+                TestRoot.createDirectory(occupied);
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(occupied, "keep.txt"), "keep");
                 Xunit.Assert.Equal("TSUMO_SCAFFOLD_DESTINATION_NOT_EMPTY", ScaffoldAndBuildTest.captureScaffoldDiagnostic(() =>
                 {
                     Node_modules_Tsumo_engine_src_scaffold_initSite.initSite(occupied, null);
                 }));
-                string site = System.IO.Path.Combine(root, "site");
+                string site = Tsonic.CSharp.Node.path.join(root, "site");
                 Node_modules_Tsumo_engine_src_scaffold_initSite.initSite(site, null);
                 Xunit.Assert.Equal("TSUMO_SCAFFOLD_CONTENT_PATH_ESCAPES_ROOT", ScaffoldAndBuildTest.captureScaffoldDiagnostic(() =>
                 {

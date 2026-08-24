@@ -7,13 +7,16 @@ use crate::program as rt;
 pub fn create_docs_edit_url(
     mount: crate::docs::models::DocsMountConfig,
     relative_path: String,
-) -> rt::TsonicResult<Option<String>> {
-    let repo_url: Option<String> = mount.state.with(|state| state.repo_url.clone());
+) -> Result<Option<String>, rt::TsonicError> {
+    let repo_url: Option<String> = {
+        let dispatch_receiver = &mount;
+        dispatch_receiver.dispatch.read_docs_mount_config_repo_url()
+    };
     if repo_url.is_none() {
         return Ok(Option::<String>::None);
     }
     let repository: String = crate::utils::strings::trim_end_char(
-        &js_string::trim(&match repo_url.as_ref() {
+        js_string::trim(&match repo_url.as_ref() {
             Some(flow_value) => flow_value.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         }),
@@ -22,16 +25,33 @@ pub fn create_docs_edit_url(
     if repository.is_empty() {
         return Ok(Option::<String>::None);
     }
-    let branch: String = if js_string::trim(&mount.state.with(|state| state.repo_branch.clone()))
-        .is_empty()
-    {
-        String::from("main")
-    } else {
-        js_string::trim(&mount.state.with(|state| state.repo_branch.clone()))
+    let branch: String = {
+        let conditional_test = js_string::trim(&{
+            let dispatch_receiver_2 = &mount;
+            dispatch_receiver_2
+                .dispatch
+                .read_docs_mount_config_repo_branch()
+        })
+        .is_empty();
+        if conditional_test {
+            String::from("main")
+        } else {
+            js_string::trim(&{
+                let dispatch_receiver_3 = &mount;
+                dispatch_receiver_3
+                    .dispatch
+                    .read_docs_mount_config_repo_branch()
+            })
+        }
     };
     let source_path: String =
         crate::utils::strings::trim_start_char(&relative_path, String::from("/"))?;
-    let configured_repo_path: Option<String> = mount.state.with(|state| state.repo_path.clone());
+    let configured_repo_path: Option<String> = {
+        let dispatch_receiver_4 = &mount;
+        dispatch_receiver_4
+            .dispatch
+            .read_docs_mount_config_repo_path()
+    };
     if configured_repo_path.is_none()
         || js_string::trim(&match configured_repo_path.as_ref() {
     Some(flow_value_2) => flow_value_2.clone(),
@@ -39,18 +59,16 @@ pub fn create_docs_edit_url(
 }).is_empty()
     {
         return Ok(Some(format!(
-            "{}{}{}{}{}{}{}",
-            String::from(""),
-            rt::source_string(&repository),
+            "{}{}{}{}{}",
+            repository,
             String::from("/blob/"),
-            rt::source_string(&branch),
+            branch,
             String::from("/"),
-            rt::source_string(&source_path),
-            String::from(""),
+            source_path,
         )));
     }
     let repo_path: String = crate::utils::strings::trim_end_char(
-        &crate::utils::strings::trim_start_char(
+        crate::utils::strings::trim_start_char(
             &js_string::trim(&match configured_repo_path.as_ref() {
                 Some(flow_value_3) => flow_value_3.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
@@ -60,15 +78,13 @@ pub fn create_docs_edit_url(
         String::from("/"),
     )?;
     Ok(Some(format!(
-        "{}{}{}{}{}{}{}{}{}",
-        String::from(""),
-        rt::source_string(&repository),
+        "{}{}{}{}{}{}{}",
+        repository,
         String::from("/blob/"),
-        rt::source_string(&branch),
+        branch,
         String::from("/"),
-        rt::source_string(&repo_path),
+        repo_path,
         String::from("/"),
-        rt::source_string(&source_path),
-        String::from(""),
+        source_path,
     )))
 }

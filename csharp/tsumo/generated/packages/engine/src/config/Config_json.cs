@@ -89,7 +89,7 @@ namespace Tsumo.Engine
             {
                 if (value is JsonObject)
                 {
-                    return (JsonObject)(JsonObject)value;
+                    return (JsonObject)value;
                 }
                 throw invalidField(field, "an object", value, sourcePath);
             };
@@ -97,7 +97,7 @@ namespace Tsumo.Engine
             {
                 if (value is JsonArray)
                 {
-                    return (JsonArray)(JsonArray)value;
+                    return (JsonArray)value;
                 }
                 throw invalidField(field, "an array", value, sourcePath);
             };

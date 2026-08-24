@@ -134,7 +134,7 @@ namespace Tsumo.Engine
                     Markdig.Syntax.Inlines.Inline inline = it.Current;
                     if (inline is Markdig.Syntax.Inlines.LinkInline)
                     {
-                        Markdig.Syntax.Inlines.LinkInline link = (Markdig.Syntax.Inlines.LinkInline)(Markdig.Syntax.Inlines.LinkInline)inline;
+                        Markdig.Syntax.Inlines.LinkInline link = (Markdig.Syntax.Inlines.LinkInline)inline;
                         bool isImage = link.IsImage;
                         bool hasHook = isImage ? hookCtx.imageHook is not null : hookCtx.linkHook is not null;
                         if (hasHook)
@@ -144,7 +144,7 @@ namespace Tsumo.Engine
                     }
                     if (inline is Markdig.Syntax.Inlines.ContainerInline)
                     {
-                        rewriteInlinesForHooks((Markdig.Syntax.Inlines.ContainerInline)(Markdig.Syntax.Inlines.ContainerInline)inline, hookCtx);
+                        rewriteInlinesForHooks((Markdig.Syntax.Inlines.ContainerInline)inline, hookCtx);
                     }
                 }
                 it.Dispose();
@@ -195,13 +195,13 @@ namespace Tsumo.Engine
                     Markdig.Syntax.Block block = blockIt.Current;
                     if (block is Markdig.Syntax.HeadingBlock && hookCtx.headingHook is not null)
                     {
-                        Markdig.Syntax.HeadingBlock heading = (Markdig.Syntax.HeadingBlock)(Markdig.Syntax.HeadingBlock)block;
+                        Markdig.Syntax.HeadingBlock heading = (Markdig.Syntax.HeadingBlock)block;
                         headingsToRewrite.push(heading);
                         headingIndices.push(idx);
                     }
                     if (block is Markdig.Syntax.LeafBlock)
                     {
-                        Markdig.Syntax.LeafBlock leaf = (Markdig.Syntax.LeafBlock)(Markdig.Syntax.LeafBlock)block;
+                        Markdig.Syntax.LeafBlock leaf = (Markdig.Syntax.LeafBlock)block;
                         Markdig.Syntax.Inlines.ContainerInline? inline = leaf.Inline;
                         if (inline is not null)
                         {
@@ -210,7 +210,7 @@ namespace Tsumo.Engine
                     }
                     if (block is Markdig.Syntax.ContainerBlock)
                     {
-                        rewriteBlocksForHooks((Markdig.Syntax.ContainerBlock)(Markdig.Syntax.ContainerBlock)block, hookCtx);
+                        rewriteBlocksForHooks((Markdig.Syntax.ContainerBlock)block, hookCtx);
                     }
                     idx = idx + 1;
                 }

@@ -6,8 +6,9 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) trait VersionStringValueDispatch:
+pub trait VersionStringValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
     fn downcast_version_string_value_to_version_string_value(
@@ -17,17 +18,27 @@ pub(crate) trait VersionStringValueDispatch:
     fn write_version_string_value_value(&self, value: String);
 }
 
+#[doc(hidden)]
 #[allow(dead_code, reason = "preserves the checked source contract")]
-pub(crate) struct VersionStringValueState {
-    pub(crate) base: crate::template::values::base::TemplateValueState,
-    pub(crate) value: String,
+pub struct VersionStringValueState {
+    #[doc(hidden)]
+    pub base: crate::template::values::base::TemplateValueState,
+    pub value: String,
 }
 
 #[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct VersionStringValue {
-    pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn VersionStringValueDispatch>,
+    #[doc(hidden)]
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: std::rc::Rc<dyn VersionStringValueDispatch>,
+}
+
+impl std::fmt::Debug for VersionStringValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("VersionStringValue")
+    }
 }
 
 impl PartialEq for VersionStringValue {
@@ -45,9 +56,10 @@ pub(crate) struct VersionStringValueRoot {
 }
 
 impl VersionStringValue {
-    pub(crate) fn initialize_state(value: String) -> VersionStringValueState {
+    #[doc(hidden)]
+    pub fn initialize_state(value: String) -> VersionStringValueState {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
-        let field_value: String = value.clone();
+        let field_value: String = value;
         VersionStringValueState {
             base: base_state,
             value: field_value,
@@ -67,9 +79,9 @@ impl VersionStringValue {
         }
     }
 
-    pub fn compare(a: String, b: String) -> rt::TsonicResult<i32> {
-        let a_parts: js_abi::JsArray<i32> = VersionStringValue::parse_version(a.clone())?;
-        let b_parts: js_abi::JsArray<i32> = VersionStringValue::parse_version(b.clone())?;
+    pub fn compare(a: String, b: String) -> Result<i32, rt::TsonicError> {
+        let a_parts: js_abi::JsArray<i32> = VersionStringValue::parse_version(a)?;
+        let b_parts: js_abi::JsArray<i32> = VersionStringValue::parse_version(b)?;
         let a_len: i32 = tsonic_rust_runtime::conversions::usize_to_i32(a_parts.len())?;
         let b_len: i32 = tsonic_rust_runtime::conversions::usize_to_i32(b_parts.len())?;
         let max_len: f64 = if a_len > b_len {
@@ -108,15 +120,14 @@ impl VersionStringValue {
         Ok(0)
     }
 
-    pub fn parse_version(v: String) -> rt::TsonicResult<js_abi::JsArray<i32>> {
-        let mut cleaned: String = v.clone();
+    pub fn parse_version(v: String) -> Result<js_abi::JsArray<i32>, rt::TsonicError> {
+        let mut cleaned: String = v;
         if js_string::starts_with_from_start(&cleaned, "v")
             || js_string::starts_with_from_start(&cleaned, "V")
         {
             cleaned = crate::utils::strings::substring_from(&cleaned, 1)?;
         }
-        let parts: js_abi::JsArray<String> = js_string::split_all(&cleaned, ".")
-            .map_err(tsonic_rust_runtime::TsonicError::from)?;
+        let parts: js_abi::JsArray<String> = js_string::split_all(&cleaned, ".")?;
         let result: js_abi::JsArray<i32> = js_abi::JsArray::from_dense(vec![]);
         {
             let mut i: f64 = 0.0;
@@ -126,14 +137,14 @@ impl VersionStringValue {
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 let num: i32 = VersionStringValue::extract_leading_number(part.clone())?;
-                tsonic_rust_runtime::conversions::usize_to_i32(result.push_many([num]))?;
+                result.push_many_discard([num]);
                 i += 1.0;
             }
         }
-        Ok(result.clone())
+        Ok(result)
     }
 
-    pub fn extract_leading_number(s: String) -> rt::TsonicResult<i32> {
+    pub fn extract_leading_number(s: String) -> Result<i32, rt::TsonicError> {
         let mut num_str: String = String::from("");
         {
             let mut i: f64 = 0.0;
@@ -158,11 +169,25 @@ impl VersionStringValue {
         if num_str.is_empty() {
             return Ok(0);
         }
-        Ok(rt::option_coalesce(
-            crate::utils::int32::parse_int32(&num_str)?,
-            std::convert::identity,
-            || 0,
-        ))
+        let value: Option<i32> = crate::utils::int32::parse_int32(&num_str)?;
+        if value.is_none() {
+            return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+                String::from("TSUMO_TEMPLATE_VERSION_COMPONENT_OUT_OF_RANGE"),
+                format!(
+                    "{}{}{}",
+                    String::from("Version component '"),
+                    num_str,
+                    String::from("' is outside the supported int32 range"),
+                ),
+                None,
+                None,
+                None,
+            )));
+        }
+        Ok(match value.as_ref() {
+            Some(flow_value) => *flow_value,
+            None => unreachable!("checked flow selected a missing optional value"),
+        })
     }
 }
 

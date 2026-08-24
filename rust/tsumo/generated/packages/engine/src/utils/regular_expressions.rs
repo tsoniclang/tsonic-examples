@@ -2,51 +2,85 @@
 
 use tsonic_rust_js::abi as js_abi;
 
+use tsonic_rust_js::string as js_string;
+
 use crate::program as rt;
 
 pub fn find_regular_expression_matches(
     pattern: String,
-    input: String,
+    input: &str,
     limit: i32,
-) -> rt::TsonicResult<js_abi::JsArray<String>> {
-    let mut matches: std::vec::Vec<String> =
-        tsumo_platform::find_regex_matches(&pattern, &input, limit)?;
-    let result: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-    while !matches.is_empty() {
-        let optional_match: Option<String> = matches.pop();
-        if optional_match.is_none() {
-            return Err(rt::TsonicError::from(rt::JsError::error(
-                "Rust regex match vector violated its non-empty contract",
-            )));
-        }
-        let r#match: String = match optional_match.as_ref() {
-            Some(flow_value) => flow_value.clone(),
-            None => unreachable!("checked flow selected a missing optional value"),
-        };
-        tsonic_rust_runtime::conversions::usize_to_i32(result.unshift_many([r#match.clone()]))?;
+) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
+    let expression: js_abi::JsRegExp = COMPILE_REGULAR_EXPRESSION
+        .with(|module_binding| module_binding.load())
+        .call((pattern,))?;
+    if limit == 0 {
+        return Ok(js_abi::JsArray::from_dense(vec![]));
     }
-    Ok(result.clone())
+    let result: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    'loop_value: for fallible_item in js_abi::string_match_all_regexp_native(input, &expression)?
+        .iterator()
+    {
+        let r#match = fallible_item?;
+        {
+            let operation_input_0 = result.clone();
+            operation_input_0.push_many_discard([
+                REQUIRE_FULL_MATCH.with(|module_binding| module_binding.load()).call((r#match
+                    .clone(),))?,
+            ])
+        };
+        if limit > 0 && tsonic_rust_runtime::conversions::usize_to_i32(result.len())? >= limit {
+            break 'loop_value;
+        }
+    }
+    Ok(result)
 }
 
 pub fn find_regular_expression_submatches(
     pattern: String,
-    input: String,
+    input: &str,
     limit: i32,
-) -> rt::TsonicResult<js_abi::JsArray<js_abi::JsArray<String>>> {
-    let mut matches: tsumo_platform::RegexSubmatches =
-        tsumo_platform::find_regex_submatches(&pattern, &input, limit)?;
-    let result: js_abi::JsArray<js_abi::JsArray<String>> = js_abi::JsArray::from_dense(vec![]);
-    while matches.has_rows() {
-        let mut r#match: tsumo_platform::RegexSubmatchRow = matches.pop_row()?;
-        let row: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-        while r#match.has_groups() {
-            tsonic_rust_runtime::conversions::usize_to_i32(
-                row.unshift_many([r#match.pop_group()?]),
-            )?;
-        }
-        tsonic_rust_runtime::conversions::usize_to_i32(result.unshift_many([row.clone()]))?;
+) -> Result<js_abi::JsArray<js_abi::JsArray<String>>, rt::TsonicError> {
+    let expression: js_abi::JsRegExp = COMPILE_REGULAR_EXPRESSION
+        .with(|module_binding| module_binding.load())
+        .call((pattern,))?;
+    if limit == 0 {
+        return Ok(js_abi::JsArray::from_dense(vec![]));
     }
-    Ok(result.clone())
+    let result: js_abi::JsArray<js_abi::JsArray<String>> = js_abi::JsArray::from_dense(vec![]);
+    'loop_value: for fallible_item in js_abi::string_match_all_regexp_native(input, &expression)?
+        .iterator()
+    {
+        let r#match = fallible_item?;
+        let row: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
+            REQUIRE_FULL_MATCH
+                .with(|module_binding| module_binding.load())
+                .call((r#match.clone(),))?,
+        ]);
+        {
+            let mut group_index: f64 = 1.0;
+            while group_index
+                < (tsonic_rust_runtime::conversions::usize_to_i32(r#match.len())? as f64)
+            {
+                {
+                    let operation_input_0 = row.clone();
+                    operation_input_0.push_many_discard([
+                        rt::option_coalesce(
+                            r#match.get_number(group_index),
+                            std::convert::identity,
+                            || String::from(""),
+                        ),
+                    ])
+                };
+                group_index += 1.0;
+            }
+        }
+        result.push_many_discard([row.clone()]);
+        if limit > 0 && tsonic_rust_runtime::conversions::usize_to_i32(result.len())? >= limit {
+            break 'loop_value;
+        }
+    }
+    Ok(result)
 }
 
 pub fn replace_regular_expression(
@@ -54,11 +88,377 @@ pub fn replace_regular_expression(
     replacement: String,
     input: String,
     limit: i32,
-) -> rt::TsonicResult<String> {
-    Ok(tsumo_platform::replace_regex_limited(
-        &pattern,
-        &replacement,
-        &input,
-        limit,
-    )?)
+) -> Result<String, rt::TsonicError> {
+    let expression: js_abi::JsRegExp = COMPILE_REGULAR_EXPRESSION
+        .with(|module_binding| module_binding.load())
+        .call((pattern,))?;
+    if limit == 0 {
+        return Ok(input);
+    }
+    if limit < 0 {
+        return js_abi::string_replace_regexp_native(&input, &expression, &replacement)
+            .map_err(rt::TsonicError::from);
+    }
+    let result: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    let mut cursor: i32 = 0;
+    let mut remaining: i32 = limit;
+    'loop_value: for fallible_item in js_abi::string_match_all_regexp_native(&input, &expression)?
+        .iterator()
+    {
+        let r#match = fallible_item?;
+        if remaining == 0 {
+            break 'loop_value;
+        }
+        let match_index: i32 = tsonic_rust_runtime::conversions::f64_to_i32(r#match.index())?;
+        let full_match: String = REQUIRE_FULL_MATCH
+            .with(|module_binding| module_binding.load())
+            .call((r#match.clone(),))?;
+        {
+            let operation_input_0 = result.clone();
+            operation_input_0.push_many_discard([
+                js_string::slice_to(
+                    &input,
+                    tsonic_rust_runtime::conversions::i32_to_f64(cursor),
+                    tsonic_rust_runtime::conversions::i32_to_f64(match_index),
+                )?,
+            ])
+        };
+        {
+            let operation_input_0_2 = result.clone();
+            operation_input_0_2.push_many_discard([
+                EXPAND_REGULAR_EXPRESSION_REPLACEMENT
+                    .with(|module_binding| module_binding.load())
+                    .call((
+                        replacement.clone(),
+                        input.clone(),
+                        r#match.clone(),
+                        full_match.clone(),
+                        match_index,
+                    ))?,
+            ])
+        };
+        cursor =
+            match_index
+                + tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&full_match))?;
+        remaining -= 1;
+    }
+    {
+        let operation_input_0_3 = result.clone();
+        operation_input_0_3.push_many_discard([
+            js_string::slice(
+                &input,
+                tsonic_rust_runtime::conversions::i32_to_f64(cursor),
+                None,
+            )?,
+        ])
+    };
+    Ok(result.join(""))
+}
+
+pub type CompileRegularExpressionCallable =
+    rt::Callable<(String,), rt::TsonicResult<js_abi::JsRegExp>>;
+
+std::thread_local! {
+    pub static COMPILE_REGULAR_EXPRESSION: rt::ModuleCell<CompileRegularExpressionCallable> = const { rt::ModuleCell::new() };
+}
+
+pub type ExpandRegularExpressionReplacementCallable =
+    rt::Callable<(String, String, js_abi::RegExpExecArray, String, i32), rt::TsonicResult<String>>;
+
+std::thread_local! {
+    pub static EXPAND_REGULAR_EXPRESSION_REPLACEMENT: rt::ModuleCell<ExpandRegularExpressionReplacementCallable> = const { rt::ModuleCell::new() };
+}
+
+pub type RegularExpressionNamedGroupCallable =
+    rt::Callable<(js_abi::RegExpExecArray, String), rt::TsonicResult<String>>;
+
+std::thread_local! {
+    pub static REGULAR_EXPRESSION_NAMED_GROUP: rt::ModuleCell<RegularExpressionNamedGroupCallable> = const { rt::ModuleCell::new() };
+}
+
+pub type RequireFullMatchCallable =
+    rt::Callable<(js_abi::RegExpExecArray,), rt::TsonicResult<String>>;
+
+std::thread_local! {
+    pub static REQUIRE_FULL_MATCH: rt::ModuleCell<RequireFullMatchCallable> = const { rt::ModuleCell::new() };
+}
+
+pub type DigitValueCallable = rt::Callable<(String,), rt::TsonicResult<i32>>;
+
+std::thread_local! {
+    pub static DIGIT_VALUE: rt::ModuleCell<DigitValueCallable> = const { rt::ModuleCell::new() };
+}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = rt::Callable::<(String,), rt::TsonicResult<js_abi::JsRegExp>>::new(
+            move |callable_arguments| {
+                let pattern = callable_arguments.0;
+                let try_body: rt::TsonicResult<rt::Completion<js_abi::JsRegExp>> =
+                    rt::completion_region(|| {
+                        Ok(rt::Completion::Return(
+                            js_abi::regexp_from_string_with_flags_native(&pattern, "g")?,
+                        ))
+                    });
+                let try_flow: rt::TsonicResult<rt::Completion<js_abi::JsRegExp>> = match try_body {
+                    Ok(completion) => Ok(completion),
+                    Err(_) => rt::completion_region(|| {
+                        Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+                            String::from("TSUMO_TEMPLATE_REGEXP_INVALID"),
+                            format!(
+                                "{}{}{}",
+                                String::from("Invalid regular expression '"),
+                                pattern,
+                                String::from("'"),
+                            ),
+                            None,
+                            None,
+                            None,
+                        )))
+                    }),
+                };
+                let try_flow = try_flow?;
+                match try_flow {
+                    rt::Completion::Normal => {
+                        unreachable!("terminating Tsonic completion scope completed normally")
+                    }
+                    rt::Completion::Return(value) => Ok(value),
+                    rt::Completion::Break(_) | rt::Completion::Continue(_) => {
+                        unreachable!("invalid finalized Tsonic completion target")
+                    }
+                }
+            },
+        );
+        COMPILE_REGULAR_EXPRESSION.with(|module_binding| module_binding.initialize(module_value))
+    };
+    {
+        let module_value_2 = rt::Callable::<
+            (String, String, js_abi::RegExpExecArray, String, i32),
+            rt::TsonicResult<String>,
+        >::new(move |callable_arguments_2| {
+            let replacement = callable_arguments_2.0;
+            let input = callable_arguments_2.1;
+            let r#match = callable_arguments_2.2;
+            let full_match = callable_arguments_2.3;
+            let match_index = callable_arguments_2.4;
+            let result: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+            {
+                let mut index: f64 = 0.0;
+                'loop_value: while index
+                    < (tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&replacement))? as f64)
+                {
+                    let current: String = js_string::char_at(&replacement, index)?;
+                    if current != "$"
+                        || index + 1.0
+                            >= (tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&replacement))? as f64)
+                    {
+                        result.push_many_discard([current.clone()]);
+                        index += 1.0;
+                        continue 'loop_value;
+                    }
+                    let next: String = js_string::char_at(&replacement, index + 1.0)?;
+                    if next == "$" {
+                        result.push_many_discard([String::from("$")]);
+                        index += 1.0;
+                        index += 1.0;
+                        continue 'loop_value;
+                    }
+                    if next == "&" {
+                        result.push_many_discard([full_match.clone()]);
+                        index += 1.0;
+                        index += 1.0;
+                        continue 'loop_value;
+                    }
+                    if next == "`" {
+                        {
+                            let operation_input_0 = result.clone();
+                            operation_input_0.push_many_discard([
+                                js_string::slice_to(
+                                    &input,
+                                    0.0,
+                                    tsonic_rust_runtime::conversions::i32_to_f64(match_index),
+                                )?,
+                            ])
+                        };
+                        index += 1.0;
+                        index += 1.0;
+                        continue 'loop_value;
+                    }
+                    if next == "'" {
+                        {
+                            let operation_input_0_2 = result.clone();
+                            operation_input_0_2.push_many_discard([{
+                                let operation_input_0_3 = input.clone();
+                                js_string::slice(
+                                    &operation_input_0_3,
+                                    tsonic_rust_runtime::conversions::i32_to_f64(
+                                        match_index
+                                            + tsonic_rust_runtime::conversions::usize_to_i32(
+                                                js_string::js_len(&full_match),
+                                            )?,
+                                    ),
+                                    None,
+                                )
+                            }?])
+                        };
+                        index += 1.0;
+                        index += 1.0;
+                        continue 'loop_value;
+                    }
+                    if next == "<" && r#match.groups().is_some() {
+                        let closing: i32 =
+                            tsonic_rust_runtime::conversions::isize_to_i32(js_string::index_of(
+                                &replacement,
+                                ">",
+                                index + 2.0,
+                            ))?;
+                        if closing >= 0 {
+                            let group_name: String = js_string::slice_to(
+                                &replacement,
+                                index + 2.0,
+                                tsonic_rust_runtime::conversions::i32_to_f64(closing),
+                            )?;
+                            {
+                                let operation_input_0_4 = result.clone();
+                                operation_input_0_4.push_many_discard([
+                                    REGULAR_EXPRESSION_NAMED_GROUP
+                                        .with(|module_binding| module_binding.load())
+                                        .call((r#match.clone(), group_name.clone()))?,
+                                ])
+                            };
+                            index = tsonic_rust_runtime::conversions::i32_to_f64(closing);
+                            index += 1.0;
+                            continue 'loop_value;
+                        }
+                    }
+                    let first_digit: i32 = DIGIT_VALUE
+                        .with(|module_binding| module_binding.load())
+                        .call((next.clone(),))?;
+                    if first_digit >= 0 {
+                        let mut capture_index: i32 = -1;
+                        let mut consumed_digits: i32 = 0;
+                        if index + 2.0
+                            < (tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&replacement))? as f64)
+                        {
+                            let second_digit: i32 = DIGIT_VALUE
+                                .with(|module_binding| module_binding.load())
+                                .call((js_string::char_at(&replacement, index + 2.0)?,))?;
+                            let two_digit_index: i32 = first_digit * 10 + second_digit;
+                            if second_digit >= 0
+                                && two_digit_index > 0
+                                && two_digit_index
+                                    < tsonic_rust_runtime::conversions::usize_to_i32(r#match.len())?
+                            {
+                                capture_index = two_digit_index;
+                                consumed_digits = 2;
+                            }
+                        }
+                        if capture_index < 0
+                            && first_digit > 0
+                            && first_digit
+                                < tsonic_rust_runtime::conversions::usize_to_i32(r#match.len())?
+                        {
+                            capture_index = first_digit;
+                            consumed_digits = 1;
+                        }
+                        if capture_index > 0 {
+                            {
+                                let operation_input_0_5 = result.clone();
+                                operation_input_0_5.push_many_discard([
+                                    rt::option_coalesce(
+                                        r#match.get_number(
+                                            tsonic_rust_runtime::conversions::i32_to_f64(
+                                                capture_index,
+                                            ),
+                                        ),
+                                        std::convert::identity,
+                                        || String::from(""),
+                                    ),
+                                ])
+                            };
+                            index += tsonic_rust_runtime::conversions::i32_to_f64(consumed_digits);
+                            index += 1.0;
+                            continue 'loop_value;
+                        }
+                    }
+                    result.push_many_discard([String::from("$")]);
+                    index += 1.0;
+                }
+            }
+            Ok::<_, rt::TsonicError>(result.join(""))
+        });
+        EXPAND_REGULAR_EXPRESSION_REPLACEMENT
+            .with(|module_binding_2| module_binding_2.initialize(module_value_2))
+    };
+    {
+        let module_value_3 =
+            rt::Callable::<(js_abi::RegExpExecArray, String), rt::TsonicResult<String>>::new(
+                move |callable_arguments_3| {
+                    let r#match = callable_arguments_3.0;
+                    let group_name = callable_arguments_3.1;
+                    Ok::<_, rt::TsonicError>(rt::option_coalesce(
+                        r#match.groups().as_ref().and_then(|optional_receiver| {
+                            js_abi::regexp_named_groups_get_native(optional_receiver, &group_name)
+                        }),
+                        std::convert::identity,
+                        || String::from(""),
+                    ))
+                },
+            );
+        REGULAR_EXPRESSION_NAMED_GROUP
+            .with(|module_binding_3| module_binding_3.initialize(module_value_3))
+    };
+    {
+        let module_value_4 = rt::Callable::<
+            (js_abi::RegExpExecArray,),
+            rt::TsonicResult<String>,
+        >::new(move |callable_arguments_4| {
+            let r#match = callable_arguments_4.0;
+            let full_match: Option<String> = Some(r#match.required_group(0.0));
+            #[expect(clippy::blocks_in_conditions, reason = "checked evaluation region")]
+            if {
+                let _ = match full_match.as_ref() {
+                    Some(flow_value) => flow_value.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                };
+                {
+                    let _ = rt::Undefined;
+                    false
+                }
+            } {
+                return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
+                    String::from("TSUMO_TEMPLATE_REGEXP_RESULT_INVALID"),
+                    String::from("Regular expression execution returned no full match"),
+                    None,
+                    None,
+                    None,
+                )));
+            }
+            Ok::<_, rt::TsonicError>(match full_match.as_ref() {
+                Some(flow_value_2) => flow_value_2.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            })
+        });
+        REQUIRE_FULL_MATCH.with(|module_binding_4| module_binding_4.initialize(module_value_4))
+    };
+    {
+        let module_value_5 =
+            rt::Callable::<(String,), rt::TsonicResult<i32>>::new(move |callable_arguments_5| {
+                let value = callable_arguments_5.0;
+                if tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&value))? != 1 {
+                    return Ok::<_, rt::TsonicError>(-1);
+                }
+                let code: i32 =
+                    tsonic_rust_runtime::conversions::f64_to_i32(js_string::char_code_at(
+                        &value, 0.0,
+                    ))?;
+                Ok::<_, rt::TsonicError>(if (48..=57).contains(&code) {
+                    code - 48
+                } else {
+                    -1
+                })
+            });
+        DIGIT_VALUE.with(|module_binding_5| module_binding_5.initialize(module_value_5))
+    };
 }

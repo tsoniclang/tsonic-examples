@@ -72,7 +72,7 @@ namespace Tsumo.Engine
                     {
                         throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_DEFER_KEY_INVALID", "templates.Defer key must be a string");
                     }
-                    string? key = (StringValue?)keyValue is not null ? ((StringValue)(StringValue)keyValue).value : null;
+                    string? key = (StringValue?)keyValue is not null ? ((StringValue)keyValue).value : null;
                     return new DeferredTemplateValue(key, Tsonic.CSharp.Js.Map.getReference<string, TemplateValue>(options, "data") ?? Template_runtimeHelpers.nil);
                 }
                 if (name == "partial" && args.length >= 1)
@@ -89,11 +89,12 @@ namespace Tsumo.Engine
                         string rendered = renderPartialResolution(selected, ctx, context);
                         return new HtmlValue(new HtmlString(rendered));
                     }
-                    catch (System.Exception e)
+                    catch (System.Exception __tsonic_catch0)
                     {
-                        if (e is TemplateReturnSignal)
+                        Tsonic.CSharp.Runtime.TsValue e = Tsonic.CSharp.Runtime.TsThrownValueException.toValue(__tsonic_catch0);
+                        if (Tsonic.CSharp.Runtime.TsValue.IsDynamicInstanceOf<TemplateReturnSignal>(e))
                         {
-                            return ((TemplateReturnSignal)e).value;
+                            return Tsonic.CSharp.Runtime.TsValue.CastDynamic<TemplateReturnSignal>(e).value;
                         }
                         throw;
                     }
@@ -112,11 +113,12 @@ namespace Tsumo.Engine
                         string rendered_1 = renderPartialResolution(selected_1, ctx_1, context);
                         return new HtmlValue(new HtmlString(rendered_1));
                     }
-                    catch (System.Exception e_1)
+                    catch (System.Exception __tsonic_catch1)
                     {
-                        if (e_1 is TemplateReturnSignal)
+                        Tsonic.CSharp.Runtime.TsValue e_1 = Tsonic.CSharp.Runtime.TsThrownValueException.toValue(__tsonic_catch1);
+                        if (Tsonic.CSharp.Runtime.TsValue.IsDynamicInstanceOf<TemplateReturnSignal>(e_1))
                         {
-                            return ((TemplateReturnSignal)e_1).value;
+                            return Tsonic.CSharp.Runtime.TsValue.CastDynamic<TemplateReturnSignal>(e_1).value;
                         }
                         throw;
                     }
@@ -153,7 +155,7 @@ namespace Tsumo.Engine
                         message_1 = Tsonic.CSharp.Js.String.replaceAll(message_1, "%v", Template_runtimeHelpers.toPlainString(args[i]));
                         message_1 = Tsonic.CSharp.Js.String.replaceAll(message_1, "%d", Template_runtimeHelpers.toPlainString(args[i]));
                     }
-                    System.Console.Error.WriteLine("WARN: {0}", message_1);
+                    Tsonic.CSharp.Js.console.warn($"WARN: {message_1}");
                     return Template_runtimeHelpers.nil;
                 }
                 if (name == "safehtml" && args.length >= 1)
@@ -197,7 +199,7 @@ namespace Tsumo.Engine
                 if (name == "htmlunescape" && args.length >= 1)
                 {
                     TemplateValue v_6 = args[0];
-                    return new StringValue(System.Net.WebUtility.HtmlDecode(Template_runtimeHelpers.toPlainString(v_6)) ?? "");
+                    return new StringValue(Utils_html.decodeHtml(Template_runtimeHelpers.toPlainString(v_6)));
                 }
                 if (name == "time.format" && args.length >= 2)
                 {

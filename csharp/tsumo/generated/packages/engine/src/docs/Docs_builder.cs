@@ -18,7 +18,6 @@ namespace Tsumo.Engine
             Config.__tsonic_module_init();
             Diagnostics.__tsonic_module_init();
             Env.__tsonic_module_init();
-            Markdown.__tsonic_module_init();
             Models.__tsonic_module_init();
             Params.__tsonic_module_init();
             Utils_html.__tsonic_module_init();
@@ -36,7 +35,7 @@ namespace Tsumo.Engine
             Docs_searchIndex.__tsonic_module_init();
             buildDocsSite = (BuildRequest request, LoadedDocsConfig docsLoaded, string outDir) =>
             {
-                string siteDir = System.IO.Path.GetFullPath(request.siteDir);
+                string siteDir = Tsonic.CSharp.Node.path.resolve(request.siteDir);
                 LoadedConfig loaded = Config_loader.loadSiteConfig(siteDir);
                 SiteConfig config = loaded.config;
                 string? requestBaseURL = request.baseURL;
@@ -54,9 +53,9 @@ namespace Tsumo.Engine
                 SiteOutputPlan outputPlan = new SiteOutputPlan();
                 if (themeDir is not null)
                 {
-                    outputPlan.addDirectory(System.IO.Path.Combine(themeDir, "static"), "", "theme static files", "theme-static");
+                    outputPlan.addDirectory(Tsonic.CSharp.Node.path.join(themeDir, "static"), "", "theme static files", "theme-static");
                 }
-                outputPlan.addDirectory(System.IO.Path.Combine(siteDir, "static"), "", "site static files", "site-static");
+                outputPlan.addDirectory(Tsonic.CSharp.Node.path.join(siteDir, "static"), "", "site static files", "site-static");
                 Tsonic.CSharp.Js.JSArray<PageContext> emptyPages = new Tsonic.CSharp.Js.JSArray<PageContext>(new PageContext[] { });
                 Tsonic.CSharp.Js.JSArray<PageContext> emptyTranslations = new Tsonic.CSharp.Js.JSArray<PageContext>(new PageContext[] { });
                 Tsonic.CSharp.Js.JSArray<string> emptyStrings = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
@@ -113,13 +112,13 @@ namespace Tsumo.Engine
                         MarkdownResult md = Docs_markdown.renderDocsMarkdown(parsed.body, new DocsLinkRewriteContext(mount, r.sourcePath, r.dirKey, routeMap, docsConfig.strictLinks));
                         HtmlString content_1 = new HtmlString(md.html);
                         HtmlString summary = new HtmlString(md.summaryHtml);
-                        string plainText = Markdig.Markdown.ToPlainText(parsed.body, Markdown_pipeline.markdownPipeline);
+                        string plainText = md.plainText;
                         string baseName = Docs_routes.withoutMarkdownExtension(r.fileName);
                         string title = fm.title ?? Utils_text.humanizeSlug(baseName);
                         Tsonic.CSharp.Js.Date dateUtc = fm.date ?? source.modifiedAt;
                         string dateString = dateUtc.toISOString();
                         string lastmodString = source.modifiedAt.toISOString();
-                        PageFile file = new PageFile(System.IO.Path.GetFullPath(r.sourcePath), r.dirKey == "" ? "" : r.dirKey + "/", baseName);
+                        PageFile file = new PageFile(Tsonic.CSharp.Node.path.resolve(r.sourcePath), r.dirKey == "" ? "" : r.dirKey + "/", baseName);
                         Tsonic.CSharp.Js.Map<string, ParamValue> @params = fm.Params;
                         @params.set("mount", ParamValue.@string(mount.name));
                         @params.set("mountPrefix", ParamValue.@string(mount.urlPrefix));
@@ -248,13 +247,13 @@ namespace Tsumo.Engine
                                 summary_1 = new HtmlString(md_1.summaryHtml);
                                 description = fm_1.description ?? "";
                                 title_1 = fm_1.title ?? title_1;
-                                string plainText_1 = Markdig.Markdown.ToPlainText(parsed_1.body, Markdown_pipeline.markdownPipeline);
+                                string plainText_1 = md_1.plainText;
                                 plain = plainText_1;
                                 searchDocs.push(new SearchDocument(title_1, relPermalink, mount.name, plainText_1));
                                 Tsonic.CSharp.Js.Date dateUtc_1 = fm_1.date ?? idxRoute.modifiedAt;
                                 dateString_1 = dateUtc_1.toISOString();
                                 lastmodString_1 = idxRoute.modifiedAt.toISOString();
-                                file_1 = new PageFile(System.IO.Path.GetFullPath(route.sourcePath), dirKey == "" ? "" : dirKey + "/", "_index");
+                                file_1 = new PageFile(Tsonic.CSharp.Node.path.resolve(route.sourcePath), dirKey == "" ? "" : dirKey + "/", "_index");
                                 params_1 = fm_1.Params;
                                 params_1.set("relPath", ParamValue.@string(route.relPath));
                                 string? editUrl_1 = Docs_editUrl.createDocsEditUrl(mount, route.relPath);

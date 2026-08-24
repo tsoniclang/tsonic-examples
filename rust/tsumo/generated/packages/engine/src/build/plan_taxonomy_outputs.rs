@@ -10,17 +10,20 @@ pub fn plan_taxonomy_outputs(
     templates: crate::build::standard_templates::StandardTemplates,
     output_plan: crate::build::output_plan::SiteOutputPlan,
     sitemap_urls: js_abi::JsMap<String, bool>,
-) -> rt::TsonicResult<()> {
+) -> Result<(), rt::TsonicError> {
     {
         let mut taxonomy_index: f64 = 0.0;
         while taxonomy_index
-            < (tsonic_rust_runtime::conversions::usize_to_i32(taxonomies.state.with(|state| state.taxonomies.clone()).len())? as f64)
+            < (tsonic_rust_runtime::conversions::usize_to_i32({ let dispatch_receiver = &taxonomies; dispatch_receiver.dispatch.read_standard_taxonomy_graph_taxonomies() }.len())? as f64)
         {
-            let taxonomy: crate::build::standard_taxonomies::StandardTaxonomy = match taxonomies
-                .state
-                .with(|state| state.taxonomies.clone())
-                .get_number(taxonomy_index)
-                .as_ref()
+            let taxonomy: crate::build::standard_taxonomies::StandardTaxonomy = match {
+                let dispatch_receiver_2 = &taxonomies;
+                dispatch_receiver_2
+                    .dispatch
+                    .read_standard_taxonomy_graph_taxonomies()
+            }
+            .get_number(taxonomy_index)
+            .as_ref()
             {
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
@@ -50,11 +53,8 @@ pub fn plan_taxonomy_outputs(
                             },
                             js_abi::JsArray::from_dense(vec![
                                 format!(
-                                    "{}{}{}",
-                                    String::from(""),
-                                    rt::source_string(&taxonomy.state.with(
-                                        |state| state.name.clone()
-                                    )),
+                                    "{}{}",
+                                    taxonomy.state.with(|state| state.name.clone()),
                                     String::from("/taxonomy.html"),
                                 ),
                                 String::from("taxonomy/taxonomy.html"),
@@ -76,11 +76,8 @@ pub fn plan_taxonomy_outputs(
                             },
                             js_abi::JsArray::from_dense(vec![
                                 format!(
-                                    "{}{}{}",
-                                    String::from(""),
-                                    rt::source_string(&taxonomy.state.with(
-                                        |state| state.name.clone()
-                                    )),
+                                    "{}{}",
+                                    taxonomy.state.with(|state| state.name.clone()),
                                     String::from("/baseof.html"),
                                 ),
                                 String::from("taxonomy/baseof.html"),
@@ -90,41 +87,61 @@ pub fn plan_taxonomy_outputs(
                         Some,
                         || templates.state.with(|state| state.base.clone()),
                     );
-                    output_plan.add_text(
-                        crate::build::site_routes::site_output_path(
-                            js_abi::JsArray::from_dense(vec![
+                    {
+                        let dispatch_receiver_5 = output_plan.clone();
+                        dispatch_receiver_5.dispatch.clone().dispatch_site_output_plan_add_text(
+                            crate::build::site_routes::site_output_path(
+                                js_abi::JsArray::from_dense(vec![
+                                    taxonomy.state.with(|state| state.name.clone()),
+                                    {
+                                        let dispatch_receiver_3 = &term;
+                                        dispatch_receiver_3.dispatch.read_page_context_slug()
+                                    },
+                                ]),
+                            )?,
+                            crate::build::layout::render_with_base(
+                                {
+                                    let upcast_value_3 = environment.clone();
+                                    crate::layouts::LayoutEnvironment {
+                                        identity: upcast_value_3.identity.clone(),
+                                        dispatch: upcast_value_3.dispatch.clone(),
+                                    }
+                                },
+                                base.clone(),
+                                main.clone(),
+                                term.clone(),
+                            )?,
+                            format!(
+                                "{}{}{}{}{}",
+                                String::from("taxonomy term '"),
                                 taxonomy.state.with(|state| state.name.clone()),
-                                term.state.with(|state| state.slug.clone()),
-                            ]),
-                        )?,
-                        crate::build::layout::render_with_base(
+                                String::from("/"),
+                                {
+                                    let dispatch_receiver_4 = &term;
+                                    dispatch_receiver_4.dispatch.read_page_context_slug()
+                                },
+                                String::from("'"),
+                            ),
+                        )
+                    }?;
+                    {
+                        let operation_input_0 = sitemap_urls.clone();
+                        operation_input_0.set_discard(
                             {
-                                let upcast_value_3 = environment.clone();
-                                crate::layouts::LayoutEnvironment {
-                                    identity: upcast_value_3.identity.clone(),
-                                    dispatch: upcast_value_3.dispatch.clone(),
-                                }
+                                let dispatch_receiver_6 = &term;
+                                dispatch_receiver_6
+                                    .dispatch
+                                    .read_page_context_rel_permalink()
                             },
-                            base.clone(),
-                            main.clone(),
-                            term.clone(),
-                        )?,
-                        format!(
-                            "{}{}{}{}{}",
-                            String::from("taxonomy term '"),
-                            rt::source_string(&taxonomy.state.with(|state| state.name.clone())),
-                            String::from("/"),
-                            rt::source_string(&term.state.with(|state| state.slug.clone())),
-                            String::from("'"),
-                        ),
-                    )?;
-                    sitemap_urls
-                        .set(term.state.with(|state| state.rel_permalink.clone()), true);
+                            true,
+                        )
+                    };
                     term_index += 1.0;
                 }
             }
-            let root: crate::models::page_context::PageContext =
-                taxonomy.state.with(|state| state.root.clone());
+            let root: crate::models::page_context::PageContext = taxonomy
+                .state
+                .with(|state| state.root.clone());
             let main: String = rt::option_coalesce(
                 crate::build::layout::select_template(
                     {
@@ -136,9 +153,8 @@ pub fn plan_taxonomy_outputs(
                     },
                     js_abi::JsArray::from_dense(vec![
                         format!(
-                            "{}{}{}",
-                            String::from(""),
-                            rt::source_string(&taxonomy.state.with(|state| state.name.clone())),
+                            "{}{}",
+                            taxonomy.state.with(|state| state.name.clone()),
                             String::from("/terms.html"),
                         ),
                         String::from("taxonomy/terms.html"),
@@ -160,9 +176,8 @@ pub fn plan_taxonomy_outputs(
                     },
                     js_abi::JsArray::from_dense(vec![
                         format!(
-                            "{}{}{}",
-                            String::from(""),
-                            rt::source_string(&taxonomy.state.with(|state| state.name.clone())),
+                            "{}{}",
+                            taxonomy.state.with(|state| state.name.clone()),
                             String::from("/baseof.html"),
                         ),
                         String::from("taxonomy/baseof.html"),
@@ -172,31 +187,44 @@ pub fn plan_taxonomy_outputs(
                 Some,
                 || templates.state.with(|state| state.base.clone()),
             );
-            output_plan.add_text(
-                crate::build::site_routes::site_output_path(js_abi::JsArray::from_dense(vec![
-                    taxonomy.state.with(|state| state.name.clone()),
-                ]))?,
-                crate::build::layout::render_with_base(
+            {
+                let dispatch_receiver_7 = output_plan.clone();
+                dispatch_receiver_7.dispatch.clone().dispatch_site_output_plan_add_text(
+                    crate::build::site_routes::site_output_path(js_abi::JsArray::from_dense(vec![
+                        taxonomy.state.with(|state| state.name.clone()),
+                    ]))?,
+                    crate::build::layout::render_with_base(
+                        {
+                            let upcast_value_6 = environment.clone();
+                            crate::layouts::LayoutEnvironment {
+                                identity: upcast_value_6.identity.clone(),
+                                dispatch: upcast_value_6.dispatch.clone(),
+                            }
+                        },
+                        base.clone(),
+                        main.clone(),
+                        root.clone(),
+                    )?,
+                    format!(
+                        "{}{}{}",
+                        String::from("taxonomy '"),
+                        taxonomy.state.with(|state| state.name.clone()),
+                        String::from("'"),
+                    ),
+                )
+            }?;
+            {
+                let operation_input_0_2 = sitemap_urls.clone();
+                operation_input_0_2.set_discard(
                     {
-                        let upcast_value_6 = environment.clone();
-                        crate::layouts::LayoutEnvironment {
-                            identity: upcast_value_6.identity.clone(),
-                            dispatch: upcast_value_6.dispatch.clone(),
-                        }
+                        let dispatch_receiver_8 = &root;
+                        dispatch_receiver_8
+                            .dispatch
+                            .read_page_context_rel_permalink()
                     },
-                    base.clone(),
-                    main.clone(),
-                    root.clone(),
-                )?,
-                format!(
-                    "{}{}{}",
-                    String::from("taxonomy '"),
-                    rt::source_string(&taxonomy.state.with(|state| state.name.clone())),
-                    String::from("'"),
-                ),
-            )?;
-            sitemap_urls
-                .set(root.state.with(|state| state.rel_permalink.clone()), true);
+                    true,
+                )
+            };
             taxonomy_index += 1.0;
         }
     }
