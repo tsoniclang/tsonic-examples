@@ -11,25 +11,25 @@ use crate::program as rt;
 pub trait JsonValueDispatch {
     fn downcast_json_value_to_json_array(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch>>;
+    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch + 'static>>;
     fn downcast_json_value_to_json_bool(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch>>;
+    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch + 'static>>;
     fn downcast_json_value_to_json_null(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNullDispatch>>;
+    ) -> Option<std::rc::Rc<dyn JsonNullDispatch + 'static>>;
     fn downcast_json_value_to_json_number(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch>>;
+    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch + 'static>>;
     fn downcast_json_value_to_json_object(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch>>;
+    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch + 'static>>;
     fn downcast_json_value_to_json_string(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonStringDispatch>>;
+    ) -> Option<std::rc::Rc<dyn JsonStringDispatch + 'static>>;
     fn downcast_json_value_to_json_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonValueDispatch>>;
+    ) -> Option<std::rc::Rc<dyn JsonValueDispatch + 'static>>;
     fn read_json_value_kind(&self) -> String;
     fn write_json_value_kind(&self, value: String);
     fn read_json_value_line(&self) -> i32;
@@ -52,7 +52,7 @@ pub struct JsonValue {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn JsonValueDispatch>,
+    pub dispatch: std::rc::Rc<dyn JsonValueDispatch + 'static>,
 }
 
 impl std::fmt::Debug for JsonValue {
@@ -105,43 +105,43 @@ impl JsonValue {
 impl JsonValueDispatch for JsonValueRoot {
     fn downcast_json_value_to_json_array(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_bool(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_null(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNullDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonNullDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_number(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_object(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_string(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonStringDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonStringDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonValueDispatch + 'static>> {
         Some(self)
     }
 
@@ -175,7 +175,7 @@ impl JsonValueDispatch for JsonValueRoot {
 pub trait JsonNullDispatch: JsonValueDispatch {
     fn downcast_json_null_to_json_null(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNullDispatch>>;
+    ) -> Option<std::rc::Rc<dyn JsonNullDispatch + 'static>>;
     fn read_json_null_value(&self) -> rt::Null;
     fn write_json_null_value(&self, value: rt::Null);
 }
@@ -194,7 +194,7 @@ pub struct JsonNull {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn JsonNullDispatch>,
+    pub dispatch: std::rc::Rc<dyn JsonNullDispatch + 'static>,
 }
 
 impl std::fmt::Debug for JsonNull {
@@ -245,43 +245,43 @@ impl JsonNull {
 impl JsonValueDispatch for JsonNullRoot {
     fn downcast_json_value_to_json_array(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_bool(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_null(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNullDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonNullDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_json_value_to_json_number(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_object(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_string(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonStringDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonStringDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonValueDispatch + 'static>> {
         Some(self)
     }
 
@@ -313,7 +313,7 @@ impl JsonValueDispatch for JsonNullRoot {
 impl JsonNullDispatch for JsonNullRoot {
     fn downcast_json_null_to_json_null(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNullDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonNullDispatch + 'static>> {
         Some(self)
     }
 
@@ -331,7 +331,7 @@ impl JsonNullDispatch for JsonNullRoot {
 pub trait JsonBoolDispatch: JsonValueDispatch {
     fn downcast_json_bool_to_json_bool(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch>>;
+    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch + 'static>>;
     fn read_json_bool_value(&self) -> bool;
     fn write_json_bool_value(&self, value: bool);
 }
@@ -350,7 +350,7 @@ pub struct JsonBool {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn JsonBoolDispatch>,
+    pub dispatch: std::rc::Rc<dyn JsonBoolDispatch + 'static>,
 }
 
 impl std::fmt::Debug for JsonBool {
@@ -401,43 +401,43 @@ impl JsonBool {
 impl JsonValueDispatch for JsonBoolRoot {
     fn downcast_json_value_to_json_array(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_bool(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_json_value_to_json_null(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNullDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonNullDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_number(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_object(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_string(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonStringDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonStringDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonValueDispatch + 'static>> {
         Some(self)
     }
 
@@ -469,7 +469,7 @@ impl JsonValueDispatch for JsonBoolRoot {
 impl JsonBoolDispatch for JsonBoolRoot {
     fn downcast_json_bool_to_json_bool(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch + 'static>> {
         Some(self)
     }
 
@@ -487,7 +487,7 @@ impl JsonBoolDispatch for JsonBoolRoot {
 pub trait JsonNumberDispatch: JsonValueDispatch {
     fn downcast_json_number_to_json_number(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch>>;
+    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch + 'static>>;
     fn read_json_number_value(&self) -> f64;
     fn write_json_number_value(&self, value: f64);
 }
@@ -506,7 +506,7 @@ pub struct JsonNumber {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn JsonNumberDispatch>,
+    pub dispatch: std::rc::Rc<dyn JsonNumberDispatch + 'static>,
 }
 
 impl std::fmt::Debug for JsonNumber {
@@ -557,43 +557,43 @@ impl JsonNumber {
 impl JsonValueDispatch for JsonNumberRoot {
     fn downcast_json_value_to_json_array(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_bool(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_null(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNullDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonNullDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_number(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_json_value_to_json_object(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_string(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonStringDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonStringDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonValueDispatch + 'static>> {
         Some(self)
     }
 
@@ -625,7 +625,7 @@ impl JsonValueDispatch for JsonNumberRoot {
 impl JsonNumberDispatch for JsonNumberRoot {
     fn downcast_json_number_to_json_number(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch + 'static>> {
         Some(self)
     }
 
@@ -643,7 +643,7 @@ impl JsonNumberDispatch for JsonNumberRoot {
 pub trait JsonStringDispatch: JsonValueDispatch {
     fn downcast_json_string_to_json_string(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonStringDispatch>>;
+    ) -> Option<std::rc::Rc<dyn JsonStringDispatch + 'static>>;
     fn read_json_string_value(&self) -> String;
     fn write_json_string_value(&self, value: String);
 }
@@ -662,7 +662,7 @@ pub struct JsonString {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn JsonStringDispatch>,
+    pub dispatch: std::rc::Rc<dyn JsonStringDispatch + 'static>,
 }
 
 impl std::fmt::Debug for JsonString {
@@ -713,43 +713,43 @@ impl JsonString {
 impl JsonValueDispatch for JsonStringRoot {
     fn downcast_json_value_to_json_array(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_bool(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_null(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNullDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonNullDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_number(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_object(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_string(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonStringDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonStringDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_json_value_to_json_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonValueDispatch + 'static>> {
         Some(self)
     }
 
@@ -781,7 +781,7 @@ impl JsonValueDispatch for JsonStringRoot {
 impl JsonStringDispatch for JsonStringRoot {
     fn downcast_json_string_to_json_string(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonStringDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonStringDispatch + 'static>> {
         Some(self)
     }
 
@@ -799,7 +799,7 @@ impl JsonStringDispatch for JsonStringRoot {
 pub trait JsonArrayDispatch: JsonValueDispatch {
     fn downcast_json_array_to_json_array(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch>>;
+    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch + 'static>>;
     fn read_json_array_items(&self) -> js_abi::JsArray<JsonValue>;
     fn write_json_array_items(&self, value: js_abi::JsArray<JsonValue>);
 }
@@ -818,7 +818,7 @@ pub struct JsonArray {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn JsonArrayDispatch>,
+    pub dispatch: std::rc::Rc<dyn JsonArrayDispatch + 'static>,
 }
 
 impl std::fmt::Debug for JsonArray {
@@ -873,43 +873,43 @@ impl JsonArray {
 impl JsonValueDispatch for JsonArrayRoot {
     fn downcast_json_value_to_json_array(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_json_value_to_json_bool(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_null(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNullDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonNullDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_number(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_object(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_string(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonStringDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonStringDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonValueDispatch + 'static>> {
         Some(self)
     }
 
@@ -941,7 +941,7 @@ impl JsonValueDispatch for JsonArrayRoot {
 impl JsonArrayDispatch for JsonArrayRoot {
     fn downcast_json_array_to_json_array(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch + 'static>> {
         Some(self)
     }
 
@@ -991,7 +991,7 @@ impl JsonProperty {
 pub trait JsonObjectDispatch: JsonValueDispatch {
     fn downcast_json_object_to_json_object(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch>>;
+    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch + 'static>>;
     fn read_json_object_properties(&self) -> js_abi::JsArray<JsonProperty>;
     fn write_json_object_properties(&self, value: js_abi::JsArray<JsonProperty>);
     fn dispatch_json_object_get(
@@ -1026,7 +1026,7 @@ pub struct JsonObject {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn JsonObjectDispatch>,
+    pub dispatch: std::rc::Rc<dyn JsonObjectDispatch + 'static>,
 }
 
 impl std::fmt::Debug for JsonObject {
@@ -1150,43 +1150,43 @@ impl JsonObjectRoot {
 impl JsonValueDispatch for JsonObjectRoot {
     fn downcast_json_value_to_json_array(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_bool(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_null(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNullDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonNullDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_number(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_object(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_json_value_to_json_string(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonStringDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonStringDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonValueDispatch + 'static>> {
         Some(self)
     }
 
@@ -1218,7 +1218,7 @@ impl JsonValueDispatch for JsonObjectRoot {
 impl JsonObjectDispatch for JsonObjectRoot {
     fn downcast_json_object_to_json_object(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch>> {
+    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch + 'static>> {
         Some(self)
     }
 

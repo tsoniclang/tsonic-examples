@@ -9,7 +9,7 @@ use crate::program as rt;
 pub trait DocsMountConfigDispatch {
     fn downcast_docs_mount_config_to_docs_mount_config(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn DocsMountConfigDispatch>>;
+    ) -> Option<std::rc::Rc<dyn DocsMountConfigDispatch + 'static>>;
     fn read_docs_mount_config_name(&self) -> String;
     fn write_docs_mount_config_name(&self, value: String);
     fn read_docs_mount_config_source_dir(&self) -> String;
@@ -44,7 +44,7 @@ pub struct DocsMountConfig {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn DocsMountConfigDispatch>,
+    pub dispatch: std::rc::Rc<dyn DocsMountConfigDispatch + 'static>,
 }
 
 impl std::fmt::Debug for DocsMountConfig {
@@ -129,7 +129,7 @@ impl DocsMountConfig {
 impl DocsMountConfigDispatch for DocsMountConfigRoot {
     fn downcast_docs_mount_config_to_docs_mount_config(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn DocsMountConfigDispatch>> {
+    ) -> Option<std::rc::Rc<dyn DocsMountConfigDispatch + 'static>> {
         Some(self)
     }
 

@@ -9,7 +9,7 @@ use crate::program as rt;
 pub trait MenuEntryDispatch {
     fn downcast_menu_entry_to_menu_entry(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn MenuEntryDispatch>>;
+    ) -> Option<std::rc::Rc<dyn MenuEntryDispatch + 'static>>;
     fn read_menu_entry_name(&self) -> String;
     fn write_menu_entry_name(&self, value: String);
     fn read_menu_entry_url(&self) -> String;
@@ -62,7 +62,7 @@ pub struct MenuEntry {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn MenuEntryDispatch>,
+    pub dispatch: std::rc::Rc<dyn MenuEntryDispatch + 'static>,
 }
 
 impl std::fmt::Debug for MenuEntry {
@@ -176,7 +176,7 @@ impl MenuEntry {
 impl MenuEntryDispatch for MenuEntryRoot {
     fn downcast_menu_entry_to_menu_entry(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn MenuEntryDispatch>> {
+    ) -> Option<std::rc::Rc<dyn MenuEntryDispatch + 'static>> {
         Some(self)
     }
 

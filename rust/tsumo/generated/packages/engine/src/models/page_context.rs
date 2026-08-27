@@ -9,7 +9,7 @@ use crate::program as rt;
 pub trait PageContextDispatch {
     fn downcast_page_context_to_page_context(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageContextDispatch>>;
+    ) -> Option<std::rc::Rc<dyn PageContextDispatch + 'static>>;
     fn read_page_context_title(&self) -> String;
     fn write_page_context_title(&self, value: String);
     fn read_page_context_date(&self) -> String;
@@ -110,7 +110,7 @@ pub struct PageContext {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn PageContextDispatch>,
+    pub dispatch: std::rc::Rc<dyn PageContextDispatch + 'static>,
 }
 
 impl std::fmt::Debug for PageContext {
@@ -296,7 +296,7 @@ impl PageContext {
 impl PageContextDispatch for PageContextRoot {
     fn downcast_page_context_to_page_context(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageContextDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageContextDispatch + 'static>> {
         Some(self)
     }
 

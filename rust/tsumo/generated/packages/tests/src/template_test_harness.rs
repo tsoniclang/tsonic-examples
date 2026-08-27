@@ -12,7 +12,7 @@ pub(crate) trait TestTemplateEnvironmentDispatch:
 {
     fn downcast_test_template_environment_to_test_template_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TestTemplateEnvironmentDispatch>>;
+    ) -> Option<std::rc::Rc<dyn TestTemplateEnvironmentDispatch + 'static>>;
     fn read_test_template_environment_templates(
         &self,
     ) -> js_abi::JsMap<String, tsumo_engine::testing::Template>;
@@ -179,7 +179,7 @@ pub(crate) struct TestTemplateEnvironmentState {
 #[derive(Clone)]
 pub struct TestTemplateEnvironment {
     pub(crate) identity: rt::ObjectIdentity,
-    pub(crate) dispatch: std::rc::Rc<dyn TestTemplateEnvironmentDispatch>,
+    pub(crate) dispatch: std::rc::Rc<dyn TestTemplateEnvironmentDispatch + 'static>,
 }
 
 impl std::fmt::Debug for TestTemplateEnvironment {
@@ -1081,20 +1081,22 @@ impl TestTemplateEnvironmentRoot {
 impl tsumo_engine::template::environment::TemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
     fn downcast_template_environment_to_build_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn tsumo_engine::env::BuildEnvironmentDispatch>> {
+    ) -> Option<std::rc::Rc<dyn tsumo_engine::env::BuildEnvironmentDispatch + 'static>> {
         None
     }
 
     fn downcast_template_environment_to_layout_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn tsumo_engine::layouts::LayoutEnvironmentDispatch>> {
+    ) -> Option<std::rc::Rc<dyn tsumo_engine::layouts::LayoutEnvironmentDispatch + 'static>> {
         None
     }
 
     fn downcast_template_environment_to_template_environment(
         self: std::rc::Rc<Self>,
     ) -> Option<
-        std::rc::Rc<dyn tsumo_engine::template::environment::TemplateEnvironmentDispatch>,
+        std::rc::Rc<
+            dyn tsumo_engine::template::environment::TemplateEnvironmentDispatch + 'static,
+        >,
     > {
         Some(self)
     }
@@ -1633,7 +1635,7 @@ impl tsumo_engine::template::environment::TemplateEnvironmentDispatch for TestTe
 impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
     fn downcast_test_template_environment_to_test_template_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TestTemplateEnvironmentDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TestTemplateEnvironmentDispatch + 'static>> {
         Some(self)
     }
 

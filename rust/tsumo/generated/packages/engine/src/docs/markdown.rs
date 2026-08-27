@@ -11,7 +11,7 @@ use crate::program as rt;
 pub trait DocsLinkRewriteContextDispatch {
     fn downcast_docs_link_rewrite_context_to_docs_link_rewrite_context(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn DocsLinkRewriteContextDispatch>>;
+    ) -> Option<std::rc::Rc<dyn DocsLinkRewriteContextDispatch + 'static>>;
     fn read_docs_link_rewrite_context_mount(&self) -> crate::docs::models::DocsMountConfig;
     fn write_docs_link_rewrite_context_mount(&self, value: crate::docs::models::DocsMountConfig);
     fn read_docs_link_rewrite_context_source_path(&self) -> String;
@@ -45,7 +45,7 @@ pub struct DocsLinkRewriteContext {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn DocsLinkRewriteContextDispatch>,
+    pub dispatch: std::rc::Rc<dyn DocsLinkRewriteContextDispatch + 'static>,
 }
 
 impl std::fmt::Debug for DocsLinkRewriteContext {
@@ -121,7 +121,7 @@ impl DocsLinkRewriteContext {
 impl DocsLinkRewriteContextDispatch for DocsLinkRewriteContextRoot {
     fn downcast_docs_link_rewrite_context_to_docs_link_rewrite_context(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn DocsLinkRewriteContextDispatch>> {
+    ) -> Option<std::rc::Rc<dyn DocsLinkRewriteContextDispatch + 'static>> {
         Some(self)
     }
 

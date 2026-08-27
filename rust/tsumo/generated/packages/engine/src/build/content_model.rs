@@ -9,7 +9,7 @@ use crate::program as rt;
 pub trait ContentPageSourceDispatch {
     fn downcast_content_page_source_to_content_page_source(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContentPageSourceDispatch>>;
+    ) -> Option<std::rc::Rc<dyn ContentPageSourceDispatch + 'static>>;
     fn read_content_page_source_source_path(&self) -> String;
     fn write_content_page_source_source_path(&self, value: String);
     fn read_content_page_source_section(&self) -> String;
@@ -93,7 +93,7 @@ pub struct ContentPageSource {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn ContentPageSourceDispatch>,
+    pub dispatch: std::rc::Rc<dyn ContentPageSourceDispatch + 'static>,
 }
 
 impl std::fmt::Debug for ContentPageSource {
@@ -245,7 +245,7 @@ impl ContentPageSource {
 impl ContentPageSourceDispatch for ContentPageSourceRoot {
     fn downcast_content_page_source_to_content_page_source(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContentPageSourceDispatch>> {
+    ) -> Option<std::rc::Rc<dyn ContentPageSourceDispatch + 'static>> {
         Some(self)
     }
 

@@ -57,10 +57,10 @@ pub mod standard_templates;
 pub trait BuildRequestDispatch {
     fn downcast_build_request_to_build_request(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BuildRequestDispatch>>;
+    ) -> Option<std::rc::Rc<dyn BuildRequestDispatch + 'static>>;
     fn downcast_build_request_to_serve_request(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ServeRequestDispatch>>;
+    ) -> Option<std::rc::Rc<dyn ServeRequestDispatch + 'static>>;
     fn read_build_request_site_dir(&self) -> String;
     fn write_build_request_site_dir(&self, value: String);
     fn read_build_request_destination_dir(&self) -> String;
@@ -95,7 +95,7 @@ pub struct BuildRequest {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn BuildRequestDispatch>,
+    pub dispatch: std::rc::Rc<dyn BuildRequestDispatch + 'static>,
 }
 
 impl std::fmt::Debug for BuildRequest {
@@ -156,13 +156,13 @@ impl BuildRequest {
 impl BuildRequestDispatch for BuildRequestRoot {
     fn downcast_build_request_to_build_request(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BuildRequestDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BuildRequestDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_build_request_to_serve_request(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ServeRequestDispatch>> {
+    ) -> Option<std::rc::Rc<dyn ServeRequestDispatch + 'static>> {
         None
     }
 
@@ -229,7 +229,7 @@ impl BuildRequestDispatch for BuildRequestRoot {
 pub trait ServeRequestDispatch: BuildRequestDispatch {
     fn downcast_serve_request_to_serve_request(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ServeRequestDispatch>>;
+    ) -> Option<std::rc::Rc<dyn ServeRequestDispatch + 'static>>;
     fn read_serve_request_host(&self) -> String;
     fn write_serve_request_host(&self, value: String);
     fn read_serve_request_port(&self) -> i32;
@@ -254,7 +254,7 @@ pub struct ServeRequest {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn ServeRequestDispatch>,
+    pub dispatch: std::rc::Rc<dyn ServeRequestDispatch + 'static>,
 }
 
 impl std::fmt::Debug for ServeRequest {
@@ -309,13 +309,13 @@ impl ServeRequest {
 impl BuildRequestDispatch for ServeRequestRoot {
     fn downcast_build_request_to_build_request(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BuildRequestDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BuildRequestDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_build_request_to_serve_request(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ServeRequestDispatch>> {
+    ) -> Option<std::rc::Rc<dyn ServeRequestDispatch + 'static>> {
         Some(self)
     }
 
@@ -381,7 +381,7 @@ impl BuildRequestDispatch for ServeRequestRoot {
 impl ServeRequestDispatch for ServeRequestRoot {
     fn downcast_serve_request_to_serve_request(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ServeRequestDispatch>> {
+    ) -> Option<std::rc::Rc<dyn ServeRequestDispatch + 'static>> {
         Some(self)
     }
 
@@ -415,7 +415,7 @@ impl ServeRequestDispatch for ServeRequestRoot {
 pub trait BuildResultDispatch {
     fn downcast_build_result_to_build_result(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BuildResultDispatch>>;
+    ) -> Option<std::rc::Rc<dyn BuildResultDispatch + 'static>>;
     fn read_build_result_output_dir(&self) -> String;
     fn write_build_result_output_dir(&self, value: String);
     fn read_build_result_pages_built(&self) -> i32;
@@ -435,7 +435,7 @@ pub struct BuildResult {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn BuildResultDispatch>,
+    pub dispatch: std::rc::Rc<dyn BuildResultDispatch + 'static>,
 }
 
 impl std::fmt::Debug for BuildResult {
@@ -486,7 +486,7 @@ impl BuildResult {
 impl BuildResultDispatch for BuildResultRoot {
     fn downcast_build_result_to_build_result(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BuildResultDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BuildResultDispatch + 'static>> {
         Some(self)
     }
 

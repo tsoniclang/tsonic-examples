@@ -48,7 +48,7 @@ impl LanguageConfig {
 pub trait LanguageContextDispatch {
     fn downcast_language_context_to_language_context(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn LanguageContextDispatch>>;
+    ) -> Option<std::rc::Rc<dyn LanguageContextDispatch + 'static>>;
     fn read_language_context_lang(&self) -> String;
     fn write_language_context_lang(&self, value: String);
     fn read_language_context_language_name(&self) -> String;
@@ -71,7 +71,7 @@ pub struct LanguageContext {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn LanguageContextDispatch>,
+    pub dispatch: std::rc::Rc<dyn LanguageContextDispatch + 'static>,
 }
 
 impl std::fmt::Debug for LanguageContext {
@@ -128,7 +128,7 @@ impl LanguageContext {
 impl LanguageContextDispatch for LanguageContextRoot {
     fn downcast_language_context_to_language_context(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn LanguageContextDispatch>> {
+    ) -> Option<std::rc::Rc<dyn LanguageContextDispatch + 'static>> {
         Some(self)
     }
 

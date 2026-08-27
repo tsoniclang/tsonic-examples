@@ -9,7 +9,7 @@ use crate::program as rt;
 pub trait ModuleMountDispatch {
     fn downcast_module_mount_to_module_mount(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ModuleMountDispatch>>;
+    ) -> Option<std::rc::Rc<dyn ModuleMountDispatch + 'static>>;
     fn read_module_mount_source(&self) -> String;
     fn write_module_mount_source(&self, value: String);
     fn read_module_mount_target(&self) -> String;
@@ -29,7 +29,7 @@ pub struct ModuleMount {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn ModuleMountDispatch>,
+    pub dispatch: std::rc::Rc<dyn ModuleMountDispatch + 'static>,
 }
 
 impl std::fmt::Debug for ModuleMount {
@@ -80,7 +80,7 @@ impl ModuleMount {
 impl ModuleMountDispatch for ModuleMountRoot {
     fn downcast_module_mount_to_module_mount(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ModuleMountDispatch>> {
+    ) -> Option<std::rc::Rc<dyn ModuleMountDispatch + 'static>> {
         Some(self)
     }
 
@@ -106,7 +106,7 @@ impl ModuleMountDispatch for ModuleMountRoot {
 pub trait SiteConfigDispatch {
     fn downcast_site_config_to_site_config(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn SiteConfigDispatch>>;
+    ) -> Option<std::rc::Rc<dyn SiteConfigDispatch + 'static>>;
     fn read_site_config_title(&self) -> String;
     fn write_site_config_title(&self, value: String);
     fn read_site_config_base_url(&self) -> String;
@@ -160,7 +160,7 @@ pub struct SiteConfig {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn SiteConfigDispatch>,
+    pub dispatch: std::rc::Rc<dyn SiteConfigDispatch + 'static>,
 }
 
 impl std::fmt::Debug for SiteConfig {
@@ -245,7 +245,7 @@ impl SiteConfig {
 impl SiteConfigDispatch for SiteConfigRoot {
     fn downcast_site_config_to_site_config(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn SiteConfigDispatch>> {
+    ) -> Option<std::rc::Rc<dyn SiteConfigDispatch + 'static>> {
         Some(self)
     }
 

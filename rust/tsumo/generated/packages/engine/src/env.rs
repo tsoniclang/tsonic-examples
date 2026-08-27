@@ -11,7 +11,7 @@ use crate::program as rt;
 pub trait BuildEnvironmentDispatch: crate::layouts::LayoutEnvironmentDispatch {
     fn downcast_build_environment_to_build_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BuildEnvironmentDispatch>>;
+    ) -> Option<std::rc::Rc<dyn BuildEnvironmentDispatch + 'static>>;
     fn read_build_environment_site_dir(&self) -> String;
     fn write_build_environment_site_dir(&self, value: String);
     fn read_build_environment_theme_dir(&self) -> Option<String>;
@@ -61,7 +61,7 @@ pub struct BuildEnvironment {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn BuildEnvironmentDispatch>,
+    pub dispatch: std::rc::Rc<dyn BuildEnvironmentDispatch + 'static>,
 }
 
 impl std::fmt::Debug for BuildEnvironment {
@@ -1817,19 +1817,21 @@ impl BuildEnvironmentRoot {
 impl crate::template::environment::TemplateEnvironmentDispatch for BuildEnvironmentRoot {
     fn downcast_template_environment_to_build_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BuildEnvironmentDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BuildEnvironmentDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_environment_to_layout_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::layouts::LayoutEnvironmentDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::layouts::LayoutEnvironmentDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_environment_to_template_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::environment::TemplateEnvironmentDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::environment::TemplateEnvironmentDispatch + 'static>,
+    > {
         Some(self)
     }
 
@@ -2347,13 +2349,13 @@ impl crate::template::environment::TemplateEnvironmentDispatch for BuildEnvironm
 impl crate::layouts::LayoutEnvironmentDispatch for BuildEnvironmentRoot {
     fn downcast_layout_environment_to_build_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BuildEnvironmentDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BuildEnvironmentDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_layout_environment_to_layout_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::layouts::LayoutEnvironmentDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::layouts::LayoutEnvironmentDispatch + 'static>> {
         Some(self)
     }
 
@@ -2753,7 +2755,7 @@ impl crate::layouts::LayoutEnvironmentDispatch for BuildEnvironmentRoot {
 impl BuildEnvironmentDispatch for BuildEnvironmentRoot {
     fn downcast_build_environment_to_build_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BuildEnvironmentDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BuildEnvironmentDispatch + 'static>> {
         Some(self)
     }
 
