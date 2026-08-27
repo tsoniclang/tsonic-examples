@@ -153,13 +153,13 @@ impl PartialTemplateResolution {
 pub trait TemplateEnvironmentDispatch {
     fn downcast_template_environment_to_build_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::env::BuildEnvironmentDispatch>>;
+    ) -> Option<std::rc::Rc<dyn crate::env::BuildEnvironmentDispatch + 'static>>;
     fn downcast_template_environment_to_layout_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::layouts::LayoutEnvironmentDispatch>>;
+    ) -> Option<std::rc::Rc<dyn crate::layouts::LayoutEnvironmentDispatch + 'static>>;
     fn downcast_template_environment_to_template_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateEnvironmentDispatch>>;
+    ) -> Option<std::rc::Rc<dyn TemplateEnvironmentDispatch + 'static>>;
     fn read_template_environment_is_production(&self) -> bool;
     fn write_template_environment_is_production(&self, value: bool);
     fn read_template_environment_build_time(&self) -> js_abi::JsDate;
@@ -421,7 +421,7 @@ pub struct TemplateEnvironment {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn TemplateEnvironmentDispatch>,
+    pub dispatch: std::rc::Rc<dyn TemplateEnvironmentDispatch + 'static>,
 }
 
 impl std::fmt::Debug for TemplateEnvironment {
@@ -1039,19 +1039,19 @@ impl TemplateEnvironmentRoot {
 impl TemplateEnvironmentDispatch for TemplateEnvironmentRoot {
     fn downcast_template_environment_to_build_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::env::BuildEnvironmentDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::env::BuildEnvironmentDispatch + 'static>> {
         None
     }
 
     fn downcast_template_environment_to_layout_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::layouts::LayoutEnvironmentDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::layouts::LayoutEnvironmentDispatch + 'static>> {
         None
     }
 
     fn downcast_template_environment_to_template_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateEnvironmentDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateEnvironmentDispatch + 'static>> {
         Some(self)
     }
 

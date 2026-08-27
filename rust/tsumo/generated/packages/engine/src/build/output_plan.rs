@@ -167,7 +167,7 @@ pub fn resolve_output_path(
 pub trait SiteOutputPlanDispatch {
     fn downcast_site_output_plan_to_site_output_plan(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn SiteOutputPlanDispatch>>;
+    ) -> Option<std::rc::Rc<dyn SiteOutputPlanDispatch + 'static>>;
     fn read_site_output_plan_claims_by_path(&self) -> js_abi::JsMap<String, OutputClaim>;
     fn write_site_output_plan_claims_by_path(&self, value: js_abi::JsMap<String, OutputClaim>);
     fn read_site_output_plan_text_by_path(&self) -> js_abi::JsMap<String, String>;
@@ -272,7 +272,7 @@ pub struct SiteOutputPlan {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn SiteOutputPlanDispatch>,
+    pub dispatch: std::rc::Rc<dyn SiteOutputPlanDispatch + 'static>,
 }
 
 impl std::fmt::Debug for SiteOutputPlan {
@@ -875,7 +875,7 @@ impl SiteOutputPlanRoot {
 impl SiteOutputPlanDispatch for SiteOutputPlanRoot {
     fn downcast_site_output_plan_to_site_output_plan(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn SiteOutputPlanDispatch>> {
+    ) -> Option<std::rc::Rc<dyn SiteOutputPlanDispatch + 'static>> {
         Some(self)
     }
 

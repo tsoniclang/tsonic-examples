@@ -9,7 +9,7 @@ use crate::program as rt;
 pub trait SearchDocumentDispatch {
     fn downcast_search_document_to_search_document(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn SearchDocumentDispatch>>;
+    ) -> Option<std::rc::Rc<dyn SearchDocumentDispatch + 'static>>;
     fn read_search_document_title(&self) -> String;
     fn write_search_document_title(&self, value: String);
     fn read_search_document_url(&self) -> String;
@@ -35,7 +35,7 @@ pub struct SearchDocument {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn SearchDocumentDispatch>,
+    pub dispatch: std::rc::Rc<dyn SearchDocumentDispatch + 'static>,
 }
 
 impl std::fmt::Debug for SearchDocument {
@@ -95,7 +95,7 @@ impl SearchDocument {
 impl SearchDocumentDispatch for SearchDocumentRoot {
     fn downcast_search_document_to_search_document(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn SearchDocumentDispatch>> {
+    ) -> Option<std::rc::Rc<dyn SearchDocumentDispatch + 'static>> {
         Some(self)
     }
 

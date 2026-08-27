@@ -9,37 +9,37 @@ use crate::program as rt;
 pub trait TemplateNodeDispatch {
     fn downcast_template_node_to_assignment_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch>>;
+    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>>;
     fn downcast_template_node_to_block_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch>>;
+    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>>;
     fn downcast_template_node_to_break_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch>>;
+    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>>;
     fn downcast_template_node_to_continue_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch>>;
+    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>>;
     fn downcast_template_node_to_if_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch>>;
+    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>>;
     fn downcast_template_node_to_output_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch>>;
+    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>>;
     fn downcast_template_node_to_range_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch>>;
+    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>>;
     fn downcast_template_node_to_template_invoke_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch>>;
+    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>>;
     fn downcast_template_node_to_template_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch>>;
+    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>>;
     fn downcast_template_node_to_text_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch>>;
+    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>>;
     fn downcast_template_node_to_with_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch>>;
+    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>>;
 }
 
 #[doc(hidden)]
@@ -52,7 +52,7 @@ pub struct TemplateNode {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn TemplateNodeDispatch>,
+    pub dispatch: std::rc::Rc<dyn TemplateNodeDispatch + 'static>,
 }
 
 impl std::fmt::Debug for TemplateNode {
@@ -104,67 +104,67 @@ impl Default for TemplateNode {
 impl TemplateNodeDispatch for TemplateNodeRoot {
     fn downcast_template_node_to_assignment_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_block_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_break_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_continue_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_if_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_output_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_range_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_invoke_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_text_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_with_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
         None
     }
 }
@@ -174,7 +174,7 @@ impl TemplateNodeDispatch for TemplateNodeRoot {
 pub trait BreakNodeDispatch: TemplateNodeDispatch {
     fn downcast_break_node_to_break_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch>>;
+    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>>;
 }
 
 #[doc(hidden)]
@@ -190,7 +190,7 @@ pub struct BreakNode {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn BreakNodeDispatch>,
+    pub dispatch: std::rc::Rc<dyn BreakNodeDispatch + 'static>,
 }
 
 impl std::fmt::Debug for BreakNode {
@@ -243,67 +243,67 @@ impl Default for BreakNode {
 impl TemplateNodeDispatch for BreakNodeRoot {
     fn downcast_template_node_to_assignment_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_block_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_break_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_continue_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_if_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_output_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_range_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_invoke_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_text_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_with_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
         None
     }
 }
@@ -311,7 +311,7 @@ impl TemplateNodeDispatch for BreakNodeRoot {
 impl BreakNodeDispatch for BreakNodeRoot {
     fn downcast_break_node_to_break_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         Some(self)
     }
 }
@@ -321,7 +321,7 @@ impl BreakNodeDispatch for BreakNodeRoot {
 pub trait ContinueNodeDispatch: TemplateNodeDispatch {
     fn downcast_continue_node_to_continue_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch>>;
+    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>>;
 }
 
 #[doc(hidden)]
@@ -337,7 +337,7 @@ pub struct ContinueNode {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn ContinueNodeDispatch>,
+    pub dispatch: std::rc::Rc<dyn ContinueNodeDispatch + 'static>,
 }
 
 impl std::fmt::Debug for ContinueNode {
@@ -390,67 +390,67 @@ impl Default for ContinueNode {
 impl TemplateNodeDispatch for ContinueNodeRoot {
     fn downcast_template_node_to_assignment_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_block_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_break_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_continue_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_if_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_output_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_range_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_invoke_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_text_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_with_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
         None
     }
 }
@@ -458,7 +458,7 @@ impl TemplateNodeDispatch for ContinueNodeRoot {
 impl ContinueNodeDispatch for ContinueNodeRoot {
     fn downcast_continue_node_to_continue_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         Some(self)
     }
 }
@@ -468,7 +468,7 @@ impl ContinueNodeDispatch for ContinueNodeRoot {
 pub trait TextNodeDispatch: TemplateNodeDispatch {
     fn downcast_text_node_to_text_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch>>;
+    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>>;
     fn read_text_node_text(&self) -> String;
     fn write_text_node_text(&self, value: String);
 }
@@ -487,7 +487,7 @@ pub struct TextNode {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn TextNodeDispatch>,
+    pub dispatch: std::rc::Rc<dyn TextNodeDispatch + 'static>,
 }
 
 impl std::fmt::Debug for TextNode {
@@ -538,67 +538,67 @@ impl TextNode {
 impl TemplateNodeDispatch for TextNodeRoot {
     fn downcast_template_node_to_assignment_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_block_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_break_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_continue_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_if_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_output_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_range_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_invoke_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_text_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_with_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
         None
     }
 }
@@ -606,7 +606,7 @@ impl TemplateNodeDispatch for TextNodeRoot {
 impl TextNodeDispatch for TextNodeRoot {
     fn downcast_text_node_to_text_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
         Some(self)
     }
 
@@ -624,7 +624,7 @@ impl TextNodeDispatch for TextNodeRoot {
 pub trait OutputNodeDispatch: TemplateNodeDispatch {
     fn downcast_output_node_to_output_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch>>;
+    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>>;
     fn read_output_node_pipeline(&self) -> crate::template::syntax::expressions::Pipeline;
     fn write_output_node_pipeline(&self, value: crate::template::syntax::expressions::Pipeline);
     fn read_output_node_escape(&self) -> bool;
@@ -646,7 +646,7 @@ pub struct OutputNode {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn OutputNodeDispatch>,
+    pub dispatch: std::rc::Rc<dyn OutputNodeDispatch + 'static>,
 }
 
 impl std::fmt::Debug for OutputNode {
@@ -705,67 +705,67 @@ impl OutputNode {
 impl TemplateNodeDispatch for OutputNodeRoot {
     fn downcast_template_node_to_assignment_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_block_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_break_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_continue_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_if_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_output_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_range_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_invoke_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_text_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_with_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
         None
     }
 }
@@ -773,7 +773,7 @@ impl TemplateNodeDispatch for OutputNodeRoot {
 impl OutputNodeDispatch for OutputNodeRoot {
     fn downcast_output_node_to_output_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         Some(self)
     }
 
@@ -799,7 +799,7 @@ impl OutputNodeDispatch for OutputNodeRoot {
 pub trait AssignmentNodeDispatch: TemplateNodeDispatch {
     fn downcast_assignment_node_to_assignment_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch>>;
+    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>>;
     fn read_assignment_node_name(&self) -> String;
     fn write_assignment_node_name(&self, value: String);
     fn read_assignment_node_pipeline(&self) -> crate::template::syntax::expressions::Pipeline;
@@ -824,7 +824,7 @@ pub struct AssignmentNode {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn AssignmentNodeDispatch>,
+    pub dispatch: std::rc::Rc<dyn AssignmentNodeDispatch + 'static>,
 }
 
 impl std::fmt::Debug for AssignmentNode {
@@ -887,67 +887,67 @@ impl AssignmentNode {
 impl TemplateNodeDispatch for AssignmentNodeRoot {
     fn downcast_template_node_to_assignment_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_block_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_break_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_continue_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_if_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_output_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_range_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_invoke_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_text_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_with_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
         None
     }
 }
@@ -955,7 +955,7 @@ impl TemplateNodeDispatch for AssignmentNodeRoot {
 impl AssignmentNodeDispatch for AssignmentNodeRoot {
     fn downcast_assignment_node_to_assignment_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         Some(self)
     }
 
@@ -992,7 +992,7 @@ impl AssignmentNodeDispatch for AssignmentNodeRoot {
 pub trait TemplateInvokeNodeDispatch: TemplateNodeDispatch {
     fn downcast_template_invoke_node_to_template_invoke_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch>>;
+    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>>;
     fn read_template_invoke_node_name(&self) -> String;
     fn write_template_invoke_node_name(&self, value: String);
     fn read_template_invoke_node_context(&self) -> crate::template::syntax::expressions::Pipeline;
@@ -1017,7 +1017,7 @@ pub struct TemplateInvokeNode {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn TemplateInvokeNodeDispatch>,
+    pub dispatch: std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>,
 }
 
 impl std::fmt::Debug for TemplateInvokeNode {
@@ -1076,67 +1076,67 @@ impl TemplateInvokeNode {
 impl TemplateNodeDispatch for TemplateInvokeNodeRoot {
     fn downcast_template_node_to_assignment_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_block_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_break_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_continue_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_if_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_output_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_range_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_invoke_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_template_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_text_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_with_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
         None
     }
 }
@@ -1144,7 +1144,7 @@ impl TemplateNodeDispatch for TemplateInvokeNodeRoot {
 impl TemplateInvokeNodeDispatch for TemplateInvokeNodeRoot {
     fn downcast_template_invoke_node_to_template_invoke_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         Some(self)
     }
 
@@ -1199,7 +1199,7 @@ impl TemplateVariableBinding {
 pub trait IfNodeDispatch: TemplateNodeDispatch {
     fn downcast_if_node_to_if_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch>>;
+    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>>;
     fn read_if_node_condition(&self) -> crate::template::syntax::expressions::Pipeline;
     fn write_if_node_condition(&self, value: crate::template::syntax::expressions::Pipeline);
     fn read_if_node_binding(&self) -> Option<TemplateVariableBinding>;
@@ -1227,7 +1227,7 @@ pub struct IfNode {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn IfNodeDispatch>,
+    pub dispatch: std::rc::Rc<dyn IfNodeDispatch + 'static>,
 }
 
 impl std::fmt::Debug for IfNode {
@@ -1294,67 +1294,67 @@ impl IfNode {
 impl TemplateNodeDispatch for IfNodeRoot {
     fn downcast_template_node_to_assignment_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_block_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_break_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_continue_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_if_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_output_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_range_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_invoke_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_text_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_with_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
         None
     }
 }
@@ -1362,7 +1362,7 @@ impl TemplateNodeDispatch for IfNodeRoot {
 impl IfNodeDispatch for IfNodeRoot {
     fn downcast_if_node_to_if_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
         Some(self)
     }
 
@@ -1404,7 +1404,7 @@ impl IfNodeDispatch for IfNodeRoot {
 pub trait RangeNodeDispatch: TemplateNodeDispatch {
     fn downcast_range_node_to_range_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch>>;
+    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>>;
     fn read_range_node_expr(&self) -> crate::template::syntax::expressions::Pipeline;
     fn write_range_node_expr(&self, value: crate::template::syntax::expressions::Pipeline);
     fn read_range_node_key_var(&self) -> Option<String>;
@@ -1435,7 +1435,7 @@ pub struct RangeNode {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn RangeNodeDispatch>,
+    pub dispatch: std::rc::Rc<dyn RangeNodeDispatch + 'static>,
 }
 
 impl std::fmt::Debug for RangeNode {
@@ -1506,67 +1506,67 @@ impl RangeNode {
 impl TemplateNodeDispatch for RangeNodeRoot {
     fn downcast_template_node_to_assignment_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_block_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_break_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_continue_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_if_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_output_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_range_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_template_invoke_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_text_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_with_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
         None
     }
 }
@@ -1574,7 +1574,7 @@ impl TemplateNodeDispatch for RangeNodeRoot {
 impl RangeNodeDispatch for RangeNodeRoot {
     fn downcast_range_node_to_range_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         Some(self)
     }
 
@@ -1624,7 +1624,7 @@ impl RangeNodeDispatch for RangeNodeRoot {
 pub trait WithNodeDispatch: TemplateNodeDispatch {
     fn downcast_with_node_to_with_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch>>;
+    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>>;
     fn read_with_node_expr(&self) -> crate::template::syntax::expressions::Pipeline;
     fn write_with_node_expr(&self, value: crate::template::syntax::expressions::Pipeline);
     fn read_with_node_binding(&self) -> Option<TemplateVariableBinding>;
@@ -1658,7 +1658,7 @@ pub struct WithNode {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn WithNodeDispatch>,
+    pub dispatch: std::rc::Rc<dyn WithNodeDispatch + 'static>,
 }
 
 impl std::fmt::Debug for WithNode {
@@ -1740,67 +1740,67 @@ impl WithNode {
 impl TemplateNodeDispatch for WithNodeRoot {
     fn downcast_template_node_to_assignment_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_block_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_break_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_continue_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_if_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_output_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_range_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_invoke_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_text_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_with_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
         Some(self)
     }
 }
@@ -1808,7 +1808,7 @@ impl TemplateNodeDispatch for WithNodeRoot {
 impl WithNodeDispatch for WithNodeRoot {
     fn downcast_with_node_to_with_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
         Some(self)
     }
 
@@ -1867,7 +1867,7 @@ impl WithNodeDispatch for WithNodeRoot {
 pub trait BlockNodeDispatch: TemplateNodeDispatch {
     fn downcast_block_node_to_block_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch>>;
+    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>>;
     fn read_block_node_name(&self) -> String;
     fn write_block_node_name(&self, value: String);
     fn read_block_node_context(&self) -> crate::template::syntax::expressions::Pipeline;
@@ -1892,7 +1892,7 @@ pub struct BlockNode {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn BlockNodeDispatch>,
+    pub dispatch: std::rc::Rc<dyn BlockNodeDispatch + 'static>,
 }
 
 impl std::fmt::Debug for BlockNode {
@@ -1955,67 +1955,67 @@ impl BlockNode {
 impl TemplateNodeDispatch for BlockNodeRoot {
     fn downcast_template_node_to_assignment_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_block_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_break_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_continue_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_if_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_output_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_range_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_invoke_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_text_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_with_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
         None
     }
 }
@@ -2023,7 +2023,7 @@ impl TemplateNodeDispatch for BlockNodeRoot {
 impl BlockNodeDispatch for BlockNodeRoot {
     fn downcast_block_node_to_block_node(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         Some(self)
     }
 

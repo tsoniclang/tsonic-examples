@@ -9,17 +9,19 @@ use crate::program as rt;
 pub trait ExprDispatch {
     fn downcast_expr_to_access_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AccessExprDispatch>>;
+    ) -> Option<std::rc::Rc<dyn AccessExprDispatch + 'static>>;
     fn downcast_expr_to_command_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn CommandExprDispatch>>;
-    fn downcast_expr_to_expr(self: std::rc::Rc<Self>) -> Option<std::rc::Rc<dyn ExprDispatch>>;
+    ) -> Option<std::rc::Rc<dyn CommandExprDispatch + 'static>>;
+    fn downcast_expr_to_expr(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn ExprDispatch + 'static>>;
     fn downcast_expr_to_pipeline_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch>>;
+    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch + 'static>>;
     fn downcast_expr_to_token_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TokenExprDispatch>>;
+    ) -> Option<std::rc::Rc<dyn TokenExprDispatch + 'static>>;
 }
 
 #[doc(hidden)]
@@ -32,7 +34,7 @@ pub struct Expr {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn ExprDispatch>,
+    pub dispatch: std::rc::Rc<dyn ExprDispatch + 'static>,
 }
 
 impl std::fmt::Debug for Expr {
@@ -84,29 +86,31 @@ impl Default for Expr {
 impl ExprDispatch for ExprRoot {
     fn downcast_expr_to_access_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AccessExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn AccessExprDispatch + 'static>> {
         None
     }
 
     fn downcast_expr_to_command_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn CommandExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn CommandExprDispatch + 'static>> {
         None
     }
 
-    fn downcast_expr_to_expr(self: std::rc::Rc<Self>) -> Option<std::rc::Rc<dyn ExprDispatch>> {
+    fn downcast_expr_to_expr(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn ExprDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_expr_to_pipeline_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch + 'static>> {
         None
     }
 
     fn downcast_expr_to_token_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TokenExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TokenExprDispatch + 'static>> {
         None
     }
 }
@@ -116,7 +120,7 @@ impl ExprDispatch for ExprRoot {
 pub trait TokenExprDispatch: ExprDispatch {
     fn downcast_token_expr_to_token_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TokenExprDispatch>>;
+    ) -> Option<std::rc::Rc<dyn TokenExprDispatch + 'static>>;
     fn read_token_expr_token(&self) -> String;
     fn write_token_expr_token(&self, value: String);
 }
@@ -135,7 +139,7 @@ pub struct TokenExpr {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn TokenExprDispatch>,
+    pub dispatch: std::rc::Rc<dyn TokenExprDispatch + 'static>,
 }
 
 impl std::fmt::Debug for TokenExpr {
@@ -186,29 +190,31 @@ impl TokenExpr {
 impl ExprDispatch for TokenExprRoot {
     fn downcast_expr_to_access_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AccessExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn AccessExprDispatch + 'static>> {
         None
     }
 
     fn downcast_expr_to_command_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn CommandExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn CommandExprDispatch + 'static>> {
         None
     }
 
-    fn downcast_expr_to_expr(self: std::rc::Rc<Self>) -> Option<std::rc::Rc<dyn ExprDispatch>> {
+    fn downcast_expr_to_expr(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn ExprDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_expr_to_pipeline_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch + 'static>> {
         None
     }
 
     fn downcast_expr_to_token_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TokenExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TokenExprDispatch + 'static>> {
         Some(self)
     }
 }
@@ -216,7 +222,7 @@ impl ExprDispatch for TokenExprRoot {
 impl TokenExprDispatch for TokenExprRoot {
     fn downcast_token_expr_to_token_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TokenExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TokenExprDispatch + 'static>> {
         Some(self)
     }
 
@@ -234,7 +240,7 @@ impl TokenExprDispatch for TokenExprRoot {
 pub trait PipelineExprDispatch: ExprDispatch {
     fn downcast_pipeline_expr_to_pipeline_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch>>;
+    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch + 'static>>;
     fn read_pipeline_expr_pipeline(&self) -> Pipeline;
     fn write_pipeline_expr_pipeline(&self, value: Pipeline);
 }
@@ -253,7 +259,7 @@ pub struct PipelineExpr {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn PipelineExprDispatch>,
+    pub dispatch: std::rc::Rc<dyn PipelineExprDispatch + 'static>,
 }
 
 impl std::fmt::Debug for PipelineExpr {
@@ -304,29 +310,31 @@ impl PipelineExpr {
 impl ExprDispatch for PipelineExprRoot {
     fn downcast_expr_to_access_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AccessExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn AccessExprDispatch + 'static>> {
         None
     }
 
     fn downcast_expr_to_command_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn CommandExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn CommandExprDispatch + 'static>> {
         None
     }
 
-    fn downcast_expr_to_expr(self: std::rc::Rc<Self>) -> Option<std::rc::Rc<dyn ExprDispatch>> {
+    fn downcast_expr_to_expr(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn ExprDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_expr_to_pipeline_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_expr_to_token_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TokenExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TokenExprDispatch + 'static>> {
         None
     }
 }
@@ -334,7 +342,7 @@ impl ExprDispatch for PipelineExprRoot {
 impl PipelineExprDispatch for PipelineExprRoot {
     fn downcast_pipeline_expr_to_pipeline_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch + 'static>> {
         Some(self)
     }
 
@@ -352,7 +360,7 @@ impl PipelineExprDispatch for PipelineExprRoot {
 pub trait CommandExprDispatch: ExprDispatch {
     fn downcast_command_expr_to_command_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn CommandExprDispatch>>;
+    ) -> Option<std::rc::Rc<dyn CommandExprDispatch + 'static>>;
     fn read_command_expr_command(&self) -> Command;
     fn write_command_expr_command(&self, value: Command);
 }
@@ -371,7 +379,7 @@ pub struct CommandExpr {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn CommandExprDispatch>,
+    pub dispatch: std::rc::Rc<dyn CommandExprDispatch + 'static>,
 }
 
 impl std::fmt::Debug for CommandExpr {
@@ -422,29 +430,31 @@ impl CommandExpr {
 impl ExprDispatch for CommandExprRoot {
     fn downcast_expr_to_access_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AccessExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn AccessExprDispatch + 'static>> {
         None
     }
 
     fn downcast_expr_to_command_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn CommandExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn CommandExprDispatch + 'static>> {
         Some(self)
     }
 
-    fn downcast_expr_to_expr(self: std::rc::Rc<Self>) -> Option<std::rc::Rc<dyn ExprDispatch>> {
+    fn downcast_expr_to_expr(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn ExprDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_expr_to_pipeline_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch + 'static>> {
         None
     }
 
     fn downcast_expr_to_token_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TokenExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TokenExprDispatch + 'static>> {
         None
     }
 }
@@ -452,7 +462,7 @@ impl ExprDispatch for CommandExprRoot {
 impl CommandExprDispatch for CommandExprRoot {
     fn downcast_command_expr_to_command_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn CommandExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn CommandExprDispatch + 'static>> {
         Some(self)
     }
 
@@ -470,7 +480,7 @@ impl CommandExprDispatch for CommandExprRoot {
 pub trait AccessExprDispatch: ExprDispatch {
     fn downcast_access_expr_to_access_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AccessExprDispatch>>;
+    ) -> Option<std::rc::Rc<dyn AccessExprDispatch + 'static>>;
     fn read_access_expr_base(&self) -> Expr;
     fn write_access_expr_base(&self, value: Expr);
     fn read_access_expr_segments(&self) -> js_abi::JsArray<String>;
@@ -492,7 +502,7 @@ pub struct AccessExpr {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn AccessExprDispatch>,
+    pub dispatch: std::rc::Rc<dyn AccessExprDispatch + 'static>,
 }
 
 impl std::fmt::Debug for AccessExpr {
@@ -545,29 +555,31 @@ impl AccessExpr {
 impl ExprDispatch for AccessExprRoot {
     fn downcast_expr_to_access_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AccessExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn AccessExprDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_expr_to_command_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn CommandExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn CommandExprDispatch + 'static>> {
         None
     }
 
-    fn downcast_expr_to_expr(self: std::rc::Rc<Self>) -> Option<std::rc::Rc<dyn ExprDispatch>> {
+    fn downcast_expr_to_expr(
+        self: std::rc::Rc<Self>,
+    ) -> Option<std::rc::Rc<dyn ExprDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_expr_to_pipeline_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch + 'static>> {
         None
     }
 
     fn downcast_expr_to_token_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TokenExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TokenExprDispatch + 'static>> {
         None
     }
 }
@@ -575,7 +587,7 @@ impl ExprDispatch for AccessExprRoot {
 impl AccessExprDispatch for AccessExprRoot {
     fn downcast_access_expr_to_access_expr(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AccessExprDispatch>> {
+    ) -> Option<std::rc::Rc<dyn AccessExprDispatch + 'static>> {
         Some(self)
     }
 

@@ -9,7 +9,7 @@ use crate::program as rt;
 pub trait TemplateDispatch {
     fn downcast_template_to_template(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateDispatch>>;
+    ) -> Option<std::rc::Rc<dyn TemplateDispatch + 'static>>;
     fn read_template_nodes(&self) -> js_abi::JsArray<crate::template::nodes::TemplateNode>;
     fn write_template_nodes(&self, value: js_abi::JsArray<crate::template::nodes::TemplateNode>);
     fn read_template_defines(
@@ -91,7 +91,7 @@ pub struct Template {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn TemplateDispatch>,
+    pub dispatch: std::rc::Rc<dyn TemplateDispatch + 'static>,
 }
 
 impl std::fmt::Debug for Template {
@@ -402,7 +402,7 @@ impl TemplateRoot {
 impl TemplateDispatch for TemplateRoot {
     fn downcast_template_to_template(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateDispatch + 'static>> {
         Some(self)
     }
 

@@ -13,7 +13,7 @@ pub enum TsumoDiagnosticCategory {
 pub trait TsumoDiagnosticDispatch {
     fn downcast_tsumo_diagnostic_to_tsumo_diagnostic(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TsumoDiagnosticDispatch>>;
+    ) -> Option<std::rc::Rc<dyn TsumoDiagnosticDispatch + 'static>>;
     fn read_tsumo_diagnostic_code(&self) -> String;
     fn write_tsumo_diagnostic_code(&self, value: String);
     fn read_tsumo_diagnostic_category(&self) -> TsumoDiagnosticCategory;
@@ -47,7 +47,7 @@ pub struct TsumoDiagnostic {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn TsumoDiagnosticDispatch>,
+    pub dispatch: std::rc::Rc<dyn TsumoDiagnosticDispatch + 'static>,
 }
 
 impl std::fmt::Debug for TsumoDiagnostic {
@@ -210,7 +210,7 @@ impl TsumoDiagnosticRoot {
 impl TsumoDiagnosticDispatch for TsumoDiagnosticRoot {
     fn downcast_tsumo_diagnostic_to_tsumo_diagnostic(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TsumoDiagnosticDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TsumoDiagnosticDispatch + 'static>> {
         Some(self)
     }
 
@@ -276,7 +276,7 @@ impl TsumoDiagnosticDispatch for TsumoDiagnosticRoot {
 pub trait TsumoErrorDispatch {
     fn downcast_tsumo_error_to_tsumo_error(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TsumoErrorDispatch>>;
+    ) -> Option<std::rc::Rc<dyn TsumoErrorDispatch + 'static>>;
     fn read_tsumo_error_name(&self) -> String;
     fn write_tsumo_error_name(&self, value: String);
     fn read_tsumo_error_message(&self) -> String;
@@ -303,7 +303,7 @@ pub struct TsumoError {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn TsumoErrorDispatch>,
+    pub dispatch: std::rc::Rc<dyn TsumoErrorDispatch + 'static>,
 }
 
 impl std::fmt::Debug for TsumoError {
@@ -367,7 +367,7 @@ impl TsumoError {
 impl TsumoErrorDispatch for TsumoErrorRoot {
     fn downcast_tsumo_error_to_tsumo_error(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TsumoErrorDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TsumoErrorDispatch + 'static>> {
         Some(self)
     }
 

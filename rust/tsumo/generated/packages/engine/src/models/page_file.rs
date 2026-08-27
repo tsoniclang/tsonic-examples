@@ -7,7 +7,7 @@ use crate::program as rt;
 pub trait PageFileDispatch {
     fn downcast_page_file_to_page_file(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageFileDispatch>>;
+    ) -> Option<std::rc::Rc<dyn PageFileDispatch + 'static>>;
     fn read_page_file_filename(&self) -> String;
     fn write_page_file_filename(&self, value: String);
     fn read_page_file_dir(&self) -> String;
@@ -30,7 +30,7 @@ pub struct PageFile {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn PageFileDispatch>,
+    pub dispatch: std::rc::Rc<dyn PageFileDispatch + 'static>,
 }
 
 impl std::fmt::Debug for PageFile {
@@ -87,7 +87,7 @@ impl PageFile {
 impl PageFileDispatch for PageFileRoot {
     fn downcast_page_file_to_page_file(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageFileDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageFileDispatch + 'static>> {
         Some(self)
     }
 

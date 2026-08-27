@@ -44,7 +44,7 @@ impl StandardTaxonomy {
 pub trait StandardTaxonomyGraphDispatch {
     fn downcast_standard_taxonomy_graph_to_standard_taxonomy_graph(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn StandardTaxonomyGraphDispatch>>;
+    ) -> Option<std::rc::Rc<dyn StandardTaxonomyGraphDispatch + 'static>>;
     fn read_standard_taxonomy_graph_taxonomies(&self) -> js_abi::JsArray<StandardTaxonomy>;
     fn write_standard_taxonomy_graph_taxonomies(&self, value: js_abi::JsArray<StandardTaxonomy>);
 }
@@ -61,7 +61,7 @@ pub struct StandardTaxonomyGraph {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn StandardTaxonomyGraphDispatch>,
+    pub dispatch: std::rc::Rc<dyn StandardTaxonomyGraphDispatch + 'static>,
 }
 
 impl std::fmt::Debug for StandardTaxonomyGraph {
@@ -112,7 +112,7 @@ impl StandardTaxonomyGraph {
 impl StandardTaxonomyGraphDispatch for StandardTaxonomyGraphRoot {
     fn downcast_standard_taxonomy_graph_to_standard_taxonomy_graph(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn StandardTaxonomyGraphDispatch>> {
+    ) -> Option<std::rc::Rc<dyn StandardTaxonomyGraphDispatch + 'static>> {
         Some(self)
     }
 

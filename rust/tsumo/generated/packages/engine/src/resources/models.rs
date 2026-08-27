@@ -7,7 +7,7 @@ use crate::program as rt;
 pub trait ResourceDataDispatch {
     fn downcast_resource_data_to_resource_data(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ResourceDataDispatch>>;
+    ) -> Option<std::rc::Rc<dyn ResourceDataDispatch + 'static>>;
     fn read_resource_data_integrity(&self) -> String;
     fn write_resource_data_integrity(&self, value: String);
 }
@@ -24,7 +24,7 @@ pub struct ResourceData {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn ResourceDataDispatch>,
+    pub dispatch: std::rc::Rc<dyn ResourceDataDispatch + 'static>,
 }
 
 impl std::fmt::Debug for ResourceData {
@@ -73,7 +73,7 @@ impl ResourceData {
 impl ResourceDataDispatch for ResourceDataRoot {
     fn downcast_resource_data_to_resource_data(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ResourceDataDispatch>> {
+    ) -> Option<std::rc::Rc<dyn ResourceDataDispatch + 'static>> {
         Some(self)
     }
 
@@ -117,7 +117,7 @@ impl ImageDimensions {
 pub trait ResourceDispatch {
     fn downcast_resource_to_resource(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ResourceDispatch>>;
+    ) -> Option<std::rc::Rc<dyn ResourceDispatch + 'static>>;
     fn read_resource_id(&self) -> String;
     fn write_resource_id(&self, value: String);
     fn read_resource_source_path(&self) -> Option<String>;
@@ -161,7 +161,7 @@ pub struct Resource {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn ResourceDispatch>,
+    pub dispatch: std::rc::Rc<dyn ResourceDispatch + 'static>,
 }
 
 impl std::fmt::Debug for Resource {
@@ -266,7 +266,7 @@ impl Resource {
 impl ResourceDispatch for ResourceRoot {
     fn downcast_resource_to_resource(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ResourceDispatch>> {
+    ) -> Option<std::rc::Rc<dyn ResourceDispatch + 'static>> {
         Some(self)
     }
 

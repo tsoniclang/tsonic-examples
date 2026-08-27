@@ -98,7 +98,7 @@ pub fn sort_resources_by_identity(
 pub trait ResourceManagerDispatch {
     fn downcast_resource_manager_to_resource_manager(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ResourceManagerDispatch>>;
+    ) -> Option<std::rc::Rc<dyn ResourceManagerDispatch + 'static>>;
     fn read_resource_manager_site_dir(&self) -> String;
     fn write_resource_manager_site_dir(&self, value: String);
     fn read_resource_manager_theme_dir(&self) -> Option<String>;
@@ -283,7 +283,7 @@ pub struct ResourceManager {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn ResourceManagerDispatch>,
+    pub dispatch: std::rc::Rc<dyn ResourceManagerDispatch + 'static>,
 }
 
 impl std::fmt::Debug for ResourceManager {
@@ -1327,7 +1327,7 @@ impl ResourceManagerRoot {
 impl ResourceManagerDispatch for ResourceManagerRoot {
     fn downcast_resource_manager_to_resource_manager(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ResourceManagerDispatch>> {
+    ) -> Option<std::rc::Rc<dyn ResourceManagerDispatch + 'static>> {
         Some(self)
     }
 

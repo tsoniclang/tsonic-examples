@@ -7,7 +7,7 @@ use crate::program as rt;
 pub trait TextBuilderDispatch {
     fn downcast_text_builder_to_text_builder(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextBuilderDispatch>>;
+    ) -> Option<std::rc::Rc<dyn TextBuilderDispatch + 'static>>;
     fn read_text_builder_state(&self) -> tsumo_platform::TextBuilderState;
     fn write_text_builder_state(&self, value: tsumo_platform::TextBuilderState);
     fn read_text_builder_length(self: std::rc::Rc<Self>) -> i32;
@@ -47,7 +47,7 @@ pub struct TextBuilder {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn TextBuilderDispatch>,
+    pub dispatch: std::rc::Rc<dyn TextBuilderDispatch + 'static>,
 }
 
 impl std::fmt::Debug for TextBuilder {
@@ -143,7 +143,7 @@ impl TextBuilderRoot {
 impl TextBuilderDispatch for TextBuilderRoot {
     fn downcast_text_builder_to_text_builder(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextBuilderDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TextBuilderDispatch + 'static>> {
         Some(self)
     }
 

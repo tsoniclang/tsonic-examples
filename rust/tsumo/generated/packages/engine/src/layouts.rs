@@ -13,10 +13,10 @@ pub trait LayoutEnvironmentDispatch:
 {
     fn downcast_layout_environment_to_build_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::env::BuildEnvironmentDispatch>>;
+    ) -> Option<std::rc::Rc<dyn crate::env::BuildEnvironmentDispatch + 'static>>;
     fn downcast_layout_environment_to_layout_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn LayoutEnvironmentDispatch>>;
+    ) -> Option<std::rc::Rc<dyn LayoutEnvironmentDispatch + 'static>>;
     fn read_layout_environment_site_layouts_dir(&self) -> String;
     fn write_layout_environment_site_layouts_dir(&self, value: String);
     fn read_layout_environment_theme_layouts_dir(&self) -> Option<String>;
@@ -217,7 +217,7 @@ pub struct LayoutEnvironment {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn LayoutEnvironmentDispatch>,
+    pub dispatch: std::rc::Rc<dyn LayoutEnvironmentDispatch + 'static>,
 }
 
 impl std::fmt::Debug for LayoutEnvironment {
@@ -2102,19 +2102,21 @@ impl LayoutEnvironmentRoot {
 impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnvironmentRoot {
     fn downcast_template_environment_to_build_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::env::BuildEnvironmentDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::env::BuildEnvironmentDispatch + 'static>> {
         None
     }
 
     fn downcast_template_environment_to_layout_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn LayoutEnvironmentDispatch>> {
+    ) -> Option<std::rc::Rc<dyn LayoutEnvironmentDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_environment_to_template_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::environment::TemplateEnvironmentDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::environment::TemplateEnvironmentDispatch + 'static>,
+    > {
         Some(self)
     }
 
@@ -2632,13 +2634,13 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
 impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
     fn downcast_layout_environment_to_build_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::env::BuildEnvironmentDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::env::BuildEnvironmentDispatch + 'static>> {
         None
     }
 
     fn downcast_layout_environment_to_layout_environment(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn LayoutEnvironmentDispatch>> {
+    ) -> Option<std::rc::Rc<dyn LayoutEnvironmentDispatch + 'static>> {
         Some(self)
     }
 

@@ -21,7 +21,7 @@ pub fn decode_html(input: String) -> String {
 pub trait HtmlStringDispatch {
     fn downcast_html_string_to_html_string(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn HtmlStringDispatch>>;
+    ) -> Option<std::rc::Rc<dyn HtmlStringDispatch + 'static>>;
     fn read_html_string_value(&self) -> String;
     fn write_html_string_value(&self, value: String);
 }
@@ -38,7 +38,7 @@ pub struct HtmlString {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn HtmlStringDispatch>,
+    pub dispatch: std::rc::Rc<dyn HtmlStringDispatch + 'static>,
 }
 
 impl std::fmt::Debug for HtmlString {
@@ -85,7 +85,7 @@ impl HtmlString {
 impl HtmlStringDispatch for HtmlStringRoot {
     fn downcast_html_string_to_html_string(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn HtmlStringDispatch>> {
+    ) -> Option<std::rc::Rc<dyn HtmlStringDispatch + 'static>> {
         Some(self)
     }
 

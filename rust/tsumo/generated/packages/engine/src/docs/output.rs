@@ -11,7 +11,7 @@ use crate::program as rt;
 pub trait DocsOutputClaimsDispatch {
     fn downcast_docs_output_claims_to_docs_output_claims(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn DocsOutputClaimsDispatch>>;
+    ) -> Option<std::rc::Rc<dyn DocsOutputClaimsDispatch + 'static>>;
     fn read_docs_output_claims_sources_by_output_path(&self) -> js_abi::JsMap<String, String>;
     fn write_docs_output_claims_sources_by_output_path(&self, value: js_abi::JsMap<String, String>);
     fn dispatch_docs_output_claims_add(
@@ -38,7 +38,7 @@ pub struct DocsOutputClaims {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn DocsOutputClaimsDispatch>,
+    pub dispatch: std::rc::Rc<dyn DocsOutputClaimsDispatch + 'static>,
 }
 
 impl std::fmt::Debug for DocsOutputClaims {
@@ -143,7 +143,7 @@ impl DocsOutputClaimsRoot {
 impl DocsOutputClaimsDispatch for DocsOutputClaimsRoot {
     fn downcast_docs_output_claims_to_docs_output_claims(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn DocsOutputClaimsDispatch>> {
+    ) -> Option<std::rc::Rc<dyn DocsOutputClaimsDispatch + 'static>> {
         Some(self)
     }
 

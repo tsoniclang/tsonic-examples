@@ -11,7 +11,7 @@ use crate::program as rt;
 pub trait StandardPageGraphDispatch {
     fn downcast_standard_page_graph_to_standard_page_graph(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn StandardPageGraphDispatch>>;
+    ) -> Option<std::rc::Rc<dyn StandardPageGraphDispatch + 'static>>;
     fn read_standard_page_graph_site(&self) -> crate::models::site_context::SiteContext;
     fn write_standard_page_graph_site(&self, value: crate::models::site_context::SiteContext);
     fn read_standard_page_graph_page_sources(
@@ -74,7 +74,7 @@ pub struct StandardPageGraph {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn StandardPageGraphDispatch>,
+    pub dispatch: std::rc::Rc<dyn StandardPageGraphDispatch + 'static>,
 }
 
 impl std::fmt::Debug for StandardPageGraph {
@@ -177,7 +177,7 @@ impl StandardPageGraph {
 impl StandardPageGraphDispatch for StandardPageGraphRoot {
     fn downcast_standard_page_graph_to_standard_page_graph(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn StandardPageGraphDispatch>> {
+    ) -> Option<std::rc::Rc<dyn StandardPageGraphDispatch + 'static>> {
         Some(self)
     }
 

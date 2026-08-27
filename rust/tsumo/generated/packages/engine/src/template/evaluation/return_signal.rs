@@ -7,7 +7,7 @@ use crate::program as rt;
 pub trait TemplateReturnSignalDispatch {
     fn downcast_template_return_signal_to_template_return_signal(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateReturnSignalDispatch>>;
+    ) -> Option<std::rc::Rc<dyn TemplateReturnSignalDispatch + 'static>>;
     fn read_tsumo_error_name(&self) -> String;
     fn write_tsumo_error_name(&self, value: String);
     fn read_tsumo_error_message(&self) -> String;
@@ -37,7 +37,7 @@ pub struct TemplateReturnSignal {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn TemplateReturnSignalDispatch>,
+    pub dispatch: std::rc::Rc<dyn TemplateReturnSignalDispatch + 'static>,
 }
 
 impl std::fmt::Debug for TemplateReturnSignal {
@@ -97,7 +97,7 @@ impl TemplateReturnSignal {
 impl TemplateReturnSignalDispatch for TemplateReturnSignalRoot {
     fn downcast_template_return_signal_to_template_return_signal(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateReturnSignalDispatch>> {
+    ) -> Option<std::rc::Rc<dyn TemplateReturnSignalDispatch + 'static>> {
         Some(self)
     }
 

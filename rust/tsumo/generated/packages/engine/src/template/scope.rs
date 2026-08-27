@@ -9,7 +9,7 @@ use crate::program as rt;
 pub trait RenderScopeDispatch {
     fn downcast_render_scope_to_render_scope(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RenderScopeDispatch>>;
+    ) -> Option<std::rc::Rc<dyn RenderScopeDispatch + 'static>>;
     fn read_render_scope_root(&self) -> crate::template::values::base::TemplateValue;
     fn write_render_scope_root(&self, value: crate::template::values::base::TemplateValue);
     fn read_render_scope_dot(&self) -> crate::template::values::base::TemplateValue;
@@ -94,7 +94,7 @@ pub struct RenderScope {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn RenderScopeDispatch>,
+    pub dispatch: std::rc::Rc<dyn RenderScopeDispatch + 'static>,
 }
 
 impl std::fmt::Debug for RenderScope {
@@ -403,7 +403,7 @@ impl RenderScopeRoot {
 impl RenderScopeDispatch for RenderScopeRoot {
     fn downcast_render_scope_to_render_scope(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RenderScopeDispatch>> {
+    ) -> Option<std::rc::Rc<dyn RenderScopeDispatch + 'static>> {
         Some(self)
     }
 
@@ -555,7 +555,7 @@ impl RenderScopeDispatch for RenderScopeRoot {
 pub trait RenderStateDispatch {
     fn downcast_render_state_to_render_state(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RenderStateDispatch>>;
+    ) -> Option<std::rc::Rc<dyn RenderStateDispatch + 'static>>;
     fn read_render_state_pagination_page_number(&self) -> i32;
     fn write_render_state_pagination_page_number(&self, value: i32);
     fn read_render_state_selected_paginator(
@@ -586,7 +586,7 @@ pub struct RenderState {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn RenderStateDispatch>,
+    pub dispatch: std::rc::Rc<dyn RenderStateDispatch + 'static>,
 }
 
 impl std::fmt::Debug for RenderState {
@@ -645,7 +645,7 @@ impl RenderState {
 impl RenderStateDispatch for RenderStateRoot {
     fn downcast_render_state_to_render_state(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RenderStateDispatch>> {
+    ) -> Option<std::rc::Rc<dyn RenderStateDispatch + 'static>> {
         Some(self)
     }
 

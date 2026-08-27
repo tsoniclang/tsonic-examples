@@ -45,7 +45,7 @@ impl Default for ParamKind {
 pub trait ParamValueDispatch {
     fn downcast_param_value_to_param_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ParamValueDispatch>>;
+    ) -> Option<std::rc::Rc<dyn ParamValueDispatch + 'static>>;
     fn read_param_value_kind(&self) -> i32;
     fn write_param_value_kind(&self, value: i32);
     fn read_param_value_string_value(&self) -> String;
@@ -71,7 +71,7 @@ pub struct ParamValue {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn ParamValueDispatch>,
+    pub dispatch: std::rc::Rc<dyn ParamValueDispatch + 'static>,
 }
 
 impl std::fmt::Debug for ParamValue {
@@ -177,7 +177,7 @@ impl ParamValue {
 impl ParamValueDispatch for ParamValueRoot {
     fn downcast_param_value_to_param_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ParamValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn ParamValueDispatch + 'static>> {
         Some(self)
     }
 

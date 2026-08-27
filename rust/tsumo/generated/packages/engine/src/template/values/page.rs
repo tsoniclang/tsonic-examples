@@ -9,7 +9,7 @@ use crate::program as rt;
 pub trait PageValueDispatch: crate::template::values::base::TemplateValueDispatch {
     fn downcast_page_value_to_page_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageValueDispatch>>;
+    ) -> Option<std::rc::Rc<dyn PageValueDispatch + 'static>>;
     fn read_page_value_value(&self) -> crate::models::page_context::PageContext;
     fn write_page_value_value(&self, value: crate::models::page_context::PageContext);
 }
@@ -28,7 +28,7 @@ pub struct PageValue {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn PageValueDispatch>,
+    pub dispatch: std::rc::Rc<dyn PageValueDispatch + 'static>,
 }
 
 impl std::fmt::Debug for PageValue {
@@ -79,25 +79,25 @@ impl PageValue {
 impl crate::template::values::base::TemplateValueDispatch for PageValueRoot {
     fn downcast_template_value_to_heading_hook_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::HeadingHookValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::HeadingHookValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_image_hook_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ImageHookValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ImageHookValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_link_hook_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::LinkHookValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::LinkHookValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_shortcode_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ShortcodeValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ShortcodeValueDispatch + 'static>> {
         None
     }
 
@@ -105,7 +105,7 @@ impl crate::template::values::base::TemplateValueDispatch for PageValueRoot {
         self: std::rc::Rc<Self>,
     ) -> Option<
         std::rc::Rc<
-            dyn crate::template::evaluation::page_resource_semantics::PageResourceCollectionValueDispatch,
+            dyn crate::template::evaluation::page_resource_semantics::PageResourceCollectionValueDispatch + 'static,
         >,
     > {
         None
@@ -113,257 +113,303 @@ impl crate::template::values::base::TemplateValueDispatch for PageValueRoot {
 
     fn downcast_template_value_to_any_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::arrays::AnyArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::arrays::AnyArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_string_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::arrays::StringArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::arrays::StringArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_nil_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::base::NilValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::base::NilValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_template_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_value_to_date_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::date::DateValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::date::DateValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_deferred_template_value(
         self: std::rc::Rc<Self>,
     ) -> Option<
-        std::rc::Rc<dyn crate::template::values::deferred::DeferredTemplateValueDispatch>,
+        std::rc::Rc<
+            dyn crate::template::values::deferred::DeferredTemplateValueDispatch + 'static,
+        >,
     > {
         None
     }
 
     fn downcast_template_value_to_dict_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::dict::DictValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::dict::DictValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_docs_mount_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::DocsMountArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::docs::DocsMountArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_docs_mount_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::DocsMountValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::DocsMountValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_nav_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavArrayValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavArrayValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_nav_item_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavItemValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavItemValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_media_type_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::media::MediaTypeValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::media::MediaTypeValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_menu_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenuArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::menus::MenuArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_menu_entry_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenuEntryValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::menus::MenuEntryValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_menus_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenusValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenusValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_output_formats_get_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::output::OutputFormatsGetValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::output::OutputFormatsGetValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_output_formats_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::output::OutputFormatsValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::output::OutputFormatsValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_output_format_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::output::OutputFormatValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::output::OutputFormatValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_file_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn FileValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn FileValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageArrayValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageArrayValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_data_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageDataValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageDataValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_group_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageGroupValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageGroupValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_resources_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageResourcesValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageResourcesValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageValueDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_value_to_paginator_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::pagination::PaginatorValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::pagination::PaginatorValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_bool_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::BoolValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::BoolValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_html_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::HtmlValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::HtmlValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_number_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::NumberValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::NumberValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_string_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::StringValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::StringValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_resource_data_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::resources::ResourceDataValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::resources::ResourceDataValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_resource_namespace_value(
         self: std::rc::Rc<Self>,
     ) -> Option<
-        std::rc::Rc<dyn crate::template::values::resources::ResourceNamespaceValueDispatch>,
+        std::rc::Rc<
+            dyn crate::template::values::resources::ResourceNamespaceValueDispatch + 'static,
+        >,
     > {
         None
     }
 
     fn downcast_template_value_to_resource_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::resources::ResourceValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::resources::ResourceValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_scratch_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::scratch::ScratchValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::scratch::ScratchValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_language_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::LanguageValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::site::LanguageValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_sites_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SitesArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::site::SitesArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_sites_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SitesValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SitesValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_site_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SiteValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SiteValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_taxonomies_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomiesValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomiesValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_taxonomy_terms_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomyTermsValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomyTermsValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_url_query_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlQueryValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlQueryValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_url_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_version_string_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::version::VersionStringValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::version::VersionStringValueDispatch + 'static>,
+    > {
         None
     }
 }
@@ -371,7 +417,7 @@ impl crate::template::values::base::TemplateValueDispatch for PageValueRoot {
 impl PageValueDispatch for PageValueRoot {
     fn downcast_page_value_to_page_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageValueDispatch + 'static>> {
         Some(self)
     }
 
@@ -389,7 +435,7 @@ impl PageValueDispatch for PageValueRoot {
 pub trait FileValueDispatch: crate::template::values::base::TemplateValueDispatch {
     fn downcast_file_value_to_file_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn FileValueDispatch>>;
+    ) -> Option<std::rc::Rc<dyn FileValueDispatch + 'static>>;
     fn read_file_value_value(&self) -> crate::models::page_file::PageFile;
     fn write_file_value_value(&self, value: crate::models::page_file::PageFile);
 }
@@ -408,7 +454,7 @@ pub struct FileValue {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn FileValueDispatch>,
+    pub dispatch: std::rc::Rc<dyn FileValueDispatch + 'static>,
 }
 
 impl std::fmt::Debug for FileValue {
@@ -459,25 +505,25 @@ impl FileValue {
 impl crate::template::values::base::TemplateValueDispatch for FileValueRoot {
     fn downcast_template_value_to_heading_hook_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::HeadingHookValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::HeadingHookValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_image_hook_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ImageHookValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ImageHookValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_link_hook_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::LinkHookValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::LinkHookValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_shortcode_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ShortcodeValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ShortcodeValueDispatch + 'static>> {
         None
     }
 
@@ -485,7 +531,7 @@ impl crate::template::values::base::TemplateValueDispatch for FileValueRoot {
         self: std::rc::Rc<Self>,
     ) -> Option<
         std::rc::Rc<
-            dyn crate::template::evaluation::page_resource_semantics::PageResourceCollectionValueDispatch,
+            dyn crate::template::evaluation::page_resource_semantics::PageResourceCollectionValueDispatch + 'static,
         >,
     > {
         None
@@ -493,257 +539,303 @@ impl crate::template::values::base::TemplateValueDispatch for FileValueRoot {
 
     fn downcast_template_value_to_any_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::arrays::AnyArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::arrays::AnyArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_string_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::arrays::StringArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::arrays::StringArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_nil_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::base::NilValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::base::NilValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_template_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_value_to_date_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::date::DateValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::date::DateValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_deferred_template_value(
         self: std::rc::Rc<Self>,
     ) -> Option<
-        std::rc::Rc<dyn crate::template::values::deferred::DeferredTemplateValueDispatch>,
+        std::rc::Rc<
+            dyn crate::template::values::deferred::DeferredTemplateValueDispatch + 'static,
+        >,
     > {
         None
     }
 
     fn downcast_template_value_to_dict_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::dict::DictValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::dict::DictValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_docs_mount_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::DocsMountArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::docs::DocsMountArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_docs_mount_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::DocsMountValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::DocsMountValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_nav_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavArrayValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavArrayValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_nav_item_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavItemValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavItemValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_media_type_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::media::MediaTypeValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::media::MediaTypeValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_menu_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenuArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::menus::MenuArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_menu_entry_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenuEntryValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::menus::MenuEntryValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_menus_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenusValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenusValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_output_formats_get_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::output::OutputFormatsGetValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::output::OutputFormatsGetValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_output_formats_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::output::OutputFormatsValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::output::OutputFormatsValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_output_format_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::output::OutputFormatValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::output::OutputFormatValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_file_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn FileValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn FileValueDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_value_to_page_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageArrayValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageArrayValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_data_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageDataValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageDataValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_group_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageGroupValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageGroupValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_resources_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageResourcesValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageResourcesValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_paginator_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::pagination::PaginatorValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::pagination::PaginatorValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_bool_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::BoolValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::BoolValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_html_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::HtmlValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::HtmlValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_number_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::NumberValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::NumberValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_string_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::StringValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::StringValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_resource_data_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::resources::ResourceDataValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::resources::ResourceDataValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_resource_namespace_value(
         self: std::rc::Rc<Self>,
     ) -> Option<
-        std::rc::Rc<dyn crate::template::values::resources::ResourceNamespaceValueDispatch>,
+        std::rc::Rc<
+            dyn crate::template::values::resources::ResourceNamespaceValueDispatch + 'static,
+        >,
     > {
         None
     }
 
     fn downcast_template_value_to_resource_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::resources::ResourceValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::resources::ResourceValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_scratch_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::scratch::ScratchValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::scratch::ScratchValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_language_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::LanguageValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::site::LanguageValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_sites_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SitesArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::site::SitesArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_sites_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SitesValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SitesValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_site_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SiteValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SiteValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_taxonomies_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomiesValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomiesValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_taxonomy_terms_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomyTermsValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomyTermsValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_url_query_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlQueryValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlQueryValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_url_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_version_string_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::version::VersionStringValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::version::VersionStringValueDispatch + 'static>,
+    > {
         None
     }
 }
@@ -751,7 +843,7 @@ impl crate::template::values::base::TemplateValueDispatch for FileValueRoot {
 impl FileValueDispatch for FileValueRoot {
     fn downcast_file_value_to_file_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn FileValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn FileValueDispatch + 'static>> {
         Some(self)
     }
 
@@ -771,7 +863,7 @@ pub trait PageArrayValueDispatch:
 {
     fn downcast_page_array_value_to_page_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageArrayValueDispatch>>;
+    ) -> Option<std::rc::Rc<dyn PageArrayValueDispatch + 'static>>;
     fn read_page_array_value_value(
         &self,
     ) -> js_abi::JsArray<crate::models::page_context::PageContext>;
@@ -795,7 +887,7 @@ pub struct PageArrayValue {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn PageArrayValueDispatch>,
+    pub dispatch: std::rc::Rc<dyn PageArrayValueDispatch + 'static>,
 }
 
 impl std::fmt::Debug for PageArrayValue {
@@ -848,25 +940,25 @@ impl PageArrayValue {
 impl crate::template::values::base::TemplateValueDispatch for PageArrayValueRoot {
     fn downcast_template_value_to_heading_hook_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::HeadingHookValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::HeadingHookValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_image_hook_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ImageHookValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ImageHookValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_link_hook_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::LinkHookValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::LinkHookValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_shortcode_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ShortcodeValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ShortcodeValueDispatch + 'static>> {
         None
     }
 
@@ -874,7 +966,7 @@ impl crate::template::values::base::TemplateValueDispatch for PageArrayValueRoot
         self: std::rc::Rc<Self>,
     ) -> Option<
         std::rc::Rc<
-            dyn crate::template::evaluation::page_resource_semantics::PageResourceCollectionValueDispatch,
+            dyn crate::template::evaluation::page_resource_semantics::PageResourceCollectionValueDispatch + 'static,
         >,
     > {
         None
@@ -882,257 +974,303 @@ impl crate::template::values::base::TemplateValueDispatch for PageArrayValueRoot
 
     fn downcast_template_value_to_any_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::arrays::AnyArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::arrays::AnyArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_string_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::arrays::StringArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::arrays::StringArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_nil_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::base::NilValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::base::NilValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_template_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_value_to_date_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::date::DateValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::date::DateValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_deferred_template_value(
         self: std::rc::Rc<Self>,
     ) -> Option<
-        std::rc::Rc<dyn crate::template::values::deferred::DeferredTemplateValueDispatch>,
+        std::rc::Rc<
+            dyn crate::template::values::deferred::DeferredTemplateValueDispatch + 'static,
+        >,
     > {
         None
     }
 
     fn downcast_template_value_to_dict_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::dict::DictValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::dict::DictValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_docs_mount_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::DocsMountArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::docs::DocsMountArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_docs_mount_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::DocsMountValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::DocsMountValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_nav_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavArrayValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavArrayValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_nav_item_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavItemValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavItemValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_media_type_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::media::MediaTypeValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::media::MediaTypeValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_menu_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenuArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::menus::MenuArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_menu_entry_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenuEntryValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::menus::MenuEntryValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_menus_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenusValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenusValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_output_formats_get_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::output::OutputFormatsGetValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::output::OutputFormatsGetValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_output_formats_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::output::OutputFormatsValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::output::OutputFormatsValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_output_format_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::output::OutputFormatValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::output::OutputFormatValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_file_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn FileValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn FileValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageArrayValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageArrayValueDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_value_to_page_data_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageDataValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageDataValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_group_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageGroupValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageGroupValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_resources_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageResourcesValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageResourcesValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_paginator_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::pagination::PaginatorValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::pagination::PaginatorValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_bool_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::BoolValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::BoolValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_html_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::HtmlValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::HtmlValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_number_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::NumberValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::NumberValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_string_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::StringValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::StringValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_resource_data_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::resources::ResourceDataValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::resources::ResourceDataValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_resource_namespace_value(
         self: std::rc::Rc<Self>,
     ) -> Option<
-        std::rc::Rc<dyn crate::template::values::resources::ResourceNamespaceValueDispatch>,
+        std::rc::Rc<
+            dyn crate::template::values::resources::ResourceNamespaceValueDispatch + 'static,
+        >,
     > {
         None
     }
 
     fn downcast_template_value_to_resource_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::resources::ResourceValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::resources::ResourceValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_scratch_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::scratch::ScratchValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::scratch::ScratchValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_language_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::LanguageValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::site::LanguageValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_sites_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SitesArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::site::SitesArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_sites_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SitesValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SitesValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_site_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SiteValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SiteValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_taxonomies_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomiesValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomiesValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_taxonomy_terms_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomyTermsValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomyTermsValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_url_query_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlQueryValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlQueryValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_url_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_version_string_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::version::VersionStringValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::version::VersionStringValueDispatch + 'static>,
+    > {
         None
     }
 }
@@ -1140,7 +1278,7 @@ impl crate::template::values::base::TemplateValueDispatch for PageArrayValueRoot
 impl PageArrayValueDispatch for PageArrayValueRoot {
     fn downcast_page_array_value_to_page_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageArrayValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageArrayValueDispatch + 'static>> {
         Some(self)
     }
 
@@ -1165,7 +1303,7 @@ pub trait PageGroupValueDispatch:
 {
     fn downcast_page_group_value_to_page_group_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageGroupValueDispatch>>;
+    ) -> Option<std::rc::Rc<dyn PageGroupValueDispatch + 'static>>;
     fn read_page_group_value_key(&self) -> crate::template::values::base::TemplateValue;
     fn write_page_group_value_key(&self, value: crate::template::values::base::TemplateValue);
     fn read_page_group_value_pages(
@@ -1192,7 +1330,7 @@ pub struct PageGroupValue {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn PageGroupValueDispatch>,
+    pub dispatch: std::rc::Rc<dyn PageGroupValueDispatch + 'static>,
 }
 
 impl std::fmt::Debug for PageGroupValue {
@@ -1251,25 +1389,25 @@ impl PageGroupValue {
 impl crate::template::values::base::TemplateValueDispatch for PageGroupValueRoot {
     fn downcast_template_value_to_heading_hook_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::HeadingHookValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::HeadingHookValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_image_hook_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ImageHookValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ImageHookValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_link_hook_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::LinkHookValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::LinkHookValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_shortcode_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ShortcodeValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ShortcodeValueDispatch + 'static>> {
         None
     }
 
@@ -1277,7 +1415,7 @@ impl crate::template::values::base::TemplateValueDispatch for PageGroupValueRoot
         self: std::rc::Rc<Self>,
     ) -> Option<
         std::rc::Rc<
-            dyn crate::template::evaluation::page_resource_semantics::PageResourceCollectionValueDispatch,
+            dyn crate::template::evaluation::page_resource_semantics::PageResourceCollectionValueDispatch + 'static,
         >,
     > {
         None
@@ -1285,257 +1423,303 @@ impl crate::template::values::base::TemplateValueDispatch for PageGroupValueRoot
 
     fn downcast_template_value_to_any_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::arrays::AnyArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::arrays::AnyArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_string_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::arrays::StringArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::arrays::StringArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_nil_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::base::NilValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::base::NilValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_template_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_value_to_date_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::date::DateValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::date::DateValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_deferred_template_value(
         self: std::rc::Rc<Self>,
     ) -> Option<
-        std::rc::Rc<dyn crate::template::values::deferred::DeferredTemplateValueDispatch>,
+        std::rc::Rc<
+            dyn crate::template::values::deferred::DeferredTemplateValueDispatch + 'static,
+        >,
     > {
         None
     }
 
     fn downcast_template_value_to_dict_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::dict::DictValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::dict::DictValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_docs_mount_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::DocsMountArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::docs::DocsMountArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_docs_mount_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::DocsMountValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::DocsMountValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_nav_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavArrayValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavArrayValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_nav_item_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavItemValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavItemValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_media_type_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::media::MediaTypeValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::media::MediaTypeValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_menu_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenuArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::menus::MenuArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_menu_entry_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenuEntryValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::menus::MenuEntryValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_menus_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenusValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenusValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_output_formats_get_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::output::OutputFormatsGetValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::output::OutputFormatsGetValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_output_formats_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::output::OutputFormatsValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::output::OutputFormatsValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_output_format_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::output::OutputFormatValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::output::OutputFormatValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_file_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn FileValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn FileValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageArrayValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageArrayValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_data_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageDataValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageDataValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_group_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageGroupValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageGroupValueDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_value_to_page_resources_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageResourcesValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageResourcesValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_paginator_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::pagination::PaginatorValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::pagination::PaginatorValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_bool_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::BoolValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::BoolValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_html_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::HtmlValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::HtmlValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_number_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::NumberValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::NumberValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_string_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::StringValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::StringValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_resource_data_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::resources::ResourceDataValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::resources::ResourceDataValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_resource_namespace_value(
         self: std::rc::Rc<Self>,
     ) -> Option<
-        std::rc::Rc<dyn crate::template::values::resources::ResourceNamespaceValueDispatch>,
+        std::rc::Rc<
+            dyn crate::template::values::resources::ResourceNamespaceValueDispatch + 'static,
+        >,
     > {
         None
     }
 
     fn downcast_template_value_to_resource_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::resources::ResourceValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::resources::ResourceValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_scratch_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::scratch::ScratchValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::scratch::ScratchValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_language_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::LanguageValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::site::LanguageValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_sites_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SitesArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::site::SitesArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_sites_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SitesValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SitesValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_site_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SiteValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SiteValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_taxonomies_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomiesValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomiesValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_taxonomy_terms_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomyTermsValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomyTermsValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_url_query_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlQueryValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlQueryValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_url_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_version_string_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::version::VersionStringValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::version::VersionStringValueDispatch + 'static>,
+    > {
         None
     }
 }
@@ -1543,7 +1727,7 @@ impl crate::template::values::base::TemplateValueDispatch for PageGroupValueRoot
 impl PageGroupValueDispatch for PageGroupValueRoot {
     fn downcast_page_group_value_to_page_group_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageGroupValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageGroupValueDispatch + 'static>> {
         Some(self)
     }
 
@@ -1576,7 +1760,7 @@ pub trait PageDataValueDispatch:
 {
     fn downcast_page_data_value_to_page_data_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageDataValueDispatch>>;
+    ) -> Option<std::rc::Rc<dyn PageDataValueDispatch + 'static>>;
     fn read_page_data_value_page(&self) -> crate::models::page_context::PageContext;
     fn write_page_data_value_page(&self, value: crate::models::page_context::PageContext);
 }
@@ -1595,7 +1779,7 @@ pub struct PageDataValue {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn PageDataValueDispatch>,
+    pub dispatch: std::rc::Rc<dyn PageDataValueDispatch + 'static>,
 }
 
 impl std::fmt::Debug for PageDataValue {
@@ -1646,25 +1830,25 @@ impl PageDataValue {
 impl crate::template::values::base::TemplateValueDispatch for PageDataValueRoot {
     fn downcast_template_value_to_heading_hook_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::HeadingHookValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::HeadingHookValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_image_hook_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ImageHookValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ImageHookValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_link_hook_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::LinkHookValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::LinkHookValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_shortcode_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ShortcodeValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ShortcodeValueDispatch + 'static>> {
         None
     }
 
@@ -1672,7 +1856,7 @@ impl crate::template::values::base::TemplateValueDispatch for PageDataValueRoot 
         self: std::rc::Rc<Self>,
     ) -> Option<
         std::rc::Rc<
-            dyn crate::template::evaluation::page_resource_semantics::PageResourceCollectionValueDispatch,
+            dyn crate::template::evaluation::page_resource_semantics::PageResourceCollectionValueDispatch + 'static,
         >,
     > {
         None
@@ -1680,257 +1864,303 @@ impl crate::template::values::base::TemplateValueDispatch for PageDataValueRoot 
 
     fn downcast_template_value_to_any_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::arrays::AnyArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::arrays::AnyArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_string_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::arrays::StringArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::arrays::StringArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_nil_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::base::NilValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::base::NilValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_template_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_value_to_date_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::date::DateValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::date::DateValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_deferred_template_value(
         self: std::rc::Rc<Self>,
     ) -> Option<
-        std::rc::Rc<dyn crate::template::values::deferred::DeferredTemplateValueDispatch>,
+        std::rc::Rc<
+            dyn crate::template::values::deferred::DeferredTemplateValueDispatch + 'static,
+        >,
     > {
         None
     }
 
     fn downcast_template_value_to_dict_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::dict::DictValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::dict::DictValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_docs_mount_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::DocsMountArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::docs::DocsMountArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_docs_mount_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::DocsMountValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::DocsMountValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_nav_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavArrayValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavArrayValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_nav_item_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavItemValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavItemValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_media_type_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::media::MediaTypeValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::media::MediaTypeValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_menu_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenuArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::menus::MenuArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_menu_entry_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenuEntryValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::menus::MenuEntryValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_menus_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenusValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenusValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_output_formats_get_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::output::OutputFormatsGetValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::output::OutputFormatsGetValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_output_formats_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::output::OutputFormatsValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::output::OutputFormatsValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_output_format_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::output::OutputFormatValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::output::OutputFormatValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_file_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn FileValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn FileValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageArrayValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageArrayValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_data_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageDataValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageDataValueDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_value_to_page_group_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageGroupValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageGroupValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_resources_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageResourcesValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageResourcesValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_paginator_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::pagination::PaginatorValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::pagination::PaginatorValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_bool_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::BoolValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::BoolValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_html_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::HtmlValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::HtmlValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_number_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::NumberValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::NumberValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_string_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::StringValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::StringValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_resource_data_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::resources::ResourceDataValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::resources::ResourceDataValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_resource_namespace_value(
         self: std::rc::Rc<Self>,
     ) -> Option<
-        std::rc::Rc<dyn crate::template::values::resources::ResourceNamespaceValueDispatch>,
+        std::rc::Rc<
+            dyn crate::template::values::resources::ResourceNamespaceValueDispatch + 'static,
+        >,
     > {
         None
     }
 
     fn downcast_template_value_to_resource_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::resources::ResourceValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::resources::ResourceValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_scratch_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::scratch::ScratchValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::scratch::ScratchValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_language_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::LanguageValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::site::LanguageValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_sites_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SitesArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::site::SitesArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_sites_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SitesValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SitesValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_site_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SiteValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SiteValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_taxonomies_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomiesValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomiesValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_taxonomy_terms_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomyTermsValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomyTermsValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_url_query_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlQueryValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlQueryValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_url_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_version_string_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::version::VersionStringValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::version::VersionStringValueDispatch + 'static>,
+    > {
         None
     }
 }
@@ -1938,7 +2168,7 @@ impl crate::template::values::base::TemplateValueDispatch for PageDataValueRoot 
 impl PageDataValueDispatch for PageDataValueRoot {
     fn downcast_page_data_value_to_page_data_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageDataValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageDataValueDispatch + 'static>> {
         Some(self)
     }
 
@@ -1958,7 +2188,7 @@ pub trait PageResourcesValueDispatch:
 {
     fn downcast_page_resources_value_to_page_resources_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageResourcesValueDispatch>>;
+    ) -> Option<std::rc::Rc<dyn PageResourcesValueDispatch + 'static>>;
     fn read_page_resources_value_page(&self) -> crate::models::page_context::PageContext;
     fn write_page_resources_value_page(&self, value: crate::models::page_context::PageContext);
     fn read_page_resources_value_manager(&self) -> crate::resources::manager::ResourceManager;
@@ -1980,7 +2210,7 @@ pub struct PageResourcesValue {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn PageResourcesValueDispatch>,
+    pub dispatch: std::rc::Rc<dyn PageResourcesValueDispatch + 'static>,
 }
 
 impl std::fmt::Debug for PageResourcesValue {
@@ -2039,25 +2269,25 @@ impl PageResourcesValue {
 impl crate::template::values::base::TemplateValueDispatch for PageResourcesValueRoot {
     fn downcast_template_value_to_heading_hook_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::HeadingHookValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::HeadingHookValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_image_hook_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ImageHookValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ImageHookValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_link_hook_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::LinkHookValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::LinkHookValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_shortcode_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ShortcodeValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::contexts::ShortcodeValueDispatch + 'static>> {
         None
     }
 
@@ -2065,7 +2295,7 @@ impl crate::template::values::base::TemplateValueDispatch for PageResourcesValue
         self: std::rc::Rc<Self>,
     ) -> Option<
         std::rc::Rc<
-            dyn crate::template::evaluation::page_resource_semantics::PageResourceCollectionValueDispatch,
+            dyn crate::template::evaluation::page_resource_semantics::PageResourceCollectionValueDispatch + 'static,
         >,
     > {
         None
@@ -2073,257 +2303,303 @@ impl crate::template::values::base::TemplateValueDispatch for PageResourcesValue
 
     fn downcast_template_value_to_any_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::arrays::AnyArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::arrays::AnyArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_string_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::arrays::StringArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::arrays::StringArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_nil_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::base::NilValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::base::NilValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_template_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_value_to_date_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::date::DateValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::date::DateValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_deferred_template_value(
         self: std::rc::Rc<Self>,
     ) -> Option<
-        std::rc::Rc<dyn crate::template::values::deferred::DeferredTemplateValueDispatch>,
+        std::rc::Rc<
+            dyn crate::template::values::deferred::DeferredTemplateValueDispatch + 'static,
+        >,
     > {
         None
     }
 
     fn downcast_template_value_to_dict_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::dict::DictValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::dict::DictValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_docs_mount_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::DocsMountArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::docs::DocsMountArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_docs_mount_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::DocsMountValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::DocsMountValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_nav_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavArrayValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavArrayValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_nav_item_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavItemValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::docs::NavItemValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_media_type_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::media::MediaTypeValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::media::MediaTypeValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_menu_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenuArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::menus::MenuArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_menu_entry_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenuEntryValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::menus::MenuEntryValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_menus_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenusValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::menus::MenusValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_output_formats_get_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::output::OutputFormatsGetValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::output::OutputFormatsGetValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_output_formats_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::output::OutputFormatsValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::output::OutputFormatsValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_output_format_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::output::OutputFormatValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::output::OutputFormatValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_file_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn FileValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn FileValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageArrayValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageArrayValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_data_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageDataValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageDataValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_group_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageGroupValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageGroupValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_page_resources_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageResourcesValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageResourcesValueDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_value_to_page_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_paginator_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::pagination::PaginatorValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::pagination::PaginatorValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_bool_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::BoolValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::BoolValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_html_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::HtmlValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::HtmlValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_number_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::NumberValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::NumberValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_string_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::primitives::StringValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::primitives::StringValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_resource_data_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::resources::ResourceDataValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::resources::ResourceDataValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_resource_namespace_value(
         self: std::rc::Rc<Self>,
     ) -> Option<
-        std::rc::Rc<dyn crate::template::values::resources::ResourceNamespaceValueDispatch>,
+        std::rc::Rc<
+            dyn crate::template::values::resources::ResourceNamespaceValueDispatch + 'static,
+        >,
     > {
         None
     }
 
     fn downcast_template_value_to_resource_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::resources::ResourceValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::resources::ResourceValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_scratch_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::scratch::ScratchValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::scratch::ScratchValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_language_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::LanguageValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::site::LanguageValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_sites_array_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SitesArrayValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::site::SitesArrayValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_sites_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SitesValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SitesValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_site_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SiteValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::site::SiteValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_taxonomies_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomiesValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomiesValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_taxonomy_terms_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomyTermsValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::taxonomies::TaxonomyTermsValueDispatch + 'static>,
+    > {
         None
     }
 
     fn downcast_template_value_to_url_query_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlQueryValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlQueryValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_url_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn crate::template::values::url::UrlValueDispatch + 'static>> {
         None
     }
 
     fn downcast_template_value_to_version_string_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::template::values::version::VersionStringValueDispatch>> {
+    ) -> Option<
+        std::rc::Rc<dyn crate::template::values::version::VersionStringValueDispatch + 'static>,
+    > {
         None
     }
 }
@@ -2331,7 +2607,7 @@ impl crate::template::values::base::TemplateValueDispatch for PageResourcesValue
 impl PageResourcesValueDispatch for PageResourcesValueRoot {
     fn downcast_page_resources_value_to_page_resources_value(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageResourcesValueDispatch>> {
+    ) -> Option<std::rc::Rc<dyn PageResourcesValueDispatch + 'static>> {
         Some(self)
     }
 

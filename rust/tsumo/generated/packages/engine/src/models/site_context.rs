@@ -11,7 +11,7 @@ use crate::program as rt;
 pub trait SiteContextDispatch {
     fn downcast_site_context_to_site_context(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn SiteContextDispatch>>;
+    ) -> Option<std::rc::Rc<dyn SiteContextDispatch + 'static>>;
     fn read_site_context_title(&self) -> String;
     fn write_site_context_title(&self, value: String);
     fn read_site_context_base_url(&self) -> String;
@@ -138,7 +138,7 @@ pub struct SiteContext {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn SiteContextDispatch>,
+    pub dispatch: std::rc::Rc<dyn SiteContextDispatch + 'static>,
 }
 
 impl std::fmt::Debug for SiteContext {
@@ -433,7 +433,7 @@ impl SiteContextRoot {
 impl SiteContextDispatch for SiteContextRoot {
     fn downcast_site_context_to_site_context(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn SiteContextDispatch>> {
+    ) -> Option<std::rc::Rc<dyn SiteContextDispatch + 'static>> {
         Some(self)
     }
 

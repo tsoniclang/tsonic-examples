@@ -630,7 +630,7 @@ pub fn collect_i18n_file(
 pub trait I18nStoreDispatch {
     fn downcast_i18n_store_to_i18n_store(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn I18nStoreDispatch>>;
+    ) -> Option<std::rc::Rc<dyn I18nStoreDispatch + 'static>>;
     fn read_i18n_store_translations(
         &self,
     ) -> js_abi::JsMap<String, js_abi::JsMap<String, I18nMessage>>;
@@ -672,7 +672,7 @@ pub struct I18nStore {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn I18nStoreDispatch>,
+    pub dispatch: std::rc::Rc<dyn I18nStoreDispatch + 'static>,
 }
 
 impl std::fmt::Debug for I18nStore {
@@ -940,7 +940,7 @@ impl I18nStoreRoot {
 impl I18nStoreDispatch for I18nStoreRoot {
     fn downcast_i18n_store_to_i18n_store(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn I18nStoreDispatch>> {
+    ) -> Option<std::rc::Rc<dyn I18nStoreDispatch + 'static>> {
         Some(self)
     }
 

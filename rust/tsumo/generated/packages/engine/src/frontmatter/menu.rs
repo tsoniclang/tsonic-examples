@@ -7,7 +7,7 @@ use crate::program as rt;
 pub trait FrontMatterMenuDispatch {
     fn downcast_front_matter_menu_to_front_matter_menu(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn FrontMatterMenuDispatch>>;
+    ) -> Option<std::rc::Rc<dyn FrontMatterMenuDispatch + 'static>>;
     fn read_front_matter_menu_menu(&self) -> String;
     fn write_front_matter_menu_menu(&self, value: String);
     fn read_front_matter_menu_name(&self) -> String;
@@ -45,7 +45,7 @@ pub struct FrontMatterMenu {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn FrontMatterMenuDispatch>,
+    pub dispatch: std::rc::Rc<dyn FrontMatterMenuDispatch + 'static>,
 }
 
 impl std::fmt::Debug for FrontMatterMenu {
@@ -108,7 +108,7 @@ impl FrontMatterMenu {
 impl FrontMatterMenuDispatch for FrontMatterMenuRoot {
     fn downcast_front_matter_menu_to_front_matter_menu(
         self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn FrontMatterMenuDispatch>> {
+    ) -> Option<std::rc::Rc<dyn FrontMatterMenuDispatch + 'static>> {
         Some(self)
     }
 
