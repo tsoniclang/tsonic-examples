@@ -788,22 +788,20 @@ pub fn stringify(
         .downcast_template_value_to_number_value()
         .is_some()
     {
-        return Ok(rt::source_string(
-            &{
-                let dispatch_receiver_5 = &{
-                    let downcast_value_4 = &value;
-                    crate::template::values::primitives::NumberValue {
-                        identity: downcast_value_4.identity.clone(),
-                        dispatch: downcast_value_4
-                            .dispatch
-                            .clone()
-                            .downcast_template_value_to_number_value()
-                            .unwrap(),
-                    }
-                };
-                dispatch_receiver_5.dispatch.read_number_value_value()
-            },
-        ));
+        return Ok(rt::source_string(&{
+            let dispatch_receiver_5 = &{
+                let downcast_value_4 = &value;
+                crate::template::values::primitives::NumberValue {
+                    identity: downcast_value_4.identity.clone(),
+                    dispatch: downcast_value_4
+                        .dispatch
+                        .clone()
+                        .downcast_template_value_to_number_value()
+                        .unwrap(),
+                }
+            };
+            dispatch_receiver_5.dispatch.read_number_value_value()
+        }));
     }
     if value
         .dispatch
@@ -940,22 +938,20 @@ pub fn to_plain_string(
         .downcast_template_value_to_number_value()
         .is_some()
     {
-        return Ok(rt::source_string(
-            &{
-                let dispatch_receiver_5 = &{
-                    let downcast_value_4 = &value;
-                    crate::template::values::primitives::NumberValue {
-                        identity: downcast_value_4.identity.clone(),
-                        dispatch: downcast_value_4
-                            .dispatch
-                            .clone()
-                            .downcast_template_value_to_number_value()
-                            .unwrap(),
-                    }
-                };
-                dispatch_receiver_5.dispatch.read_number_value_value()
-            },
-        ));
+        return Ok(rt::source_string(&{
+            let dispatch_receiver_5 = &{
+                let downcast_value_4 = &value;
+                crate::template::values::primitives::NumberValue {
+                    identity: downcast_value_4.identity.clone(),
+                    dispatch: downcast_value_4
+                        .dispatch
+                        .clone()
+                        .downcast_template_value_to_number_value()
+                        .unwrap(),
+                }
+            };
+            dispatch_receiver_5.dispatch.read_number_value_value()
+        }));
     }
     if value
         .dispatch
@@ -1061,23 +1057,21 @@ pub fn to_number(
         .is_some()
     {
         return Ok(rt::option_coalesce(
-            crate::utils::int32::parse_int32(
-                &{
-                    let dispatch_receiver_2 = &{
-                        let downcast_value_2 = &value;
-                        crate::template::values::primitives::StringValue {
-                            identity: downcast_value_2.identity.clone(),
-                            dispatch: downcast_value_2
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_string_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_2.dispatch.read_string_value_value()
-                },
-            )?,
-            std::convert::identity,
+            crate::utils::int32::parse_int32(&{
+                let dispatch_receiver_2 = &{
+                    let downcast_value_2 = &value;
+                    crate::template::values::primitives::StringValue {
+                        identity: downcast_value_2.identity.clone(),
+                        dispatch: downcast_value_2
+                            .dispatch
+                            .clone()
+                            .downcast_template_value_to_string_value()
+                            .unwrap(),
+                    }
+                };
+                dispatch_receiver_2.dispatch.read_string_value_value()
+            })?,
+            core::convert::identity,
             || 0,
         ));
     }

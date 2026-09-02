@@ -18,7 +18,6 @@ pub enum TemplateControlFlow {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct TemplateRangeValuesState {
     pub keys: js_abi::JsArray<crate::template::values::base::TemplateValue>,
     pub values: js_abi::JsArray<crate::template::values::base::TemplateValue>,
@@ -28,6 +27,12 @@ pub struct TemplateRangeValuesState {
 pub struct TemplateRangeValues {
     #[doc(hidden)]
     pub state: rt::ObjectRef<TemplateRangeValuesState>,
+}
+
+impl rt::ObjectIdentityCarrier for TemplateRangeValues {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl TemplateRangeValues {
@@ -943,21 +948,21 @@ pub fn module_init() {
                             .dispatch
                             .clone()
                             .dispatch_template_environment_get_template({
-                            let dispatch_receiver_16 = &{
-                                let downcast_value_11 = &node;
-                                crate::template::nodes::TemplateInvokeNode {
-                                    identity: downcast_value_11.identity.clone(),
-                                    dispatch: downcast_value_11
-                                        .dispatch
-                                        .clone()
-                                        .downcast_template_node_to_template_invoke_node()
-                                        .unwrap(),
-                                }
-                            };
-                            dispatch_receiver_16
-                                .dispatch
-                                .read_template_invoke_node_name()
-                        })
+                                let dispatch_receiver_16 = &{
+                                    let downcast_value_11 = &node;
+                                    crate::template::nodes::TemplateInvokeNode {
+                                        identity: downcast_value_11.identity.clone(),
+                                        dispatch: downcast_value_11
+                                            .dispatch
+                                            .clone()
+                                            .downcast_template_node_to_template_invoke_node()
+                                            .unwrap(),
+                                    }
+                                };
+                                dispatch_receiver_16
+                                    .dispatch
+                                    .read_template_invoke_node_name()
+                            })
                     }?;
                     if invoked_template.is_none() {
                         return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
@@ -1678,7 +1683,7 @@ pub fn module_init() {
                                 dispatch_receiver_65.dispatch.read_block_node_name()
                             })
                         },
-                        std::convert::identity,
+                        core::convert::identity,
                         || {
                             let dispatch_receiver_66 = &{
                                 let downcast_value_32 = &node;

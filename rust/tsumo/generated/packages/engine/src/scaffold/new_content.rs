@@ -40,8 +40,7 @@ pub fn new_content(
     } else {
         format!("{}{}", rel, String::from(".md"))
     };
-    let dest: String =
-        tsonic_rust_node::path::resolve(&[content_dir.as_str(), with_ext.as_str()])?;
+    let dest: String = tsonic_rust_node::path::resolve(&[content_dir.as_str(), with_ext.as_str()])?;
     if !crate::utils::paths::path_contains_or_equals(content_dir.clone(), dest.clone())
         || dest == content_dir
     {
@@ -79,21 +78,23 @@ pub fn new_content(
     } else {
         with_ext.clone()
     };
-    let slug: String = crate::utils::text::slugify(
-        &if js_string::ends_with_at_end(&js_string::to_lower_case(&file_name), ".md") {
-            crate::utils::strings::substring_count(
-                file_name.clone(),
-                0,
-                tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&file_name))? - 3,
-            )?
-        } else {
-            file_name.clone()
-        },
-    )?;
+    let slug: String = crate::utils::text::slugify(&if js_string::ends_with_at_end(
+        &js_string::to_lower_case(&file_name),
+        ".md",
+    )
+    {
+        crate::utils::strings::substring_count(
+            file_name.clone(),
+            0,
+            tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&file_name))? - 3,
+        )?
+    } else {
+        file_name.clone()
+    })?;
     let title: String = crate::utils::text::humanize_slug(slug)?;
     let date: String = rt::option_coalesce(
         creation_time,
-        std::convert::identity,
+        core::convert::identity,
         js_abi::JsDate::new,
     )
     .to_iso_string()?;

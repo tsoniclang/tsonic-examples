@@ -7,11 +7,9 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 std::thread_local! {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub(crate) static VERSION: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn run() -> Result<(), rt::TsonicError> {
     let args: js_abi::JsArray<String> = tsonic_rust_node::process::argv()?.slice_from(2.0);
     let mut first: String = String::from("");
@@ -61,7 +59,6 @@ pub(crate) fn run() -> Result<(), rt::TsonicError> {
     Ok(())
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn main() {
     let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
         run()?;

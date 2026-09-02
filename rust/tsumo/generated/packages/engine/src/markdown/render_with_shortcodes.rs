@@ -7,7 +7,6 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ProtectedShortcodeState {
     pub marker: String,
     pub output: String,
@@ -17,6 +16,12 @@ pub struct ProtectedShortcodeState {
 pub struct ProtectedShortcode {
     #[doc(hidden)]
     pub state: rt::ObjectRef<ProtectedShortcodeState>,
+}
+
+impl rt::ObjectIdentityCarrier for ProtectedShortcode {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl ProtectedShortcode {
@@ -33,7 +38,6 @@ impl ProtectedShortcode {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ProtectedShortcodeSourceState {
     pub source: String,
     pub replacements: js_abi::JsArray<ProtectedShortcode>,
@@ -43,6 +47,12 @@ pub struct ProtectedShortcodeSourceState {
 pub struct ProtectedShortcodeSource {
     #[doc(hidden)]
     pub state: rt::ObjectRef<ProtectedShortcodeSourceState>,
+}
+
+impl rt::ObjectIdentityCarrier for ProtectedShortcodeSource {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl ProtectedShortcodeSource {

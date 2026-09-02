@@ -3,28 +3,26 @@
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait TextBuilderDispatch {
     fn downcast_text_builder_to_text_builder(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextBuilderDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TextBuilderDispatch + 'static>>;
     fn read_text_builder_state(&self) -> tsumo_platform::TextBuilderState;
     fn write_text_builder_state(&self, value: tsumo_platform::TextBuilderState);
-    fn read_text_builder_length(self: std::rc::Rc<Self>) -> i32;
+    fn read_text_builder_length(self: alloc::rc::Rc<Self>) -> i32;
     fn dispatch_text_builder_append(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         text: String,
     ) -> Result<(), rt::TsonicError>;
     fn exact_text_builder_append(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         text: String,
     ) -> Result<(), rt::TsonicError>;
-    fn dispatch_text_builder_to_string(self: std::rc::Rc<Self>) -> String;
-    fn exact_text_builder_to_string(self: std::rc::Rc<Self>) -> String;
+    fn dispatch_text_builder_to_string(self: alloc::rc::Rc<Self>) -> String;
+    fn exact_text_builder_to_string(self: alloc::rc::Rc<Self>) -> String;
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct TextBuilderState {
     state: tsumo_platform::TextBuilderState,
 }
@@ -41,17 +39,16 @@ impl TextBuilderState {
     }
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct TextBuilder {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn TextBuilderDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn TextBuilderDispatch + 'static>,
 }
 
-impl std::fmt::Debug for TextBuilder {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for TextBuilder {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("TextBuilder")
     }
 }
@@ -64,7 +61,12 @@ impl PartialEq for TextBuilder {
 
 impl Eq for TextBuilder {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for TextBuilder {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct TextBuilderRoot {
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<TextBuilderState>,
@@ -73,15 +75,14 @@ pub(crate) struct TextBuilderRoot {
 impl TextBuilder {
     #[doc(hidden)]
     pub fn initialize_state() -> TextBuilderState {
-        let field_state: tsumo_platform::TextBuilderState =
-            tsumo_platform::TextBuilderState::new();
+        let field_state: tsumo_platform::TextBuilderState = tsumo_platform::TextBuilderState::new();
         TextBuilderState { state: field_state }
     }
 
     pub fn new() -> TextBuilder {
         let state = TextBuilder::initialize_state();
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(TextBuilderRoot {
+        let root = alloc::rc::Rc::new(TextBuilderRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -100,7 +101,7 @@ impl Default for TextBuilder {
 
 impl TextBuilderRoot {
     fn exact_text_builder_append(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         text: String,
     ) -> Result<(), rt::TsonicError> {
         let project_this = TextBuilder {
@@ -115,7 +116,7 @@ impl TextBuilderRoot {
         Ok(())
     }
 
-    fn exact_text_builder_to_string(self: std::rc::Rc<Self>) -> String {
+    fn exact_text_builder_to_string(self: alloc::rc::Rc<Self>) -> String {
         let project_this = TextBuilder {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -127,7 +128,7 @@ impl TextBuilderRoot {
         .snapshot()
     }
 
-    fn read_text_builder_length(self: std::rc::Rc<Self>) -> i32 {
+    fn read_text_builder_length(self: alloc::rc::Rc<Self>) -> i32 {
         let project_this = TextBuilder {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -142,8 +143,8 @@ impl TextBuilderRoot {
 
 impl TextBuilderDispatch for TextBuilderRoot {
     fn downcast_text_builder_to_text_builder(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextBuilderDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TextBuilderDispatch + 'static>> {
         Some(self)
     }
 
@@ -156,29 +157,29 @@ impl TextBuilderDispatch for TextBuilderRoot {
             .with_mut(|state| state.write_text_builder_state(value));
     }
 
-    fn read_text_builder_length(self: std::rc::Rc<Self>) -> i32 {
+    fn read_text_builder_length(self: alloc::rc::Rc<Self>) -> i32 {
         TextBuilderRoot::read_text_builder_length(self)
     }
 
     fn dispatch_text_builder_append(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         text: String,
     ) -> Result<(), rt::TsonicError> {
         TextBuilderRoot::exact_text_builder_append(self, text)
     }
 
     fn exact_text_builder_append(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         text: String,
     ) -> Result<(), rt::TsonicError> {
         TextBuilderRoot::exact_text_builder_append(self, text)
     }
 
-    fn dispatch_text_builder_to_string(self: std::rc::Rc<Self>) -> String {
+    fn dispatch_text_builder_to_string(self: alloc::rc::Rc<Self>) -> String {
         TextBuilderRoot::exact_text_builder_to_string(self)
     }
 
-    fn exact_text_builder_to_string(self: std::rc::Rc<Self>) -> String {
+    fn exact_text_builder_to_string(self: alloc::rc::Rc<Self>) -> String {
         TextBuilderRoot::exact_text_builder_to_string(self)
     }
 }

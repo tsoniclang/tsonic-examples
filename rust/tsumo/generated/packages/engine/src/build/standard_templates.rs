@@ -5,7 +5,6 @@ use tsonic_rust_js::abi as js_abi;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct StandardTemplatesState {
     pub base: Option<String>,
     pub home: String,
@@ -17,6 +16,12 @@ pub struct StandardTemplatesState {
 pub struct StandardTemplates {
     #[doc(hidden)]
     pub state: rt::ObjectRef<StandardTemplatesState>,
+}
+
+impl rt::ObjectIdentityCarrier for StandardTemplates {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl StandardTemplates {
@@ -74,7 +79,7 @@ pub fn select_standard_templates(
             },
             list_candidates.clone(),
         )?,
-        std::convert::identity,
+        core::convert::identity,
         || {
             match list_candidates.get_number(0.0).as_ref() {
                 Some(flow_value) => flow_value.clone(),
@@ -104,7 +109,7 @@ pub fn select_standard_templates(
                 },
                 home_candidates,
             )?,
-            std::convert::identity,
+            core::convert::identity,
             || list.clone(),
         ),
         list.clone(),
@@ -119,7 +124,7 @@ pub fn select_standard_templates(
                 },
                 single_candidates.clone(),
             )?,
-            std::convert::identity,
+            core::convert::identity,
             || {
                 match single_candidates.get_number(0.0).as_ref() {
                     Some(flow_value_2) => flow_value_2.clone(),

@@ -7,7 +7,6 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct DocsAssetRouteState {
     pub source_path: String,
     pub output_rel_path: String,
@@ -17,6 +16,12 @@ pub struct DocsAssetRouteState {
 pub struct DocsAssetRoute {
     #[doc(hidden)]
     pub state: rt::ObjectRef<DocsAssetRouteState>,
+}
+
+impl rt::ObjectIdentityCarrier for DocsAssetRoute {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl DocsAssetRoute {
@@ -33,7 +38,6 @@ impl DocsAssetRoute {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct DocsMarkdownRouteState {
     pub mount: crate::docs::models::DocsMountConfig,
     pub source_path: String,
@@ -49,6 +53,12 @@ pub struct DocsMarkdownRouteState {
 pub struct DocsMarkdownRoute {
     #[doc(hidden)]
     pub state: rt::ObjectRef<DocsMarkdownRouteState>,
+}
+
+impl rt::ObjectIdentityCarrier for DocsMarkdownRoute {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl DocsMarkdownRoute {
@@ -87,7 +97,6 @@ impl DocsMarkdownRoute {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct DocsMountRoutesState {
     pub markdown: js_abi::JsArray<DocsMarkdownRoute>,
     pub assets: js_abi::JsArray<DocsAssetRoute>,
@@ -97,6 +106,12 @@ pub struct DocsMountRoutesState {
 pub struct DocsMountRoutes {
     #[doc(hidden)]
     pub state: rt::ObjectRef<DocsMountRoutesState>,
+}
+
+impl rt::ObjectIdentityCarrier for DocsMountRoutes {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl DocsMountRoutes {
@@ -381,9 +396,10 @@ pub fn discover_docs_mount_routes(
                 )?;
                 {
                     let operation_input_0_3 = assets.clone();
-                    operation_input_0_3.push_many_discard([
-                        DocsAssetRoute::new(source_path.clone(), output_rel_path.clone()),
-                    ])
+                    operation_input_0_3.push_many_discard([DocsAssetRoute::new(
+                        source_path.clone(),
+                        output_rel_path.clone(),
+                    )])
                 };
                 file_index += 1.0;
                 continue 'loop_value;
@@ -495,18 +511,16 @@ pub fn discover_docs_mount_routes(
             )?;
             {
                 let operation_input_0_10 = markdown.clone();
-                operation_input_0_10.push_many_discard([
-                    DocsMarkdownRoute::new(
-                        mount.clone(),
-                        source_path.clone(),
-                        rel_path.clone(),
-                        join_segments(directory_segments.clone()),
-                        file_name.clone(),
-                        is_index,
-                        crate::utils::url_path::combine_url_path(url_parts.clone())?,
-                        output_rel_path.clone(),
-                    ),
-                ])
+                operation_input_0_10.push_many_discard([DocsMarkdownRoute::new(
+                    mount.clone(),
+                    source_path.clone(),
+                    rel_path.clone(),
+                    join_segments(directory_segments.clone()),
+                    file_name.clone(),
+                    is_index,
+                    crate::utils::url_path::combine_url_path(url_parts.clone())?,
+                    output_rel_path.clone(),
+                )])
             };
             file_index += 1.0;
         }

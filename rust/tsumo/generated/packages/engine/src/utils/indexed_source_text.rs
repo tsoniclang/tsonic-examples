@@ -7,7 +7,6 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct IndexedSourceTextState {
     pub characters: js_abi::JsArray<String>,
     pub utf16_offsets: js_abi::JsArray<i32>,
@@ -18,6 +17,12 @@ pub struct IndexedSourceTextState {
 pub struct IndexedSourceText {
     #[doc(hidden)]
     pub state: rt::ObjectRef<IndexedSourceTextState>,
+}
+
+impl rt::ObjectIdentityCarrier for IndexedSourceText {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl IndexedSourceText {

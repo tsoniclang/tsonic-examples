@@ -53,14 +53,13 @@ pub mod standard_taxonomies;
 pub mod standard_templates;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait BuildRequestDispatch {
     fn downcast_build_request_to_build_request(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BuildRequestDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BuildRequestDispatch + 'static>>;
     fn downcast_build_request_to_serve_request(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ServeRequestDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ServeRequestDispatch + 'static>>;
     fn read_build_request_site_dir(&self) -> String;
     fn write_build_request_site_dir(&self, value: String);
     fn read_build_request_destination_dir(&self) -> String;
@@ -78,7 +77,6 @@ pub trait BuildRequestDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct BuildRequestState {
     pub site_dir: String,
     pub destination_dir: String,
@@ -89,17 +87,16 @@ pub struct BuildRequestState {
     pub build_time: js_abi::JsDate,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct BuildRequest {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn BuildRequestDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn BuildRequestDispatch + 'static>,
 }
 
-impl std::fmt::Debug for BuildRequest {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for BuildRequest {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("BuildRequest")
     }
 }
@@ -112,8 +109,14 @@ impl PartialEq for BuildRequest {
 
 impl Eq for BuildRequest {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for BuildRequest {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct BuildRequestRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<BuildRequestState>,
 }
@@ -142,7 +145,7 @@ impl BuildRequest {
     pub fn new(site_dir: String) -> BuildRequest {
         let state = BuildRequest::initialize_state(site_dir);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(BuildRequestRoot {
+        let root = alloc::rc::Rc::new(BuildRequestRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -155,14 +158,14 @@ impl BuildRequest {
 
 impl BuildRequestDispatch for BuildRequestRoot {
     fn downcast_build_request_to_build_request(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BuildRequestDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BuildRequestDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_build_request_to_serve_request(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ServeRequestDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ServeRequestDispatch + 'static>> {
         None
     }
 
@@ -225,11 +228,10 @@ impl BuildRequestDispatch for BuildRequestRoot {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait ServeRequestDispatch: BuildRequestDispatch {
     fn downcast_serve_request_to_serve_request(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ServeRequestDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ServeRequestDispatch + 'static>>;
     fn read_serve_request_host(&self) -> String;
     fn write_serve_request_host(&self, value: String);
     fn read_serve_request_port(&self) -> i32;
@@ -239,7 +241,6 @@ pub trait ServeRequestDispatch: BuildRequestDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ServeRequestState {
     #[doc(hidden)]
     pub base: BuildRequestState,
@@ -248,17 +249,16 @@ pub struct ServeRequestState {
     pub watch: bool,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct ServeRequest {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn ServeRequestDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn ServeRequestDispatch + 'static>,
 }
 
-impl std::fmt::Debug for ServeRequest {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for ServeRequest {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("ServeRequest")
     }
 }
@@ -271,8 +271,14 @@ impl PartialEq for ServeRequest {
 
 impl Eq for ServeRequest {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for ServeRequest {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct ServeRequestRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<ServeRequestState>,
 }
@@ -295,7 +301,7 @@ impl ServeRequest {
     pub fn new(site_dir: String) -> ServeRequest {
         let state = ServeRequest::initialize_state(site_dir);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(ServeRequestRoot {
+        let root = alloc::rc::Rc::new(ServeRequestRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -308,14 +314,14 @@ impl ServeRequest {
 
 impl BuildRequestDispatch for ServeRequestRoot {
     fn downcast_build_request_to_build_request(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BuildRequestDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BuildRequestDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_build_request_to_serve_request(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ServeRequestDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ServeRequestDispatch + 'static>> {
         Some(self)
     }
 
@@ -380,8 +386,8 @@ impl BuildRequestDispatch for ServeRequestRoot {
 
 impl ServeRequestDispatch for ServeRequestRoot {
     fn downcast_serve_request_to_serve_request(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ServeRequestDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ServeRequestDispatch + 'static>> {
         Some(self)
     }
 
@@ -411,11 +417,10 @@ impl ServeRequestDispatch for ServeRequestRoot {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait BuildResultDispatch {
     fn downcast_build_result_to_build_result(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BuildResultDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BuildResultDispatch + 'static>>;
     fn read_build_result_output_dir(&self) -> String;
     fn write_build_result_output_dir(&self, value: String);
     fn read_build_result_pages_built(&self) -> i32;
@@ -423,23 +428,21 @@ pub trait BuildResultDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct BuildResultState {
     pub output_dir: String,
     pub pages_built: i32,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct BuildResult {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn BuildResultDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn BuildResultDispatch + 'static>,
 }
 
-impl std::fmt::Debug for BuildResult {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for BuildResult {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("BuildResult")
     }
 }
@@ -452,8 +455,14 @@ impl PartialEq for BuildResult {
 
 impl Eq for BuildResult {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for BuildResult {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct BuildResultRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<BuildResultState>,
 }
@@ -472,7 +481,7 @@ impl BuildResult {
     pub fn new(output_dir: String, pages_built: i32) -> BuildResult {
         let state = BuildResult::initialize_state(output_dir, pages_built);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(BuildResultRoot {
+        let root = alloc::rc::Rc::new(BuildResultRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -485,8 +494,8 @@ impl BuildResult {
 
 impl BuildResultDispatch for BuildResultRoot {
     fn downcast_build_result_to_build_result(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BuildResultDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BuildResultDispatch + 'static>> {
         Some(self)
     }
 

@@ -1582,22 +1582,20 @@ pub fn resolve_path(
                                 dispatch_receiver_67.dispatch.read_date_value_value()
                             })
                             .is_empty()
-                                || js_abi::number_is_nan(js_abi::JsDate::parse(
-                                    &{
-                                        let dispatch_receiver_68 = &{
-                                            let downcast_value_3 = &cur;
-                                            crate::template::values::date::DateValue {
-                                                identity: downcast_value_3.identity.clone(),
-                                                dispatch: downcast_value_3
-                                                    .dispatch
-                                                    .clone()
-                                                    .downcast_template_value_to_date_value()
-                                                    .unwrap(),
-                                            }
-                                        };
-                                        dispatch_receiver_68.dispatch.read_date_value_value()
-                                    },
-                                )),
+                                || js_abi::number_is_nan(js_abi::JsDate::parse(&{
+                                    let dispatch_receiver_68 = &{
+                                        let downcast_value_3 = &cur;
+                                        crate::template::values::date::DateValue {
+                                            identity: downcast_value_3.identity.clone(),
+                                            dispatch: downcast_value_3
+                                                .dispatch
+                                                .clone()
+                                                .downcast_template_value_to_date_value()
+                                                .unwrap(),
+                                        }
+                                    };
+                                    dispatch_receiver_68.dispatch.read_date_value_value()
+                                })),
                         );
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_46.identity.clone(),
@@ -1631,7 +1629,7 @@ pub fn resolve_path(
                                         4,
                                     )?,
                                 )?,
-                                std::convert::identity,
+                                core::convert::identity,
                                 || 0,
                             ))
                         };
@@ -1715,12 +1713,10 @@ pub fn resolve_path(
                                     };
                                     dispatch_receiver_76.dispatch.read_site_context_taxonomies()
                                 };
-                                operation_input_0_2.get(&js_string::to_lower_case(
-                                    &{
-                                        let dispatch_receiver_77 = &page;
-                                        dispatch_receiver_77.dispatch.read_page_context_section()
-                                    },
-                                ))
+                                operation_input_0_2.get(&js_string::to_lower_case(&{
+                                    let dispatch_receiver_77 = &page;
+                                    dispatch_receiver_77.dispatch.read_page_context_section()
+                                }))
                             },
                         );
                         cur = if terms.is_some() {
@@ -4637,7 +4633,7 @@ pub fn resolve_path(
                                 }),
                                 &seg,
                             )?,
-                            std::convert::identity,
+                            core::convert::identity,
                             || {
                                 crate::template::runtime_helpers::NIL
                                     .with(|module_binding| module_binding.load())
@@ -4669,7 +4665,7 @@ pub fn resolve_path(
                         },
                         &seg,
                     )?,
-                    std::convert::identity,
+                    core::convert::identity,
                     || {
                         crate::template::runtime_helpers::NIL
                             .with(|module_binding| module_binding.load())

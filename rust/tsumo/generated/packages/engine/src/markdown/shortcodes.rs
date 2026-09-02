@@ -5,7 +5,6 @@ use tsonic_rust_js::abi as js_abi;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ShortcodeOrdinalTrackerState {
     pub counts: js_abi::JsMap<String, i32>,
 }
@@ -14,6 +13,12 @@ pub struct ShortcodeOrdinalTrackerState {
 pub struct ShortcodeOrdinalTracker {
     #[doc(hidden)]
     pub state: rt::ObjectRef<ShortcodeOrdinalTrackerState>,
+}
+
+impl rt::ObjectIdentityCarrier for ShortcodeOrdinalTracker {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl ShortcodeOrdinalTracker {
@@ -128,8 +133,8 @@ pub fn render_shortcode(
         )));
     }
     recursion_guard.set_discard(guard_key.clone(), true);
-    let ordinal: i32 = ordinal_tracker
-        .next(call.state.with(|state| state.name.clone()))?;
+    let ordinal: i32 =
+        ordinal_tracker.next(call.state.with(|state| state.name.clone()))?;
     let mut processed_inner: String = call.state.with(|state| state.inner.clone());
     if !call.state.with(|state| state.inner.clone()).is_empty() {
         processed_inner = PROCESS_SHORTCODES.with(|module_binding| module_binding.load()).call((

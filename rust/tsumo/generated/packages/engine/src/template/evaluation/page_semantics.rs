@@ -34,9 +34,9 @@ pub fn to_title_case(text: &str) -> Result<String, rt::TsonicError> {
                         .dispatch_text_builder_append(String::from(" "))
                 }?;
             }
-            let first: String = js_string::to_upper_case(&crate::utils::strings::substring_count(
-                word.clone(), 0, 1,
-            )?);
+            let first: String = js_string::to_upper_case(
+                &crate::utils::strings::substring_count(word.clone(), 0, 1)?,
+            );
             let rest: String = if tsonic_rust_runtime::conversions::usize_to_i32(
                 js_string::js_len(&word),
             )? > 1
@@ -704,7 +704,6 @@ pub fn pages_with_kind(
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct RelatedPageCandidateState {
     pub page: crate::models::page_context::PageContext,
     pub score: i32,
@@ -714,6 +713,12 @@ pub struct RelatedPageCandidateState {
 pub struct RelatedPageCandidate {
     #[doc(hidden)]
     pub state: rt::ObjectRef<RelatedPageCandidateState>,
+}
+
+impl rt::ObjectIdentityCarrier for RelatedPageCandidate {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl RelatedPageCandidate {
@@ -943,7 +948,6 @@ pub fn default_related_pages(
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct PageGroupBuildState {
     pub key: crate::template::values::base::TemplateValue,
     pub pages: js_abi::JsArray<crate::models::page_context::PageContext>,
@@ -953,6 +957,12 @@ pub struct PageGroupBuildState {
 pub struct PageGroupBuild {
     #[doc(hidden)]
     pub state: rt::ObjectRef<PageGroupBuildState>,
+}
+
+impl rt::ObjectIdentityCarrier for PageGroupBuild {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl PageGroupBuild {
@@ -1151,18 +1161,25 @@ pub fn group_pages_by_field(
             {
                 let mut group_index: i32 = 0;
                 'loop_value_2: while group_index < tsonic_rust_runtime::conversions::usize_to_i32(groups.len())? {
-                    if COMPARE_VALUES.with(|module_binding| module_binding.load()).call((
-                        match groups
-                            .get_number(tsonic_rust_runtime::conversions::i32_to_f64(group_index))
-                            .as_ref()
-                        {
-                            Some(flow_value_2) => flow_value_2.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        }
-                        .state
-                        .with(|state| state.key.clone()),
-                        key.clone(),
-                    ))? == 0
+                    if COMPARE_VALUES
+                        .with(|module_binding| module_binding.load())
+                        .call((
+                            match groups
+                                .get_number(tsonic_rust_runtime::conversions::i32_to_f64(
+                                    group_index,
+                                ))
+                                .as_ref()
+                            {
+                                Some(flow_value_2) => flow_value_2.clone(),
+                                None => {
+                                    unreachable!("checked flow selected a missing optional value")
+                                }
+                            }
+                            .state
+                            .with(|state| state.key.clone()),
+                            key.clone(),
+                        ))?
+                        == 0
                     {
                         selected = Some(match groups
     .get_number(tsonic_rust_runtime::conversions::i32_to_f64(group_index))
@@ -1739,21 +1756,21 @@ pub fn module_init() {
         COPY_PAGE_ARRAY.with(|module_binding| module_binding.initialize(module_value))
     };
     {
-        let module_value_2 = rt::Callable::<
-            (crate::models::page_context::PageContext,),
-            rt::TsonicResult<f64>,
-        >::new(move |callable_arguments_2| {
-            let page = callable_arguments_2.0;
-            let parsed: f64 = js_abi::JsDate::parse(&{
-                let dispatch_receiver = &page;
-                dispatch_receiver.dispatch.read_page_context_date()
-            });
-            Ok::<_, rt::TsonicError>(if js_abi::number_is_nan(parsed) {
-                0.0
-            } else {
-                parsed
-            })
-        });
+        let module_value_2 =
+            rt::Callable::<(crate::models::page_context::PageContext,), rt::TsonicResult<f64>>::new(
+                move |callable_arguments_2| {
+                    let page = callable_arguments_2.0;
+                    let parsed: f64 = js_abi::JsDate::parse(&{
+                        let dispatch_receiver = &page;
+                        dispatch_receiver.dispatch.read_page_context_date()
+                    });
+                    Ok::<_, rt::TsonicError>(if js_abi::number_is_nan(parsed) {
+                        0.0
+                    } else {
+                        parsed
+                    })
+                },
+            );
         PAGE_DATE_MILLISECONDS.with(|module_binding_2| module_binding_2.initialize(module_value_2))
     };
     {

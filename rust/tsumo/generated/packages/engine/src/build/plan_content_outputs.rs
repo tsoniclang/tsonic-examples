@@ -199,7 +199,7 @@ pub fn plan_content_outputs(
                     },
                     candidates.clone(),
                 )?,
-                std::convert::identity,
+                core::convert::identity,
                 || templates.state.with(|state| state.single.clone()),
             );
             let base: Option<String> = rt::option_coalesce(

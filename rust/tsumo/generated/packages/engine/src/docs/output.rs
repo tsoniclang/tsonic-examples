@@ -7,42 +7,39 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait DocsOutputClaimsDispatch {
     fn downcast_docs_output_claims_to_docs_output_claims(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn DocsOutputClaimsDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn DocsOutputClaimsDispatch + 'static>>;
     fn read_docs_output_claims_sources_by_output_path(&self) -> js_abi::JsMap<String, String>;
     fn write_docs_output_claims_sources_by_output_path(&self, value: js_abi::JsMap<String, String>);
     fn dispatch_docs_output_claims_add(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         output_rel_path: String,
         source_path: String,
     ) -> Result<(), rt::TsonicError>;
     fn exact_docs_output_claims_add(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         output_rel_path: String,
         source_path: String,
     ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct DocsOutputClaimsState {
     pub sources_by_output_path: js_abi::JsMap<String, String>,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct DocsOutputClaims {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn DocsOutputClaimsDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn DocsOutputClaimsDispatch + 'static>,
 }
 
-impl std::fmt::Debug for DocsOutputClaims {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for DocsOutputClaims {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("DocsOutputClaims")
     }
 }
@@ -55,7 +52,12 @@ impl PartialEq for DocsOutputClaims {
 
 impl Eq for DocsOutputClaims {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for DocsOutputClaims {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct DocsOutputClaimsRoot {
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<DocsOutputClaimsState>,
@@ -73,7 +75,7 @@ impl DocsOutputClaims {
     pub fn new() -> DocsOutputClaims {
         let state = DocsOutputClaims::initialize_state();
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(DocsOutputClaimsRoot {
+        let root = alloc::rc::Rc::new(DocsOutputClaimsRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -92,7 +94,7 @@ impl Default for DocsOutputClaims {
 
 impl DocsOutputClaimsRoot {
     fn exact_docs_output_claims_add(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         output_rel_path: String,
         source_path: String,
     ) -> Result<(), rt::TsonicError> {
@@ -142,8 +144,8 @@ impl DocsOutputClaimsRoot {
 
 impl DocsOutputClaimsDispatch for DocsOutputClaimsRoot {
     fn downcast_docs_output_claims_to_docs_output_claims(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn DocsOutputClaimsDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn DocsOutputClaimsDispatch + 'static>> {
         Some(self)
     }
 
@@ -161,7 +163,7 @@ impl DocsOutputClaimsDispatch for DocsOutputClaimsRoot {
     }
 
     fn dispatch_docs_output_claims_add(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         output_rel_path: String,
         source_path: String,
     ) -> Result<(), rt::TsonicError> {
@@ -169,7 +171,7 @@ impl DocsOutputClaimsDispatch for DocsOutputClaimsRoot {
     }
 
     fn exact_docs_output_claims_add(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         output_rel_path: String,
         source_path: String,
     ) -> Result<(), rt::TsonicError> {
@@ -199,8 +201,7 @@ pub fn resolve_docs_output_path(
         )));
     }
     let root: String = tsonic_rust_node::path::resolve(&[output_root.as_str()])?;
-    let candidate: String =
-        tsonic_rust_node::path::resolve(&[root.as_str(), normalized.as_str()])?;
+    let candidate: String = tsonic_rust_node::path::resolve(&[root.as_str(), normalized.as_str()])?;
     if !crate::utils::paths::path_contains_or_equals(root.clone(), candidate.clone()) {
         return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_DOCS_OUTPUT_PATH_ESCAPES_ROOT"),

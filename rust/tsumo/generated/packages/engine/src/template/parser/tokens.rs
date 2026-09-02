@@ -7,7 +7,6 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct TemplateSegmentState {
     pub is_action: bool,
     pub text: String,
@@ -19,6 +18,12 @@ pub struct TemplateSegmentState {
 pub struct TemplateSegment {
     #[doc(hidden)]
     pub state: rt::ObjectRef<TemplateSegmentState>,
+}
+
+impl rt::ObjectIdentityCarrier for TemplateSegment {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl TemplateSegment {
@@ -39,7 +44,6 @@ impl TemplateSegment {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct TemplatePositionState {
     pub line: i32,
     pub column: i32,
@@ -49,6 +53,12 @@ pub struct TemplatePositionState {
 pub struct TemplatePosition {
     #[doc(hidden)]
     pub state: rt::ObjectRef<TemplatePositionState>,
+}
+
+impl rt::ObjectIdentityCarrier for TemplatePosition {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl TemplatePosition {
@@ -159,11 +169,9 @@ pub fn scan_template_segments(
         let mut index: i32 = 0;
         while index < source.state.with(|state| state.length) {
             if source.character_at(index) == "\n" {
-                line_starts.push_many_discard([
-                    tsonic_rust_runtime::conversions::f64_to_i32(
-                        tsonic_rust_runtime::conversions::i32_to_f64(index + 1),
-                    )?,
-                ]);
+                line_starts.push_many_discard([tsonic_rust_runtime::conversions::f64_to_i32(
+                    tsonic_rust_runtime::conversions::i32_to_f64(index + 1),
+                )?]);
             }
             index += 1;
         }

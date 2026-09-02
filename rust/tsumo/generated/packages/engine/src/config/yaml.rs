@@ -543,7 +543,7 @@ pub fn parse_yaml_config(
                     menu_line,
                 )?;
                 let entries: js_abi::JsArray<crate::config::builders::MenuEntryBuilder> =
-                    rt::option_coalesce(menu_builders.get(&menu_name), std::convert::identity, || {
+                    rt::option_coalesce(menu_builders.get(&menu_name), core::convert::identity, || {
                         js_abi::JsArray::from_dense(vec![])
                     });
                 index += 1;

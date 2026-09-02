@@ -7,7 +7,6 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct TomlStatementState {
     pub text: String,
     pub line: i32,
@@ -17,6 +16,12 @@ pub struct TomlStatementState {
 pub struct TomlStatement {
     #[doc(hidden)]
     pub state: rt::ObjectRef<TomlStatementState>,
+}
+
+impl rt::ObjectIdentityCarrier for TomlStatement {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl TomlStatement {
@@ -459,12 +464,12 @@ pub fn ensure_dictionary_path(
                     dispatch_receiver_2.dispatch.read_dict_value_value()
                 }
                 .set_discard(segment.clone(), {
-                    let upcast_value = created.clone();
-                    crate::template::values::base::TemplateValue {
-                        identity: upcast_value.identity.clone(),
-                        dispatch: upcast_value.dispatch.clone(),
-                    }
-                });
+                        let upcast_value = created.clone();
+                        crate::template::values::base::TemplateValue {
+                            identity: upcast_value.identity.clone(),
+                            dispatch: upcast_value.dispatch.clone(),
+                        }
+                    });
                 current = created.clone();
                 index += 1;
                 continue 'loop_value;
@@ -567,7 +572,6 @@ impl TomlValueReader {
         }
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse(
         &mut self,
     ) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
@@ -585,7 +589,6 @@ impl TomlValueReader {
         Ok(value)
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_value(
         &mut self,
     ) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
@@ -603,7 +606,6 @@ impl TomlValueReader {
         self.parse_bare_scalar()
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_string(
         &mut self,
     ) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
@@ -677,7 +679,6 @@ impl TomlValueReader {
         Err(rt::TsonicError::TsumoError(self.error(String::from("TOML string is unterminated"))))
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_array(
         &mut self,
     ) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
@@ -781,7 +782,6 @@ impl TomlValueReader {
         }
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_inline_table(
         &mut self,
     ) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
@@ -979,7 +979,6 @@ impl TomlValueReader {
         }
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_bare_scalar(
         &mut self,
     ) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
@@ -1087,7 +1086,6 @@ impl TomlValueReader {
         }
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn skip_whitespace(&mut self) -> Result<(), rt::TsonicError> {
         while self.index
             < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&self.text))?
@@ -1121,7 +1119,6 @@ impl TomlValueReader {
         Ok(())
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn peek(&self) -> Result<String, rt::TsonicError> {
         Ok(if self.index
             < tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&self.text))?
@@ -1138,7 +1135,6 @@ impl TomlValueReader {
         })
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     #[expect(clippy::should_implement_trait, reason = "authored method contract")]
     pub fn next(&mut self) -> Result<String, rt::TsonicError> {
         if self.index
@@ -1171,7 +1167,6 @@ impl TomlValueReader {
         .map_err(rt::TsonicError::from)
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn expect(&mut self, character: String) -> Result<(), rt::TsonicError> {
         if self.next()? != character {
             return Err(
@@ -1186,7 +1181,6 @@ impl TomlValueReader {
         Ok(())
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn error(&self, message: String) -> crate::diagnostics::TsumoError {
         toml_error(message, self.source_path.clone(), self.line)
     }
@@ -1294,12 +1288,12 @@ pub fn parse_toml_template_data(
                         dispatch_receiver_2.dispatch.read_dict_value_value()
                     }
                     .set_discard(name.clone(), {
-                        let upcast_value = entries.clone();
-                        crate::template::values::base::TemplateValue {
-                            identity: upcast_value.identity.clone(),
-                            dispatch: upcast_value.dispatch.clone(),
-                        }
-                    });
+                            let upcast_value = entries.clone();
+                            crate::template::values::base::TemplateValue {
+                                identity: upcast_value.identity.clone(),
+                                dispatch: upcast_value.dispatch.clone(),
+                            }
+                        });
                 } else {
                     if match existing.as_ref() {
                         Some(flow_value_4) => flow_value_4.clone(),

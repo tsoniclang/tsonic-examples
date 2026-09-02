@@ -228,7 +228,7 @@ pub fn call_scalar_function(
                 let s: String = crate::template::runtime_helpers::to_plain_string(v.clone())?;
                 sum += rt::option_coalesce(
                     crate::utils::int32::parse_int32(&s)?,
-                    std::convert::identity,
+                    core::convert::identity,
                     || 0,
                 );
                 i += 1.0;
@@ -1668,22 +1668,20 @@ pub fn call_scalar_function(
             .downcast_template_value_to_string_value()
             .is_some()
         {
-            let l: i32 = tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                &{
-                    let dispatch_receiver_15 = &{
-                        let downcast_value = &v;
-                        crate::template::values::primitives::StringValue {
-                            identity: downcast_value.identity.clone(),
-                            dispatch: downcast_value
-                                .dispatch
-                                .clone()
-                                .downcast_template_value_to_string_value()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_15.dispatch.read_string_value_value()
-                },
-            ))?;
+            let l: i32 = tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&{
+                let dispatch_receiver_15 = &{
+                    let downcast_value = &v;
+                    crate::template::values::primitives::StringValue {
+                        identity: downcast_value.identity.clone(),
+                        dispatch: downcast_value
+                            .dispatch
+                            .clone()
+                            .downcast_template_value_to_string_value()
+                            .unwrap(),
+                    }
+                };
+                dispatch_receiver_15.dispatch.read_string_value_value()
+            }))?;
             return Ok(Some({
                 let upcast_value_56 = crate::template::values::primitives::NumberValue::new(l);
                 crate::template::values::base::TemplateValue {
@@ -1698,25 +1696,23 @@ pub fn call_scalar_function(
             .downcast_template_value_to_html_value()
             .is_some()
         {
-            let l: i32 = tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                &{
-                    let dispatch_receiver_17 = &{
-                        let dispatch_receiver_16 = &{
-                            let downcast_value_2 = &v;
-                            crate::template::values::primitives::HtmlValue {
-                                identity: downcast_value_2.identity.clone(),
-                                dispatch: downcast_value_2
-                                    .dispatch
-                                    .clone()
-                                    .downcast_template_value_to_html_value()
-                                    .unwrap(),
-                            }
-                        };
-                        dispatch_receiver_16.dispatch.read_html_value_value()
+            let l: i32 = tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&{
+                let dispatch_receiver_17 = &{
+                    let dispatch_receiver_16 = &{
+                        let downcast_value_2 = &v;
+                        crate::template::values::primitives::HtmlValue {
+                            identity: downcast_value_2.identity.clone(),
+                            dispatch: downcast_value_2
+                                .dispatch
+                                .clone()
+                                .downcast_template_value_to_html_value()
+                                .unwrap(),
+                        }
                     };
-                    dispatch_receiver_17.dispatch.read_html_string_value()
-                },
-            ))?;
+                    dispatch_receiver_16.dispatch.read_html_value_value()
+                };
+                dispatch_receiver_17.dispatch.read_html_string_value()
+            }))?;
             return Ok(Some({
                 let upcast_value_57 = crate::template::values::primitives::NumberValue::new(l);
                 crate::template::values::base::TemplateValue {
@@ -1973,7 +1969,7 @@ pub fn call_scalar_function(
             let upcast_value_66 =
                 crate::template::values::primitives::StringValue::new(rt::option_coalesce(
                     crate::template::evaluation::scalar_semantics::format_date_time(s, layout)?,
-                    std::convert::identity,
+                    core::convert::identity,
                     || String::from(""),
                 ));
             crate::template::values::base::TemplateValue {

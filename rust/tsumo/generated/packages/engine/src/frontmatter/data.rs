@@ -5,7 +5,6 @@ use tsonic_rust_js::abi as js_abi;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct FrontMatterState {
     pub title: Option<String>,
     pub date: Option<js_abi::JsDate>,
@@ -24,6 +23,12 @@ pub struct FrontMatterState {
 pub struct FrontMatter {
     #[doc(hidden)]
     pub state: rt::ObjectHandle<FrontMatterState>,
+}
+
+impl rt::ObjectIdentityCarrier for FrontMatter {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl FrontMatter {

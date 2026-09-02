@@ -6,7 +6,6 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn parse_int_arg(value: &str) -> Result<Option<i32>, rt::TsonicError> {
     let trimmed: String = js_string::trim(value);
     if !js_abi::regexp_test_native(&js_abi::regexp_new_native("^-?\\d+$", "")?, &trimmed)? {

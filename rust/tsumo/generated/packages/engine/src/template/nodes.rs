@@ -5,58 +5,55 @@ use tsonic_rust_js::abi as js_abi;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait TemplateNodeDispatch {
     fn downcast_template_node_to_assignment_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn AssignmentNodeDispatch + 'static>>;
     fn downcast_template_node_to_block_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BlockNodeDispatch + 'static>>;
     fn downcast_template_node_to_break_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BreakNodeDispatch + 'static>>;
     fn downcast_template_node_to_continue_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ContinueNodeDispatch + 'static>>;
     fn downcast_template_node_to_if_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn IfNodeDispatch + 'static>>;
     fn downcast_template_node_to_output_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn OutputNodeDispatch + 'static>>;
     fn downcast_template_node_to_range_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn RangeNodeDispatch + 'static>>;
     fn downcast_template_node_to_template_invoke_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>>;
     fn downcast_template_node_to_template_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>>;
     fn downcast_template_node_to_text_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TextNodeDispatch + 'static>>;
     fn downcast_template_node_to_with_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn WithNodeDispatch + 'static>>;
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct TemplateNodeState {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct TemplateNode {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn TemplateNodeDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>,
 }
 
-impl std::fmt::Debug for TemplateNode {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for TemplateNode {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("TemplateNode")
     }
 }
@@ -69,9 +66,16 @@ impl PartialEq for TemplateNode {
 
 impl Eq for TemplateNode {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for TemplateNode {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct TemplateNodeRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
+    #[expect(dead_code, reason = "retains unused generated storage")]
     state: rt::ObjectHandle<TemplateNodeState>,
 }
 
@@ -84,7 +88,7 @@ impl TemplateNode {
     pub fn new() -> TemplateNode {
         let state = TemplateNode::initialize_state();
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(TemplateNodeRoot {
+        let root = alloc::rc::Rc::new(TemplateNodeRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -103,98 +107,95 @@ impl Default for TemplateNode {
 
 impl TemplateNodeDispatch for TemplateNodeRoot {
     fn downcast_template_node_to_assignment_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_block_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_break_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_continue_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_if_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn IfNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_output_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_range_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_invoke_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_text_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TextNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_with_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn WithNodeDispatch + 'static>> {
         None
     }
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait BreakNodeDispatch: TemplateNodeDispatch {
     fn downcast_break_node_to_break_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BreakNodeDispatch + 'static>>;
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct BreakNodeState {
     #[doc(hidden)]
     pub base: TemplateNodeState,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct BreakNode {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn BreakNodeDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn BreakNodeDispatch + 'static>,
 }
 
-impl std::fmt::Debug for BreakNode {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for BreakNode {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("BreakNode")
     }
 }
@@ -207,9 +208,16 @@ impl PartialEq for BreakNode {
 
 impl Eq for BreakNode {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for BreakNode {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct BreakNodeRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
+    #[expect(dead_code, reason = "retains unused generated storage")]
     state: rt::ObjectHandle<BreakNodeState>,
 }
 
@@ -223,7 +231,7 @@ impl BreakNode {
     pub fn new() -> BreakNode {
         let state = BreakNode::initialize_state();
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(BreakNodeRoot {
+        let root = alloc::rc::Rc::new(BreakNodeRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -242,106 +250,103 @@ impl Default for BreakNode {
 
 impl TemplateNodeDispatch for BreakNodeRoot {
     fn downcast_template_node_to_assignment_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_block_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_break_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_continue_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_if_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn IfNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_output_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_range_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_invoke_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_text_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TextNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_with_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn WithNodeDispatch + 'static>> {
         None
     }
 }
 
 impl BreakNodeDispatch for BreakNodeRoot {
     fn downcast_break_node_to_break_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         Some(self)
     }
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait ContinueNodeDispatch: TemplateNodeDispatch {
     fn downcast_continue_node_to_continue_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ContinueNodeDispatch + 'static>>;
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ContinueNodeState {
     #[doc(hidden)]
     pub base: TemplateNodeState,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct ContinueNode {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn ContinueNodeDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn ContinueNodeDispatch + 'static>,
 }
 
-impl std::fmt::Debug for ContinueNode {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for ContinueNode {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("ContinueNode")
     }
 }
@@ -354,9 +359,16 @@ impl PartialEq for ContinueNode {
 
 impl Eq for ContinueNode {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for ContinueNode {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct ContinueNodeRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
+    #[expect(dead_code, reason = "retains unused generated storage")]
     state: rt::ObjectHandle<ContinueNodeState>,
 }
 
@@ -370,7 +382,7 @@ impl ContinueNode {
     pub fn new() -> ContinueNode {
         let state = ContinueNode::initialize_state();
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(ContinueNodeRoot {
+        let root = alloc::rc::Rc::new(ContinueNodeRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -389,109 +401,106 @@ impl Default for ContinueNode {
 
 impl TemplateNodeDispatch for ContinueNodeRoot {
     fn downcast_template_node_to_assignment_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_block_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_break_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_continue_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_if_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn IfNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_output_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_range_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_invoke_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_text_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TextNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_with_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn WithNodeDispatch + 'static>> {
         None
     }
 }
 
 impl ContinueNodeDispatch for ContinueNodeRoot {
     fn downcast_continue_node_to_continue_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         Some(self)
     }
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait TextNodeDispatch: TemplateNodeDispatch {
     fn downcast_text_node_to_text_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TextNodeDispatch + 'static>>;
     fn read_text_node_text(&self) -> String;
     fn write_text_node_text(&self, value: String);
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct TextNodeState {
     #[doc(hidden)]
     pub base: TemplateNodeState,
     pub text: String,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct TextNode {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn TextNodeDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn TextNodeDispatch + 'static>,
 }
 
-impl std::fmt::Debug for TextNode {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for TextNode {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("TextNode")
     }
 }
@@ -504,8 +513,14 @@ impl PartialEq for TextNode {
 
 impl Eq for TextNode {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for TextNode {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct TextNodeRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<TextNodeState>,
 }
@@ -524,7 +539,7 @@ impl TextNode {
     pub fn new(text: String) -> TextNode {
         let state = TextNode::initialize_state(text);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(TextNodeRoot {
+        let root = alloc::rc::Rc::new(TextNodeRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -537,76 +552,76 @@ impl TextNode {
 
 impl TemplateNodeDispatch for TextNodeRoot {
     fn downcast_template_node_to_assignment_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_block_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_break_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_continue_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_if_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn IfNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_output_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_range_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_invoke_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_text_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TextNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_with_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn WithNodeDispatch + 'static>> {
         None
     }
 }
 
 impl TextNodeDispatch for TextNodeRoot {
     fn downcast_text_node_to_text_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TextNodeDispatch + 'static>> {
         Some(self)
     }
 
@@ -620,11 +635,10 @@ impl TextNodeDispatch for TextNodeRoot {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait OutputNodeDispatch: TemplateNodeDispatch {
     fn downcast_output_node_to_output_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn OutputNodeDispatch + 'static>>;
     fn read_output_node_pipeline(&self) -> crate::template::syntax::expressions::Pipeline;
     fn write_output_node_pipeline(&self, value: crate::template::syntax::expressions::Pipeline);
     fn read_output_node_escape(&self) -> bool;
@@ -632,7 +646,6 @@ pub trait OutputNodeDispatch: TemplateNodeDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct OutputNodeState {
     #[doc(hidden)]
     pub base: TemplateNodeState,
@@ -640,17 +653,16 @@ pub struct OutputNodeState {
     pub escape: bool,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct OutputNode {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn OutputNodeDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn OutputNodeDispatch + 'static>,
 }
 
-impl std::fmt::Debug for OutputNode {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for OutputNode {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("OutputNode")
     }
 }
@@ -663,8 +675,14 @@ impl PartialEq for OutputNode {
 
 impl Eq for OutputNode {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for OutputNode {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct OutputNodeRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<OutputNodeState>,
 }
@@ -691,7 +709,7 @@ impl OutputNode {
     ) -> OutputNode {
         let state = OutputNode::initialize_state(pipeline, escape);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(OutputNodeRoot {
+        let root = alloc::rc::Rc::new(OutputNodeRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -704,76 +722,76 @@ impl OutputNode {
 
 impl TemplateNodeDispatch for OutputNodeRoot {
     fn downcast_template_node_to_assignment_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_block_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_break_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_continue_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_if_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn IfNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_output_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_range_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_invoke_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_text_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TextNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_with_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn WithNodeDispatch + 'static>> {
         None
     }
 }
 
 impl OutputNodeDispatch for OutputNodeRoot {
     fn downcast_output_node_to_output_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         Some(self)
     }
 
@@ -795,11 +813,10 @@ impl OutputNodeDispatch for OutputNodeRoot {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait AssignmentNodeDispatch: TemplateNodeDispatch {
     fn downcast_assignment_node_to_assignment_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn AssignmentNodeDispatch + 'static>>;
     fn read_assignment_node_name(&self) -> String;
     fn write_assignment_node_name(&self, value: String);
     fn read_assignment_node_pipeline(&self) -> crate::template::syntax::expressions::Pipeline;
@@ -809,7 +826,6 @@ pub trait AssignmentNodeDispatch: TemplateNodeDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct AssignmentNodeState {
     #[doc(hidden)]
     pub base: TemplateNodeState,
@@ -818,17 +834,16 @@ pub struct AssignmentNodeState {
     pub declare: bool,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct AssignmentNode {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn AssignmentNodeDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn AssignmentNodeDispatch + 'static>,
 }
 
-impl std::fmt::Debug for AssignmentNode {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for AssignmentNode {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("AssignmentNode")
     }
 }
@@ -841,8 +856,14 @@ impl PartialEq for AssignmentNode {
 
 impl Eq for AssignmentNode {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for AssignmentNode {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct AssignmentNodeRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<AssignmentNodeState>,
 }
@@ -873,7 +894,7 @@ impl AssignmentNode {
     ) -> AssignmentNode {
         let state = AssignmentNode::initialize_state(name, pipeline, declare);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(AssignmentNodeRoot {
+        let root = alloc::rc::Rc::new(AssignmentNodeRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -886,76 +907,76 @@ impl AssignmentNode {
 
 impl TemplateNodeDispatch for AssignmentNodeRoot {
     fn downcast_template_node_to_assignment_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_block_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_break_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_continue_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_if_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn IfNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_output_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_range_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_invoke_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_text_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TextNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_with_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn WithNodeDispatch + 'static>> {
         None
     }
 }
 
 impl AssignmentNodeDispatch for AssignmentNodeRoot {
     fn downcast_assignment_node_to_assignment_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         Some(self)
     }
 
@@ -988,11 +1009,10 @@ impl AssignmentNodeDispatch for AssignmentNodeRoot {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait TemplateInvokeNodeDispatch: TemplateNodeDispatch {
     fn downcast_template_invoke_node_to_template_invoke_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>>;
     fn read_template_invoke_node_name(&self) -> String;
     fn write_template_invoke_node_name(&self, value: String);
     fn read_template_invoke_node_context(&self) -> crate::template::syntax::expressions::Pipeline;
@@ -1003,7 +1023,6 @@ pub trait TemplateInvokeNodeDispatch: TemplateNodeDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct TemplateInvokeNodeState {
     #[doc(hidden)]
     pub base: TemplateNodeState,
@@ -1011,17 +1030,16 @@ pub struct TemplateInvokeNodeState {
     pub context: crate::template::syntax::expressions::Pipeline,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct TemplateInvokeNode {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>,
 }
 
-impl std::fmt::Debug for TemplateInvokeNode {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for TemplateInvokeNode {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("TemplateInvokeNode")
     }
 }
@@ -1034,8 +1052,14 @@ impl PartialEq for TemplateInvokeNode {
 
 impl Eq for TemplateInvokeNode {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for TemplateInvokeNode {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct TemplateInvokeNodeRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<TemplateInvokeNodeState>,
 }
@@ -1062,7 +1086,7 @@ impl TemplateInvokeNode {
     ) -> TemplateInvokeNode {
         let state = TemplateInvokeNode::initialize_state(name, context);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(TemplateInvokeNodeRoot {
+        let root = alloc::rc::Rc::new(TemplateInvokeNodeRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -1075,76 +1099,76 @@ impl TemplateInvokeNode {
 
 impl TemplateNodeDispatch for TemplateInvokeNodeRoot {
     fn downcast_template_node_to_assignment_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_block_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_break_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_continue_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_if_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn IfNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_output_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_range_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_invoke_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_template_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_text_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TextNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_with_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn WithNodeDispatch + 'static>> {
         None
     }
 }
 
 impl TemplateInvokeNodeDispatch for TemplateInvokeNodeRoot {
     fn downcast_template_invoke_node_to_template_invoke_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         Some(self)
     }
 
@@ -1169,7 +1193,6 @@ impl TemplateInvokeNodeDispatch for TemplateInvokeNodeRoot {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct TemplateVariableBindingState {
     pub name: String,
     pub declare: bool,
@@ -1179,6 +1202,12 @@ pub struct TemplateVariableBindingState {
 pub struct TemplateVariableBinding {
     #[doc(hidden)]
     pub state: rt::ObjectRef<TemplateVariableBindingState>,
+}
+
+impl rt::ObjectIdentityCarrier for TemplateVariableBinding {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl TemplateVariableBinding {
@@ -1195,11 +1224,10 @@ impl TemplateVariableBinding {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait IfNodeDispatch: TemplateNodeDispatch {
     fn downcast_if_node_to_if_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn IfNodeDispatch + 'static>>;
     fn read_if_node_condition(&self) -> crate::template::syntax::expressions::Pipeline;
     fn write_if_node_condition(&self, value: crate::template::syntax::expressions::Pipeline);
     fn read_if_node_binding(&self) -> Option<TemplateVariableBinding>;
@@ -1211,7 +1239,6 @@ pub trait IfNodeDispatch: TemplateNodeDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct IfNodeState {
     #[doc(hidden)]
     pub base: TemplateNodeState,
@@ -1221,17 +1248,16 @@ pub struct IfNodeState {
     pub else_nodes: js_abi::JsArray<TemplateNode>,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct IfNode {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn IfNodeDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn IfNodeDispatch + 'static>,
 }
 
-impl std::fmt::Debug for IfNode {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for IfNode {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("IfNode")
     }
 }
@@ -1244,8 +1270,14 @@ impl PartialEq for IfNode {
 
 impl Eq for IfNode {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for IfNode {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct IfNodeRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<IfNodeState>,
 }
@@ -1280,7 +1312,7 @@ impl IfNode {
     ) -> IfNode {
         let state = IfNode::initialize_state(condition, binding, then_nodes, else_nodes);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(IfNodeRoot {
+        let root = alloc::rc::Rc::new(IfNodeRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -1293,76 +1325,76 @@ impl IfNode {
 
 impl TemplateNodeDispatch for IfNodeRoot {
     fn downcast_template_node_to_assignment_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_block_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_break_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_continue_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_if_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn IfNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_output_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_range_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_invoke_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_text_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TextNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_with_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn WithNodeDispatch + 'static>> {
         None
     }
 }
 
 impl IfNodeDispatch for IfNodeRoot {
     fn downcast_if_node_to_if_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn IfNodeDispatch + 'static>> {
         Some(self)
     }
 
@@ -1400,11 +1432,10 @@ impl IfNodeDispatch for IfNodeRoot {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait RangeNodeDispatch: TemplateNodeDispatch {
     fn downcast_range_node_to_range_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn RangeNodeDispatch + 'static>>;
     fn read_range_node_expr(&self) -> crate::template::syntax::expressions::Pipeline;
     fn write_range_node_expr(&self, value: crate::template::syntax::expressions::Pipeline);
     fn read_range_node_key_var(&self) -> Option<String>;
@@ -1418,7 +1449,6 @@ pub trait RangeNodeDispatch: TemplateNodeDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct RangeNodeState {
     #[doc(hidden)]
     pub base: TemplateNodeState,
@@ -1429,17 +1459,16 @@ pub struct RangeNodeState {
     pub else_body: js_abi::JsArray<TemplateNode>,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct RangeNode {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn RangeNodeDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn RangeNodeDispatch + 'static>,
 }
 
-impl std::fmt::Debug for RangeNode {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for RangeNode {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("RangeNode")
     }
 }
@@ -1452,8 +1481,14 @@ impl PartialEq for RangeNode {
 
 impl Eq for RangeNode {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for RangeNode {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct RangeNodeRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<RangeNodeState>,
 }
@@ -1492,7 +1527,7 @@ impl RangeNode {
     ) -> RangeNode {
         let state = RangeNode::initialize_state(expr, key_var, value_var, body, else_body);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(RangeNodeRoot {
+        let root = alloc::rc::Rc::new(RangeNodeRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -1505,76 +1540,76 @@ impl RangeNode {
 
 impl TemplateNodeDispatch for RangeNodeRoot {
     fn downcast_template_node_to_assignment_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_block_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_break_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_continue_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_if_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn IfNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_output_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_range_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_template_invoke_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_text_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TextNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_with_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn WithNodeDispatch + 'static>> {
         None
     }
 }
 
 impl RangeNodeDispatch for RangeNodeRoot {
     fn downcast_range_node_to_range_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         Some(self)
     }
 
@@ -1620,11 +1655,10 @@ impl RangeNodeDispatch for RangeNodeRoot {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait WithNodeDispatch: TemplateNodeDispatch {
     fn downcast_with_node_to_with_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn WithNodeDispatch + 'static>>;
     fn read_with_node_expr(&self) -> crate::template::syntax::expressions::Pipeline;
     fn write_with_node_expr(&self, value: crate::template::syntax::expressions::Pipeline);
     fn read_with_node_binding(&self) -> Option<TemplateVariableBinding>;
@@ -1640,7 +1674,6 @@ pub trait WithNodeDispatch: TemplateNodeDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct WithNodeState {
     #[doc(hidden)]
     pub base: TemplateNodeState,
@@ -1652,17 +1685,16 @@ pub struct WithNodeState {
     pub source_segment_index: i32,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct WithNode {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn WithNodeDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn WithNodeDispatch + 'static>,
 }
 
-impl std::fmt::Debug for WithNode {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for WithNode {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("WithNode")
     }
 }
@@ -1675,8 +1707,14 @@ impl PartialEq for WithNode {
 
 impl Eq for WithNode {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for WithNode {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct WithNodeRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<WithNodeState>,
 }
@@ -1726,7 +1764,7 @@ impl WithNode {
             source_segment_index,
         );
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(WithNodeRoot {
+        let root = alloc::rc::Rc::new(WithNodeRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -1739,76 +1777,76 @@ impl WithNode {
 
 impl TemplateNodeDispatch for WithNodeRoot {
     fn downcast_template_node_to_assignment_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_block_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_break_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_continue_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_if_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn IfNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_output_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_range_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_invoke_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_text_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TextNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_with_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn WithNodeDispatch + 'static>> {
         Some(self)
     }
 }
 
 impl WithNodeDispatch for WithNodeRoot {
     fn downcast_with_node_to_with_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn WithNodeDispatch + 'static>> {
         Some(self)
     }
 
@@ -1863,11 +1901,10 @@ impl WithNodeDispatch for WithNodeRoot {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait BlockNodeDispatch: TemplateNodeDispatch {
     fn downcast_block_node_to_block_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BlockNodeDispatch + 'static>>;
     fn read_block_node_name(&self) -> String;
     fn write_block_node_name(&self, value: String);
     fn read_block_node_context(&self) -> crate::template::syntax::expressions::Pipeline;
@@ -1877,7 +1914,6 @@ pub trait BlockNodeDispatch: TemplateNodeDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct BlockNodeState {
     #[doc(hidden)]
     pub base: TemplateNodeState,
@@ -1886,17 +1922,16 @@ pub struct BlockNodeState {
     pub fallback: js_abi::JsArray<TemplateNode>,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct BlockNode {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn BlockNodeDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn BlockNodeDispatch + 'static>,
 }
 
-impl std::fmt::Debug for BlockNode {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for BlockNode {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("BlockNode")
     }
 }
@@ -1909,8 +1944,14 @@ impl PartialEq for BlockNode {
 
 impl Eq for BlockNode {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for BlockNode {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct BlockNodeRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<BlockNodeState>,
 }
@@ -1941,7 +1982,7 @@ impl BlockNode {
     ) -> BlockNode {
         let state = BlockNode::initialize_state(name, context, fallback);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(BlockNodeRoot {
+        let root = alloc::rc::Rc::new(BlockNodeRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -1954,76 +1995,76 @@ impl BlockNode {
 
 impl TemplateNodeDispatch for BlockNodeRoot {
     fn downcast_template_node_to_assignment_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_block_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_break_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BreakNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_continue_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_if_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn IfNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn IfNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_output_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn OutputNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_range_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RangeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_invoke_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_template_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_node_to_text_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TextNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TextNodeDispatch + 'static>> {
         None
     }
 
     fn downcast_template_node_to_with_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn WithNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn WithNodeDispatch + 'static>> {
         None
     }
 }
 
 impl BlockNodeDispatch for BlockNodeRoot {
     fn downcast_block_node_to_block_node(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn BlockNodeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         Some(self)
     }
 

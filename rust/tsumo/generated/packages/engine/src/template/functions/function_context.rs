@@ -5,7 +5,6 @@ use tsonic_rust_js::abi as js_abi;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct TemplateFunctionContextState {
     pub scope: crate::template::scope::RenderScope,
     pub environment: crate::template::environment::TemplateEnvironment,
@@ -17,6 +16,12 @@ pub struct TemplateFunctionContextState {
 pub struct TemplateFunctionContext {
     #[doc(hidden)]
     pub state: rt::ObjectRef<TemplateFunctionContextState>,
+}
+
+impl rt::ObjectIdentityCarrier for TemplateFunctionContext {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl TemplateFunctionContext {

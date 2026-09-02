@@ -54,7 +54,7 @@ pub fn call_date_method(
                             },
                         )?,
                     )?,
-                    std::convert::identity,
+                    core::convert::identity,
                     || String::from(""),
                 ));
             crate::template::values::base::TemplateValue {

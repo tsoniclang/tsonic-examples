@@ -37,22 +37,20 @@ pub fn sequence_argument(
         .downcast_template_value_to_string_value()
         .is_some()
     {
-        let parsed: Option<i32> = crate::utils::int32::parse_int32(
-            &{
-                let dispatch_receiver_2 = &{
-                    let downcast_value_2 = &value;
-                    crate::template::values::primitives::StringValue {
-                        identity: downcast_value_2.identity.clone(),
-                        dispatch: downcast_value_2
-                            .dispatch
-                            .clone()
-                            .downcast_template_value_to_string_value()
-                            .unwrap(),
-                    }
-                };
-                dispatch_receiver_2.dispatch.read_string_value_value()
-            },
-        )?;
+        let parsed: Option<i32> = crate::utils::int32::parse_int32(&{
+            let dispatch_receiver_2 = &{
+                let downcast_value_2 = &value;
+                crate::template::values::primitives::StringValue {
+                    identity: downcast_value_2.identity.clone(),
+                    dispatch: downcast_value_2
+                        .dispatch
+                        .clone()
+                        .downcast_template_value_to_string_value()
+                        .unwrap(),
+                }
+            };
+            dispatch_receiver_2.dispatch.read_string_value_value()
+        })?;
         if parsed.is_some() {
             return Ok(match parsed.as_ref() {
                 Some(flow_value) => *flow_value,
@@ -181,8 +179,7 @@ pub fn create_integer_sequence(
             {
                 let operation_input_0_2 = values.clone();
                 operation_input_0_2.push_many_discard([{
-                    let upcast_value =
-                        crate::template::values::primitives::NumberValue::new(value);
+                    let upcast_value = crate::template::values::primitives::NumberValue::new(value);
                     crate::template::values::base::TemplateValue {
                         identity: upcast_value.identity.clone(),
                         dispatch: upcast_value.dispatch.clone(),
@@ -397,8 +394,7 @@ pub fn reverse_template_collection(
             }
         }
         return Ok(Some({
-            let upcast_value_3 =
-                crate::template::values::page::PageArrayValue::new(result.clone());
+            let upcast_value_3 = crate::template::values::page::PageArrayValue::new(result.clone());
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_3.identity.clone(),
                 dispatch: upcast_value_3.dispatch.clone(),

@@ -5,40 +5,37 @@ use tsonic_rust_js::abi as js_abi;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait ExprDispatch {
     fn downcast_expr_to_access_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AccessExprDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn AccessExprDispatch + 'static>>;
     fn downcast_expr_to_command_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn CommandExprDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn CommandExprDispatch + 'static>>;
     fn downcast_expr_to_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ExprDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ExprDispatch + 'static>>;
     fn downcast_expr_to_pipeline_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn PipelineExprDispatch + 'static>>;
     fn downcast_expr_to_token_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TokenExprDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TokenExprDispatch + 'static>>;
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ExprState {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct Expr {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn ExprDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn ExprDispatch + 'static>,
 }
 
-impl std::fmt::Debug for Expr {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for Expr {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("Expr")
     }
 }
@@ -51,9 +48,16 @@ impl PartialEq for Expr {
 
 impl Eq for Expr {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for Expr {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct ExprRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
+    #[expect(dead_code, reason = "retains unused generated storage")]
     state: rt::ObjectHandle<ExprState>,
 }
 
@@ -66,7 +70,7 @@ impl Expr {
     pub fn new() -> Expr {
         let state = Expr::initialize_state();
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(ExprRoot {
+        let root = alloc::rc::Rc::new(ExprRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -85,65 +89,62 @@ impl Default for Expr {
 
 impl ExprDispatch for ExprRoot {
     fn downcast_expr_to_access_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AccessExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn AccessExprDispatch + 'static>> {
         None
     }
 
     fn downcast_expr_to_command_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn CommandExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn CommandExprDispatch + 'static>> {
         None
     }
 
     fn downcast_expr_to_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ExprDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_expr_to_pipeline_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn PipelineExprDispatch + 'static>> {
         None
     }
 
     fn downcast_expr_to_token_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TokenExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TokenExprDispatch + 'static>> {
         None
     }
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait TokenExprDispatch: ExprDispatch {
     fn downcast_token_expr_to_token_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TokenExprDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TokenExprDispatch + 'static>>;
     fn read_token_expr_token(&self) -> String;
     fn write_token_expr_token(&self, value: String);
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct TokenExprState {
     #[doc(hidden)]
     pub base: ExprState,
     pub token: String,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct TokenExpr {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn TokenExprDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn TokenExprDispatch + 'static>,
 }
 
-impl std::fmt::Debug for TokenExpr {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for TokenExpr {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("TokenExpr")
     }
 }
@@ -156,8 +157,14 @@ impl PartialEq for TokenExpr {
 
 impl Eq for TokenExpr {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for TokenExpr {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct TokenExprRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<TokenExprState>,
 }
@@ -176,7 +183,7 @@ impl TokenExpr {
     pub fn new(token: String) -> TokenExpr {
         let state = TokenExpr::initialize_state(token);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(TokenExprRoot {
+        let root = alloc::rc::Rc::new(TokenExprRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -189,40 +196,40 @@ impl TokenExpr {
 
 impl ExprDispatch for TokenExprRoot {
     fn downcast_expr_to_access_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AccessExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn AccessExprDispatch + 'static>> {
         None
     }
 
     fn downcast_expr_to_command_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn CommandExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn CommandExprDispatch + 'static>> {
         None
     }
 
     fn downcast_expr_to_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ExprDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_expr_to_pipeline_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn PipelineExprDispatch + 'static>> {
         None
     }
 
     fn downcast_expr_to_token_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TokenExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TokenExprDispatch + 'static>> {
         Some(self)
     }
 }
 
 impl TokenExprDispatch for TokenExprRoot {
     fn downcast_token_expr_to_token_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TokenExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TokenExprDispatch + 'static>> {
         Some(self)
     }
 
@@ -236,34 +243,31 @@ impl TokenExprDispatch for TokenExprRoot {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait PipelineExprDispatch: ExprDispatch {
     fn downcast_pipeline_expr_to_pipeline_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn PipelineExprDispatch + 'static>>;
     fn read_pipeline_expr_pipeline(&self) -> Pipeline;
     fn write_pipeline_expr_pipeline(&self, value: Pipeline);
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct PipelineExprState {
     #[doc(hidden)]
     pub base: ExprState,
     pub pipeline: Pipeline,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct PipelineExpr {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn PipelineExprDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn PipelineExprDispatch + 'static>,
 }
 
-impl std::fmt::Debug for PipelineExpr {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for PipelineExpr {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("PipelineExpr")
     }
 }
@@ -276,8 +280,14 @@ impl PartialEq for PipelineExpr {
 
 impl Eq for PipelineExpr {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for PipelineExpr {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct PipelineExprRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<PipelineExprState>,
 }
@@ -296,7 +306,7 @@ impl PipelineExpr {
     pub fn new(pipeline: Pipeline) -> PipelineExpr {
         let state = PipelineExpr::initialize_state(pipeline);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(PipelineExprRoot {
+        let root = alloc::rc::Rc::new(PipelineExprRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -309,40 +319,40 @@ impl PipelineExpr {
 
 impl ExprDispatch for PipelineExprRoot {
     fn downcast_expr_to_access_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AccessExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn AccessExprDispatch + 'static>> {
         None
     }
 
     fn downcast_expr_to_command_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn CommandExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn CommandExprDispatch + 'static>> {
         None
     }
 
     fn downcast_expr_to_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ExprDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_expr_to_pipeline_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn PipelineExprDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_expr_to_token_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TokenExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TokenExprDispatch + 'static>> {
         None
     }
 }
 
 impl PipelineExprDispatch for PipelineExprRoot {
     fn downcast_pipeline_expr_to_pipeline_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn PipelineExprDispatch + 'static>> {
         Some(self)
     }
 
@@ -356,34 +366,31 @@ impl PipelineExprDispatch for PipelineExprRoot {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait CommandExprDispatch: ExprDispatch {
     fn downcast_command_expr_to_command_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn CommandExprDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn CommandExprDispatch + 'static>>;
     fn read_command_expr_command(&self) -> Command;
     fn write_command_expr_command(&self, value: Command);
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct CommandExprState {
     #[doc(hidden)]
     pub base: ExprState,
     pub command: Command,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct CommandExpr {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn CommandExprDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn CommandExprDispatch + 'static>,
 }
 
-impl std::fmt::Debug for CommandExpr {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for CommandExpr {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("CommandExpr")
     }
 }
@@ -396,8 +403,14 @@ impl PartialEq for CommandExpr {
 
 impl Eq for CommandExpr {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for CommandExpr {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct CommandExprRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<CommandExprState>,
 }
@@ -416,7 +429,7 @@ impl CommandExpr {
     pub fn new(command: Command) -> CommandExpr {
         let state = CommandExpr::initialize_state(command);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(CommandExprRoot {
+        let root = alloc::rc::Rc::new(CommandExprRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -429,40 +442,40 @@ impl CommandExpr {
 
 impl ExprDispatch for CommandExprRoot {
     fn downcast_expr_to_access_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AccessExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn AccessExprDispatch + 'static>> {
         None
     }
 
     fn downcast_expr_to_command_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn CommandExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn CommandExprDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_expr_to_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ExprDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_expr_to_pipeline_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn PipelineExprDispatch + 'static>> {
         None
     }
 
     fn downcast_expr_to_token_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TokenExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TokenExprDispatch + 'static>> {
         None
     }
 }
 
 impl CommandExprDispatch for CommandExprRoot {
     fn downcast_command_expr_to_command_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn CommandExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn CommandExprDispatch + 'static>> {
         Some(self)
     }
 
@@ -476,11 +489,10 @@ impl CommandExprDispatch for CommandExprRoot {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait AccessExprDispatch: ExprDispatch {
     fn downcast_access_expr_to_access_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AccessExprDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn AccessExprDispatch + 'static>>;
     fn read_access_expr_base(&self) -> Expr;
     fn write_access_expr_base(&self, value: Expr);
     fn read_access_expr_segments(&self) -> js_abi::JsArray<String>;
@@ -488,7 +500,6 @@ pub trait AccessExprDispatch: ExprDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct AccessExprState {
     #[doc(hidden)]
     pub base_2: ExprState,
@@ -496,17 +507,16 @@ pub struct AccessExprState {
     pub segments: js_abi::JsArray<String>,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct AccessExpr {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn AccessExprDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn AccessExprDispatch + 'static>,
 }
 
-impl std::fmt::Debug for AccessExpr {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for AccessExpr {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("AccessExpr")
     }
 }
@@ -519,8 +529,14 @@ impl PartialEq for AccessExpr {
 
 impl Eq for AccessExpr {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for AccessExpr {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct AccessExprRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<AccessExprState>,
 }
@@ -541,7 +557,7 @@ impl AccessExpr {
     pub fn new(base: Expr, segments: js_abi::JsArray<String>) -> AccessExpr {
         let state = AccessExpr::initialize_state(base, segments);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(AccessExprRoot {
+        let root = alloc::rc::Rc::new(AccessExprRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -554,40 +570,40 @@ impl AccessExpr {
 
 impl ExprDispatch for AccessExprRoot {
     fn downcast_expr_to_access_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AccessExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn AccessExprDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_expr_to_command_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn CommandExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn CommandExprDispatch + 'static>> {
         None
     }
 
     fn downcast_expr_to_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ExprDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_expr_to_pipeline_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PipelineExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn PipelineExprDispatch + 'static>> {
         None
     }
 
     fn downcast_expr_to_token_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TokenExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TokenExprDispatch + 'static>> {
         None
     }
 }
 
 impl AccessExprDispatch for AccessExprRoot {
     fn downcast_access_expr_to_access_expr(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn AccessExprDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn AccessExprDispatch + 'static>> {
         Some(self)
     }
 
@@ -609,7 +625,6 @@ impl AccessExprDispatch for AccessExprRoot {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct CommandState {
     pub head: Expr,
     pub args: js_abi::JsArray<Expr>,
@@ -619,6 +634,12 @@ pub struct CommandState {
 pub struct Command {
     #[doc(hidden)]
     pub state: rt::ObjectRef<CommandState>,
+}
+
+impl rt::ObjectIdentityCarrier for Command {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl Command {
@@ -635,7 +656,6 @@ impl Command {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct PipelineState {
     pub stages: js_abi::JsArray<Command>,
 }
@@ -644,6 +664,12 @@ pub struct PipelineState {
 pub struct Pipeline {
     #[doc(hidden)]
     pub state: rt::ObjectRef<PipelineState>,
+}
+
+impl rt::ObjectIdentityCarrier for Pipeline {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl Pipeline {

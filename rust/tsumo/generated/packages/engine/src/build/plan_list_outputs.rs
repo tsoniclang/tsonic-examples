@@ -86,7 +86,7 @@ pub fn plan_list_outputs(
                         String::from("_default/list.html"),
                     ]),
                 )?,
-                std::convert::identity,
+                core::convert::identity,
                 || templates.state.with(|state| state.list.clone()),
             );
             let base: Option<String> = rt::option_coalesce(
@@ -181,9 +181,9 @@ pub fn plan_list_outputs(
                     .read_standard_page_graph_bundle_source_by_page()
             }
             .get_eq(&match page.as_ref() {
-                Some(flow_value_8) => flow_value_8.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            });
+                    Some(flow_value_8) => flow_value_8.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                });
             if bundle_source.is_some() {
                 crate::build::bundle_resources::add_bundle_resources(
                     match bundle_source.as_ref() {

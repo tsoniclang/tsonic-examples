@@ -2,17 +2,20 @@
 
 use crate::program as rt;
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) struct TemplateControlFlowTestsState {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct TemplateControlFlowTests {
     pub(crate) state: rt::ObjectRef<TemplateControlFlowTestsState>,
 }
 
+impl rt::ObjectIdentityCarrier for TemplateControlFlowTests {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
+}
+
 impl TemplateControlFlowTests {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new() -> TemplateControlFlowTests {
         TemplateControlFlowTests {
             state: rt::ObjectRef::new(TemplateControlFlowTestsState {}),
@@ -112,7 +115,6 @@ impl Default for TemplateControlFlowTests {
     }
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn run_template_control_flow_tests() -> Result<(), rt::TsonicError> {
     let tests: TemplateControlFlowTests = TemplateControlFlowTests::new();
     crate::test_root::run_test(

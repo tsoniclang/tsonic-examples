@@ -23,7 +23,6 @@ pub fn matches_pattern(file_path: &str, search_pattern: String) -> Result<bool, 
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ManagedDirectoryEntryState {
     pub path: String,
     pub directory: bool,
@@ -33,6 +32,12 @@ pub struct ManagedDirectoryEntryState {
 pub struct ManagedDirectoryEntry {
     #[doc(hidden)]
     pub state: rt::ObjectRef<ManagedDirectoryEntryState>,
+}
+
+impl rt::ObjectIdentityCarrier for ManagedDirectoryEntry {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl ManagedDirectoryEntry {
@@ -152,12 +157,10 @@ pub fn list_managed_directory_entries(
                 .call((path.clone(),))?;
             {
                 let operation_input_0_2 = entries.clone();
-                operation_input_0_2.push_many_discard([
-                    ManagedDirectoryEntry::new(
-                        path.clone(),
-                        tsonic_rust_node::fs::stat_sync(&path)?.is_directory(),
-                    ),
-                ])
+                operation_input_0_2.push_many_discard([ManagedDirectoryEntry::new(
+                    path.clone(),
+                    tsonic_rust_node::fs::stat_sync(&path)?.is_directory(),
+                )])
             };
             index += 1.0;
         }
@@ -175,8 +178,7 @@ pub fn list_files_top_directory(
     root_dir: String,
     search_pattern: String,
 ) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
-    let entries: js_abi::JsArray<ManagedDirectoryEntry> =
-        list_managed_directory_entries(root_dir)?;
+    let entries: js_abi::JsArray<ManagedDirectoryEntry> = list_managed_directory_entries(root_dir)?;
     let files: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     {
         let mut index: f64 = 0.0;
@@ -206,8 +208,7 @@ pub fn list_files_top_directory(
 pub fn list_directories_top_directory(
     root_dir: String,
 ) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
-    let entries: js_abi::JsArray<ManagedDirectoryEntry> =
-        list_managed_directory_entries(root_dir)?;
+    let entries: js_abi::JsArray<ManagedDirectoryEntry> = list_managed_directory_entries(root_dir)?;
     let directories: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     {
         let mut index: f64 = 0.0;
@@ -253,8 +254,7 @@ pub fn list_files_recursive(
                             None => unreachable!("checked flow selected a missing optional value"),
                         };
                         if entry.state.with(|state| state.directory) {
-                            recursive_callable
-                                .call((entry.state.with(|state| state.path.clone()),))?;
+                            recursive_callable.call((entry.state.with(|state| state.path.clone()),))?;
                             index += 1.0;
                             continue 'loop_value;
                         }
@@ -265,9 +265,9 @@ pub fn list_files_recursive(
                         {
                             {
                                 let operation_input_0 = capture_files.clone();
-                                operation_input_0.push_many_discard([
-                                    entry.state.with(|state| state.path.clone()),
-                                ])
+                                operation_input_0.push_many_discard([entry
+                                    .state
+                                    .with(|state| state.path.clone())])
                             };
                         }
                         index += 1.0;

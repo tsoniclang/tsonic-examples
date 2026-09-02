@@ -7,7 +7,6 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ExternalProcessResultState {
     pub exit_code: i32,
     pub standard_error: String,
@@ -17,6 +16,12 @@ pub struct ExternalProcessResultState {
 pub struct ExternalProcessResult {
     #[doc(hidden)]
     pub state: rt::ObjectRef<ExternalProcessResultState>,
+}
+
+impl rt::ObjectIdentityCarrier for ExternalProcessResult {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl ExternalProcessResult {

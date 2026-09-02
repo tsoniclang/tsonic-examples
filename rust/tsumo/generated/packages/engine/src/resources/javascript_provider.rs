@@ -18,7 +18,6 @@ pub fn cache_key_part(value: String) -> Result<String, rt::TsonicError> {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct JavaScriptBuildOptionsState {
     pub target_path: Option<String>,
     pub minify: bool,
@@ -34,6 +33,12 @@ pub struct JavaScriptBuildOptionsState {
 pub struct JavaScriptBuildOptions {
     #[doc(hidden)]
     pub state: rt::ObjectHandle<JavaScriptBuildOptionsState>,
+}
+
+impl rt::ObjectIdentityCarrier for JavaScriptBuildOptions {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl JavaScriptBuildOptions {
@@ -64,7 +69,7 @@ impl JavaScriptBuildOptions {
         let values: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
             rt::option_coalesce(
                 self.state.with(|state| state.target_path.clone()),
-                std::convert::identity,
+                core::convert::identity,
                 || String::from(""),
             ),
             if self.state.with(|state| state.minify) {
@@ -78,12 +83,12 @@ impl JavaScriptBuildOptions {
             self.state.with(|state| state.source_map.clone()),
             rt::option_coalesce(
                 self.state.with(|state| state.params_json.clone()),
-                std::convert::identity,
+                core::convert::identity,
                 || String::from(""),
             ),
             rt::option_coalesce(
                 self.state.with(|state| state.jsx_factory.clone()),
-                std::convert::identity,
+                core::convert::identity,
                 || String::from(""),
             ),
         ]);
@@ -123,7 +128,7 @@ pub fn source_extension(
                 dispatch_receiver_2.dispatch.read_resource_source_path()
             },
         ),
-        std::convert::identity,
+        core::convert::identity,
         || String::from("input.js"),
     );
     let extension: String = js_string::to_lower_case(
@@ -150,7 +155,7 @@ pub fn output_relative_path(
             let dispatch_receiver = &resource;
             dispatch_receiver.dispatch.read_resource_output_rel_path()
         }),
-        std::convert::identity,
+        core::convert::identity,
         || String::from("script.js"),
     );
     let path: crate::resources::paths::ResourcePathParts =
@@ -182,8 +187,7 @@ pub fn build_java_script_resource(
             None,
         )));
     }
-    let configured_executable: Option<String> =
-        tsonic_rust_node::process::env_get("TSUMO_ESBUILD");
+    let configured_executable: Option<String> = tsonic_rust_node::process::env_get("TSUMO_ESBUILD");
     let executable: String = {
         let conditional_test = configured_executable.is_some()
             && !js_string::trim(&match configured_executable.as_ref() {
@@ -290,9 +294,11 @@ pub fn build_java_script_resource(
                 )?;
                 {
                     let operation_input_0_3 = arguments_list.clone();
-                    operation_input_0_3.push_many_discard([
-                        format!("{}{}", String::from("--alias:@params="), params_path),
-                    ])
+                    operation_input_0_3.push_many_discard([format!(
+                        "{}{}",
+                        String::from("--alias:@params="),
+                        params_path,
+                    )])
                 };
             }
             let process: crate::resources::external_process::ExternalProcessResult =

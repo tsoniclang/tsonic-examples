@@ -3,7 +3,6 @@
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct LoadedConfigState {
     pub path: Option<String>,
     pub config: crate::models::site_config::SiteConfig,
@@ -13,6 +12,12 @@ pub struct LoadedConfigState {
 pub struct LoadedConfig {
     #[doc(hidden)]
     pub state: rt::ObjectRef<LoadedConfigState>,
+}
+
+impl rt::ObjectIdentityCarrier for LoadedConfig {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl LoadedConfig {

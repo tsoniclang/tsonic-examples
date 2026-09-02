@@ -104,8 +104,8 @@ pub fn add_calendar_date(
     let total_months: f64 =
         source_year_value * 12.0 + source_month_value - 1.0 + years_value * 12.0 + months_value;
     let target_year_value: f64 = (total_months / 12.0).floor();
-    if target_year_value.partial_cmp(&1.0) == Some(std::cmp::Ordering::Less)
-        || target_year_value.partial_cmp(&9999.0) == Some(std::cmp::Ordering::Greater)
+    if target_year_value.partial_cmp(&1.0) == Some(core::cmp::Ordering::Less)
+        || target_year_value.partial_cmp(&9999.0) == Some(core::cmp::Ordering::Greater)
     {
         return Ok(Option::<String>::None);
     }
@@ -214,12 +214,12 @@ pub fn format_date_time(value: String, layout: String) -> Result<Option<String>,
     let second: String = crate::utils::strings::substring_count(iso.clone(), 17, 2)?;
     let month_index: i32 = rt::option_coalesce(
         crate::utils::int32::parse_int32(&month)?,
-        std::convert::identity,
+        core::convert::identity,
         || 1,
     ) - 1;
     let hour_value: i32 = rt::option_coalesce(
         crate::utils::int32::parse_int32(&hour24)?,
-        std::convert::identity,
+        core::convert::identity,
         || 0,
     );
     let hour12_value: f64 = if hour_value % 12 == 0 {
@@ -333,10 +333,10 @@ pub fn format_date_time(value: String, layout: String) -> Result<Option<String>,
                                         .dispatch
                                         .clone()
                                         .dispatch_text_builder_append(if hour_value < 12 {
-                                        String::from("AM")
-                                    } else {
-                                        String::from("PM")
-                                    })
+                                            String::from("AM")
+                                        } else {
+                                            String::from("PM")
+                                        })
                                 }?;
                                 index += 2.0;
                             } else {
@@ -347,10 +347,10 @@ pub fn format_date_time(value: String, layout: String) -> Result<Option<String>,
                                             .dispatch
                                             .clone()
                                             .dispatch_text_builder_append(if hour_value < 12 {
-                                            String::from("am")
-                                        } else {
-                                            String::from("pm")
-                                        })
+                                                String::from("am")
+                                            } else {
+                                                String::from("pm")
+                                            })
                                     }?;
                                     index += 2.0;
                                 } else {

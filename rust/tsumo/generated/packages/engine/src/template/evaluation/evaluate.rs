@@ -7,7 +7,6 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct TemplateEvaluationContextState {
     pub scope: crate::template::scope::RenderScope,
     pub environment: crate::template::environment::TemplateEnvironment,
@@ -19,6 +18,12 @@ pub struct TemplateEvaluationContextState {
 pub struct TemplateEvaluationContext {
     #[doc(hidden)]
     pub state: rt::ObjectRef<TemplateEvaluationContextState>,
+}
+
+impl rt::ObjectIdentityCarrier for TemplateEvaluationContext {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl TemplateEvaluationContext {

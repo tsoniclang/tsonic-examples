@@ -2,7 +2,6 @@
 
 use tsonic_rust_js::abi as js_abi;
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn log_error_line(message: String) {
     js_abi::console_error(&[tsonic_rust_js::abi::js_value_from_string(&message)]);
 }

@@ -42,7 +42,7 @@ pub fn taxonomy_terms_by_count(
                                 .map_err(rt::TsonicError::from)
                             })
                             .transpose()?,
-                        std::convert::identity,
+                        core::convert::identity,
                         || 0,
                     );
                     let right_count: i32 = rt::option_coalesce(
@@ -56,7 +56,7 @@ pub fn taxonomy_terms_by_count(
                                 .map_err(rt::TsonicError::from)
                             })
                             .transpose()?,
-                        std::convert::identity,
+                        core::convert::identity,
                         || 0,
                     );
                     if left_count > right_count

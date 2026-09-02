@@ -3,32 +3,29 @@
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait ResourceDataDispatch {
     fn downcast_resource_data_to_resource_data(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ResourceDataDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ResourceDataDispatch + 'static>>;
     fn read_resource_data_integrity(&self) -> String;
     fn write_resource_data_integrity(&self, value: String);
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ResourceDataState {
     pub integrity: String,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct ResourceData {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn ResourceDataDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn ResourceDataDispatch + 'static>,
 }
 
-impl std::fmt::Debug for ResourceData {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for ResourceData {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("ResourceData")
     }
 }
@@ -41,8 +38,14 @@ impl PartialEq for ResourceData {
 
 impl Eq for ResourceData {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for ResourceData {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct ResourceDataRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<ResourceDataState>,
 }
@@ -59,7 +62,7 @@ impl ResourceData {
     pub fn new(integrity: String) -> ResourceData {
         let state = ResourceData::initialize_state(integrity);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(ResourceDataRoot {
+        let root = alloc::rc::Rc::new(ResourceDataRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -72,8 +75,8 @@ impl ResourceData {
 
 impl ResourceDataDispatch for ResourceDataRoot {
     fn downcast_resource_data_to_resource_data(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ResourceDataDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ResourceDataDispatch + 'static>> {
         Some(self)
     }
 
@@ -87,7 +90,6 @@ impl ResourceDataDispatch for ResourceDataRoot {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ImageDimensionsState {
     pub width: i32,
     pub height: i32,
@@ -97,6 +99,12 @@ pub struct ImageDimensionsState {
 pub struct ImageDimensions {
     #[doc(hidden)]
     pub state: rt::ObjectRef<ImageDimensionsState>,
+}
+
+impl rt::ObjectIdentityCarrier for ImageDimensions {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl ImageDimensions {
@@ -113,11 +121,10 @@ impl ImageDimensions {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait ResourceDispatch {
     fn downcast_resource_to_resource(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ResourceDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ResourceDispatch + 'static>>;
     fn read_resource_id(&self) -> String;
     fn write_resource_id(&self, value: String);
     fn read_resource_source_path(&self) -> Option<String>;
@@ -141,7 +148,6 @@ pub trait ResourceDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ResourceState {
     pub id: String,
     pub source_path: Option<String>,
@@ -155,17 +161,16 @@ pub struct ResourceState {
     pub height: i32,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct Resource {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn ResourceDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn ResourceDispatch + 'static>,
 }
 
-impl std::fmt::Debug for Resource {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for Resource {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("Resource")
     }
 }
@@ -178,8 +183,14 @@ impl PartialEq for Resource {
 
 impl Eq for Resource {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for Resource {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct ResourceRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<ResourceState>,
 }
@@ -252,7 +263,7 @@ impl Resource {
             height,
         );
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(ResourceRoot {
+        let root = alloc::rc::Rc::new(ResourceRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -265,8 +276,8 @@ impl Resource {
 
 impl ResourceDispatch for ResourceRoot {
     fn downcast_resource_to_resource(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ResourceDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ResourceDispatch + 'static>> {
         Some(self)
     }
 

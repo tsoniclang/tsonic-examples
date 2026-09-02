@@ -7,7 +7,6 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct PageBundleResourceFileState {
     pub source_path: String,
     pub relative_path: String,
@@ -17,6 +16,12 @@ pub struct PageBundleResourceFileState {
 pub struct PageBundleResourceFile {
     #[doc(hidden)]
     pub state: rt::ObjectRef<PageBundleResourceFileState>,
+}
+
+impl rt::ObjectIdentityCarrier for PageBundleResourceFile {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl PageBundleResourceFile {
@@ -45,9 +50,10 @@ pub fn is_nested_bundle(directory: String) -> Result<bool, rt::TsonicError> {
         crate::fs::file_exists(tsonic_rust_node::path::join(
             &[directory.as_str(), "index.md"],
         ))?
-            || crate::fs::file_exists(tsonic_rust_node::path::join(
-                &[directory.as_str(), "_index.md"],
-            ))?,
+            || crate::fs::file_exists(tsonic_rust_node::path::join(&[
+                directory.as_str(),
+                "_index.md",
+            ]))?,
     )
 }
 
@@ -82,9 +88,10 @@ pub fn collect_page_bundle_resource_files(
             };
             {
                 let operation_input_0 = result.clone();
-                operation_input_0.push_many_discard([
-                    PageBundleResourceFile::new(source_path.clone(), relative_path.clone()),
-                ])
+                operation_input_0.push_many_discard([PageBundleResourceFile::new(
+                    source_path.clone(),
+                    relative_path.clone(),
+                )])
             };
             index += 1.0;
         }

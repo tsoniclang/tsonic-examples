@@ -919,9 +919,8 @@ pub fn parse_json_front_matter(
                                                                     .with(|state| {
                                                                         state.menus.clone()
                                                                     })
-                                                                    .push_many_discard([
-                                                                        entry.clone(),
-                                                                    ]);
+                                                                    .push_many_discard([entry
+                                                                        .clone()]);
                                                                 menu_index += 1.0;
                                                             }
                                                         }

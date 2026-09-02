@@ -4,17 +4,20 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) struct TemplatePageContextTestsState {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct TemplatePageContextTests {
     pub(crate) state: rt::ObjectHandle<TemplatePageContextTestsState>,
 }
 
+impl rt::ObjectIdentityCarrier for TemplatePageContextTests {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
+}
+
 impl TemplatePageContextTests {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new() -> TemplatePageContextTests {
         TemplatePageContextTests {
             state: rt::ObjectHandle::new(TemplatePageContextTestsState {}),
@@ -38,8 +41,7 @@ impl TemplatePageContextTests {
                 },
             )?),
         )?;
-        let site: tsumo_engine::testing::SiteContext =
-            crate::template_test_harness::create_site()?;
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
         let older: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
             site.clone(),
             String::from("Older"),
@@ -344,8 +346,7 @@ impl TemplatePageContextTests {
     pub fn page_taxonomy_terms_follow_explicit_graph_relations(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        let site: tsumo_engine::testing::SiteContext =
-            crate::template_test_harness::create_site()?;
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
         let page: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
             site.clone(),
             String::from("Article"),
@@ -398,8 +399,7 @@ impl TemplatePageContextTests {
     }
 
     pub fn page_menu_methods_use_the_exact_menu_hierarchy(&self) -> Result<(), rt::TsonicError> {
-        let site: tsumo_engine::testing::SiteContext =
-            crate::template_test_harness::create_site()?;
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
         let section: tsumo_engine::testing::PageContext =
             crate::template_test_harness::create_page(
                 site.clone(),
@@ -492,8 +492,7 @@ impl TemplatePageContextTests {
     pub fn template_definitions_propagate_across_partial_boundaries(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        let site: tsumo_engine::testing::SiteContext =
-            crate::template_test_harness::create_site()?;
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
         let root: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
             site.clone(),
             String::from("Home"),
@@ -722,7 +721,6 @@ impl Default for TemplatePageContextTests {
     }
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn run_template_page_context_tests() -> Result<(), rt::TsonicError> {
     let tests: TemplatePageContextTests = TemplatePageContextTests::new();
     crate::test_root::run_test(

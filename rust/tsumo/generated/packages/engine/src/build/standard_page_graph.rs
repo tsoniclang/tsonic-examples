@@ -7,11 +7,10 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait StandardPageGraphDispatch {
     fn downcast_standard_page_graph_to_standard_page_graph(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn StandardPageGraphDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn StandardPageGraphDispatch + 'static>>;
     fn read_standard_page_graph_site(&self) -> crate::models::site_context::SiteContext;
     fn write_standard_page_graph_site(&self, value: crate::models::site_context::SiteContext);
     fn read_standard_page_graph_page_sources(
@@ -56,7 +55,6 @@ pub trait StandardPageGraphDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct StandardPageGraphState {
     pub site: crate::models::site_context::SiteContext,
     pub page_sources: js_abi::JsArray<crate::build::content_model::ContentPageSource>,
@@ -68,17 +66,16 @@ pub struct StandardPageGraphState {
     pub home: crate::models::page_context::PageContext,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct StandardPageGraph {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn StandardPageGraphDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn StandardPageGraphDispatch + 'static>,
 }
 
-impl std::fmt::Debug for StandardPageGraph {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for StandardPageGraph {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("StandardPageGraph")
     }
 }
@@ -91,8 +88,14 @@ impl PartialEq for StandardPageGraph {
 
 impl Eq for StandardPageGraph {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for StandardPageGraph {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct StandardPageGraphRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<StandardPageGraphState>,
 }
@@ -163,7 +166,7 @@ impl StandardPageGraph {
             home,
         );
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(StandardPageGraphRoot {
+        let root = alloc::rc::Rc::new(StandardPageGraphRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -176,8 +179,8 @@ impl StandardPageGraph {
 
 impl StandardPageGraphDispatch for StandardPageGraphRoot {
     fn downcast_standard_page_graph_to_standard_page_graph(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn StandardPageGraphDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn StandardPageGraphDispatch + 'static>> {
         Some(self)
     }
 
@@ -295,15 +298,13 @@ pub fn create_site(
             };
             {
                 let operation_input_0 = languages.clone();
-                operation_input_0.push_many_discard([
-                    crate::models::language::LanguageContext::new(
-                        language.state.with(|state| state.lang.clone()),
-                        language.state.with(|state| state.language_name.clone()),
-                        language
-                            .state
-                            .with(|state| state.language_direction.clone()),
-                    ),
-                ])
+                operation_input_0.push_many_discard([crate::models::language::LanguageContext::new(
+                    language.state.with(|state| state.lang.clone()),
+                    language.state.with(|state| state.language_name.clone()),
+                    language
+                        .state
+                        .with(|state| state.language_direction.clone()),
+                )])
             };
             index += 1.0;
         }
@@ -715,7 +716,7 @@ pub fn create_list_page(
         source.as_ref().and_then(|optional_receiver_2| {
             optional_receiver_2.state.with(|state| state.title.clone())
         }),
-        std::convert::identity,
+        core::convert::identity,
         || default_title,
     );
     let empty_strings: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
@@ -729,7 +730,7 @@ pub fn create_list_page(
                 .state
                 .with(|state| state.parameters.clone())
         }),
-        std::convert::identity,
+        core::convert::identity,
         js_abi::JsMap::new,
     );
     Ok(crate::models::page_context::PageContext::new(
@@ -756,7 +757,7 @@ pub fn create_list_page(
                     .state
                     .with(|state| state.description.clone())
             }),
-            std::convert::identity,
+            core::convert::identity,
             || String::from(""),
         ),
         empty_strings.clone(),

@@ -4,7 +4,6 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn handle_build(
     args: js_abi::JsArray<String>,
     build_arg_start: i32,
@@ -179,7 +178,7 @@ pub fn handle_build(
         let receiver_6 = &build_req;
         let value_6 = rt::option_coalesce(
             crate::source_date_epoch::read_source_date_epoch()?,
-            std::convert::identity,
+            core::convert::identity,
             || {
                 let dispatch_receiver_6 = &build_req;
                 dispatch_receiver_6.dispatch.read_build_request_build_time()

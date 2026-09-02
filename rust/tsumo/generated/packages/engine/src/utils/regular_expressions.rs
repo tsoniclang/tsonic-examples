@@ -24,10 +24,9 @@ pub fn find_regular_expression_matches(
         let r#match = fallible_item?;
         {
             let operation_input_0 = result.clone();
-            operation_input_0.push_many_discard([
-                REQUIRE_FULL_MATCH.with(|module_binding| module_binding.load()).call((r#match
-                    .clone(),))?,
-            ])
+            operation_input_0.push_many_discard([REQUIRE_FULL_MATCH
+                .with(|module_binding| module_binding.load())
+                .call((r#match.clone(),))?])
         };
         if limit > 0 && tsonic_rust_runtime::conversions::usize_to_i32(result.len())? >= limit {
             break 'loop_value;
@@ -52,11 +51,9 @@ pub fn find_regular_expression_submatches(
         .iterator()
     {
         let r#match = fallible_item?;
-        let row: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
-            REQUIRE_FULL_MATCH
-                .with(|module_binding| module_binding.load())
-                .call((r#match.clone(),))?,
-        ]);
+        let row: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![REQUIRE_FULL_MATCH
+            .with(|module_binding| module_binding.load())
+            .call((r#match.clone(),))?]);
         {
             let mut group_index: f64 = 1.0;
             while group_index
@@ -64,13 +61,11 @@ pub fn find_regular_expression_submatches(
             {
                 {
                     let operation_input_0 = row.clone();
-                    operation_input_0.push_many_discard([
-                        rt::option_coalesce(
-                            r#match.get_number(group_index),
-                            std::convert::identity,
-                            || String::from(""),
-                        ),
-                    ])
+                    operation_input_0.push_many_discard([rt::option_coalesce(
+                        r#match.get_number(group_index),
+                        core::convert::identity,
+                        || String::from(""),
+                    )])
                 };
                 group_index += 1.0;
             }
@@ -115,27 +110,23 @@ pub fn replace_regular_expression(
             .call((r#match.clone(),))?;
         {
             let operation_input_0 = result.clone();
-            operation_input_0.push_many_discard([
-                js_string::slice_to(
-                    &input,
-                    tsonic_rust_runtime::conversions::i32_to_f64(cursor),
-                    tsonic_rust_runtime::conversions::i32_to_f64(match_index),
-                )?,
-            ])
+            operation_input_0.push_many_discard([js_string::slice_to(
+                &input,
+                tsonic_rust_runtime::conversions::i32_to_f64(cursor),
+                tsonic_rust_runtime::conversions::i32_to_f64(match_index),
+            )?])
         };
         {
             let operation_input_0_2 = result.clone();
-            operation_input_0_2.push_many_discard([
-                EXPAND_REGULAR_EXPRESSION_REPLACEMENT
-                    .with(|module_binding| module_binding.load())
-                    .call((
-                        replacement.clone(),
-                        input.clone(),
-                        r#match.clone(),
-                        full_match.clone(),
-                        match_index,
-                    ))?,
-            ])
+            operation_input_0_2.push_many_discard([EXPAND_REGULAR_EXPRESSION_REPLACEMENT
+                .with(|module_binding| module_binding.load())
+                .call((
+                    replacement.clone(),
+                    input.clone(),
+                    r#match.clone(),
+                    full_match.clone(),
+                    match_index,
+                ))?])
         };
         cursor =
             match_index
@@ -144,13 +135,11 @@ pub fn replace_regular_expression(
     }
     {
         let operation_input_0_3 = result.clone();
-        operation_input_0_3.push_many_discard([
-            js_string::slice(
-                &input,
-                tsonic_rust_runtime::conversions::i32_to_f64(cursor),
-                None,
-            )?,
-        ])
+        operation_input_0_3.push_many_discard([js_string::slice(
+            &input,
+            tsonic_rust_runtime::conversions::i32_to_f64(cursor),
+            None,
+        )?])
     };
     Ok(result.join(""))
 }
@@ -273,13 +262,11 @@ pub fn module_init() {
                     if next == "`" {
                         {
                             let operation_input_0 = result.clone();
-                            operation_input_0.push_many_discard([
-                                js_string::slice_to(
-                                    &input,
-                                    0.0,
-                                    tsonic_rust_runtime::conversions::i32_to_f64(match_index),
-                                )?,
-                            ])
+                            operation_input_0.push_many_discard([js_string::slice_to(
+                                &input,
+                                0.0,
+                                tsonic_rust_runtime::conversions::i32_to_f64(match_index),
+                            )?])
                         };
                         index += 1.0;
                         index += 1.0;
@@ -365,17 +352,13 @@ pub fn module_init() {
                         if capture_index > 0 {
                             {
                                 let operation_input_0_5 = result.clone();
-                                operation_input_0_5.push_many_discard([
-                                    rt::option_coalesce(
-                                        r#match.get_number(
-                                            tsonic_rust_runtime::conversions::i32_to_f64(
-                                                capture_index,
-                                            ),
-                                        ),
-                                        std::convert::identity,
-                                        || String::from(""),
+                                operation_input_0_5.push_many_discard([rt::option_coalesce(
+                                    r#match.get_number(
+                                        tsonic_rust_runtime::conversions::i32_to_f64(capture_index),
                                     ),
-                                ])
+                                    core::convert::identity,
+                                    || String::from(""),
+                                )])
                             };
                             index += tsonic_rust_runtime::conversions::i32_to_f64(consumed_digits);
                             index += 1.0;
@@ -401,7 +384,7 @@ pub fn module_init() {
                         r#match.groups().as_ref().and_then(|optional_receiver| {
                             js_abi::regexp_named_groups_get_native(optional_receiver, &group_name)
                         }),
-                        std::convert::identity,
+                        core::convert::identity,
                         || String::from(""),
                     ))
                 },

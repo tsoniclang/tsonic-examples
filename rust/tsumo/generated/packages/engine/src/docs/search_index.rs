@@ -5,11 +5,10 @@ use tsonic_rust_js::abi as js_abi;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait SearchDocumentDispatch {
     fn downcast_search_document_to_search_document(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn SearchDocumentDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn SearchDocumentDispatch + 'static>>;
     fn read_search_document_title(&self) -> String;
     fn write_search_document_title(&self, value: String);
     fn read_search_document_url(&self) -> String;
@@ -21,7 +20,6 @@ pub trait SearchDocumentDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct SearchDocumentState {
     pub title: String,
     pub url: String,
@@ -29,17 +27,16 @@ pub struct SearchDocumentState {
     pub text: String,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct SearchDocument {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn SearchDocumentDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn SearchDocumentDispatch + 'static>,
 }
 
-impl std::fmt::Debug for SearchDocument {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for SearchDocument {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("SearchDocument")
     }
 }
@@ -52,8 +49,14 @@ impl PartialEq for SearchDocument {
 
 impl Eq for SearchDocument {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for SearchDocument {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct SearchDocumentRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<SearchDocumentState>,
 }
@@ -81,7 +84,7 @@ impl SearchDocument {
     pub fn new(title: String, url: String, mount: String, text: String) -> SearchDocument {
         let state = SearchDocument::initialize_state(title, url, mount, text);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(SearchDocumentRoot {
+        let root = alloc::rc::Rc::new(SearchDocumentRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -94,8 +97,8 @@ impl SearchDocument {
 
 impl SearchDocumentDispatch for SearchDocumentRoot {
     fn downcast_search_document_to_search_document(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn SearchDocumentDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn SearchDocumentDispatch + 'static>> {
         Some(self)
     }
 

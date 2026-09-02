@@ -94,11 +94,10 @@ pub fn sort_resources_by_identity(
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait ResourceManagerDispatch {
     fn downcast_resource_manager_to_resource_manager(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ResourceManagerDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ResourceManagerDispatch + 'static>>;
     fn read_resource_manager_site_dir(&self) -> String;
     fn write_resource_manager_site_dir(&self, value: String);
     fn read_resource_manager_theme_dir(&self) -> Option<String>;
@@ -121,151 +120,150 @@ pub trait ResourceManagerDispatch {
     fn read_resource_manager_theme_asset_files(&self) -> js_abi::JsArray<String>;
     fn write_resource_manager_theme_asset_files(&self, value: js_abi::JsArray<String>);
     fn dispatch_resource_manager_resolve_asset_full_path(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
     ) -> Result<Option<String>, rt::TsonicError>;
     fn exact_resource_manager_resolve_asset_full_path(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
     ) -> Result<Option<String>, rt::TsonicError>;
     fn dispatch_resource_manager_get(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
     ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError>;
     fn exact_resource_manager_get(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
     ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError>;
     fn dispatch_resource_manager_load_file(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         identity: String,
         full_path: String,
         output_rel_path: String,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
     fn exact_resource_manager_load_file(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         identity: String,
         full_path: String,
         output_rel_path: String,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
     fn dispatch_resource_manager_get_match(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         pattern: String,
     ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError>;
     fn exact_resource_manager_get_match(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         pattern: String,
     ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError>;
     fn dispatch_resource_manager_match(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         pattern: String,
     ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError>;
     fn exact_resource_manager_match(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         pattern: String,
     ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError>;
     fn dispatch_resource_manager_by_type(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         media_type: String,
     ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError>;
     fn exact_resource_manager_by_type(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         media_type: String,
     ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError>;
     fn dispatch_resource_manager_concat(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         target_path: String,
         resources: js_abi::JsArray<crate::resources::models::Resource>,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
     fn exact_resource_manager_concat(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         target_path: String,
         resources: js_abi::JsArray<crate::resources::models::Resource>,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
     fn dispatch_resource_manager_from_string(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
         content: String,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
     fn exact_resource_manager_from_string(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
         content: String,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
     fn dispatch_resource_manager_minify(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
     fn exact_resource_manager_minify(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
     fn dispatch_resource_manager_fingerprint(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
     fn exact_resource_manager_fingerprint(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
     fn dispatch_resource_manager_copy(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         target_path: String,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
     fn exact_resource_manager_copy(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         target_path: String,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
     fn dispatch_resource_manager_sass_compile(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
     fn exact_resource_manager_sass_compile(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
     fn dispatch_resource_manager_javascript_build(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
         options: crate::resources::javascript_provider::JavaScriptBuildOptions,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
     fn exact_resource_manager_javascript_build(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
         options: crate::resources::javascript_provider::JavaScriptBuildOptions,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
     fn dispatch_resource_manager_resize(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
         specification: String,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
     fn exact_resource_manager_resize(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
         specification: String,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
     fn dispatch_resource_manager_ensure_published(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> Result<(), rt::TsonicError>;
     fn exact_resource_manager_ensure_published(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> Result<(), rt::TsonicError>;
     fn dispatch_resource_manager_cache_resource(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> crate::resources::models::Resource;
     fn exact_resource_manager_cache_resource(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> crate::resources::models::Resource;
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ResourceManagerState {
     pub site_dir: String,
     pub theme_dir: Option<String>,
@@ -277,17 +275,16 @@ pub struct ResourceManagerState {
     pub theme_asset_files: js_abi::JsArray<String>,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct ResourceManager {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn ResourceManagerDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn ResourceManagerDispatch + 'static>,
 }
 
-impl std::fmt::Debug for ResourceManager {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for ResourceManager {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("ResourceManager")
     }
 }
@@ -300,7 +297,12 @@ impl PartialEq for ResourceManager {
 
 impl Eq for ResourceManager {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for ResourceManager {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct ResourceManagerRoot {
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<ResourceManagerState>,
@@ -321,15 +323,13 @@ impl ResourceManager {
         let field_theme_assets_dir: Option<String> = if theme_dir.is_none() {
             Option::<String>::None
         } else {
-            Some(tsonic_rust_node::path::join(
-                &[
-                    (match theme_dir.as_ref() {
+            Some(tsonic_rust_node::path::join(&[
+                (match theme_dir.as_ref() {
     Some(flow_value) => flow_value.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
 }).as_str(),
-                    "assets",
-                ],
-            ))
+                "assets",
+            ]))
         };
         let field_cache: js_abi::JsMap<String, crate::resources::models::Resource> =
             js_abi::JsMap::new();
@@ -368,7 +368,7 @@ impl ResourceManager {
     ) -> Result<ResourceManager, rt::TsonicError> {
         let state = ResourceManager::initialize_state(site_dir, theme_dir, output_dir)?;
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(ResourceManagerRoot {
+        let root = alloc::rc::Rc::new(ResourceManagerRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -381,7 +381,7 @@ impl ResourceManager {
 
 impl ResourceManagerRoot {
     fn exact_resource_manager_by_type(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         media_type: String,
     ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError> {
         let project_this = ResourceManager {
@@ -530,7 +530,7 @@ impl ResourceManagerRoot {
     }
 
     fn exact_resource_manager_cache_resource(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> crate::resources::models::Resource {
         let project_this = ResourceManager {
@@ -570,7 +570,7 @@ impl ResourceManagerRoot {
     }
 
     fn exact_resource_manager_concat(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         target_path: String,
         resources: js_abi::JsArray<crate::resources::models::Resource>,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
@@ -590,7 +590,7 @@ impl ResourceManagerRoot {
     }
 
     fn exact_resource_manager_copy(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         target_path: String,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
@@ -610,7 +610,7 @@ impl ResourceManagerRoot {
     }
 
     fn exact_resource_manager_ensure_published(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> Result<(), rt::TsonicError> {
         let project_this = ResourceManager {
@@ -666,19 +666,16 @@ impl ResourceManagerRoot {
         }
         {
             let operation_input_0 = destination.clone();
-            tsonic_rust_node::fs::write_file_sync_buffer(
-                &operation_input_0,
-                &{
-                    let dispatch_receiver_4 = &resource;
-                    dispatch_receiver_4.dispatch.read_resource_bytes()
-                },
-            )
+            tsonic_rust_node::fs::write_file_sync_buffer(&operation_input_0, &{
+                let dispatch_receiver_4 = &resource;
+                dispatch_receiver_4.dispatch.read_resource_bytes()
+            })
         }?;
         Ok(())
     }
 
     fn exact_resource_manager_fingerprint(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
         let project_this = ResourceManager {
@@ -697,7 +694,7 @@ impl ResourceManagerRoot {
     }
 
     fn exact_resource_manager_from_string(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
         content: String,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
@@ -717,7 +714,7 @@ impl ResourceManagerRoot {
     }
 
     fn exact_resource_manager_get(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
     ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError> {
         let project_this = ResourceManager {
@@ -754,7 +751,7 @@ impl ResourceManagerRoot {
     }
 
     fn exact_resource_manager_get_match(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         pattern: String,
     ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError> {
         let project_this = ResourceManager {
@@ -878,7 +875,7 @@ impl ResourceManagerRoot {
     }
 
     fn exact_resource_manager_javascript_build(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
         options: crate::resources::javascript_provider::JavaScriptBuildOptions,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
@@ -921,7 +918,7 @@ impl ResourceManagerRoot {
     }
 
     fn exact_resource_manager_load_file(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         identity: String,
         full_path: String,
         output_rel_path: String,
@@ -997,7 +994,7 @@ impl ResourceManagerRoot {
     }
 
     fn exact_resource_manager_match(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         pattern: String,
     ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError> {
         let project_this = ResourceManager {
@@ -1136,7 +1133,7 @@ impl ResourceManagerRoot {
     }
 
     fn exact_resource_manager_minify(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
         let project_this = ResourceManager {
@@ -1155,7 +1152,7 @@ impl ResourceManagerRoot {
     }
 
     fn exact_resource_manager_resize(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
         specification: String,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
@@ -1198,7 +1195,7 @@ impl ResourceManagerRoot {
     }
 
     fn exact_resource_manager_resolve_asset_full_path(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
     ) -> Result<Option<String>, rt::TsonicError> {
         let project_this = ResourceManager {
@@ -1246,7 +1243,7 @@ impl ResourceManagerRoot {
     }
 
     fn exact_resource_manager_sass_compile(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
         let project_this = ResourceManager {
@@ -1326,8 +1323,8 @@ impl ResourceManagerRoot {
 
 impl ResourceManagerDispatch for ResourceManagerRoot {
     fn downcast_resource_manager_to_resource_manager(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ResourceManagerDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ResourceManagerDispatch + 'static>> {
         Some(self)
     }
 
@@ -1401,35 +1398,35 @@ impl ResourceManagerDispatch for ResourceManagerRoot {
     }
 
     fn dispatch_resource_manager_resolve_asset_full_path(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
     ) -> Result<Option<String>, rt::TsonicError> {
         ResourceManagerRoot::exact_resource_manager_resolve_asset_full_path(self, relative_path)
     }
 
     fn exact_resource_manager_resolve_asset_full_path(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
     ) -> Result<Option<String>, rt::TsonicError> {
         ResourceManagerRoot::exact_resource_manager_resolve_asset_full_path(self, relative_path)
     }
 
     fn dispatch_resource_manager_get(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
     ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError> {
         ResourceManagerRoot::exact_resource_manager_get(self, relative_path)
     }
 
     fn exact_resource_manager_get(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
     ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError> {
         ResourceManagerRoot::exact_resource_manager_get(self, relative_path)
     }
 
     fn dispatch_resource_manager_load_file(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         identity: String,
         full_path: String,
         output_rel_path: String,
@@ -1443,7 +1440,7 @@ impl ResourceManagerDispatch for ResourceManagerRoot {
     }
 
     fn exact_resource_manager_load_file(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         identity: String,
         full_path: String,
         output_rel_path: String,
@@ -1457,49 +1454,49 @@ impl ResourceManagerDispatch for ResourceManagerRoot {
     }
 
     fn dispatch_resource_manager_get_match(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         pattern: String,
     ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError> {
         ResourceManagerRoot::exact_resource_manager_get_match(self, pattern)
     }
 
     fn exact_resource_manager_get_match(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         pattern: String,
     ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError> {
         ResourceManagerRoot::exact_resource_manager_get_match(self, pattern)
     }
 
     fn dispatch_resource_manager_match(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         pattern: String,
     ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError> {
         ResourceManagerRoot::exact_resource_manager_match(self, pattern)
     }
 
     fn exact_resource_manager_match(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         pattern: String,
     ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError> {
         ResourceManagerRoot::exact_resource_manager_match(self, pattern)
     }
 
     fn dispatch_resource_manager_by_type(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         media_type: String,
     ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError> {
         ResourceManagerRoot::exact_resource_manager_by_type(self, media_type)
     }
 
     fn exact_resource_manager_by_type(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         media_type: String,
     ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError> {
         ResourceManagerRoot::exact_resource_manager_by_type(self, media_type)
     }
 
     fn dispatch_resource_manager_concat(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         target_path: String,
         resources: js_abi::JsArray<crate::resources::models::Resource>,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
@@ -1507,7 +1504,7 @@ impl ResourceManagerDispatch for ResourceManagerRoot {
     }
 
     fn exact_resource_manager_concat(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         target_path: String,
         resources: js_abi::JsArray<crate::resources::models::Resource>,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
@@ -1515,7 +1512,7 @@ impl ResourceManagerDispatch for ResourceManagerRoot {
     }
 
     fn dispatch_resource_manager_from_string(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
         content: String,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
@@ -1523,7 +1520,7 @@ impl ResourceManagerDispatch for ResourceManagerRoot {
     }
 
     fn exact_resource_manager_from_string(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
         content: String,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
@@ -1531,35 +1528,35 @@ impl ResourceManagerDispatch for ResourceManagerRoot {
     }
 
     fn dispatch_resource_manager_minify(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
         ResourceManagerRoot::exact_resource_manager_minify(self, resource)
     }
 
     fn exact_resource_manager_minify(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
         ResourceManagerRoot::exact_resource_manager_minify(self, resource)
     }
 
     fn dispatch_resource_manager_fingerprint(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
         ResourceManagerRoot::exact_resource_manager_fingerprint(self, resource)
     }
 
     fn exact_resource_manager_fingerprint(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
         ResourceManagerRoot::exact_resource_manager_fingerprint(self, resource)
     }
 
     fn dispatch_resource_manager_copy(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         target_path: String,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
@@ -1567,7 +1564,7 @@ impl ResourceManagerDispatch for ResourceManagerRoot {
     }
 
     fn exact_resource_manager_copy(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         target_path: String,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
@@ -1575,21 +1572,21 @@ impl ResourceManagerDispatch for ResourceManagerRoot {
     }
 
     fn dispatch_resource_manager_sass_compile(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
         ResourceManagerRoot::exact_resource_manager_sass_compile(self, resource)
     }
 
     fn exact_resource_manager_sass_compile(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
         ResourceManagerRoot::exact_resource_manager_sass_compile(self, resource)
     }
 
     fn dispatch_resource_manager_javascript_build(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
         options: crate::resources::javascript_provider::JavaScriptBuildOptions,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
@@ -1597,7 +1594,7 @@ impl ResourceManagerDispatch for ResourceManagerRoot {
     }
 
     fn exact_resource_manager_javascript_build(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
         options: crate::resources::javascript_provider::JavaScriptBuildOptions,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
@@ -1605,7 +1602,7 @@ impl ResourceManagerDispatch for ResourceManagerRoot {
     }
 
     fn dispatch_resource_manager_resize(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
         specification: String,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
@@ -1613,7 +1610,7 @@ impl ResourceManagerDispatch for ResourceManagerRoot {
     }
 
     fn exact_resource_manager_resize(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
         specification: String,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
@@ -1621,28 +1618,28 @@ impl ResourceManagerDispatch for ResourceManagerRoot {
     }
 
     fn dispatch_resource_manager_ensure_published(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> Result<(), rt::TsonicError> {
         ResourceManagerRoot::exact_resource_manager_ensure_published(self, resource)
     }
 
     fn exact_resource_manager_ensure_published(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> Result<(), rt::TsonicError> {
         ResourceManagerRoot::exact_resource_manager_ensure_published(self, resource)
     }
 
     fn dispatch_resource_manager_cache_resource(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> crate::resources::models::Resource {
         ResourceManagerRoot::exact_resource_manager_cache_resource(self, resource)
     }
 
     fn exact_resource_manager_cache_resource(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> crate::resources::models::Resource {
         ResourceManagerRoot::exact_resource_manager_cache_resource(self, resource)

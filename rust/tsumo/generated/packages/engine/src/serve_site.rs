@@ -22,7 +22,7 @@ pub fn send_text(
 ) -> Result<(), rt::TsonicError> {
     response.set_status_code(status_code);
     response.set_header("Content-Type", &content_type)?;
-    response.end_string(&body);
+    response.end_string(&body)?;
     Ok(())
 }
 
@@ -34,7 +34,7 @@ pub fn send_bytes(
 ) -> Result<(), rt::TsonicError> {
     response.set_status_code(status_code);
     response.set_header("Content-Type", &content_type)?;
-    response.end_buffer(bytes);
+    response.end_buffer(bytes)?;
     Ok(())
 }
 
@@ -225,15 +225,15 @@ pub fn collect_watch_targets(
     if docs_config.is_none() {
         {
             let operation_input_0 = targets.clone();
-            operation_input_0.push_many_discard([
-                tsonic_rust_node::path::resolve(&[site_dir.as_str(), "content"])?,
-            ])
+            operation_input_0.push_many_discard([tsonic_rust_node::path::resolve(
+                &[site_dir.as_str(), "content"],
+            )?])
         };
         {
             let operation_input_0_2 = targets.clone();
-            operation_input_0_2.push_many_discard([
-                tsonic_rust_node::path::resolve(&[site_dir.as_str(), "archetypes"])?,
-            ])
+            operation_input_0_2.push_many_discard([tsonic_rust_node::path::resolve(
+                &[site_dir.as_str(), "archetypes"],
+            )?])
         };
     } else {
         let mounts: js_abi::JsArray<crate::docs::models::DocsMountConfig> =
@@ -262,9 +262,9 @@ pub fn collect_watch_targets(
         }
         {
             let operation_input_0_4 = targets.clone();
-            operation_input_0_4.push_many_discard([
-                tsonic_rust_node::path::resolve(&[site_dir.as_str(), "tsumo.docs.json"])?,
-            ])
+            operation_input_0_4.push_many_discard([tsonic_rust_node::path::resolve(
+                &[site_dir.as_str(), "tsumo.docs.json"],
+            )?])
         };
     }
     {

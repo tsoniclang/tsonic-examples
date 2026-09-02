@@ -62,7 +62,7 @@ pub fn plan_taxonomy_outputs(
                                 String::from("_default/list.html"),
                             ]),
                         )?,
-                        std::convert::identity,
+                        core::convert::identity,
                         || templates.state.with(|state| state.list.clone()),
                     );
                     let base: Option<String> = rt::option_coalesce(
@@ -162,7 +162,7 @@ pub fn plan_taxonomy_outputs(
                         String::from("_default/list.html"),
                     ]),
                 )?,
-                std::convert::identity,
+                core::convert::identity,
                 || templates.state.with(|state| state.list.clone()),
             );
             let base: Option<String> = rt::option_coalesce(

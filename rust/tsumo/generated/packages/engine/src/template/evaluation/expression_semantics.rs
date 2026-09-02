@@ -68,7 +68,7 @@ pub fn eval_token(
                     .clone()
                     .dispatch_render_scope_get_var(name)
             },
-            std::convert::identity,
+            core::convert::identity,
             || crate::template::runtime_helpers::NIL.with(|module_binding| module_binding.load()),
         );
         if tsonic_rust_runtime::conversions::usize_to_i32(segs.len())? > 1 {
@@ -641,7 +641,7 @@ pub fn call_method(
                                 let dispatch_receiver_4 = &res;
                                 dispatch_receiver_4.dispatch.read_resource_output_rel_path()
                             },
-                            std::convert::identity,
+                            core::convert::identity,
                             || {
                                 let dispatch_receiver_5 = &res;
                                 dispatch_receiver_5.dispatch.read_resource_id()
@@ -707,7 +707,7 @@ pub fn call_method(
                                 let dispatch_receiver_7 = &res;
                                 dispatch_receiver_7.dispatch.read_resource_output_rel_path()
                             },
-                            std::convert::identity,
+                            core::convert::identity,
                             || {
                                 let dispatch_receiver_8 = &res;
                                 dispatch_receiver_8.dispatch.read_resource_id()
@@ -719,7 +719,17 @@ pub fn call_method(
                         )?
                         {
                             match_result.push_many_discard([{
-                                let upcast_value = item.clone();
+                                let upcast_value = {
+                                    let downcast_value_7 = &item;
+                                    crate::template::values::resources::ResourceValue {
+                                        identity: downcast_value_7.identity.clone(),
+                                        dispatch: downcast_value_7
+                                            .dispatch
+                                            .clone()
+                                            .downcast_template_value_to_resource_value()
+                                            .unwrap(),
+                                    }
+                                };
                                 crate::template::values::base::TemplateValue {
                                     identity: upcast_value.identity.clone(),
                                     dispatch: upcast_value.dispatch.clone(),
@@ -772,10 +782,10 @@ pub fn call_method(
                     {
                         let res: crate::resources::models::Resource = {
                             let dispatch_receiver_9 = &{
-                                let downcast_value_7 = &item;
+                                let downcast_value_8 = &item;
                                 crate::template::values::resources::ResourceValue {
-                                    identity: downcast_value_7.identity.clone(),
-                                    dispatch: downcast_value_7
+                                    identity: downcast_value_8.identity.clone(),
+                                    dispatch: downcast_value_8
                                         .dispatch
                                         .clone()
                                         .downcast_template_value_to_resource_value()
@@ -806,7 +816,17 @@ pub fn call_method(
                         };
                         if main_type == target_type {
                             by_type_result.push_many_discard([{
-                                let upcast_value_3 = item.clone();
+                                let upcast_value_3 = {
+                                    let downcast_value_9 = &item;
+                                    crate::template::values::resources::ResourceValue {
+                                        identity: downcast_value_9.identity.clone(),
+                                        dispatch: downcast_value_9
+                                            .dispatch
+                                            .clone()
+                                            .downcast_template_value_to_resource_value()
+                                            .unwrap(),
+                                    }
+                                };
                                 crate::template::values::base::TemplateValue {
                                     identity: upcast_value_3.identity.clone(),
                                     dispatch: upcast_value_3.dispatch.clone(),
@@ -844,10 +864,10 @@ pub fn call_method(
             {
                 let target_page: crate::models::page_context::PageContext = {
                     let dispatch_receiver_12 = &{
-                        let downcast_value_8 = &target;
+                        let downcast_value_10 = &target;
                         crate::template::values::page::PageValue {
-                            identity: downcast_value_8.identity.clone(),
-                            dispatch: downcast_value_8
+                            identity: downcast_value_10.identity.clone(),
+                            dispatch: downcast_value_10
                                 .dispatch
                                 .clone()
                                 .downcast_template_value_to_page_value()
@@ -876,10 +896,10 @@ pub fn call_method(
                             .is_some()
                             && {
                                 let dispatch_receiver_13 = &{
-                                    let downcast_value_9 = &current;
+                                    let downcast_value_11 = &current;
                                     crate::template::values::page::PageValue {
-                                        identity: downcast_value_9.identity.clone(),
-                                        dispatch: downcast_value_9
+                                        identity: downcast_value_11.identity.clone(),
+                                        dispatch: downcast_value_11
                                             .dispatch
                                             .clone()
                                             .downcast_template_value_to_page_value()
@@ -929,10 +949,10 @@ pub fn call_method(
         let result: Option<crate::template::values::base::TemplateValue> =
             crate::template::evaluation::page_semantics::call_page_collection_method(
                 {
-                    let downcast_value_10 = &receiver;
+                    let downcast_value_12 = &receiver;
                     crate::template::values::page::PageArrayValue {
-                        identity: downcast_value_10.identity.clone(),
-                        dispatch: downcast_value_10
+                        identity: downcast_value_12.identity.clone(),
+                        dispatch: downcast_value_12
                             .dispatch
                             .clone()
                             .downcast_template_value_to_page_array_value()
@@ -957,10 +977,10 @@ pub fn call_method(
     {
         let site: crate::models::site_context::SiteContext = {
             let dispatch_receiver_14 = &{
-                let downcast_value_11 = &receiver;
+                let downcast_value_13 = &receiver;
                 crate::template::values::site::SiteValue {
-                    identity: downcast_value_11.identity.clone(),
-                    dispatch: downcast_value_11
+                    identity: downcast_value_13.identity.clone(),
+                    dispatch: downcast_value_13
                         .dispatch
                         .clone()
                         .downcast_template_value_to_site_value()
@@ -1029,10 +1049,10 @@ pub fn call_method(
     {
         let page: crate::models::page_context::PageContext = {
             let dispatch_receiver_16 = &{
-                let downcast_value_12 = &receiver;
+                let downcast_value_14 = &receiver;
                 crate::template::values::page::PageValue {
-                    identity: downcast_value_12.identity.clone(),
-                    dispatch: downcast_value_12
+                    identity: downcast_value_14.identity.clone(),
+                    dispatch: downcast_value_14
                         .dispatch
                         .clone()
                         .downcast_template_value_to_page_value()
@@ -1318,10 +1338,10 @@ pub fn call_method(
             }
             let other: crate::models::page_context::PageContext = {
                 let dispatch_receiver_32 = &{
-                    let downcast_value_13 = &other_value;
+                    let downcast_value_15 = &other_value;
                     crate::template::values::page::PageValue {
-                        identity: downcast_value_13.identity.clone(),
-                        dispatch: downcast_value_13
+                        identity: downcast_value_15.identity.clone(),
+                        dispatch: downcast_value_15
                             .dispatch
                             .clone()
                             .downcast_template_value_to_page_value()
@@ -1409,10 +1429,10 @@ pub fn call_method(
             }
             if {
                 let dispatch_receiver_37 = &{
-                    let downcast_value_14 = &entry_value;
+                    let downcast_value_16 = &entry_value;
                     crate::template::values::menus::MenuEntryValue {
-                        identity: downcast_value_14.identity.clone(),
-                        dispatch: downcast_value_14
+                        identity: downcast_value_16.identity.clone(),
+                        dispatch: downcast_value_16
                             .dispatch
                             .clone()
                             .downcast_template_value_to_menu_entry_value()
@@ -1448,10 +1468,10 @@ pub fn call_method(
                         menu_name.clone(),
                         {
                             let dispatch_receiver_39 = &{
-                                let downcast_value_15 = &entry_value;
+                                let downcast_value_17 = &entry_value;
                                 crate::template::values::menus::MenuEntryValue {
-                                    identity: downcast_value_15.identity.clone(),
-                                    dispatch: downcast_value_15
+                                    identity: downcast_value_17.identity.clone(),
+                                    dispatch: downcast_value_17
                                         .dispatch
                                         .clone()
                                         .downcast_template_value_to_menu_entry_value()
@@ -1467,10 +1487,10 @@ pub fn call_method(
                         menu_name.clone(),
                         {
                             let dispatch_receiver_40 = &{
-                                let downcast_value_16 = &entry_value;
+                                let downcast_value_18 = &entry_value;
                                 crate::template::values::menus::MenuEntryValue {
-                                    identity: downcast_value_16.identity.clone(),
-                                    dispatch: downcast_value_16
+                                    identity: downcast_value_18.identity.clone(),
+                                    dispatch: downcast_value_18
                                         .dispatch
                                         .clone()
                                         .downcast_template_value_to_menu_entry_value()
@@ -1507,10 +1527,10 @@ pub fn call_method(
             let formats: js_abi::JsArray<crate::models::output_format::OutputFormat> = {
                 let dispatch_receiver_42 = {
                     let dispatch_receiver_41 = &{
-                        let downcast_value_17 = &receiver;
+                        let downcast_value_19 = &receiver;
                         crate::template::values::output::OutputFormatsValue {
-                            identity: downcast_value_17.identity.clone(),
-                            dispatch: downcast_value_17
+                            identity: downcast_value_19.identity.clone(),
+                            dispatch: downcast_value_19
                                 .dispatch
                                 .clone()
                                 .downcast_template_value_to_output_formats_value()
@@ -1571,10 +1591,10 @@ pub fn call_method(
         if method == "get" && tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 1 {
             let parameter: Option<crate::params::ParamValue> = {
                 let dispatch_receiver_43 = &{
-                    let downcast_value_18 = &receiver;
+                    let downcast_value_20 = &receiver;
                     crate::template::contexts::ShortcodeValue {
-                        identity: downcast_value_18.identity.clone(),
-                        dispatch: downcast_value_18
+                        identity: downcast_value_20.identity.clone(),
+                        dispatch: downcast_value_20
                             .dispatch
                             .clone()
                             .downcast_template_value_to_shortcode_value()
@@ -1669,10 +1689,10 @@ pub fn call_method(
                 crate::template::evaluation::url_query_semantics::get_url_query_value(
                     {
                         let dispatch_receiver_49 = &{
-                            let downcast_value_19 = &receiver;
+                            let downcast_value_21 = &receiver;
                             crate::template::values::url::UrlQueryValue {
-                                identity: downcast_value_19.identity.clone(),
-                                dispatch: downcast_value_19
+                                identity: downcast_value_21.identity.clone(),
+                                dispatch: downcast_value_21
                                     .dispatch
                                     .clone()
                                     .downcast_template_value_to_url_query_value()
@@ -1715,10 +1735,10 @@ pub fn call_method(
             let resized: crate::resources::models::Resource = {
                 let dispatch_receiver_52 = {
                     let dispatch_receiver_51 = &{
-                        let downcast_value_21 = &receiver;
+                        let downcast_value_23 = &receiver;
                         crate::template::values::resources::ResourceValue {
-                            identity: downcast_value_21.identity.clone(),
-                            dispatch: downcast_value_21
+                            identity: downcast_value_23.identity.clone(),
+                            dispatch: downcast_value_23
                                 .dispatch
                                 .clone()
                                 .downcast_template_value_to_resource_value()
@@ -1730,10 +1750,10 @@ pub fn call_method(
                 dispatch_receiver_52.dispatch.clone().dispatch_resource_manager_resize(
                     {
                         let dispatch_receiver_50 = &{
-                            let downcast_value_20 = &receiver;
+                            let downcast_value_22 = &receiver;
                             crate::template::values::resources::ResourceValue {
-                                identity: downcast_value_20.identity.clone(),
-                                dispatch: downcast_value_20
+                                identity: downcast_value_22.identity.clone(),
+                                dispatch: downcast_value_22
                                     .dispatch
                                     .clone()
                                     .downcast_template_value_to_resource_value()
@@ -1754,10 +1774,10 @@ pub fn call_method(
                 let upcast_value_23 = crate::template::values::resources::ResourceValue::new(
                     {
                         let dispatch_receiver_53 = &{
-                            let downcast_value_22 = &receiver;
+                            let downcast_value_24 = &receiver;
                             crate::template::values::resources::ResourceValue {
-                                identity: downcast_value_22.identity.clone(),
-                                dispatch: downcast_value_22
+                                identity: downcast_value_24.identity.clone(),
+                                dispatch: downcast_value_24
                                     .dispatch
                                     .clone()
                                     .downcast_template_value_to_resource_value()

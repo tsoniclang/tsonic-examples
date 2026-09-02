@@ -74,22 +74,20 @@ pub fn to_json(
         .downcast_template_value_to_number_value()
         .is_some()
     {
-        return Ok(rt::source_string(
-            &{
-                let dispatch_receiver_2 = &{
-                    let downcast_value_2 = &value;
-                    crate::template::values::primitives::NumberValue {
-                        identity: downcast_value_2.identity.clone(),
-                        dispatch: downcast_value_2
-                            .dispatch
-                            .clone()
-                            .downcast_template_value_to_number_value()
-                            .unwrap(),
-                    }
-                };
-                dispatch_receiver_2.dispatch.read_number_value_value()
-            },
-        ));
+        return Ok(rt::source_string(&{
+            let dispatch_receiver_2 = &{
+                let downcast_value_2 = &value;
+                crate::template::values::primitives::NumberValue {
+                    identity: downcast_value_2.identity.clone(),
+                    dispatch: downcast_value_2
+                        .dispatch
+                        .clone()
+                        .downcast_template_value_to_number_value()
+                        .unwrap(),
+                }
+            };
+            dispatch_receiver_2.dispatch.read_number_value_value()
+        }));
     }
     if value
         .dispatch

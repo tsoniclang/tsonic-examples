@@ -221,8 +221,7 @@ pub fn try_get_page(
             dispatch_receiver.dispatch.read_site_context_home()
         });
     }
-    let needle: String =
-        crate::template::evaluation::serialization::trim_slashes(trimmed.clone())?;
+    let needle: String = crate::template::evaluation::serialization::trim_slashes(trimmed.clone())?;
     if needle.is_empty() {
         return Ok({
             let dispatch_receiver_2 = &site;

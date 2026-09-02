@@ -7,11 +7,10 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait SiteContextDispatch {
     fn downcast_site_context_to_site_context(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn SiteContextDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn SiteContextDispatch + 'static>>;
     fn read_site_context_title(&self) -> String;
     fn write_site_context_title(&self, value: String);
     fn read_site_context_base_url(&self) -> String;
@@ -96,15 +95,14 @@ pub trait SiteContextDispatch {
     fn read_site_context_pagination_size(&self) -> i32;
     fn write_site_context_pagination_size(&self, value: i32);
     fn dispatch_site_context_get_output_formats(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> js_abi::JsArray<crate::models::output_format::OutputFormat>;
     fn exact_site_context_get_output_formats(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> js_abi::JsArray<crate::models::output_format::OutputFormat>;
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct SiteContextState {
     pub title: String,
     pub base_url: String,
@@ -132,17 +130,16 @@ pub struct SiteContextState {
     pub pagination_size: i32,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct SiteContext {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn SiteContextDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn SiteContextDispatch + 'static>,
 }
 
-impl std::fmt::Debug for SiteContext {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for SiteContext {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("SiteContext")
     }
 }
@@ -155,7 +152,12 @@ impl PartialEq for SiteContext {
 
 impl Eq for SiteContext {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for SiteContext {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct SiteContextRoot {
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<SiteContextState>,
@@ -184,7 +186,7 @@ impl SiteContext {
                 let dispatch_receiver_3 = &config;
                 dispatch_receiver_3.dispatch.read_site_config_copyright()
             },
-            std::convert::identity,
+            core::convert::identity,
             || String::from(""),
         );
         let language: Option<crate::models::language::LanguageConfig> = language_raw;
@@ -392,7 +394,7 @@ impl SiteContext {
     ) -> Result<SiteContext, rt::TsonicError> {
         let state = SiteContext::initialize_state(config, pages, language_raw, all_languages_raw)?;
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(SiteContextRoot {
+        let root = alloc::rc::Rc::new(SiteContextRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -405,7 +407,7 @@ impl SiteContext {
 
 impl SiteContextRoot {
     fn exact_site_context_get_output_formats(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> js_abi::JsArray<crate::models::output_format::OutputFormat> {
         let project_this = SiteContext {
             identity: self.identity.clone(),
@@ -432,8 +434,8 @@ impl SiteContextRoot {
 
 impl SiteContextDispatch for SiteContextRoot {
     fn downcast_site_context_to_site_context(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn SiteContextDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn SiteContextDispatch + 'static>> {
         Some(self)
     }
 
@@ -636,13 +638,13 @@ impl SiteContextDispatch for SiteContextRoot {
     }
 
     fn dispatch_site_context_get_output_formats(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> js_abi::JsArray<crate::models::output_format::OutputFormat> {
         SiteContextRoot::exact_site_context_get_output_formats(self)
     }
 
     fn exact_site_context_get_output_formats(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> js_abi::JsArray<crate::models::output_format::OutputFormat> {
         SiteContextRoot::exact_site_context_get_output_formats(self)
     }

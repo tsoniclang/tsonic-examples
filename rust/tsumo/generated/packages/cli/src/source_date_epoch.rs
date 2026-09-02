@@ -6,7 +6,6 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn read_source_date_epoch() -> Result<Option<js_abi::JsDate>, rt::TsonicError> {
     let raw: Option<String> = tsonic_rust_node::process::env_get("SOURCE_DATE_EPOCH");
     if raw.is_none() {

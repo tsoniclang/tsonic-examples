@@ -194,7 +194,7 @@ pub fn call_template_function_family(
         return Ok(Some({
             let upcast_value = crate::template::values::deferred::DeferredTemplateValue::new(
                 key,
-                rt::option_coalesce(options.get("data"), std::convert::identity, || {
+                rt::option_coalesce(options.get("data"), core::convert::identity, || {
                     crate::template::runtime_helpers::NIL
                         .with(|module_binding| module_binding.load())
                 }),
@@ -431,8 +431,7 @@ pub fn call_template_function_family(
                 .dispatch_template_environment_get_template(template_path)
         }?;
         return Ok(Some({
-            let upcast_value_4 =
-                crate::template::values::primitives::BoolValue::new(tpl.is_some());
+            let upcast_value_4 = crate::template::values::primitives::BoolValue::new(tpl.is_some());
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_4.identity.clone(),
                 dispatch: upcast_value_4.dispatch.clone(),
@@ -571,11 +570,9 @@ pub fn call_template_function_family(
                 i += 1.0;
             }
         }
-        js_abi::console_warn(&[
-            tsonic_rust_js::abi::js_value_from_string(
-                &format!("{}{}", String::from("WARN: "), message),
-            ),
-        ]);
+        js_abi::console_warn(&[tsonic_rust_js::abi::js_value_from_string(
+            &format!("{}{}", String::from("WARN: "), message),
+        )]);
         return Ok(Some(
             crate::template::runtime_helpers::NIL.with(|module_binding| module_binding.load()),
         ));
@@ -732,7 +729,7 @@ pub fn call_template_function_family(
             let upcast_value_12 =
                 crate::template::values::primitives::StringValue::new(rt::option_coalesce(
                     crate::template::evaluation::scalar_semantics::format_date_time(input, layout)?,
-                    std::convert::identity,
+                    core::convert::identity,
                     || String::from(""),
                 ));
             crate::template::values::base::TemplateValue {

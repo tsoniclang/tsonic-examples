@@ -4,7 +4,6 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn handle_new(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError> {
     if tsonic_rust_runtime::conversions::usize_to_i32(args.len())? >= 2
         && args.get_number(1.0) == Some(String::from("site"))

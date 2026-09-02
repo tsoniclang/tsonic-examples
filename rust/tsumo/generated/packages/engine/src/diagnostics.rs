@@ -9,11 +9,10 @@ pub enum TsumoDiagnosticCategory {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait TsumoDiagnosticDispatch {
     fn downcast_tsumo_diagnostic_to_tsumo_diagnostic(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TsumoDiagnosticDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TsumoDiagnosticDispatch + 'static>>;
     fn read_tsumo_diagnostic_code(&self) -> String;
     fn write_tsumo_diagnostic_code(&self, value: String);
     fn read_tsumo_diagnostic_category(&self) -> TsumoDiagnosticCategory;
@@ -26,12 +25,11 @@ pub trait TsumoDiagnosticDispatch {
     fn write_tsumo_diagnostic_line(&self, value: Option<f64>);
     fn read_tsumo_diagnostic_column(&self) -> Option<f64>;
     fn write_tsumo_diagnostic_column(&self, value: Option<f64>);
-    fn dispatch_tsumo_diagnostic_format(self: std::rc::Rc<Self>) -> String;
-    fn exact_tsumo_diagnostic_format(self: std::rc::Rc<Self>) -> String;
+    fn dispatch_tsumo_diagnostic_format(self: alloc::rc::Rc<Self>) -> String;
+    fn exact_tsumo_diagnostic_format(self: alloc::rc::Rc<Self>) -> String;
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct TsumoDiagnosticState {
     pub code: String,
     pub category: TsumoDiagnosticCategory,
@@ -41,17 +39,16 @@ pub struct TsumoDiagnosticState {
     pub column: Option<f64>,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct TsumoDiagnostic {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn TsumoDiagnosticDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn TsumoDiagnosticDispatch + 'static>,
 }
 
-impl std::fmt::Debug for TsumoDiagnostic {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for TsumoDiagnostic {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("TsumoDiagnostic")
     }
 }
@@ -64,7 +61,12 @@ impl PartialEq for TsumoDiagnostic {
 
 impl Eq for TsumoDiagnostic {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for TsumoDiagnostic {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct TsumoDiagnosticRoot {
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<TsumoDiagnosticState>,
@@ -106,7 +108,7 @@ impl TsumoDiagnostic {
     ) -> TsumoDiagnostic {
         let state = TsumoDiagnostic::initialize_state(code, category, message, file, line, column);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(TsumoDiagnosticRoot {
+        let root = alloc::rc::Rc::new(TsumoDiagnosticRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -118,7 +120,7 @@ impl TsumoDiagnostic {
 }
 
 impl TsumoDiagnosticRoot {
-    fn exact_tsumo_diagnostic_format(self: std::rc::Rc<Self>) -> String {
+    fn exact_tsumo_diagnostic_format(self: alloc::rc::Rc<Self>) -> String {
         let project_this = TsumoDiagnostic {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -164,26 +166,22 @@ impl TsumoDiagnosticRoot {
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                         String::from(":"),
-                        rt::source_string(
-                            &match {
-                                let dispatch_receiver_5 = &project_this;
-                                dispatch_receiver_5.dispatch.read_tsumo_diagnostic_line()
-                            }
-                            .as_ref()
-                            {
-                                Some(flow_value_3) => *flow_value_3,
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                        ),
+                        rt::source_string(&match {
+                            let dispatch_receiver_5 = &project_this;
+                            dispatch_receiver_5.dispatch.read_tsumo_diagnostic_line()
+                        }
+                        .as_ref()
+                        {
+                            Some(flow_value_3) => *flow_value_3,
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        }),
                         String::from(":"),
                         rt::source_string(&rt::option_coalesce(
                             {
                                 let dispatch_receiver_6 = &project_this;
                                 dispatch_receiver_6.dispatch.read_tsumo_diagnostic_column()
                             },
-                            std::convert::identity,
+                            core::convert::identity,
                             || 1.0,
                         )),
                         String::from(": "),
@@ -209,8 +207,8 @@ impl TsumoDiagnosticRoot {
 
 impl TsumoDiagnosticDispatch for TsumoDiagnosticRoot {
     fn downcast_tsumo_diagnostic_to_tsumo_diagnostic(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TsumoDiagnosticDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TsumoDiagnosticDispatch + 'static>> {
         Some(self)
     }
 
@@ -262,21 +260,20 @@ impl TsumoDiagnosticDispatch for TsumoDiagnosticRoot {
         self.state.with_mut(|state| state.column = value);
     }
 
-    fn dispatch_tsumo_diagnostic_format(self: std::rc::Rc<Self>) -> String {
+    fn dispatch_tsumo_diagnostic_format(self: alloc::rc::Rc<Self>) -> String {
         TsumoDiagnosticRoot::exact_tsumo_diagnostic_format(self)
     }
 
-    fn exact_tsumo_diagnostic_format(self: std::rc::Rc<Self>) -> String {
+    fn exact_tsumo_diagnostic_format(self: alloc::rc::Rc<Self>) -> String {
         TsumoDiagnosticRoot::exact_tsumo_diagnostic_format(self)
     }
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait TsumoErrorDispatch {
     fn downcast_tsumo_error_to_tsumo_error(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TsumoErrorDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TsumoErrorDispatch + 'static>>;
     fn read_tsumo_error_name(&self) -> String;
     fn write_tsumo_error_name(&self, value: String);
     fn read_tsumo_error_message(&self) -> String;
@@ -288,7 +285,6 @@ pub trait TsumoErrorDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct TsumoErrorState {
     pub name: String,
     pub message: String,
@@ -296,18 +292,17 @@ pub struct TsumoErrorState {
     pub diagnostic: TsumoDiagnostic,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[doc(hidden)]
 #[derive(Clone)]
 pub struct TsumoError {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn TsumoErrorDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn TsumoErrorDispatch + 'static>,
 }
 
-impl std::fmt::Debug for TsumoError {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for TsumoError {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("TsumoError")
     }
 }
@@ -320,8 +315,14 @@ impl PartialEq for TsumoError {
 
 impl Eq for TsumoError {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for TsumoError {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct TsumoErrorRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<TsumoErrorState>,
 }
@@ -353,7 +354,7 @@ impl TsumoError {
     pub fn new(diagnostic: TsumoDiagnostic) -> TsumoError {
         let state = TsumoError::initialize_state(diagnostic);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(TsumoErrorRoot {
+        let root = alloc::rc::Rc::new(TsumoErrorRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -366,8 +367,8 @@ impl TsumoError {
 
 impl TsumoErrorDispatch for TsumoErrorRoot {
     fn downcast_tsumo_error_to_tsumo_error(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TsumoErrorDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TsumoErrorDispatch + 'static>> {
         Some(self)
     }
 
@@ -404,8 +405,8 @@ impl TsumoErrorDispatch for TsumoErrorRoot {
     }
 }
 
-impl std::fmt::Display for TsumoError {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Display for TsumoError {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(
             formatter,
             "{}: {}",

@@ -7,7 +7,6 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct LoadedDocsConfigState {
     pub path: String,
     pub config: crate::docs::models::DocsSiteConfig,
@@ -17,6 +16,12 @@ pub struct LoadedDocsConfigState {
 pub struct LoadedDocsConfig {
     #[doc(hidden)]
     pub state: rt::ObjectRef<LoadedDocsConfigState>,
+}
+
+impl rt::ObjectIdentityCarrier for LoadedDocsConfig {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl LoadedDocsConfig {
@@ -209,8 +214,7 @@ pub fn required_string(
     context: String,
     path: String,
 ) -> Result<String, rt::TsonicError> {
-    let value: Option<String> =
-        optional_string(root, name.clone(), context.clone(), path.clone())?;
+    let value: Option<String> = optional_string(root, name.clone(), context.clone(), path.clone())?;
     if value.is_none() {
         return Err(rt::TsonicError::TsumoError(docs_config_error(
             String::from("TSUMO_DOCS_CONFIG_REQUIRED"),
@@ -434,7 +438,7 @@ pub fn parse_mount(
             context.clone(),
             path.clone(),
         )?,
-        std::convert::identity,
+        core::convert::identity,
         || String::from("main"),
     );
     let repo_path: Option<String> = optional_string(
@@ -623,7 +627,7 @@ pub fn load_docs_config(site_dir: String) -> Result<Option<LoadedDocsConfig>, rt
             String::from("tsumo.docs.json"),
             candidate.clone(),
         )?,
-        std::convert::identity,
+        core::convert::identity,
         || true,
     );
     let search_index_file_name: String = rt::option_coalesce(
@@ -633,7 +637,7 @@ pub fn load_docs_config(site_dir: String) -> Result<Option<LoadedDocsConfig>, rt
             String::from("tsumo.docs.json"),
             candidate.clone(),
         )?,
-        std::convert::identity,
+        core::convert::identity,
         || String::from("search.json"),
     );
     if generate_search_index && js_string::trim(&search_index_file_name).is_empty() {
@@ -652,7 +656,7 @@ pub fn load_docs_config(site_dir: String) -> Result<Option<LoadedDocsConfig>, rt
                 String::from("tsumo.docs.json"),
                 candidate.clone(),
             )?,
-            std::convert::identity,
+            core::convert::identity,
             || false,
         ),
         generate_search_index,
@@ -670,7 +674,7 @@ pub fn load_docs_config(site_dir: String) -> Result<Option<LoadedDocsConfig>, rt
                 String::from("tsumo.docs.json"),
                 candidate.clone(),
             )?,
-            std::convert::identity,
+            core::convert::identity,
             || String::from("Docs"),
         ),
     );

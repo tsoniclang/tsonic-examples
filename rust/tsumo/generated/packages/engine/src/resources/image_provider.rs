@@ -7,7 +7,6 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ImageResizeRequestState {
     pub width: i32,
     pub height: i32,
@@ -18,6 +17,12 @@ pub struct ImageResizeRequestState {
 pub struct ImageResizeRequest {
     #[doc(hidden)]
     pub state: rt::ObjectRef<ImageResizeRequestState>,
+}
+
+impl rt::ObjectIdentityCarrier for ImageResizeRequest {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl ImageResizeRequest {
@@ -234,7 +239,7 @@ pub fn resize_image_resource(
                 dispatch_receiver_10.dispatch.read_resource_source_path()
             },
         ),
-        std::convert::identity,
+        core::convert::identity,
         || String::from(""),
     );
     let source_extension: String =
@@ -275,13 +280,10 @@ pub fn resize_image_resource(
             ]);
             {
                 let operation_input_0 = input_path.clone();
-                tsonic_rust_node::fs::write_file_sync_buffer(
-                    &operation_input_0,
-                    &{
-                        let dispatch_receiver_11 = &resource;
-                        dispatch_receiver_11.dispatch.read_resource_bytes()
-                    },
-                )
+                tsonic_rust_node::fs::write_file_sync_buffer(&operation_input_0, &{
+                    let dispatch_receiver_11 = &resource;
+                    dispatch_receiver_11.dispatch.read_resource_bytes()
+                })
             }?;
             {
                 let operation_input_0_2 = input_path.clone();
@@ -317,7 +319,7 @@ pub fn resize_image_resource(
                         .dispatch
                         .read_resource_output_rel_path()
                 },
-                std::convert::identity,
+                core::convert::identity,
                 || String::from(""),
             );
             let path: crate::resources::paths::ResourcePathParts =

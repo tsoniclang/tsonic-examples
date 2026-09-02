@@ -91,13 +91,11 @@ pub fn compile_sass_resource(
                         index += 1.0;
                         continue 'loop_value;
                     }
-                    arguments_list.push_many_discard([
-                        if implementation == "dart-sass" {
-                            String::from("--load-path")
-                        } else {
-                            String::from("-I")
-                        },
-                    ]);
+                    arguments_list.push_many_discard([if implementation == "dart-sass" {
+                        String::from("--load-path")
+                    } else {
+                        String::from("-I")
+                    }]);
                     arguments_list.push_many_discard([load_path.clone()]);
                     index += 1.0;
                 }
@@ -144,7 +142,7 @@ pub fn compile_sass_resource(
                     let dispatch_receiver = &resource;
                     dispatch_receiver.dispatch.read_resource_output_rel_path()
                 },
-                std::convert::identity,
+                core::convert::identity,
                 || String::from("style.scss"),
             );
             let path: crate::resources::paths::ResourcePathParts =

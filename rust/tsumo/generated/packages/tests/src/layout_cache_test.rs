@@ -4,7 +4,6 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn require_template(
     template: Option<tsumo_engine::testing::Template>,
 ) -> Result<tsumo_engine::testing::Template, rt::TsonicError> {
@@ -19,7 +18,6 @@ pub(crate) fn require_template(
     })
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn render(
     environment: tsumo_engine::testing::LayoutEnvironment,
     template: tsumo_engine::testing::Template,
@@ -50,17 +48,20 @@ pub(crate) fn render(
     .map_err(rt::TsonicError::from)
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) struct LayoutCacheTestsState {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct LayoutCacheTests {
     pub(crate) state: rt::ObjectRef<LayoutCacheTestsState>,
 }
 
+impl rt::ObjectIdentityCarrier for LayoutCacheTests {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
+}
+
 impl LayoutCacheTests {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new() -> LayoutCacheTests {
         LayoutCacheTests {
             state: rt::ObjectRef::new(LayoutCacheTestsState {}),
@@ -208,7 +209,6 @@ impl Default for LayoutCacheTests {
     }
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn run_layout_cache_tests() -> Result<(), rt::TsonicError> {
     let tests: LayoutCacheTests = LayoutCacheTests::new();
     crate::test_root::run_test(

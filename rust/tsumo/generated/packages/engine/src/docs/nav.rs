@@ -82,14 +82,16 @@ pub fn normalize_relative_path(
     };
     for i_range in 1..tsonic_rust_runtime::conversions::usize_to_i32(arr.len())? {
         let i = i_range as f64;
-        out.push_str(&format!(
-            "{}{}",
-            String::from("/"),
-            match arr.get_number(i).as_ref() {
-                Some(flow_value_4) => flow_value_4.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            },
-        ));
+        out.push_str(
+            &format!(
+                "{}{}",
+                String::from("/"),
+                match arr.get_number(i).as_ref() {
+                    Some(flow_value_4) => flow_value_4.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                },
+            ),
+        );
     }
     Ok(Some(out))
 }
@@ -302,7 +304,6 @@ pub fn resolve_markdown_nav_link(
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct InlineLinkState {
     pub title: String,
     pub target: String,
@@ -312,6 +313,12 @@ pub struct InlineLinkState {
 pub struct InlineLink {
     #[doc(hidden)]
     pub state: rt::ObjectRef<InlineLinkState>,
+}
+
+impl rt::ObjectIdentityCarrier for InlineLink {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl InlineLink {
@@ -361,7 +368,6 @@ pub fn parse_inline_markdown_link(line: String) -> Result<Option<InlineLink>, rt
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct NavGroupBuildState {
     pub title: String,
     pub order: i32,
@@ -372,6 +378,12 @@ pub struct NavGroupBuildState {
 pub struct NavGroupBuild {
     #[doc(hidden)]
     pub state: rt::ObjectRef<NavGroupBuildState>,
+}
+
+impl rt::ObjectIdentityCarrier for NavGroupBuild {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl NavGroupBuild {
@@ -863,14 +875,16 @@ pub fn join_url_path(parts: js_abi::JsArray<String>) -> Result<String, rt::Tsoni
     };
     for i_range in 1..tsonic_rust_runtime::conversions::usize_to_i32(parts.len())? {
         let i = i_range as f64;
-        out.push_str(&format!(
-            "{}{}",
-            String::from("/"),
-            match parts.get_number(i).as_ref() {
-                Some(flow_value_2) => flow_value_2.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            },
-        ));
+        out.push_str(
+            &format!(
+                "{}{}",
+                String::from("/"),
+                match parts.get_number(i).as_ref() {
+                    Some(flow_value_2) => flow_value_2.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                },
+            ),
+        );
     }
     Ok(out)
 }

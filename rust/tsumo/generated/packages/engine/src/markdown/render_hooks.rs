@@ -5,7 +5,6 @@ use tsonic_rust_js::abi as js_abi;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct RenderHookContextState {
     pub page: crate::models::page_context::PageContext,
     pub site: crate::models::site_context::SiteContext,
@@ -19,6 +18,12 @@ pub struct RenderHookContextState {
 pub struct RenderHookContext {
     #[doc(hidden)]
     pub state: rt::ObjectRef<RenderHookContextState>,
+}
+
+impl rt::ObjectIdentityCarrier for RenderHookContext {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl RenderHookContext {

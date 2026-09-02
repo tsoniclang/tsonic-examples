@@ -7,7 +7,6 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ShortcodeCallState {
     pub name: String,
     pub params: js_abi::JsMap<String, crate::params::ParamValue>,
@@ -27,6 +26,12 @@ pub struct ShortcodeCallState {
 pub struct ShortcodeCall {
     #[doc(hidden)]
     pub state: rt::ObjectRef<ShortcodeCallState>,
+}
+
+impl rt::ObjectIdentityCarrier for ShortcodeCall {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl ShortcodeCall {
@@ -77,7 +82,6 @@ impl ShortcodeCall {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ParseStateState {
     pub text: String,
     pub pos: i32,
@@ -87,6 +91,12 @@ pub struct ParseStateState {
 pub struct ParseState {
     #[doc(hidden)]
     pub state: rt::ObjectHandle<ParseStateState>,
+}
+
+impl rt::ObjectIdentityCarrier for ParseState {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl ParseState {
@@ -101,7 +111,6 @@ impl ParseState {
         }
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn peek(&self, offset: i32) -> Result<String, rt::TsonicError> {
         let idx: i32 = self.state.with(|state| state.pos) + offset;
         Ok(if idx
@@ -119,7 +128,6 @@ impl ParseState {
         })
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn peek_string(&self, length: i32) -> Result<String, rt::TsonicError> {
         let remaining: i32 = tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
             &self.state.with(|state| state.text.clone()),
@@ -139,7 +147,6 @@ impl ParseState {
         )
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn advance(&self, count: i32) {
         {
             let receiver = self;
@@ -148,7 +155,6 @@ impl ParseState {
         };
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn at_end(&self) -> Result<bool, rt::TsonicError> {
         Ok(
             self.state.with(|state| state.pos)
@@ -158,7 +164,6 @@ impl ParseState {
         )
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn skip_whitespace(&self) -> Result<(), rt::TsonicError> {
         'loop_value: while !self.at_end()? {
             let c: String = self.peek(0)?;
@@ -172,7 +177,6 @@ impl ParseState {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ShortcodePositionState {
     pub line: i32,
     pub column: i32,
@@ -182,6 +186,12 @@ pub struct ShortcodePositionState {
 pub struct ShortcodePosition {
     #[doc(hidden)]
     pub state: rt::ObjectRef<ShortcodePositionState>,
+}
+
+impl rt::ObjectIdentityCarrier for ShortcodePosition {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl ShortcodePosition {
@@ -198,7 +208,6 @@ impl ShortcodePosition {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ShortcodeRangeState {
     pub start: i32,
     pub end: i32,
@@ -208,6 +217,12 @@ pub struct ShortcodeRangeState {
 pub struct ShortcodeRange {
     #[doc(hidden)]
     pub state: rt::ObjectRef<ShortcodeRangeState>,
+}
+
+impl rt::ObjectIdentityCarrier for ShortcodeRange {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl ShortcodeRange {
@@ -318,9 +333,10 @@ impl ShortcodeSourceMap {
                     if length >= fence_length {
                         {
                             let operation_input_0 = field_code_fences.clone();
-                            operation_input_0.push_many_discard([
-                                ShortcodeRange::new(fence_start, position + length),
-                            ])
+                            operation_input_0.push_many_discard([ShortcodeRange::new(
+                                fence_start,
+                                position + length,
+                            )])
                         };
                         fence_start = -1;
                         fence_character = String::from("");
@@ -335,12 +351,10 @@ impl ShortcodeSourceMap {
         if fence_start >= 0 {
             {
                 let operation_input_0_2 = field_code_fences.clone();
-                operation_input_0_2.push_many_discard([
-                    ShortcodeRange::new(
-                        fence_start,
-                        tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&text))?,
-                    ),
-                ])
+                operation_input_0_2.push_many_discard([ShortcodeRange::new(
+                    fence_start,
+                    tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&text))?,
+                )])
             };
         }
         Ok(ShortcodeSourceMap {
@@ -349,7 +363,6 @@ impl ShortcodeSourceMap {
         })
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn position_at(&self, offset: i32) -> Result<ShortcodePosition, rt::TsonicError> {
         let mut low: i32 = 0;
         let mut high: i32 =
@@ -388,7 +401,6 @@ impl ShortcodeSourceMap {
         ))
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn is_in_code_block(&self, offset: i32) -> Result<bool, rt::TsonicError> {
         let mut low: i32 = 0;
         let mut high: i32 =

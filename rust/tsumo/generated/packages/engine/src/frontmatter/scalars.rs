@@ -215,15 +215,13 @@ pub fn parse_front_matter_string_array(
             }
             {
                 let operation_input_0 = values.clone();
-                operation_input_0.push_many_discard([
-                    parse_front_matter_string(
-                        item.clone(),
-                        field.clone(),
-                        format,
-                        source_path.clone(),
-                        line,
-                    )?,
-                ])
+                operation_input_0.push_many_discard([parse_front_matter_string(
+                    item.clone(),
+                    field.clone(),
+                    format,
+                    source_path.clone(),
+                    line,
+                )?])
             };
             start = index + 1;
             index += 1;

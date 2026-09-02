@@ -7,21 +7,24 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 std::thread_local! {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub(crate) static COMPLETED_TESTS: rt::ModuleCell<f64> = const { rt::ModuleCell::new() };
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) struct AssertState {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Assert {
     pub(crate) state: rt::ObjectRef<AssertState>,
 }
 
+impl rt::ObjectIdentityCarrier for Assert {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
+}
+
 impl Assert {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
+    #[allow(dead_code, reason = "retains an unused generated constructor")]
     pub fn new() -> Assert {
         Assert {
             state: rt::ObjectRef::new(AssertState {}),
@@ -75,12 +78,10 @@ impl Assert {
                     String::from("Expected "),
                     rt::source_string(&expected),
                     String::from(", received "),
-                    rt::source_string(
-                        &match actual.as_ref() {
-                            Some(flow_value) => *flow_value,
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },
-                    ),
+                    rt::source_string(&match actual.as_ref() {
+                        Some(flow_value) => *flow_value,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }),
                 ),
             )));
         }
@@ -137,7 +138,6 @@ impl Default for Assert {
     }
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn create_test_directory(name: String) -> Result<String, rt::TsonicError> {
     let configured_root: Option<String> = tsonic_rust_node::process::env_get("TSUMO_TEST_ROOT");
     if configured_root.is_none()
@@ -171,7 +171,6 @@ pub fn create_test_directory(name: String) -> Result<String, rt::TsonicError> {
     .map_err(rt::TsonicError::from)
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn create_directory(path: String) -> Result<(), rt::TsonicError> {
     tsonic_rust_node::fs::mkdir_sync_with_options(
         &path,
@@ -183,23 +182,20 @@ pub fn create_directory(path: String) -> Result<(), rt::TsonicError> {
     Ok(())
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn write_text_file(path: String, content: String) -> Result<(), rt::TsonicError> {
     tsonic_rust_node::fs::write_file_sync_string(&path, &content, "utf-8")?;
     Ok(())
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn read_text_file(path: String) -> Result<String, rt::TsonicError> {
     tsonic_rust_node::fs::read_file_sync_string(&path, "utf-8").map_err(rt::TsonicError::from)
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+#[allow(dead_code, reason = "retains an unused authored declaration")]
 pub fn path_exists(path: String) -> bool {
     tsonic_rust_node::fs::exists_sync(&path)
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn directory_exists(path: String) -> Result<bool, rt::TsonicError> {
     Ok(
         tsonic_rust_node::fs::exists_sync(&path)
@@ -207,7 +203,6 @@ pub fn directory_exists(path: String) -> Result<bool, rt::TsonicError> {
     )
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn file_exists(path: String) -> Result<bool, rt::TsonicError> {
     Ok(
         tsonic_rust_node::fs::exists_sync(&path)
@@ -215,13 +210,11 @@ pub fn file_exists(path: String) -> Result<bool, rt::TsonicError> {
     )
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn create_symbolic_link(target: String, path: String) -> Result<(), rt::TsonicError> {
     tsonic_rust_node::fs::symlink_sync(&target, &path)?;
     Ok(())
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn delete_test_directory(path: String) -> Result<(), rt::TsonicError> {
     tsonic_rust_node::fs::rm_sync_with_options(
         &path,
@@ -234,7 +227,6 @@ pub fn delete_test_directory(path: String) -> Result<(), rt::TsonicError> {
     Ok(())
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn run_test(
     name: String,
     operation: rt::Callable<(), rt::TsonicResult<()>>,
@@ -269,32 +261,29 @@ pub fn run_test(
             update_next
         }
     };
-    js_abi::console_log(&[
-        tsonic_rust_js::abi::js_value_from_string(&format!("{}{}", String::from("PASS "), name)),
-    ]);
+    js_abi::console_log(&[tsonic_rust_js::abi::js_value_from_string(
+        &format!("{}{}", String::from("PASS "), name),
+    )]);
     Ok(())
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn complete_tests(expected_tests: f64) -> Result<(), rt::TsonicError> {
     if COMPLETED_TESTS.with(|module_binding| module_binding.load()) != expected_tests {
         return Err(rt::TsonicError::from(rt::JsError::error(
             "Test inventory did not execute completely",
         )));
     }
-    js_abi::console_log(&[
-        tsonic_rust_js::abi::js_value_from_string(
-            &format!(
-                "{}{}{}{}",
-                rt::source_string(&COMPLETED_TESTS.with(
-                    |module_binding| module_binding.load()
-                )),
-                String::from("/"),
-                rt::source_string(&expected_tests),
-                String::from(" tests passed"),
-            ),
+    js_abi::console_log(&[tsonic_rust_js::abi::js_value_from_string(
+        &format!(
+            "{}{}{}{}",
+            rt::source_string(&COMPLETED_TESTS.with(
+                |module_binding| module_binding.load()
+            )),
+            String::from("/"),
+            rt::source_string(&expected_tests),
+            String::from(" tests passed"),
         ),
-    ]);
+    )]);
     Ok(())
 }
 

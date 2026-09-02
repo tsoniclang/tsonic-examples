@@ -249,7 +249,7 @@ pub fn discover_content(
                             parsed.state.with(|state| state.body.clone()),
                             rt::option_coalesce(
                                 front_matter.state.with(|state| state.description.clone()),
-                                std::convert::identity,
+                                core::convert::identity,
                                 || String::from(""),
                             ),
                             front_matter.state.with(|state| state.r#type.clone()),
@@ -374,12 +374,12 @@ pub fn discover_content(
                     )?,
                     rt::option_coalesce(
                         front_matter.state.with(|state| state.date.clone()),
-                        std::convert::identity,
+                        core::convert::identity,
                         || modified_at.clone(),
                     ),
                     rt::option_coalesce(
                         front_matter.state.with(|state| state.date.clone()),
-                        std::convert::identity,
+                        core::convert::identity,
                         || modified_at.clone(),
                     )
                     .to_iso_string()?,
@@ -388,7 +388,7 @@ pub fn discover_content(
                     is_leaf_bundle,
                     rt::option_coalesce(
                         front_matter.state.with(|state| state.description.clone()),
-                        std::convert::identity,
+                        core::convert::identity,
                         || String::from(""),
                     ),
                     front_matter.state.with(|state| state.tags.clone()),

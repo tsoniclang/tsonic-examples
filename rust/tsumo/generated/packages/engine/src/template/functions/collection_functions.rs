@@ -1372,30 +1372,28 @@ pub fn call_collection_function(
         {
             let result: js_abi::JsArray<crate::models::page_context::PageContext> =
                 js_abi::JsArray::from_dense(vec![]);
-            let limit: i32 = tsonic_rust_runtime::conversions::f64_to_i32(js_abi::math_min(
-                &[
-                    tsonic_rust_runtime::conversions::i32_to_f64(count),
-                    tsonic_rust_runtime::conversions::i32_to_f64(
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            {
-                                let dispatch_receiver_13 = &{
-                                    let downcast_value_13 = &collection;
-                                    crate::template::values::page::PageArrayValue {
-                                        identity: downcast_value_13.identity.clone(),
-                                        dispatch: downcast_value_13
-                                            .dispatch
-                                            .clone()
-                                            .downcast_template_value_to_page_array_value()
-                                            .unwrap(),
-                                    }
-                                };
-                                dispatch_receiver_13.dispatch.read_page_array_value_value()
-                            }
-                            .len(),
-                        )?,
-                    ),
-                ],
-            ))?;
+            let limit: i32 = tsonic_rust_runtime::conversions::f64_to_i32(js_abi::math_min(&[
+                tsonic_rust_runtime::conversions::i32_to_f64(count),
+                tsonic_rust_runtime::conversions::i32_to_f64(
+                    tsonic_rust_runtime::conversions::usize_to_i32(
+                        {
+                            let dispatch_receiver_13 = &{
+                                let downcast_value_13 = &collection;
+                                crate::template::values::page::PageArrayValue {
+                                    identity: downcast_value_13.identity.clone(),
+                                    dispatch: downcast_value_13
+                                        .dispatch
+                                        .clone()
+                                        .downcast_template_value_to_page_array_value()
+                                        .unwrap(),
+                                }
+                            };
+                            dispatch_receiver_13.dispatch.read_page_array_value_value()
+                        }
+                        .len(),
+                    )?,
+                ),
+            ]))?;
             for i_range in 0..limit {
                 let i = i_range as f64;
                 {
@@ -1439,30 +1437,28 @@ pub fn call_collection_function(
         {
             let result: js_abi::JsArray<crate::template::values::base::TemplateValue> =
                 js_abi::JsArray::from_dense(vec![]);
-            let limit: i32 = tsonic_rust_runtime::conversions::f64_to_i32(js_abi::math_min(
-                &[
-                    tsonic_rust_runtime::conversions::i32_to_f64(count),
-                    tsonic_rust_runtime::conversions::i32_to_f64(
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            {
-                                let dispatch_receiver_15 = &{
-                                    let downcast_value_15 = &collection;
-                                    crate::template::values::arrays::AnyArrayValue {
-                                        identity: downcast_value_15.identity.clone(),
-                                        dispatch: downcast_value_15
-                                            .dispatch
-                                            .clone()
-                                            .downcast_template_value_to_any_array_value()
-                                            .unwrap(),
-                                    }
-                                };
-                                dispatch_receiver_15.dispatch.read_any_array_value_value()
-                            }
-                            .len(),
-                        )?,
-                    ),
-                ],
-            ))?;
+            let limit: i32 = tsonic_rust_runtime::conversions::f64_to_i32(js_abi::math_min(&[
+                tsonic_rust_runtime::conversions::i32_to_f64(count),
+                tsonic_rust_runtime::conversions::i32_to_f64(
+                    tsonic_rust_runtime::conversions::usize_to_i32(
+                        {
+                            let dispatch_receiver_15 = &{
+                                let downcast_value_15 = &collection;
+                                crate::template::values::arrays::AnyArrayValue {
+                                    identity: downcast_value_15.identity.clone(),
+                                    dispatch: downcast_value_15
+                                        .dispatch
+                                        .clone()
+                                        .downcast_template_value_to_any_array_value()
+                                        .unwrap(),
+                                }
+                            };
+                            dispatch_receiver_15.dispatch.read_any_array_value_value()
+                        }
+                        .len(),
+                    )?,
+                ),
+            ]))?;
             for i_range_2 in 0..limit {
                 let i = i_range_2 as f64;
                 {
@@ -1505,32 +1501,30 @@ pub fn call_collection_function(
             .is_some()
         {
             let result: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-            let limit: i32 = tsonic_rust_runtime::conversions::f64_to_i32(js_abi::math_min(
-                &[
-                    tsonic_rust_runtime::conversions::i32_to_f64(count),
-                    tsonic_rust_runtime::conversions::i32_to_f64(
-                        tsonic_rust_runtime::conversions::usize_to_i32(
-                            {
-                                let dispatch_receiver_17 = &{
-                                    let downcast_value_17 = &collection;
-                                    crate::template::values::arrays::StringArrayValue {
-                                        identity: downcast_value_17.identity.clone(),
-                                        dispatch: downcast_value_17
-                                            .dispatch
-                                            .clone()
-                                            .downcast_template_value_to_string_array_value()
-                                            .unwrap(),
-                                    }
-                                };
-                                dispatch_receiver_17
-                                    .dispatch
-                                    .read_string_array_value_value()
-                            }
-                            .len(),
-                        )?,
-                    ),
-                ],
-            ))?;
+            let limit: i32 = tsonic_rust_runtime::conversions::f64_to_i32(js_abi::math_min(&[
+                tsonic_rust_runtime::conversions::i32_to_f64(count),
+                tsonic_rust_runtime::conversions::i32_to_f64(
+                    tsonic_rust_runtime::conversions::usize_to_i32(
+                        {
+                            let dispatch_receiver_17 = &{
+                                let downcast_value_17 = &collection;
+                                crate::template::values::arrays::StringArrayValue {
+                                    identity: downcast_value_17.identity.clone(),
+                                    dispatch: downcast_value_17
+                                        .dispatch
+                                        .clone()
+                                        .downcast_template_value_to_string_array_value()
+                                        .unwrap(),
+                                }
+                            };
+                            dispatch_receiver_17
+                                .dispatch
+                                .read_string_array_value_value()
+                        }
+                        .len(),
+                    )?,
+                ),
+            ]))?;
             for i_range_3 in 0..limit {
                 let i = i_range_3 as f64;
                 {
@@ -2900,8 +2894,7 @@ pub fn call_collection_function(
             .downcast_template_value_to_dict_value()
             .is_some()
         {
-            let key: String =
-                crate::template::runtime_helpers::to_plain_string(key_value.clone())?;
+            let key: String = crate::template::runtime_helpers::to_plain_string(key_value.clone())?;
             let v: Option<crate::template::values::base::TemplateValue> = {
                 let dispatch_receiver_49 = &{
                     let downcast_value_46 = &container;

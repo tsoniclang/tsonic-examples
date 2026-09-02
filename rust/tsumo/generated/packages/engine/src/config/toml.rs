@@ -546,12 +546,10 @@ pub fn parse_module_toml(
             }
             {
                 let operation_input_0 = capture_mounts.clone();
-                operation_input_0.push_many_discard([
-                    crate::models::site_config::ModuleMount::new(
-                        capture_source.load(),
-                        capture_target.load(),
-                    ),
-                ])
+                operation_input_0.push_many_discard([crate::models::site_config::ModuleMount::new(
+                    capture_source.load(),
+                    capture_target.load(),
+                )])
             };
             Ok::<_, rt::TsonicError>(())
         })
@@ -761,7 +759,7 @@ pub fn parse_toml_config(
                     Some(crate::config::builders::MenuEntryBuilder::new(menu_name.clone()));
                 menu_fields = js_abi::JsSet::new();
                 let entries: js_abi::JsArray<crate::config::builders::MenuEntryBuilder> =
-                    rt::option_coalesce(menu_builders.get(&menu_name), std::convert::identity, || {
+                    rt::option_coalesce(menu_builders.get(&menu_name), core::convert::identity, || {
                         js_abi::JsArray::from_dense(vec![])
                     });
                 entries.push_many_discard([match current_menu.as_ref() {

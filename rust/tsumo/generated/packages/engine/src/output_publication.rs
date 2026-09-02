@@ -7,7 +7,6 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct OutputPublicationState {
     pub destination_dir: String,
     pub staging_dir: String,
@@ -18,6 +17,12 @@ pub struct OutputPublicationState {
 pub struct OutputPublication {
     #[doc(hidden)]
     pub state: rt::ObjectRef<OutputPublicationState>,
+}
+
+impl rt::ObjectIdentityCarrier for OutputPublication {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl OutputPublication {
@@ -64,9 +69,9 @@ impl OutputPublication {
             Ok(completion) => Ok(completion),
             Err(error) => rt::completion_region(|| {
                 if previous_output_moved
-                    && !tsonic_rust_node::fs::exists_sync(&self.state.with(|state| {
-                        state.destination_dir.clone()
-                    }))
+                    && !tsonic_rust_node::fs::exists_sync(
+                        &self.state.with(|state| state.destination_dir.clone()),
+                    )
                 {
                     {
                         let operation_input_0_3 =
@@ -297,8 +302,7 @@ pub fn module_init() {
                     tsonic_rust_node::fs::rename_sync(&backup_dir, &destination_dir)?;
                 }
             }
-            let entries: js_abi::JsArray<String> =
-                tsonic_rust_node::fs::readdir_sync(&parent_dir)?;
+            let entries: js_abi::JsArray<String> = tsonic_rust_node::fs::readdir_sync(&parent_dir)?;
             {
                 let mut index: f64 = 0.0;
                 while index

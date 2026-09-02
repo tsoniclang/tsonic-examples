@@ -6,7 +6,6 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn capture_resource_diagnostic(
     operation: rt::Callable<(), rt::TsonicResult<()>>,
 ) -> Result<String, rt::TsonicError> {
@@ -57,17 +56,20 @@ pub(crate) fn capture_resource_diagnostic(
     )))
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) struct ResourcePipelineTestsState {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ResourcePipelineTests {
     pub(crate) state: rt::ObjectRef<ResourcePipelineTestsState>,
 }
 
+impl rt::ObjectIdentityCarrier for ResourcePipelineTests {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
+}
+
 impl ResourcePipelineTests {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new() -> ResourcePipelineTests {
         ResourcePipelineTests {
             state: rt::ObjectRef::new(ResourcePipelineTestsState {}),
@@ -234,9 +236,9 @@ impl ResourcePipelineTests {
         )?)?;
         let malformed: js_abi::JsArray<tsonic_rust_node::buffer::Buffer> =
             js_abi::JsArray::from_dense(vec![
-                tsonic_rust_node::buffer::Buffer::from_number_array(
-                    &js_abi::JsArray::from_dense(vec![128.0]),
-                ),
+                tsonic_rust_node::buffer::Buffer::from_number_array(&js_abi::JsArray::from_dense(
+                    vec![128.0],
+                )),
                 tsonic_rust_node::buffer::Buffer::from_number_array(
                     &js_abi::JsArray::from_dense(vec![192.0, 128.0]),
                 ),
@@ -274,8 +276,7 @@ impl ResourcePipelineTests {
     pub fn file_resources_publish_raw_bytes_and_decode_only_for_text_operations(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        let root: String =
-            crate::test_root::create_test_directory(String::from("resource-bytes"))?;
+        let root: String = crate::test_root::create_test_directory(String::from("resource-bytes"))?;
         let site_dir: String = tsonic_rust_node::path::join(&[root.as_str(), "site"]);
         let output_dir: String = tsonic_rust_node::path::join(&[root.as_str(), "output"]);
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
@@ -488,12 +489,14 @@ impl ResourcePipelineTests {
         let theme_dir: String = tsonic_rust_node::path::join(&[root.as_str(), "theme"]);
         let output_dir: String = tsonic_rust_node::path::join(&[root.as_str(), "output"]);
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::create_directory(tsonic_rust_node::path::join(
-                &[site_dir.as_str(), "assets"],
-            ))?;
-            crate::test_root::create_directory(tsonic_rust_node::path::join(
-                &[theme_dir.as_str(), "assets"],
-            ))?;
+            crate::test_root::create_directory(tsonic_rust_node::path::join(&[
+                site_dir.as_str(),
+                "assets",
+            ]))?;
+            crate::test_root::create_directory(tsonic_rust_node::path::join(&[
+                theme_dir.as_str(),
+                "assets",
+            ]))?;
             crate::test_root::write_text_file(
                 tsonic_rust_node::path::join(&[site_dir.as_str(), "assets", "z.txt"]),
                 String::from("site-z"),
@@ -649,7 +652,6 @@ impl Default for ResourcePipelineTests {
     }
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn run_resource_pipeline_tests() -> Result<(), rt::TsonicError> {
     let tests: ResourcePipelineTests = ResourcePipelineTests::new();
     crate::test_root::run_test(String::from("relative path policy rejects every escape form"), {

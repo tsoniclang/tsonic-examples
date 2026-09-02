@@ -3,7 +3,6 @@
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ParsedContentState {
     pub front_matter: crate::frontmatter::data::FrontMatter,
     pub body: String,
@@ -13,6 +12,12 @@ pub struct ParsedContentState {
 pub struct ParsedContent {
     #[doc(hidden)]
     pub state: rt::ObjectRef<ParsedContentState>,
+}
+
+impl rt::ObjectIdentityCarrier for ParsedContent {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl ParsedContent {

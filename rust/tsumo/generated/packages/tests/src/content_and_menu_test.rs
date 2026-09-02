@@ -4,7 +4,6 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn capture_content_diagnostic(
     operation: rt::Callable<(), rt::TsonicResult<()>>,
 ) -> Result<String, rt::TsonicError> {
@@ -55,7 +54,6 @@ pub(crate) fn capture_content_diagnostic(
     )))
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn create_menu_entry(
     identity: String,
     parent: String,
@@ -77,7 +75,6 @@ pub(crate) fn create_menu_entry(
     )
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn create_page(
     site: tsumo_engine::testing::SiteContext,
     route: String,
@@ -124,7 +121,6 @@ pub(crate) fn create_page(
     )
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn create_source(
     source_path: String,
     page: tsumo_engine::testing::PageContext,
@@ -190,17 +186,20 @@ pub(crate) fn create_source(
     )
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) struct ContentAndMenuTestsState {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ContentAndMenuTests {
     pub(crate) state: rt::ObjectHandle<ContentAndMenuTestsState>,
 }
 
+impl rt::ObjectIdentityCarrier for ContentAndMenuTests {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
+}
+
 impl ContentAndMenuTests {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new() -> ContentAndMenuTests {
         ContentAndMenuTests {
             state: rt::ObjectHandle::new(ContentAndMenuTestsState {}),
@@ -341,9 +340,10 @@ impl ContentAndMenuTests {
                     })
                 })?),
             )?;
-            crate::test_root::create_directory(tsonic_rust_node::path::join(
-                &[conflict_root.as_str(), "guide"],
-            ))?;
+            crate::test_root::create_directory(tsonic_rust_node::path::join(&[
+                conflict_root.as_str(),
+                "guide",
+            ]))?;
             crate::test_root::write_text_file(
                 tsonic_rust_node::path::join(&[conflict_root.as_str(), "guide.md"]),
                 String::from("---\ntitle: Guide\n---\nPage"),
@@ -582,14 +582,12 @@ impl ContentAndMenuTests {
             };
             operation_input_0.set_discard(
                 String::from("main"),
-                js_abi::JsArray::from_dense(vec![
-                    create_menu_entry(
-                        String::from("shorthand"),
-                        String::from(""),
-                        0,
-                        String::from("post"),
-                    ),
-                ]),
+                js_abi::JsArray::from_dense(vec![create_menu_entry(
+                    String::from("shorthand"),
+                    String::from(""),
+                    0,
+                    String::from("post"),
+                )]),
             )
         };
         crate::test_root::Assert::string_equal(
@@ -617,9 +615,11 @@ impl ContentAndMenuTests {
         let root: String =
             crate::test_root::create_test_directory(String::from("standard-page-graph"))?;
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::create_directory(tsonic_rust_node::path::join(
-                &[root.as_str(), "posts", "series"],
-            ))?;
+            crate::test_root::create_directory(tsonic_rust_node::path::join(&[
+                root.as_str(),
+                "posts",
+                "series",
+            ]))?;
             crate::test_root::write_text_file(
                 tsonic_rust_node::path::join(&[root.as_str(), "posts", "_index.md"]),
                 String::from("---\ntitle: Posts\n---\nPosts"),
@@ -867,7 +867,6 @@ impl Default for ContentAndMenuTests {
     }
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn run_content_and_menu_tests() -> Result<(), rt::TsonicError> {
     let tests: ContentAndMenuTests = ContentAndMenuTests::new();
     crate::test_root::run_test(

@@ -4,7 +4,6 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn capture_output_diagnostic(
     operation: rt::Callable<(), rt::TsonicResult<()>>,
 ) -> Result<String, rt::TsonicError> {
@@ -55,17 +54,20 @@ pub(crate) fn capture_output_diagnostic(
     )))
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) struct OutputPlanTestsState {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct OutputPlanTests {
     pub(crate) state: rt::ObjectRef<OutputPlanTestsState>,
 }
 
+impl rt::ObjectIdentityCarrier for OutputPlanTests {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
+}
+
 impl OutputPlanTests {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new() -> OutputPlanTests {
         OutputPlanTests {
             state: rt::ObjectRef::new(OutputPlanTestsState {}),
@@ -221,21 +223,24 @@ impl OutputPlanTests {
             }?;
             crate::test_root::Assert::string_equal(
                 String::from("site"),
-                Some(crate::test_root::read_text_file(tsonic_rust_node::path::join(
-                    &[output.as_str(), "style.css"],
-                ))?),
+                Some(crate::test_root::read_text_file(tsonic_rust_node::path::join(&[
+                    output.as_str(),
+                    "style.css",
+                ]))?),
             )?;
             crate::test_root::Assert::string_equal(
                 String::from("site robots"),
-                Some(crate::test_root::read_text_file(tsonic_rust_node::path::join(
-                    &[output.as_str(), "robots.txt"],
-                ))?),
+                Some(crate::test_root::read_text_file(tsonic_rust_node::path::join(&[
+                    output.as_str(),
+                    "robots.txt",
+                ]))?),
             )?;
             crate::test_root::Assert::string_equal(
                 String::from("home"),
-                Some(crate::test_root::read_text_file(tsonic_rust_node::path::join(
-                    &[output.as_str(), "index.html"],
-                ))?),
+                Some(crate::test_root::read_text_file(tsonic_rust_node::path::join(&[
+                    output.as_str(),
+                    "index.html",
+                ]))?),
             )?;
             Ok(rt::Completion::Normal)
         });
@@ -365,15 +370,17 @@ impl OutputPlanTests {
             }?;
             crate::test_root::Assert::string_equal(
                 String::from("before:ready:after"),
-                Some(crate::test_root::read_text_file(tsonic_rust_node::path::join(
-                    &[output.as_str(), "first.html"],
-                ))?),
+                Some(crate::test_root::read_text_file(tsonic_rust_node::path::join(&[
+                    output.as_str(),
+                    "first.html",
+                ]))?),
             )?;
             crate::test_root::Assert::string_equal(
                 String::from("unchanged"),
-                Some(crate::test_root::read_text_file(tsonic_rust_node::path::join(
-                    &[output.as_str(), "second.html"],
-                ))?),
+                Some(crate::test_root::read_text_file(tsonic_rust_node::path::join(&[
+                    output.as_str(),
+                    "second.html",
+                ]))?),
             )?;
             Ok(rt::Completion::Normal)
         });
@@ -401,7 +408,6 @@ impl Default for OutputPlanTests {
     }
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn run_output_plan_tests() -> Result<(), rt::TsonicError> {
     let tests: OutputPlanTests = OutputPlanTests::new();
     crate::test_root::run_test(String::from("paths and collisions fail before rendering"), {

@@ -7,7 +7,6 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct StructuredInputState {
     pub text: String,
     pub source_path: Option<String>,
@@ -18,6 +17,12 @@ pub struct StructuredInputState {
 pub struct StructuredInput {
     #[doc(hidden)]
     pub state: rt::ObjectRef<StructuredInputState>,
+}
+
+impl rt::ObjectIdentityCarrier for StructuredInput {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl StructuredInput {
@@ -40,7 +45,6 @@ impl StructuredInput {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct YamlLineState {
     pub indent: i32,
     pub content: String,
@@ -51,6 +55,12 @@ pub struct YamlLineState {
 pub struct YamlLine {
     #[doc(hidden)]
     pub state: rt::ObjectRef<YamlLineState>,
+}
+
+impl rt::ObjectIdentityCarrier for YamlLine {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl YamlLine {
@@ -69,7 +79,6 @@ impl YamlLine {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct YamlLogicalLineState {
     pub content: String,
     pub next_source_index: i32,
@@ -79,6 +88,12 @@ pub struct YamlLogicalLineState {
 pub struct YamlLogicalLine {
     #[doc(hidden)]
     pub state: rt::ObjectRef<YamlLogicalLineState>,
+}
+
+impl rt::ObjectIdentityCarrier for YamlLogicalLine {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl YamlLogicalLine {
@@ -95,7 +110,6 @@ impl YamlLogicalLine {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct YamlQuoteScanState {
     pub closed: bool,
     pub escaped_line_break: bool,
@@ -105,6 +119,12 @@ pub struct YamlQuoteScanState {
 pub struct YamlQuoteScan {
     #[doc(hidden)]
     pub state: rt::ObjectRef<YamlQuoteScanState>,
+}
+
+impl rt::ObjectIdentityCarrier for YamlQuoteScan {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl YamlQuoteScan {
@@ -396,16 +416,14 @@ pub fn read_yaml_logical_line(
             )));
         }
         if !scan.state.with(|state| state.escaped_line_break) {
-            content.push_str(
-                &if blank_line_count == 0 {
-                    String::from(" ")
-                } else {
-                    js_string::repeat(
-                        "\n",
-                        tsonic_rust_runtime::conversions::i32_to_f64(blank_line_count),
-                    )?
-                },
-            );
+            content.push_str(&if blank_line_count == 0 {
+                String::from(" ")
+            } else {
+                js_string::repeat(
+                    "\n",
+                    tsonic_rust_runtime::conversions::i32_to_f64(blank_line_count),
+                )?
+            });
         } else {
             if blank_line_count > 0 {
                 content.push_str(&js_string::repeat(
@@ -431,7 +449,6 @@ pub fn read_yaml_logical_line(
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct YamlParseResultState {
     pub value: crate::template::values::base::TemplateValue,
     pub next_index: i32,
@@ -441,6 +458,12 @@ pub struct YamlParseResultState {
 pub struct YamlParseResult {
     #[doc(hidden)]
     pub state: rt::ObjectRef<YamlParseResultState>,
+}
+
+impl rt::ObjectIdentityCarrier for YamlParseResult {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl YamlParseResult {
@@ -460,7 +483,6 @@ impl YamlParseResult {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct YamlBlockScalarHeaderState {
     pub folded: bool,
     pub chomping: String,
@@ -471,6 +493,12 @@ pub struct YamlBlockScalarHeaderState {
 pub struct YamlBlockScalarHeader {
     #[doc(hidden)]
     pub state: rt::ObjectRef<YamlBlockScalarHeaderState>,
+}
+
+impl rt::ObjectIdentityCarrier for YamlBlockScalarHeader {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl YamlBlockScalarHeader {
@@ -703,8 +731,7 @@ pub fn json_to_template_value(
             }
         }
         return Ok({
-            let upcast_value_4 =
-                crate::template::values::arrays::AnyArrayValue::new(items.clone());
+            let upcast_value_4 = crate::template::values::arrays::AnyArrayValue::new(items.clone());
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_4.identity.clone(),
                 dispatch: upcast_value_4.dispatch.clone(),
@@ -798,8 +825,7 @@ impl YamlTemplateParser {
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let indent: i32 =
-                yaml_source_indentation(raw.clone(), source_path.clone(), index + 1)?;
+            let indent: i32 = yaml_source_indentation(raw.clone(), source_path.clone(), index + 1)?;
             let logical: YamlLogicalLine =
                 read_yaml_logical_line(source_lines.clone(), index, indent, source_path.clone())?;
             let content: String = logical.state.with(|state| state.content.clone());
@@ -824,7 +850,6 @@ impl YamlTemplateParser {
         })
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse(&self) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
         if tsonic_rust_runtime::conversions::usize_to_i32(self.lines.len())? == 0 {
             return Ok(
@@ -867,7 +892,6 @@ impl YamlTemplateParser {
         Ok(result.state.with(|state| state.value.clone()))
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_block(&self, index: i32, indent: i32) -> Result<YamlParseResult, rt::TsonicError> {
         let line: YamlLine = match self
             .lines
@@ -909,7 +933,6 @@ impl YamlTemplateParser {
         ))
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_sequence(
         &self,
         index: i32,
@@ -1208,9 +1231,8 @@ impl YamlTemplateParser {
                 }
                 {
                     let operation_input_0_4 = values.clone();
-                    operation_input_0_4.push_many_discard([
-                        self.parse_scalar(item.clone(), line.state.with(|state| state.line_number))?,
-                    ])
+                    operation_input_0_4.push_many_discard([self
+                        .parse_scalar(item.clone(), line.state.with(|state| state.line_number))?])
                 };
                 if current < tsonic_rust_runtime::conversions::usize_to_i32(self.lines.len())?
                     && match self
@@ -1265,10 +1287,8 @@ impl YamlTemplateParser {
                 .with(|state| state.indent)
                     <= indent
             {
-                values.push_many_discard([
-                    crate::template::runtime_helpers::NIL
-                        .with(|module_binding| module_binding.load()),
-                ]);
+                values.push_many_discard([crate::template::runtime_helpers::NIL
+                    .with(|module_binding| module_binding.load())]);
                 continue 'loop_value;
             }
             let nested: YamlParseResult = self.parse_block(
@@ -1304,7 +1324,6 @@ impl YamlTemplateParser {
         ))
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_mapping(
         &self,
         index: i32,
@@ -1520,7 +1539,6 @@ impl YamlTemplateParser {
         ))
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_block_scalar_header(
         &self,
         value: String,
@@ -1560,8 +1578,7 @@ impl YamlTemplateParser {
                     index += 1;
                     continue 'loop_value;
                 }
-                let parsed_indentation: Option<i32> =
-                    crate::utils::int32::parse_int32(&character)?;
+                let parsed_indentation: Option<i32> = crate::utils::int32::parse_int32(&character)?;
                 if parsed_indentation.is_none()
                     || (match parsed_indentation.as_ref() {
                         Some(flow_value) => *flow_value,
@@ -1608,7 +1625,6 @@ impl YamlTemplateParser {
         )))
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_block_scalar(
         &self,
         header: YamlBlockScalarHeader,
@@ -1730,9 +1746,9 @@ impl YamlTemplateParser {
                 }
                 {
                     let operation_input_0 = values.clone();
-                    operation_input_0.push_many_discard([
-                        crate::utils::strings::substring_from(&raw, selected_indent)?,
-                    ])
+                    operation_input_0.push_many_discard([crate::utils::strings::substring_from(
+                        &raw, selected_indent,
+                    )?])
                 };
                 indentations.push_many_discard([indentation]);
                 source_index += 1;
@@ -1812,7 +1828,6 @@ impl YamlTemplateParser {
         ))
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_scalar(
         &self,
         value: String,
@@ -1903,7 +1918,6 @@ impl YamlTemplateParser {
         })
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn error(&self, message: String, line: i32) -> crate::diagnostics::TsumoError {
         crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_TEMPLATE_UNMARSHAL_YAML_INVALID"),
@@ -1945,12 +1959,12 @@ pub fn input_from_value(
         let format_hint: Option<String> = if source_path.is_none() {
             Option::<String>::None
         } else {
-            Some(js_string::to_lower_case(&tsonic_rust_node::path::extname(
-                &match source_path.as_ref() {
-                    Some(flow_value) => flow_value.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                },
-            )))
+            Some(js_string::to_lower_case(&tsonic_rust_node::path::extname(&match source_path
+                .as_ref()
+            {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            })))
         };
         return Ok(StructuredInput::new(
             crate::resources::text::read_resource_text(

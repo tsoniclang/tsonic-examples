@@ -6,17 +6,20 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) struct TemplateRuntimeTestsState {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct TemplateRuntimeTests {
     pub(crate) state: rt::ObjectHandle<TemplateRuntimeTestsState>,
 }
 
+impl rt::ObjectIdentityCarrier for TemplateRuntimeTests {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
+}
+
 impl TemplateRuntimeTests {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new() -> TemplateRuntimeTests {
         TemplateRuntimeTests {
             state: rt::ObjectHandle::new(TemplateRuntimeTestsState {}),
@@ -32,8 +35,7 @@ impl TemplateRuntimeTests {
             String::from("yes|AB"),
             Some(crate::template_test_harness::render(source)?),
         )?;
-        let site: tsumo_engine::testing::SiteContext =
-            crate::template_test_harness::create_site()?;
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
         let page: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
             site,
             String::from("Home"),
@@ -109,8 +111,7 @@ impl TemplateRuntimeTests {
     pub fn page_has_shortcode_uses_the_exact_parsed_page_inventory(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        let site: tsumo_engine::testing::SiteContext =
-            crate::template_test_harness::create_site()?;
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
         let page: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
             site,
             String::from("Home"),
@@ -151,8 +152,7 @@ impl TemplateRuntimeTests {
     pub fn hugo_sites_exposes_the_checked_site_graph(&self) -> Result<(), rt::TsonicError> {
         let environment: crate::template_test_harness::TestTemplateEnvironment =
             crate::template_test_harness::TestTemplateEnvironment::new(None);
-        let site: tsumo_engine::testing::SiteContext =
-            crate::template_test_harness::create_site()?;
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
         let root: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
             site.clone(),
             String::from("Home"),
@@ -211,8 +211,7 @@ impl TemplateRuntimeTests {
     ) -> Result<(), rt::TsonicError> {
         let environment: crate::template_test_harness::TestTemplateEnvironment =
             crate::template_test_harness::TestTemplateEnvironment::new(None);
-        let site: tsumo_engine::testing::SiteContext =
-            crate::template_test_harness::create_site()?;
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
         let current: tsumo_engine::testing::PageContext =
             crate::template_test_harness::create_page(
                 site.clone(),
@@ -627,8 +626,7 @@ impl TemplateRuntimeTests {
     ) -> Result<(), rt::TsonicError> {
         let environment: crate::template_test_harness::TestTemplateEnvironment =
             crate::template_test_harness::TestTemplateEnvironment::new(None);
-        let site: tsumo_engine::testing::SiteContext =
-            crate::template_test_harness::create_site()?;
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
         let page: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
             site.clone(),
             String::from("Home"),
@@ -730,8 +728,7 @@ impl TemplateRuntimeTests {
     ) -> Result<(), rt::TsonicError> {
         let environment: crate::template_test_harness::TestTemplateEnvironment =
             crate::template_test_harness::TestTemplateEnvironment::new(None);
-        let site: tsumo_engine::testing::SiteContext =
-            crate::template_test_harness::create_site()?;
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
         let page: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
             site.clone(),
             String::from("Home"),
@@ -805,8 +802,7 @@ impl TemplateRuntimeTests {
                 )?,
             )
         };
-        let site: tsumo_engine::testing::SiteContext =
-            crate::template_test_harness::create_site()?;
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
         let root: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
             site.clone(),
             String::from("Home"),
@@ -1059,16 +1055,14 @@ impl TemplateRuntimeTests {
             while index < 2000.0 {
                 {
                     let operation_input_0 = large_template_lines.clone();
-                    operation_input_0.push_many_discard([
-                        format!(
-                            "{}{}{}{}{}",
-                            String::from("line "),
-                            rt::source_string(&index),
-                            String::from(": {{ print \""),
-                            rt::source_string(&index),
-                            String::from("\" }}"),
-                        ),
-                    ])
+                    operation_input_0.push_many_discard([format!(
+                        "{}{}{}{}{}",
+                        String::from("line "),
+                        rt::source_string(&index),
+                        String::from(": {{ print \""),
+                        rt::source_string(&index),
+                        String::from("\" }}"),
+                    )])
                 };
                 index += 1.0;
             }
@@ -1413,7 +1407,6 @@ impl Default for TemplateRuntimeTests {
     }
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn run_template_runtime_tests() -> Result<(), rt::TsonicError> {
     let tests: TemplateRuntimeTests = TemplateRuntimeTests::new();
     crate::test_root::run_test(

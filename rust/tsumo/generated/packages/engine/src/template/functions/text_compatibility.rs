@@ -80,13 +80,11 @@ pub fn emojify_text(input: &str) -> Result<String, rt::TsonicError> {
         }
         {
             let operation_input_0_2 = result.clone();
-            operation_input_0_2.push_many_discard([
-                js_string::substring(
-                    input,
-                    cursor,
-                    tsonic_rust_runtime::conversions::i32_to_f64(opening),
-                )?,
-            ])
+            operation_input_0_2.push_many_discard([js_string::substring(
+                input,
+                cursor,
+                tsonic_rust_runtime::conversions::i32_to_f64(opening),
+            )?])
         };
         let closing: i32 = tsonic_rust_runtime::conversions::isize_to_i32(js_string::index_of(
             input,
@@ -96,12 +94,10 @@ pub fn emojify_text(input: &str) -> Result<String, rt::TsonicError> {
         if closing < 0 {
             {
                 let operation_input_0_3 = result.clone();
-                operation_input_0_3.push_many_discard([
-                    js_string::substring_from(
-                        input,
-                        tsonic_rust_runtime::conversions::i32_to_f64(opening),
-                    )?,
-                ])
+                operation_input_0_3.push_many_discard([js_string::substring_from(
+                    input,
+                    tsonic_rust_runtime::conversions::i32_to_f64(opening),
+                )?])
             };
             break 'loop_value;
         }
@@ -116,13 +112,11 @@ pub fn emojify_text(input: &str) -> Result<String, rt::TsonicError> {
         if emoji.is_none() {
             {
                 let operation_input_0_4 = result.clone();
-                operation_input_0_4.push_many_discard([
-                    js_string::substring(
-                        input,
-                        tsonic_rust_runtime::conversions::i32_to_f64(opening),
-                        tsonic_rust_runtime::conversions::i32_to_f64(closing + 1),
-                    )?,
-                ])
+                operation_input_0_4.push_many_discard([js_string::substring(
+                    input,
+                    tsonic_rust_runtime::conversions::i32_to_f64(opening),
+                    tsonic_rust_runtime::conversions::i32_to_f64(closing + 1),
+                )?])
             };
         } else {
             result.push_many_discard([match emoji.as_ref() {

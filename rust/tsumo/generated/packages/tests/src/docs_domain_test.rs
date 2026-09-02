@@ -6,7 +6,6 @@ use tsonic_rust_js::string as js_string;
 
 use crate::program as rt;
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn capture_docs_diagnostic(
     operation: rt::Callable<(), rt::TsonicResult<()>>,
 ) -> Result<String, rt::TsonicError> {
@@ -57,7 +56,6 @@ pub(crate) fn capture_docs_diagnostic(
     )))
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn create_mount(
     source_dir: String,
     prefix: String,
@@ -73,17 +71,20 @@ pub(crate) fn create_mount(
     )
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) struct DocsDomainTestsState {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct DocsDomainTests {
     pub(crate) state: rt::ObjectRef<DocsDomainTestsState>,
 }
 
+impl rt::ObjectIdentityCarrier for DocsDomainTests {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
+}
+
 impl DocsDomainTests {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new() -> DocsDomainTests {
         DocsDomainTests {
             state: rt::ObjectRef::new(DocsDomainTestsState {}),
@@ -96,9 +97,10 @@ impl DocsDomainTests {
         let root: String = crate::test_root::create_test_directory(String::from("docs-routes"))?;
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
             let source: String = tsonic_rust_node::path::join(&[root.as_str(), "source"]);
-            crate::test_root::create_directory(tsonic_rust_node::path::join(
-                &[source.as_str(), "nested"],
-            ))?;
+            crate::test_root::create_directory(tsonic_rust_node::path::join(&[
+                source.as_str(),
+                "nested",
+            ]))?;
             crate::test_root::write_text_file(
                 tsonic_rust_node::path::join(&[source.as_str(), "z.md"]),
                 String::from("# Z"),
@@ -174,11 +176,11 @@ impl DocsDomainTests {
                 .with(|state| state.output_rel_path.clone())
                     == "docs/nested/asset.txt",
             )?;
-            let conflicting: String =
-                tsonic_rust_node::path::join(&[root.as_str(), "conflicting"]);
-            crate::test_root::create_directory(tsonic_rust_node::path::join(
-                &[conflicting.as_str(), "guide"],
-            ))?;
+            let conflicting: String = tsonic_rust_node::path::join(&[root.as_str(), "conflicting"]);
+            crate::test_root::create_directory(tsonic_rust_node::path::join(&[
+                conflicting.as_str(),
+                "guide",
+            ]))?;
             crate::test_root::write_text_file(
                 tsonic_rust_node::path::join(&[conflicting.as_str(), "guide.md"]),
                 String::from("# Guide"),
@@ -297,9 +299,10 @@ impl DocsDomainTests {
     pub fn docs_config_has_one_closed_schema(&self) -> Result<(), rt::TsonicError> {
         let root: String = crate::test_root::create_test_directory(String::from("docs-config"))?;
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::create_directory(tsonic_rust_node::path::join(
-                &[root.as_str(), "content"],
-            ))?;
+            crate::test_root::create_directory(tsonic_rust_node::path::join(&[
+                root.as_str(),
+                "content",
+            ]))?;
             let config_path: String =
                 tsonic_rust_node::path::join(&[root.as_str(), "tsumo.docs.json"]);
             crate::test_root::write_text_file(
@@ -563,7 +566,6 @@ impl Default for DocsDomainTests {
     }
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn run_docs_domain_tests() -> Result<(), rt::TsonicError> {
     let tests: DocsDomainTests = DocsDomainTests::new();
     crate::test_root::run_test(

@@ -4,7 +4,6 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn capture_diagnostic(
     operation: rt::Callable<(), rt::TsonicResult<()>>,
 ) -> Result<tsumo_engine::TsumoDiagnostic, rt::TsonicError> {
@@ -53,7 +52,6 @@ pub(crate) fn capture_diagnostic(
     )))
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn assert_front_matter_model(source: String) -> Result<(), rt::TsonicError> {
     let parsed: tsumo_engine::frontmatter::parsed_content::ParsedContent =
         tsumo_engine::testing::parse_content(source, Some(String::from("content/post.md")))?;
@@ -190,7 +188,6 @@ pub(crate) fn assert_front_matter_model(source: String) -> Result<(), rt::Tsonic
     Ok(())
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn assert_config_model(
     title: String,
     base_url: String,
@@ -204,17 +201,20 @@ pub(crate) fn assert_config_model(
     Ok(())
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) struct InputBoundaryTestsState {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct InputBoundaryTests {
     pub(crate) state: rt::ObjectRef<InputBoundaryTestsState>,
 }
 
+impl rt::ObjectIdentityCarrier for InputBoundaryTests {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
+}
+
 impl InputBoundaryTests {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new() -> InputBoundaryTests {
         InputBoundaryTests {
             state: rt::ObjectRef::new(InputBoundaryTestsState {}),
@@ -1317,7 +1317,6 @@ impl Default for InputBoundaryTests {
     }
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn run_input_boundary_tests() -> Result<(), rt::TsonicError> {
     let tests: InputBoundaryTests = InputBoundaryTests::new();
     crate::test_root::run_test(

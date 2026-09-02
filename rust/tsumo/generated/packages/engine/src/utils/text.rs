@@ -58,9 +58,8 @@ pub fn slugify(input: &str) -> Result<String, rt::TsonicError> {
                 && tsonic_rust_runtime::conversions::usize_to_i32(output.len())? > 0
                 && !wrote_dash
             {
-                output.push_many_discard([
-                    WORD_SEPARATOR_DASH.with(|module_binding| module_binding.load()),
-                ]);
+                output.push_many_discard([WORD_SEPARATOR_DASH
+                    .with(|module_binding| module_binding.load())]);
                 wrote_dash = true;
             }
             i += 1.0;
@@ -108,15 +107,13 @@ pub fn humanize_slug(slug: String) -> Result<String, rt::TsonicError> {
             }
             {
                 let operation_input_0 = words.clone();
-                operation_input_0.push_many_discard([
-                    format!(
-                        "{}{}",
-                        js_string::to_upper_case(
-                            &crate::utils::strings::substring_count(part.clone(), 0, 1)?,
-                        ),
-                        js_string::substring_from(&part, 1.0)?,
+                operation_input_0.push_many_discard([format!(
+                    "{}{}",
+                    js_string::to_upper_case(
+                        &crate::utils::strings::substring_count(part.clone(), 0, 1)?,
                     ),
-                ])
+                    js_string::substring_from(&part, 1.0)?,
+                )])
             };
             i += 1.0;
         }

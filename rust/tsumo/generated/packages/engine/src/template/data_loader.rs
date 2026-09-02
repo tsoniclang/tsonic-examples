@@ -7,7 +7,6 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct SelectedDataFileState {
     pub semantic_path: String,
     pub source_path: String,
@@ -18,6 +17,12 @@ pub struct SelectedDataFileState {
 pub struct SelectedDataFile {
     #[doc(hidden)]
     pub state: rt::ObjectRef<SelectedDataFileState>,
+}
+
+impl rt::ObjectIdentityCarrier for SelectedDataFile {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl SelectedDataFile {
@@ -181,12 +186,12 @@ pub fn set_data_path(
                     dispatch_receiver_2.dispatch.read_dict_value_value()
                 }
                 .set_discard(segment.clone(), {
-                    let upcast_value = created.clone();
-                    crate::template::values::base::TemplateValue {
-                        identity: upcast_value.identity.clone(),
-                        dispatch: upcast_value.dispatch.clone(),
-                    }
-                });
+                        let upcast_value = created.clone();
+                        crate::template::values::base::TemplateValue {
+                            identity: upcast_value.identity.clone(),
+                            dispatch: upcast_value.dispatch.clone(),
+                        }
+                    });
                 current = created.clone();
                 index += 1;
                 continue 'loop_value;

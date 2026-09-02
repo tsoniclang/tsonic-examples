@@ -28,12 +28,10 @@ pub fn create_page_index(
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let key: String = normalize_page_reference(
-                &{
-                    let dispatch_receiver = &page;
-                    dispatch_receiver.dispatch.read_page_context_rel_permalink()
-                },
-            )?;
+            let key: String = normalize_page_reference(&{
+                let dispatch_receiver = &page;
+                dispatch_receiver.dispatch.read_page_context_rel_permalink()
+            })?;
             if index.has(&key) {
                 return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
                     String::from("TSUMO_MENU_PAGE_IDENTITY_CONFLICT"),
@@ -82,12 +80,10 @@ pub fn resolve_menu_page_references(
             {
                 let page: Option<crate::models::page_context::PageContext> = {
                     let operation_input_0 = pages_by_route.clone();
-                    operation_input_0.get(&normalize_page_reference(
-                        &{
-                            let dispatch_receiver_2 = &entry;
-                            dispatch_receiver_2.dispatch.read_menu_entry_page_ref()
-                        },
-                    )?)
+                    operation_input_0.get(&normalize_page_reference(&{
+                        let dispatch_receiver_2 = &entry;
+                        dispatch_receiver_2.dispatch.read_menu_entry_page_ref()
+                    })?)
                 };
                 if page.is_none() {
                     let entry_identity: String = {
@@ -295,7 +291,7 @@ pub fn configure_site_menus(
                     let entries: js_abi::JsArray<crate::models::menu_entry::MenuEntry> =
                         rt::option_coalesce(
                             front_matter_by_menu.get(&menu_name),
-                            std::convert::identity,
+                            core::convert::identity,
                             || js_abi::JsArray::from_dense(vec![]),
                         );
                     entries.push_many_discard([entry.clone()]);

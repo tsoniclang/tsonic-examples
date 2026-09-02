@@ -5,7 +5,6 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct UrlSuffixSplitState {
     pub path: String,
     pub suffix: String,
@@ -15,6 +14,12 @@ pub struct UrlSuffixSplitState {
 pub struct UrlSuffixSplit {
     #[doc(hidden)]
     pub state: rt::ObjectRef<UrlSuffixSplitState>,
+}
+
+impl rt::ObjectIdentityCarrier for UrlSuffixSplit {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl UrlSuffixSplit {

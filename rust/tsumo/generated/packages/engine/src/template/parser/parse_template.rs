@@ -14,7 +14,6 @@ pub enum TemplateTerminator {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ParseNodesResultState {
     pub nodes: js_abi::JsArray<crate::template::nodes::TemplateNode>,
     pub terminator: TemplateTerminator,
@@ -27,6 +26,12 @@ pub struct ParseNodesResultState {
 pub struct ParseNodesResult {
     #[doc(hidden)]
     pub state: rt::ObjectRef<ParseNodesResultState>,
+}
+
+impl rt::ObjectIdentityCarrier for ParseNodesResult {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl ParseNodesResult {
@@ -56,7 +61,6 @@ impl ParseNodesResult {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ParsedControlPipelineState {
     pub pipeline: crate::template::syntax::expressions::Pipeline,
     pub binding: Option<crate::template::nodes::TemplateVariableBinding>,
@@ -66,6 +70,12 @@ pub struct ParsedControlPipelineState {
 pub struct ParsedControlPipeline {
     #[doc(hidden)]
     pub state: rt::ObjectRef<ParsedControlPipelineState>,
+}
+
+impl rt::ObjectIdentityCarrier for ParsedControlPipeline {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl ParsedControlPipeline {
@@ -183,7 +193,6 @@ impl TemplateParser {
         }
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_root(&mut self) -> Result<crate::template::template_2::Template, rt::TsonicError> {
         let result: ParseNodesResult = self.parse_nodes(
             false,
@@ -197,7 +206,6 @@ impl TemplateParser {
         ))
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_independent_nodes(
         &mut self,
         opening: crate::template::parser::tokens::TemplateSegment,
@@ -217,7 +225,6 @@ impl TemplateParser {
         Ok(result)
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_if(
         &mut self,
         control: ParsedControlPipeline,
@@ -253,7 +260,6 @@ impl TemplateParser {
         ))
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_with(
         &mut self,
         control: ParsedControlPipeline,
@@ -279,7 +285,6 @@ impl TemplateParser {
         ))
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_alternative(
         &mut self,
         result: ParseNodesResult,
@@ -294,7 +299,7 @@ impl TemplateParser {
         }
         let else_segment: crate::template::parser::tokens::TemplateSegment = rt::option_coalesce(
             result.state.with(|state| state.terminator_segment.clone()),
-            std::convert::identity,
+            core::convert::identity,
             || opening.clone(),
         );
         if tsonic_rust_runtime::conversions::usize_to_i32(tokens.len())? >= 2
@@ -348,7 +353,6 @@ impl TemplateParser {
         )))
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_nodes(
         &mut self,
         allow_else: bool,
@@ -545,7 +549,7 @@ impl TemplateParser {
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     )?,
-                    std::convert::identity,
+                    core::convert::identity,
                     || {
                         match tokens.get_number(1.0).as_ref() {
                             Some(flow_value_4) => flow_value_4.clone(),
@@ -600,7 +604,7 @@ impl TemplateParser {
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     )?,
-                    std::convert::identity,
+                    core::convert::identity,
                     || {
                         match tokens.get_number(1.0).as_ref() {
                             Some(flow_value_6) => flow_value_6.clone(),
@@ -849,7 +853,7 @@ impl TemplateParser {
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     )?,
-                    std::convert::identity,
+                    core::convert::identity,
                     || {
                         match tokens.get_number(1.0).as_ref() {
                             Some(flow_value_14) => flow_value_14.clone(),

@@ -5,11 +5,10 @@ use tsonic_rust_js::abi as js_abi;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait RenderScopeDispatch {
     fn downcast_render_scope_to_render_scope(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RenderScopeDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn RenderScopeDispatch + 'static>>;
     fn read_render_scope_root(&self) -> crate::template::values::base::TemplateValue;
     fn write_render_scope_root(&self, value: crate::template::values::base::TemplateValue);
     fn read_render_scope_dot(&self) -> crate::template::values::base::TemplateValue;
@@ -32,51 +31,50 @@ pub trait RenderScopeDispatch {
     fn read_render_scope_template_source_path(&self) -> Option<String>;
     fn write_render_scope_template_source_path(&self, value: Option<String>);
     fn dispatch_render_scope_get_var(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
     ) -> Option<crate::template::values::base::TemplateValue>;
     fn exact_render_scope_get_var(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
     ) -> Option<crate::template::values::base::TemplateValue>;
     fn dispatch_render_scope_declare_var(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
         value: crate::template::values::base::TemplateValue,
     );
     fn exact_render_scope_declare_var(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
         value: crate::template::values::base::TemplateValue,
     );
     fn dispatch_render_scope_assign_var(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
         value: crate::template::values::base::TemplateValue,
     );
     fn exact_render_scope_assign_var(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
         value: crate::template::values::base::TemplateValue,
     );
     fn dispatch_render_scope_get_paginator(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> Option<crate::template::values::pagination::PaginatorValue>;
     fn exact_render_scope_get_paginator(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> Option<crate::template::values::pagination::PaginatorValue>;
     fn dispatch_render_scope_select_paginator(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         paginator: crate::template::values::pagination::PaginatorValue,
     ) -> Result<crate::template::values::pagination::PaginatorValue, rt::TsonicError>;
     fn exact_render_scope_select_paginator(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         paginator: crate::template::values::pagination::PaginatorValue,
     ) -> Result<crate::template::values::pagination::PaginatorValue, rt::TsonicError>;
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct RenderScopeState {
     pub root: crate::template::values::base::TemplateValue,
     pub dot: crate::template::values::base::TemplateValue,
@@ -88,17 +86,16 @@ pub struct RenderScopeState {
     pub template_source_path: Option<String>,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct RenderScope {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn RenderScopeDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn RenderScopeDispatch + 'static>,
 }
 
-impl std::fmt::Debug for RenderScope {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for RenderScope {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("RenderScope")
     }
 }
@@ -111,7 +108,12 @@ impl PartialEq for RenderScope {
 
 impl Eq for RenderScope {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for RenderScope {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct RenderScopeRoot {
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<RenderScopeState>,
@@ -144,7 +146,7 @@ impl RenderScope {
                 Some,
                 || state,
             ),
-            std::convert::identity,
+            core::convert::identity,
             || RenderState::new(1),
         );
         if {
@@ -224,7 +226,7 @@ impl RenderScope {
             template_source_path,
         );
         let identity = rt::ObjectIdentity::new();
-        let root_2 = std::rc::Rc::new(RenderScopeRoot {
+        let root_2 = alloc::rc::Rc::new(RenderScopeRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state_2),
         });
@@ -237,7 +239,7 @@ impl RenderScope {
 
 impl RenderScopeRoot {
     fn exact_render_scope_assign_var(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
         value: crate::template::values::base::TemplateValue,
     ) {
@@ -276,7 +278,7 @@ impl RenderScopeRoot {
     }
 
     fn exact_render_scope_declare_var(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
         value: crate::template::values::base::TemplateValue,
     ) {
@@ -292,7 +294,7 @@ impl RenderScopeRoot {
     }
 
     fn exact_render_scope_get_paginator(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> Option<crate::template::values::pagination::PaginatorValue> {
         let project_this = RenderScope {
             identity: self.identity.clone(),
@@ -310,7 +312,7 @@ impl RenderScopeRoot {
     }
 
     fn exact_render_scope_get_var(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
     ) -> Option<crate::template::values::base::TemplateValue> {
         let project_this = RenderScope {
@@ -342,7 +344,7 @@ impl RenderScopeRoot {
     }
 
     fn exact_render_scope_select_paginator(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         paginator: crate::template::values::pagination::PaginatorValue,
     ) -> Result<crate::template::values::pagination::PaginatorValue, rt::TsonicError> {
         let project_this = RenderScope {
@@ -402,8 +404,8 @@ impl RenderScopeRoot {
 
 impl RenderScopeDispatch for RenderScopeRoot {
     fn downcast_render_scope_to_render_scope(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RenderScopeDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn RenderScopeDispatch + 'static>> {
         Some(self)
     }
 
@@ -478,21 +480,21 @@ impl RenderScopeDispatch for RenderScopeRoot {
     }
 
     fn dispatch_render_scope_get_var(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
     ) -> Option<crate::template::values::base::TemplateValue> {
         RenderScopeRoot::exact_render_scope_get_var(self, name)
     }
 
     fn exact_render_scope_get_var(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
     ) -> Option<crate::template::values::base::TemplateValue> {
         RenderScopeRoot::exact_render_scope_get_var(self, name)
     }
 
     fn dispatch_render_scope_declare_var(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
         value: crate::template::values::base::TemplateValue,
     ) {
@@ -500,7 +502,7 @@ impl RenderScopeDispatch for RenderScopeRoot {
     }
 
     fn exact_render_scope_declare_var(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
         value: crate::template::values::base::TemplateValue,
     ) {
@@ -508,7 +510,7 @@ impl RenderScopeDispatch for RenderScopeRoot {
     }
 
     fn dispatch_render_scope_assign_var(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
         value: crate::template::values::base::TemplateValue,
     ) {
@@ -516,7 +518,7 @@ impl RenderScopeDispatch for RenderScopeRoot {
     }
 
     fn exact_render_scope_assign_var(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
         value: crate::template::values::base::TemplateValue,
     ) {
@@ -524,26 +526,26 @@ impl RenderScopeDispatch for RenderScopeRoot {
     }
 
     fn dispatch_render_scope_get_paginator(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> Option<crate::template::values::pagination::PaginatorValue> {
         RenderScopeRoot::exact_render_scope_get_paginator(self)
     }
 
     fn exact_render_scope_get_paginator(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> Option<crate::template::values::pagination::PaginatorValue> {
         RenderScopeRoot::exact_render_scope_get_paginator(self)
     }
 
     fn dispatch_render_scope_select_paginator(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         paginator: crate::template::values::pagination::PaginatorValue,
     ) -> Result<crate::template::values::pagination::PaginatorValue, rt::TsonicError> {
         RenderScopeRoot::exact_render_scope_select_paginator(self, paginator)
     }
 
     fn exact_render_scope_select_paginator(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         paginator: crate::template::values::pagination::PaginatorValue,
     ) -> Result<crate::template::values::pagination::PaginatorValue, rt::TsonicError> {
         RenderScopeRoot::exact_render_scope_select_paginator(self, paginator)
@@ -551,11 +553,10 @@ impl RenderScopeDispatch for RenderScopeRoot {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait RenderStateDispatch {
     fn downcast_render_state_to_render_state(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RenderStateDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn RenderStateDispatch + 'static>>;
     fn read_render_state_pagination_page_number(&self) -> i32;
     fn write_render_state_pagination_page_number(&self, value: i32);
     fn read_render_state_selected_paginator(
@@ -573,24 +574,22 @@ pub trait RenderStateDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct RenderStateState {
     pub pagination_page_number: i32,
     pub selected_paginator: Option<crate::template::values::pagination::PaginatorValue>,
     pub current_page: Option<crate::models::page_context::PageContext>,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct RenderState {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn RenderStateDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn RenderStateDispatch + 'static>,
 }
 
-impl std::fmt::Debug for RenderState {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for RenderState {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("RenderState")
     }
 }
@@ -603,8 +602,14 @@ impl PartialEq for RenderState {
 
 impl Eq for RenderState {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for RenderState {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct RenderStateRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<RenderStateState>,
 }
@@ -631,7 +636,7 @@ impl RenderState {
     pub fn new(pagination_page_number: i32) -> RenderState {
         let state = RenderState::initialize_state(pagination_page_number);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(RenderStateRoot {
+        let root = alloc::rc::Rc::new(RenderStateRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -644,8 +649,8 @@ impl RenderState {
 
 impl RenderStateDispatch for RenderStateRoot {
     fn downcast_render_state_to_render_state(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn RenderStateDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn RenderStateDispatch + 'static>> {
         Some(self)
     }
 

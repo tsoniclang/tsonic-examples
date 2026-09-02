@@ -2,17 +2,20 @@
 
 use crate::program as rt;
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) struct TemplateFunctionSemanticsTestsState {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct TemplateFunctionSemanticsTests {
     pub(crate) state: rt::ObjectRef<TemplateFunctionSemanticsTestsState>,
 }
 
+impl rt::ObjectIdentityCarrier for TemplateFunctionSemanticsTests {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
+}
+
 impl TemplateFunctionSemanticsTests {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new() -> TemplateFunctionSemanticsTests {
         TemplateFunctionSemanticsTests {
             state: rt::ObjectRef::new(TemplateFunctionSemanticsTestsState {}),
@@ -320,7 +323,6 @@ impl Default for TemplateFunctionSemanticsTests {
     }
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn run_template_function_semantics_tests() -> Result<(), rt::TsonicError> {
     let tests: TemplateFunctionSemanticsTests = TemplateFunctionSemanticsTests::new();
     crate::test_root::run_test(

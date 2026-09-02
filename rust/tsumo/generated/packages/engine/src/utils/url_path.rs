@@ -10,17 +10,17 @@ pub fn combine_url_path(parts: js_abi::JsArray<String>) -> Result<String, rt::Ts
     let slash: String = String::from("/");
     let cleaned: js_abi::JsArray<String> = parts
         .try_map({
-        let capture_slash = slash.clone();
-        move |part| {
-            crate::utils::strings::trim_end_char(
-                crate::utils::strings::trim_start_char(
-                    &js_string::trim(&part),
+            let capture_slash = slash.clone();
+            move |part| {
+                crate::utils::strings::trim_end_char(
+                    crate::utils::strings::trim_start_char(
+                        &js_string::trim(&part),
+                        capture_slash.clone(),
+                    )?,
                     capture_slash.clone(),
-                )?,
-                capture_slash.clone(),
-            )
-        }
-    })?
+                )
+            }
+        })?
         .filter(|part| !part.is_empty());
     Ok(if tsonic_rust_runtime::conversions::usize_to_i32(cleaned.len())? == 0 {
         String::from("/")

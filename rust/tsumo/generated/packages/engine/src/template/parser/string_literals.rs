@@ -94,8 +94,7 @@ pub fn decode_interpreted_string(inner: String, quote: String) -> Result<String,
             index = crate::utils::strings::next_code_point_index(inner.clone(), index)?;
             continue 'loop_value;
         }
-        let escape_index: i32 =
-            crate::utils::strings::next_code_point_index(inner.clone(), index)?;
+        let escape_index: i32 = crate::utils::strings::next_code_point_index(inner.clone(), index)?;
         if escape_index
             >= tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&inner))?
         {

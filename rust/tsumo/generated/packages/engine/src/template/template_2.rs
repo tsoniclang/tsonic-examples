@@ -5,11 +5,10 @@ use tsonic_rust_js::abi as js_abi;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait TemplateDispatch {
     fn downcast_template_to_template(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateDispatch + 'static>>;
     fn read_template_nodes(&self) -> js_abi::JsArray<crate::template::nodes::TemplateNode>;
     fn write_template_nodes(&self, value: js_abi::JsArray<crate::template::nodes::TemplateNode>);
     fn read_template_defines(
@@ -22,15 +21,15 @@ pub trait TemplateDispatch {
     fn read_template_source_path(&self) -> Option<String>;
     fn write_template_source_path(&self, value: Option<String>);
     fn dispatch_template_with_inherited_definitions(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         inherited: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
     ) -> Result<Template, rt::TsonicError>;
     fn exact_template_with_inherited_definitions(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         inherited: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
     ) -> Result<Template, rt::TsonicError>;
     fn dispatch_template_render(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         root: crate::models::page_context::PageContext,
         env: crate::template::environment::TemplateEnvironment,
         overrides: Option<
@@ -39,7 +38,7 @@ pub trait TemplateDispatch {
         state: Option<crate::template::scope::RenderState>,
     ) -> Result<String, rt::TsonicError>;
     fn exact_template_render(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         root: crate::models::page_context::PageContext,
         env: crate::template::environment::TemplateEnvironment,
         overrides: Option<
@@ -48,28 +47,28 @@ pub trait TemplateDispatch {
         state: Option<crate::template::scope::RenderState>,
     ) -> Result<String, rt::TsonicError>;
     fn dispatch_template_render_into(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         sb: crate::utils::text_builder::TextBuilder,
         scope: crate::template::scope::RenderScope,
         env: crate::template::environment::TemplateEnvironment,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
     ) -> Result<(), rt::TsonicError>;
     fn exact_template_render_into(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         sb: crate::utils::text_builder::TextBuilder,
         scope: crate::template::scope::RenderScope,
         env: crate::template::environment::TemplateEnvironment,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
     ) -> Result<(), rt::TsonicError>;
     fn dispatch_template_render_text_into(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         sb: crate::utils::text_builder::TextBuilder,
         scope: crate::template::scope::RenderScope,
         env: crate::template::environment::TemplateEnvironment,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
     ) -> Result<(), rt::TsonicError>;
     fn exact_template_render_text_into(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         sb: crate::utils::text_builder::TextBuilder,
         scope: crate::template::scope::RenderScope,
         env: crate::template::environment::TemplateEnvironment,
@@ -78,24 +77,22 @@ pub trait TemplateDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct TemplateState {
     pub nodes: js_abi::JsArray<crate::template::nodes::TemplateNode>,
     pub defines: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
     pub source_path: Option<String>,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct Template {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn TemplateDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn TemplateDispatch + 'static>,
 }
 
-impl std::fmt::Debug for Template {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for Template {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("Template")
     }
 }
@@ -108,7 +105,12 @@ impl PartialEq for Template {
 
 impl Eq for Template {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for Template {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct TemplateRoot {
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<TemplateState>,
@@ -141,7 +143,7 @@ impl Template {
     ) -> Template {
         let state = Template::initialize_state(nodes, defines, source_path);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(TemplateRoot {
+        let root = alloc::rc::Rc::new(TemplateRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -154,7 +156,7 @@ impl Template {
 
 impl TemplateRoot {
     fn exact_template_render(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         root: crate::models::page_context::PageContext,
         env: crate::template::environment::TemplateEnvironment,
         overrides: Option<
@@ -198,7 +200,7 @@ impl TemplateRoot {
             },
         );
         let defs: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>> =
-            rt::option_coalesce(overrides, std::convert::identity, js_abi::JsMap::new);
+            rt::option_coalesce(overrides, core::convert::identity, js_abi::JsMap::new);
         {
             let dispatch_receiver_3 = project_this.clone();
             dispatch_receiver_3
@@ -216,7 +218,7 @@ impl TemplateRoot {
     }
 
     fn exact_template_render_into(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         sb: crate::utils::text_builder::TextBuilder,
         scope: crate::template::scope::RenderScope,
         env: crate::template::environment::TemplateEnvironment,
@@ -255,7 +257,7 @@ impl TemplateRoot {
     }
 
     fn exact_template_render_text_into(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         sb: crate::utils::text_builder::TextBuilder,
         scope: crate::template::scope::RenderScope,
         env: crate::template::environment::TemplateEnvironment,
@@ -294,7 +296,7 @@ impl TemplateRoot {
     }
 
     fn exact_template_with_inherited_definitions(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         inherited: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
     ) -> Result<Template, rt::TsonicError> {
         let project_this = Template {
@@ -401,8 +403,8 @@ impl TemplateRoot {
 
 impl TemplateDispatch for TemplateRoot {
     fn downcast_template_to_template(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateDispatch + 'static>> {
         Some(self)
     }
 
@@ -436,21 +438,21 @@ impl TemplateDispatch for TemplateRoot {
     }
 
     fn dispatch_template_with_inherited_definitions(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         inherited: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
     ) -> Result<Template, rt::TsonicError> {
         TemplateRoot::exact_template_with_inherited_definitions(self, inherited)
     }
 
     fn exact_template_with_inherited_definitions(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         inherited: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
     ) -> Result<Template, rt::TsonicError> {
         TemplateRoot::exact_template_with_inherited_definitions(self, inherited)
     }
 
     fn dispatch_template_render(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         root: crate::models::page_context::PageContext,
         env: crate::template::environment::TemplateEnvironment,
         overrides: Option<
@@ -462,7 +464,7 @@ impl TemplateDispatch for TemplateRoot {
     }
 
     fn exact_template_render(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         root: crate::models::page_context::PageContext,
         env: crate::template::environment::TemplateEnvironment,
         overrides: Option<
@@ -474,7 +476,7 @@ impl TemplateDispatch for TemplateRoot {
     }
 
     fn dispatch_template_render_into(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         sb: crate::utils::text_builder::TextBuilder,
         scope: crate::template::scope::RenderScope,
         env: crate::template::environment::TemplateEnvironment,
@@ -484,7 +486,7 @@ impl TemplateDispatch for TemplateRoot {
     }
 
     fn exact_template_render_into(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         sb: crate::utils::text_builder::TextBuilder,
         scope: crate::template::scope::RenderScope,
         env: crate::template::environment::TemplateEnvironment,
@@ -494,7 +496,7 @@ impl TemplateDispatch for TemplateRoot {
     }
 
     fn dispatch_template_render_text_into(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         sb: crate::utils::text_builder::TextBuilder,
         scope: crate::template::scope::RenderScope,
         env: crate::template::environment::TemplateEnvironment,
@@ -504,7 +506,7 @@ impl TemplateDispatch for TemplateRoot {
     }
 
     fn exact_template_render_text_into(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         sb: crate::utils::text_builder::TextBuilder,
         scope: crate::template::scope::RenderScope,
         env: crate::template::environment::TemplateEnvironment,

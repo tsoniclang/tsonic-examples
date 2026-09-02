@@ -7,16 +7,15 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait LayoutEnvironmentDispatch:
     crate::template::environment::TemplateEnvironmentDispatch
 {
     fn downcast_layout_environment_to_build_environment(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::env::BuildEnvironmentDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::env::BuildEnvironmentDispatch + 'static>>;
     fn downcast_layout_environment_to_layout_environment(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn LayoutEnvironmentDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn LayoutEnvironmentDispatch + 'static>>;
     fn read_layout_environment_site_layouts_dir(&self) -> String;
     fn write_layout_environment_site_layouts_dir(&self, value: String);
     fn read_layout_environment_theme_layouts_dir(&self) -> Option<String>;
@@ -60,13 +59,13 @@ pub trait LayoutEnvironmentDispatch:
     fn read_layout_environment_i18n_store(&self) -> crate::i18n::I18nStore;
     fn write_layout_environment_i18n_store(&self, value: crate::i18n::I18nStore);
     fn dispatch_layout_environment_get_resource_manager(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> Option<crate::resources::manager::ResourceManager>;
     fn exact_layout_environment_get_resource_manager(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> Option<crate::resources::manager::ResourceManager>;
     fn dispatch_layout_environment_render_text_template_source(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         source: String,
         context: crate::template::values::base::TemplateValue,
         site: crate::models::site_context::SiteContext,
@@ -74,7 +73,7 @@ pub trait LayoutEnvironmentDispatch:
         state: Option<crate::template::scope::RenderState>,
     ) -> Result<String, rt::TsonicError>;
     fn exact_layout_environment_render_text_template_source(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         source: String,
         context: crate::template::values::base::TemplateValue,
         site: crate::models::site_context::SiteContext,
@@ -82,7 +81,7 @@ pub trait LayoutEnvironmentDispatch:
         state: Option<crate::template::scope::RenderState>,
     ) -> Result<String, rt::TsonicError>;
     fn dispatch_layout_environment_render_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         template: crate::template::template_2::Template,
         context: crate::template::values::base::TemplateValue,
         site: crate::models::site_context::SiteContext,
@@ -90,7 +89,7 @@ pub trait LayoutEnvironmentDispatch:
         state: Option<crate::template::scope::RenderState>,
     ) -> Result<String, rt::TsonicError>;
     fn exact_layout_environment_render_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         template: crate::template::template_2::Template,
         context: crate::template::values::base::TemplateValue,
         site: crate::models::site_context::SiteContext,
@@ -98,7 +97,7 @@ pub trait LayoutEnvironmentDispatch:
         state: Option<crate::template::scope::RenderState>,
     ) -> Result<String, rt::TsonicError>;
     fn dispatch_layout_environment_render_text_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         template: crate::template::template_2::Template,
         context: crate::template::values::base::TemplateValue,
         site: crate::models::site_context::SiteContext,
@@ -106,7 +105,7 @@ pub trait LayoutEnvironmentDispatch:
         state: Option<crate::template::scope::RenderState>,
     ) -> Result<String, rt::TsonicError>;
     fn exact_layout_environment_render_text_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         template: crate::template::template_2::Template,
         context: crate::template::values::base::TemplateValue,
         site: crate::models::site_context::SiteContext,
@@ -115,7 +114,7 @@ pub trait LayoutEnvironmentDispatch:
     ) -> Result<String, rt::TsonicError>;
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     fn dispatch_layout_environment_render_template_definition(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         nodes: js_abi::JsArray<crate::template::nodes::TemplateNode>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         source_path: Option<String>,
@@ -126,7 +125,7 @@ pub trait LayoutEnvironmentDispatch:
     ) -> Result<String, rt::TsonicError>;
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     fn exact_layout_environment_render_template_definition(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         nodes: js_abi::JsArray<crate::template::nodes::TemplateNode>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         source_path: Option<String>,
@@ -136,57 +135,57 @@ pub trait LayoutEnvironmentDispatch:
         state: Option<crate::template::scope::RenderState>,
     ) -> Result<String, rt::TsonicError>;
     fn dispatch_layout_environment_get_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         rel_path_raw: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError>;
     fn exact_layout_environment_get_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         rel_path_raw: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError>;
     fn dispatch_layout_environment_get_template_source_relative_path(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         source_path: String,
     ) -> Result<Option<String>, rt::TsonicError>;
     fn exact_layout_environment_get_template_source_relative_path(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         source_path: String,
     ) -> Result<Option<String>, rt::TsonicError>;
     fn dispatch_layout_environment_render_page_view(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         page: crate::models::page_context::PageContext,
         view_raw: String,
         state: Option<crate::template::scope::RenderState>,
     ) -> Result<Option<String>, rt::TsonicError>;
     fn exact_layout_environment_render_page_view(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         page: crate::models::page_context::PageContext,
         view_raw: String,
         state: Option<crate::template::scope::RenderState>,
     ) -> Result<Option<String>, rt::TsonicError>;
     fn dispatch_layout_environment_get_shortcode_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError>;
     fn exact_layout_environment_get_shortcode_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError>;
     fn dispatch_layout_environment_get_render_hook_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         hook_name: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError>;
     fn exact_layout_environment_get_render_hook_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         hook_name: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError>;
     fn dispatch_layout_environment_get_i18n(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         lang: String,
         key: String,
         count: Option<i32>,
     ) -> Result<String, rt::TsonicError>;
     fn exact_layout_environment_get_i18n(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         lang: String,
         key: String,
         count: Option<i32>,
@@ -194,7 +193,6 @@ pub trait LayoutEnvironmentDispatch:
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct LayoutEnvironmentState {
     #[doc(hidden)]
     pub base: crate::template::environment::TemplateEnvironmentState,
@@ -211,17 +209,16 @@ pub struct LayoutEnvironmentState {
     pub i18n_store: crate::i18n::I18nStore,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct LayoutEnvironment {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn LayoutEnvironmentDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn LayoutEnvironmentDispatch + 'static>,
 }
 
-impl std::fmt::Debug for LayoutEnvironment {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for LayoutEnvironment {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("LayoutEnvironment")
     }
 }
@@ -234,7 +231,12 @@ impl PartialEq for LayoutEnvironment {
 
 impl Eq for LayoutEnvironment {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for LayoutEnvironment {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct LayoutEnvironmentRoot {
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<LayoutEnvironmentState>,
@@ -258,15 +260,13 @@ impl LayoutEnvironment {
         let field_site_layouts_dir: String =
             tsonic_rust_node::path::join(&[site_dir.as_str(), "layouts"]);
         let field_theme_layouts_dir: Option<String> = if theme_dir.is_some() {
-            Some(tsonic_rust_node::path::join(
-                &[
-                    (match theme_dir.as_ref() {
+            Some(tsonic_rust_node::path::join(&[
+                (match theme_dir.as_ref() {
     Some(flow_value) => flow_value.clone(),
     None => unreachable!("checked flow selected a missing optional value"),
 }).as_str(),
-                    "layouts",
-                ],
-            ))
+                "layouts",
+            ]))
         } else {
             Option::<String>::None
         };
@@ -373,9 +373,10 @@ impl LayoutEnvironment {
             dispatch_receiver_7
                 .dispatch
                 .clone()
-                .dispatch_i18n_store_load_from_dir(tsonic_rust_node::path::join(
-                    &[site_dir.as_str(), "i18n"],
-                ))
+                .dispatch_i18n_store_load_from_dir(tsonic_rust_node::path::join(&[
+                    site_dir.as_str(),
+                    "i18n",
+                ]))
         }?;
         if mounts.is_some() {
             {
@@ -461,7 +462,7 @@ impl LayoutEnvironment {
             site_data,
         )?;
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(LayoutEnvironmentRoot {
+        let root = alloc::rc::Rc::new(LayoutEnvironmentRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -474,7 +475,7 @@ impl LayoutEnvironment {
 
 impl LayoutEnvironmentRoot {
     fn exact_layout_environment_get_i18n(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         lang: String,
         key: String,
         count: Option<i32>,
@@ -498,7 +499,7 @@ impl LayoutEnvironmentRoot {
     }
 
     fn exact_layout_environment_get_render_hook_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         hook_name: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         let project_this = LayoutEnvironment {
@@ -603,24 +604,20 @@ impl LayoutEnvironmentRoot {
                 };
                 {
                     let operation_input_0_3 = candidates.clone();
-                    operation_input_0_3.push_many_discard([
-                        tsonic_rust_node::path::join(&[
-                            dir.as_str(),
-                            "_markup",
-                            format!("{}{}", hook_name, String::from(".html")).as_str(),
-                        ]),
-                    ])
+                    operation_input_0_3.push_many_discard([tsonic_rust_node::path::join(&[
+                        dir.as_str(),
+                        "_markup",
+                        format!("{}{}", hook_name, String::from(".html")).as_str(),
+                    ])])
                 };
                 {
                     let operation_input_0_4 = candidates.clone();
-                    operation_input_0_4.push_many_discard([
-                        tsonic_rust_node::path::join(&[
-                            dir.as_str(),
-                            "_default",
-                            "_markup",
-                            format!("{}{}", hook_name, String::from(".html")).as_str(),
-                        ]),
-                    ])
+                    operation_input_0_4.push_many_discard([tsonic_rust_node::path::join(&[
+                        dir.as_str(),
+                        "_default",
+                        "_markup",
+                        format!("{}{}", hook_name, String::from(".html")).as_str(),
+                    ])])
                 };
                 i += 1.0;
             }
@@ -672,13 +669,13 @@ impl LayoutEnvironmentRoot {
     }
 
     fn exact_layout_environment_get_resource_manager(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> Option<crate::resources::manager::ResourceManager> {
         Option::<crate::resources::manager::ResourceManager>::None
     }
 
     fn exact_layout_environment_get_shortcode_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         let project_this = LayoutEnvironment {
@@ -781,23 +778,19 @@ impl LayoutEnvironmentRoot {
                 };
                 {
                     let operation_input_0_3 = candidates.clone();
-                    operation_input_0_3.push_many_discard([
-                        tsonic_rust_node::path::join(&[
-                            dir.as_str(),
-                            "shortcodes",
-                            format!("{}{}", name, String::from(".html")).as_str(),
-                        ]),
-                    ])
+                    operation_input_0_3.push_many_discard([tsonic_rust_node::path::join(&[
+                        dir.as_str(),
+                        "shortcodes",
+                        format!("{}{}", name, String::from(".html")).as_str(),
+                    ])])
                 };
                 {
                     let operation_input_0_4 = candidates.clone();
-                    operation_input_0_4.push_many_discard([
-                        tsonic_rust_node::path::join(&[
-                            dir.as_str(),
-                            "_shortcodes",
-                            format!("{}{}", name, String::from(".html")).as_str(),
-                        ]),
-                    ])
+                    operation_input_0_4.push_many_discard([tsonic_rust_node::path::join(&[
+                        dir.as_str(),
+                        "_shortcodes",
+                        format!("{}{}", name, String::from(".html")).as_str(),
+                    ])])
                 };
                 i += 1.0;
             }
@@ -849,7 +842,7 @@ impl LayoutEnvironmentRoot {
     }
 
     fn exact_layout_environment_get_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         rel_path_raw: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         let project_this = LayoutEnvironment {
@@ -1084,12 +1077,10 @@ impl LayoutEnvironmentRoot {
             let embedded_key: String = format!(
                 "{}{}",
                 String::from("embedded:"),
-                js_string::to_lower_case(
-                    &match embedded_path.as_ref() {
-                        Some(flow_value_11) => flow_value_11.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                ),
+                js_string::to_lower_case(&match embedded_path.as_ref() {
+                    Some(flow_value_11) => flow_value_11.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }),
             );
             let embedded_cached: Option<crate::template::template_2::Template> = {
                 let dispatch_receiver_8 = &project_this;
@@ -1106,9 +1097,9 @@ impl LayoutEnvironmentRoot {
                         .read_layout_environment_template_by_logical_path()
                 }
                 .set_discard(rel_path.clone(), match embedded_cached.as_ref() {
-                    Some(flow_value_12) => flow_value_12.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                });
+                        Some(flow_value_12) => flow_value_12.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    });
                 return Ok(Some(match embedded_cached.as_ref() {
                     Some(flow_value_13) => flow_value_13.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
@@ -1145,9 +1136,9 @@ impl LayoutEnvironmentRoot {
                 .read_layout_environment_parsed_template_by_source()
         }
         .get(&match resolved.as_ref() {
-            Some(flow_value_15) => flow_value_15.clone(),
-            None => unreachable!("checked flow selected a missing optional value"),
-        });
+                Some(flow_value_15) => flow_value_15.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            });
         if cached.is_some() {
             {
                 let dispatch_receiver_13 = &project_this;
@@ -1156,9 +1147,9 @@ impl LayoutEnvironmentRoot {
                     .read_layout_environment_template_by_logical_path()
             }
             .set_discard(rel_path.clone(), match cached.as_ref() {
-                Some(flow_value_16) => flow_value_16.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            });
+                    Some(flow_value_16) => flow_value_16.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                });
             return Ok(Some(match cached.as_ref() {
                 Some(flow_value_17) => flow_value_17.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
@@ -1200,7 +1191,7 @@ impl LayoutEnvironmentRoot {
     }
 
     fn exact_layout_environment_get_template_source_relative_path(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         source_path: String,
     ) -> Result<Option<String>, rt::TsonicError> {
         let project_this = LayoutEnvironment {
@@ -1275,7 +1266,7 @@ impl LayoutEnvironmentRoot {
     }
 
     fn exact_layout_environment_render_page_view(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         page: crate::models::page_context::PageContext,
         view_raw: String,
         state: Option<crate::template::scope::RenderState>,
@@ -1385,7 +1376,7 @@ impl LayoutEnvironmentRoot {
     }
 
     fn exact_layout_environment_render_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         template: crate::template::template_2::Template,
         context: crate::template::values::base::TemplateValue,
         site: crate::models::site_context::SiteContext,
@@ -1442,7 +1433,7 @@ impl LayoutEnvironmentRoot {
 
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     fn exact_layout_environment_render_template_definition(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         nodes: js_abi::JsArray<crate::template::nodes::TemplateNode>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         source_path: Option<String>,
@@ -1471,7 +1462,7 @@ impl LayoutEnvironmentRoot {
     }
 
     fn exact_layout_environment_render_text_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         template: crate::template::template_2::Template,
         context: crate::template::values::base::TemplateValue,
         site: crate::models::site_context::SiteContext,
@@ -1527,7 +1518,7 @@ impl LayoutEnvironmentRoot {
     }
 
     fn exact_layout_environment_render_text_template_source(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         source: String,
         context: crate::template::values::base::TemplateValue,
         site: crate::models::site_context::SiteContext,
@@ -1554,7 +1545,7 @@ impl LayoutEnvironmentRoot {
     }
 
     fn exact_template_environment_finalize_deferred_templates(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> Result<js_abi::JsMap<String, String>, rt::TsonicError> {
         let project_this = crate::template::environment::TemplateEnvironment {
             identity: self.identity.clone(),
@@ -1691,14 +1682,14 @@ impl LayoutEnvironmentRoot {
     }
 
     fn exact_template_environment_get_environment_variable(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _name: String,
     ) -> Option<String> {
         Option::<String>::None
     }
 
     fn exact_template_environment_get_global_store(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> crate::template::values::scratch::ScratchStore {
         let project_this = crate::template::environment::TemplateEnvironment {
             identity: self.identity.clone(),
@@ -1713,7 +1704,7 @@ impl LayoutEnvironmentRoot {
     }
 
     fn exact_template_environment_get_i18n(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _lang: String,
         _key: String,
         _count: Option<i32>,
@@ -1722,27 +1713,27 @@ impl LayoutEnvironmentRoot {
     }
 
     fn exact_template_environment_get_render_hook_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _hook_name: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         Ok(Option::<crate::template::template_2::Template>::None)
     }
 
     fn exact_template_environment_get_resource_manager(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> Option<crate::resources::manager::ResourceManager> {
         Option::<crate::resources::manager::ResourceManager>::None
     }
 
     fn exact_template_environment_get_shortcode_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _name: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         Ok(Option::<crate::template::template_2::Template>::None)
     }
 
     fn exact_template_environment_get_site_data(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> crate::template::values::dict::DictValue {
         let project_this = crate::template::environment::TemplateEnvironment {
             identity: self.identity.clone(),
@@ -1757,7 +1748,7 @@ impl LayoutEnvironmentRoot {
     }
 
     fn exact_template_environment_get_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _rel_path: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
@@ -1770,7 +1761,7 @@ impl LayoutEnvironmentRoot {
     }
 
     fn exact_template_environment_get_template_source_relative_path(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _source_path: String,
     ) -> Result<Option<String>, rt::TsonicError> {
         Ok(Option::<String>::None)
@@ -1778,7 +1769,7 @@ impl LayoutEnvironmentRoot {
 
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     fn exact_template_environment_register_deferred_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         value: crate::template::values::deferred::DeferredTemplateValue,
         body: js_abi::JsArray<crate::template::nodes::TemplateNode>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
@@ -1909,7 +1900,7 @@ impl LayoutEnvironmentRoot {
     }
 
     fn exact_template_environment_render_page_view(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _page: crate::models::page_context::PageContext,
         _view: String,
         _state: Option<crate::template::scope::RenderState>,
@@ -1918,7 +1909,7 @@ impl LayoutEnvironmentRoot {
     }
 
     fn exact_template_environment_render_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _template: crate::template::template_2::Template,
         _context: crate::template::values::base::TemplateValue,
         _site: crate::models::site_context::SiteContext,
@@ -1936,7 +1927,7 @@ impl LayoutEnvironmentRoot {
 
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     fn exact_template_environment_render_template_definition(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _nodes: js_abi::JsArray<crate::template::nodes::TemplateNode>,
         _definitions: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _source_path: Option<String>,
@@ -1955,7 +1946,7 @@ impl LayoutEnvironmentRoot {
     }
 
     fn exact_template_environment_render_text_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _template: crate::template::template_2::Template,
         _context: crate::template::values::base::TemplateValue,
         _site: crate::models::site_context::SiteContext,
@@ -1972,7 +1963,7 @@ impl LayoutEnvironmentRoot {
     }
 
     fn exact_template_environment_render_text_template_source(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _source: String,
         _context: crate::template::values::base::TemplateValue,
         _site: crate::models::site_context::SiteContext,
@@ -1989,7 +1980,7 @@ impl LayoutEnvironmentRoot {
     }
 
     fn exact_template_environment_resolve_partial_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
         caller_source_path: Option<String>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
@@ -2072,7 +2063,7 @@ impl LayoutEnvironmentRoot {
     }
 
     fn exact_template_environment_set_site_data(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         value: crate::template::values::dict::DictValue,
     ) {
         let project_this = crate::template::environment::TemplateEnvironment {
@@ -2092,7 +2083,7 @@ impl LayoutEnvironmentRoot {
     }
 
     fn exact_template_environment_source_file_exists(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _path: String,
     ) -> Result<bool, rt::TsonicError> {
         Ok(false)
@@ -2101,21 +2092,21 @@ impl LayoutEnvironmentRoot {
 
 impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnvironmentRoot {
     fn downcast_template_environment_to_build_environment(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::env::BuildEnvironmentDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::env::BuildEnvironmentDispatch + 'static>> {
         None
     }
 
     fn downcast_template_environment_to_layout_environment(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn LayoutEnvironmentDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn LayoutEnvironmentDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_template_environment_to_template_environment(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> Option<
-        std::rc::Rc<dyn crate::template::environment::TemplateEnvironmentDispatch + 'static>,
+        alloc::rc::Rc<dyn crate::template::environment::TemplateEnvironmentDispatch + 'static>,
     > {
         Some(self)
     }
@@ -2201,7 +2192,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     }
 
     fn dispatch_template_environment_register_deferred_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         value: crate::template::values::deferred::DeferredTemplateValue,
         body: js_abi::JsArray<crate::template::nodes::TemplateNode>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
@@ -2227,7 +2218,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     }
 
     fn exact_template_environment_register_deferred_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         value: crate::template::values::deferred::DeferredTemplateValue,
         body: js_abi::JsArray<crate::template::nodes::TemplateNode>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
@@ -2253,99 +2244,99 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     }
 
     fn dispatch_template_environment_finalize_deferred_templates(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> Result<js_abi::JsMap<String, String>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_finalize_deferred_templates(self)
     }
 
     fn exact_template_environment_finalize_deferred_templates(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> Result<js_abi::JsMap<String, String>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_finalize_deferred_templates(self)
     }
 
     fn dispatch_template_environment_get_environment_variable(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _name: String,
     ) -> Option<String> {
         LayoutEnvironmentRoot::exact_template_environment_get_environment_variable(self, _name)
     }
 
     fn exact_template_environment_get_environment_variable(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _name: String,
     ) -> Option<String> {
         LayoutEnvironmentRoot::exact_template_environment_get_environment_variable(self, _name)
     }
 
     fn dispatch_template_environment_set_site_data(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         value: crate::template::values::dict::DictValue,
     ) {
         LayoutEnvironmentRoot::exact_template_environment_set_site_data(self, value)
     }
 
     fn exact_template_environment_set_site_data(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         value: crate::template::values::dict::DictValue,
     ) {
         LayoutEnvironmentRoot::exact_template_environment_set_site_data(self, value)
     }
 
     fn dispatch_template_environment_get_site_data(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> crate::template::values::dict::DictValue {
         LayoutEnvironmentRoot::exact_template_environment_get_site_data(self)
     }
 
     fn exact_template_environment_get_site_data(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> crate::template::values::dict::DictValue {
         LayoutEnvironmentRoot::exact_template_environment_get_site_data(self)
     }
 
     fn dispatch_template_environment_get_global_store(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> crate::template::values::scratch::ScratchStore {
         LayoutEnvironmentRoot::exact_template_environment_get_global_store(self)
     }
 
     fn exact_template_environment_get_global_store(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> crate::template::values::scratch::ScratchStore {
         LayoutEnvironmentRoot::exact_template_environment_get_global_store(self)
     }
 
     fn dispatch_template_environment_source_file_exists(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _path: String,
     ) -> Result<bool, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_source_file_exists(self, _path)
     }
 
     fn exact_template_environment_source_file_exists(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _path: String,
     ) -> Result<bool, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_source_file_exists(self, _path)
     }
 
     fn dispatch_template_environment_get_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         rel_path_raw: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_template(self, rel_path_raw)
     }
 
     fn exact_template_environment_get_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _rel_path: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_get_template(self, _rel_path)
     }
 
     fn dispatch_template_environment_get_template_source_relative_path(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         source_path: String,
     ) -> Result<Option<String>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_template_source_relative_path(
@@ -2355,7 +2346,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     }
 
     fn exact_template_environment_get_template_source_relative_path(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _source_path: String,
     ) -> Result<Option<String>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_get_template_source_relative_path(
@@ -2365,7 +2356,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     }
 
     fn dispatch_template_environment_resolve_partial_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
         caller_source_path: Option<String>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
@@ -2379,7 +2370,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     }
 
     fn exact_template_environment_resolve_partial_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
         caller_source_path: Option<String>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
@@ -2393,7 +2384,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     }
 
     fn dispatch_template_environment_render_page_view(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         page: crate::models::page_context::PageContext,
         view_raw: String,
         state: Option<crate::template::scope::RenderState>,
@@ -2407,7 +2398,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     }
 
     fn exact_template_environment_render_page_view(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _page: crate::models::page_context::PageContext,
         _view: String,
         _state: Option<crate::template::scope::RenderState>,
@@ -2421,47 +2412,47 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     }
 
     fn dispatch_template_environment_get_shortcode_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_shortcode_template(self, name)
     }
 
     fn exact_template_environment_get_shortcode_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _name: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_get_shortcode_template(self, _name)
     }
 
     fn dispatch_template_environment_get_render_hook_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         hook_name: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_render_hook_template(self, hook_name)
     }
 
     fn exact_template_environment_get_render_hook_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _hook_name: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_template_environment_get_render_hook_template(self, _hook_name)
     }
 
     fn dispatch_template_environment_get_resource_manager(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> Option<crate::resources::manager::ResourceManager> {
         LayoutEnvironmentRoot::exact_layout_environment_get_resource_manager(self)
     }
 
     fn exact_template_environment_get_resource_manager(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> Option<crate::resources::manager::ResourceManager> {
         LayoutEnvironmentRoot::exact_template_environment_get_resource_manager(self)
     }
 
     fn dispatch_template_environment_render_text_template_source(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         source: String,
         context: crate::template::values::base::TemplateValue,
         site: crate::models::site_context::SiteContext,
@@ -2479,7 +2470,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     }
 
     fn exact_template_environment_render_text_template_source(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _source: String,
         _context: crate::template::values::base::TemplateValue,
         _site: crate::models::site_context::SiteContext,
@@ -2497,7 +2488,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     }
 
     fn dispatch_template_environment_render_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         template: crate::template::template_2::Template,
         context: crate::template::values::base::TemplateValue,
         site: crate::models::site_context::SiteContext,
@@ -2515,7 +2506,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     }
 
     fn exact_template_environment_render_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _template: crate::template::template_2::Template,
         _context: crate::template::values::base::TemplateValue,
         _site: crate::models::site_context::SiteContext,
@@ -2533,7 +2524,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     }
 
     fn dispatch_template_environment_render_text_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         template: crate::template::template_2::Template,
         context: crate::template::values::base::TemplateValue,
         site: crate::models::site_context::SiteContext,
@@ -2551,7 +2542,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     }
 
     fn exact_template_environment_render_text_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _template: crate::template::template_2::Template,
         _context: crate::template::values::base::TemplateValue,
         _site: crate::models::site_context::SiteContext,
@@ -2569,7 +2560,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     }
 
     fn dispatch_template_environment_render_template_definition(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         nodes: js_abi::JsArray<crate::template::nodes::TemplateNode>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         source_path: Option<String>,
@@ -2591,7 +2582,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     }
 
     fn exact_template_environment_render_template_definition(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _nodes: js_abi::JsArray<crate::template::nodes::TemplateNode>,
         _definitions: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         _source_path: Option<String>,
@@ -2613,7 +2604,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     }
 
     fn dispatch_template_environment_get_i18n(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         lang: String,
         key: String,
         count: Option<i32>,
@@ -2622,7 +2613,7 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
     }
 
     fn exact_template_environment_get_i18n(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         _lang: String,
         _key: String,
         _count: Option<i32>,
@@ -2633,14 +2624,14 @@ impl crate::template::environment::TemplateEnvironmentDispatch for LayoutEnviron
 
 impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
     fn downcast_layout_environment_to_build_environment(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn crate::env::BuildEnvironmentDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::env::BuildEnvironmentDispatch + 'static>> {
         None
     }
 
     fn downcast_layout_environment_to_layout_environment(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn LayoutEnvironmentDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn LayoutEnvironmentDispatch + 'static>> {
         Some(self)
     }
 
@@ -2771,19 +2762,19 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
     }
 
     fn dispatch_layout_environment_get_resource_manager(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> Option<crate::resources::manager::ResourceManager> {
         LayoutEnvironmentRoot::exact_layout_environment_get_resource_manager(self)
     }
 
     fn exact_layout_environment_get_resource_manager(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
     ) -> Option<crate::resources::manager::ResourceManager> {
         LayoutEnvironmentRoot::exact_layout_environment_get_resource_manager(self)
     }
 
     fn dispatch_layout_environment_render_text_template_source(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         source: String,
         context: crate::template::values::base::TemplateValue,
         site: crate::models::site_context::SiteContext,
@@ -2801,7 +2792,7 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
     }
 
     fn exact_layout_environment_render_text_template_source(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         source: String,
         context: crate::template::values::base::TemplateValue,
         site: crate::models::site_context::SiteContext,
@@ -2819,7 +2810,7 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
     }
 
     fn dispatch_layout_environment_render_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         template: crate::template::template_2::Template,
         context: crate::template::values::base::TemplateValue,
         site: crate::models::site_context::SiteContext,
@@ -2837,7 +2828,7 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
     }
 
     fn exact_layout_environment_render_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         template: crate::template::template_2::Template,
         context: crate::template::values::base::TemplateValue,
         site: crate::models::site_context::SiteContext,
@@ -2855,7 +2846,7 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
     }
 
     fn dispatch_layout_environment_render_text_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         template: crate::template::template_2::Template,
         context: crate::template::values::base::TemplateValue,
         site: crate::models::site_context::SiteContext,
@@ -2873,7 +2864,7 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
     }
 
     fn exact_layout_environment_render_text_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         template: crate::template::template_2::Template,
         context: crate::template::values::base::TemplateValue,
         site: crate::models::site_context::SiteContext,
@@ -2891,7 +2882,7 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
     }
 
     fn dispatch_layout_environment_render_template_definition(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         nodes: js_abi::JsArray<crate::template::nodes::TemplateNode>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         source_path: Option<String>,
@@ -2913,7 +2904,7 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
     }
 
     fn exact_layout_environment_render_template_definition(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         nodes: js_abi::JsArray<crate::template::nodes::TemplateNode>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         source_path: Option<String>,
@@ -2935,21 +2926,21 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
     }
 
     fn dispatch_layout_environment_get_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         rel_path_raw: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_template(self, rel_path_raw)
     }
 
     fn exact_layout_environment_get_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         rel_path_raw: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_template(self, rel_path_raw)
     }
 
     fn dispatch_layout_environment_get_template_source_relative_path(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         source_path: String,
     ) -> Result<Option<String>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_template_source_relative_path(
@@ -2959,7 +2950,7 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
     }
 
     fn exact_layout_environment_get_template_source_relative_path(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         source_path: String,
     ) -> Result<Option<String>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_template_source_relative_path(
@@ -2969,7 +2960,7 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
     }
 
     fn dispatch_layout_environment_render_page_view(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         page: crate::models::page_context::PageContext,
         view_raw: String,
         state: Option<crate::template::scope::RenderState>,
@@ -2983,7 +2974,7 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
     }
 
     fn exact_layout_environment_render_page_view(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         page: crate::models::page_context::PageContext,
         view_raw: String,
         state: Option<crate::template::scope::RenderState>,
@@ -2997,35 +2988,35 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
     }
 
     fn dispatch_layout_environment_get_shortcode_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_shortcode_template(self, name)
     }
 
     fn exact_layout_environment_get_shortcode_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_shortcode_template(self, name)
     }
 
     fn dispatch_layout_environment_get_render_hook_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         hook_name: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_render_hook_template(self, hook_name)
     }
 
     fn exact_layout_environment_get_render_hook_template(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         hook_name: String,
     ) -> Result<Option<crate::template::template_2::Template>, rt::TsonicError> {
         LayoutEnvironmentRoot::exact_layout_environment_get_render_hook_template(self, hook_name)
     }
 
     fn dispatch_layout_environment_get_i18n(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         lang: String,
         key: String,
         count: Option<i32>,
@@ -3034,7 +3025,7 @@ impl LayoutEnvironmentDispatch for LayoutEnvironmentRoot {
     }
 
     fn exact_layout_environment_get_i18n(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         lang: String,
         key: String,
         count: Option<i32>,

@@ -15,7 +15,6 @@ pub enum AssetLayer {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct OutputClaimState {
     pub relative_path: String,
     pub owner: String,
@@ -26,6 +25,12 @@ pub struct OutputClaimState {
 pub struct OutputClaim {
     #[doc(hidden)]
     pub state: rt::ObjectRef<OutputClaimState>,
+}
+
+impl rt::ObjectIdentityCarrier for OutputClaim {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl OutputClaim {
@@ -48,7 +53,6 @@ impl OutputClaim {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct FileSiteOutputState {
     pub source_path: String,
 }
@@ -57,6 +61,12 @@ pub struct FileSiteOutputState {
 pub struct FileSiteOutput {
     #[doc(hidden)]
     pub state: rt::ObjectRef<FileSiteOutputState>,
+}
+
+impl rt::ObjectIdentityCarrier for FileSiteOutput {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl FileSiteOutput {
@@ -163,11 +173,10 @@ pub fn resolve_output_path(
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait SiteOutputPlanDispatch {
     fn downcast_site_output_plan_to_site_output_plan(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn SiteOutputPlanDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn SiteOutputPlanDispatch + 'static>>;
     fn read_site_output_plan_claims_by_path(&self) -> js_abi::JsMap<String, OutputClaim>;
     fn write_site_output_plan_claims_by_path(&self, value: js_abi::JsMap<String, OutputClaim>);
     fn read_site_output_plan_text_by_path(&self) -> js_abi::JsMap<String, String>;
@@ -175,83 +184,83 @@ pub trait SiteOutputPlanDispatch {
     fn read_site_output_plan_files_by_path(&self) -> js_abi::JsMap<String, FileSiteOutput>;
     fn write_site_output_plan_files_by_path(&self, value: js_abi::JsMap<String, FileSiteOutput>);
     fn dispatch_site_output_plan_add_text(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
         content: String,
         owner: String,
     ) -> Result<(), rt::TsonicError>;
     fn exact_site_output_plan_add_text(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
         content: String,
         owner: String,
     ) -> Result<(), rt::TsonicError>;
     fn dispatch_site_output_plan_add_default_text(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
         content: String,
         owner: String,
     ) -> Result<(), rt::TsonicError>;
     fn exact_site_output_plan_add_default_text(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
         content: String,
         owner: String,
     ) -> Result<(), rt::TsonicError>;
     fn dispatch_site_output_plan_add_asset(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
         source_path: String,
         owner: String,
         layer: AssetLayer,
     ) -> Result<(), rt::TsonicError>;
     fn exact_site_output_plan_add_asset(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
         source_path: String,
         owner: String,
         layer: AssetLayer,
     ) -> Result<(), rt::TsonicError>;
     fn dispatch_site_output_plan_add_directory(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         source_root: String,
         output_prefix: String,
         owner: String,
         layer: AssetLayer,
     ) -> Result<(), rt::TsonicError>;
     fn exact_site_output_plan_add_directory(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         source_root: String,
         output_prefix: String,
         owner: String,
         layer: AssetLayer,
     ) -> Result<(), rt::TsonicError>;
-    fn dispatch_site_output_plan_generated_output_count(self: std::rc::Rc<Self>) -> i32;
-    fn exact_site_output_plan_generated_output_count(self: std::rc::Rc<Self>) -> i32;
+    fn dispatch_site_output_plan_generated_output_count(self: alloc::rc::Rc<Self>) -> i32;
+    fn exact_site_output_plan_generated_output_count(self: alloc::rc::Rc<Self>) -> i32;
     fn dispatch_site_output_plan_apply_deferred_template_results(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         results: js_abi::JsMap<String, String>,
     ) -> Result<(), rt::TsonicError>;
     fn exact_site_output_plan_apply_deferred_template_results(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         results: js_abi::JsMap<String, String>,
     ) -> Result<(), rt::TsonicError>;
     fn dispatch_site_output_plan_render(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         output_root: String,
     ) -> Result<(), rt::TsonicError>;
     fn exact_site_output_plan_render(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         output_root: String,
     ) -> Result<(), rt::TsonicError>;
     fn dispatch_site_output_plan_throw_conflict(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
         owner: String,
         previous: OutputClaim,
     ) -> Result<(), rt::TsonicError>;
     fn exact_site_output_plan_throw_conflict(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
         owner: String,
         previous: OutputClaim,
@@ -259,24 +268,22 @@ pub trait SiteOutputPlanDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct SiteOutputPlanState {
     pub claims_by_path: js_abi::JsMap<String, OutputClaim>,
     pub text_by_path: js_abi::JsMap<String, String>,
     pub files_by_path: js_abi::JsMap<String, FileSiteOutput>,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct SiteOutputPlan {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn SiteOutputPlanDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn SiteOutputPlanDispatch + 'static>,
 }
 
-impl std::fmt::Debug for SiteOutputPlan {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for SiteOutputPlan {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("SiteOutputPlan")
     }
 }
@@ -289,7 +296,12 @@ impl PartialEq for SiteOutputPlan {
 
 impl Eq for SiteOutputPlan {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for SiteOutputPlan {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct SiteOutputPlanRoot {
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<SiteOutputPlanState>,
@@ -311,7 +323,7 @@ impl SiteOutputPlan {
     pub fn new() -> SiteOutputPlan {
         let state = SiteOutputPlan::initialize_state();
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(SiteOutputPlanRoot {
+        let root = alloc::rc::Rc::new(SiteOutputPlanRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -330,7 +342,7 @@ impl Default for SiteOutputPlan {
 
 impl SiteOutputPlanRoot {
     fn exact_site_output_plan_add_asset(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
         source_path: String,
         owner: String,
@@ -424,7 +436,7 @@ impl SiteOutputPlanRoot {
     }
 
     fn exact_site_output_plan_add_default_text(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
         content: String,
         owner: String,
@@ -491,7 +503,7 @@ impl SiteOutputPlanRoot {
     }
 
     fn exact_site_output_plan_add_directory(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         source_root: String,
         output_prefix: String,
         owner: String,
@@ -533,7 +545,7 @@ impl SiteOutputPlanRoot {
     }
 
     fn exact_site_output_plan_add_text(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
         content: String,
         owner: String,
@@ -594,7 +606,7 @@ impl SiteOutputPlanRoot {
     }
 
     fn exact_site_output_plan_apply_deferred_template_results(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         results: js_abi::JsMap<String, String>,
     ) -> Result<(), rt::TsonicError> {
         let project_this = SiteOutputPlan {
@@ -702,9 +714,9 @@ impl SiteOutputPlanRoot {
                         .read_site_output_plan_text_by_path()
                 }
                 .set_discard(key.clone(), match content.as_ref() {
-                    Some(flow_value_6) => flow_value_6.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                });
+                        Some(flow_value_6) => flow_value_6.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    });
                 output_index += 1.0;
             }
         }
@@ -722,7 +734,7 @@ impl SiteOutputPlanRoot {
         Ok(())
     }
 
-    fn exact_site_output_plan_generated_output_count(self: std::rc::Rc<Self>) -> i32 {
+    fn exact_site_output_plan_generated_output_count(self: alloc::rc::Rc<Self>) -> i32 {
         let project_this = SiteOutputPlan {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -743,7 +755,7 @@ impl SiteOutputPlanRoot {
     }
 
     fn exact_site_output_plan_render(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         output_root: String,
     ) -> Result<(), rt::TsonicError> {
         let project_this = SiteOutputPlan {
@@ -848,7 +860,7 @@ impl SiteOutputPlanRoot {
     }
 
     fn exact_site_output_plan_throw_conflict(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
         owner: String,
         previous: OutputClaim,
@@ -874,8 +886,8 @@ impl SiteOutputPlanRoot {
 
 impl SiteOutputPlanDispatch for SiteOutputPlanRoot {
     fn downcast_site_output_plan_to_site_output_plan(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn SiteOutputPlanDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn SiteOutputPlanDispatch + 'static>> {
         Some(self)
     }
 
@@ -904,7 +916,7 @@ impl SiteOutputPlanDispatch for SiteOutputPlanRoot {
     }
 
     fn dispatch_site_output_plan_add_text(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
         content: String,
         owner: String,
@@ -913,7 +925,7 @@ impl SiteOutputPlanDispatch for SiteOutputPlanRoot {
     }
 
     fn exact_site_output_plan_add_text(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
         content: String,
         owner: String,
@@ -922,7 +934,7 @@ impl SiteOutputPlanDispatch for SiteOutputPlanRoot {
     }
 
     fn dispatch_site_output_plan_add_default_text(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
         content: String,
         owner: String,
@@ -936,7 +948,7 @@ impl SiteOutputPlanDispatch for SiteOutputPlanRoot {
     }
 
     fn exact_site_output_plan_add_default_text(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
         content: String,
         owner: String,
@@ -950,7 +962,7 @@ impl SiteOutputPlanDispatch for SiteOutputPlanRoot {
     }
 
     fn dispatch_site_output_plan_add_asset(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
         source_path: String,
         owner: String,
@@ -966,7 +978,7 @@ impl SiteOutputPlanDispatch for SiteOutputPlanRoot {
     }
 
     fn exact_site_output_plan_add_asset(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
         source_path: String,
         owner: String,
@@ -982,7 +994,7 @@ impl SiteOutputPlanDispatch for SiteOutputPlanRoot {
     }
 
     fn dispatch_site_output_plan_add_directory(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         source_root: String,
         output_prefix: String,
         owner: String,
@@ -998,7 +1010,7 @@ impl SiteOutputPlanDispatch for SiteOutputPlanRoot {
     }
 
     fn exact_site_output_plan_add_directory(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         source_root: String,
         output_prefix: String,
         owner: String,
@@ -1013,44 +1025,44 @@ impl SiteOutputPlanDispatch for SiteOutputPlanRoot {
         )
     }
 
-    fn dispatch_site_output_plan_generated_output_count(self: std::rc::Rc<Self>) -> i32 {
+    fn dispatch_site_output_plan_generated_output_count(self: alloc::rc::Rc<Self>) -> i32 {
         SiteOutputPlanRoot::exact_site_output_plan_generated_output_count(self)
     }
 
-    fn exact_site_output_plan_generated_output_count(self: std::rc::Rc<Self>) -> i32 {
+    fn exact_site_output_plan_generated_output_count(self: alloc::rc::Rc<Self>) -> i32 {
         SiteOutputPlanRoot::exact_site_output_plan_generated_output_count(self)
     }
 
     fn dispatch_site_output_plan_apply_deferred_template_results(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         results: js_abi::JsMap<String, String>,
     ) -> Result<(), rt::TsonicError> {
         SiteOutputPlanRoot::exact_site_output_plan_apply_deferred_template_results(self, results)
     }
 
     fn exact_site_output_plan_apply_deferred_template_results(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         results: js_abi::JsMap<String, String>,
     ) -> Result<(), rt::TsonicError> {
         SiteOutputPlanRoot::exact_site_output_plan_apply_deferred_template_results(self, results)
     }
 
     fn dispatch_site_output_plan_render(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         output_root: String,
     ) -> Result<(), rt::TsonicError> {
         SiteOutputPlanRoot::exact_site_output_plan_render(self, output_root)
     }
 
     fn exact_site_output_plan_render(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         output_root: String,
     ) -> Result<(), rt::TsonicError> {
         SiteOutputPlanRoot::exact_site_output_plan_render(self, output_root)
     }
 
     fn dispatch_site_output_plan_throw_conflict(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
         owner: String,
         previous: OutputClaim,
@@ -1064,7 +1076,7 @@ impl SiteOutputPlanDispatch for SiteOutputPlanRoot {
     }
 
     fn exact_site_output_plan_throw_conflict(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         relative_path: String,
         owner: String,
         previous: OutputClaim,

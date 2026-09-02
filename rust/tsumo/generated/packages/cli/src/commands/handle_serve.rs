@@ -4,7 +4,6 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError> {
     let mut serve_source_dir: String = tsonic_rust_node::process::cwd()?;
     let mut serve_destination_dir: String = String::from("public");
@@ -279,7 +278,7 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
         let receiver_9 = &serve_req;
         let value_9 = rt::option_coalesce(
             crate::source_date_epoch::read_source_date_epoch()?,
-            std::convert::identity,
+            core::convert::identity,
             || {
                 let dispatch_receiver_9 = &serve_req;
                 dispatch_receiver_9.dispatch.read_build_request_build_time()

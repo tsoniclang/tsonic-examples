@@ -48,7 +48,8 @@ pub fn call_context_function(
                 dispatch_receiver_2.dispatch.read_render_scope_site()
             });
         store.set(
-            crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0).as_ref() {
+            crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0).as_ref()
+            {
                 Some(flow_value_2) => flow_value_2.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             })?,
@@ -69,7 +70,8 @@ pub fn call_context_function(
                 dispatch_receiver_3.dispatch.read_render_scope_site()
             });
         store.add(
-            crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0).as_ref() {
+            crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0).as_ref()
+            {
                 Some(flow_value_4) => flow_value_4.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             })?,
@@ -141,11 +143,13 @@ pub fn call_context_function(
                 dispatch_receiver_6.dispatch.read_render_scope_site()
             });
         store.delete_in_map(
-            crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0).as_ref() {
+            crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0).as_ref()
+            {
                 Some(flow_value_10) => flow_value_10.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             })?,
-            crate::template::runtime_helpers::to_plain_string(match args.get_number(1.0).as_ref() {
+            crate::template::runtime_helpers::to_plain_string(match args.get_number(1.0).as_ref()
+            {
                 Some(flow_value_11) => flow_value_11.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             })?,
@@ -381,7 +385,7 @@ pub fn call_context_function(
             let upcast_value_11 =
                 crate::template::values::primitives::NumberValue::new(rt::option_coalesce(
                     year,
-                    std::convert::identity,
+                    core::convert::identity,
                     || 0,
                 ));
             crate::template::values::base::TemplateValue {
@@ -600,15 +604,24 @@ pub fn call_context_function(
             let fields: js_abi::JsMap<String, crate::template::values::base::TemplateValue> =
                 js_abi::JsMap::new();
             fields.set_discard(String::from("Count"), {
-                let upcast_value_18 = argument.clone();
+                let upcast_value_18 = {
+                    let downcast_value_2 = &argument;
+                    crate::template::values::primitives::NumberValue {
+                        identity: downcast_value_2.identity.clone(),
+                        dispatch: downcast_value_2
+                            .dispatch
+                            .clone()
+                            .downcast_template_value_to_number_value()
+                            .unwrap(),
+                    }
+                };
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_18.identity.clone(),
                     dispatch: upcast_value_18.dispatch.clone(),
                 }
             });
             render_context = {
-                let upcast_value_19 =
-                    crate::template::values::dict::DictValue::new(fields.clone());
+                let upcast_value_19 = crate::template::values::dict::DictValue::new(fields.clone());
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_19.identity.clone(),
                     dispatch: upcast_value_19.dispatch.clone(),
@@ -623,10 +636,10 @@ pub fn call_context_function(
             {
                 'loop_value: for field in {
                     let dispatch_receiver_21 = &{
-                        let downcast_value_2 = &argument;
+                        let downcast_value_3 = &argument;
                         crate::template::values::dict::DictValue {
-                            identity: downcast_value_2.identity.clone(),
-                            dispatch: downcast_value_2
+                            identity: downcast_value_3.identity.clone(),
+                            dispatch: downcast_value_3
                                 .dispatch
                                 .clone()
                                 .downcast_template_value_to_dict_value()
@@ -642,10 +655,10 @@ pub fn call_context_function(
                     }
                     let value: Option<crate::template::values::base::TemplateValue> = {
                         let dispatch_receiver_22 = &{
-                            let downcast_value_3 = &argument;
+                            let downcast_value_4 = &argument;
                             crate::template::values::dict::DictValue {
-                                identity: downcast_value_3.identity.clone(),
-                                dispatch: downcast_value_3
+                                identity: downcast_value_4.identity.clone(),
+                                dispatch: downcast_value_4
                                     .dispatch
                                     .clone()
                                     .downcast_template_value_to_dict_value()
@@ -664,10 +677,10 @@ pub fn call_context_function(
                     }) {
                         count = Some({
                             let dispatch_receiver_23 = &{
-                                let downcast_value_4 = &value;
+                                let downcast_value_5 = &value;
                                 crate::template::values::primitives::NumberValue {
-                                    identity: downcast_value_4.as_ref().unwrap().identity.clone(),
-                                    dispatch: downcast_value_4
+                                    identity: downcast_value_5.as_ref().unwrap().identity.clone(),
+                                    dispatch: downcast_value_5
                                         .as_ref()
                                         .unwrap()
                                         .dispatch

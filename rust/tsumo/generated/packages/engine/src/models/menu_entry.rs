@@ -5,11 +5,10 @@ use tsonic_rust_js::abi as js_abi;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait MenuEntryDispatch {
     fn downcast_menu_entry_to_menu_entry(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn MenuEntryDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn MenuEntryDispatch + 'static>>;
     fn read_menu_entry_name(&self) -> String;
     fn write_menu_entry_name(&self, value: String);
     fn read_menu_entry_url(&self) -> String;
@@ -39,7 +38,6 @@ pub trait MenuEntryDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct MenuEntryState {
     pub name: String,
     pub url: String,
@@ -56,17 +54,16 @@ pub struct MenuEntryState {
     pub children: js_abi::JsArray<MenuEntry>,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct MenuEntry {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn MenuEntryDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn MenuEntryDispatch + 'static>,
 }
 
-impl std::fmt::Debug for MenuEntry {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for MenuEntry {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("MenuEntry")
     }
 }
@@ -79,8 +76,14 @@ impl PartialEq for MenuEntry {
 
 impl Eq for MenuEntry {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for MenuEntry {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct MenuEntryRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<MenuEntryState>,
 }
@@ -112,7 +115,7 @@ impl MenuEntry {
         let field_post: String = post;
         let field_menu: String = menu;
         let field_params: js_abi::JsMap<String, crate::params::ParamValue> =
-            rt::option_coalesce(params, std::convert::identity, js_abi::JsMap::new);
+            rt::option_coalesce(params, core::convert::identity, js_abi::JsMap::new);
         let field_page: Option<crate::models::page_context::PageContext> =
             Option::<crate::models::page_context::PageContext>::None;
         let empty: js_abi::JsArray<MenuEntry> = js_abi::JsArray::from_dense(vec![]);
@@ -162,7 +165,7 @@ impl MenuEntry {
             params,
         );
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(MenuEntryRoot {
+        let root = alloc::rc::Rc::new(MenuEntryRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -175,8 +178,8 @@ impl MenuEntry {
 
 impl MenuEntryDispatch for MenuEntryRoot {
     fn downcast_menu_entry_to_menu_entry(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn MenuEntryDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn MenuEntryDispatch + 'static>> {
         Some(self)
     }
 

@@ -13,42 +13,42 @@ pub enum TsonicError {
 
 pub type TsonicResult<T> = Result<T, TsonicError>;
 
-impl std::convert::From<tsonic_rust_runtime::TsonicError> for TsonicError {
+impl core::convert::From<tsonic_rust_runtime::TsonicError> for TsonicError {
     fn from(value: tsonic_rust_runtime::TsonicError) -> Self {
         Self::Runtime(value)
     }
 }
 
-impl std::convert::From<tsonic_rust_runtime::JsError> for TsonicError {
+impl core::convert::From<tsonic_rust_runtime::JsError> for TsonicError {
     fn from(value: tsonic_rust_runtime::JsError) -> Self {
         Self::Runtime(tsonic_rust_runtime::TsonicError::from(value))
     }
 }
 
-impl std::convert::From<tsonic_rust_node::NodeError> for TsonicError {
+impl core::convert::From<tsonic_rust_node::NodeError> for TsonicError {
     fn from(value: tsonic_rust_node::NodeError) -> Self {
         Self::Runtime(tsonic_rust_runtime::TsonicError::from(value))
     }
 }
 
-impl std::convert::From<crate::diagnostics::TsumoError> for TsonicError {
+impl core::convert::From<crate::diagnostics::TsumoError> for TsonicError {
     fn from(value: crate::diagnostics::TsumoError) -> Self {
         Self::TsumoError(value)
     }
 }
 
-impl std::convert::From<crate::template::evaluation::return_signal::TemplateReturnSignal> for TsonicError {
+impl core::convert::From<crate::template::evaluation::return_signal::TemplateReturnSignal> for TsonicError {
     fn from(value: crate::template::evaluation::return_signal::TemplateReturnSignal) -> Self {
         Self::TemplateReturnSignal(value)
     }
 }
 
-impl std::fmt::Display for TsonicError {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Display for TsonicError {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            Self::Runtime(value) => std::fmt::Display::fmt(value, formatter),
-            Self::TsumoError(value) => std::fmt::Display::fmt(value, formatter),
-            Self::TemplateReturnSignal(value) => std::fmt::Display::fmt(value, formatter),
+            Self::Runtime(value) => core::fmt::Display::fmt(value, formatter),
+            Self::TsumoError(value) => core::fmt::Display::fmt(value, formatter),
+            Self::TemplateReturnSignal(value) => core::fmt::Display::fmt(value, formatter),
             Self::Suppressed(error, suppressed) => {
                 write!(
                     formatter,
@@ -60,13 +60,13 @@ impl std::fmt::Display for TsonicError {
     }
 }
 
-impl std::fmt::Debug for TsonicError {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(self, formatter)
+impl core::fmt::Debug for TsonicError {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        core::fmt::Display::fmt(self, formatter)
     }
 }
 
-impl std::error::Error for TsonicError {}
+impl core::error::Error for TsonicError {}
 
 impl tsonic_rust_runtime::ToSourceString for TsonicError {
     fn to_source_string(&self) -> String {

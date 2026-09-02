@@ -7,11 +7,10 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait DocsLinkRewriteContextDispatch {
     fn downcast_docs_link_rewrite_context_to_docs_link_rewrite_context(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn DocsLinkRewriteContextDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn DocsLinkRewriteContextDispatch + 'static>>;
     fn read_docs_link_rewrite_context_mount(&self) -> crate::docs::models::DocsMountConfig;
     fn write_docs_link_rewrite_context_mount(&self, value: crate::docs::models::DocsMountConfig);
     fn read_docs_link_rewrite_context_source_path(&self) -> String;
@@ -30,7 +29,6 @@ pub trait DocsLinkRewriteContextDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct DocsLinkRewriteContextState {
     pub mount: crate::docs::models::DocsMountConfig,
     pub source_path: String,
@@ -39,17 +37,16 @@ pub struct DocsLinkRewriteContextState {
     pub strict_links: bool,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct DocsLinkRewriteContext {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn DocsLinkRewriteContextDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn DocsLinkRewriteContextDispatch + 'static>,
 }
 
-impl std::fmt::Debug for DocsLinkRewriteContext {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for DocsLinkRewriteContext {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("DocsLinkRewriteContext")
     }
 }
@@ -62,8 +59,14 @@ impl PartialEq for DocsLinkRewriteContext {
 
 impl Eq for DocsLinkRewriteContext {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for DocsLinkRewriteContext {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct DocsLinkRewriteContextRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<DocsLinkRewriteContextState>,
 }
@@ -107,7 +110,7 @@ impl DocsLinkRewriteContext {
             strict_links,
         );
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(DocsLinkRewriteContextRoot {
+        let root = alloc::rc::Rc::new(DocsLinkRewriteContextRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -120,8 +123,8 @@ impl DocsLinkRewriteContext {
 
 impl DocsLinkRewriteContextDispatch for DocsLinkRewriteContextRoot {
     fn downcast_docs_link_rewrite_context_to_docs_link_rewrite_context(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn DocsLinkRewriteContextDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn DocsLinkRewriteContextDispatch + 'static>> {
         Some(self)
     }
 
@@ -256,14 +259,16 @@ pub fn normalize_relative_path(
     };
     for i_range in 1..tsonic_rust_runtime::conversions::usize_to_i32(arr.len())? {
         let i = i_range as f64;
-        out.push_str(&format!(
-            "{}{}",
-            String::from("/"),
-            match arr.get_number(i).as_ref() {
-                Some(flow_value_4) => flow_value_4.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            },
-        ));
+        out.push_str(
+            &format!(
+                "{}{}",
+                String::from("/"),
+                match arr.get_number(i).as_ref() {
+                    Some(flow_value_4) => flow_value_4.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                },
+            ),
+        );
     }
     Ok(Some(out))
 }
@@ -376,19 +381,17 @@ pub fn maybe_rewrite_url(
                 resolved_rel = Some(crate::utils::strings::trim_start_char(
                     &crate::utils::strings::substring_from(
                         &path_part,
-                        tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(
-                            &{
-                                let dispatch_receiver_5 = &{
-                                    let dispatch_receiver_4 = &ctx;
-                                    dispatch_receiver_4
-                                        .dispatch
-                                        .read_docs_link_rewrite_context_mount()
-                                };
-                                dispatch_receiver_5
+                        tsonic_rust_runtime::conversions::usize_to_i32(js_string::js_len(&{
+                            let dispatch_receiver_5 = &{
+                                let dispatch_receiver_4 = &ctx;
+                                dispatch_receiver_4
                                     .dispatch
-                                    .read_docs_mount_config_url_prefix()
-                            },
-                        ))?,
+                                    .read_docs_link_rewrite_context_mount()
+                            };
+                            dispatch_receiver_5
+                                .dispatch
+                                .read_docs_mount_config_url_prefix()
+                        }))?,
                     )?,
                     slash.clone(),
                 )?);

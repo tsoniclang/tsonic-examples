@@ -153,12 +153,10 @@ pub fn assert_acyclic_parents(
                 visited.set_discard(identity.clone(), true);
                 let parent: Option<crate::models::menu_entry::MenuEntry> = {
                     let operation_input_0 = by_identity.clone();
-                    operation_input_0.get(&js_string::trim(
-                        &{
-                            let dispatch_receiver_2 = &current;
-                            dispatch_receiver_2.dispatch.read_menu_entry_parent()
-                        },
-                    ))
+                    operation_input_0.get(&js_string::trim(&{
+                        let dispatch_receiver_2 = &current;
+                        dispatch_receiver_2.dispatch.read_menu_entry_parent()
+                    }))
                 };
                 if parent.is_none() {
                     return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(

@@ -7,7 +7,6 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct StandardTaxonomyState {
     pub name: String,
     pub root: crate::models::page_context::PageContext,
@@ -18,6 +17,12 @@ pub struct StandardTaxonomyState {
 pub struct StandardTaxonomy {
     #[doc(hidden)]
     pub state: rt::ObjectRef<StandardTaxonomyState>,
+}
+
+impl rt::ObjectIdentityCarrier for StandardTaxonomy {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl StandardTaxonomy {
@@ -40,32 +45,29 @@ impl StandardTaxonomy {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait StandardTaxonomyGraphDispatch {
     fn downcast_standard_taxonomy_graph_to_standard_taxonomy_graph(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn StandardTaxonomyGraphDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn StandardTaxonomyGraphDispatch + 'static>>;
     fn read_standard_taxonomy_graph_taxonomies(&self) -> js_abi::JsArray<StandardTaxonomy>;
     fn write_standard_taxonomy_graph_taxonomies(&self, value: js_abi::JsArray<StandardTaxonomy>);
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct StandardTaxonomyGraphState {
     pub taxonomies: js_abi::JsArray<StandardTaxonomy>,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct StandardTaxonomyGraph {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn StandardTaxonomyGraphDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn StandardTaxonomyGraphDispatch + 'static>,
 }
 
-impl std::fmt::Debug for StandardTaxonomyGraph {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for StandardTaxonomyGraph {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("StandardTaxonomyGraph")
     }
 }
@@ -78,8 +80,14 @@ impl PartialEq for StandardTaxonomyGraph {
 
 impl Eq for StandardTaxonomyGraph {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for StandardTaxonomyGraph {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct StandardTaxonomyGraphRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<StandardTaxonomyGraphState>,
 }
@@ -98,7 +106,7 @@ impl StandardTaxonomyGraph {
     pub fn new(taxonomies: js_abi::JsArray<StandardTaxonomy>) -> StandardTaxonomyGraph {
         let state = StandardTaxonomyGraph::initialize_state(taxonomies);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(StandardTaxonomyGraphRoot {
+        let root = alloc::rc::Rc::new(StandardTaxonomyGraphRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -111,8 +119,8 @@ impl StandardTaxonomyGraph {
 
 impl StandardTaxonomyGraphDispatch for StandardTaxonomyGraphRoot {
     fn downcast_standard_taxonomy_graph_to_standard_taxonomy_graph(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn StandardTaxonomyGraphDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn StandardTaxonomyGraphDispatch + 'static>> {
         Some(self)
     }
 
@@ -157,9 +165,8 @@ pub fn create_taxonomy_page(
             taxonomy.clone(),
             taxonomy.clone(),
             taxonomy.clone(),
-            crate::utils::url_path::combine_url_path(js_abi::JsArray::from_dense(vec![
-                taxonomy.clone(),
-            ]))?,
+            crate::utils::url_path::combine_url_path(js_abi::JsArray::from_dense(vec![taxonomy
+                .clone()]))?,
             String::from(""),
             empty_html.clone(),
             empty_html.clone(),
@@ -214,8 +221,7 @@ pub fn create_taxonomy_page(
                 index += 1.0;
                 continue 'loop_value;
             }
-            let parameters: js_abi::JsMap<String, crate::params::ParamValue> =
-                js_abi::JsMap::new();
+            let parameters: js_abi::JsMap<String, crate::params::ParamValue> = js_abi::JsMap::new();
             {
                 let operation_input_0_2 = parameters.clone();
                 operation_input_0_2.set_discard(
@@ -383,7 +389,7 @@ pub fn collect_terms(
                     let term_pages: js_abi::JsArray<crate::models::page_context::PageContext> =
                         rt::option_coalesce(
                             pages_by_term.get(&term_slug),
-                            std::convert::identity,
+                            core::convert::identity,
                             || js_abi::JsArray::from_dense(vec![]),
                         );
                     term_pages.push_many_discard([page.clone()]);

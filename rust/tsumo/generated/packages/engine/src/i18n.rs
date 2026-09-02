@@ -35,7 +35,6 @@ pub fn is_plural_variant_name(name: &str) -> Result<bool, rt::TsonicError> {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct I18nMessageState {
     pub variants: js_abi::JsMap<String, String>,
 }
@@ -44,6 +43,12 @@ pub struct I18nMessageState {
 pub struct I18nMessage {
     #[doc(hidden)]
     pub state: rt::ObjectRef<I18nMessageState>,
+}
+
+impl rt::ObjectIdentityCarrier for I18nMessage {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl I18nMessage {
@@ -56,7 +61,6 @@ impl I18nMessage {
         }
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn select(&self, count: Option<i32>) -> Result<String, rt::TsonicError> {
         if count.is_some() {
             let exact_name: String = if count == Some(0) {
@@ -626,11 +630,10 @@ pub fn collect_i18n_file(
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait I18nStoreDispatch {
     fn downcast_i18n_store_to_i18n_store(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn I18nStoreDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn I18nStoreDispatch + 'static>>;
     fn read_i18n_store_translations(
         &self,
     ) -> js_abi::JsMap<String, js_abi::JsMap<String, I18nMessage>>;
@@ -639,21 +642,21 @@ pub trait I18nStoreDispatch {
         value: js_abi::JsMap<String, js_abi::JsMap<String, I18nMessage>>,
     );
     fn dispatch_i18n_store_load_from_dir(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         dir: String,
     ) -> Result<(), rt::TsonicError>;
     fn exact_i18n_store_load_from_dir(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         dir: String,
     ) -> Result<(), rt::TsonicError>;
     fn dispatch_i18n_store_translate(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         language: &str,
         key: String,
         count: Option<i32>,
     ) -> Result<String, rt::TsonicError>;
     fn exact_i18n_store_translate(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         language: &str,
         key: String,
         count: Option<i32>,
@@ -661,22 +664,20 @@ pub trait I18nStoreDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct I18nStoreState {
     pub translations: js_abi::JsMap<String, js_abi::JsMap<String, I18nMessage>>,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct I18nStore {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn I18nStoreDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn I18nStoreDispatch + 'static>,
 }
 
-impl std::fmt::Debug for I18nStore {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for I18nStore {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("I18nStore")
     }
 }
@@ -689,7 +690,12 @@ impl PartialEq for I18nStore {
 
 impl Eq for I18nStore {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for I18nStore {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct I18nStoreRoot {
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<I18nStoreState>,
@@ -708,7 +714,7 @@ impl I18nStore {
     pub fn new() -> I18nStore {
         let state = I18nStore::initialize_state();
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(I18nStoreRoot {
+        let root = alloc::rc::Rc::new(I18nStoreRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -727,7 +733,7 @@ impl Default for I18nStore {
 
 impl I18nStoreRoot {
     fn exact_i18n_store_load_from_dir(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         dir: String,
     ) -> Result<(), rt::TsonicError> {
         let project_this = I18nStore {
@@ -737,8 +743,7 @@ impl I18nStoreRoot {
         let files: js_abi::JsArray<String> =
             crate::fs::list_files_top_directory(dir.clone(), String::from("*"))?;
         files.sort_by_js_string();
-        let layer: js_abi::JsMap<String, js_abi::JsMap<String, I18nMessage>> =
-            js_abi::JsMap::new();
+        let layer: js_abi::JsMap<String, js_abi::JsMap<String, I18nMessage>> = js_abi::JsMap::new();
         {
             let mut index: i32 = 0;
             'loop_value: while index < tsonic_rust_runtime::conversions::usize_to_i32(files.len())? {
@@ -822,9 +827,9 @@ impl I18nStoreRoot {
                     dispatch_receiver_2.dispatch.read_i18n_store_translations()
                 }
                 .set_discard(language.clone(), match selected.as_ref() {
-                    Some(flow_value_4) => flow_value_4.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                });
+                        Some(flow_value_4) => flow_value_4.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    });
             }
             let messages: Option<js_abi::JsMap<String, I18nMessage>> = layer.get(&language);
             if messages.is_none() {
@@ -880,7 +885,7 @@ impl I18nStoreRoot {
     }
 
     fn exact_i18n_store_translate(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         language: &str,
         key: String,
         count: Option<i32>,
@@ -939,8 +944,8 @@ impl I18nStoreRoot {
 
 impl I18nStoreDispatch for I18nStoreRoot {
     fn downcast_i18n_store_to_i18n_store(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn I18nStoreDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn I18nStoreDispatch + 'static>> {
         Some(self)
     }
 
@@ -958,21 +963,21 @@ impl I18nStoreDispatch for I18nStoreRoot {
     }
 
     fn dispatch_i18n_store_load_from_dir(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         dir: String,
     ) -> Result<(), rt::TsonicError> {
         I18nStoreRoot::exact_i18n_store_load_from_dir(self, dir)
     }
 
     fn exact_i18n_store_load_from_dir(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         dir: String,
     ) -> Result<(), rt::TsonicError> {
         I18nStoreRoot::exact_i18n_store_load_from_dir(self, dir)
     }
 
     fn dispatch_i18n_store_translate(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         language: &str,
         key: String,
         count: Option<i32>,
@@ -981,7 +986,7 @@ impl I18nStoreDispatch for I18nStoreRoot {
     }
 
     fn exact_i18n_store_translate(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         language: &str,
         key: String,
         count: Option<i32>,

@@ -17,13 +17,18 @@ std::thread_local! {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ParamKindState {}
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ParamKind {
     #[doc(hidden)]
     pub state: rt::ObjectRef<ParamKindState>,
+}
+
+impl rt::ObjectIdentityCarrier for ParamKind {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl ParamKind {
@@ -41,11 +46,10 @@ impl Default for ParamKind {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait ParamValueDispatch {
     fn downcast_param_value_to_param_value(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ParamValueDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ParamValueDispatch + 'static>>;
     fn read_param_value_kind(&self) -> i32;
     fn write_param_value_kind(&self, value: i32);
     fn read_param_value_string_value(&self) -> String;
@@ -57,7 +61,6 @@ pub trait ParamValueDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ParamValueState {
     pub kind: i32,
     pub string_value: String,
@@ -65,17 +68,16 @@ pub struct ParamValueState {
     pub number_value: i32,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct ParamValue {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn ParamValueDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn ParamValueDispatch + 'static>,
 }
 
-impl std::fmt::Debug for ParamValue {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for ParamValue {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("ParamValue")
     }
 }
@@ -88,8 +90,14 @@ impl PartialEq for ParamValue {
 
 impl Eq for ParamValue {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for ParamValue {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct ParamValueRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<ParamValueState>,
 }
@@ -117,7 +125,7 @@ impl ParamValue {
     pub fn new(kind: i32, string_value: String, bool_value: bool, number_value: i32) -> ParamValue {
         let state = ParamValue::initialize_state(kind, string_value, bool_value, number_value);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(ParamValueRoot {
+        let root = alloc::rc::Rc::new(ParamValueRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -176,8 +184,8 @@ impl ParamValue {
 
 impl ParamValueDispatch for ParamValueRoot {
     fn downcast_param_value_to_param_value(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn ParamValueDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ParamValueDispatch + 'static>> {
         Some(self)
     }
 

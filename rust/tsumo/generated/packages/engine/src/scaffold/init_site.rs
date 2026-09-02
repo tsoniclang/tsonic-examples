@@ -91,7 +91,7 @@ pub fn init_site(
 ) -> Result<(), rt::TsonicError> {
     let dir: String = tsonic_rust_node::path::resolve(&[target_dir.as_str()])?;
     let scaffold_time: js_abi::JsDate =
-        rt::option_coalesce(creation_time, std::convert::identity, js_abi::JsDate::new);
+        rt::option_coalesce(creation_time, core::convert::identity, js_abi::JsDate::new);
     ensure_empty_dir(dir.clone())?;
     let base: String = tsonic_rust_node::path::basename(&dir, None);
     let title: String = crate::utils::text::humanize_slug(if base.is_empty() {

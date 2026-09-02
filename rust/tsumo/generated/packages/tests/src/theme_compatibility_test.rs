@@ -4,17 +4,20 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) struct ThemeCompatibilityTestsState {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ThemeCompatibilityTests {
     pub(crate) state: rt::ObjectHandle<ThemeCompatibilityTestsState>,
 }
 
+impl rt::ObjectIdentityCarrier for ThemeCompatibilityTests {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
+}
+
 impl ThemeCompatibilityTests {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new() -> ThemeCompatibilityTests {
         ThemeCompatibilityTests {
             state: rt::ObjectHandle::new(ThemeCompatibilityTestsState {}),
@@ -241,15 +244,17 @@ impl ThemeCompatibilityTests {
             crate::test_root::create_test_directory(String::from("theme-data-layers"))?;
         let site_directory: String = tsonic_rust_node::path::join(&[root.as_str(), "site"]);
         let theme_directory: String = tsonic_rust_node::path::join(&[root.as_str(), "theme"]);
-        let mount_directory: String =
-            tsonic_rust_node::path::join(&[root.as_str(), "module-data"]);
+        let mount_directory: String = tsonic_rust_node::path::join(&[root.as_str(), "module-data"]);
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::create_directory(tsonic_rust_node::path::join(
-                &[site_directory.as_str(), "data"],
-            ))?;
-            crate::test_root::create_directory(tsonic_rust_node::path::join(
-                &[theme_directory.as_str(), "data", "nested"],
-            ))?;
+            crate::test_root::create_directory(tsonic_rust_node::path::join(&[
+                site_directory.as_str(),
+                "data",
+            ]))?;
+            crate::test_root::create_directory(tsonic_rust_node::path::join(&[
+                theme_directory.as_str(),
+                "data",
+                "nested",
+            ]))?;
             crate::test_root::create_directory(mount_directory.clone())?;
             crate::test_root::write_text_file(
                 tsonic_rust_node::path::join(&[theme_directory.as_str(), "data", "theme.toml"]),
@@ -287,12 +292,10 @@ impl ThemeCompatibilityTests {
             let data: tsumo_engine::testing::DictValue = tsumo_engine::testing::load_site_data(
                 site_directory.clone(),
                 Some(theme_directory.clone()),
-                Some(js_abi::JsArray::from_dense(vec![
-                    tsumo_engine::testing::ModuleMount::new(
-                        mount_directory.clone(),
-                        String::from("data"),
-                    ),
-                ])),
+                Some(js_abi::JsArray::from_dense(vec![tsumo_engine::testing::ModuleMount::new(
+                    mount_directory.clone(),
+                    String::from("data"),
+                )])),
             )?;
             let environment: crate::template_test_harness::TestTemplateEnvironment =
                 crate::template_test_harness::TestTemplateEnvironment::new(None);
@@ -504,7 +507,6 @@ impl Default for ThemeCompatibilityTests {
     }
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn run_theme_compatibility_tests() -> Result<(), rt::TsonicError> {
     let tests: ThemeCompatibilityTests = ThemeCompatibilityTests::new();
     crate::test_root::run_test(String::from("chained alternatives preserve the selected context"), {

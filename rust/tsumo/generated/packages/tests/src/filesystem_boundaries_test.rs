@@ -4,7 +4,6 @@ use tsonic_rust_js::abi as js_abi;
 
 use crate::program as rt;
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn capture_tsumo_diagnostic(
     operation: rt::Callable<(), rt::TsonicResult<()>>,
 ) -> Result<tsumo_engine::TsumoDiagnostic, rt::TsonicError> {
@@ -53,17 +52,20 @@ pub(crate) fn capture_tsumo_diagnostic(
     )))
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) struct FilesystemBoundaryTestsState {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct FilesystemBoundaryTests {
     pub(crate) state: rt::ObjectRef<FilesystemBoundaryTestsState>,
 }
 
+impl rt::ObjectIdentityCarrier for FilesystemBoundaryTests {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
+}
+
 impl FilesystemBoundaryTests {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new() -> FilesystemBoundaryTests {
         FilesystemBoundaryTests {
             state: rt::ObjectRef::new(FilesystemBoundaryTestsState {}),
@@ -104,9 +106,10 @@ impl FilesystemBoundaryTests {
                 tsumo_engine::testing::list_files_recursive(source.clone(), String::from("*.txt"))?,
             )?;
             crate::test_root::Assert::string_array_equal(
-                js_abi::JsArray::from_dense(vec![
-                    tsonic_rust_node::path::join(&[source.as_str(), "z.txt"]),
-                ]),
+                js_abi::JsArray::from_dense(vec![tsonic_rust_node::path::join(&[
+                    source.as_str(),
+                    "z.txt",
+                ])]),
                 tsumo_engine::testing::list_files_top_directory(
                     source.clone(),
                     String::from("*.txt"),
@@ -116,8 +119,7 @@ impl FilesystemBoundaryTests {
                 js_abi::JsArray::from_dense(vec![nested.clone()]),
                 tsumo_engine::testing::list_directories_top_directory(source.clone())?,
             )?;
-            let link: String =
-                tsonic_rust_node::path::join(&[source.as_str(), "linked-directory"]);
+            let link: String = tsonic_rust_node::path::join(&[source.as_str(), "linked-directory"]);
             crate::test_root::create_symbolic_link(
                 outside.clone(),
                 link.clone(),
@@ -165,8 +167,7 @@ impl FilesystemBoundaryTests {
     pub fn watch_snapshots_detect_file_changes_and_use_link_policy(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        let root: String =
-            crate::test_root::create_test_directory(String::from("watch-snapshot"))?;
+        let root: String = crate::test_root::create_test_directory(String::from("watch-snapshot"))?;
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
             let watched: String = tsonic_rust_node::path::join(&[root.as_str(), "watched"]);
             crate::test_root::create_directory(watched.clone())?;
@@ -235,7 +236,6 @@ impl Default for FilesystemBoundaryTests {
     }
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn run_filesystem_boundary_tests() -> Result<(), rt::TsonicError> {
     let tests: FilesystemBoundaryTests = FilesystemBoundaryTests::new();
     crate::test_root::run_test(String::from("recursive discovery is sorted and rejects links"), {

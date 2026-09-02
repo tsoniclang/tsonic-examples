@@ -55,8 +55,7 @@ pub fn build_docs_site(
     if !js_string::trim(&docs_config.state.with(|state| state.site_name.clone())).is_empty() {
         {
             let receiver_2 = &config;
-            let value_2 =
-                js_string::trim(&docs_config.state.with(|state| state.site_name.clone()));
+            let value_2 = js_string::trim(&docs_config.state.with(|state| state.site_name.clone()));
             {
                 let dispatch_receiver_4 = receiver_2;
                 dispatch_receiver_4
@@ -159,7 +158,7 @@ pub fn build_docs_site(
                 String::from("_default/list.html"),
             ]),
         )?,
-        std::convert::identity,
+        core::convert::identity,
         || String::from("_default/list.html"),
     );
     let list_tpl: String = rt::option_coalesce(
@@ -176,7 +175,7 @@ pub fn build_docs_site(
                 String::from("_default/list.html"),
             ]),
         )?,
-        std::convert::identity,
+        core::convert::identity,
         || String::from("_default/list.html"),
     );
     let single_tpl: String = rt::option_coalesce(
@@ -193,7 +192,7 @@ pub fn build_docs_site(
                 String::from("_default/single.html"),
             ]),
         )?,
-        std::convert::identity,
+        core::convert::identity,
         || String::from("_default/single.html"),
     );
     let mount_root_pages: js_abi::JsArray<crate::models::page_context::PageContext> =
@@ -416,7 +415,7 @@ pub fn build_docs_site(
                     )?;
                     let date_utc: js_abi::JsDate = rt::option_coalesce(
                         fm.state.with(|state| state.date.clone()),
-                        std::convert::identity,
+                        core::convert::identity,
                         || source.state.with(|state| state.modified_at.clone()),
                     );
                     let date_string: String = date_utc.to_iso_string()?;
@@ -503,7 +502,7 @@ pub fn build_docs_site(
                             mount_section.clone(),
                             rt::option_coalesce(
                                 fm.state.with(|state| state.r#type.clone()),
-                                std::convert::identity,
+                                core::convert::identity,
                                 || String::from("docs"),
                             ),
                             base_name.clone(),
@@ -514,7 +513,7 @@ pub fn build_docs_site(
                             summary.clone(),
                             rt::option_coalesce(
                                 fm.state.with(|state| state.description.clone()),
-                                std::convert::identity,
+                                core::convert::identity,
                                 || String::from(""),
                             ),
                             fm.state.with(|state| state.tags.clone()),
@@ -537,8 +536,7 @@ pub fn build_docs_site(
                         js_abi::JsArray<crate::models::page_context::PageContext>,
                     > = {
                         let operation_input_0_6 = leaf_pages_by_dir.clone();
-                        operation_input_0_6
-                            .get(&r.state.with(|state| state.dir_key.clone()))
+                        operation_input_0_6.get(&r.state.with(|state| state.dir_key.clone()))
                     };
                     if list.is_none() {
                         list = Some(js_abi::JsArray::from_dense(vec![]));
@@ -879,12 +877,12 @@ pub fn build_docs_site(
                             );
                             description = rt::option_coalesce(
                                 fm.state.with(|state| state.description.clone()),
-                                std::convert::identity,
+                                core::convert::identity,
                                 || String::from(""),
                             );
                             title = rt::option_coalesce(
                                 fm.state.with(|state| state.title.clone()),
-                                std::convert::identity,
+                                core::convert::identity,
                                 || title.clone(),
                             );
                             let plain_text: String = md.state
@@ -904,7 +902,7 @@ pub fn build_docs_site(
                             };
                             let date_utc: js_abi::JsDate = rt::option_coalesce(
                                 fm.state.with(|state| state.date.clone()),
-                                std::convert::identity,
+                                core::convert::identity,
                                 || {
                                     match idx_route.as_ref() {
                                         Some(flow_value_25) => flow_value_25.clone(),
@@ -1075,12 +1073,10 @@ pub fn build_docs_site(
     None => unreachable!("checked flow selected a missing optional value"),
 }).is_empty();
         if conditional_test {
-            Some(js_string::to_lower_case(&js_string::trim(
-                &match home_mount.as_ref() {
-                    Some(flow_value_30) => flow_value_30.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                },
-            )))
+            Some(js_string::to_lower_case(&js_string::trim(&match home_mount.as_ref() {
+                Some(flow_value_30) => flow_value_30.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            })))
         } else {
             Option::<String>::None
         }
@@ -1124,7 +1120,7 @@ pub fn build_docs_site(
                         dispatch_receiver_38.dispatch.read_page_context_params()
                     }
                     .get("mount"),
-                    std::convert::identity,
+                    core::convert::identity,
                     || crate::params::ParamValue::string(String::from("")),
                 );
                 let mount_prefix_param: crate::params::ParamValue = rt::option_coalesce(
@@ -1133,7 +1129,7 @@ pub fn build_docs_site(
                         dispatch_receiver_39.dispatch.read_page_context_params()
                     }
                     .get("mountPrefix"),
-                    std::convert::identity,
+                    core::convert::identity,
                     || crate::params::ParamValue::string(String::from("")),
                 );
                 let mount_name: String = {
@@ -1182,7 +1178,9 @@ pub fn build_docs_site(
             format!(
                 "{}{}",
                 String::from("Configured homeMount does not match a docs mount: "),
-                rt::option_coalesce(home_mount.clone(), std::convert::identity, || String::from("")),
+                rt::option_coalesce(home_mount.clone(), core::convert::identity, || String::from(
+                    ""
+                ),),
             ),
             Some(docs_loaded.state.with(|state| state.path.clone())),
             None,
@@ -1334,14 +1332,12 @@ pub fn build_docs_site(
                 tpl.clone(),
                 page.clone(),
             )?;
-            let output_rel_path: String = crate::docs::output::docs_output_path_for_permalink(
-                &{
-                    let dispatch_receiver_52 = &page;
-                    dispatch_receiver_52
-                        .dispatch
-                        .read_page_context_rel_permalink()
-                },
-            )?;
+            let output_rel_path: String = crate::docs::output::docs_output_path_for_permalink(&{
+                let dispatch_receiver_52 = &page;
+                dispatch_receiver_52
+                    .dispatch
+                    .read_page_context_rel_permalink()
+            })?;
             {
                 let dispatch_receiver_54 = output_plan.clone();
                 dispatch_receiver_54.dispatch.clone().dispatch_site_output_plan_add_text(

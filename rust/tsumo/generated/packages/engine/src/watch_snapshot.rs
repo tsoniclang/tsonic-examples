@@ -5,7 +5,6 @@ use tsonic_rust_js::abi as js_abi;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct WatchEntryStateState {
     pub modified_at: f64,
     pub size: f64,
@@ -15,6 +14,12 @@ pub struct WatchEntryStateState {
 pub struct WatchEntryState {
     #[doc(hidden)]
     pub state: rt::ObjectRef<WatchEntryStateState>,
+}
+
+impl rt::ObjectIdentityCarrier for WatchEntryState {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl WatchEntryState {

@@ -149,36 +149,30 @@ pub fn render_rss(
             };
             {
                 let operation_input_0_2 = out.clone();
-                operation_input_0_2.push_many_discard([
-                    format!(
-                        "{}{}{}",
-                        String::from("<link>"),
-                        escape_xml(link.clone())?,
-                        String::from("</link>"),
-                    ),
-                ])
+                operation_input_0_2.push_many_discard([format!(
+                    "{}{}{}",
+                    String::from("<link>"),
+                    escape_xml(link.clone())?,
+                    String::from("</link>"),
+                )])
             };
             {
                 let operation_input_0_3 = out.clone();
-                operation_input_0_3.push_many_discard([
-                    format!(
-                        "{}{}{}",
-                        String::from("<guid isPermaLink=\"true\">"),
-                        escape_xml(link.clone())?,
-                        String::from("</guid>"),
-                    ),
-                ])
+                operation_input_0_3.push_many_discard([format!(
+                    "{}{}{}",
+                    String::from("<guid isPermaLink=\"true\">"),
+                    escape_xml(link.clone())?,
+                    String::from("</guid>"),
+                )])
             };
             {
                 let operation_input_0_4 = out.clone();
-                operation_input_0_4.push_many_discard([
-                    format!(
-                        "{}{}{}",
-                        String::from("<pubDate>"),
-                        pub_date,
-                        String::from("</pubDate>"),
-                    ),
-                ])
+                operation_input_0_4.push_many_discard([format!(
+                    "{}{}{}",
+                    String::from("<pubDate>"),
+                    pub_date,
+                    String::from("</pubDate>"),
+                )])
             };
             {
                 let operation_input_0_5 = out.clone();
@@ -245,16 +239,14 @@ pub fn render_sitemap(
             )?;
             {
                 let operation_input_0 = out.clone();
-                operation_input_0.push_many_discard([
-                    format!(
-                        "{}{}{}{}{}",
-                        String::from("<url><loc>"),
-                        escape_xml(loc.clone())?,
-                        String::from("</loc><lastmod>"),
-                        build_timestamp,
-                        String::from("</lastmod></url>"),
-                    ),
-                ])
+                operation_input_0.push_many_discard([format!(
+                    "{}{}{}{}{}",
+                    String::from("<url><loc>"),
+                    escape_xml(loc.clone())?,
+                    String::from("</loc><lastmod>"),
+                    build_timestamp,
+                    String::from("</lastmod></url>"),
+                )])
             };
             i += 1.0;
         }

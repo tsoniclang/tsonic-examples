@@ -7,7 +7,6 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct PipelineParserState {
     pub tokens: js_abi::JsArray<String>,
     pub index: i32,
@@ -20,6 +19,12 @@ pub struct PipelineParserState {
 pub struct PipelineParser {
     #[doc(hidden)]
     pub state: rt::ObjectHandle<PipelineParserState>,
+}
+
+impl rt::ObjectIdentityCarrier for PipelineParser {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl PipelineParser {
@@ -45,7 +50,6 @@ impl PipelineParser {
         }
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn error(&self, code: String, message: String) -> crate::diagnostics::TsumoError {
         crate::diagnostics::create_tsumo_error(
             code,
@@ -60,7 +64,6 @@ impl PipelineParser {
         )
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse(
         &self,
         stop_on_right_paren: bool,
@@ -142,7 +145,6 @@ impl PipelineParser {
         Ok(crate::template::syntax::expressions::Pipeline::new(stages.clone()))
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_command(
         &self,
     ) -> Result<crate::template::syntax::expressions::Command, rt::TsonicError> {
@@ -235,7 +237,6 @@ impl PipelineParser {
         Ok(crate::template::syntax::expressions::Command::new(head.clone(), args.clone()))
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_expression(
         &self,
     ) -> Result<crate::template::syntax::expressions::Expr, rt::TsonicError> {

@@ -7,7 +7,6 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ResourcePathPartsState {
     pub directory: String,
     pub file_name: String,
@@ -17,6 +16,12 @@ pub struct ResourcePathPartsState {
 pub struct ResourcePathParts {
     #[doc(hidden)]
     pub state: rt::ObjectRef<ResourcePathPartsState>,
+}
+
+impl rt::ObjectIdentityCarrier for ResourcePathParts {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl ResourcePathParts {
@@ -33,7 +38,6 @@ impl ResourcePathParts {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct ResourceFileNamePartsState {
     pub base_name: String,
     pub extension: String,
@@ -43,6 +47,12 @@ pub struct ResourceFileNamePartsState {
 pub struct ResourceFileNameParts {
     #[doc(hidden)]
     pub state: rt::ObjectRef<ResourceFileNamePartsState>,
+}
+
+impl rt::ObjectIdentityCarrier for ResourceFileNameParts {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl ResourceFileNameParts {

@@ -7,7 +7,6 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct DocsContentRouteState {
     pub route: crate::docs::routes::DocsMarkdownRoute,
     pub parsed: crate::frontmatter::parsed_content::ParsedContent,
@@ -18,6 +17,12 @@ pub struct DocsContentRouteState {
 pub struct DocsContentRoute {
     #[doc(hidden)]
     pub state: rt::ObjectRef<DocsContentRouteState>,
+}
+
+impl rt::ObjectIdentityCarrier for DocsContentRoute {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl DocsContentRoute {
@@ -40,7 +45,6 @@ impl DocsContentRoute {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct DocsContentInventoryState {
     pub index_by_directory: js_abi::JsMap<String, DocsContentRoute>,
     pub leaves: js_abi::JsArray<DocsContentRoute>,
@@ -51,6 +55,12 @@ pub struct DocsContentInventoryState {
 pub struct DocsContentInventory {
     #[doc(hidden)]
     pub state: rt::ObjectRef<DocsContentInventoryState>,
+}
+
+impl rt::ObjectIdentityCarrier for DocsContentInventory {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl DocsContentInventory {
@@ -98,9 +108,9 @@ pub fn load_docs_content(
             let content: DocsContentRoute = DocsContentRoute::new(
                 route.clone(),
                 parsed.clone(),
-                js_abi::JsDate::from_millis(tsonic_rust_node::fs::stat_sync(&route.state.with(
-                    |state| state.source_path.clone(),
-                ))?
+                js_abi::JsDate::from_millis(tsonic_rust_node::fs::stat_sync(
+                    &route.state.with(|state| state.source_path.clone()),
+                )?
                 .mtime_ms()),
             );
             if route.state.with(|state| state.is_index) {

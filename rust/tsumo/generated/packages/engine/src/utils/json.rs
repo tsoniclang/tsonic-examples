@@ -7,29 +7,28 @@ use tsonic_rust_js::string as js_string;
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait JsonValueDispatch {
     fn downcast_json_value_to_json_array(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonArrayDispatch + 'static>>;
     fn downcast_json_value_to_json_bool(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonBoolDispatch + 'static>>;
     fn downcast_json_value_to_json_null(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNullDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonNullDispatch + 'static>>;
     fn downcast_json_value_to_json_number(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonNumberDispatch + 'static>>;
     fn downcast_json_value_to_json_object(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonObjectDispatch + 'static>>;
     fn downcast_json_value_to_json_string(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonStringDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonStringDispatch + 'static>>;
     fn downcast_json_value_to_json_value(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonValueDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>>;
     fn read_json_value_kind(&self) -> String;
     fn write_json_value_kind(&self, value: String);
     fn read_json_value_line(&self) -> i32;
@@ -39,24 +38,22 @@ pub trait JsonValueDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct JsonValueState {
     pub kind: String,
     pub line: i32,
     pub column: i32,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct JsonValue {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn JsonValueDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn JsonValueDispatch + 'static>,
 }
 
-impl std::fmt::Debug for JsonValue {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for JsonValue {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("JsonValue")
     }
 }
@@ -69,8 +66,14 @@ impl PartialEq for JsonValue {
 
 impl Eq for JsonValue {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for JsonValue {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct JsonValueRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<JsonValueState>,
 }
@@ -91,7 +94,7 @@ impl JsonValue {
     pub fn new(kind: String, line: i32, column: i32) -> JsonValue {
         let state = JsonValue::initialize_state(kind, line, column);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(JsonValueRoot {
+        let root = alloc::rc::Rc::new(JsonValueRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -104,44 +107,44 @@ impl JsonValue {
 
 impl JsonValueDispatch for JsonValueRoot {
     fn downcast_json_value_to_json_array(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonArrayDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_bool(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonBoolDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_null(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNullDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonNullDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_number(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonNumberDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_object(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonObjectDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_string(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonStringDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonStringDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_value(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonValueDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>> {
         Some(self)
     }
 
@@ -171,34 +174,31 @@ impl JsonValueDispatch for JsonValueRoot {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait JsonNullDispatch: JsonValueDispatch {
     fn downcast_json_null_to_json_null(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNullDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonNullDispatch + 'static>>;
     fn read_json_null_value(&self) -> rt::Null;
     fn write_json_null_value(&self, value: rt::Null);
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct JsonNullState {
     #[doc(hidden)]
     pub base: JsonValueState,
     pub value: rt::Null,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct JsonNull {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn JsonNullDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn JsonNullDispatch + 'static>,
 }
 
-impl std::fmt::Debug for JsonNull {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for JsonNull {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("JsonNull")
     }
 }
@@ -211,8 +211,14 @@ impl PartialEq for JsonNull {
 
 impl Eq for JsonNull {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for JsonNull {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct JsonNullRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<JsonNullState>,
 }
@@ -231,7 +237,7 @@ impl JsonNull {
     pub fn new(line: i32, column: i32) -> JsonNull {
         let state = JsonNull::initialize_state(line, column);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(JsonNullRoot {
+        let root = alloc::rc::Rc::new(JsonNullRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -244,44 +250,44 @@ impl JsonNull {
 
 impl JsonValueDispatch for JsonNullRoot {
     fn downcast_json_value_to_json_array(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonArrayDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_bool(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonBoolDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_null(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNullDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonNullDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_json_value_to_json_number(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonNumberDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_object(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonObjectDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_string(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonStringDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonStringDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_value(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonValueDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>> {
         Some(self)
     }
 
@@ -312,8 +318,8 @@ impl JsonValueDispatch for JsonNullRoot {
 
 impl JsonNullDispatch for JsonNullRoot {
     fn downcast_json_null_to_json_null(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNullDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonNullDispatch + 'static>> {
         Some(self)
     }
 
@@ -327,34 +333,31 @@ impl JsonNullDispatch for JsonNullRoot {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait JsonBoolDispatch: JsonValueDispatch {
     fn downcast_json_bool_to_json_bool(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonBoolDispatch + 'static>>;
     fn read_json_bool_value(&self) -> bool;
     fn write_json_bool_value(&self, value: bool);
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct JsonBoolState {
     #[doc(hidden)]
     pub base: JsonValueState,
     pub value: bool,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct JsonBool {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn JsonBoolDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn JsonBoolDispatch + 'static>,
 }
 
-impl std::fmt::Debug for JsonBool {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for JsonBool {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("JsonBool")
     }
 }
@@ -367,8 +370,14 @@ impl PartialEq for JsonBool {
 
 impl Eq for JsonBool {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for JsonBool {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct JsonBoolRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<JsonBoolState>,
 }
@@ -387,7 +396,7 @@ impl JsonBool {
     pub fn new(value: bool, line: i32, column: i32) -> JsonBool {
         let state = JsonBool::initialize_state(value, line, column);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(JsonBoolRoot {
+        let root = alloc::rc::Rc::new(JsonBoolRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -400,44 +409,44 @@ impl JsonBool {
 
 impl JsonValueDispatch for JsonBoolRoot {
     fn downcast_json_value_to_json_array(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonArrayDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_bool(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonBoolDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_json_value_to_json_null(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNullDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonNullDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_number(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonNumberDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_object(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonObjectDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_string(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonStringDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonStringDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_value(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonValueDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>> {
         Some(self)
     }
 
@@ -468,8 +477,8 @@ impl JsonValueDispatch for JsonBoolRoot {
 
 impl JsonBoolDispatch for JsonBoolRoot {
     fn downcast_json_bool_to_json_bool(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonBoolDispatch + 'static>> {
         Some(self)
     }
 
@@ -483,34 +492,31 @@ impl JsonBoolDispatch for JsonBoolRoot {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait JsonNumberDispatch: JsonValueDispatch {
     fn downcast_json_number_to_json_number(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonNumberDispatch + 'static>>;
     fn read_json_number_value(&self) -> f64;
     fn write_json_number_value(&self, value: f64);
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct JsonNumberState {
     #[doc(hidden)]
     pub base: JsonValueState,
     pub value: f64,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct JsonNumber {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn JsonNumberDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn JsonNumberDispatch + 'static>,
 }
 
-impl std::fmt::Debug for JsonNumber {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for JsonNumber {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("JsonNumber")
     }
 }
@@ -523,8 +529,14 @@ impl PartialEq for JsonNumber {
 
 impl Eq for JsonNumber {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for JsonNumber {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct JsonNumberRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<JsonNumberState>,
 }
@@ -543,7 +555,7 @@ impl JsonNumber {
     pub fn new(value: f64, line: i32, column: i32) -> JsonNumber {
         let state = JsonNumber::initialize_state(value, line, column);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(JsonNumberRoot {
+        let root = alloc::rc::Rc::new(JsonNumberRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -556,44 +568,44 @@ impl JsonNumber {
 
 impl JsonValueDispatch for JsonNumberRoot {
     fn downcast_json_value_to_json_array(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonArrayDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_bool(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonBoolDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_null(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNullDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonNullDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_number(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonNumberDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_json_value_to_json_object(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonObjectDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_string(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonStringDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonStringDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_value(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonValueDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>> {
         Some(self)
     }
 
@@ -624,8 +636,8 @@ impl JsonValueDispatch for JsonNumberRoot {
 
 impl JsonNumberDispatch for JsonNumberRoot {
     fn downcast_json_number_to_json_number(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonNumberDispatch + 'static>> {
         Some(self)
     }
 
@@ -639,34 +651,31 @@ impl JsonNumberDispatch for JsonNumberRoot {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait JsonStringDispatch: JsonValueDispatch {
     fn downcast_json_string_to_json_string(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonStringDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonStringDispatch + 'static>>;
     fn read_json_string_value(&self) -> String;
     fn write_json_string_value(&self, value: String);
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct JsonStringState {
     #[doc(hidden)]
     pub base: JsonValueState,
     pub value: String,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct JsonString {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn JsonStringDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn JsonStringDispatch + 'static>,
 }
 
-impl std::fmt::Debug for JsonString {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for JsonString {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("JsonString")
     }
 }
@@ -679,8 +688,14 @@ impl PartialEq for JsonString {
 
 impl Eq for JsonString {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for JsonString {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct JsonStringRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<JsonStringState>,
 }
@@ -699,7 +714,7 @@ impl JsonString {
     pub fn new(value: String, line: i32, column: i32) -> JsonString {
         let state = JsonString::initialize_state(value, line, column);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(JsonStringRoot {
+        let root = alloc::rc::Rc::new(JsonStringRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -712,44 +727,44 @@ impl JsonString {
 
 impl JsonValueDispatch for JsonStringRoot {
     fn downcast_json_value_to_json_array(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonArrayDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_bool(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonBoolDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_null(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNullDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonNullDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_number(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonNumberDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_object(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonObjectDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_string(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonStringDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonStringDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_json_value_to_json_value(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonValueDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>> {
         Some(self)
     }
 
@@ -780,8 +795,8 @@ impl JsonValueDispatch for JsonStringRoot {
 
 impl JsonStringDispatch for JsonStringRoot {
     fn downcast_json_string_to_json_string(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonStringDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonStringDispatch + 'static>> {
         Some(self)
     }
 
@@ -795,34 +810,31 @@ impl JsonStringDispatch for JsonStringRoot {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait JsonArrayDispatch: JsonValueDispatch {
     fn downcast_json_array_to_json_array(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonArrayDispatch + 'static>>;
     fn read_json_array_items(&self) -> js_abi::JsArray<JsonValue>;
     fn write_json_array_items(&self, value: js_abi::JsArray<JsonValue>);
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct JsonArrayState {
     #[doc(hidden)]
     pub base: JsonValueState,
     pub items: js_abi::JsArray<JsonValue>,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct JsonArray {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn JsonArrayDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn JsonArrayDispatch + 'static>,
 }
 
-impl std::fmt::Debug for JsonArray {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for JsonArray {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("JsonArray")
     }
 }
@@ -835,8 +847,14 @@ impl PartialEq for JsonArray {
 
 impl Eq for JsonArray {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for JsonArray {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct JsonArrayRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<JsonArrayState>,
 }
@@ -859,7 +877,7 @@ impl JsonArray {
     pub fn new(items: js_abi::JsArray<JsonValue>, line: i32, column: i32) -> JsonArray {
         let state = JsonArray::initialize_state(items, line, column);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(JsonArrayRoot {
+        let root = alloc::rc::Rc::new(JsonArrayRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -872,44 +890,44 @@ impl JsonArray {
 
 impl JsonValueDispatch for JsonArrayRoot {
     fn downcast_json_value_to_json_array(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonArrayDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_json_value_to_json_bool(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonBoolDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_null(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNullDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonNullDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_number(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonNumberDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_object(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonObjectDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_string(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonStringDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonStringDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_value(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonValueDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>> {
         Some(self)
     }
 
@@ -940,8 +958,8 @@ impl JsonValueDispatch for JsonArrayRoot {
 
 impl JsonArrayDispatch for JsonArrayRoot {
     fn downcast_json_array_to_json_array(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonArrayDispatch + 'static>> {
         Some(self)
     }
 
@@ -955,7 +973,6 @@ impl JsonArrayDispatch for JsonArrayRoot {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct JsonPropertyState {
     pub key: String,
     pub value: JsonValue,
@@ -967,6 +984,12 @@ pub struct JsonPropertyState {
 pub struct JsonProperty {
     #[doc(hidden)]
     pub state: rt::ObjectRef<JsonPropertyState>,
+}
+
+impl rt::ObjectIdentityCarrier for JsonProperty {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl JsonProperty {
@@ -987,50 +1010,47 @@ impl JsonProperty {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait JsonObjectDispatch: JsonValueDispatch {
     fn downcast_json_object_to_json_object(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonObjectDispatch + 'static>>;
     fn read_json_object_properties(&self) -> js_abi::JsArray<JsonProperty>;
     fn write_json_object_properties(&self, value: js_abi::JsArray<JsonProperty>);
     fn dispatch_json_object_get(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
     ) -> Result<Option<JsonValue>, rt::TsonicError>;
     fn exact_json_object_get(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
     ) -> Result<Option<JsonValue>, rt::TsonicError>;
     fn dispatch_json_object_get_case_insensitive(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: &str,
     ) -> Result<Option<JsonValue>, rt::TsonicError>;
     fn exact_json_object_get_case_insensitive(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: &str,
     ) -> Result<Option<JsonValue>, rt::TsonicError>;
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct JsonObjectState {
     #[doc(hidden)]
     pub base: JsonValueState,
     pub properties: js_abi::JsArray<JsonProperty>,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct JsonObject {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn JsonObjectDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn JsonObjectDispatch + 'static>,
 }
 
-impl std::fmt::Debug for JsonObject {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for JsonObject {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("JsonObject")
     }
 }
@@ -1043,7 +1063,12 @@ impl PartialEq for JsonObject {
 
 impl Eq for JsonObject {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for JsonObject {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct JsonObjectRoot {
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<JsonObjectState>,
@@ -1067,7 +1092,7 @@ impl JsonObject {
     pub fn new(properties: js_abi::JsArray<JsonProperty>, line: i32, column: i32) -> JsonObject {
         let state = JsonObject::initialize_state(properties, line, column);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(JsonObjectRoot {
+        let root = alloc::rc::Rc::new(JsonObjectRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -1080,7 +1105,7 @@ impl JsonObject {
 
 impl JsonObjectRoot {
     fn exact_json_object_get(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
     ) -> Result<Option<JsonValue>, rt::TsonicError> {
         let project_this = JsonObject {
@@ -1112,7 +1137,7 @@ impl JsonObjectRoot {
     }
 
     fn exact_json_object_get_case_insensitive(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: &str,
     ) -> Result<Option<JsonValue>, rt::TsonicError> {
         let project_this = JsonObject {
@@ -1149,44 +1174,44 @@ impl JsonObjectRoot {
 
 impl JsonValueDispatch for JsonObjectRoot {
     fn downcast_json_value_to_json_array(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonArrayDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonArrayDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_bool(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonBoolDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonBoolDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_null(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNullDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonNullDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_number(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonNumberDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonNumberDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_object(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonObjectDispatch + 'static>> {
         Some(self)
     }
 
     fn downcast_json_value_to_json_string(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonStringDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonStringDispatch + 'static>> {
         None
     }
 
     fn downcast_json_value_to_json_value(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonValueDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>> {
         Some(self)
     }
 
@@ -1217,8 +1242,8 @@ impl JsonValueDispatch for JsonObjectRoot {
 
 impl JsonObjectDispatch for JsonObjectRoot {
     fn downcast_json_object_to_json_object(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn JsonObjectDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonObjectDispatch + 'static>> {
         Some(self)
     }
 
@@ -1231,28 +1256,28 @@ impl JsonObjectDispatch for JsonObjectRoot {
     }
 
     fn dispatch_json_object_get(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
     ) -> Result<Option<JsonValue>, rt::TsonicError> {
         JsonObjectRoot::exact_json_object_get(self, name)
     }
 
     fn exact_json_object_get(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: String,
     ) -> Result<Option<JsonValue>, rt::TsonicError> {
         JsonObjectRoot::exact_json_object_get(self, name)
     }
 
     fn dispatch_json_object_get_case_insensitive(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: &str,
     ) -> Result<Option<JsonValue>, rt::TsonicError> {
         JsonObjectRoot::exact_json_object_get_case_insensitive(self, name)
     }
 
     fn exact_json_object_get_case_insensitive(
-        self: std::rc::Rc<Self>,
+        self: alloc::rc::Rc<Self>,
         name: &str,
     ) -> Result<Option<JsonValue>, rt::TsonicError> {
         JsonObjectRoot::exact_json_object_get_case_insensitive(self, name)
@@ -1312,7 +1337,6 @@ impl JsonParser {
         })
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse(&mut self) -> Result<JsonValue, rt::TsonicError> {
         self.skip_whitespace();
         let value: JsonValue = self.parse_value()?;
@@ -1327,7 +1351,6 @@ impl JsonParser {
         Ok(value)
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_value(&mut self) -> Result<JsonValue, rt::TsonicError> {
         self.skip_whitespace();
         let start: i32 = self.index;
@@ -1407,7 +1430,6 @@ impl JsonParser {
         )
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_object(&mut self) -> Result<JsonObject, rt::TsonicError> {
         let start: i32 = self.index;
         let line: i32 = self.line_at(start)?;
@@ -1470,14 +1492,12 @@ impl JsonParser {
             let value: JsonValue = self.parse_value()?;
             {
                 let operation_input_0 = properties.clone();
-                operation_input_0.push_many_discard([
-                    JsonProperty::new(
-                        key.clone(),
-                        value.clone(),
-                        self.line_at(key_start)?,
-                        self.column_at(key_start)?,
-                    ),
-                ])
+                operation_input_0.push_many_discard([JsonProperty::new(
+                    key.clone(),
+                    value.clone(),
+                    self.line_at(key_start)?,
+                    self.column_at(key_start)?,
+                )])
             };
             self.skip_whitespace();
             let separator: String = self.peek();
@@ -1534,7 +1554,6 @@ impl JsonParser {
         Ok(JsonObject::new(properties.clone(), line, column))
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_array(&mut self) -> Result<JsonArray, rt::TsonicError> {
         let start: i32 = self.index;
         let line: i32 = self.line_at(start)?;
@@ -1630,7 +1649,6 @@ impl JsonParser {
         Ok(JsonArray::new(items.clone(), line, column))
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_string(&mut self) -> Result<String, rt::TsonicError> {
         self.expect(String::from("\""))?;
         let mut result: String = String::from("");
@@ -1698,7 +1716,6 @@ impl JsonParser {
         )
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_unicode_escape(&mut self) -> Result<String, rt::TsonicError> {
         let first: i32 = self.parse_unicode_code_unit()?;
         if (55296..=56319).contains(&first) {
@@ -1732,9 +1749,9 @@ impl JsonParser {
                 );
             }
             let code_point: i32 = 65536 + (first - 55296) * 1024 + second - 56320;
-            return js_string::from_code_point(&[
-                tsonic_rust_runtime::conversions::i32_to_f64(code_point),
-            ])
+            return js_string::from_code_point(&[tsonic_rust_runtime::conversions::i32_to_f64(
+                code_point,
+            )])
             .map_err(rt::TsonicError::from);
         }
         if (56320..=57343).contains(&first) {
@@ -1751,7 +1768,6 @@ impl JsonParser {
             .map_err(rt::TsonicError::from)
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_unicode_code_unit(&mut self) -> Result<i32, rt::TsonicError> {
         if self.index + 4 > self.source.state.with(|state| state.length) {
             return Err(
@@ -1788,7 +1804,6 @@ impl JsonParser {
         Ok(value)
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn parse_number(&mut self, line: i32, column: i32) -> Result<JsonNumber, rt::TsonicError> {
         let start: i32 = self.index;
         if self.peek() == "-" {
@@ -1892,7 +1907,6 @@ impl JsonParser {
         Ok(JsonNumber::new(value, line, column))
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn consume_digits(&mut self) -> Result<(), rt::TsonicError> {
         let start: i32 = self.index;
         while self.is_digit(self.peek()) {
@@ -1919,7 +1933,6 @@ impl JsonParser {
         Ok(())
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn expect_keyword(&mut self, keyword: String) -> Result<(), rt::TsonicError> {
         {
             let mut offset: i32 = 0;
@@ -1958,7 +1971,6 @@ impl JsonParser {
         Ok(())
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn expect(&mut self, expected: String) -> Result<(), rt::TsonicError> {
         if self.next()? != expected {
             return Err(
@@ -1978,7 +1990,6 @@ impl JsonParser {
         Ok(())
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     #[expect(clippy::should_implement_trait, reason = "authored method contract")]
     pub fn next(&mut self) -> Result<String, rt::TsonicError> {
         if self.index >= self.source.state.with(|state| state.length) {
@@ -2004,7 +2015,6 @@ impl JsonParser {
         Ok(ch)
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn peek(&self) -> String {
         if self.index >= self.source.state.with(|state| state.length) {
             return String::from("");
@@ -2012,7 +2022,6 @@ impl JsonParser {
         self.source.character_at(self.index)
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn skip_whitespace(&mut self) {
         loop {
             let ch: String = self.peek();
@@ -2034,13 +2043,11 @@ impl JsonParser {
         }
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn is_digit(&self, ch: String) -> bool {
         crate::utils::strings::compare_text(ch.clone(), String::from("0")) >= 0
             && crate::utils::strings::compare_text(ch.clone(), String::from("9")) <= 0
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn enter_composite(&mut self, index: i32) -> Result<(), rt::TsonicError> {
         {
             let update_receiver = &mut *self;
@@ -2068,11 +2075,9 @@ impl JsonParser {
         Ok(())
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn line_index_at(&self, index: i32) -> Result<i32, rt::TsonicError> {
         let mut low: i32 = 0;
-        let mut high: i32 =
-            tsonic_rust_runtime::conversions::usize_to_i32(self.line_starts.len())?;
+        let mut high: i32 = tsonic_rust_runtime::conversions::usize_to_i32(self.line_starts.len())?;
         while low < high {
             let middle: i32 = tsonic_rust_runtime::conversions::f64_to_i32(
                 low as f64 + tsonic_rust_runtime::conversions::i32_to_f64((high - low) / 2).floor(),
@@ -2094,12 +2099,10 @@ impl JsonParser {
         Ok(low - 1)
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn line_at(&self, index: i32) -> Result<i32, rt::TsonicError> {
         Ok(self.line_index_at(index)? + 1)
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn column_at(&self, index: i32) -> Result<i32, rt::TsonicError> {
         let line_index: i32 = self.line_index_at(index)?;
         Ok(
@@ -2115,7 +2118,6 @@ impl JsonParser {
         )
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn syntax_error(
         &self,
         message: String,
@@ -2124,11 +2126,10 @@ impl JsonParser {
         self.error(
             String::from("TSUMO_JSON_SYNTAX_INVALID"),
             message,
-            rt::option_coalesce(index, std::convert::identity, || self.index),
+            rt::option_coalesce(index, core::convert::identity, || self.index),
         )
     }
 
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn error(
         &self,
         code: String,
