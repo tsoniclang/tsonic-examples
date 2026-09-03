@@ -26,7 +26,7 @@ Generated on 2026-09-03 from clean checkouts:
 |---|---|
 | [`tsoniclang/tsumo-rust`](https://github.com/tsoniclang/tsumo-rust) | `5e4bc235df7f9b985c638e9ac23fd69abf432e57` |
 | [`tsoniclang/tsonic`](https://github.com/tsoniclang/tsonic) | `762ecb7e9c1de1152bac34c07ecf5b424182c684` |
-| [`tsoniclang/tsonic-rust`](https://github.com/tsoniclang/tsonic-rust) | `422e32f927df18121b8e464c66956d06f64a1ffa` |
+| [`tsoniclang/tsonic-rust`](https://github.com/tsoniclang/tsonic-rust) | `2fb9dd8ddef12f3fa5b2553e7ba1172dfab32777` |
 | [`tsoniclang/rust-nodejs`](https://github.com/tsoniclang/rust-nodejs) | `4afba946d30f4359b43edaa384072bb21cf87894` |
 | [`tsoniclang/rust-js`](https://github.com/tsoniclang/rust-js) | `eb72739c8845b8e9e0ec5d6e061dd4d063857092` |
 | [`tsoniclang/rust-runtime`](https://github.com/tsoniclang/rust-runtime) | `9e6b15493a513ac385e374e04dc652616a845c6b` |
