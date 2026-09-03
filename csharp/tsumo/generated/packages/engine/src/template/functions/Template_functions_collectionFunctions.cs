@@ -83,7 +83,7 @@ namespace Tsumo.Engine
                     {
                         return false;
                     }
-                    return ((PageValue)left).value == ((PageValue)right).value;
+                    return object.ReferenceEquals(((PageValue)left).value, ((PageValue)right).value);
                 }
                 return null;
             };
@@ -457,7 +457,7 @@ namespace Tsumo.Engine
                             bool present = false;
                             for (int resultIndex = 0; resultIndex < result_7.length; resultIndex++)
                             {
-                                if (result_7[resultIndex] == candidate)
+                                if (object.ReferenceEquals(result_7[resultIndex], candidate))
                                 {
                                     present = true;
                                     break;

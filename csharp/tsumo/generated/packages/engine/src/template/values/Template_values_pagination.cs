@@ -64,7 +64,7 @@ namespace Tsumo.Engine
             }
             for (int index = 0; index < this.sourcePages.length; index++)
             {
-                if (this.sourcePages[index] != other.sourcePages[index])
+                if (!object.ReferenceEquals(this.sourcePages[index], other.sourcePages[index]))
                 {
                     return false;
                 }

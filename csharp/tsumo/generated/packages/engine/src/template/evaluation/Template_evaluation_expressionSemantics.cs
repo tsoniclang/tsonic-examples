@@ -291,7 +291,7 @@ namespace Tsumo.Engine
                             for (int index = 0; index < arr.length; index++)
                             {
                                 TemplateValue current = arr[index];
-                                if (current is PageValue && ((PageValue)current).value == targetPage)
+                                if (current is PageValue && object.ReferenceEquals(((PageValue)current).value, targetPage))
                                 {
                                     selectedIndex = index;
                                     break;
@@ -385,7 +385,7 @@ namespace Tsumo.Engine
                         PageContext other = ((PageValue)otherValue).value;
                         for (int index_1 = 0; index_1 < other.ancestors.length; index_1++)
                         {
-                            if (other.ancestors[index_1] == page_1)
+                            if (object.ReferenceEquals(other.ancestors[index_1], page_1))
                             {
                                 return new BoolValue(true);
                             }
@@ -401,7 +401,7 @@ namespace Tsumo.Engine
                         {
                             return new BoolValue(false);
                         }
-                        if (((MenuEntryValue)entryValue).site != page_1.site)
+                        if (!object.ReferenceEquals(((MenuEntryValue)entryValue).site, page_1.site))
                         {
                             return new BoolValue(false);
                         }
