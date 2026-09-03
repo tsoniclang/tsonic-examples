@@ -3,7 +3,6 @@
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct LanguageConfigState {
     pub lang: String,
     pub language_name: String,
@@ -16,6 +15,12 @@ pub struct LanguageConfigState {
 pub struct LanguageConfig {
     #[doc(hidden)]
     pub state: rt::ObjectRef<LanguageConfigState>,
+}
+
+impl rt::ObjectIdentityCarrier for LanguageConfig {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl LanguageConfig {
@@ -44,11 +49,12 @@ impl LanguageConfig {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait LanguageContextDispatch {
     fn downcast_language_context_to_language_context(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn LanguageContextDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn LanguageContextDispatch + 'static>> {
+        None
+    }
     fn read_language_context_lang(&self) -> String;
     fn write_language_context_lang(&self, value: String);
     fn read_language_context_language_name(&self) -> String;
@@ -58,24 +64,22 @@ pub trait LanguageContextDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct LanguageContextState {
     pub lang: String,
     pub language_name: String,
     pub language_direction: String,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct LanguageContext {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn LanguageContextDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn LanguageContextDispatch + 'static>,
 }
 
-impl std::fmt::Debug for LanguageContext {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for LanguageContext {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("LanguageContext")
     }
 }
@@ -88,8 +92,14 @@ impl PartialEq for LanguageContext {
 
 impl Eq for LanguageContext {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for LanguageContext {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct LanguageContextRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<LanguageContextState>,
 }
@@ -114,7 +124,7 @@ impl LanguageContext {
     pub fn new(lang: String, language_name: String, language_direction: String) -> LanguageContext {
         let state = LanguageContext::initialize_state(lang, language_name, language_direction);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(LanguageContextRoot {
+        let root = alloc::rc::Rc::new(LanguageContextRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -127,8 +137,8 @@ impl LanguageContext {
 
 impl LanguageContextDispatch for LanguageContextRoot {
     fn downcast_language_context_to_language_context(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn LanguageContextDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn LanguageContextDispatch + 'static>> {
         Some(self)
     }
 

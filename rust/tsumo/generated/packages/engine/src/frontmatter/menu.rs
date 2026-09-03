@@ -3,11 +3,12 @@
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait FrontMatterMenuDispatch {
     fn downcast_front_matter_menu_to_front_matter_menu(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn FrontMatterMenuDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn FrontMatterMenuDispatch + 'static>> {
+        None
+    }
     fn read_front_matter_menu_menu(&self) -> String;
     fn write_front_matter_menu_menu(&self, value: String);
     fn read_front_matter_menu_name(&self) -> String;
@@ -27,7 +28,6 @@ pub trait FrontMatterMenuDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct FrontMatterMenuState {
     pub menu: String,
     pub name: String,
@@ -39,17 +39,16 @@ pub struct FrontMatterMenuState {
     pub title: String,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct FrontMatterMenu {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn FrontMatterMenuDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn FrontMatterMenuDispatch + 'static>,
 }
 
-impl std::fmt::Debug for FrontMatterMenu {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for FrontMatterMenu {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("FrontMatterMenu")
     }
 }
@@ -62,8 +61,14 @@ impl PartialEq for FrontMatterMenu {
 
 impl Eq for FrontMatterMenu {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for FrontMatterMenu {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct FrontMatterMenuRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<FrontMatterMenuState>,
 }
@@ -94,7 +99,7 @@ impl FrontMatterMenu {
     pub fn new(menu: String) -> FrontMatterMenu {
         let state = FrontMatterMenu::initialize_state(menu);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(FrontMatterMenuRoot {
+        let root = alloc::rc::Rc::new(FrontMatterMenuRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -107,8 +112,8 @@ impl FrontMatterMenu {
 
 impl FrontMatterMenuDispatch for FrontMatterMenuRoot {
     fn downcast_front_matter_menu_to_front_matter_menu(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn FrontMatterMenuDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn FrontMatterMenuDispatch + 'static>> {
         Some(self)
     }
 

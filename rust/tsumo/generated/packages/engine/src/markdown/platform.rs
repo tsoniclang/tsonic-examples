@@ -3,7 +3,6 @@
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct TsumoMarkdownBatchState {
     batch: tsumo_platform::MarkdownBatch,
 }
@@ -12,6 +11,12 @@ pub struct TsumoMarkdownBatchState {
 pub struct TsumoMarkdownBatch {
     #[doc(hidden)]
     pub state: rt::ObjectRef<TsumoMarkdownBatchState>,
+}
+
+impl rt::ObjectIdentityCarrier for TsumoMarkdownBatch {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl TsumoMarkdownBatch {
@@ -38,7 +43,8 @@ impl TsumoMarkdownBatch {
         &self,
         index: i32,
     ) -> Result<crate::markdown::result::MarkdownResult, rt::TsonicError> {
-        let result: tsumo_platform::MarkdownBatchResult = self.state
+        let result: tsumo_platform::MarkdownBatchResult = self
+            .state
             .with(|state| state.batch.clone())
             .take_result(index)?;
         Ok(crate::markdown::result::MarkdownResult::new(
@@ -61,7 +67,6 @@ pub fn create_markdown_batch() -> TsumoMarkdownBatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct TsumoMarkdownSourcePlanState {
     pub full_source: String,
     pub summary_source: String,
@@ -72,6 +77,12 @@ pub struct TsumoMarkdownSourcePlanState {
 pub struct TsumoMarkdownSourcePlan {
     #[doc(hidden)]
     pub state: rt::ObjectRef<TsumoMarkdownSourcePlanState>,
+}
+
+impl rt::ObjectIdentityCarrier for TsumoMarkdownSourcePlan {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl TsumoMarkdownSourcePlan {
@@ -94,7 +105,6 @@ impl TsumoMarkdownSourcePlan {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct TsumoMarkdownOccurrenceState {
     pub kind: String,
     pub destination: String,
@@ -108,6 +118,12 @@ pub struct TsumoMarkdownOccurrenceState {
 pub struct TsumoMarkdownOccurrence {
     #[doc(hidden)]
     pub state: rt::ObjectRef<TsumoMarkdownOccurrenceState>,
+}
+
+impl rt::ObjectIdentityCarrier for TsumoMarkdownOccurrence {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl TsumoMarkdownOccurrence {
@@ -139,7 +155,6 @@ impl TsumoMarkdownOccurrence {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct TsumoMarkdownDocumentState {
     document: tsumo_platform::MarkdownDocument,
 }
@@ -148,6 +163,12 @@ pub struct TsumoMarkdownDocumentState {
 pub struct TsumoMarkdownDocument {
     #[doc(hidden)]
     pub state: rt::ObjectRef<TsumoMarkdownDocumentState>,
+}
+
+impl rt::ObjectIdentityCarrier for TsumoMarkdownDocument {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl TsumoMarkdownDocument {
@@ -168,7 +189,8 @@ impl TsumoMarkdownDocument {
     }
 
     pub fn occurrence(&self, index: i32) -> Result<TsumoMarkdownOccurrence, rt::TsonicError> {
-        let occurrence: tsumo_platform::MarkdownOccurrence = self.state
+        let occurrence: tsumo_platform::MarkdownOccurrence = self
+            .state
             .with(|state| state.document.clone())
             .occurrence(index)?;
         Ok(TsumoMarkdownOccurrence::new(

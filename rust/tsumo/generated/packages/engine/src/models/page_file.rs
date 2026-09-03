@@ -3,11 +3,12 @@
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait PageFileDispatch {
     fn downcast_page_file_to_page_file(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageFileDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn PageFileDispatch + 'static>> {
+        None
+    }
     fn read_page_file_filename(&self) -> String;
     fn write_page_file_filename(&self, value: String);
     fn read_page_file_dir(&self) -> String;
@@ -17,24 +18,22 @@ pub trait PageFileDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct PageFileState {
     pub filename: String,
     pub dir: String,
     pub base_file_name: String,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct PageFile {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn PageFileDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn PageFileDispatch + 'static>,
 }
 
-impl std::fmt::Debug for PageFile {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for PageFile {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("PageFile")
     }
 }
@@ -47,8 +46,14 @@ impl PartialEq for PageFile {
 
 impl Eq for PageFile {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for PageFile {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct PageFileRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<PageFileState>,
 }
@@ -73,7 +78,7 @@ impl PageFile {
     pub fn new(filename: String, dir: String, base_file_name: String) -> PageFile {
         let state = PageFile::initialize_state(filename, dir, base_file_name);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(PageFileRoot {
+        let root = alloc::rc::Rc::new(PageFileRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -86,8 +91,8 @@ impl PageFile {
 
 impl PageFileDispatch for PageFileRoot {
     fn downcast_page_file_to_page_file(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn PageFileDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn PageFileDispatch + 'static>> {
         Some(self)
     }
 

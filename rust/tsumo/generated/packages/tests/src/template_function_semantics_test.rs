@@ -2,17 +2,20 @@
 
 use crate::program as rt;
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) struct TemplateFunctionSemanticsTestsState {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct TemplateFunctionSemanticsTests {
     pub(crate) state: rt::ObjectRef<TemplateFunctionSemanticsTestsState>,
 }
 
+impl rt::ObjectIdentityCarrier for TemplateFunctionSemanticsTests {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
+}
+
 impl TemplateFunctionSemanticsTests {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new() -> TemplateFunctionSemanticsTests {
         TemplateFunctionSemanticsTests {
             state: rt::ObjectRef::new(TemplateFunctionSemanticsTestsState {}),
@@ -24,291 +27,249 @@ impl TemplateFunctionSemanticsTests {
     ) -> Result<(), rt::TsonicError> {
         crate::test_root::Assert::string_equal(
             String::from("====="),
-            Some(crate::template_test_harness::render(
-                String::from("{{ strings.Repeat 5 \"=\" }}"),
-            )?),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ strings.Repeat 5 \"=\" }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("Hello World"),
-            Some(crate::template_test_harness::render(
-                String::from("{{ strings.Title \"hello world\" }}"),
-            )?),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ strings.Title \"hello world\" }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("3|9|4|4|5"),
-            Some(
-                crate::template_test_harness::render(
-                    String::from("{{ math.Min 9 3 7 }}|{{ math.Max 9 3 7 }}|{{ math.Round 4 }}|{{ math.Ceil 4 }}|{{ math.Add 2 3 }}"),
-                )?,
-            ),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ math.Min 9 3 7 }}|{{ math.Max 9 3 7 }}|{{ math.Round 4 }}|{{ math.Ceil 4 }}|{{ math.Add 2 3 }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("c,b,a|a,b"),
-            Some(
-                crate::template_test_harness::render(
-                    String::from("{{ delimit (collections.Reverse (slice \"a\" \"b\" \"c\")) `,` }}|{{ delimit (strings.Split \"a,b\" `,`) `,` }}"),
-                )?,
-            ),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ delimit (collections.Reverse (slice \"a\" \"b\" \"c\")) `,` }}|{{ delimit (strings.Split \"a,b\" `,`) `,` }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("string|bool|int|map[string]interface {}|&quot;quoted&quot;|true|3"),
-            Some(
-                crate::template_test_harness::render(
-                    String::from("{{ printf \"%T|%T|%T|%T|%q|%t|%v\" \"value\" true 3 (dict \"key\" \"value\") \"quoted\" true 3 }}"),
-                )?,
-            ),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ printf \"%T|%T|%T|%T|%q|%t|%v\" \"value\" true 3 (dict \"key\" \"value\") \"quoted\" true 3 }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("<meta name=\"generator\" content=\"Hugo 0.146.2\">"),
-            Some(crate::template_test_harness::render(
-                String::from("{{ hugo.Generator }}"),
-            )?),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ hugo.Generator }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_TEMPLATE_VERSION_COMPONENT_OUT_OF_RANGE"),
-            Some(crate::template_test_harness::capture_diagnostic_code(rt::Callable::<
-                (),
-                rt::TsonicResult<()>,
-            >::new(move |_callable_arguments| {
-                crate::template_test_harness::render(
-                    String::from("{{ lt hugo.Version \"2147483648.0\" }}"),
-                )?;
-                Ok::<_, rt::TsonicError>(())
-            }))?),
+            Some(crate::template_test_harness::capture_diagnostic_code(
+                rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
+                    crate::template_test_harness::render(String::from(
+                        "{{ lt hugo.Version \"2147483648.0\" }}",
+                    ))?;
+                    Ok::<_, rt::TsonicError>(())
+                }),
+            )?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_TEMPLATE_STRING_REPEAT_INVALID"),
-            Some(crate::template_test_harness::capture_diagnostic_code(rt::Callable::<
-                (),
-                rt::TsonicResult<()>,
-            >::new(move |_callable_arguments_2| {
-                crate::template_test_harness::render(
-                    String::from("{{ strings.Repeat -1 \"=\" }}"),
-                )?;
-                Ok::<_, rt::TsonicError>(())
-            }))?),
+            Some(crate::template_test_harness::capture_diagnostic_code(
+                rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
+                    crate::template_test_harness::render(String::from(
+                        "{{ strings.Repeat -1 \"=\" }}",
+                    ))?;
+                    Ok::<_, rt::TsonicError>(())
+                }),
+            )?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("a,b"),
-            Some(
-                crate::template_test_harness::render(
-                    String::from("{{ delimit (collections.First 2 (collections.Slice \"a\" \"b\" \"c\")) \",\" }}"),
-                )?,
-            ),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ delimit (collections.First 2 (collections.Slice \"a\" \"b\" \"c\")) \",\" }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("fallback"),
-            Some(crate::template_test_harness::render(
-                String::from("{{ compare.Default \"fallback\" \"\" }}"),
-            )?),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ compare.Default \"fallback\" \"\" }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("false|only|42"),
-            Some(
-                crate::template_test_harness::render(
-                    String::from("{{ default \"fallback\" false }}|{{ default \"only\" }}|{{ default 42 0 }}"),
-                )?,
-            ),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ default \"fallback\" false }}|{{ default \"only\" }}|{{ default 42 0 }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("nil"),
-            Some(crate::template_test_harness::render(
-                String::from("{{ if nil }}value{{ else }}nil{{ end }}"),
-            )?),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ if nil }}value{{ else }}nil{{ end }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("line"),
-            Some(crate::template_test_harness::render(
-                String::from("{{ chomp \"line\\n\" }}"),
-            )?),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ chomp \"line\\n\" }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("2024"),
-            Some(crate::template_test_harness::render(
-                String::from("{{ now.Year }}"),
-            )?),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ now.Year }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("configured"),
-            Some(crate::template_test_harness::render(
-                String::from("{{ getenv \"TSUMO_TEST_VALUE\" }}"),
-            )?),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ getenv \"TSUMO_TEST_VALUE\" }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from(""),
-            Some(crate::template_test_harness::render(
-                String::from("{{ getenv \"TSUMO_MISSING_VALUE\" }}"),
-            )?),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ getenv \"TSUMO_MISSING_VALUE\" }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("true|false"),
-            Some(
-                crate::template_test_harness::render(
-                    String::from("{{ fileExists \"static/existing.css\" }}|{{ fileExists \"static/missing.css\" }}"),
-                )?,
-            ),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ fileExists \"static/existing.css\" }}|{{ fileExists \"static/missing.css\" }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("true"),
-            Some(crate::template_test_harness::render(
-                String::from("{{ collections.IsSet (dict \"key\" \"value\") \"key\" }}"),
-            )?),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ collections.IsSet (dict \"key\" \"value\") \"key\" }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("translated"),
-            Some(crate::template_test_harness::render(
-                String::from("{{ T \"translated\" }}"),
-            )?),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ T \"translated\" }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("2026|42"),
-            Some(crate::template_test_harness::render(
-                String::from("{{ int \"2026\" }}|{{ string 42 }}"),
-            )?),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ int \"2026\" }}|{{ string 42 }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("true|false"),
-            Some(
-                crate::template_test_harness::render(
-                    String::from("{{ collections.In (collections.Slice \"first\" \"second\") \"second\" }}|{{ collections.In (collections.Slice \"first\") \"second\" }}"),
-                )?,
-            ),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ collections.In (collections.Slice \"first\" \"second\") \"second\" }}|{{ collections.In (collections.Slice \"first\") \"second\" }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("one two|first|one two|url.Values"),
-            Some(
-                crate::template_test_harness::render(
-                    String::from("{{ $url := urls.Parse \"/page?classes=one+two&name=first&name=second\" }}{{ $url.Query.Get \"classes\" }}|{{ $url.Query.Get \"name\" }}|{{ $url.Query.classes }}|{{ printf \"%T\" $url.Query }}"),
-                )?,
-            ),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ $url := urls.Parse \"/page?classes=one+two&name=first&name=second\" }}{{ $url.Query.Get \"classes\" }}|{{ $url.Query.Get \"name\" }}|{{ $url.Query.classes }}|{{ printf \"%T\" $url.Query }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("false|||/page|name=value|top"),
-            Some(
-                crate::template_test_harness::render(
-                    String::from("{{ $url := urls.Parse \"/page?name=value#top\" }}{{ $url.IsAbs }}|{{ $url.Scheme }}|{{ $url.Host }}|{{ $url.Path }}|{{ $url.RawQuery }}|{{ $url.Fragment }}"),
-                )?,
-            ),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ $url := urls.Parse \"/page?name=value#top\" }}{{ $url.IsAbs }}|{{ $url.Scheme }}|{{ $url.Host }}|{{ $url.Path }}|{{ $url.RawQuery }}|{{ $url.Fragment }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("true|https|example.test:8443|/page|name=value|top"),
-            Some(
-                crate::template_test_harness::render(
-                    String::from("{{ $url := urls.Parse \"https://example.test:8443/page?name=value#top\" }}{{ $url.IsAbs }}|{{ $url.Scheme }}|{{ $url.Host }}|{{ $url.Path }}|{{ $url.RawQuery }}|{{ $url.Fragment }}"),
-                )?,
-            ),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ $url := urls.Parse \"https://example.test:8443/page?name=value#top\" }}{{ $url.IsAbs }}|{{ $url.Scheme }}|{{ $url.Host }}|{{ $url.Path }}|{{ $url.RawQuery }}|{{ $url.Fragment }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from(""),
-            Some(
-                crate::template_test_harness::render(
-                    String::from("{{ $url := urls.Parse \"/page?name=value\" }}{{ $url.Query.Get \"missing\" }}"),
-                )?,
-            ),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ $url := urls.Parse \"/page?name=value\" }}{{ $url.Query.Get \"missing\" }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("🙂"),
-            Some(
-                crate::template_test_harness::render(
-                    String::from("{{ $url := urls.Parse \"/page?name=%F0%9F%99%82\" }}{{ $url.Query.Get \"name\" }}"),
-                )?,
-            ),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ $url := urls.Parse \"/page?name=%F0%9F%99%82\" }}{{ $url.Query.Get \"name\" }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_TEMPLATE_URL_QUERY_INVALID"),
-            Some(
-                crate::template_test_harness::capture_diagnostic_code(rt::Callable::<
-                    (),
-                    rt::TsonicResult<()>,
-                >::new(
-                    move |_callable_arguments_3| {
-                        crate::template_test_harness::render(
-                            String::from("{{ $url := urls.Parse \"/page?name=%ZZ\" }}{{ $url.Query.Get \"name\" }}"),
-                        )?;
-                        Ok::<_, rt::TsonicError>(())
-                    },
-                ))?,
-            ),
+            Some(crate::template_test_harness::capture_diagnostic_code(
+                rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_3| {
+                    crate::template_test_harness::render(String::from(
+                        "{{ $url := urls.Parse \"/page?name=%ZZ\" }}{{ $url.Query.Get \"name\" }}",
+                    ))?;
+                    Ok::<_, rt::TsonicError>(())
+                }),
+            )?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_TEMPLATE_URL_QUERY_INVALID"),
-            Some(
-                crate::template_test_harness::capture_diagnostic_code(rt::Callable::<
-                    (),
-                    rt::TsonicResult<()>,
-                >::new(
-                    move |_callable_arguments_4| {
-                        crate::template_test_harness::render(
-                            String::from("{{ $url := urls.Parse \"/page?name=%F0%28%8C%28\" }}{{ $url.Query.Get \"name\" }}"),
-                        )?;
-                        Ok::<_, rt::TsonicError>(())
-                    },
-                ))?,
-            ),
+            Some(crate::template_test_harness::capture_diagnostic_code(
+                rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_4| {
+                    crate::template_test_harness::render(String::from(
+                        "{{ $url := urls.Parse \"/page?name=%F0%28%8C%28\" }}{{ $url.Query.Get \"name\" }}",
+                    ))?;
+                    Ok::<_, rt::TsonicError>(())
+                }),
+            )?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("value|nested"),
-            Some(
-                crate::template_test_harness::render(
-                    String::from("{{ hugo.Store.Set \"name\" \"value\" }}{{ hugo.Store.SetInMap \"items\" \"key\" \"nested\" }}{{ hugo.Store.Get \"name\" }}|{{ index (hugo.Store.Get \"items\") \"key\" }}"),
-                )?,
-            ),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ hugo.Store.Set \"name\" \"value\" }}{{ hugo.Store.SetInMap \"items\" \"key\" \"nested\" }}{{ hugo.Store.Get \"name\" }}|{{ index (hugo.Store.Get \"items\") \"key\" }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("first,second"),
-            Some(crate::template_test_harness::render(
-                String::from("{{ delimit (transform.Unmarshal \"- first\\n- second\") \",\" }}"),
-            )?),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ delimit (transform.Unmarshal \"- first\\n- second\") \",\" }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("value"),
-            Some(crate::template_test_harness::render(
-                String::from("{{ (transform.Unmarshal \"{\\\"key\\\":\\\"value\\\"}\").key }}"),
-            )?),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ (transform.Unmarshal \"{\\\"key\\\":\\\"value\\\"}\").key }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("_partials/site-style.html"),
-            Some(crate::template_test_harness::render(
-                String::from("{{ fmt.Print \"_partials/\" \"site-style.html\" }}"),
-            )?),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ fmt.Print \"_partials/\" \"site-style.html\" }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("true"),
-            Some(crate::template_test_harness::render(
-                String::from("{{ hasPrefix \"<svg viewBox=0>\" \"<svg\" }}"),
-            )?),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ hasPrefix \"<svg viewBox=0>\" \"<svg\" }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("true|true|false"),
-            Some(
-                crate::template_test_harness::render(
-                    String::from("{{ reflect.IsMap (dict \"key\" \"value\") }}|{{ reflect.IsSlice (slice \"value\") }}|{{ reflect.IsMap (slice) }}"),
-                )?,
-            ),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ reflect.IsMap (dict \"key\" \"value\") }}|{{ reflect.IsSlice (slice \"value\") }}|{{ reflect.IsMap (slice) }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("value|true|trimmed"),
-            Some(
-                crate::template_test_harness::render(
-                    String::from("{{ strings.ToLower \"VALUE\" }}|{{ strings.HasSuffix \"index.html\" \".html\" }}|{{ strings.Trim \"/trimmed/\" \"/\" }}"),
-                )?,
-            ),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ strings.ToLower \"VALUE\" }}|{{ strings.HasSuffix \"index.html\" \".html\" }}|{{ strings.Trim \"/trimmed/\" \"/\" }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
-            String::from("a%20b=c%2Fd|.css|content/page.md|900150983cd24fb0d6963f7d28e17f72|Hello World|3"),
-            Some(
-                crate::template_test_harness::render(
-                    String::from("{{ collections.Querify \"a b\" \"c/d\" }}|{{ path.Ext \"assets/main.css\" }}|{{ path.Join \"content\" \"posts\" \"..\" \"page.md\" }}|{{ crypto.MD5 \"abc\" }}|{{ inflect.Humanize \"hello-world\" }}|{{ math.Ceil 3 }}"),
-                )?,
+            String::from(
+                "a%20b=c%2Fd|.css|content/page.md|900150983cd24fb0d6963f7d28e17f72|Hello World|3",
             ),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ collections.Querify \"a b\" \"c/d\" }}|{{ path.Ext \"assets/main.css\" }}|{{ path.Join \"content\" \"posts\" \"..\" \"page.md\" }}|{{ crypto.MD5 \"abc\" }}|{{ inflect.Humanize \"hello-world\" }}|{{ math.Ceil 3 }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
-            String::from("/asset.css|https://example.test/asset.css|https://example.test/asset.css|&lt;x&gt;"),
-            Some(
-                crate::template_test_harness::render(
-                    String::from("{{ urls.RelURL \"asset.css\" }}|{{ urls.AbsURL \"/asset.css\" }}|{{ urls.AbsLangURL \"/asset.css\" }}|{{ safeHTML (transform.HTMLEscape \"<x>\") }}"),
-                )?,
+            String::from(
+                "/asset.css|https://example.test/asset.css|https://example.test/asset.css|&lt;x&gt;",
             ),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ urls.RelURL \"asset.css\" }}|{{ urls.AbsURL \"/asset.css\" }}|{{ urls.AbsLangURL \"/asset.css\" }}|{{ safeHTML (transform.HTMLEscape \"<x>\") }}",
+            ))?),
         )?;
         Ok(())
     }
@@ -320,7 +281,6 @@ impl Default for TemplateFunctionSemanticsTests {
     }
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn run_template_function_semantics_tests() -> Result<(), rt::TsonicError> {
     let tests: TemplateFunctionSemanticsTests = TemplateFunctionSemanticsTests::new();
     crate::test_root::run_test(

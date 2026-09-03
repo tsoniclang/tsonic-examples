@@ -2,17 +2,20 @@
 
 use crate::program as rt;
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) struct TemplateControlFlowTestsState {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct TemplateControlFlowTests {
     pub(crate) state: rt::ObjectRef<TemplateControlFlowTestsState>,
 }
 
+impl rt::ObjectIdentityCarrier for TemplateControlFlowTests {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
+}
+
 impl TemplateControlFlowTests {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new() -> TemplateControlFlowTests {
         TemplateControlFlowTests {
             state: rt::ObjectRef::new(TemplateControlFlowTestsState {}),
@@ -24,27 +27,21 @@ impl TemplateControlFlowTests {
     ) -> Result<(), rt::TsonicError> {
         crate::test_root::Assert::string_equal(
             String::from("134"),
-            Some(
-                crate::template_test_harness::render(
-                    String::from("{{ range seq 6 }}{{ if eq . 2 }}{{ continue }}{{ end }}{{ if eq . 5 }}{{ break }}{{ end }}{{ . }}{{ end }}"),
-                )?,
-            ),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ range seq 6 }}{{ if eq . 2 }}{{ continue }}{{ end }}{{ if eq . 5 }}{{ break }}{{ end }}{{ . }}{{ end }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("1:1;2:1;"),
-            Some(
-                crate::template_test_harness::render(
-                    String::from("{{ range $outer := seq 2 }}{{$outer}}:{{ range seq 3 }}{{ if eq . 2 }}{{ break }}{{ end }}{{ . }}{{ end }};{{ end }}"),
-                )?,
-            ),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ range $outer := seq 2 }}{{$outer}}:{{ range seq 3 }}{{ if eq . 2 }}{{ break }}{{ end }}{{ . }}{{ end }};{{ end }}",
+            ))?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("1"),
-            Some(
-                crate::template_test_harness::render(
-                    String::from("{{ range seq 3 }}{{ . }}{{ range (slice) }}x{{ else }}{{ break }}{{ end }}X{{ end }}"),
-                )?,
-            ),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ range seq 3 }}{{ . }}{{ range (slice) }}x{{ else }}{{ break }}{{ end }}X{{ end }}",
+            ))?),
         )?;
         Ok(())
     }
@@ -54,53 +51,47 @@ impl TemplateControlFlowTests {
     ) -> Result<(), rt::TsonicError> {
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_TEMPLATE_BREAK_OUTSIDE_RANGE"),
-            Some(crate::template_test_harness::capture_diagnostic_code(rt::Callable::<
-                (),
-                rt::TsonicResult<()>,
-            >::new(move |_callable_arguments| {
-                tsumo_engine::testing::parse_template(String::from("{{ break }}"), None)?;
-                Ok::<_, rt::TsonicError>(())
-            }))?),
+            Some(crate::template_test_harness::capture_diagnostic_code(
+                rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
+                    tsumo_engine::testing::parse_template(String::from("{{ break }}"), None)?;
+                    Ok::<_, rt::TsonicError>(())
+                }),
+            )?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_TEMPLATE_CONTINUE_OUTSIDE_RANGE"),
-            Some(crate::template_test_harness::capture_diagnostic_code(rt::Callable::<
-                (),
-                rt::TsonicResult<()>,
-            >::new(move |_callable_arguments_2| {
-                tsumo_engine::testing::parse_template(String::from("{{ continue }}"), None)?;
-                Ok::<_, rt::TsonicError>(())
-            }))?),
+            Some(crate::template_test_harness::capture_diagnostic_code(
+                rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
+                    tsumo_engine::testing::parse_template(String::from("{{ continue }}"), None)?;
+                    Ok::<_, rt::TsonicError>(())
+                }),
+            )?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_TEMPLATE_LOOP_CONTROL_INVALID"),
-            Some(crate::template_test_harness::capture_diagnostic_code(rt::Callable::<
-                (),
-                rt::TsonicResult<()>,
-            >::new(move |_callable_arguments_3| {
-                tsumo_engine::testing::parse_template(
-                    String::from("{{ range seq 1 }}{{ break 1 }}{{ end }}"),
-                    None,
-                )?;
-                Ok::<_, rt::TsonicError>(())
-            }))?),
+            Some(crate::template_test_harness::capture_diagnostic_code(
+                rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_3| {
+                    tsumo_engine::testing::parse_template(
+                        String::from("{{ range seq 1 }}{{ break 1 }}{{ end }}"),
+                        None,
+                    )?;
+                    Ok::<_, rt::TsonicError>(())
+                }),
+            )?),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_TEMPLATE_BREAK_OUTSIDE_RANGE"),
-            Some(
-                crate::template_test_harness::capture_diagnostic_code(rt::Callable::<
-                    (),
-                    rt::TsonicResult<()>,
-                >::new(
-                    move |_callable_arguments_4| {
-                        tsumo_engine::testing::parse_template(
-                            String::from("{{ range seq 1 }}{{ define \"independent\" }}{{ break }}{{ end }}{{ end }}"),
-                            None,
-                        )?;
-                        Ok::<_, rt::TsonicError>(())
-                    },
-                ))?,
-            ),
+            Some(crate::template_test_harness::capture_diagnostic_code(
+                rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_4| {
+                    tsumo_engine::testing::parse_template(
+                        String::from(
+                            "{{ range seq 1 }}{{ define \"independent\" }}{{ break }}{{ end }}{{ end }}",
+                        ),
+                        None,
+                    )?;
+                    Ok::<_, rt::TsonicError>(())
+                }),
+            )?),
         )?;
         Ok(())
     }
@@ -112,7 +103,6 @@ impl Default for TemplateControlFlowTests {
     }
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn run_template_control_flow_tests() -> Result<(), rt::TsonicError> {
     let tests: TemplateControlFlowTests = TemplateControlFlowTests::new();
     crate::test_root::run_test(

@@ -17,32 +17,31 @@ pub fn decode_html(input: String) -> String {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait HtmlStringDispatch {
     fn downcast_html_string_to_html_string(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn HtmlStringDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn HtmlStringDispatch + 'static>> {
+        None
+    }
     fn read_html_string_value(&self) -> String;
     fn write_html_string_value(&self, value: String);
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct HtmlStringState {
     pub value: String,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone)]
 pub struct HtmlString {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn HtmlStringDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn HtmlStringDispatch + 'static>,
 }
 
-impl std::fmt::Debug for HtmlString {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for HtmlString {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("HtmlString")
     }
 }
@@ -55,8 +54,14 @@ impl PartialEq for HtmlString {
 
 impl Eq for HtmlString {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for HtmlString {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct HtmlStringRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<HtmlStringState>,
 }
@@ -71,7 +76,7 @@ impl HtmlString {
     pub fn new(value: String) -> HtmlString {
         let state = HtmlString::initialize_state(value);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(HtmlStringRoot {
+        let root = alloc::rc::Rc::new(HtmlStringRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -84,8 +89,8 @@ impl HtmlString {
 
 impl HtmlStringDispatch for HtmlStringRoot {
     fn downcast_html_string_to_html_string(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn HtmlStringDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn HtmlStringDispatch + 'static>> {
         Some(self)
     }
 

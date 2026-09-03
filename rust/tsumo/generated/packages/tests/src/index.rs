@@ -2,7 +2,6 @@
 
 use crate::program as rt;
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn main() -> Result<(), rt::TsonicError> {
     crate::scaffold_and_build_test::run_scaffold_and_build_tests()?;
     crate::input_boundaries_test::run_input_boundary_tests()?;

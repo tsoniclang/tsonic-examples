@@ -8,27 +8,23 @@ pub fn byte_in_range(
     minimum: i32,
     maximum: i32,
 ) -> Result<bool, rt::TsonicError> {
-    if index >= tsonic_rust_runtime::conversions::usize_to_i32(bytes.len())? {
+    if index >= rt::conversions::usize_to_i32(bytes.len())? {
         return Ok(false);
     }
-    let byte: i32 = tsonic_rust_runtime::conversions::f64_to_i32(
-        tsonic_rust_node::buffer::read_uint8_number(
-            &bytes,
-            tsonic_rust_runtime::conversions::i32_to_f64(index),
-        )?,
-    )?;
+    let byte: i32 = rt::conversions::f64_to_i32(tsonic_rust_node::buffer::read_uint8_number(
+        &bytes,
+        rt::conversions::i32_to_f64(index),
+    )?)?;
     Ok(byte >= minimum && byte <= maximum)
 }
 
 pub fn is_valid_utf8(bytes: tsonic_rust_node::buffer::Buffer) -> Result<bool, rt::TsonicError> {
     let mut index: i32 = 0;
-    'loop_value: while index < tsonic_rust_runtime::conversions::usize_to_i32(bytes.len())? {
-        let first: i32 = tsonic_rust_runtime::conversions::f64_to_i32(
-            tsonic_rust_node::buffer::read_uint8_number(
-                &bytes,
-                tsonic_rust_runtime::conversions::i32_to_f64(index),
-            )?,
-        )?;
+    'loop_value: while index < rt::conversions::usize_to_i32(bytes.len())? {
+        let first: i32 = rt::conversions::f64_to_i32(tsonic_rust_node::buffer::read_uint8_number(
+            &bytes,
+            rt::conversions::i32_to_f64(index),
+        )?)?;
         if first <= 127 {
             index += 1;
             continue 'loop_value;
@@ -119,20 +115,28 @@ pub fn read_resource_text(
     if !is_valid_utf8({
         let dispatch_receiver_2 = &resource;
         dispatch_receiver_2.dispatch.read_resource_bytes()
-    })?
-    {
-        return Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
-            String::from("TSUMO_RESOURCE_TEXT_ENCODING_INVALID"),
-            format!("{}{}", operation, String::from(" requires a UTF-8 resource")),
-            {
-                let dispatch_receiver_3 = &resource;
-                dispatch_receiver_3.dispatch.read_resource_source_path()
-            },
-            None,
-            None,
-        )));
+    })? {
+        return Err(rt::TsonicError::TsumoError(
+            crate::diagnostics::create_tsumo_error(
+                String::from("TSUMO_RESOURCE_TEXT_ENCODING_INVALID"),
+                format!(
+                    "{}{}",
+                    operation,
+                    String::from(" requires a UTF-8 resource")
+                ),
+                {
+                    let dispatch_receiver_3 = &resource;
+                    dispatch_receiver_3.dispatch.read_resource_source_path()
+                },
+                None,
+                None,
+            ),
+        ));
     }
-    { let dispatch_receiver_4 = &resource; dispatch_receiver_4.dispatch.read_resource_bytes() }
-        .to_string_enc("utf8")
-        .map_err(rt::TsonicError::from)
+    {
+        let dispatch_receiver_4 = &resource;
+        dispatch_receiver_4.dispatch.read_resource_bytes()
+    }
+    .to_string_enc("utf8")
+    .map_err(rt::TsonicError::from)
 }

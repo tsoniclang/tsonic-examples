@@ -3,7 +3,6 @@
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct OutputFormatState {
     pub rel: String,
     pub media_type: crate::models::media_type::MediaType,
@@ -14,6 +13,12 @@ pub struct OutputFormatState {
 pub struct OutputFormat {
     #[doc(hidden)]
     pub state: rt::ObjectRef<OutputFormatState>,
+}
+
+impl rt::ObjectIdentityCarrier for OutputFormat {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl OutputFormat {

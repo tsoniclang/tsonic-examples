@@ -2,50 +2,48 @@
 
 use tsonic_rust_js::abi as js_abi;
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+#[expect(dead_code, reason = "retains an unconstructed checked source shape")]
 pub(crate) struct ForceRecursiveShape {
     pub force: bool,
     pub recursive: bool,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+#[expect(dead_code, reason = "retains an unconstructed checked source shape")]
 pub(crate) struct ForceRecursiveShape2 {
     pub force: bool,
     pub recursive: bool,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+#[expect(dead_code, reason = "retains an unconstructed checked source shape")]
 pub(crate) struct ForceRecursiveShape3 {
     pub force: bool,
     pub recursive: bool,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+#[expect(dead_code, reason = "retains an unconstructed checked source shape")]
 pub(crate) struct ForceRecursiveShape4 {
     pub force: bool,
     pub recursive: bool,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+#[expect(dead_code, reason = "retains an unconstructed checked source shape")]
 pub(crate) struct ForceRecursiveShape5 {
     pub force: bool,
     pub recursive: bool,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct EndPosInnerShape {
     pub end_pos: i32,
     pub inner: String,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct IsNamedParamsPositionalShape {
     pub is_named: bool,
     pub params: js_abi::JsMap<String, crate::params::ParamValue>,
     pub positional: js_abi::JsArray<String>,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+#[expect(dead_code, reason = "retains an unconstructed checked source shape")]
 pub(crate) struct RecursiveShape {
     pub recursive: bool,
 }

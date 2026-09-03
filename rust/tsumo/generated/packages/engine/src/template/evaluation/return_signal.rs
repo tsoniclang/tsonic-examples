@@ -3,11 +3,12 @@
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub trait TemplateReturnSignalDispatch {
     fn downcast_template_return_signal_to_template_return_signal(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateReturnSignalDispatch + 'static>>;
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateReturnSignalDispatch + 'static>> {
+        None
+    }
     fn read_tsumo_error_name(&self) -> String;
     fn write_tsumo_error_name(&self, value: String);
     fn read_tsumo_error_message(&self) -> String;
@@ -22,7 +23,6 @@ pub trait TemplateReturnSignalDispatch {
 }
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct TemplateReturnSignalState {
     pub name: String,
     pub message: String,
@@ -30,18 +30,17 @@ pub struct TemplateReturnSignalState {
     pub value: crate::template::values::base::TemplateValue,
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[doc(hidden)]
 #[derive(Clone)]
 pub struct TemplateReturnSignal {
     #[doc(hidden)]
     pub identity: rt::ObjectIdentity,
     #[doc(hidden)]
-    pub dispatch: std::rc::Rc<dyn TemplateReturnSignalDispatch + 'static>,
+    pub dispatch: alloc::rc::Rc<dyn TemplateReturnSignalDispatch + 'static>,
 }
 
-impl std::fmt::Debug for TemplateReturnSignal {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for TemplateReturnSignal {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("TemplateReturnSignal")
     }
 }
@@ -54,8 +53,14 @@ impl PartialEq for TemplateReturnSignal {
 
 impl Eq for TemplateReturnSignal {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
+impl rt::ObjectIdentityCarrier for TemplateReturnSignal {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 pub(crate) struct TemplateReturnSignalRoot {
+    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     state: rt::ObjectHandle<TemplateReturnSignalState>,
 }
@@ -83,7 +88,7 @@ impl TemplateReturnSignal {
     pub fn new(value: crate::template::values::base::TemplateValue) -> TemplateReturnSignal {
         let state = TemplateReturnSignal::initialize_state(value);
         let identity = rt::ObjectIdentity::new();
-        let root = std::rc::Rc::new(TemplateReturnSignalRoot {
+        let root = alloc::rc::Rc::new(TemplateReturnSignalRoot {
             identity: identity.clone(),
             state: rt::ObjectHandle::new(state),
         });
@@ -96,8 +101,8 @@ impl TemplateReturnSignal {
 
 impl TemplateReturnSignalDispatch for TemplateReturnSignalRoot {
     fn downcast_template_return_signal_to_template_return_signal(
-        self: std::rc::Rc<Self>,
-    ) -> Option<std::rc::Rc<dyn TemplateReturnSignalDispatch + 'static>> {
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateReturnSignalDispatch + 'static>> {
         Some(self)
     }
 
@@ -137,8 +142,8 @@ impl TemplateReturnSignalDispatch for TemplateReturnSignalRoot {
     }
 }
 
-impl std::fmt::Display for TemplateReturnSignal {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Display for TemplateReturnSignal {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(
             formatter,
             "{}: {}",

@@ -2,7 +2,6 @@
 
 use crate::program as rt;
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) fn capture_scaffold_diagnostic(
     operation: rt::Callable<(), rt::TsonicResult<()>>,
 ) -> Result<String, rt::TsonicError> {
@@ -15,27 +14,24 @@ pub(crate) fn capture_scaffold_diagnostic(
         Err(error) => rt::completion_region(|| {
             if matches!(
                 error.clone(),
-                rt::TsonicError::TsumoEngineError(tsumo_engine::program::TsonicError::TsumoError(_)),
-            )
-            {
-                return Ok(
-                    rt::Completion::Return({
-                        let dispatch_receiver_2 = &{
-                            let dispatch_receiver = &match error {
-                                rt::TsonicError::TsumoEngineError(tsumo_engine::program::TsonicError::TsumoError(program_error)) => {
-                                    program_error
-                                }
-                                _ => {
-                                    unreachable!(
-                                        "checked flow selected a different program-error variant"
-                                    )
-                                }
-                            };
-                            dispatch_receiver.dispatch.read_tsumo_error_diagnostic()
+                rt::TsonicError::TsumoEngineError(tsumo_engine::program::TsonicError::TsumoError(
+                    _
+                ))
+            ) {
+                return Ok(rt::Completion::Return({
+                    let dispatch_receiver_2 = &{
+                        let dispatch_receiver = &match error {
+                            rt::TsonicError::TsumoEngineError(
+                                tsumo_engine::program::TsonicError::TsumoError(program_error),
+                            ) => program_error,
+                            _ => unreachable!(
+                                "checked flow selected a different program-error variant"
+                            ),
                         };
-                        dispatch_receiver_2.dispatch.read_tsumo_diagnostic_code()
-                    }),
-                );
+                        dispatch_receiver.dispatch.read_tsumo_error_diagnostic()
+                    };
+                    dispatch_receiver_2.dispatch.read_tsumo_diagnostic_code()
+                }));
             }
             Err(error.clone())
         }),
@@ -53,17 +49,20 @@ pub(crate) fn capture_scaffold_diagnostic(
     )))
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub(crate) struct ScaffoldAndBuildTestsState {}
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ScaffoldAndBuildTests {
     pub(crate) state: rt::ObjectHandle<ScaffoldAndBuildTestsState>,
 }
 
+impl rt::ObjectIdentityCarrier for ScaffoldAndBuildTests {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
+}
+
 impl ScaffoldAndBuildTests {
-    #[allow(dead_code, reason = "preserves the checked source contract")]
     pub fn new() -> ScaffoldAndBuildTests {
         ScaffoldAndBuildTests {
             state: rt::ObjectHandle::new(ScaffoldAndBuildTestsState {}),
@@ -75,8 +74,7 @@ impl ScaffoldAndBuildTests {
         let out_dir: String = crate::test_root::create_test_directory(String::from("out"))?;
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
             tsumo_engine::init_site(site_dir.clone(), None)?;
-            let req: tsumo_engine::BuildRequest =
-                tsumo_engine::BuildRequest::new(site_dir.clone());
+            let req: tsumo_engine::BuildRequest = tsumo_engine::BuildRequest::new(site_dir.clone());
             {
                 let receiver = &req;
                 let value = out_dir.clone();
@@ -112,22 +110,20 @@ impl ScaffoldAndBuildTests {
             )?)?;
             crate::test_root::Assert::number_equal(
                 12.0,
-                Some(tsonic_rust_runtime::conversions::i32_to_f64({
+                Some(rt::conversions::i32_to_f64({
                     let dispatch_receiver_3 = &result;
                     dispatch_receiver_3.dispatch.read_build_result_pages_built()
                 })),
             )?;
             crate::test_root::Assert::number_equal(
                 13.0,
-                Some(tsonic_rust_runtime::conversions::i32_to_f64(
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        tsumo_engine::testing::list_files_recursive(
-                            out_dir.clone(),
-                            String::from("*"),
-                        )?
-                        .len(),
-                    )?,
-                )),
+                Some(rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
+                    tsumo_engine::testing::list_files_recursive(
+                        out_dir.clone(),
+                        String::from("*"),
+                    )?
+                    .len(),
+                )?)),
             )?;
             Ok(rt::Completion::Normal)
         });
@@ -155,8 +151,7 @@ impl ScaffoldAndBuildTests {
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
             tsumo_engine::init_site(site_dir.clone(), None)?;
             tsumo_engine::new_content(site_dir.clone(), String::from("posts/my-draft.md"), None)?;
-            let req: tsumo_engine::BuildRequest =
-                tsumo_engine::BuildRequest::new(site_dir.clone());
+            let req: tsumo_engine::BuildRequest = tsumo_engine::BuildRequest::new(site_dir.clone());
             {
                 let receiver = &req;
                 let value = out_dir.clone();
@@ -188,11 +183,14 @@ impl ScaffoldAndBuildTests {
                 }
             };
             tsumo_engine::build_site(req.clone())?;
-            crate::test_root::Assert::r#true(
-                !crate::test_root::file_exists(tsonic_rust_node::path::join(
-                    &[out_dir.as_str(), "posts", "my-draft", "index.html"],
-                ))?,
-            )?;
+            crate::test_root::Assert::r#true(!crate::test_root::file_exists(
+                tsonic_rust_node::path::join(&[
+                    out_dir.as_str(),
+                    "posts",
+                    "my-draft",
+                    "index.html",
+                ]),
+            )?)?;
             Ok(rt::Completion::Normal)
         });
         let try_flow = try_body;
@@ -219,8 +217,7 @@ impl ScaffoldAndBuildTests {
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
             tsumo_engine::init_site(site_dir.clone(), None)?;
             tsumo_engine::new_content(site_dir.clone(), String::from("posts/my-post.md"), None)?;
-            let req: tsumo_engine::BuildRequest =
-                tsumo_engine::BuildRequest::new(site_dir.clone());
+            let req: tsumo_engine::BuildRequest = tsumo_engine::BuildRequest::new(site_dir.clone());
             {
                 let receiver = &req;
                 let value = out_dir.clone();
@@ -354,7 +351,6 @@ impl Default for ScaffoldAndBuildTests {
     }
 }
 
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub fn run_scaffold_and_build_tests() -> Result<(), rt::TsonicError> {
     let tests: ScaffoldAndBuildTests = ScaffoldAndBuildTests::new();
     crate::test_root::run_test(String::from("scaffold then build"), {

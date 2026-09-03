@@ -3,7 +3,6 @@
 use crate::program as rt;
 
 #[doc(hidden)]
-#[allow(dead_code, reason = "preserves the checked source contract")]
 pub struct MarkdownResultState {
     pub html: String,
     pub summary_html: String,
@@ -15,6 +14,12 @@ pub struct MarkdownResultState {
 pub struct MarkdownResult {
     #[doc(hidden)]
     pub state: rt::ObjectRef<MarkdownResultState>,
+}
+
+impl rt::ObjectIdentityCarrier for MarkdownResult {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.state.object_identity()
+    }
 }
 
 impl MarkdownResult {
