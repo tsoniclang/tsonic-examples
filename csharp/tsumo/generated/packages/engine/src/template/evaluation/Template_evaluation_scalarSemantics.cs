@@ -59,7 +59,6 @@ namespace Tsumo.Engine
         {
             Utils_int32.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
-            Utils_textBuilder.__tsonic_module_init();
             isNumberLiteral = (string token) =>
             {
                 if (token == "")

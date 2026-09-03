@@ -47,13 +47,10 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
-            Diagnostics.__tsonic_module_init();
             Resources.__tsonic_module_init();
-            Resources_text.__tsonic_module_init();
             Template_values.__tsonic_module_init();
             Template_runtimeHelpers.__tsonic_module_init();
             Template_evaluation_serialization.__tsonic_module_init();
-            Template_functions_functionContext.__tsonic_module_init();
             resourceBuildOption = (DictValue options, string name) =>
             {
                 TemplateValue? exact = Tsonic.CSharp.Js.Map.getReference<string, TemplateValue>(options.value, name);

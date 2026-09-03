@@ -22,7 +22,6 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
-            Utils_textBuilder.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
             escapeJsonString = (string input) =>
             {

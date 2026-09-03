@@ -76,7 +76,11 @@ namespace Tsumo.Tests
         [Xunit.FactAttribute]
         public void json_tree_preserves_unicode_kinds_and_source_locations()
         {
-            JsonValue value = Node_modules_Tsumo_engine_src_utils_json.parseJson("{\n  \"title\": \"Caf\\u00e9 \\ud83d\\ude80\"\n}", "config.json");
+            JsonValue value = Node_modules_Tsumo_engine_src_utils_json.parseJson("""
+            {
+              "title": "Caf\u00e9 \ud83d\ude80"
+            }
+            """, "config.json");
             Xunit.Assert.True(value is JsonObject);
             if (!(value is JsonObject))
             {
@@ -113,7 +117,11 @@ namespace Tsumo.Tests
         {
             TsumoDiagnostic leadingZero = InputBoundariesTest.captureDiagnostic(() =>
             {
-                Node_modules_Tsumo_engine_src_utils_json.parseJson("{\n  \"value\": 01\n}", "bad.json");
+                Node_modules_Tsumo_engine_src_utils_json.parseJson("""
+                {
+                  "value": 01
+                }
+                """, "bad.json");
             });
             Xunit.Assert.Equal("TSUMO_JSON_SYNTAX_INVALID", leadingZero.code);
             Xunit.Assert.Equal("bad.json", leadingZero.file);
@@ -121,7 +129,12 @@ namespace Tsumo.Tests
             Xunit.Assert.Equal<double?>(13, leadingZero.column);
             TsumoDiagnostic duplicate = InputBoundariesTest.captureDiagnostic(() =>
             {
-                Node_modules_Tsumo_engine_src_utils_json.parseJson("{\n  \"value\": 1,\n  \"value\": 2\n}", "duplicate.json");
+                Node_modules_Tsumo_engine_src_utils_json.parseJson("""
+                {
+                  "value": 1,
+                  "value": 2
+                }
+                """, "duplicate.json");
             });
             Xunit.Assert.Equal("TSUMO_JSON_DUPLICATE_PROPERTY", duplicate.code);
             Xunit.Assert.Equal<double?>(3, duplicate.line);
@@ -156,14 +169,23 @@ namespace Tsumo.Tests
         {
             TsumoDiagnostic invalidDate = InputBoundariesTest.captureDiagnostic(() =>
             {
-                Node_modules_Tsumo_engine_src_frontmatter_parse.parseContent("---\ndate: not-a-date\n---\nBody", "date.md");
+                Node_modules_Tsumo_engine_src_frontmatter_parse.parseContent("""
+                ---
+                date: not-a-date
+                ---
+                Body
+                """, "date.md");
             });
             Xunit.Assert.Equal("TSUMO_FRONTMATTER_INVALID_DATE", invalidDate.code);
             Xunit.Assert.Equal("date.md", invalidDate.file);
             Xunit.Assert.Equal<double?>(2, invalidDate.line);
             Xunit.Assert.Equal("TSUMO_FRONTMATTER_INVALID_BOOL", InputBoundariesTest.captureDiagnostic(() =>
             {
-                Node_modules_Tsumo_engine_src_frontmatter_parse.parseContent("+++\ndraft = 'false'\n+++", "draft.md");
+                Node_modules_Tsumo_engine_src_frontmatter_parse.parseContent("""
+                +++
+                draft = 'false'
+                +++
+                """, "draft.md");
             }).code);
             Xunit.Assert.Equal("TSUMO_FRONTMATTER_FIELD_INVALID", InputBoundariesTest.captureDiagnostic(() =>
             {
@@ -171,11 +193,19 @@ namespace Tsumo.Tests
             }).code);
             Xunit.Assert.Equal("TSUMO_FRONTMATTER_FIELD_DUPLICATE", InputBoundariesTest.captureDiagnostic(() =>
             {
-                Node_modules_Tsumo_engine_src_frontmatter_parse.parseContent("---\ntitle: First\nTitle: Second\n---", "duplicate.md");
+                Node_modules_Tsumo_engine_src_frontmatter_parse.parseContent("""
+                ---
+                title: First
+                Title: Second
+                ---
+                """, "duplicate.md");
             }).code);
             Xunit.Assert.Equal("TSUMO_FRONTMATTER_DELIMITER_UNCLOSED", InputBoundariesTest.captureDiagnostic(() =>
             {
-                Node_modules_Tsumo_engine_src_frontmatter_parse.parseContent("---\ntitle: Missing", "unclosed.md");
+                Node_modules_Tsumo_engine_src_frontmatter_parse.parseContent("""
+                ---
+                title: Missing
+                """, "unclosed.md");
             }).code);
         }
         [Xunit.FactAttribute]
@@ -204,7 +234,11 @@ namespace Tsumo.Tests
         {
             TsumoDiagnostic json = InputBoundariesTest.captureDiagnostic(() =>
             {
-                Node_modules_Tsumo_engine_src_config_json.parseJsonConfig("{\n  \"title\": 42\n}", "hugo.json");
+                Node_modules_Tsumo_engine_src_config_json.parseJsonConfig("""
+                {
+                  "title": 42
+                }
+                """, "hugo.json");
             });
             Xunit.Assert.Equal("TSUMO_CONFIG_INVALID_FIELD", json.code);
             Xunit.Assert.Equal<double?>(2, json.line);
@@ -218,7 +252,10 @@ namespace Tsumo.Tests
             }).code);
             Xunit.Assert.Equal("TSUMO_CONFIG_DUPLICATE_FIELD", InputBoundariesTest.captureDiagnostic(() =>
             {
-                Node_modules_Tsumo_engine_src_config_yaml.parseYamlConfig("title: First\nTitle: Second", "duplicate.yaml");
+                Node_modules_Tsumo_engine_src_config_yaml.parseYamlConfig("""
+                title: First
+                Title: Second
+                """, "duplicate.yaml");
             }).code);
             Xunit.Assert.Equal("TSUMO_CONFIG_INVALID_FIELD", InputBoundariesTest.captureDiagnostic(() =>
             {
@@ -226,7 +263,10 @@ namespace Tsumo.Tests
             }).code);
             Xunit.Assert.Equal("TSUMO_CONFIG_TABLE_UNSUPPORTED", InputBoundariesTest.captureDiagnostic(() =>
             {
-                Node_modules_Tsumo_engine_src_config_toml.parseTomlConfig("[unsupported]\nvalue = 1", "hugo.toml");
+                Node_modules_Tsumo_engine_src_config_toml.parseTomlConfig("""
+                [unsupported]
+                value = 1
+                """, "hugo.toml");
             }).code);
             Xunit.Assert.Equal("TSUMO_CONFIG_SYNTAX_INVALID", InputBoundariesTest.captureDiagnostic(() =>
             {
@@ -244,7 +284,12 @@ namespace Tsumo.Tests
             Xunit.Assert.Equal("Café # retained", yaml.title);
             Xunit.Assert.Equal("Tsumo's docs", yaml.copyright);
             Xunit.Assert.Equal("value#fragment", Tsonic.CSharp.Js.Map.getReference<string, ParamValue>(yaml.Params, "address")?.stringValue);
-            ParsedContent frontMatter = Node_modules_Tsumo_engine_src_frontmatter_parse.parseContent("---\ntitle: 'Tsumo''s \\u263a' # removed\n---\nBody", "frontmatter.md");
+            ParsedContent frontMatter = Node_modules_Tsumo_engine_src_frontmatter_parse.parseContent("""
+            ---
+            title: 'Tsumo''s \u263a' # removed
+            ---
+            Body
+            """, "frontmatter.md");
             Xunit.Assert.Equal("Tsumo's \\u263a", frontMatter.frontMatter.title);
             string leadingJson = " \n{\"title\":\"Not front matter\"}";
             ParsedContent content = Node_modules_Tsumo_engine_src_frontmatter_parse.parseContent(leadingJson, "leading-json.md");
@@ -259,7 +304,10 @@ namespace Tsumo.Tests
             {
                 string configDir = Tsonic.CSharp.Node.path.join(site, "config", "_default");
                 TestRoot.createDirectory(configDir);
-                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(configDir, "hugo.toml"), "title = 'Example'\nbaseURL = 'https://example.test'");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(configDir, "hugo.toml"), """
+                title = 'Example'
+                baseURL = 'https://example.test'
+                """);
                 TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(configDir, "params.yaml"), "message: \"Hello # retained\" # removed");
                 TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(configDir, "languages.toml"), Tsonic.CSharp.Js.Array.join(new Tsonic.CSharp.Js.JSArray<string>(new string[] { "[en]", "languageName = 'English'", "languageDirection = 'rtl'", "contentDir = 'content/custom'", "weight = 4" }), "\n"));
                 TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(configDir, "languages.en.toml"), "weight = 1");
@@ -275,7 +323,10 @@ namespace Tsumo.Tests
                 Xunit.Assert.Equal<double>(1, loaded.languages[0].weight);
                 Xunit.Assert.Equal<double>(1, loaded.moduleMounts.length);
                 Xunit.Assert.Equal("shared", loaded.moduleMounts[0].source);
-                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(configDir, "params.yaml"), "message: first\nMessage: second");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(configDir, "params.yaml"), """
+                message: first
+                Message: second
+                """);
                 Xunit.Assert.Equal("TSUMO_CONFIG_DUPLICATE_FIELD", InputBoundariesTest.captureDiagnostic(() =>
                 {
                     Node_modules_Tsumo_engine_src_config_loader.loadSiteConfig(site);

@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Diagnostics
@@ -7,15 +5,6 @@ namespace Tsumo.Engine
         public static TsumoError createTsumoError(string code, string message, string? file = null, double? line = null, double? column = null)
         {
             return new TsumoError(new TsumoDiagnostic(code, "error", message, file, line, column));
-        }
-        private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
-        private static object? __tsonic_module_init_core()
-        {
-            return null;
-        }
-        public static void __tsonic_module_init()
-        {
-            _ = __tsonic_module_initialization.Value;
         }
     }
     public class TsumoDiagnostic

@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Template_scope
@@ -8,7 +6,6 @@ namespace Tsumo.Engine
         private static object? __tsonic_module_init_core()
         {
             Models.__tsonic_module_init();
-            Diagnostics.__tsonic_module_init();
             Template_values.__tsonic_module_init();
             return null;
         }

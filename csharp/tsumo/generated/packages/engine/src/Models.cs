@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Models
@@ -8,7 +6,6 @@ namespace Tsumo.Engine
         private static object? __tsonic_module_init_core()
         {
             Models_index.__tsonic_module_init();
-            Build.__tsonic_module_init();
             return null;
         }
         public static void __tsonic_module_init()

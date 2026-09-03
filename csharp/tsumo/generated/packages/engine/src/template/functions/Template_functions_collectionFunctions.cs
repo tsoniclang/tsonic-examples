@@ -37,15 +37,12 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
-            Utils_textBuilder.__tsonic_module_init();
-            Diagnostics.__tsonic_module_init();
             Models.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
             Template_values.__tsonic_module_init();
             Template_evaluation_pageSemantics.__tsonic_module_init();
             Template_evaluation_propertySemantics.__tsonic_module_init();
             Template_runtimeHelpers.__tsonic_module_init();
-            Template_functions_functionContext.__tsonic_module_init();
             Template_functions_sequenceSemantics.__tsonic_module_init();
             unionElementsEqual = (TemplateValue left, TemplateValue right) =>
             {

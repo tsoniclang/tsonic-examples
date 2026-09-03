@@ -12,12 +12,9 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
-            Diagnostics.__tsonic_module_init();
             Fs.__tsonic_module_init();
-            Resources_models.__tsonic_module_init();
             Resources_externalProcess.__tsonic_module_init();
             Resources_paths.__tsonic_module_init();
-            Resources_text.__tsonic_module_init();
             compileSassResource = (Resource resource, Tsonic.CSharp.Js.JSArray<string> loadPaths) =>
             {
                 string sourceText = Resources_text.readResourceText(resource, "css.Sass");

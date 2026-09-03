@@ -12,10 +12,8 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
-            Diagnostics.__tsonic_module_init();
             Template_functions_collectionFunctions.__tsonic_module_init();
             Template_functions_contextFunctions.__tsonic_module_init();
-            Template_functions_functionContext.__tsonic_module_init();
             Template_functions_functionRegistry.__tsonic_module_init();
             Template_functions_resourceFunctions.__tsonic_module_init();
             Template_functions_scalarFunctions.__tsonic_module_init();

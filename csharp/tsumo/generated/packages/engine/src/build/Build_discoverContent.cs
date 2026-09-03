@@ -37,13 +37,11 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
-            Diagnostics.__tsonic_module_init();
             Frontmatter.__tsonic_module_init();
             Fs.__tsonic_module_init();
             Models.__tsonic_module_init();
             Utils_text.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
-            Build_contentModel.__tsonic_module_init();
             Build_siteRoutes.__tsonic_module_init();
             isBranchIndexFile = (string name) => Tsonic.CSharp.Js.String.toLowerCase(name) == "_index.md";
             isLeafBundleIndexFile = (string name) => Tsonic.CSharp.Js.String.toLowerCase(name) == "index.md";

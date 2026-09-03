@@ -17,17 +17,14 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
-            Diagnostics.__tsonic_module_init();
             Utils_html.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
             Utils_int32.__tsonic_module_init();
             Template_values.__tsonic_module_init();
-            Template_evaluation_returnSignal.__tsonic_module_init();
             Template_evaluation_expressionSemantics.__tsonic_module_init();
             Template_evaluation_scalarSemantics.__tsonic_module_init();
             Template_evaluation_propertySupport.__tsonic_module_init();
             Template_runtimeHelpers.__tsonic_module_init();
-            Template_functions_functionContext.__tsonic_module_init();
             hugoCompatibilityVersion = "0.146.2";
             callContextFunction = (string nameRaw, string name, Tsonic.CSharp.Js.JSArray<TemplateValue> args, TemplateFunctionContext context) =>
             {

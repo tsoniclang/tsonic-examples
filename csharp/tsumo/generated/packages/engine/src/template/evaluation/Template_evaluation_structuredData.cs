@@ -67,13 +67,11 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
-            Diagnostics.__tsonic_module_init();
             Params.__tsonic_module_init();
             Utils_json.__tsonic_module_init();
             Utils_structuredScalars.__tsonic_module_init();
             Utils_int32.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
-            Resources_text.__tsonic_module_init();
             Template_values.__tsonic_module_init();
             Template_runtimeHelpers.__tsonic_module_init();
             Template_evaluation_tomlData.__tsonic_module_init();

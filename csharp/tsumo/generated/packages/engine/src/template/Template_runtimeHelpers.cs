@@ -49,7 +49,6 @@ namespace Tsumo.Engine
         {
             Utils_html.__tsonic_module_init();
             Utils_int32.__tsonic_module_init();
-            Diagnostics.__tsonic_module_init();
             Template_values.__tsonic_module_init();
             nil = new NilValue();
             isTemplateMap = (TemplateValue value) => value is DictValue || value is MenusValue || value is TaxonomiesValue || value is TaxonomyTermsValue;

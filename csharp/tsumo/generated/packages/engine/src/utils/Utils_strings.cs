@@ -145,7 +145,6 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
-            Diagnostics.__tsonic_module_init();
             requireSubstringBounds = (string source, int startIndex, int length) =>
             {
                 if (startIndex < 0 || length < 0 || startIndex > source.Length || startIndex + length > source.Length)

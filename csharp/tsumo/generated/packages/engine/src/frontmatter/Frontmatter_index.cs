@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Frontmatter_index
@@ -7,7 +5,6 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
-            Frontmatter_menu.__tsonic_module_init();
             Frontmatter_data.__tsonic_module_init();
             Frontmatter_parsedContent.__tsonic_module_init();
             Frontmatter_parse.__tsonic_module_init();

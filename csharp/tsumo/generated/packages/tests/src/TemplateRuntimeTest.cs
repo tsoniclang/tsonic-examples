@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Tests
 {
     public static class TemplateRuntimeTest
@@ -46,7 +44,12 @@ namespace Tsumo.Tests
         {
             SiteContext site = TemplateTestHarness.createSite();
             PageContext page = TemplateTestHarness.createPage(site, "Home", "", "home");
-            page.shortcodeNames = Node_modules_Tsumo_engine_src_shortcode.collectShortcodeNames("{{< outer >}}{{< inner / >}}{{< /outer >}}\n```text\n{{< ignored >}}\n```", "content/home.md");
+            page.shortcodeNames = Node_modules_Tsumo_engine_src_shortcode.collectShortcodeNames("""
+            {{< outer >}}{{< inner / >}}{{< /outer >}}
+            ```text
+            {{< ignored >}}
+            ```
+            """, "content/home.md");
             Xunit.Assert.Equal("true|true|false|false", TemplateTestHarness.renderWithRoot("{{ .HasShortcode \"outer\" }}|{{ .HasShortcode \"inner\" }}|" + "{{ .HasShortcode \"ignored\" }}|{{ .HasShortcode \"Outer\" }}", new PageValue(page)));
         }
         [Xunit.FactAttribute]
@@ -121,7 +124,11 @@ namespace Tsumo.Tests
                 Xunit.Assert.Equal("{{ .Count }} pages", store.translate("en", "list.page", 2));
                 Xunit.Assert.Equal("Locale française", store.translate("fr-FR", "local"));
                 Xunit.Assert.Equal("Folded scalar", store.translate("en", "folded"));
-                Xunit.Assert.Equal("Literal\nscalar\n", store.translate("en", "literal"));
+                Xunit.Assert.Equal("""
+                Literal
+                scalar
+
+                """, store.translate("en", "literal"));
                 Xunit.Assert.Equal("Generated with exact continuity.", store.translate("en", "escapedQuoted"));
                 Xunit.Assert.Equal("Folded quoted scalar", store.translate("en", "foldedQuoted"));
                 Xunit.Assert.Equal("Single quoted 'value'", store.translate("en", "singleQuoted"));
@@ -196,7 +203,10 @@ namespace Tsumo.Tests
         [Xunit.FactAttribute]
         public void template_string_literals_decode_exact_interpreted_and_raw_forms()
         {
-            Xunit.Assert.Equal("line\nnext", TemplateTestHarness.render("{{ print \"line\\nnext\" }}"));
+            Xunit.Assert.Equal("""
+            line
+            next
+            """, TemplateTestHarness.render("{{ print \"line\\nnext\" }}"));
             Xunit.Assert.Equal("line\\nnext", TemplateTestHarness.render("{{ print `line\\nnext` }}"));
             Xunit.Assert.Equal("\u001b", TemplateTestHarness.render("{{ print \"\\033\" }}"));
             Xunit.Assert.Equal("🔗", TemplateTestHarness.render("{{ print \"\\U0001F517\" }}"));
@@ -281,7 +291,10 @@ namespace Tsumo.Tests
             }));
             TsumoDiagnostic located = TemplateTestHarness.captureDiagnostic(() =>
             {
-                Node_modules_Tsumo_engine_src_template_parser_parseTemplate.parseTemplate("first\n{{ if true", "layouts/single.html");
+                Node_modules_Tsumo_engine_src_template_parser_parseTemplate.parseTemplate("""
+                first
+                {{ if true
+                """, "layouts/single.html");
             }).diagnostic;
             Xunit.Assert.Equal("TSUMO_TEMPLATE_ACTION_UNCLOSED", located.code);
             Xunit.Assert.Equal("layouts/single.html", located.file);
@@ -293,7 +306,10 @@ namespace Tsumo.Tests
         {
             TsumoDiagnostic unclosed = TemplateTestHarness.captureDiagnostic(() =>
             {
-                Node_modules_Tsumo_engine_src_shortcode.parseShortcodes("first\n{{< figure", "content/post.md");
+                Node_modules_Tsumo_engine_src_shortcode.parseShortcodes("""
+                first
+                {{< figure
+                """, "content/post.md");
             }).diagnostic;
             Xunit.Assert.Equal("TSUMO_SHORTCODE_ACTION_UNCLOSED", unclosed.code);
             Xunit.Assert.Equal("content/post.md", unclosed.file);

@@ -52,11 +52,9 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
-            Diagnostics.__tsonic_module_init();
             Fs.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
             Utils_urlPath.__tsonic_module_init();
-            Docs_models.__tsonic_module_init();
             docsMountPrefixSegments = (string urlPrefix) =>
             {
                 string trimmed = Utils_strings.trimEndChar(Utils_strings.trimStartChar(Tsonic.CSharp.Js.String.trim(urlPrefix), "/"), "/");

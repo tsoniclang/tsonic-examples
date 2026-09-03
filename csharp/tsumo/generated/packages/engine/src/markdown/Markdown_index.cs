@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Markdown_index
@@ -7,7 +5,6 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
-            Markdown_result.__tsonic_module_init();
             Markdown_pipeline.__tsonic_module_init();
             Markdown_toc.__tsonic_module_init();
             Markdown_renderHooks.__tsonic_module_init();

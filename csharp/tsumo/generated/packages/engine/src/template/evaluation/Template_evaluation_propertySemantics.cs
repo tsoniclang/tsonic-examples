@@ -13,7 +13,6 @@ namespace Tsumo.Engine
         private static object? __tsonic_module_init_core()
         {
             Models.__tsonic_module_init();
-            Resources_text.__tsonic_module_init();
             Utils_html.__tsonic_module_init();
             Utils_int32.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();

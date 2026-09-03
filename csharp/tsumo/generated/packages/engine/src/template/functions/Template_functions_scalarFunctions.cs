@@ -35,12 +35,9 @@ namespace Tsumo.Engine
             Markdown.__tsonic_module_init();
             Template_values.__tsonic_module_init();
             Utils_html.__tsonic_module_init();
-            Diagnostics.__tsonic_module_init();
             Template_evaluation_scalarSemantics.__tsonic_module_init();
-            Utils_textBuilder.__tsonic_module_init();
             Template_evaluation_serialization.__tsonic_module_init();
             Template_runtimeHelpers.__tsonic_module_init();
-            Template_functions_functionContext.__tsonic_module_init();
             Template_functions_textCompatibility.__tsonic_module_init();
             requireSubstringInteger = (TemplateValue value, string name) =>
             {

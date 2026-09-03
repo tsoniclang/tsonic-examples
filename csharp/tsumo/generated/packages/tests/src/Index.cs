@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Tests
 {
     public static class Index

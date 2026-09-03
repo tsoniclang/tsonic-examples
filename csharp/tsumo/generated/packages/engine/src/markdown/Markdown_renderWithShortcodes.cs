@@ -25,7 +25,6 @@ namespace Tsumo.Engine
             Shortcode.__tsonic_module_init();
             Template_environment.__tsonic_module_init();
             Models.__tsonic_module_init();
-            Markdown_result.__tsonic_module_init();
             Markdown_pipeline.__tsonic_module_init();
             Markdown_toc.__tsonic_module_init();
             Markdown_renderHooks.__tsonic_module_init();
