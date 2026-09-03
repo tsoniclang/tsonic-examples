@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Frontmatter_data
@@ -8,7 +6,6 @@ namespace Tsumo.Engine
         private static object? __tsonic_module_init_core()
         {
             Params.__tsonic_module_init();
-            Frontmatter_menu.__tsonic_module_init();
             return null;
         }
         public static void __tsonic_module_init()

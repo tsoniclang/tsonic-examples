@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Index
@@ -12,7 +10,6 @@ namespace Tsumo.Engine
             BuildSite.__tsonic_module_init();
             ServeSite.__tsonic_module_init();
             Models.__tsonic_module_init();
-            Diagnostics.__tsonic_module_init();
             return null;
         }
         public static void __tsonic_module_init()

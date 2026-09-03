@@ -38,7 +38,6 @@ namespace Tsumo.Engine
         private static object? __tsonic_module_init_core()
         {
             Utils_strings.__tsonic_module_init();
-            Markdown_result.__tsonic_module_init();
             Markdown_pipeline.__tsonic_module_init();
             Markdown_toc.__tsonic_module_init();
             normalizeNewlines = (string text) => Utils_strings.replaceLineEndings(text, "\n");

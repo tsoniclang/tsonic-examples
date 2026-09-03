@@ -79,7 +79,6 @@ namespace Tsumo.Engine
         {
             Fs.__tsonic_module_init();
             Utils_text.__tsonic_module_init();
-            Diagnostics.__tsonic_module_init();
             ensureEmptyDir = (string path) =>
             {
                 if (!Fs.dirExists(path))
@@ -94,17 +93,160 @@ namespace Tsumo.Engine
                 }
             };
             defaultConfigToml = (string title) => $"baseURL = \"http://localhost:1313/\"\nlanguageCode = \"en-us\"\ntitle = \"{title}\"\n";
-            defaultArchetype = () => "---\ntitle: \"{{ .Title }}\"\ndate: \"{{ .Date }}\"\ndraft: true\ndescription: \"\"\ntags: []\ncategories: []\n---\n\nWrite your post here.\n";
-            baseofHtml = () => "<!doctype html>\n<html lang=\"{{ .Site.LanguageCode }}\">\n  <head>\n    <meta charset=\"utf-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n    <title>{{ .Title }} | {{ .Site.Title }}</title>\n    <meta name=\"description\" content=\"{{ default .Site.Title .Description }}\" />\n    <link rel=\"stylesheet\" href=\"{{ relURL \"style.css\" }}\" />\n    <link rel=\"alternate\" type=\"application/rss+xml\" href=\"{{ relURL \"/index.xml\" }}\" title=\"{{ .Site.Title }}\" />\n  </head>\n  <body>\n    {{ partial \"header.html\" . }}\n    <main class=\"container\">\n      {{ block \"main\" . }}{{ end }}\n    </main>\n    {{ partial \"footer.html\" . }}\n  </body>\n</html>\n";
-            partialHeader = () => "<header class=\"container\">\n  <h1><a href=\"{{ relURL \"/\" }}\">{{ .Site.Title }}</a></h1>\n  <nav>\n    <a href=\"{{ relURL \"/\" }}\">Home</a>\n    <a href=\"{{ relURL \"/posts/\" }}\">Posts</a>\n    <a href=\"{{ relURL \"/tags/\" }}\">Tags</a>\n    <a href=\"{{ relURL \"/categories/\" }}\">Categories</a>\n  </nav>\n</header>\n";
-            partialFooter = () => "<footer class=\"container\">\n  <p class=\"muted\">Built with tsumo</p>\n</footer>\n";
-            singleHtml = () => "{{ define \"main\" }}\n<article>\n  <h2>{{ .Title }}</h2>\n  <p class=\"muted\">\n    {{ dateFormat \"Jan 2, 2006\" .Date }}\n    {{ with .Categories }}\n      · Categories:\n      {{ range . }}\n        <a href=\"{{ . | urlize | printf \"/categories/%s/\" | relURL }}\">{{ . }}</a>\n      {{ end }}\n    {{ end }}\n    {{ with .Tags }}\n      · Tags:\n      {{ range . }}\n        <a href=\"{{ . | urlize | printf \"/tags/%s/\" | relURL }}\">{{ . }}</a>\n      {{ end }}\n    {{ end }}\n  </p>\n  <div class=\"content\">\n    {{ .Content }}\n  </div>\n</article>\n{{ end }}\n";
-            listHtml = () => "{{ define \"main\" }}\n<section>\n  <h2>{{ .Title }}</h2>\n  <div class=\"content\">{{ .Content }}</div>\n  <ul class=\"post-list\">\n    {{ range .Pages }}\n      <li>\n        <div>\n          <a href=\"{{ .RelPermalink }}\">{{ .Title }}</a>\n          {{ with .Summary }}<div class=\"summary\">{{ . }}</div>{{ end }}\n        </div>\n        <span class=\"muted\">{{ dateFormat \"Jan 2, 2006\" .Date }}</span>\n      </li>\n    {{ end }}\n  </ul>\n</section>\n{{ end }}\n";
-            termsHtml = () => "{{ define \"main\" }}\n<section>\n  <h2>{{ .Title }}</h2>\n  <ul class=\"post-list\">\n    {{ range .Pages }}\n      <li>\n        <a href=\"{{ .RelPermalink }}\">{{ .Title }}</a>\n        <span class=\"muted\">{{ len .Pages }}</span>\n      </li>\n    {{ end }}\n  </ul>\n</section>\n{{ end }}\n";
-            taxonomyHtml = () => "{{ define \"main\" }}\n<section>\n  <h2>{{ .Title }}</h2>\n  <ul class=\"post-list\">\n    {{ range .Pages }}\n      <li>\n        <a href=\"{{ .RelPermalink }}\">{{ .Title }}</a>\n        <span class=\"muted\">{{ dateFormat \"Jan 2, 2006\" .Date }}</span>\n      </li>\n    {{ end }}\n  </ul>\n</section>\n{{ end }}\n";
-            indexMd = () => "---\ntitle: \"Home\"\ndescription: \"Example site for tsumo.\"\n---\n\nWelcome to your new site.\n";
+            defaultArchetype = () => """
+            ---
+            title: "{{ .Title }}"
+            date: "{{ .Date }}"
+            draft: true
+            description: ""
+            tags: []
+            categories: []
+            ---
+
+            Write your post here.
+
+            """;
+            baseofHtml = () => """
+            <!doctype html>
+            <html lang="{{ .Site.LanguageCode }}">
+              <head>
+                <meta charset="utf-8" />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <title>{{ .Title }} | {{ .Site.Title }}</title>
+                <meta name="description" content="{{ default .Site.Title .Description }}" />
+                <link rel="stylesheet" href="{{ relURL "style.css" }}" />
+                <link rel="alternate" type="application/rss+xml" href="{{ relURL "/index.xml" }}" title="{{ .Site.Title }}" />
+              </head>
+              <body>
+                {{ partial "header.html" . }}
+                <main class="container">
+                  {{ block "main" . }}{{ end }}
+                </main>
+                {{ partial "footer.html" . }}
+              </body>
+            </html>
+
+            """;
+            partialHeader = () => """
+            <header class="container">
+              <h1><a href="{{ relURL "/" }}">{{ .Site.Title }}</a></h1>
+              <nav>
+                <a href="{{ relURL "/" }}">Home</a>
+                <a href="{{ relURL "/posts/" }}">Posts</a>
+                <a href="{{ relURL "/tags/" }}">Tags</a>
+                <a href="{{ relURL "/categories/" }}">Categories</a>
+              </nav>
+            </header>
+
+            """;
+            partialFooter = () => """
+            <footer class="container">
+              <p class="muted">Built with tsumo</p>
+            </footer>
+
+            """;
+            singleHtml = () => """
+            {{ define "main" }}
+            <article>
+              <h2>{{ .Title }}</h2>
+              <p class="muted">
+                {{ dateFormat "Jan 2, 2006" .Date }}
+                {{ with .Categories }}
+                  · Categories:
+                  {{ range . }}
+                    <a href="{{ . | urlize | printf "/categories/%s/" | relURL }}">{{ . }}</a>
+                  {{ end }}
+                {{ end }}
+                {{ with .Tags }}
+                  · Tags:
+                  {{ range . }}
+                    <a href="{{ . | urlize | printf "/tags/%s/" | relURL }}">{{ . }}</a>
+                  {{ end }}
+                {{ end }}
+              </p>
+              <div class="content">
+                {{ .Content }}
+              </div>
+            </article>
+            {{ end }}
+
+            """;
+            listHtml = () => """
+            {{ define "main" }}
+            <section>
+              <h2>{{ .Title }}</h2>
+              <div class="content">{{ .Content }}</div>
+              <ul class="post-list">
+                {{ range .Pages }}
+                  <li>
+                    <div>
+                      <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+                      {{ with .Summary }}<div class="summary">{{ . }}</div>{{ end }}
+                    </div>
+                    <span class="muted">{{ dateFormat "Jan 2, 2006" .Date }}</span>
+                  </li>
+                {{ end }}
+              </ul>
+            </section>
+            {{ end }}
+
+            """;
+            termsHtml = () => """
+            {{ define "main" }}
+            <section>
+              <h2>{{ .Title }}</h2>
+              <ul class="post-list">
+                {{ range .Pages }}
+                  <li>
+                    <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+                    <span class="muted">{{ len .Pages }}</span>
+                  </li>
+                {{ end }}
+              </ul>
+            </section>
+            {{ end }}
+
+            """;
+            taxonomyHtml = () => """
+            {{ define "main" }}
+            <section>
+              <h2>{{ .Title }}</h2>
+              <ul class="post-list">
+                {{ range .Pages }}
+                  <li>
+                    <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+                    <span class="muted">{{ dateFormat "Jan 2, 2006" .Date }}</span>
+                  </li>
+                {{ end }}
+              </ul>
+            </section>
+            {{ end }}
+
+            """;
+            indexMd = () => """
+            ---
+            title: "Home"
+            description: "Example site for tsumo."
+            ---
+
+            Welcome to your new site.
+
+            """;
             helloWorldMd = (Tsonic.CSharp.Js.Date creationTime) => $"---\ntitle: \"Hello World\"\ndate: \"{creationTime.toISOString()}\"\ndraft: false\ndescription: \"An end-to-end demo of tsumo with GFM markdown.\"\ntags: [\"hello\", \"tsumo\", \"gfm\"]\ncategories: [\"meta\"]\n---\n\nThis is your first post.\n\n<!--more-->\n\n```\ntsumo build\ntsumo server\n```\n";
-            styleCss = () => ":root { color-scheme: light dark; }\nbody { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; line-height: 1.5; }\na { color: inherit; }\n.container { max-width: 860px; margin: 0 auto; padding: 1.25rem; }\n.muted { color: #777; }\nnav { display: flex; gap: 1rem; flex-wrap: wrap; }\n.post-list { list-style: none; padding: 0; }\n.post-list li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.25rem 0; }\n.summary { margin-top: 0.25rem; }\n.summary p { margin: 0; }\n.content pre { padding: 0.75rem 1rem; background: rgba(127,127,127,0.15); overflow: auto; border-radius: 10px; }\n";
+            styleCss = () => """
+            :root { color-scheme: light dark; }
+            body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; line-height: 1.5; }
+            a { color: inherit; }
+            .container { max-width: 860px; margin: 0 auto; padding: 1.25rem; }
+            .muted { color: #777; }
+            nav { display: flex; gap: 1rem; flex-wrap: wrap; }
+            .post-list { list-style: none; padding: 0; }
+            .post-list li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.25rem 0; }
+            .summary { margin-top: 0.25rem; }
+            .summary p { margin: 0; }
+            .content pre { padding: 0.75rem 1rem; background: rgba(127,127,127,0.15); overflow: auto; border-radius: 10px; }
+
+            """;
             initSite = (string targetDir, Tsonic.CSharp.Js.Date? creationTime) =>
             {
                 string dir = Tsonic.CSharp.Node.path.resolve(targetDir);

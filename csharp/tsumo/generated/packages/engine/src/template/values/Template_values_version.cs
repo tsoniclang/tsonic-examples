@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Template_values_version
@@ -7,10 +5,8 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
-            Template_values_base.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
             Utils_int32.__tsonic_module_init();
-            Diagnostics.__tsonic_module_init();
             return null;
         }
         public static void __tsonic_module_init()

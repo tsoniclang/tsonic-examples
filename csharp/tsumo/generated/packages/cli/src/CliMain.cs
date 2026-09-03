@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Cli
 {
     public static class CliMain

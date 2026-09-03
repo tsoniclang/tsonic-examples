@@ -83,8 +83,19 @@ namespace Tsumo.Tests
             string root = TestRoot.createTestDirectory("docs-content");
             try
             {
-                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "published.md"), "---\ntitle: Published\n---\nBody");
-                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "draft.md"), "---\ntitle: Draft\ndraft: true\n---\nHidden");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "published.md"), """
+                ---
+                title: Published
+                ---
+                Body
+                """);
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "draft.md"), """
+                ---
+                title: Draft
+                draft: true
+                ---
+                Hidden
+                """);
                 Tsonic.CSharp.Js.JSArray<DocsMarkdownRoute> routes = Node_modules_Tsumo_engine_src_docs_routes.discoverDocsMountRoutes(DocsDomainTest.createMount(root, "/docs/")).markdown;
                 DocsContentInventory production = Node_modules_Tsumo_engine_src_docs_content.loadDocsContent(routes, false);
                 Xunit.Assert.Equal<double>(1, production.leaves.length);

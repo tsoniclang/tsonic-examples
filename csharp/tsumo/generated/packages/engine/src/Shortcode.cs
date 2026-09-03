@@ -14,16 +14,16 @@ namespace Tsumo.Engine
             get;
             private set;
         } = default(Func<ParseState, string>)!;
-        public static Func<string, string?, int, int, __TsonicShape_d14cf9f8dfd3e510ded5a876f94069fa128ca9ea6a3c1d704d986cf23365f1cc> parseParams
+        public static Func<string, string?, int, int, ObjectShape_d14cf9f8dfd3> parseParams
         {
             get;
             private set;
-        } = default(Func<string, string?, int, int, __TsonicShape_d14cf9f8dfd3e510ded5a876f94069fa128ca9ea6a3c1d704d986cf23365f1cc>)!;
-        public static Func<string, string, int, bool, __TsonicShape_0b64ee5d6393022ab90bde1376936ac9ac1031f2f3d5508e62e91a7959e1b0ed?> findClosingTag
+        } = default(Func<string, string?, int, int, ObjectShape_d14cf9f8dfd3>)!;
+        public static Func<string, string, int, bool, ObjectShape_0b64ee5d6393?> findClosingTag
         {
             get;
             private set;
-        } = default(Func<string, string, int, bool, __TsonicShape_0b64ee5d6393022ab90bde1376936ac9ac1031f2f3d5508e62e91a7959e1b0ed?>)!;
+        } = default(Func<string, string, int, bool, ObjectShape_0b64ee5d6393?>)!;
         public static Func<string, string?, Tsonic.CSharp.Js.JSArray<ShortcodeCall>> parseShortcodes
         {
             get;
@@ -42,7 +42,6 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
-            Diagnostics.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
             Params.__tsonic_module_init();
             parseQuotedString = (ParseState state, string? sourcePath, int line, int column) =>
@@ -188,7 +187,7 @@ namespace Tsumo.Engine
                 {
                     throw Diagnostics.createTsumoError("TSUMO_SHORTCODE_PARAMETER_STYLE_MIXED", "Shortcode parameters cannot mix named and positional forms", sourcePath, line, column);
                 }
-                return new __TsonicShape_d14cf9f8dfd3e510ded5a876f94069fa128ca9ea6a3c1d704d986cf23365f1cc
+                return new ObjectShape_d14cf9f8dfd3
                 {
                     __tsonic_member_a20b52fae57cc7a99c9651f1b573950fd211823e3ace3bb9c273c06430f24cd3 = @params,
                     positional = positional,
@@ -226,7 +225,7 @@ namespace Tsumo.Engine
                             {
                                 return null;
                             }
-                            return new __TsonicShape_0b64ee5d6393022ab90bde1376936ac9ac1031f2f3d5508e62e91a7959e1b0ed
+                            return new ObjectShape_0b64ee5d6393
                             {
                                 inner = inner,
                                 endPos = closeEnd + endSuffix.Length,
@@ -303,7 +302,7 @@ namespace Tsumo.Engine
                         continue;
                     }
                     ShortcodePosition position_2 = sourceMap.positionAt(openPos);
-                    __TsonicShape_d14cf9f8dfd3e510ded5a876f94069fa128ca9ea6a3c1d704d986cf23365f1cc parsed = parseParams(argsText, sourcePath, position_2.line, position_2.column);
+                    ObjectShape_d14cf9f8dfd3 parsed = parseParams(argsText, sourcePath, position_2.line, position_2.column);
                     if (isSelfClosing == true)
                     {
                         ShortcodeCall call = new ShortcodeCall(name, parsed.__tsonic_member_a20b52fae57cc7a99c9651f1b573950fd211823e3ace3bb9c273c06430f24cd3, parsed.positional, parsed.isNamed, "", isMarkdown, true, openPos, closePos + closeSuffix.Length, sourcePath, position_2.line, position_2.column);
@@ -312,7 +311,7 @@ namespace Tsumo.Engine
                         continue;
                     }
                     int tagEndPos = closePos + closeSuffix.Length;
-                    __TsonicShape_0b64ee5d6393022ab90bde1376936ac9ac1031f2f3d5508e62e91a7959e1b0ed? closeResult = findClosingTag(text, name, tagEndPos, isMarkdown);
+                    ObjectShape_0b64ee5d6393? closeResult = findClosingTag(text, name, tagEndPos, isMarkdown);
                     if (closeResult is not null)
                     {
                         ShortcodeCall call_1 = new ShortcodeCall(name, parsed.__tsonic_member_a20b52fae57cc7a99c9651f1b573950fd211823e3ace3bb9c273c06430f24cd3, parsed.positional, parsed.isNamed, closeResult.inner, isMarkdown, false, openPos, closeResult.endPos, sourcePath, position_2.line, position_2.column);

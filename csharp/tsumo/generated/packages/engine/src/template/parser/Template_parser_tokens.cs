@@ -37,8 +37,6 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
-            Diagnostics.__tsonic_module_init();
-            Utils_indexedSourceText.__tsonic_module_init();
             Template_parser_stringLiterals.__tsonic_module_init();
             positionAt = (IndexedSourceText source, Tsonic.CSharp.Js.JSArray<int> lineStarts, int offset) =>
             {

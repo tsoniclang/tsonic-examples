@@ -24,11 +24,11 @@ Generated on 2026-09-03 from clean checkouts:
 
 | Component | Commit |
 |---|---|
-| [`tsoniclang/tsumo-rust`](https://github.com/tsoniclang/tsumo-rust) | `5e4bc235df7f9b985c638e9ac23fd69abf432e57` |
-| [`tsoniclang/tsonic`](https://github.com/tsoniclang/tsonic) | `762ecb7e9c1de1152bac34c07ecf5b424182c684` |
-| [`tsoniclang/tsonic-rust`](https://github.com/tsoniclang/tsonic-rust) | `2fb9dd8ddef12f3fa5b2553e7ba1172dfab32777` |
-| [`tsoniclang/rust-nodejs`](https://github.com/tsoniclang/rust-nodejs) | `4afba946d30f4359b43edaa384072bb21cf87894` |
-| [`tsoniclang/rust-js`](https://github.com/tsoniclang/rust-js) | `eb72739c8845b8e9e0ec5d6e061dd4d063857092` |
+| [`tsoniclang/tsumo-rust`](https://github.com/tsoniclang/tsumo-rust) | `3bd06f7be6e5839f741bbc1fc8f3b54a8234a990` |
+| [`tsoniclang/tsonic`](https://github.com/tsoniclang/tsonic) | `7bcfca0770c91c545f6a4abc4dff03f204a4ec36` |
+| [`tsoniclang/tsonic-rust`](https://github.com/tsoniclang/tsonic-rust) | `d8ac1c71bee79cd0f7a71f3640fcfedbb6e6d63a` |
+| [`tsoniclang/rust-nodejs`](https://github.com/tsoniclang/rust-nodejs) | `25a3e1097f6c41b8e41cd3fd9b6a52f3bc41b66e` |
+| [`tsoniclang/rust-js`](https://github.com/tsoniclang/rust-js) | `62b4f3e1a436634d30045dc900bf83ca4f494697` |
 | [`tsoniclang/rust-runtime`](https://github.com/tsoniclang/rust-runtime) | `9e6b15493a513ac385e374e04dc652616a845c6b` |
 
 Two consecutive normal Tsumo generation passes succeeded for `engine`, `cli`,

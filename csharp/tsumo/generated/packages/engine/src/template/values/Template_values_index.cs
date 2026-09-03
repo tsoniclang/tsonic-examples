@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Template_values_index
@@ -7,24 +5,17 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
-            Template_values_base.__tsonic_module_init();
             Template_values_primitives.__tsonic_module_init();
-            Template_values_date.__tsonic_module_init();
             Template_values_page.__tsonic_module_init();
             Template_values_site.__tsonic_module_init();
             Template_values_resources.__tsonic_module_init();
-            Template_values_arrays.__tsonic_module_init();
-            Template_values_docs.__tsonic_module_init();
             Template_values_menus.__tsonic_module_init();
             Template_values_output.__tsonic_module_init();
             Template_values_taxonomies.__tsonic_module_init();
             Template_values_media.__tsonic_module_init();
-            Template_values_dict.__tsonic_module_init();
-            Template_values_scratch.__tsonic_module_init();
             Template_values_url.__tsonic_module_init();
             Template_values_version.__tsonic_module_init();
             Template_values_pagination.__tsonic_module_init();
-            Template_values_deferred.__tsonic_module_init();
             return null;
         }
         public static void __tsonic_module_init()

@@ -17,9 +17,7 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
-            Diagnostics.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
-            Template_syntax_expressions.__tsonic_module_init();
             isRightParenToken = (string token) => token == ")" || Tsonic.CSharp.Js.String.startsWith(token, ").");
             parsePipeline = (Tsonic.CSharp.Js.JSArray<string> tokens, string? sourcePath, int? line, int? column) =>
             {

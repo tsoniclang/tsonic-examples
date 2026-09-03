@@ -93,8 +93,6 @@ namespace Tsumo.Engine
         private static object? __tsonic_module_init_core()
         {
             Markdown.__tsonic_module_init();
-            Diagnostics.__tsonic_module_init();
-            Docs_models.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
             Docs_url.__tsonic_module_init();
             normalizeSlashes = (string path) => Tsonic.CSharp.Js.String.replaceAll(path, "\\", "/");

@@ -63,8 +63,6 @@ namespace Tsumo.Engine
         private static object? __tsonic_module_init_core()
         {
             Build_menuResolution.__tsonic_module_init();
-            Build_contentModel.__tsonic_module_init();
-            Diagnostics.__tsonic_module_init();
             Models.__tsonic_module_init();
             Params.__tsonic_module_init();
             Utils_html.__tsonic_module_init();

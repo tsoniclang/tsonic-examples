@@ -16,7 +16,6 @@ namespace Tsumo.Engine
             Utils_urlPath.__tsonic_module_init();
             Build_outputPlan.__tsonic_module_init();
             Config.__tsonic_module_init();
-            Diagnostics.__tsonic_module_init();
             Env.__tsonic_module_init();
             Models.__tsonic_module_init();
             Params.__tsonic_module_init();
@@ -28,7 +27,6 @@ namespace Tsumo.Engine
             Docs_directoryGraph.__tsonic_module_init();
             Docs_editUrl.__tsonic_module_init();
             Docs_markdown.__tsonic_module_init();
-            Docs_models.__tsonic_module_init();
             Docs_nav.__tsonic_module_init();
             Docs_output.__tsonic_module_init();
             Docs_routes.__tsonic_module_init();

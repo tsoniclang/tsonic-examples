@@ -73,7 +73,6 @@ namespace Tsumo.Engine
             Models.__tsonic_module_init();
             Utils_mime.__tsonic_module_init();
             Utils_text.__tsonic_module_init();
-            Diagnostics.__tsonic_module_init();
             WatchSnapshot.__tsonic_module_init();
             logLine = (string message) =>
             {

@@ -62,7 +62,6 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
-            Resources_models.__tsonic_module_init();
             shift2 = 2;
             shift6 = 6;
             shift8 = 8;

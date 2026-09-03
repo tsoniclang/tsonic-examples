@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Resources_text
@@ -103,17 +101,6 @@ namespace Tsumo.Engine
                 throw Diagnostics.createTsumoError("TSUMO_RESOURCE_TEXT_ENCODING_INVALID", $"{operation} requires a UTF-8 resource", resource.sourcePath);
             }
             return resource.bytes.toString("utf8");
-        }
-        private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
-        private static object? __tsonic_module_init_core()
-        {
-            Diagnostics.__tsonic_module_init();
-            Resources_models.__tsonic_module_init();
-            return null;
-        }
-        public static void __tsonic_module_init()
-        {
-            _ = __tsonic_module_initialization.Value;
         }
     }
 }

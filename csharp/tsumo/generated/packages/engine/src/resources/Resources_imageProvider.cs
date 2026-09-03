@@ -32,11 +32,9 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
-            Diagnostics.__tsonic_module_init();
             Utils_int32.__tsonic_module_init();
             Resources_imageDimensions.__tsonic_module_init();
             Resources_mediaTypes.__tsonic_module_init();
-            Resources_models.__tsonic_module_init();
             Resources_paths.__tsonic_module_init();
             imageCodecsRegistered = false;
             ensureImageCodecsRegistered = () =>

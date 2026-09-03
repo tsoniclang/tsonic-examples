@@ -74,10 +74,37 @@ namespace Tsumo.Tests
             string root = TestRoot.createTestDirectory("content-discovery");
             try
             {
-                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "z.md"), "---\ntitle: Z\ndate: 2026-01-01T00:00:00Z\n---\nZ");
-                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "a.md"), "---\ntitle: A\ndate: 2026-01-01T00:00:00Z\n---\nA");
-                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "published.md"), "---\ntitle: Published\ndate: 2025-01-01T00:00:00Z\nslug: shared\n---\nPublished");
-                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "draft.md"), "---\ntitle: Draft\ndate: 2025-01-01T00:00:00Z\nslug: shared\ndraft: true\n---\nDraft");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "z.md"), """
+                ---
+                title: Z
+                date: 2026-01-01T00:00:00Z
+                ---
+                Z
+                """);
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "a.md"), """
+                ---
+                title: A
+                date: 2026-01-01T00:00:00Z
+                ---
+                A
+                """);
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "published.md"), """
+                ---
+                title: Published
+                date: 2025-01-01T00:00:00Z
+                slug: shared
+                ---
+                Published
+                """);
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "draft.md"), """
+                ---
+                title: Draft
+                date: 2025-01-01T00:00:00Z
+                slug: shared
+                draft: true
+                ---
+                Draft
+                """);
                 ContentInventory production = Node_modules_Tsumo_engine_src_build_discoverContent.discoverContent(root, false);
                 Xunit.Assert.Equal<double>(3, production.pages.length);
                 Xunit.Assert.True(production.pages[0].relPermalink == "/a/");
@@ -100,14 +127,30 @@ namespace Tsumo.Tests
             string conflictRoot = TestRoot.createTestDirectory("content-route-conflict");
             try
             {
-                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(escapeRoot, "bad.md"), "---\ntitle: Bad\nslug: ../outside\n---\nBad");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(escapeRoot, "bad.md"), """
+                ---
+                title: Bad
+                slug: ../outside
+                ---
+                Bad
+                """);
                 Xunit.Assert.Equal("TSUMO_CONTENT_ROUTE_SEGMENT_INVALID", ContentAndMenuTest.captureContentDiagnostic(() =>
                 {
                     Node_modules_Tsumo_engine_src_build_discoverContent.discoverContent(escapeRoot, false);
                 }));
                 TestRoot.createDirectory(Tsonic.CSharp.Node.path.join(conflictRoot, "guide"));
-                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(conflictRoot, "guide.md"), "---\ntitle: Guide\n---\nPage");
-                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(conflictRoot, "guide", "_index.md"), "---\ntitle: Guide index\n---\nList");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(conflictRoot, "guide.md"), """
+                ---
+                title: Guide
+                ---
+                Page
+                """);
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(conflictRoot, "guide", "_index.md"), """
+                ---
+                title: Guide index
+                ---
+                List
+                """);
                 Xunit.Assert.Equal("TSUMO_CONTENT_ROUTE_CONFLICT", ContentAndMenuTest.captureContentDiagnostic(() =>
                 {
                     Node_modules_Tsumo_engine_src_build_discoverContent.discoverContent(conflictRoot, false);
@@ -173,9 +216,27 @@ namespace Tsumo.Tests
             try
             {
                 TestRoot.createDirectory(Tsonic.CSharp.Node.path.join(root, "posts", "series"));
-                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "posts", "_index.md"), "---\ntitle: Posts\n---\nPosts");
-                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "posts", "series", "_index.md"), "---\ntitle: Series\n---\nSeries");
-                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "posts", "series", "part.md"), "---\ntitle: Part\ndate: 2026-01-01T00:00:00Z\ntags: [alpha]\ncategories: [guides]\n---\nPart");
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "posts", "_index.md"), """
+                ---
+                title: Posts
+                ---
+                Posts
+                """);
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "posts", "series", "_index.md"), """
+                ---
+                title: Series
+                ---
+                Series
+                """);
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(root, "posts", "series", "part.md"), """
+                ---
+                title: Part
+                date: 2026-01-01T00:00:00Z
+                tags: [alpha]
+                categories: [guides]
+                ---
+                Part
+                """);
                 SiteConfig config = new SiteConfig("Test", "https://example.invalid/", "en", null, null);
                 StandardPageGraph graph = Node_modules_Tsumo_engine_src_build_standardPageGraph.createStandardPageGraph(config, Node_modules_Tsumo_engine_src_build_discoverContent.discoverContent(root, false));
                 StandardTaxonomyGraph taxonomies = Node_modules_Tsumo_engine_src_build_standardTaxonomies.createStandardTaxonomies(graph);

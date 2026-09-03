@@ -21,8 +21,19 @@ namespace Tsumo.Engine
             Utils_strings.__tsonic_module_init();
             Utils_text.__tsonic_module_init();
             Utils_paths.__tsonic_module_init();
-            Diagnostics.__tsonic_module_init();
-            defaultArchetype = () => "---\ntitle: \"{{ .Title }}\"\ndate: \"{{ .Date }}\"\ndraft: true\ndescription: \"\"\ntags: []\ncategories: []\n---\n\nWrite your post here.\n";
+            defaultArchetype = () => """
+            ---
+            title: "{{ .Title }}"
+            date: "{{ .Date }}"
+            draft: true
+            description: ""
+            tags: []
+            categories: []
+            ---
+
+            Write your post here.
+
+            """;
             newContent = (string siteDir, string contentPathRaw, Tsonic.CSharp.Js.Date? creationTime) =>
             {
                 string dir = Tsonic.CSharp.Node.path.resolve(siteDir);

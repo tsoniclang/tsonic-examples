@@ -26,7 +26,7 @@ Generated on 2026-09-03 from clean checkouts:
 |---|---|
 | [`tsoniclang/tsumo`](https://github.com/tsoniclang/tsumo) | `8473b9f44575ba60e61fa4fd6fff71df5e9d5203` |
 | [`tsoniclang/tsonic`](https://github.com/tsoniclang/tsonic) | `7bcfca0770c91c545f6a4abc4dff03f204a4ec36` |
-| [`tsoniclang/tsonic-csharp`](https://github.com/tsoniclang/tsonic-csharp) | `e1d652aefbffef848d1063587170229ac0712791` |
+| [`tsoniclang/tsonic-csharp`](https://github.com/tsoniclang/tsonic-csharp) | `b022742013c564eed5c473e215f7eda4add802cd` |
 | [`tsoniclang/csharp-nodejs`](https://github.com/tsoniclang/csharp-nodejs) | `9ace32b396cbb03bf31c8073edfc7010ccf90614` |
 | [`tsoniclang/csharp-js`](https://github.com/tsoniclang/csharp-js) | `d61f31da03904e4c3be9bca53ede85d26ec8ada7` |
 | [`tsoniclang/csharp-runtime`](https://github.com/tsoniclang/csharp-runtime) | `8ae04c5e727f8b8a626d4c2fc8a976b8c60c943a` |
@@ -38,7 +38,7 @@ projects then compiled with zero warnings and zero errors.
 | Tree | Files | Bytes | Sorted relative-path/content manifest SHA-256 |
 |---|---:|---:|---|
 | Authored source | 209 | 829,215 | `13e53cad359cddd48b558424319b8c5feb38bf72bacdd5b51d128ce042d7fe49` |
-| Generated C# | 556 | 4,509,865 | `d38e2203229f38f31e2c9fcccaddf4b9198cc239bfadff04a23abbe83d1da00a` |
+| Generated C# | 556 | 4,441,619 | `3487d01e8c0b7c83b968664279f6a40e06950d16e5249eccc3535dcf20b7dcb1` |
 
 The snapshot intentionally excludes package installations, .NET build output,
 compiled binaries, runtime assemblies, vendored third-party implementation
