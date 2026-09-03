@@ -6,7 +6,9 @@ use crate::program as rt;
 pub trait ResourceDataDispatch {
     fn downcast_resource_data_to_resource_data(
         self: alloc::rc::Rc<Self>,
-    ) -> Option<alloc::rc::Rc<dyn ResourceDataDispatch + 'static>>;
+    ) -> Option<alloc::rc::Rc<dyn ResourceDataDispatch + 'static>> {
+        None
+    }
     fn read_resource_data_integrity(&self) -> String;
     fn write_resource_data_integrity(&self, value: String);
 }
@@ -124,7 +126,9 @@ impl ImageDimensions {
 pub trait ResourceDispatch {
     fn downcast_resource_to_resource(
         self: alloc::rc::Rc<Self>,
-    ) -> Option<alloc::rc::Rc<dyn ResourceDispatch + 'static>>;
+    ) -> Option<alloc::rc::Rc<dyn ResourceDispatch + 'static>> {
+        None
+    }
     fn read_resource_id(&self) -> String;
     fn write_resource_id(&self, value: String);
     fn read_resource_source_path(&self) -> Option<String>;

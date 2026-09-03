@@ -6,7 +6,9 @@ use crate::program as rt;
 pub trait TemplateReturnSignalDispatch {
     fn downcast_template_return_signal_to_template_return_signal(
         self: alloc::rc::Rc<Self>,
-    ) -> Option<alloc::rc::Rc<dyn TemplateReturnSignalDispatch + 'static>>;
+    ) -> Option<alloc::rc::Rc<dyn TemplateReturnSignalDispatch + 'static>> {
+        None
+    }
     fn read_tsumo_error_name(&self) -> String;
     fn write_tsumo_error_name(&self, value: String);
     fn read_tsumo_error_message(&self) -> String;

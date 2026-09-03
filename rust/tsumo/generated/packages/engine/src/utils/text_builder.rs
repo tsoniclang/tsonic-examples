@@ -6,7 +6,9 @@ use crate::program as rt;
 pub trait TextBuilderDispatch {
     fn downcast_text_builder_to_text_builder(
         self: alloc::rc::Rc<Self>,
-    ) -> Option<alloc::rc::Rc<dyn TextBuilderDispatch + 'static>>;
+    ) -> Option<alloc::rc::Rc<dyn TextBuilderDispatch + 'static>> {
+        None
+    }
     fn read_text_builder_state(&self) -> tsumo_platform::TextBuilderState;
     fn write_text_builder_state(&self, value: tsumo_platform::TextBuilderState);
     fn read_text_builder_length(self: alloc::rc::Rc<Self>) -> i32;

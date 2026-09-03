@@ -5,13 +5,11 @@ use crate::program as rt;
 pub fn build_site(
     request: crate::build::BuildRequest,
 ) -> Result<crate::build::BuildResult, rt::TsonicError> {
-    let site_dir: String = tsonic_rust_node::path::resolve(
-        &[{
-            let dispatch_receiver = &request;
-            dispatch_receiver.dispatch.read_build_request_site_dir()
-        }
-        .as_str()],
-    )?;
+    let site_dir: String = tsonic_rust_node::path::resolve(&[{
+        let dispatch_receiver = &request;
+        dispatch_receiver.dispatch.read_build_request_site_dir()
+    }
+    .as_str()])?;
     let docs: Option<crate::docs::config::LoadedDocsConfig> =
         crate::docs::config::load_docs_config(site_dir.clone())?;
     let publication: crate::output_publication::OutputPublication =
@@ -33,15 +31,13 @@ pub fn build_site(
     let try_body: rt::TsonicResult<rt::Completion<crate::build::BuildResult>> =
         rt::completion_region(|| {
             let pages_built: f64 = if docs.is_none() {
-                tsonic_rust_runtime::conversions::i32_to_f64(
-                    crate::build::standard_site::build_standard_site(
-                        request.clone(),
-                        site_dir.clone(),
-                        publication.state.with(|state| state.staging_dir.clone()),
-                    )?,
-                )
+                rt::conversions::i32_to_f64(crate::build::standard_site::build_standard_site(
+                    request.clone(),
+                    site_dir.clone(),
+                    publication.state.with(|state| state.staging_dir.clone()),
+                )?)
             } else {
-                tsonic_rust_runtime::conversions::i32_to_f64(crate::docs::builder::build_docs_site(
+                rt::conversions::i32_to_f64(crate::docs::builder::build_docs_site(
                     request.clone(),
                     match docs.as_ref() {
                         Some(flow_value) => flow_value.clone(),
@@ -55,7 +51,7 @@ pub fn build_site(
                 publication
                     .state
                     .with(|state| state.destination_dir.clone()),
-                tsonic_rust_runtime::conversions::f64_to_i32(pages_built)?,
+                rt::conversions::f64_to_i32(pages_built)?,
             )))
         });
     let try_flow: rt::TsonicResult<rt::Completion<crate::build::BuildResult>> = match try_body {

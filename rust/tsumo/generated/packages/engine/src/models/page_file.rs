@@ -6,7 +6,9 @@ use crate::program as rt;
 pub trait PageFileDispatch {
     fn downcast_page_file_to_page_file(
         self: alloc::rc::Rc<Self>,
-    ) -> Option<alloc::rc::Rc<dyn PageFileDispatch + 'static>>;
+    ) -> Option<alloc::rc::Rc<dyn PageFileDispatch + 'static>> {
+        None
+    }
     fn read_page_file_filename(&self) -> String;
     fn write_page_file_filename(&self, value: String);
     fn read_page_file_dir(&self) -> String;

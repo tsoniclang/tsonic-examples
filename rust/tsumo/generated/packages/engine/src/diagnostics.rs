@@ -12,7 +12,9 @@ pub enum TsumoDiagnosticCategory {
 pub trait TsumoDiagnosticDispatch {
     fn downcast_tsumo_diagnostic_to_tsumo_diagnostic(
         self: alloc::rc::Rc<Self>,
-    ) -> Option<alloc::rc::Rc<dyn TsumoDiagnosticDispatch + 'static>>;
+    ) -> Option<alloc::rc::Rc<dyn TsumoDiagnosticDispatch + 'static>> {
+        None
+    }
     fn read_tsumo_diagnostic_code(&self) -> String;
     fn write_tsumo_diagnostic_code(&self, value: String);
     fn read_tsumo_diagnostic_category(&self) -> TsumoDiagnosticCategory;
@@ -151,7 +153,7 @@ impl TsumoDiagnosticRoot {
                             Some(flow_value) => flow_value.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
-                        String::from(": "),
+                        String::from(": ")
                     )
                 } else {
                     format!(
@@ -182,9 +184,9 @@ impl TsumoDiagnosticRoot {
                                 dispatch_receiver_6.dispatch.read_tsumo_diagnostic_column()
                             },
                             core::convert::identity,
-                            || 1.0,
+                            || 1.0
                         )),
-                        String::from(": "),
+                        String::from(": ")
                     )
                 }
             }
@@ -200,7 +202,7 @@ impl TsumoDiagnosticRoot {
             {
                 let dispatch_receiver_8 = &project_this;
                 dispatch_receiver_8.dispatch.read_tsumo_diagnostic_message()
-            },
+            }
         )
     }
 }
@@ -273,7 +275,9 @@ impl TsumoDiagnosticDispatch for TsumoDiagnosticRoot {
 pub trait TsumoErrorDispatch {
     fn downcast_tsumo_error_to_tsumo_error(
         self: alloc::rc::Rc<Self>,
-    ) -> Option<alloc::rc::Rc<dyn TsumoErrorDispatch + 'static>>;
+    ) -> Option<alloc::rc::Rc<dyn TsumoErrorDispatch + 'static>> {
+        None
+    }
     fn read_tsumo_error_name(&self) -> String;
     fn write_tsumo_error_name(&self, value: String);
     fn read_tsumo_error_message(&self) -> String;

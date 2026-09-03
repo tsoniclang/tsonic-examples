@@ -20,7 +20,9 @@ pub fn decode_html(input: String) -> String {
 pub trait HtmlStringDispatch {
     fn downcast_html_string_to_html_string(
         self: alloc::rc::Rc<Self>,
-    ) -> Option<alloc::rc::Rc<dyn HtmlStringDispatch + 'static>>;
+    ) -> Option<alloc::rc::Rc<dyn HtmlStringDispatch + 'static>> {
+        None
+    }
     fn read_html_string_value(&self) -> String;
     fn write_html_string_value(&self, value: String);
 }

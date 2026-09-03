@@ -52,7 +52,9 @@ impl LanguageConfig {
 pub trait LanguageContextDispatch {
     fn downcast_language_context_to_language_context(
         self: alloc::rc::Rc<Self>,
-    ) -> Option<alloc::rc::Rc<dyn LanguageContextDispatch + 'static>>;
+    ) -> Option<alloc::rc::Rc<dyn LanguageContextDispatch + 'static>> {
+        None
+    }
     fn read_language_context_lang(&self) -> String;
     fn write_language_context_lang(&self, value: String);
     fn read_language_context_language_name(&self) -> String;

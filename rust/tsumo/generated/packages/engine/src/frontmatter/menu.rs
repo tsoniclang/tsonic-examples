@@ -6,7 +6,9 @@ use crate::program as rt;
 pub trait FrontMatterMenuDispatch {
     fn downcast_front_matter_menu_to_front_matter_menu(
         self: alloc::rc::Rc<Self>,
-    ) -> Option<alloc::rc::Rc<dyn FrontMatterMenuDispatch + 'static>>;
+    ) -> Option<alloc::rc::Rc<dyn FrontMatterMenuDispatch + 'static>> {
+        None
+    }
     fn read_front_matter_menu_menu(&self) -> String;
     fn write_front_matter_menu_menu(&self, value: String);
     fn read_front_matter_menu_name(&self) -> String;

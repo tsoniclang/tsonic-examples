@@ -43,7 +43,8 @@ impl TsumoMarkdownBatch {
         &self,
         index: i32,
     ) -> Result<crate::markdown::result::MarkdownResult, rt::TsonicError> {
-        let result: tsumo_platform::MarkdownBatchResult = self.state
+        let result: tsumo_platform::MarkdownBatchResult = self
+            .state
             .with(|state| state.batch.clone())
             .take_result(index)?;
         Ok(crate::markdown::result::MarkdownResult::new(
@@ -188,7 +189,8 @@ impl TsumoMarkdownDocument {
     }
 
     pub fn occurrence(&self, index: i32) -> Result<TsumoMarkdownOccurrence, rt::TsonicError> {
-        let occurrence: tsumo_platform::MarkdownOccurrence = self.state
+        let occurrence: tsumo_platform::MarkdownOccurrence = self
+            .state
             .with(|state| state.document.clone())
             .occurrence(index)?;
         Ok(TsumoMarkdownOccurrence::new(

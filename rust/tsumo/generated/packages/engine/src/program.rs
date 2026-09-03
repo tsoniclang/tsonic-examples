@@ -37,7 +37,9 @@ impl core::convert::From<crate::diagnostics::TsumoError> for TsonicError {
     }
 }
 
-impl core::convert::From<crate::template::evaluation::return_signal::TemplateReturnSignal> for TsonicError {
+impl core::convert::From<crate::template::evaluation::return_signal::TemplateReturnSignal>
+    for TsonicError
+{
     fn from(value: crate::template::evaluation::return_signal::TemplateReturnSignal) -> Self {
         Self::TemplateReturnSignal(value)
     }
@@ -49,13 +51,11 @@ impl core::fmt::Display for TsonicError {
             Self::Runtime(value) => core::fmt::Display::fmt(value, formatter),
             Self::TsumoError(value) => core::fmt::Display::fmt(value, formatter),
             Self::TemplateReturnSignal(value) => core::fmt::Display::fmt(value, formatter),
-            Self::Suppressed(error, suppressed) => {
-                write!(
-                    formatter,
-                    "SuppressedError: {}; suppressed: {}",
-                    error, suppressed
-                )
-            }
+            Self::Suppressed(error, suppressed) => write!(
+                formatter,
+                "SuppressedError: {}; suppressed: {}",
+                error, suppressed
+            ),
         }
     }
 }

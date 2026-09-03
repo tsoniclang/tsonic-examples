@@ -41,13 +41,11 @@ impl core::fmt::Display for TsonicError {
         match self {
             Self::Runtime(value) => core::fmt::Display::fmt(value, formatter),
             Self::TsumoEngineError(value) => core::fmt::Display::fmt(value, formatter),
-            Self::Suppressed(error, suppressed) => {
-                write!(
-                    formatter,
-                    "SuppressedError: {}; suppressed: {}",
-                    error, suppressed
-                )
-            }
+            Self::Suppressed(error, suppressed) => write!(
+                formatter,
+                "SuppressedError: {}; suppressed: {}",
+                error, suppressed
+            ),
         }
     }
 }

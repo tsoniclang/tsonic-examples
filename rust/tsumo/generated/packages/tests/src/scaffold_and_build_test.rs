@@ -14,27 +14,24 @@ pub(crate) fn capture_scaffold_diagnostic(
         Err(error) => rt::completion_region(|| {
             if matches!(
                 error.clone(),
-                rt::TsonicError::TsumoEngineError(tsumo_engine::program::TsonicError::TsumoError(_)),
-            )
-            {
-                return Ok(
-                    rt::Completion::Return({
-                        let dispatch_receiver_2 = &{
-                            let dispatch_receiver = &match error {
-                                rt::TsonicError::TsumoEngineError(tsumo_engine::program::TsonicError::TsumoError(program_error)) => {
-                                    program_error
-                                }
-                                _ => {
-                                    unreachable!(
-                                        "checked flow selected a different program-error variant"
-                                    )
-                                }
-                            };
-                            dispatch_receiver.dispatch.read_tsumo_error_diagnostic()
+                rt::TsonicError::TsumoEngineError(tsumo_engine::program::TsonicError::TsumoError(
+                    _
+                ))
+            ) {
+                return Ok(rt::Completion::Return({
+                    let dispatch_receiver_2 = &{
+                        let dispatch_receiver = &match error {
+                            rt::TsonicError::TsumoEngineError(
+                                tsumo_engine::program::TsonicError::TsumoError(program_error),
+                            ) => program_error,
+                            _ => unreachable!(
+                                "checked flow selected a different program-error variant"
+                            ),
                         };
-                        dispatch_receiver_2.dispatch.read_tsumo_diagnostic_code()
-                    }),
-                );
+                        dispatch_receiver.dispatch.read_tsumo_error_diagnostic()
+                    };
+                    dispatch_receiver_2.dispatch.read_tsumo_diagnostic_code()
+                }));
             }
             Err(error.clone())
         }),
@@ -113,22 +110,20 @@ impl ScaffoldAndBuildTests {
             )?)?;
             crate::test_root::Assert::number_equal(
                 12.0,
-                Some(tsonic_rust_runtime::conversions::i32_to_f64({
+                Some(rt::conversions::i32_to_f64({
                     let dispatch_receiver_3 = &result;
                     dispatch_receiver_3.dispatch.read_build_result_pages_built()
                 })),
             )?;
             crate::test_root::Assert::number_equal(
                 13.0,
-                Some(tsonic_rust_runtime::conversions::i32_to_f64(
-                    tsonic_rust_runtime::conversions::usize_to_i32(
-                        tsumo_engine::testing::list_files_recursive(
-                            out_dir.clone(),
-                            String::from("*"),
-                        )?
-                        .len(),
-                    )?,
-                )),
+                Some(rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
+                    tsumo_engine::testing::list_files_recursive(
+                        out_dir.clone(),
+                        String::from("*"),
+                    )?
+                    .len(),
+                )?)),
             )?;
             Ok(rt::Completion::Normal)
         });
@@ -188,14 +183,14 @@ impl ScaffoldAndBuildTests {
                 }
             };
             tsumo_engine::build_site(req.clone())?;
-            crate::test_root::Assert::r#true(
-                !crate::test_root::file_exists(tsonic_rust_node::path::join(&[
+            crate::test_root::Assert::r#true(!crate::test_root::file_exists(
+                tsonic_rust_node::path::join(&[
                     out_dir.as_str(),
                     "posts",
                     "my-draft",
                     "index.html",
-                ]))?,
-            )?;
+                ]),
+            )?)?;
             Ok(rt::Completion::Normal)
         });
         let try_flow = try_body;

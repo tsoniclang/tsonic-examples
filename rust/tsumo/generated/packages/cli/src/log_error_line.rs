@@ -3,5 +3,5 @@
 use tsonic_rust_js::abi as js_abi;
 
 pub fn log_error_line(message: String) {
-    js_abi::console_error(&[tsonic_rust_js::abi::js_value_from_string(&message)]);
+    js_abi::console_error(&[js_abi::js_value_from_string(&message)]);
 }

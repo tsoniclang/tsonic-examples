@@ -11,34 +11,38 @@ pub fn print_usage() {
     crate::log_line::log_line(String::from("  tsumo version"));
     crate::log_line::log_line(String::from(""));
     crate::log_line::log_line(String::from("BUILD OPTIONS:"));
-    crate::log_line::log_line(
-        String::from("  -s, --source <dir>         Site directory (default: cwd)"),
-    );
-    crate::log_line::log_line(
-        String::from("  -d, --destination <dir>    Output directory (default: public)"),
-    );
+    crate::log_line::log_line(String::from(
+        "  -s, --source <dir>         Site directory (default: cwd)",
+    ));
+    crate::log_line::log_line(String::from(
+        "  -d, --destination <dir>    Output directory (default: public)",
+    ));
     crate::log_line::log_line(String::from("  -D, --buildDrafts          Include drafts"));
-    crate::log_line::log_line(String::from("  --baseURL <url>            Override baseURL"));
-    crate::log_line::log_line(
-        String::from("  --themesDir <dir>          Themes directory (like Hugo --themesDir)"),
-    );
-    crate::log_line::log_line(
-        String::from("  --no-clean                 Do not wipe destination dir"),
-    );
+    crate::log_line::log_line(String::from(
+        "  --baseURL <url>            Override baseURL",
+    ));
+    crate::log_line::log_line(String::from(
+        "  --themesDir <dir>          Themes directory (like Hugo --themesDir)",
+    ));
+    crate::log_line::log_line(String::from(
+        "  --no-clean                 Do not wipe destination dir",
+    ));
     crate::log_line::log_line(String::from(""));
     crate::log_line::log_line(String::from("SERVER OPTIONS:"));
-    crate::log_line::log_line(
-        String::from("  -s, --source <dir>         Site directory (default: cwd)"),
-    );
-    crate::log_line::log_line(String::from("  -p, --port <port>          Port (default: 1313)"));
-    crate::log_line::log_line(
-        String::from("  --host <host>              Host (default: localhost)"),
-    );
-    crate::log_line::log_line(
-        String::from("  --watch / --no-watch       Watch and rebuild (default: on)"),
-    );
+    crate::log_line::log_line(String::from(
+        "  -s, --source <dir>         Site directory (default: cwd)",
+    ));
+    crate::log_line::log_line(String::from(
+        "  -p, --port <port>          Port (default: 1313)",
+    ));
+    crate::log_line::log_line(String::from(
+        "  --host <host>              Host (default: localhost)",
+    ));
+    crate::log_line::log_line(String::from(
+        "  --watch / --no-watch       Watch and rebuild (default: on)",
+    ));
     crate::log_line::log_line(String::from("  -D, --buildDrafts          Include drafts"));
-    crate::log_line::log_line(
-        String::from("  --themesDir <dir>          Themes directory (like Hugo --themesDir)"),
-    );
+    crate::log_line::log_line(String::from(
+        "  --themesDir <dir>          Themes directory (like Hugo --themesDir)",
+    ));
 }

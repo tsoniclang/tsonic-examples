@@ -18,7 +18,7 @@ pub fn parse_scalar_text(
                     String::from("TSUMO_CONFIG_SYNTAX_INVALID"),
                     message,
                     capture_source_path.clone(),
-                    Some(tsonic_rust_runtime::conversions::i32_to_f64(capture_line)),
+                    Some(rt::conversions::i32_to_f64(capture_line)),
                     Some(1.0),
                 ))
             },
@@ -44,28 +44,30 @@ pub fn parse_config_string(
 ) -> Result<String, rt::TsonicError> {
     let parsed: crate::params::ParamValue =
         parse_scalar_text(value, format, source_path.clone(), line)?;
-    if {
+    if ({
         let dispatch_receiver = &parsed;
         dispatch_receiver.dispatch.read_param_value_kind()
-    } == crate::params::PARAM_KIND_STRING.with(|module_binding| module_binding.load())
+    }) == crate::params::PARAM_KIND_STRING.with(|module_binding| module_binding.load())
     {
         return Ok({
             let dispatch_receiver_2 = &parsed;
             dispatch_receiver_2.dispatch.read_param_value_string_value()
         });
     }
-    Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
-        String::from("TSUMO_CONFIG_INVALID_FIELD"),
-        format!(
-            "{}{}{}",
-            String::from("Configuration field '"),
-            field,
-            String::from("' requires a string"),
+    Err(rt::TsonicError::TsumoError(
+        crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_CONFIG_INVALID_FIELD"),
+            format!(
+                "{}{}{}",
+                String::from("Configuration field '"),
+                field,
+                String::from("' requires a string")
+            ),
+            source_path.clone(),
+            Some(rt::conversions::i32_to_f64(line)),
+            Some(1.0),
         ),
-        source_path.clone(),
-        Some(tsonic_rust_runtime::conversions::i32_to_f64(line)),
-        Some(1.0),
-    )))
+    ))
 }
 
 pub fn parse_config_int(
@@ -77,26 +79,28 @@ pub fn parse_config_int(
 ) -> Result<i32, rt::TsonicError> {
     let parsed: crate::params::ParamValue =
         parse_scalar_text(value, format, source_path.clone(), line)?;
-    if {
+    if ({
         let dispatch_receiver = &parsed;
         dispatch_receiver.dispatch.read_param_value_kind()
-    } == crate::params::PARAM_KIND_NUMBER.with(|module_binding| module_binding.load())
+    }) == crate::params::PARAM_KIND_NUMBER.with(|module_binding| module_binding.load())
     {
         return Ok({
             let dispatch_receiver_2 = &parsed;
             dispatch_receiver_2.dispatch.read_param_value_number_value()
         });
     }
-    Err(rt::TsonicError::TsumoError(crate::diagnostics::create_tsumo_error(
-        String::from("TSUMO_CONFIG_INVALID_FIELD"),
-        format!(
-            "{}{}{}",
-            String::from("Configuration field '"),
-            field,
-            String::from("' requires a 32-bit integer"),
+    Err(rt::TsonicError::TsumoError(
+        crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_CONFIG_INVALID_FIELD"),
+            format!(
+                "{}{}{}",
+                String::from("Configuration field '"),
+                field,
+                String::from("' requires a 32-bit integer")
+            ),
+            source_path.clone(),
+            Some(rt::conversions::i32_to_f64(line)),
+            Some(1.0),
         ),
-        source_path.clone(),
-        Some(tsonic_rust_runtime::conversions::i32_to_f64(line)),
-        Some(1.0),
-    )))
+    ))
 }
