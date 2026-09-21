@@ -36,7 +36,7 @@ All three projects passed the September 21 certification: 71 compiled tests,
 
 | Tree | Files | Bytes | Sorted relative-path/content manifest SHA-256 |
 |---|---:|---:|---|
-| Authored source | 208 | 829,662 | `3a09758d8ef37fa00e868bba2346f353a9e0be0cf92b4b244747c9d04a548263` |
+| Authored source | 209 | 829,881 | `2b576a8ccec7f7e088d9443b1fe41a82fb8a54ced3f1ccbd6c2b9de5f8c9c8df` |
 | Generated C# | 556 | 4,234,826 | `c0ac83c3ea09abcab4d3d6ceba6f501938d078be0c90a598fd06766bab275d00` |
 
 The manifest hashes sorted lines of `<file SHA-256>  <relative path>\n`.
