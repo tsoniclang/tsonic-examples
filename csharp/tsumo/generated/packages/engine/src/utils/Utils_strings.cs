@@ -8,11 +8,13 @@ namespace Tsumo.Engine
         {
             throw Diagnostics.createTsumoError("TSUMO_INTERNAL_STRING_RANGE_INVALID", "Substring bounds are out of range");
         }
-        public static Action<string, int, int> requireSubstringBounds
+        internal static void requireSubstringBounds(string source, int startIndex, int length)
         {
-            get;
-            private set;
-        } = default(Action<string, int, int>)!;
+            if (startIndex < 0 || length < 0 || startIndex > source.Length || startIndex + length > source.Length)
+            {
+                substringError();
+            }
+        }
         public static Func<string, string, string, string> replaceText
         {
             get;
@@ -78,11 +80,25 @@ namespace Tsumo.Engine
             get;
             private set;
         } = default(Func<string, int>)!;
-        public static Func<string, int, int> utf16IndexAtCodePoint
+        internal static int utf16IndexAtCodePoint(string source, int codePointIndex)
         {
-            get;
-            private set;
-        } = default(Func<string, int, int>)!;
+            if (codePointIndex < 0)
+            {
+                substringError();
+            }
+            int currentCodePoint = 0;
+            int utf16Index = 0;
+            while (currentCodePoint < codePointIndex && utf16Index < source.Length)
+            {
+                utf16Index = nextCodePointIndex(source, utf16Index);
+                currentCodePoint++;
+            }
+            if (currentCodePoint != codePointIndex)
+            {
+                substringError();
+            }
+            return utf16Index;
+        }
         public static Func<string, int, int, string> substringCodePoints
         {
             get;
@@ -103,11 +119,10 @@ namespace Tsumo.Engine
             get;
             private set;
         } = default(Func<string, string, string>)!;
-        public static Func<double, bool> isUnicodeSpace
+        internal static bool isUnicodeSpace(double value)
         {
-            get;
-            private set;
-        } = default(Func<double, bool>)!;
+            return (value >= 9 && value <= 13) || value == 32 || value == 133 || value == 160 || value == 5760 || (value >= 8192 && value <= 8202) || value == 8232 || value == 8233 || value == 8239 || value == 8287 || value == 12288;
+        }
         public static Func<string, string> trimUnicodeSpace
         {
             get;
@@ -145,13 +160,6 @@ namespace Tsumo.Engine
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
-            requireSubstringBounds = (string source, int startIndex, int length) =>
-            {
-                if (startIndex < 0 || length < 0 || startIndex > source.Length || startIndex + length > source.Length)
-                {
-                    substringError();
-                }
-            };
             replaceText = (string source, string oldValue, string newValue) =>
             {
                 return Tsonic.CSharp.Js.String.replaceAll(source, oldValue, newValue);
@@ -217,25 +225,6 @@ namespace Tsumo.Engine
                 }
                 return count;
             };
-            utf16IndexAtCodePoint = (string source, int codePointIndex) =>
-            {
-                if (codePointIndex < 0)
-                {
-                    substringError();
-                }
-                int currentCodePoint = 0;
-                int utf16Index = 0;
-                while (currentCodePoint < codePointIndex && utf16Index < source.Length)
-                {
-                    utf16Index = nextCodePointIndex(source, utf16Index);
-                    currentCodePoint++;
-                }
-                if (currentCodePoint != codePointIndex)
-                {
-                    substringError();
-                }
-                return utf16Index;
-            };
             substringCodePoints = (string source, int startIndex, int length) =>
             {
                 if (startIndex < 0 || length < 0)
@@ -276,7 +265,6 @@ namespace Tsumo.Engine
                 return substringCount(source, 0, end);
             };
             trimCodePoints = (string source, string cutset) => trimEndCodePoints(trimStartCodePoints(source, cutset), cutset);
-            isUnicodeSpace = (double value) => (value >= 9 && value <= 13) || value == 32 || value == 133 || value == 160 || value == 5760 || (value >= 8192 && value <= 8202) || value == 8232 || value == 8233 || value == 8239 || value == 8287 || value == 12288;
             trimUnicodeSpace = (string source) =>
             {
                 int start = 0;

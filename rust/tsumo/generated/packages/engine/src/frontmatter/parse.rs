@@ -5,12 +5,12 @@ use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
 pub fn try_parse_json_front_matter(
-    text: String,
+    text: &str,
     source_path: Option<String>,
 ) -> Result<Option<crate::frontmatter::parsed_content::ParsedContent>, rt::TsonicError> {
     let start: i32 = 0;
-    if rt::conversions::usize_to_i32(js_string::js_len(&text))? == 0
-        || js_string::char_at(&text, rt::conversions::i32_to_f64(start))? != "{"
+    if rt::conversions::usize_to_i32(js_string::js_len(text))? == 0
+        || js_string::char_at(text, rt::conversions::i32_to_f64(start))? != "{"
     {
         return Ok(Option::<crate::frontmatter::parsed_content::ParsedContent>::None);
     }
@@ -20,25 +20,25 @@ pub fn try_parse_json_front_matter(
     let mut end: i32 = -1;
     {
         let mut index: i32 = start;
-        'loop_value: while index < rt::conversions::usize_to_i32(js_string::js_len(&text))? {
-            let current: String = js_string::char_at(&text, rt::conversions::i32_to_f64(index))?;
+        'loop_value: while index < rt::conversions::usize_to_i32(js_string::js_len(text))? {
+            let current: String = js_string::char_at(text, rt::conversions::i32_to_f64(index))?;
             if in_string && escaped {
                 escaped = false;
-                index += 1;
+                index = crate::utils::strings::next_code_point_index(text, index)?;
                 continue 'loop_value;
             }
             if in_string && current == "\\" {
                 escaped = true;
-                index += 1;
+                index = crate::utils::strings::next_code_point_index(text, index)?;
                 continue 'loop_value;
             }
             if current == "\"" {
                 in_string = !in_string;
-                index += 1;
+                index = crate::utils::strings::next_code_point_index(text, index)?;
                 continue 'loop_value;
             }
             if in_string {
-                index += 1;
+                index = crate::utils::strings::next_code_point_index(text, index)?;
                 continue 'loop_value;
             }
             if current == "{" {
@@ -50,7 +50,7 @@ pub fn try_parse_json_front_matter(
                     break 'loop_value;
                 }
             }
-            index += 1;
+            index = crate::utils::strings::next_code_point_index(text, index)?;
         }
     }
     if end < 0 {
@@ -61,23 +61,23 @@ pub fn try_parse_json_front_matter(
                 source_path.clone(),
                 Some(1.0),
                 Some(1.0),
-            ),
+            )?,
         ));
     }
-    let input: String = crate::utils::strings::substring_count(text.clone(), start, end - start)?;
-    let body: String = js_string::trim_start(&crate::utils::strings::substring_from(&text, end)?);
+    let input: String = crate::utils::strings::substring_count(text, start, end - start)?;
+    let body: String = js_string::trim_start(&crate::utils::strings::substring_from(text, end)?);
     Ok(Some(
         crate::frontmatter::parsed_content::ParsedContent::new(
             crate::frontmatter::json::parse_json_front_matter(input, source_path.clone())?,
             body,
-        ),
+        )?,
     ))
 }
 
 pub fn parse_delimited_front_matter(
     lines: js_abi::JsArray<String>,
     delimiter: String,
-    format: String,
+    format: &str,
     source_path: Option<String>,
 ) -> Result<crate::frontmatter::parsed_content::ParsedContent, rt::TsonicError> {
     let front_matter_lines: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
@@ -86,13 +86,12 @@ pub fn parse_delimited_front_matter(
     {
         let mut index: i32 = 1;
         while index < rt::conversions::usize_to_i32(lines.len())? {
-            if js_string::trim(&match lines
-                .get_number(rt::conversions::i32_to_f64(index))
-                .as_ref()
-            {
-                Some(flow_value) => flow_value.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            }) == delimiter
+            if js_string::trim(
+                &match lines.get_number(rt::conversions::i32_to_f64(index)) {
+                    Some(flow_value) => flow_value,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                },
+            ) == delimiter
             {
                 body_start = index + 1;
                 let body: String = js_string::trim_start(
@@ -111,19 +110,16 @@ pub fn parse_delimited_front_matter(
                         source_path.clone(),
                     )?
                 };
-                return Ok(crate::frontmatter::parsed_content::ParsedContent::new(
+                return crate::frontmatter::parsed_content::ParsedContent::new(
                     front_matter.clone(),
                     body.clone(),
-                ));
+                );
             }
             {
                 let operation_input_0 = front_matter_lines.clone();
                 operation_input_0.push_many_discard([
-                    match lines
-                        .get_number(rt::conversions::i32_to_f64(index))
-                        .as_ref()
-                    {
-                        Some(flow_value_2) => flow_value_2.clone(),
+                    match lines.get_number(rt::conversions::i32_to_f64(index)) {
+                        Some(flow_value_2) => flow_value_2,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                 ])
@@ -148,7 +144,7 @@ pub fn parse_delimited_front_matter(
             source_path.clone(),
             Some(1.0),
             Some(1.0),
-        ),
+        )?,
     ))
 }
 
@@ -157,10 +153,10 @@ pub fn parse_content(
     source_path: Option<String>,
 ) -> Result<crate::frontmatter::parsed_content::ParsedContent, rt::TsonicError> {
     let json: Option<crate::frontmatter::parsed_content::ParsedContent> =
-        try_parse_json_front_matter(text.clone(), source_path.clone())?;
+        try_parse_json_front_matter(&text, source_path.clone())?;
     if json.is_some() {
-        return Ok(match json.as_ref() {
-            Some(flow_value) => flow_value.clone(),
+        return Ok(match json {
+            Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
         });
     }
@@ -168,20 +164,20 @@ pub fn parse_content(
         crate::utils::strings::replace_line_endings(&text, String::from("\n"))?;
     let lines: js_abi::JsArray<String> = js_string::split_all(&normalized, "\n")?;
     if rt::conversions::usize_to_i32(lines.len())? == 0 {
-        return Ok(crate::frontmatter::parsed_content::ParsedContent::new(
-            crate::frontmatter::data::FrontMatter::new(),
+        return crate::frontmatter::parsed_content::ParsedContent::new(
+            crate::frontmatter::data::FrontMatter::new()?,
             String::from(""),
-        ));
+        );
     }
-    let first_line: String = js_string::trim(&match lines.get_number(0.0).as_ref() {
-        Some(flow_value_2) => flow_value_2.clone(),
+    let first_line: String = js_string::trim(&match lines.get_number(0.0) {
+        Some(flow_value_2) => flow_value_2,
         None => unreachable!("checked flow selected a missing optional value"),
     });
     if first_line == "---" {
         return parse_delimited_front_matter(
             lines.clone(),
             String::from("---"),
-            String::from("yaml"),
+            "yaml",
             source_path.clone(),
         );
     }
@@ -189,12 +185,12 @@ pub fn parse_content(
         return parse_delimited_front_matter(
             lines.clone(),
             String::from("+++"),
-            String::from("toml"),
+            "toml",
             source_path.clone(),
         );
     }
-    Ok(crate::frontmatter::parsed_content::ParsedContent::new(
-        crate::frontmatter::data::FrontMatter::new(),
-        text.clone(),
-    ))
+    crate::frontmatter::parsed_content::ParsedContent::new(
+        crate::frontmatter::data::FrontMatter::new()?,
+        text,
+    )
 }

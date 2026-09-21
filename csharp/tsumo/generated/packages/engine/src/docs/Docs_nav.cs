@@ -4,69 +4,299 @@ namespace Tsumo.Engine
 {
     public static class Docs_nav
     {
-        public static Func<string, string> normalizeSlashes
+        internal static string normalizeSlashes(string path)
         {
-            get;
-            private set;
-        } = default(Func<string, string>)!;
-        public static Func<string, bool> isExternalUrl
+            return Tsonic.CSharp.Js.String.replaceAll(path, "\\", "/");
+        }
+        internal static bool isExternalUrl(string url)
         {
-            get;
-            private set;
-        } = default(Func<string, bool>)!;
-        public static Func<string, bool> isMarkdownPath
+            string lower = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Js.String.trim(url));
+            return Tsonic.CSharp.Js.String.startsWith(lower, "http://") || Tsonic.CSharp.Js.String.startsWith(lower, "https://") || Tsonic.CSharp.Js.String.startsWith(lower, "mailto:") || Tsonic.CSharp.Js.String.startsWith(lower, "tel:") || Tsonic.CSharp.Js.String.startsWith(lower, "//");
+        }
+        internal static bool isMarkdownPath(string path)
         {
-            get;
-            private set;
-        } = default(Func<string, bool>)!;
-        public static Func<string, string, string?> normalizeRelativePath
+            string lower = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Js.String.trim(path));
+            return Tsonic.CSharp.Js.String.endsWith(lower, ".md") || Tsonic.CSharp.Js.String.endsWith(lower, ".markdown");
+        }
+        internal static string? normalizeRelativePath(string baseDirKey, string targetPath)
         {
-            get;
-            private set;
-        } = default(Func<string, string, string?>)!;
-        public static Func<DocsMountConfig, string, string?> computeGitHubBlobUrl
+            string @base = Tsonic.CSharp.Js.String.trim(baseDirKey);
+            Tsonic.CSharp.Js.JSArray<string> start = Tsonic.CSharp.Js.JSArray<string>.of([]);
+            if (@base != "")
+            {
+                Tsonic.CSharp.Js.JSArray<string> baseParts = Tsonic.CSharp.Js.String.split(@base, "/");
+                for (double i = 0; i < baseParts.length; i++)
+                {
+                    string seg = Tsonic.CSharp.Js.String.trim(baseParts[i]);
+                    if (seg != "")
+                    {
+                        start.push(seg);
+                    }
+                }
+            }
+            string target = normalizeSlashes(Tsonic.CSharp.Js.String.trim(targetPath));
+            Tsonic.CSharp.Js.JSArray<string> parts = Tsonic.CSharp.Js.String.split(target, "/");
+            for (double i_1 = 0; i_1 < parts.length; i_1++)
+            {
+                string raw = parts[i_1];
+                string seg_1 = Tsonic.CSharp.Js.String.trim(raw);
+                if (seg_1 == "" || seg_1 == ".")
+                {
+                    continue;
+                }
+                if (seg_1 == "..")
+                {
+                    if (start.length == 0)
+                    {
+                        return null;
+                    }
+                    Tsonic.CSharp.Js.Array.popReference(start);
+                    continue;
+                }
+                start.push(seg_1);
+            }
+            Tsonic.CSharp.Js.JSArray<string> arr = start;
+            if (arr.length == 0)
+            {
+                return "";
+            }
+            string @out = arr[0];
+            for (double i_2 = 1; i_2 < arr.length; i_2++)
+            {
+                @out += "/" + arr[i_2];
+            }
+            return @out;
+        }
+        internal static string? computeGitHubBlobUrl(DocsMountConfig mount, string repoRelPath)
         {
-            get;
-            private set;
-        } = default(Func<DocsMountConfig, string, string?>)!;
-        public static Func<Tsonic.CSharp.Js.Map<string, string>, string, string?> tryGetRouteUrl
+            string? repoUrl = mount.repoUrl;
+            if (repoUrl is null)
+            {
+                return null;
+            }
+            string slash = "/";
+            string repo = Utils_strings.trimEndChar(Tsonic.CSharp.Js.String.trim(repoUrl), slash);
+            if (repo == "")
+            {
+                return null;
+            }
+            string branch = Tsonic.CSharp.Js.String.trim(mount.repoBranch) == "" ? "main" : Tsonic.CSharp.Js.String.trim(mount.repoBranch);
+            string rel = Utils_strings.trimStartChar(Tsonic.CSharp.Js.String.trim(repoRelPath), slash);
+            if (rel == "")
+            {
+                return null;
+            }
+            return $"{repo}/blob/{branch}/{rel}";
+        }
+        internal static string? tryGetRouteUrl(Tsonic.CSharp.Js.Map<string, string> routesByRelPathLower, string key)
         {
-            get;
-            private set;
-        } = default(Func<Tsonic.CSharp.Js.Map<string, string>, string, string?>)!;
-        public static Func<DocsMountConfig, string, string, Tsonic.CSharp.Js.Map<string, string>, string?> resolveMarkdownNavLink
+            return Tsonic.CSharp.Js.Map.getReference<string, string>(routesByRelPathLower, key);
+        }
+        internal static string? resolveMarkdownNavLink(DocsMountConfig mount, string navDirKey, string linkTarget, Tsonic.CSharp.Js.Map<string, string> routesByRelPathLower)
         {
-            get;
-            private set;
-        } = default(Func<DocsMountConfig, string, string, Tsonic.CSharp.Js.Map<string, string>, string?>)!;
-        public static Func<string, InlineLink?> parseInlineMarkdownLink
+            string targetRaw = Tsonic.CSharp.Js.String.trim(linkTarget);
+            if (targetRaw == "")
+            {
+                return null;
+            }
+            if (isExternalUrl(targetRaw))
+            {
+                return targetRaw;
+            }
+            if (Tsonic.CSharp.Js.String.startsWith(targetRaw, "#"))
+            {
+                return targetRaw;
+            }
+            UrlSuffixSplit split = Docs_url.splitUrlSuffix(targetRaw);
+            string pathPart = Tsonic.CSharp.Js.String.trim(split.path);
+            string suffix = split.suffix;
+            if (pathPart == "")
+            {
+                return null;
+            }
+            string slash = "/";
+            string? repoPathRaw = mount.repoPath;
+            string repoPath = "";
+            if (repoPathRaw is not null && Tsonic.CSharp.Js.String.trim(repoPathRaw) != "")
+            {
+                repoPath = Utils_strings.trimEndChar(Utils_strings.trimStartChar(Tsonic.CSharp.Js.String.trim(repoPathRaw), slash), slash);
+            }
+            bool hasRepoPath = repoPath != "";
+            string? resolvedRel = null;
+            if (Tsonic.CSharp.Js.String.startsWith(pathPart, "/"))
+            {
+                resolvedRel = Utils_strings.trimStartChar(pathPart, slash);
+            }
+            else
+            {
+                resolvedRel = normalizeRelativePath(navDirKey, pathPart);
+            }
+            if (resolvedRel is null)
+            {
+                if (!hasRepoPath)
+                {
+                    return null;
+                }
+                string baseDir = Tsonic.CSharp.Js.String.trim(navDirKey) == "" ? repoPath : $"{repoPath}/{navDirKey}";
+                string? repoResolvedEscape = normalizeRelativePath(baseDir, pathPart);
+                if (repoResolvedEscape is null)
+                {
+                    return null;
+                }
+                string? ghUrlEscape = computeGitHubBlobUrl(mount, repoResolvedEscape);
+                return ghUrlEscape is not null ? ghUrlEscape + suffix : null;
+            }
+            if (!isMarkdownPath(resolvedRel))
+            {
+                return targetRaw;
+            }
+            string key = Tsonic.CSharp.Js.String.toLowerCase(resolvedRel);
+            string? mapped = tryGetRouteUrl(routesByRelPathLower, key);
+            if (mapped is not null)
+            {
+                return mapped + suffix;
+            }
+            if (!hasRepoPath)
+            {
+                return null;
+            }
+            string? repoResolvedFallback = normalizeRelativePath(repoPath, resolvedRel);
+            if (repoResolvedFallback is null)
+            {
+                return null;
+            }
+            string? ghUrlFallback = computeGitHubBlobUrl(mount, repoResolvedFallback);
+            return ghUrlFallback is not null ? ghUrlFallback + suffix : null;
+        }
+        internal static InlineLink? parseInlineMarkdownLink(string line)
         {
-            get;
-            private set;
-        } = default(Func<string, InlineLink?>)!;
-        public static Func<DocsMountConfig, string, string, Tsonic.CSharp.Js.Map<string, string>, Tsonic.CSharp.Js.JSArray<NavItem>> parseTocMarkdown
+            int open = Tsonic.CSharp.Js.String.indexOf(line, "[");
+            int mid = Tsonic.CSharp.Js.String.indexOf(line, "](");
+            if (open < 0 || mid < 0 || mid <= open)
+            {
+                return null;
+            }
+            int close = Tsonic.CSharp.Js.String.indexOf(line, ")", mid + 2);
+            if (close < 0)
+            {
+                return null;
+            }
+            string title = Tsonic.CSharp.Js.String.trim(Utils_strings.substringCount(line, open + 1, mid - (open + 1)));
+            string target = Tsonic.CSharp.Js.String.trim(Utils_strings.substringCount(line, mid + 2, close - (mid + 2)));
+            if (title == "" || target == "")
+            {
+                return null;
+            }
+            return new InlineLink(title, target);
+        }
+        internal static Tsonic.CSharp.Js.JSArray<NavItem> parseTocMarkdown(DocsMountConfig mount, string markdown, string navDirKey, Tsonic.CSharp.Js.Map<string, string> routesByRelPathLower)
         {
-            get;
-            private set;
-        } = default(Func<DocsMountConfig, string, string, Tsonic.CSharp.Js.Map<string, string>, Tsonic.CSharp.Js.JSArray<NavItem>>)!;
-        public static Func<DocsMountConfig, string, string, Tsonic.CSharp.Js.Map<string, string>, Tsonic.CSharp.Js.JSArray<NavItem>> parseNavJson
+            Tsonic.CSharp.Js.JSArray<string> lines = Tsonic.CSharp.Js.String.split(Utils_strings.replaceLineEndings(markdown, "\n"), "\n");
+            bool inToc = false;
+            Tsonic.CSharp.Js.JSArray<NavGroupBuild> groups = Tsonic.CSharp.Js.JSArray<NavGroupBuild>.of([]);
+            Tsonic.CSharp.Js.JSArray<NavItem> rootItems = Tsonic.CSharp.Js.JSArray<NavItem>.of([]);
+            NavGroupBuild? currentGroup = null;
+            int order = 1;
+            for (double i = 0; i < lines.length; i++)
+            {
+                string raw = lines[i];
+                string line = Tsonic.CSharp.Js.String.trim(raw);
+                if (line == "")
+                {
+                    continue;
+                }
+                string lower = Tsonic.CSharp.Js.String.toLowerCase(line);
+                if (!inToc)
+                {
+                    if (lower == "## table of contents")
+                    {
+                        inToc = true;
+                    }
+                    continue;
+                }
+                if (Tsonic.CSharp.Js.String.startsWith(line, "## ") && lower != "## table of contents")
+                {
+                    break;
+                }
+                if (Tsonic.CSharp.Js.String.startsWith(line, "### "))
+                {
+                    string title = Tsonic.CSharp.Js.String.trim(Utils_strings.substringFrom(line, 4));
+                    if (title != "")
+                    {
+                        currentGroup = new NavGroupBuild(title, order);
+                        groups.push(currentGroup);
+                        order++;
+                    }
+                    continue;
+                }
+                InlineLink? parsed = parseInlineMarkdownLink(line);
+                if (parsed is null)
+                {
+                    continue;
+                }
+                string? resolved = resolveMarkdownNavLink(mount, navDirKey, parsed.target, routesByRelPathLower);
+                if (resolved is null)
+                {
+                    continue;
+                }
+                Tsonic.CSharp.Js.JSArray<NavItem> empty = Tsonic.CSharp.Js.JSArray<NavItem>.of([]);
+                NavItem item = new NavItem(parsed.title, resolved, empty, false, false, order);
+                order++;
+                if (currentGroup is not null)
+                {
+                    currentGroup.children.push(item);
+                }
+                else
+                {
+                    rootItems.push(item);
+                }
+            }
+            Tsonic.CSharp.Js.JSArray<NavItem> @out = Tsonic.CSharp.Js.JSArray<NavItem>.of([]);
+            Tsonic.CSharp.Js.JSArray<NavGroupBuild> groupArr = groups;
+            for (double i_1 = 0; i_1 < groupArr.length; i_1++)
+            {
+                NavGroupBuild g = groupArr[i_1];
+                NavItem groupItem = new NavItem(g.title, "", g.children, true, false, g.order);
+                @out.push(groupItem);
+            }
+            Tsonic.CSharp.Js.JSArray<NavItem> rootArr = rootItems;
+            for (double i_2 = 0; i_2 < rootArr.length; i_2++)
+            {
+                @out.push(rootArr[i_2]);
+            }
+            return @out;
+        }
+        internal static Tsonic.CSharp.Js.JSArray<NavItem> parseNavJson(DocsMountConfig mount, string navDirKey, string jsonText, Tsonic.CSharp.Js.Map<string, string> routesByRelPathLower)
         {
-            get;
-            private set;
-        } = default(Func<DocsMountConfig, string, string, Tsonic.CSharp.Js.Map<string, string>, Tsonic.CSharp.Js.JSArray<NavItem>>)!;
+            JsonValue root = Utils_json.parseJson(jsonText, null);
+            if ((object?)root is JsonArray)
+            {
+                return parseNavJsonItems(mount, navDirKey, routesByRelPathLower, (JsonArray)root);
+            }
+            if ((object?)root is JsonObject)
+            {
+                JsonValue? items = ((JsonObject)root).getCaseInsensitive("items");
+                if (items is not null)
+                {
+                    return parseNavJsonItems(mount, navDirKey, routesByRelPathLower, items);
+                }
+            }
+            Tsonic.CSharp.Js.JSArray<NavItem> empty = Tsonic.CSharp.Js.JSArray<NavItem>.of([]);
+            return empty;
+        }
         public static Tsonic.CSharp.Js.JSArray<NavItem> parseNavJsonItems(DocsMountConfig mount, string navDirKey, Tsonic.CSharp.Js.Map<string, string> routesByRelPathLower, JsonValue value)
         {
-            if (!(value is JsonArray))
+            if (!((object?)value is JsonArray))
             {
-                Tsonic.CSharp.Js.JSArray<NavItem> empty = new Tsonic.CSharp.Js.JSArray<NavItem>(new NavItem[] { });
+                Tsonic.CSharp.Js.JSArray<NavItem> empty = Tsonic.CSharp.Js.JSArray<NavItem>.of([]);
                 return empty;
             }
-            Tsonic.CSharp.Js.JSArray<NavItem> items = new Tsonic.CSharp.Js.JSArray<NavItem>(new NavItem[] { });
+            Tsonic.CSharp.Js.JSArray<NavItem> items = Tsonic.CSharp.Js.JSArray<NavItem>.of([]);
             int order = 1;
-            for (int itemIndex = 0; itemIndex < ((JsonArray)value).items.length; itemIndex++)
+            for (double itemIndex = 0; itemIndex < ((JsonArray)value).items.length; itemIndex++)
             {
                 JsonValue current = ((JsonArray)value).items[itemIndex];
-                if (!(current is JsonObject))
+                if (!((object?)current is JsonObject))
                 {
                     continue;
                 }
@@ -77,19 +307,19 @@ namespace Tsumo.Engine
                 JsonValue? urlValue = ((JsonObject)current).getCaseInsensitive("url");
                 JsonValue? pathValue = ((JsonObject)current).getCaseInsensitive("path");
                 JsonValue? childrenValue = ((JsonObject)current).getCaseInsensitive("children");
-                if (titleValue is JsonString)
+                if ((object?)titleValue is JsonString)
                 {
                     title = ((JsonString)titleValue).value;
                 }
-                if (urlValue is JsonString)
+                if ((object?)urlValue is JsonString)
                 {
                     url = ((JsonString)urlValue).value;
                 }
-                if (pathValue is JsonString)
+                if ((object?)pathValue is JsonString)
                 {
                     path = ((JsonString)pathValue).value;
                 }
-                Tsonic.CSharp.Js.JSArray<NavItem> emptyChildren = new Tsonic.CSharp.Js.JSArray<NavItem>(new NavItem[] { });
+                Tsonic.CSharp.Js.JSArray<NavItem> emptyChildren = Tsonic.CSharp.Js.JSArray<NavItem>.of([]);
                 Tsonic.CSharp.Js.JSArray<NavItem> children = childrenValue is not null ? parseNavJsonItems(mount, navDirKey, routesByRelPathLower, childrenValue) : emptyChildren;
                 string? finalUrl = null;
                 if (url is not null)
@@ -112,11 +342,19 @@ namespace Tsumo.Engine
             }
             return items;
         }
-        public static Func<Tsonic.CSharp.Js.JSArray<string>, string> joinUrlPath
+        internal static string joinUrlPath(Tsonic.CSharp.Js.JSArray<string> parts)
         {
-            get;
-            private set;
-        } = default(Func<Tsonic.CSharp.Js.JSArray<string>, string>)!;
+            if (parts.length == 0)
+            {
+                return "";
+            }
+            string @out = parts[0];
+            for (double i = 1; i < parts.length; i++)
+            {
+                @out += "/" + parts[i];
+            }
+            return @out;
+        }
         public static Func<DocsMountConfig, Tsonic.CSharp.Js.Map<string, string>, Tsonic.CSharp.Js.JSArray<NavItem>> loadMountNav
         {
             get;
@@ -129,296 +367,6 @@ namespace Tsumo.Engine
             Docs_url.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
             Utils_json.__tsonic_module_init();
-            normalizeSlashes = (string path) => Tsonic.CSharp.Js.String.replaceAll(path, "\\", "/");
-            isExternalUrl = (string url) =>
-            {
-                string lower = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Js.String.trim(url));
-                return Tsonic.CSharp.Js.String.startsWith(lower, "http://") || Tsonic.CSharp.Js.String.startsWith(lower, "https://") || Tsonic.CSharp.Js.String.startsWith(lower, "mailto:") || Tsonic.CSharp.Js.String.startsWith(lower, "tel:") || Tsonic.CSharp.Js.String.startsWith(lower, "//");
-            };
-            isMarkdownPath = (string path) =>
-            {
-                string lower = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Js.String.trim(path));
-                return Tsonic.CSharp.Js.String.endsWith(lower, ".md") || Tsonic.CSharp.Js.String.endsWith(lower, ".markdown");
-            };
-            normalizeRelativePath = (string baseDirKey, string targetPath) =>
-            {
-                string @base = Tsonic.CSharp.Js.String.trim(baseDirKey);
-                Tsonic.CSharp.Js.JSArray<string> start = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
-                if (@base != "")
-                {
-                    Tsonic.CSharp.Js.JSArray<string> baseParts = Tsonic.CSharp.Js.String.split(@base, "/");
-                    for (int i = 0; i < baseParts.length; i++)
-                    {
-                        string seg = Tsonic.CSharp.Js.String.trim(baseParts[i]);
-                        if (seg != "")
-                        {
-                            start.push(seg);
-                        }
-                    }
-                }
-                string target = normalizeSlashes(Tsonic.CSharp.Js.String.trim(targetPath));
-                Tsonic.CSharp.Js.JSArray<string> parts = Tsonic.CSharp.Js.String.split(target, "/");
-                for (int i_1 = 0; i_1 < parts.length; i_1++)
-                {
-                    string raw = parts[i_1];
-                    string seg_1 = Tsonic.CSharp.Js.String.trim(raw);
-                    if (seg_1 == "" || seg_1 == ".")
-                    {
-                        continue;
-                    }
-                    if (seg_1 == "..")
-                    {
-                        if (start.length == 0)
-                        {
-                            return null;
-                        }
-                        Tsonic.CSharp.Js.Array.popReference(start);
-                        continue;
-                    }
-                    start.push(seg_1);
-                }
-                Tsonic.CSharp.Js.JSArray<string> arr = start;
-                if (arr.length == 0)
-                {
-                    return "";
-                }
-                string @out = arr[0];
-                for (int i_2 = 1; i_2 < arr.length; i_2++)
-                {
-                    @out += "/" + arr[i_2];
-                }
-                return @out;
-            };
-            computeGitHubBlobUrl = (DocsMountConfig mount, string repoRelPath) =>
-            {
-                string? repoUrl = mount.repoUrl;
-                if (repoUrl is null)
-                {
-                    return null;
-                }
-                string slash = "/";
-                string repo = Utils_strings.trimEndChar(Tsonic.CSharp.Js.String.trim(repoUrl), slash);
-                if (repo == "")
-                {
-                    return null;
-                }
-                string branch = Tsonic.CSharp.Js.String.trim(mount.repoBranch) == "" ? "main" : Tsonic.CSharp.Js.String.trim(mount.repoBranch);
-                string rel = Utils_strings.trimStartChar(Tsonic.CSharp.Js.String.trim(repoRelPath), slash);
-                if (rel == "")
-                {
-                    return null;
-                }
-                return $"{repo}/blob/{branch}/{rel}";
-            };
-            tryGetRouteUrl = (Tsonic.CSharp.Js.Map<string, string> routesByRelPathLower, string key) =>
-            {
-                return Tsonic.CSharp.Js.Map.getReference<string, string>(routesByRelPathLower, key);
-            };
-            resolveMarkdownNavLink = (DocsMountConfig mount, string navDirKey, string linkTarget, Tsonic.CSharp.Js.Map<string, string> routesByRelPathLower) =>
-            {
-                string targetRaw = Tsonic.CSharp.Js.String.trim(linkTarget);
-                if (targetRaw == "")
-                {
-                    return null;
-                }
-                if (isExternalUrl(targetRaw))
-                {
-                    return targetRaw;
-                }
-                if (Tsonic.CSharp.Js.String.startsWith(targetRaw, "#"))
-                {
-                    return targetRaw;
-                }
-                UrlSuffixSplit split = Docs_url.splitUrlSuffix(targetRaw);
-                string pathPart = Tsonic.CSharp.Js.String.trim(split.path);
-                string suffix = split.suffix;
-                if (pathPart == "")
-                {
-                    return null;
-                }
-                string slash = "/";
-                string? repoPathRaw = mount.repoPath;
-                string repoPath = "";
-                if (repoPathRaw is not null && Tsonic.CSharp.Js.String.trim(repoPathRaw) != "")
-                {
-                    repoPath = Utils_strings.trimEndChar(Utils_strings.trimStartChar(Tsonic.CSharp.Js.String.trim(repoPathRaw), slash), slash);
-                }
-                bool hasRepoPath = repoPath != "";
-                string? resolvedRel = null;
-                if (Tsonic.CSharp.Js.String.startsWith(pathPart, "/"))
-                {
-                    resolvedRel = Utils_strings.trimStartChar(pathPart, slash);
-                }
-                else
-                {
-                    resolvedRel = normalizeRelativePath(navDirKey, pathPart);
-                }
-                if (resolvedRel is null)
-                {
-                    if (!hasRepoPath)
-                    {
-                        return null;
-                    }
-                    string baseDir = Tsonic.CSharp.Js.String.trim(navDirKey) == "" ? repoPath : $"{repoPath}/{navDirKey}";
-                    string? repoResolvedEscape = normalizeRelativePath(baseDir, pathPart);
-                    if (repoResolvedEscape is null)
-                    {
-                        return null;
-                    }
-                    string? ghUrlEscape = computeGitHubBlobUrl(mount, repoResolvedEscape);
-                    return ghUrlEscape is not null ? ghUrlEscape + suffix : null;
-                }
-                if (!isMarkdownPath(resolvedRel))
-                {
-                    return targetRaw;
-                }
-                string key = Tsonic.CSharp.Js.String.toLowerCase(resolvedRel);
-                string? mapped = tryGetRouteUrl(routesByRelPathLower, key);
-                if (mapped is not null)
-                {
-                    return mapped + suffix;
-                }
-                if (!hasRepoPath)
-                {
-                    return null;
-                }
-                string? repoResolvedFallback = normalizeRelativePath(repoPath, resolvedRel);
-                if (repoResolvedFallback is null)
-                {
-                    return null;
-                }
-                string? ghUrlFallback = computeGitHubBlobUrl(mount, repoResolvedFallback);
-                return ghUrlFallback is not null ? ghUrlFallback + suffix : null;
-            };
-            parseInlineMarkdownLink = (string line) =>
-            {
-                int open = Tsonic.CSharp.Js.String.indexOf(line, "[");
-                int mid = Tsonic.CSharp.Js.String.indexOf(line, "](");
-                if (open < 0 || mid < 0 || mid <= open)
-                {
-                    return null;
-                }
-                int close = Tsonic.CSharp.Js.String.indexOf(line, ")", mid + 2);
-                if (close < 0)
-                {
-                    return null;
-                }
-                string title = Tsonic.CSharp.Js.String.trim(Utils_strings.substringCount(line, open + 1, mid - (open + 1)));
-                string target = Tsonic.CSharp.Js.String.trim(Utils_strings.substringCount(line, mid + 2, close - (mid + 2)));
-                if (title == "" || target == "")
-                {
-                    return null;
-                }
-                return new InlineLink(title, target);
-            };
-            parseTocMarkdown = (DocsMountConfig mount, string markdown, string navDirKey, Tsonic.CSharp.Js.Map<string, string> routesByRelPathLower) =>
-            {
-                Tsonic.CSharp.Js.JSArray<string> lines = Tsonic.CSharp.Js.String.split(Utils_strings.replaceLineEndings(markdown, "\n"), "\n");
-                bool inToc = false;
-                Tsonic.CSharp.Js.JSArray<NavGroupBuild> groups = new Tsonic.CSharp.Js.JSArray<NavGroupBuild>(new NavGroupBuild[] { });
-                Tsonic.CSharp.Js.JSArray<NavItem> rootItems = new Tsonic.CSharp.Js.JSArray<NavItem>(new NavItem[] { });
-                NavGroupBuild? currentGroup = null;
-                int order = 1;
-                for (int i = 0; i < lines.length; i++)
-                {
-                    string raw = lines[i];
-                    string line = Tsonic.CSharp.Js.String.trim(raw);
-                    if (line == "")
-                    {
-                        continue;
-                    }
-                    string lower = Tsonic.CSharp.Js.String.toLowerCase(line);
-                    if (!inToc)
-                    {
-                        if (lower == "## table of contents")
-                        {
-                            inToc = true;
-                        }
-                        continue;
-                    }
-                    if (Tsonic.CSharp.Js.String.startsWith(line, "## ") && lower != "## table of contents")
-                    {
-                        break;
-                    }
-                    if (Tsonic.CSharp.Js.String.startsWith(line, "### "))
-                    {
-                        string title = Tsonic.CSharp.Js.String.trim(Utils_strings.substringFrom(line, 4));
-                        if (title != "")
-                        {
-                            currentGroup = new NavGroupBuild(title, order);
-                            groups.push(currentGroup);
-                            order++;
-                        }
-                        continue;
-                    }
-                    InlineLink? parsed = parseInlineMarkdownLink(line);
-                    if (parsed is null)
-                    {
-                        continue;
-                    }
-                    string? resolved = resolveMarkdownNavLink(mount, navDirKey, parsed.target, routesByRelPathLower);
-                    if (resolved is null)
-                    {
-                        continue;
-                    }
-                    Tsonic.CSharp.Js.JSArray<NavItem> empty = new Tsonic.CSharp.Js.JSArray<NavItem>(new NavItem[] { });
-                    NavItem item = new NavItem(parsed.title, resolved, empty, false, false, order);
-                    order++;
-                    if (currentGroup is not null)
-                    {
-                        currentGroup.children.push(item);
-                    }
-                    else
-                    {
-                        rootItems.push(item);
-                    }
-                }
-                Tsonic.CSharp.Js.JSArray<NavItem> @out = new Tsonic.CSharp.Js.JSArray<NavItem>(new NavItem[] { });
-                Tsonic.CSharp.Js.JSArray<NavGroupBuild> groupArr = groups;
-                for (int i_1 = 0; i_1 < groupArr.length; i_1++)
-                {
-                    NavGroupBuild g = groupArr[i_1];
-                    NavItem groupItem = new NavItem(g.title, "", g.children, true, false, g.order);
-                    @out.push(groupItem);
-                }
-                Tsonic.CSharp.Js.JSArray<NavItem> rootArr = rootItems;
-                for (int i_2 = 0; i_2 < rootArr.length; i_2++)
-                {
-                    @out.push(rootArr[i_2]);
-                }
-                return @out;
-            };
-            parseNavJson = (DocsMountConfig mount, string navDirKey, string jsonText, Tsonic.CSharp.Js.Map<string, string> routesByRelPathLower) =>
-            {
-                JsonValue root = Utils_json.parseJson(jsonText, null);
-                if (root is JsonArray)
-                {
-                    return parseNavJsonItems(mount, navDirKey, routesByRelPathLower, (JsonArray)root);
-                }
-                if (root is JsonObject)
-                {
-                    JsonValue? items = ((JsonObject)root).getCaseInsensitive("items");
-                    if (items is not null)
-                    {
-                        return parseNavJsonItems(mount, navDirKey, routesByRelPathLower, items);
-                    }
-                }
-                Tsonic.CSharp.Js.JSArray<NavItem> empty = new Tsonic.CSharp.Js.JSArray<NavItem>(new NavItem[] { });
-                return empty;
-            };
-            joinUrlPath = (Tsonic.CSharp.Js.JSArray<string> parts) =>
-            {
-                if (parts.length == 0)
-                {
-                    return "";
-                }
-                string @out = parts[0];
-                for (int i = 1; i < parts.length; i++)
-                {
-                    @out += "/" + parts[i];
-                }
-                return @out;
-            };
             loadMountNav = (DocsMountConfig mount, Tsonic.CSharp.Js.Map<string, string> routesByRelPathLower) =>
             {
                 string? navPath = mount.navPath;
@@ -426,7 +374,7 @@ namespace Tsumo.Engine
                 string navFile = Tsonic.CSharp.Node.path.isAbsolute(navRaw) ? navRaw : Tsonic.CSharp.Node.path.join(mount.sourceDir, navRaw);
                 if (!Fs.fileExists(navFile))
                 {
-                    Tsonic.CSharp.Js.JSArray<NavItem> empty = new Tsonic.CSharp.Js.JSArray<NavItem>(new NavItem[] { });
+                    Tsonic.CSharp.Js.JSArray<NavItem> empty = Tsonic.CSharp.Js.JSArray<NavItem>.of([]);
                     return empty;
                 }
                 string rel = normalizeSlashes(Tsonic.CSharp.Node.path.relative(mount.sourceDir, navFile));
@@ -435,8 +383,8 @@ namespace Tsumo.Engine
                     throw Diagnostics.createTsumoError("TSUMO_DOCS_NAV_OUTSIDE_MOUNT", $"Mount nav must be inside sourceDir: {navFile}", navFile);
                 }
                 Tsonic.CSharp.Js.JSArray<string> parts = Tsonic.CSharp.Js.String.split(rel, "/");
-                Tsonic.CSharp.Js.JSArray<string> dirParts = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
-                for (int i = 0; i < parts.length - 1; i++)
+                Tsonic.CSharp.Js.JSArray<string> dirParts = Tsonic.CSharp.Js.JSArray<string>.of([]);
+                for (double i = 0; i < parts.length - 1; i++)
                 {
                     dirParts.push(parts[i]);
                 }
@@ -474,7 +422,7 @@ namespace Tsumo.Engine
         {
             this.title = title;
             this.order = order;
-            Tsonic.CSharp.Js.JSArray<NavItem> empty = new Tsonic.CSharp.Js.JSArray<NavItem>(new NavItem[] { });
+            Tsonic.CSharp.Js.JSArray<NavItem> empty = Tsonic.CSharp.Js.JSArray<NavItem>.of([]);
             this.children = empty;
         }
     }

@@ -3,6 +3,7 @@
 extern crate alloc;
 
 fn main() -> Result<(), tsumo::program::TsonicError> {
+    tsonic_rust_node::perf_hooks::initialize_clock();
     tsumo::initialize();
     tsumo::tsonic_entry();
     tsonic_rust_node::run_event_loop()?;

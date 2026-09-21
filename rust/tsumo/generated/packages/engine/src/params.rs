@@ -52,13 +52,13 @@ pub trait ParamValueDispatch {
         None
     }
     fn read_param_value_kind(&self) -> i32;
-    fn write_param_value_kind(&self, value: i32);
+    fn write_param_value_kind(&self, value: i32) -> Result<(), rt::TsonicError>;
     fn read_param_value_string_value(&self) -> String;
-    fn write_param_value_string_value(&self, value: String);
+    fn write_param_value_string_value(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_param_value_bool_value(&self) -> bool;
-    fn write_param_value_bool_value(&self, value: bool);
+    fn write_param_value_bool_value(&self, value: bool) -> Result<(), rt::TsonicError>;
     fn read_param_value_number_value(&self) -> i32;
-    fn write_param_value_number_value(&self, value: i32);
+    fn write_param_value_number_value(&self, value: i32) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -98,9 +98,8 @@ impl rt::ObjectIdentityCarrier for ParamValue {
 }
 
 pub(crate) struct ParamValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<ParamValueState>,
+    state: rt::ObjectState<ParamValueState>,
 }
 
 impl ParamValue {
@@ -110,33 +109,38 @@ impl ParamValue {
         string_value: String,
         bool_value: bool,
         number_value: i32,
-    ) -> ParamValueState {
+    ) -> Result<ParamValueState, rt::TsonicError> {
         let field_kind: i32 = kind;
         let field_string_value: String = string_value;
         let field_bool_value: bool = bool_value;
         let field_number_value: i32 = number_value;
-        ParamValueState {
+        Ok(ParamValueState {
             kind: field_kind,
             string_value: field_string_value,
             bool_value: field_bool_value,
             number_value: field_number_value,
-        }
+        })
     }
 
-    pub fn new(kind: i32, string_value: String, bool_value: bool, number_value: i32) -> ParamValue {
-        let state = ParamValue::initialize_state(kind, string_value, bool_value, number_value);
+    pub fn new(
+        kind: i32,
+        string_value: String,
+        bool_value: bool,
+        number_value: i32,
+    ) -> Result<ParamValue, rt::TsonicError> {
+        let state = ParamValue::initialize_state(kind, string_value, bool_value, number_value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(ParamValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        ParamValue {
+        Ok(ParamValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 
-    pub fn string(value: String) -> ParamValue {
+    pub fn string(value: String) -> Result<ParamValue, rt::TsonicError> {
         ParamValue::new(
             PARAM_KIND_STRING.with(|module_binding| module_binding.load()),
             value,
@@ -145,7 +149,7 @@ impl ParamValue {
         )
     }
 
-    pub fn bool(value: bool) -> ParamValue {
+    pub fn bool(value: bool) -> Result<ParamValue, rt::TsonicError> {
         ParamValue::new(
             PARAM_KIND_BOOL.with(|module_binding| module_binding.load()),
             String::from(""),
@@ -154,7 +158,7 @@ impl ParamValue {
         )
     }
 
-    pub fn number(value: i32) -> ParamValue {
+    pub fn number(value: i32) -> Result<ParamValue, rt::TsonicError> {
         ParamValue::new(
             PARAM_KIND_NUMBER.with(|module_binding| module_binding.load()),
             String::from(""),
@@ -167,19 +171,19 @@ impl ParamValue {
         let trimmed: String = js_string::trim(text);
         let lower: String = js_string::to_lower_case(&trimmed);
         if lower == "true" {
-            return Ok(ParamValue::bool(true));
+            return ParamValue::bool(true);
         }
         if lower == "false" {
-            return Ok(ParamValue::bool(false));
+            return ParamValue::bool(false);
         }
         let parsed: Option<i32> = crate::utils::int32::parse_int32(&trimmed)?;
         if parsed.is_some() {
-            return Ok(ParamValue::number(match parsed.as_ref() {
+            return ParamValue::number(match parsed.as_ref() {
                 Some(flow_value) => *flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
-            }));
+            });
         }
-        Ok(ParamValue::string(trimmed.clone()))
+        ParamValue::string(trimmed)
     }
 }
 
@@ -194,32 +198,56 @@ impl ParamValueDispatch for ParamValueRoot {
         self.state.with(|state| state.kind)
     }
 
-    fn write_param_value_kind(&self, value: i32) {
-        self.state.with_mut(|state| state.kind = value);
+    fn write_param_value_kind(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.kind = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_param_value_string_value(&self) -> String {
         self.state.with(|state| state.string_value.clone())
     }
 
-    fn write_param_value_string_value(&self, value: String) {
-        self.state.with_mut(|state| state.string_value = value);
+    fn write_param_value_string_value(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.string_value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_param_value_bool_value(&self) -> bool {
         self.state.with(|state| state.bool_value)
     }
 
-    fn write_param_value_bool_value(&self, value: bool) {
-        self.state.with_mut(|state| state.bool_value = value);
+    fn write_param_value_bool_value(&self, value: bool) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.bool_value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_param_value_number_value(&self) -> i32 {
         self.state.with(|state| state.number_value)
     }
 
-    fn write_param_value_number_value(&self, value: i32) {
-        self.state.with_mut(|state| state.number_value = value);
+    fn write_param_value_number_value(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.number_value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 

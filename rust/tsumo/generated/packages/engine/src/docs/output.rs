@@ -12,7 +12,10 @@ pub trait DocsOutputClaimsDispatch {
         None
     }
     fn read_docs_output_claims_sources_by_output_path(&self) -> js_abi::JsMap<String, String>;
-    fn write_docs_output_claims_sources_by_output_path(&self, value: js_abi::JsMap<String, String>);
+    fn write_docs_output_claims_sources_by_output_path(
+        &self,
+        value: js_abi::JsMap<String, String>,
+    ) -> Result<(), rt::TsonicError>;
     fn dispatch_docs_output_claims_add(
         self: alloc::rc::Rc<Self>,
         output_rel_path: String,
@@ -60,35 +63,29 @@ impl rt::ObjectIdentityCarrier for DocsOutputClaims {
 
 pub(crate) struct DocsOutputClaimsRoot {
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<DocsOutputClaimsState>,
+    state: rt::ObjectState<DocsOutputClaimsState>,
 }
 
 impl DocsOutputClaims {
     #[doc(hidden)]
-    pub fn initialize_state() -> DocsOutputClaimsState {
+    pub fn initialize_state() -> Result<DocsOutputClaimsState, rt::TsonicError> {
         let field_sources_by_output_path: js_abi::JsMap<String, String> = js_abi::JsMap::new();
-        DocsOutputClaimsState {
+        Ok(DocsOutputClaimsState {
             sources_by_output_path: field_sources_by_output_path,
-        }
+        })
     }
 
-    pub fn new() -> DocsOutputClaims {
-        let state = DocsOutputClaims::initialize_state();
+    pub fn new() -> Result<DocsOutputClaims, rt::TsonicError> {
+        let state = DocsOutputClaims::initialize_state()?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(DocsOutputClaimsRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        DocsOutputClaims {
+        Ok(DocsOutputClaims {
             identity,
             dispatch: root,
-        }
-    }
-}
-
-impl Default for DocsOutputClaims {
-    fn default() -> Self {
-        Self::new()
+        })
     }
 }
 
@@ -130,7 +127,7 @@ impl DocsOutputClaimsRoot {
                     None,
                     None,
                     None,
-                ),
+                )?,
             ));
         }
         {
@@ -139,7 +136,7 @@ impl DocsOutputClaimsRoot {
                 .dispatch
                 .read_docs_output_claims_sources_by_output_path()
         }
-        .set_discard(key.clone(), source_path.clone());
+        .set_discard(key, source_path);
         Ok(())
     }
 }
@@ -159,9 +156,15 @@ impl DocsOutputClaimsDispatch for DocsOutputClaimsRoot {
     fn write_docs_output_claims_sources_by_output_path(
         &self,
         value: js_abi::JsMap<String, String>,
-    ) {
-        self.state
-            .with_mut(|state| state.sources_by_output_path = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state
+                    .with_mut(|state| state.sources_by_output_path = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn dispatch_docs_output_claims_add(
@@ -187,8 +190,7 @@ pub fn resolve_docs_output_path(
 ) -> Result<String, rt::TsonicError> {
     let normalized: String = js_string::replace_all(&relative_path, "\\", "/")?;
     if js_string::starts_with_from_start(&normalized, "/")
-        || rt::conversions::usize_to_i32(js_string::js_len(&normalized))? >= 2
-            && js_string::char_at(&normalized, 1.0)? == ":"
+        || js_string::code_point_at(&normalized, 1.0) == Some(58.0)
     {
         return Err(rt::TsonicError::TsumoError(
             crate::diagnostics::create_tsumo_error(
@@ -201,7 +203,7 @@ pub fn resolve_docs_output_path(
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     let root: String = tsonic_rust_node::path::resolve(&[output_root.as_str()])?;
@@ -218,7 +220,7 @@ pub fn resolve_docs_output_path(
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     Ok(candidate)

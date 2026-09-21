@@ -31,14 +31,15 @@ impl IndexedSourceText {
         {
             let mut index: i32 = 0;
             while index < rt::conversions::usize_to_i32(field_characters.len())? {
-                utf16_offset +=
-                    rt::conversions::usize_to_i32(js_string::js_len(&match field_characters
-                        .get_number(rt::conversions::i32_to_f64(index))
-                        .as_ref()
-                    {
-                        Some(flow_value) => flow_value.clone(),
+                let code_point: f64 = js_string::code_point_at(
+                    &match field_characters.get_number(rt::conversions::i32_to_f64(index)) {
+                        Some(flow_value) => flow_value,
                         None => unreachable!("checked flow selected a missing optional value"),
-                    }))?;
+                    },
+                    0.0,
+                )
+                .unwrap();
+                utf16_offset += if code_point > 65535.0 { 2 } else { 1 };
                 field_utf16_offsets.push_many_discard([utf16_offset]);
                 index += 1;
             }
@@ -61,9 +62,8 @@ impl IndexedSourceText {
             .state
             .with(|state| state.characters.clone())
             .get_number(rt::conversions::i32_to_f64(index))
-            .as_ref()
         {
-            Some(flow_value) => flow_value.clone(),
+            Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
         }
     }
@@ -83,9 +83,8 @@ impl IndexedSourceText {
             .state
             .with(|state| state.utf16_offsets.clone())
             .get_number(rt::conversions::i32_to_f64(index))
-            .as_ref()
         {
-            Some(flow_value) => *flow_value,
+            Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
         }
     }

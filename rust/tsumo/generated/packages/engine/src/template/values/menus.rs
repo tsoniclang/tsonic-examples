@@ -5,15 +5,27 @@ use tsonic_rust_js::abi as js_abi;
 
 #[doc(hidden)]
 pub trait MenuEntryValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_menu_entry_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_menu_entry_value_to_menu_entry_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn MenuEntryValueDispatch + 'static>> {
         None
     }
     fn read_menu_entry_value_value(&self) -> crate::models::menu_entry::MenuEntry;
-    fn write_menu_entry_value_value(&self, value: crate::models::menu_entry::MenuEntry);
+    fn write_menu_entry_value_value(
+        &self,
+        value: crate::models::menu_entry::MenuEntry,
+    ) -> Result<(), rt::TsonicError>;
     fn read_menu_entry_value_site(&self) -> crate::models::site_context::SiteContext;
-    fn write_menu_entry_value_site(&self, value: crate::models::site_context::SiteContext);
+    fn write_menu_entry_value_site(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -53,9 +65,8 @@ impl rt::ObjectIdentityCarrier for MenuEntryValue {
 }
 
 pub(crate) struct MenuEntryValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<MenuEntryValueState>,
+    state: rt::ObjectState<MenuEntryValueState>,
 }
 
 impl MenuEntryValue {
@@ -63,31 +74,31 @@ impl MenuEntryValue {
     pub fn initialize_state(
         value: crate::models::menu_entry::MenuEntry,
         site: crate::models::site_context::SiteContext,
-    ) -> MenuEntryValueState {
+    ) -> Result<MenuEntryValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: crate::models::menu_entry::MenuEntry = value;
         let field_site: crate::models::site_context::SiteContext = site;
-        MenuEntryValueState {
+        Ok(MenuEntryValueState {
             base: base_state,
             value: field_value,
             site: field_site,
-        }
+        })
     }
 
     pub fn new(
         value: crate::models::menu_entry::MenuEntry,
         site: crate::models::site_context::SiteContext,
-    ) -> MenuEntryValue {
-        let state = MenuEntryValue::initialize_state(value, site);
+    ) -> Result<MenuEntryValue, rt::TsonicError> {
+        let state = MenuEntryValue::initialize_state(value, site)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(MenuEntryValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        MenuEntryValue {
+        Ok(MenuEntryValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -107,6 +118,13 @@ impl crate::template::values::base::TemplateValueDispatch for MenuEntryValueRoot
 }
 
 impl MenuEntryValueDispatch for MenuEntryValueRoot {
+    fn downcast_menu_entry_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_menu_entry_value_to_menu_entry_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn MenuEntryValueDispatch + 'static>> {
@@ -117,21 +135,45 @@ impl MenuEntryValueDispatch for MenuEntryValueRoot {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_menu_entry_value_value(&self, value: crate::models::menu_entry::MenuEntry) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_menu_entry_value_value(
+        &self,
+        value: crate::models::menu_entry::MenuEntry,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_menu_entry_value_site(&self) -> crate::models::site_context::SiteContext {
         self.state.with(|state| state.site.clone())
     }
 
-    fn write_menu_entry_value_site(&self, value: crate::models::site_context::SiteContext) {
-        self.state.with_mut(|state| state.site = value);
+    fn write_menu_entry_value_site(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.site = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
 #[doc(hidden)]
 pub trait MenuArrayValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_menu_array_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_menu_array_value_to_menu_array_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn MenuArrayValueDispatch + 'static>> {
@@ -141,9 +183,12 @@ pub trait MenuArrayValueDispatch: crate::template::values::base::TemplateValueDi
     fn write_menu_array_value_value(
         &self,
         value: js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_menu_array_value_site(&self) -> crate::models::site_context::SiteContext;
-    fn write_menu_array_value_site(&self, value: crate::models::site_context::SiteContext);
+    fn write_menu_array_value_site(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -183,9 +228,8 @@ impl rt::ObjectIdentityCarrier for MenuArrayValue {
 }
 
 pub(crate) struct MenuArrayValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<MenuArrayValueState>,
+    state: rt::ObjectState<MenuArrayValueState>,
 }
 
 impl MenuArrayValue {
@@ -193,31 +237,31 @@ impl MenuArrayValue {
     pub fn initialize_state(
         value: js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
         site: crate::models::site_context::SiteContext,
-    ) -> MenuArrayValueState {
+    ) -> Result<MenuArrayValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: js_abi::JsArray<crate::models::menu_entry::MenuEntry> = value;
         let field_site: crate::models::site_context::SiteContext = site;
-        MenuArrayValueState {
+        Ok(MenuArrayValueState {
             base: base_state,
             value: field_value,
             site: field_site,
-        }
+        })
     }
 
     pub fn new(
         value: js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
         site: crate::models::site_context::SiteContext,
-    ) -> MenuArrayValue {
-        let state = MenuArrayValue::initialize_state(value, site);
+    ) -> Result<MenuArrayValue, rt::TsonicError> {
+        let state = MenuArrayValue::initialize_state(value, site)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(MenuArrayValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        MenuArrayValue {
+        Ok(MenuArrayValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -237,6 +281,13 @@ impl crate::template::values::base::TemplateValueDispatch for MenuArrayValueRoot
 }
 
 impl MenuArrayValueDispatch for MenuArrayValueRoot {
+    fn downcast_menu_array_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_menu_array_value_to_menu_array_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn MenuArrayValueDispatch + 'static>> {
@@ -250,28 +301,52 @@ impl MenuArrayValueDispatch for MenuArrayValueRoot {
     fn write_menu_array_value_value(
         &self,
         value: js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
-    ) {
-        self.state.with_mut(|state| state.value = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_menu_array_value_site(&self) -> crate::models::site_context::SiteContext {
         self.state.with(|state| state.site.clone())
     }
 
-    fn write_menu_array_value_site(&self, value: crate::models::site_context::SiteContext) {
-        self.state.with_mut(|state| state.site = value);
+    fn write_menu_array_value_site(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.site = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
 #[doc(hidden)]
 pub trait MenusValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_menus_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_menus_value_to_menus_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn MenusValueDispatch + 'static>> {
         None
     }
     fn read_menus_value_site(&self) -> crate::models::site_context::SiteContext;
-    fn write_menus_value_site(&self, value: crate::models::site_context::SiteContext);
+    fn write_menus_value_site(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -310,33 +385,36 @@ impl rt::ObjectIdentityCarrier for MenusValue {
 }
 
 pub(crate) struct MenusValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<MenusValueState>,
+    state: rt::ObjectState<MenusValueState>,
 }
 
 impl MenusValue {
     #[doc(hidden)]
-    pub fn initialize_state(site: crate::models::site_context::SiteContext) -> MenusValueState {
+    pub fn initialize_state(
+        site: crate::models::site_context::SiteContext,
+    ) -> Result<MenusValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_site: crate::models::site_context::SiteContext = site;
-        MenusValueState {
+        Ok(MenusValueState {
             base: base_state,
             site: field_site,
-        }
+        })
     }
 
-    pub fn new(site: crate::models::site_context::SiteContext) -> MenusValue {
-        let state = MenusValue::initialize_state(site);
+    pub fn new(
+        site: crate::models::site_context::SiteContext,
+    ) -> Result<MenusValue, rt::TsonicError> {
+        let state = MenusValue::initialize_state(site)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(MenusValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        MenusValue {
+        Ok(MenusValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -356,6 +434,13 @@ impl crate::template::values::base::TemplateValueDispatch for MenusValueRoot {
 }
 
 impl MenusValueDispatch for MenusValueRoot {
+    fn downcast_menus_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_menus_value_to_menus_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn MenusValueDispatch + 'static>> {
@@ -366,7 +451,16 @@ impl MenusValueDispatch for MenusValueRoot {
         self.state.with(|state| state.site.clone())
     }
 
-    fn write_menus_value_site(&self, value: crate::models::site_context::SiteContext) {
-        self.state.with_mut(|state| state.site = value);
+    fn write_menus_value_site(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.site = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

@@ -16,8 +16,8 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
     {
         let mut i: f64 = 1.0;
         while i < (rt::conversions::usize_to_i32(args.len())? as f64) {
-            let a: String = match args.get_number(i).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let a: String = match args.get_number(i) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if a == "--source" || a == "-s" {
@@ -29,8 +29,8 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
                     ));
                     return Ok(());
                 }
-                serve_source_dir = match args.get_number(i + 1.0).as_ref() {
-                    Some(flow_value_2) => flow_value_2.clone(),
+                serve_source_dir = match args.get_number(i + 1.0) {
+                    Some(flow_value_2) => flow_value_2,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 i += 1.0;
@@ -43,8 +43,8 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
                     ));
                     return Ok(());
                 }
-                serve_destination_dir = match args.get_number(i + 1.0).as_ref() {
-                    Some(flow_value_3) => flow_value_3.clone(),
+                serve_destination_dir = match args.get_number(i + 1.0) {
+                    Some(flow_value_3) => flow_value_3,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 i += 1.0;
@@ -57,8 +57,8 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
                     ));
                     return Ok(());
                 }
-                serve_base_url = Some(match args.get_number(i + 1.0).as_ref() {
-                    Some(flow_value_4) => flow_value_4.clone(),
+                serve_base_url = Some(match args.get_number(i + 1.0) {
+                    Some(flow_value_4) => flow_value_4,
                     None => unreachable!("checked flow selected a missing optional value"),
                 });
                 i += 1.0;
@@ -71,8 +71,8 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
                     ));
                     return Ok(());
                 }
-                serve_themes_dir = Some(match args.get_number(i + 1.0).as_ref() {
-                    Some(flow_value_5) => flow_value_5.clone(),
+                serve_themes_dir = Some(match args.get_number(i + 1.0) {
+                    Some(flow_value_5) => flow_value_5,
                     None => unreachable!("checked flow selected a missing optional value"),
                 });
                 i += 1.0;
@@ -85,8 +85,8 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
                     ));
                     return Ok(());
                 }
-                serve_host = match args.get_number(i + 1.0).as_ref() {
-                    Some(flow_value_6) => flow_value_6.clone(),
+                serve_host = match args.get_number(i + 1.0) {
+                    Some(flow_value_6) => flow_value_6,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 i += 1.0;
@@ -99,8 +99,8 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
                     ));
                     return Ok(());
                 }
-                let port_text: String = match args.get_number(i + 1.0).as_ref() {
-                    Some(flow_value_7) => flow_value_7.clone(),
+                let port_text: String = match args.get_number(i + 1.0) {
+                    Some(flow_value_7) => flow_value_7,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 let p: Option<i32> = crate::parse_int::parse_int_arg(&port_text)?;
@@ -147,8 +147,7 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
             i += 1.0;
         }
     }
-    let serve_req: tsumo_engine::ServeRequest =
-        tsumo_engine::ServeRequest::new(serve_source_dir.clone());
+    let serve_req: tsumo_engine::ServeRequest = tsumo_engine::ServeRequest::new(serve_source_dir)?;
     {
         let receiver = &serve_req;
         let value = serve_destination_dir.clone();
@@ -156,7 +155,7 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
             let dispatch_receiver = receiver;
             dispatch_receiver
                 .dispatch
-                .write_build_request_destination_dir(value)
+                .write_build_request_destination_dir(value)?
         }
     };
     {
@@ -166,7 +165,7 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
             let dispatch_receiver_2 = receiver_2;
             dispatch_receiver_2
                 .dispatch
-                .write_build_request_base_url(value_2)
+                .write_build_request_base_url(value_2)?
         }
     };
     {
@@ -176,7 +175,7 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
             let dispatch_receiver_3 = receiver_3;
             dispatch_receiver_3
                 .dispatch
-                .write_build_request_themes_dir(value_3)
+                .write_build_request_themes_dir(value_3)?
         }
     };
     {
@@ -186,7 +185,7 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
             let dispatch_receiver_4 = receiver_4;
             dispatch_receiver_4
                 .dispatch
-                .write_serve_request_host(value_4)
+                .write_serve_request_host(value_4)?
         }
     };
     {
@@ -196,7 +195,7 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
             let dispatch_receiver_5 = receiver_5;
             dispatch_receiver_5
                 .dispatch
-                .write_serve_request_port(value_5)
+                .write_serve_request_port(value_5)?
         }
     };
     {
@@ -206,7 +205,7 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
             let dispatch_receiver_6 = receiver_6;
             dispatch_receiver_6
                 .dispatch
-                .write_serve_request_watch(value_6)
+                .write_serve_request_watch(value_6)?
         }
     };
     {
@@ -216,7 +215,7 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
             let dispatch_receiver_7 = receiver_7;
             dispatch_receiver_7
                 .dispatch
-                .write_build_request_build_drafts(value_7)
+                .write_build_request_build_drafts(value_7)?
         }
     };
     {
@@ -226,7 +225,7 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
             let dispatch_receiver_8 = receiver_8;
             dispatch_receiver_8
                 .dispatch
-                .write_build_request_clean_destination_dir(value_8)
+                .write_build_request_clean_destination_dir(value_8)?
         }
     };
     {
@@ -243,7 +242,7 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
             let dispatch_receiver_10 = receiver_9;
             dispatch_receiver_10
                 .dispatch
-                .write_build_request_build_time(value_9)
+                .write_build_request_build_time(value_9)?
         }
     };
     tsumo_engine::serve_site(serve_req.clone())?;

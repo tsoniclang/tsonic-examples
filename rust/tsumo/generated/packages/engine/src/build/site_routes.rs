@@ -8,8 +8,8 @@ pub fn normalize_site_path(path: &str) -> Result<String, rt::TsonicError> {
     js_string::replace_all(path, "\\", "/").map_err(rt::TsonicError::from)
 }
 
-pub fn split_site_path(path: String) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
-    js_string::split_all(&normalize_site_path(&path)?, "/").map_err(rt::TsonicError::from)
+pub fn split_site_path(path: &str) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
+    js_string::split_all(&normalize_site_path(path)?, "/").map_err(rt::TsonicError::from)
 }
 
 pub fn join_site_path(segments: js_abi::JsArray<String>) -> String {
@@ -20,12 +20,12 @@ pub fn without_markdown_extension(file_name: String) -> Result<String, rt::Tsoni
     Ok(
         if js_string::ends_with_at_end(&js_string::to_lower_case(&file_name), ".md") {
             crate::utils::strings::substring_count(
-                file_name.clone(),
+                &file_name,
                 0,
                 rt::conversions::usize_to_i32(js_string::js_len(&file_name))? - 3,
             )?
         } else {
-            file_name.clone()
+            file_name
         },
     )
 }
@@ -68,17 +68,17 @@ pub fn assert_site_route_segment(
                 Some(source_path),
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     Ok(())
 }
 
-pub fn compare_site_paths(left: String, right: String) -> Result<f64, rt::TsonicError> {
+pub fn compare_site_paths(left: &str, right: &str) -> Result<f64, rt::TsonicError> {
     Ok(rt::conversions::i32_to_f64(
         crate::utils::strings::compare_text(
-            normalize_site_path(&left)?,
-            normalize_site_path(&right)?,
+            normalize_site_path(left)?,
+            normalize_site_path(right)?,
         ),
     ))
 }

@@ -64,7 +64,7 @@ pub fn menu_entry_represents_page(
 
 pub fn menu_entry_belongs_to_menu(
     entry: crate::models::menu_entry::MenuEntry,
-    menu_name: String,
+    menu_name: &str,
 ) -> bool {
     ({
         let dispatch_receiver = &entry;
@@ -74,7 +74,7 @@ pub fn menu_entry_belongs_to_menu(
 
 pub fn is_menu_current(
     page: crate::models::page_context::PageContext,
-    menu_name: String,
+    menu_name: &str,
     entry: crate::models::menu_entry::MenuEntry,
 ) -> Result<bool, rt::TsonicError> {
     Ok(menu_entry_belongs_to_menu(entry.clone(), menu_name)
@@ -83,7 +83,7 @@ pub fn is_menu_current(
 
 pub fn has_menu_current(
     page: crate::models::page_context::PageContext,
-    menu_name: String,
+    menu_name: &str,
     entry: crate::models::menu_entry::MenuEntry,
 ) -> Result<bool, rt::TsonicError> {
     if !menu_entry_belongs_to_menu(entry.clone(), menu_name) {
@@ -110,9 +110,8 @@ pub fn has_menu_current(
                         dispatch_receiver_2.dispatch.read_menu_entry_children()
                     }
                     .get_number(index)
-                    .as_ref()
                     {
-                        Some(flow_value) => flow_value.clone(),
+                        Some(flow_value) => flow_value,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                 ])
@@ -161,9 +160,8 @@ pub fn has_menu_current(
                             dispatch_receiver_4.dispatch.read_menu_entry_children()
                         }
                         .get_number(index)
-                        .as_ref()
                         {
-                            Some(flow_value_5) => flow_value_5.clone(),
+                            Some(flow_value_5) => flow_value_5,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     ])

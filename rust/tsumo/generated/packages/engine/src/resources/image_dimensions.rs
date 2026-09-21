@@ -67,7 +67,7 @@ pub fn parse_png_dimensions(
     ))?;
     Ok(Some(crate::resources::models::ImageDimensions::new(
         width, height,
-    )))
+    )?))
 }
 
 pub fn parse_jpeg_dimensions(
@@ -106,7 +106,7 @@ pub fn parse_jpeg_dimensions(
             ))?;
             return Ok(Some(crate::resources::models::ImageDimensions::new(
                 width, height,
-            )));
+            )?));
         }
         if marker == 216.0 || marker == 217.0 || marker == 1.0 || (208.0..=215.0).contains(&marker)
         {
@@ -159,7 +159,7 @@ pub fn parse_gif_dimensions(
     ))?;
     Ok(Some(crate::resources::models::ImageDimensions::new(
         width, height,
-    )))
+    )?))
 }
 
 pub fn parse_webp_dimensions(
@@ -207,7 +207,7 @@ pub fn parse_webp_dimensions(
         ))?;
         return Ok(Some(crate::resources::models::ImageDimensions::new(
             width, height,
-        )));
+        )?));
     }
     if tsonic_rust_node::buffer::read_uint8_number(&bytes, 12.0)? == 86.0
         && tsonic_rust_node::buffer::read_uint8_number(&bytes, 13.0)? == 80.0
@@ -234,7 +234,7 @@ pub fn parse_webp_dimensions(
             + 1;
         return Ok(Some(crate::resources::models::ImageDimensions::new(
             width, height,
-        )));
+        )?));
     }
     Ok(Option::<crate::resources::models::ImageDimensions>::None)
 }
@@ -242,9 +242,24 @@ pub fn parse_webp_dimensions(
 pub fn parse_image_dimensions(
     bytes: tsonic_rust_node::buffer::Buffer,
 ) -> Result<Option<crate::resources::models::ImageDimensions>, rt::TsonicError> {
-    rt::option_coalesce(
-        rt::option_coalesce(
-            rt::option_coalesce(
+    rt::option_coalesce::<
+        _,
+        core::result::Result<Option<crate::resources::models::ImageDimensions>, rt::TsonicError>,
+    >(
+        rt::option_coalesce::<
+            _,
+            core::result::Result<
+                Option<crate::resources::models::ImageDimensions>,
+                rt::TsonicError,
+            >,
+        >(
+            rt::option_coalesce::<
+                _,
+                core::result::Result<
+                    Option<crate::resources::models::ImageDimensions>,
+                    rt::TsonicError,
+                >,
+            >(
                 parse_png_dimensions(bytes.clone())?,
                 |present_value| Ok(Some(present_value)),
                 || parse_jpeg_dimensions(bytes.clone()),

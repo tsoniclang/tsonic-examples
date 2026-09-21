@@ -10,7 +10,7 @@ pub trait ResourceDataDispatch {
         None
     }
     fn read_resource_data_integrity(&self) -> String;
-    fn write_resource_data_integrity(&self, value: String);
+    fn write_resource_data_integrity(&self, value: String) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -47,31 +47,30 @@ impl rt::ObjectIdentityCarrier for ResourceData {
 }
 
 pub(crate) struct ResourceDataRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<ResourceDataState>,
+    state: rt::ObjectState<ResourceDataState>,
 }
 
 impl ResourceData {
     #[doc(hidden)]
-    pub fn initialize_state(integrity: String) -> ResourceDataState {
+    pub fn initialize_state(integrity: String) -> Result<ResourceDataState, rt::TsonicError> {
         let field_integrity: String = integrity;
-        ResourceDataState {
+        Ok(ResourceDataState {
             integrity: field_integrity,
-        }
+        })
     }
 
-    pub fn new(integrity: String) -> ResourceData {
-        let state = ResourceData::initialize_state(integrity);
+    pub fn new(integrity: String) -> Result<ResourceData, rt::TsonicError> {
+        let state = ResourceData::initialize_state(integrity)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(ResourceDataRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        ResourceData {
+        Ok(ResourceData {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -86,8 +85,14 @@ impl ResourceDataDispatch for ResourceDataRoot {
         self.state.with(|state| state.integrity.clone())
     }
 
-    fn write_resource_data_integrity(&self, value: String) {
-        self.state.with_mut(|state| state.integrity = value);
+    fn write_resource_data_integrity(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.integrity = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -110,15 +115,15 @@ impl rt::ObjectIdentityCarrier for ImageDimensions {
 }
 
 impl ImageDimensions {
-    pub fn new(width: i32, height: i32) -> ImageDimensions {
+    pub fn new(width: i32, height: i32) -> Result<ImageDimensions, rt::TsonicError> {
         let field_width: i32 = width;
         let field_height: i32 = height;
-        ImageDimensions {
+        Ok(ImageDimensions {
             state: rt::ObjectRef::new(ImageDimensionsState {
                 width: field_width,
                 height: field_height,
             }),
-        }
+        })
     }
 }
 
@@ -130,25 +135,28 @@ pub trait ResourceDispatch {
         None
     }
     fn read_resource_id(&self) -> String;
-    fn write_resource_id(&self, value: String);
+    fn write_resource_id(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_resource_source_path(&self) -> Option<String>;
-    fn write_resource_source_path(&self, value: Option<String>);
+    fn write_resource_source_path(&self, value: Option<String>) -> Result<(), rt::TsonicError>;
     fn read_resource_publishable(&self) -> bool;
-    fn write_resource_publishable(&self, value: bool);
+    fn write_resource_publishable(&self, value: bool) -> Result<(), rt::TsonicError>;
     fn read_resource_output_rel_path(&self) -> Option<String>;
-    fn write_resource_output_rel_path(&self, value: Option<String>);
+    fn write_resource_output_rel_path(&self, value: Option<String>) -> Result<(), rt::TsonicError>;
     fn read_resource_bytes(&self) -> tsonic_rust_node::buffer::Buffer;
-    fn write_resource_bytes(&self, value: tsonic_rust_node::buffer::Buffer);
+    fn write_resource_bytes(
+        &self,
+        value: tsonic_rust_node::buffer::Buffer,
+    ) -> Result<(), rt::TsonicError>;
     fn read_resource_text(&self) -> Option<String>;
-    fn write_resource_text(&self, value: Option<String>);
+    fn write_resource_text(&self, value: Option<String>) -> Result<(), rt::TsonicError>;
     fn read_resource_data(&self) -> ResourceData;
-    fn write_resource_data(&self, value: ResourceData);
+    fn write_resource_data(&self, value: ResourceData) -> Result<(), rt::TsonicError>;
     fn read_resource_media_type(&self) -> String;
-    fn write_resource_media_type(&self, value: String);
+    fn write_resource_media_type(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_resource_width(&self) -> i32;
-    fn write_resource_width(&self, value: i32);
+    fn write_resource_width(&self, value: i32) -> Result<(), rt::TsonicError>;
     fn read_resource_height(&self) -> i32;
-    fn write_resource_height(&self, value: i32);
+    fn write_resource_height(&self, value: i32) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -194,9 +202,8 @@ impl rt::ObjectIdentityCarrier for Resource {
 }
 
 pub(crate) struct ResourceRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<ResourceState>,
+    state: rt::ObjectState<ResourceState>,
 }
 
 impl Resource {
@@ -213,7 +220,7 @@ impl Resource {
         media_type: Option<String>,
         width: Option<i32>,
         height: Option<i32>,
-    ) -> ResourceState {
+    ) -> Result<ResourceState, rt::TsonicError> {
         let media_type = media_type.unwrap_or_else(|| String::from(""));
         let width = width.unwrap_or(0);
         let height = height.unwrap_or(0);
@@ -227,7 +234,7 @@ impl Resource {
         let field_media_type: String = media_type;
         let field_width: i32 = width;
         let field_height: i32 = height;
-        ResourceState {
+        Ok(ResourceState {
             id: field_id,
             source_path: field_source_path,
             publishable: field_publishable,
@@ -238,7 +245,7 @@ impl Resource {
             media_type: field_media_type,
             width: field_width,
             height: field_height,
-        }
+        })
     }
 
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
@@ -253,7 +260,7 @@ impl Resource {
         media_type: Option<String>,
         width: Option<i32>,
         height: Option<i32>,
-    ) -> Resource {
+    ) -> Result<Resource, rt::TsonicError> {
         let state = Resource::initialize_state(
             id,
             source_path,
@@ -265,16 +272,16 @@ impl Resource {
             media_type,
             width,
             height,
-        );
+        )?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(ResourceRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        Resource {
+        Ok(Resource {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -289,79 +296,142 @@ impl ResourceDispatch for ResourceRoot {
         self.state.with(|state| state.id.clone())
     }
 
-    fn write_resource_id(&self, value: String) {
-        self.state.with_mut(|state| state.id = value);
+    fn write_resource_id(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.id = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_resource_source_path(&self) -> Option<String> {
         self.state.with(|state| state.source_path.clone())
     }
 
-    fn write_resource_source_path(&self, value: Option<String>) {
-        self.state.with_mut(|state| state.source_path = value);
+    fn write_resource_source_path(&self, value: Option<String>) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.source_path = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_resource_publishable(&self) -> bool {
         self.state.with(|state| state.publishable)
     }
 
-    fn write_resource_publishable(&self, value: bool) {
-        self.state.with_mut(|state| state.publishable = value);
+    fn write_resource_publishable(&self, value: bool) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.publishable = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_resource_output_rel_path(&self) -> Option<String> {
         self.state.with(|state| state.output_rel_path.clone())
     }
 
-    fn write_resource_output_rel_path(&self, value: Option<String>) {
-        self.state.with_mut(|state| state.output_rel_path = value);
+    fn write_resource_output_rel_path(&self, value: Option<String>) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.output_rel_path = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_resource_bytes(&self) -> tsonic_rust_node::buffer::Buffer {
         self.state.with(|state| state.bytes.clone())
     }
 
-    fn write_resource_bytes(&self, value: tsonic_rust_node::buffer::Buffer) {
-        self.state.with_mut(|state| state.bytes = value);
+    fn write_resource_bytes(
+        &self,
+        value: tsonic_rust_node::buffer::Buffer,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.bytes = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_resource_text(&self) -> Option<String> {
         self.state.with(|state| state.text.clone())
     }
 
-    fn write_resource_text(&self, value: Option<String>) {
-        self.state.with_mut(|state| state.text = value);
+    fn write_resource_text(&self, value: Option<String>) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.text = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_resource_data(&self) -> ResourceData {
         self.state.with(|state| state.data.clone())
     }
 
-    fn write_resource_data(&self, value: ResourceData) {
-        self.state.with_mut(|state| state.data = value);
+    fn write_resource_data(&self, value: ResourceData) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.data = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_resource_media_type(&self) -> String {
         self.state.with(|state| state.media_type.clone())
     }
 
-    fn write_resource_media_type(&self, value: String) {
-        self.state.with_mut(|state| state.media_type = value);
+    fn write_resource_media_type(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.media_type = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_resource_width(&self) -> i32 {
         self.state.with(|state| state.width)
     }
 
-    fn write_resource_width(&self, value: i32) {
-        self.state.with_mut(|state| state.width = value);
+    fn write_resource_width(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.width = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_resource_height(&self) -> i32 {
         self.state.with(|state| state.height)
     }
 
-    fn write_resource_height(&self, value: i32) {
-        self.state.with_mut(|state| state.height = value);
+    fn write_resource_height(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.height = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

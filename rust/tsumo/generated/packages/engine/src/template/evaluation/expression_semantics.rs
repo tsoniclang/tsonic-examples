@@ -51,8 +51,8 @@ pub fn eval_token(
         let inner: String = crate::utils::strings::substring_from(&t, 1)?;
         let segs: js_abi::JsArray<String> = js_string::split_all(&inner, ".")?;
         let name: String = if rt::conversions::usize_to_i32(segs.len())? > 0 {
-            match segs.get_number(0.0).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            match segs.get_number(0.0) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             }
         } else {
@@ -76,8 +76,8 @@ pub fn eval_token(
                 while i < (rt::conversions::usize_to_i32(segs.len())? as f64) {
                     {
                         let operation_input_0 = rem.clone();
-                        operation_input_0.push_many_discard([match segs.get_number(i).as_ref() {
-                            Some(flow_value_2) => flow_value_2.clone(),
+                        operation_input_0.push_many_discard([match segs.get_number(i) {
+                            Some(flow_value_2) => flow_value_2,
                             None => unreachable!("checked flow selected a missing optional value"),
                         }])
                     };
@@ -100,7 +100,7 @@ pub fn eval_token(
                     dispatch_receiver_6.dispatch.read_render_scope_site()
                 };
                 dispatch_receiver_7.dispatch.read_site_context_sites()
-            });
+            })?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value.identity.clone(),
                 dispatch: upcast_value.dispatch.clone(),
@@ -115,7 +115,7 @@ pub fn eval_token(
                 let upcast_value_2 = crate::template::values::site::SitesValue::new({
                     let dispatch_receiver_8 = &scope;
                     dispatch_receiver_8.dispatch.read_render_scope_site()
-                });
+                })?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_2.identity.clone(),
                     dispatch: upcast_value_2.dispatch.clone(),
@@ -183,7 +183,7 @@ pub fn eval_token(
                     .dispatch
                     .clone()
                     .dispatch_template_environment_get_global_store()
-            });
+            })?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_5.identity.clone(),
                 dispatch: upcast_value_5.dispatch.clone(),
@@ -216,7 +216,7 @@ pub fn eval_token(
                 crate::template::values::page::PageValue::new(match page.as_ref() {
                     Some(flow_value_3) => flow_value_3.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
-                });
+                })?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_7.identity.clone(),
                 dispatch: upcast_value_7.dispatch.clone(),
@@ -246,7 +246,7 @@ pub fn eval_token(
                     crate::template::values::page::PageValue::new(match page.as_ref() {
                         Some(flow_value_4) => flow_value_4.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
-                    });
+                    })?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_8.identity.clone(),
                     dispatch: upcast_value_8.dispatch.clone(),
@@ -261,7 +261,7 @@ pub fn eval_token(
             let upcast_value_9 = crate::template::values::site::SiteValue::new({
                 let dispatch_receiver_19 = &scope;
                 dispatch_receiver_19.dispatch.read_render_scope_site()
-            });
+            })?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_9.identity.clone(),
                 dispatch: upcast_value_9.dispatch.clone(),
@@ -276,7 +276,7 @@ pub fn eval_token(
                 let upcast_value_10 = crate::template::values::site::SiteValue::new({
                     let dispatch_receiver_20 = &scope;
                     dispatch_receiver_20.dispatch.read_render_scope_site()
-                });
+                })?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_10.identity.clone(),
                     dispatch: upcast_value_10.dispatch.clone(),
@@ -286,14 +286,14 @@ pub fn eval_token(
             scope.clone(),
         );
     }
-    let lit: Option<String> = crate::template::parser::tokens::parse_string_literal(t.clone())?;
+    let lit: Option<String> = crate::template::parser::tokens::parse_string_literal(&t)?;
     if lit.is_some() {
         return Ok({
             let upcast_value_11 =
                 crate::template::values::primitives::StringValue::new(match lit.as_ref() {
                     Some(flow_value_5) => flow_value_5.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
-                });
+                })?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_11.identity.clone(),
                 dispatch: upcast_value_11.dispatch.clone(),
@@ -302,7 +302,7 @@ pub fn eval_token(
     }
     if t == "true" {
         return Ok({
-            let upcast_value_12 = crate::template::values::primitives::BoolValue::new(true);
+            let upcast_value_12 = crate::template::values::primitives::BoolValue::new(true)?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_12.identity.clone(),
                 dispatch: upcast_value_12.dispatch.clone(),
@@ -311,7 +311,7 @@ pub fn eval_token(
     }
     if t == "false" {
         return Ok({
-            let upcast_value_13 = crate::template::values::primitives::BoolValue::new(false);
+            let upcast_value_13 = crate::template::values::primitives::BoolValue::new(false)?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_13.identity.clone(),
                 dispatch: upcast_value_13.dispatch.clone(),
@@ -330,7 +330,7 @@ pub fn eval_token(
                 crate::template::values::primitives::NumberValue::new(match number.as_ref() {
                     Some(flow_value_6) => *flow_value_6,
                     None => unreachable!("checked flow selected a missing optional value"),
-                });
+                })?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_14.identity.clone(),
                 dispatch: upcast_value_14.dispatch.clone(),
@@ -338,7 +338,7 @@ pub fn eval_token(
         });
     }
     Ok({
-        let upcast_value_15 = crate::template::values::primitives::StringValue::new(t.clone());
+        let upcast_value_15 = crate::template::values::primitives::StringValue::new(t)?;
         crate::template::values::base::TemplateValue {
             identity: upcast_value_15.identity.clone(),
             dispatch: upcast_value_15.dispatch.clone(),
@@ -364,18 +364,18 @@ pub fn call_method(
     {
         let result: Option<crate::template::values::base::TemplateValue> =
             crate::template::functions::resource_functions::call_resource_function(
-                format!("{}{}", String::from("resources."), method),
+                &format!("{}{}", String::from("resources."), method),
                 args.clone(),
                 crate::template::functions::function_context::TemplateFunctionContext::new(
                     scope.clone(),
                     env.clone(),
                     overrides,
                     defines,
-                ),
+                )?,
             )?;
         if result.is_some() {
-            return Ok(match result.as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            return Ok(match result {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             });
         }
@@ -395,22 +395,20 @@ pub fn call_method(
         };
         if method == "get" && rt::conversions::usize_to_i32(args.len())? >= 1 {
             return Ok(store.get(crate::template::runtime_helpers::to_plain_string(
-                match args.get_number(0.0).as_ref() {
-                    Some(flow_value_2) => flow_value_2.clone(),
+                match args.get_number(0.0) {
+                    Some(flow_value_2) => flow_value_2,
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
             )?));
         }
         if method == "set" && rt::conversions::usize_to_i32(args.len())? >= 2 {
             store.set(
-                crate::template::runtime_helpers::to_plain_string(
-                    match args.get_number(0.0).as_ref() {
-                        Some(flow_value_3) => flow_value_3.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                )?,
-                match args.get_number(1.0).as_ref() {
-                    Some(flow_value_4) => flow_value_4.clone(),
+                crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0) {
+                    Some(flow_value_3) => flow_value_3,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                })?,
+                match args.get_number(1.0) {
+                    Some(flow_value_4) => flow_value_4,
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
             );
@@ -420,14 +418,12 @@ pub fn call_method(
         }
         if method == "add" && rt::conversions::usize_to_i32(args.len())? >= 2 {
             store.add(
-                crate::template::runtime_helpers::to_plain_string(
-                    match args.get_number(0.0).as_ref() {
-                        Some(flow_value_5) => flow_value_5.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                )?,
-                match args.get_number(1.0).as_ref() {
-                    Some(flow_value_6) => flow_value_6.clone(),
+                crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0) {
+                    Some(flow_value_5) => flow_value_5,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                })?,
+                match args.get_number(1.0) {
+                    Some(flow_value_6) => flow_value_6,
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
             )?;
@@ -437,8 +433,8 @@ pub fn call_method(
         }
         if method == "delete" && rt::conversions::usize_to_i32(args.len())? >= 1 {
             store.delete(crate::template::runtime_helpers::to_plain_string(
-                match args.get_number(0.0).as_ref() {
-                    Some(flow_value_7) => flow_value_7.clone(),
+                match args.get_number(0.0) {
+                    Some(flow_value_7) => flow_value_7,
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
             )?);
@@ -448,41 +444,33 @@ pub fn call_method(
         }
         if method == "setinmap" && rt::conversions::usize_to_i32(args.len())? >= 3 {
             store.set_in_map(
-                crate::template::runtime_helpers::to_plain_string(
-                    match args.get_number(0.0).as_ref() {
-                        Some(flow_value_8) => flow_value_8.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                )?,
-                crate::template::runtime_helpers::to_plain_string(
-                    match args.get_number(1.0).as_ref() {
-                        Some(flow_value_9) => flow_value_9.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                )?,
-                match args.get_number(2.0).as_ref() {
-                    Some(flow_value_10) => flow_value_10.clone(),
+                crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0) {
+                    Some(flow_value_8) => flow_value_8,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                })?,
+                crate::template::runtime_helpers::to_plain_string(match args.get_number(1.0) {
+                    Some(flow_value_9) => flow_value_9,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                })?,
+                match args.get_number(2.0) {
+                    Some(flow_value_10) => flow_value_10,
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
-            );
+            )?;
             return Ok(
                 crate::template::runtime_helpers::NIL.with(|module_binding| module_binding.load())
             );
         }
         if method == "deleteinmap" && rt::conversions::usize_to_i32(args.len())? >= 2 {
             store.delete_in_map(
-                crate::template::runtime_helpers::to_plain_string(
-                    match args.get_number(0.0).as_ref() {
-                        Some(flow_value_11) => flow_value_11.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                )?,
-                crate::template::runtime_helpers::to_plain_string(
-                    match args.get_number(1.0).as_ref() {
-                        Some(flow_value_12) => flow_value_12.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                )?,
+                crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0) {
+                    Some(flow_value_11) => flow_value_11,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                })?,
+                crate::template::runtime_helpers::to_plain_string(match args.get_number(1.0) {
+                    Some(flow_value_12) => flow_value_12,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                })?,
             );
             return Ok(
                 crate::template::runtime_helpers::NIL.with(|module_binding| module_binding.load())
@@ -492,12 +480,12 @@ pub fn call_method(
     let date_result: Option<crate::template::values::base::TemplateValue> =
         crate::template::evaluation::date_semantics::call_date_method(
             receiver.clone(),
-            method.clone(),
+            &method,
             args.clone(),
         )?;
     if date_result.is_some() {
-        return Ok(match date_result.as_ref() {
-            Some(flow_value_13) => flow_value_13.clone(),
+        return Ok(match date_result {
+            Some(flow_value_13) => flow_value_13,
             None => unreachable!("checked flow selected a missing optional value"),
         });
     }
@@ -525,8 +513,8 @@ pub fn call_method(
                 args.clone(),
             )?;
         if result.is_some() {
-            return Ok(match result.as_ref() {
-                Some(flow_value_14) => flow_value_14.clone(),
+            return Ok(match result {
+                Some(flow_value_14) => flow_value_14,
                 None => unreachable!("checked flow selected a missing optional value"),
             });
         }
@@ -540,8 +528,8 @@ pub fn call_method(
         let page_resources: crate::template::evaluation::page_resource_semantics::PageResourceCollectionValue = { let downcast_value_2 = &receiver; crate::template::evaluation::page_resource_semantics::PageResourceCollectionValue { identity: downcast_value_2.identity.clone(), dispatch: downcast_value_2.dispatch.clone().downcast_template_value_to_page_resource_collection_value().unwrap() } };
         let result: Option<crate::template::values::base::TemplateValue> = crate::template::evaluation::page_resource_semantics::call_page_resource_collection_method(page_resources, &method, args.clone())?;
         if result.is_some() {
-            return Ok(match result.as_ref() {
-                Some(flow_value_15) => flow_value_15.clone(),
+            return Ok(match result {
+                Some(flow_value_15) => flow_value_15,
                 None => unreachable!("checked flow selected a missing optional value"),
             });
         }
@@ -560,19 +548,18 @@ pub fn call_method(
             dispatch_receiver_2.dispatch.read_any_array_value_value()
         };
         if method == "getmatch" && rt::conversions::usize_to_i32(args.len())? >= 1 {
-            let pattern: String = crate::template::runtime_helpers::to_plain_string(
-                match args.get_number(0.0).as_ref() {
-                    Some(flow_value_16) => flow_value_16.clone(),
+            let pattern: String =
+                crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0) {
+                    Some(flow_value_16) => flow_value_16,
                     None => unreachable!("checked flow selected a missing optional value"),
-                },
-            )?;
+                })?;
             let items: js_abi::JsArray<crate::template::values::base::TemplateValue> = arr.clone();
             {
                 let mut i: f64 = 0.0;
                 while i < (rt::conversions::usize_to_i32(items.len())? as f64) {
                     let item: crate::template::values::base::TemplateValue =
-                        match items.get_number(i).as_ref() {
-                            Some(flow_value_17) => flow_value_17.clone(),
+                        match items.get_number(i) {
+                            Some(flow_value_17) => flow_value_17,
                             None => unreachable!("checked flow selected a missing optional value"),
                         };
                     if let Some(selected_dispatch_3) = item
@@ -599,10 +586,8 @@ pub fn call_method(
                                 dispatch_receiver_5.dispatch.read_resource_id()
                             },
                         );
-                        if crate::template::evaluation::path_semantics::glob_match(
-                            pattern.clone(),
-                            name.clone(),
-                        )? {
+                        if crate::template::evaluation::path_semantics::glob_match(&pattern, &name)?
+                        {
                             return Ok(item.clone());
                         }
                     }
@@ -614,12 +599,11 @@ pub fn call_method(
             );
         }
         if method == "match" && rt::conversions::usize_to_i32(args.len())? >= 1 {
-            let pattern: String = crate::template::runtime_helpers::to_plain_string(
-                match args.get_number(0.0).as_ref() {
-                    Some(flow_value_18) => flow_value_18.clone(),
+            let pattern: String =
+                crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0) {
+                    Some(flow_value_18) => flow_value_18,
                     None => unreachable!("checked flow selected a missing optional value"),
-                },
-            )?;
+                })?;
             let match_result: js_abi::JsArray<crate::template::values::base::TemplateValue> =
                 js_abi::JsArray::from_dense(vec![]);
             let items: js_abi::JsArray<crate::template::values::base::TemplateValue> = arr.clone();
@@ -627,8 +611,8 @@ pub fn call_method(
                 let mut i: f64 = 0.0;
                 while i < (rt::conversions::usize_to_i32(items.len())? as f64) {
                     let item: crate::template::values::base::TemplateValue =
-                        match items.get_number(i).as_ref() {
-                            Some(flow_value_19) => flow_value_19.clone(),
+                        match items.get_number(i) {
+                            Some(flow_value_19) => flow_value_19,
                             None => unreachable!("checked flow selected a missing optional value"),
                         };
                     if let Some(selected_dispatch_4) = item
@@ -655,10 +639,8 @@ pub fn call_method(
                                 dispatch_receiver_8.dispatch.read_resource_id()
                             },
                         );
-                        if crate::template::evaluation::path_semantics::glob_match(
-                            pattern.clone(),
-                            name.clone(),
-                        )? {
+                        if crate::template::evaluation::path_semantics::glob_match(&pattern, &name)?
+                        {
                             match_result.push_many_discard([{
                                 let upcast_value = selected_value_4.clone();
                                 crate::template::values::base::TemplateValue {
@@ -673,7 +655,7 @@ pub fn call_method(
             }
             return Ok({
                 let upcast_value_2 =
-                    crate::template::values::arrays::AnyArrayValue::new(match_result.clone());
+                    crate::template::values::arrays::AnyArrayValue::new(match_result.clone())?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_2.identity.clone(),
                     dispatch: upcast_value_2.dispatch.clone(),
@@ -681,13 +663,12 @@ pub fn call_method(
             });
         }
         if method == "bytype" && rt::conversions::usize_to_i32(args.len())? >= 1 {
-            let target_type: String =
-                js_string::to_lower_case(&crate::template::runtime_helpers::to_plain_string(
-                    match args.get_number(0.0).as_ref() {
-                        Some(flow_value_20) => flow_value_20.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                )?);
+            let target_type: String = js_string::to_lower_case(
+                &crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0) {
+                    Some(flow_value_20) => flow_value_20,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                })?,
+            );
             let by_type_result: js_abi::JsArray<crate::template::values::base::TemplateValue> =
                 js_abi::JsArray::from_dense(vec![]);
             let by_type_items: js_abi::JsArray<crate::template::values::base::TemplateValue> =
@@ -696,8 +677,8 @@ pub fn call_method(
                 let mut i: f64 = 0.0;
                 while i < (rt::conversions::usize_to_i32(by_type_items.len())? as f64) {
                     let item: crate::template::values::base::TemplateValue =
-                        match by_type_items.get_number(i).as_ref() {
-                            Some(flow_value_21) => flow_value_21.clone(),
+                        match by_type_items.get_number(i) {
+                            Some(flow_value_21) => flow_value_21,
                             None => unreachable!("checked flow selected a missing optional value"),
                         };
                     if let Some(selected_dispatch_5) = item
@@ -748,7 +729,7 @@ pub fn call_method(
             }
             return Ok({
                 let upcast_value_4 =
-                    crate::template::values::arrays::AnyArrayValue::new(by_type_result.clone());
+                    crate::template::values::arrays::AnyArrayValue::new(by_type_result.clone())?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_4.identity.clone(),
                     dispatch: upcast_value_4.dispatch.clone(),
@@ -757,11 +738,10 @@ pub fn call_method(
         }
         if (method == "next" || method == "prev") && rt::conversions::usize_to_i32(args.len())? >= 1
         {
-            let target: crate::template::values::base::TemplateValue =
-                match args.get_number(0.0).as_ref() {
-                    Some(flow_value_22) => flow_value_22.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                };
+            let target: crate::template::values::base::TemplateValue = match args.get_number(0.0) {
+                Some(flow_value_22) => flow_value_22,
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
             if let Some(selected_dispatch_6) = target
                 .dispatch
                 .clone()
@@ -782,9 +762,8 @@ pub fn call_method(
                     {
                         let current: crate::template::values::base::TemplateValue = match arr
                             .get_number(index)
-                            .as_ref()
                         {
-                            Some(flow_value_23) => flow_value_23.clone(),
+                            Some(flow_value_23) => flow_value_23,
                             None => unreachable!("checked flow selected a missing optional value"),
                         };
                         if current
@@ -828,8 +807,8 @@ pub fn call_method(
                     return Ok(crate::template::runtime_helpers::NIL
                         .with(|module_binding| module_binding.load()));
                 }
-                return Ok(match arr.get_number(adjacent_index).as_ref() {
-                    Some(flow_value_24) => flow_value_24.clone(),
+                return Ok(match arr.get_number(adjacent_index) {
+                    Some(flow_value_24) => flow_value_24,
                     None => unreachable!("checked flow selected a missing optional value"),
                 });
             }
@@ -854,12 +833,12 @@ pub fn call_method(
                             .unwrap(),
                     }
                 },
-                method.clone(),
+                &method,
                 args.clone(),
             )?;
         if result.is_some() {
-            return Ok(match result.as_ref() {
-                Some(flow_value_25) => flow_value_25.clone(),
+            return Ok(match result {
+                Some(flow_value_25) => flow_value_25,
                 None => unreachable!("checked flow selected a missing optional value"),
             });
         }
@@ -885,8 +864,8 @@ pub fn call_method(
                         dispatch_receiver_15.dispatch.read_site_context_params()
                     },
                     crate::template::runtime_helpers::to_plain_string(
-                        match args.get_number(0.0).as_ref() {
-                            Some(flow_value_26) => flow_value_26.clone(),
+                        match args.get_number(0.0) {
+                            Some(flow_value_26) => flow_value_26,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     )?,
@@ -897,7 +876,7 @@ pub fn call_method(
                         Some(flow_value_27) => flow_value_27.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
-                )
+                )?
             } else {
                 crate::template::runtime_helpers::NIL.with(|module_binding| module_binding.load())
             });
@@ -907,8 +886,8 @@ pub fn call_method(
                 crate::template::evaluation::path_semantics::try_get_page(
                     site.clone(),
                     &crate::template::runtime_helpers::to_plain_string(
-                        match args.get_number(0.0).as_ref() {
-                            Some(flow_value_28) => flow_value_28.clone(),
+                        match args.get_number(0.0) {
+                            Some(flow_value_28) => flow_value_28,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     )?,
@@ -918,7 +897,7 @@ pub fn call_method(
                     crate::template::values::page::PageValue::new(match page.as_ref() {
                         Some(flow_value_29) => flow_value_29.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
-                    });
+                    })?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_5.identity.clone(),
                     dispatch: upcast_value_5.dispatch.clone(),
@@ -946,8 +925,8 @@ pub fn call_method(
                 let upcast_value_6 = crate::template::evaluation::page_semantics::get_page_terms(
                     page.clone(),
                     &crate::template::runtime_helpers::to_plain_string(
-                        match args.get_number(0.0).as_ref() {
-                            Some(flow_value_30) => flow_value_30.clone(),
+                        match args.get_number(0.0) {
+                            Some(flow_value_30) => flow_value_30,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     )?,
@@ -964,15 +943,15 @@ pub fn call_method(
                     crate::template::evaluation::page_semantics::page_has_shortcode(
                         page.clone(),
                         crate::template::runtime_helpers::to_plain_string(
-                            match args.get_number(0.0).as_ref() {
-                                Some(flow_value_31) => flow_value_31.clone(),
+                            match args.get_number(0.0) {
+                                Some(flow_value_31) => flow_value_31,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
                             },
                         )?,
                     ),
-                );
+                )?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_7.identity.clone(),
                     dispatch: upcast_value_7.dispatch.clone(),
@@ -980,12 +959,11 @@ pub fn call_method(
             });
         }
         if method == "param" && rt::conversions::usize_to_i32(args.len())? >= 1 {
-            let name: String = crate::template::runtime_helpers::to_plain_string(
-                match args.get_number(0.0).as_ref() {
-                    Some(flow_value_32) => flow_value_32.clone(),
+            let name: String =
+                crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0) {
+                    Some(flow_value_32) => flow_value_32,
                     None => unreachable!("checked flow selected a missing optional value"),
-                },
-            )?;
+                })?;
             let selected: Option<crate::params::ParamValue> = rt::option_coalesce(
                 crate::template::evaluation::param_semantics::find_param(
                     {
@@ -1014,7 +992,7 @@ pub fn call_method(
                         Some(flow_value_33) => flow_value_33.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
-                )
+                )?
             } else {
                 crate::template::runtime_helpers::NIL.with(|module_binding| module_binding.load())
             });
@@ -1023,8 +1001,8 @@ pub fn call_method(
             let paginator: crate::template::values::pagination::PaginatorValue =
                 crate::template::values::pagination::PaginatorValue::new(
                     crate::template::evaluation::page_semantics::to_pages(
-                        match args.get_number(0.0).as_ref() {
-                            Some(flow_value_34) => flow_value_34.clone(),
+                        match args.get_number(0.0) {
+                            Some(flow_value_34) => flow_value_34,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     )?,
@@ -1052,7 +1030,7 @@ pub fn call_method(
                             .dispatch
                             .read_page_context_rel_permalink()
                     },
-                );
+                )?;
             return Ok({
                 let upcast_value_8 = {
                     let dispatch_receiver_25 = scope.clone();
@@ -1070,9 +1048,9 @@ pub fn call_method(
         if method == "renderstring" && rt::conversions::usize_to_i32(args.len())? >= 1 {
             let rendered: crate::markdown::result::MarkdownResult =
                 crate::markdown::render_with_shortcodes::render_markdown_with_shortcodes(
-                    crate::template::runtime_helpers::to_plain_string(
-                        match args.get_number(0.0).as_ref() {
-                            Some(flow_value_35) => flow_value_35.clone(),
+                    &crate::template::runtime_helpers::to_plain_string(
+                        match args.get_number(0.0) {
+                            Some(flow_value_35) => flow_value_35,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     )?,
@@ -1087,8 +1065,8 @@ pub fn call_method(
                 let upcast_value_9 = crate::template::values::primitives::HtmlValue::new(
                     crate::utils::html::HtmlString::new(
                         rendered.state.with(|state| state.html.clone()),
-                    ),
-                );
+                    )?,
+                )?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_9.identity.clone(),
                     dispatch: upcast_value_9.dispatch.clone(),
@@ -1096,12 +1074,11 @@ pub fn call_method(
             });
         }
         if method == "render" && rt::conversions::usize_to_i32(args.len())? >= 1 {
-            let view: String = crate::template::runtime_helpers::to_plain_string(
-                match args.get_number(0.0).as_ref() {
-                    Some(flow_value_36) => flow_value_36.clone(),
+            let view: String =
+                crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0) {
+                    Some(flow_value_36) => flow_value_36,
                     None => unreachable!("checked flow selected a missing optional value"),
-                },
-            )?;
+                })?;
             let rendered: Option<String> = {
                 let dispatch_receiver_28 = env.clone();
                 dispatch_receiver_28
@@ -1109,7 +1086,7 @@ pub fn call_method(
                     .clone()
                     .dispatch_template_environment_render_page_view(
                         page.clone(),
-                        view.clone(),
+                        &view,
                         Some({
                             let dispatch_receiver_27 = &scope;
                             dispatch_receiver_27.dispatch.read_render_scope_state()
@@ -1139,7 +1116,7 @@ pub fn call_method(
                         None,
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
             return Ok({
@@ -1147,8 +1124,8 @@ pub fn call_method(
                     crate::utils::html::HtmlString::new(match rendered.as_ref() {
                         Some(flow_value_37) => flow_value_37.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
-                    }),
-                );
+                    })?,
+                )?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_10.identity.clone(),
                     dispatch: upcast_value_10.dispatch.clone(),
@@ -1158,12 +1135,10 @@ pub fn call_method(
         if method == "getpage" && rt::conversions::usize_to_i32(args.len())? >= 1 {
             let resolved: String = crate::template::evaluation::path_semantics::resolve_page_ref(
                 page.clone(),
-                &crate::template::runtime_helpers::to_plain_string(
-                    match args.get_number(0.0).as_ref() {
-                        Some(flow_value_38) => flow_value_38.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                )?,
+                &crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0) {
+                    Some(flow_value_38) => flow_value_38,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                })?,
             )?;
             let found: Option<crate::models::page_context::PageContext> =
                 crate::template::evaluation::path_semantics::try_get_page(
@@ -1178,7 +1153,7 @@ pub fn call_method(
                     crate::template::values::page::PageValue::new(match found.as_ref() {
                         Some(flow_value_39) => flow_value_39.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
-                    });
+                    })?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_11.identity.clone(),
                     dispatch: upcast_value_11.dispatch.clone(),
@@ -1189,8 +1164,8 @@ pub fn call_method(
         }
         if method == "isancestor" && rt::conversions::usize_to_i32(args.len())? >= 1 {
             let other_value: crate::template::values::base::TemplateValue =
-                match args.get_number(0.0).as_ref() {
-                    Some(flow_value_40) => flow_value_40.clone(),
+                match args.get_number(0.0) {
+                    Some(flow_value_40) => flow_value_40,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
             if other_value
@@ -1201,7 +1176,7 @@ pub fn call_method(
             {
                 return Ok({
                     let upcast_value_12 =
-                        crate::template::values::primitives::BoolValue::new(false);
+                        crate::template::values::primitives::BoolValue::new(false)?;
                     crate::template::values::base::TemplateValue {
                         identity: upcast_value_12.identity.clone(),
                         dispatch: upcast_value_12.dispatch.clone(),
@@ -1242,7 +1217,7 @@ pub fn call_method(
                     {
                         return Ok({
                             let upcast_value_13 =
-                                crate::template::values::primitives::BoolValue::new(true);
+                                crate::template::values::primitives::BoolValue::new(true)?;
                             crate::template::values::base::TemplateValue {
                                 identity: upcast_value_13.identity.clone(),
                                 dispatch: upcast_value_13.dispatch.clone(),
@@ -1273,7 +1248,7 @@ pub fn call_method(
             return Ok({
                 let upcast_value_14 = crate::template::values::primitives::BoolValue::new(
                     js_string::starts_with_from_start(&child, &base) && child != base,
-                );
+                )?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_14.identity.clone(),
                     dispatch: upcast_value_14.dispatch.clone(),
@@ -1284,8 +1259,8 @@ pub fn call_method(
             && rt::conversions::usize_to_i32(args.len())? >= 2
         {
             let entry_value: crate::template::values::base::TemplateValue =
-                match args.get_number(1.0).as_ref() {
-                    Some(flow_value_41) => flow_value_41.clone(),
+                match args.get_number(1.0) {
+                    Some(flow_value_41) => flow_value_41,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
             if entry_value
@@ -1296,7 +1271,7 @@ pub fn call_method(
             {
                 return Ok({
                     let upcast_value_15 =
-                        crate::template::values::primitives::BoolValue::new(false);
+                        crate::template::values::primitives::BoolValue::new(false)?;
                     crate::template::values::base::TemplateValue {
                         identity: upcast_value_15.identity.clone(),
                         dispatch: upcast_value_15.dispatch.clone(),
@@ -1322,26 +1297,24 @@ pub fn call_method(
             } {
                 return Ok({
                     let upcast_value_16 =
-                        crate::template::values::primitives::BoolValue::new(false);
+                        crate::template::values::primitives::BoolValue::new(false)?;
                     crate::template::values::base::TemplateValue {
                         identity: upcast_value_16.identity.clone(),
                         dispatch: upcast_value_16.dispatch.clone(),
                     }
                 });
             }
-            let menu_name: String = crate::template::runtime_helpers::to_plain_string(match args
-                .get_number(0.0)
-                .as_ref()
-            {
-                Some(flow_value_42) => flow_value_42.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            })?;
+            let menu_name: String =
+                crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0) {
+                    Some(flow_value_42) => flow_value_42,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                })?;
             return Ok({
                 let upcast_value_17 = crate::template::values::primitives::BoolValue::new(
                     if method == "ismenucurrent" {
                         crate::template::evaluation::menu_semantics::is_menu_current(
                             page.clone(),
-                            menu_name.clone(),
+                            &menu_name,
                             {
                                 let dispatch_receiver_39 = &{
                                     let downcast_value_7 = &entry_value;
@@ -1360,7 +1333,7 @@ pub fn call_method(
                     } else {
                         crate::template::evaluation::menu_semantics::has_menu_current(
                             page.clone(),
-                            menu_name.clone(),
+                            &menu_name,
                             {
                                 let dispatch_receiver_40 = &{
                                     let downcast_value_8 = &entry_value;
@@ -1377,7 +1350,7 @@ pub fn call_method(
                             },
                         )?
                     },
-                );
+                )?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_17.identity.clone(),
                     dispatch: upcast_value_17.dispatch.clone(),
@@ -1395,13 +1368,12 @@ pub fn call_method(
             dispatch: selected_dispatch_9,
         };
         if method == "get" && rt::conversions::usize_to_i32(args.len())? >= 1 {
-            let format_name: String =
-                js_string::to_lower_case(&crate::template::runtime_helpers::to_plain_string(
-                    match args.get_number(0.0).as_ref() {
-                        Some(flow_value_43) => flow_value_43.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                )?);
+            let format_name: String = js_string::to_lower_case(
+                &crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0) {
+                    Some(flow_value_43) => flow_value_43,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                })?,
+            );
             let formats: js_abi::JsArray<crate::models::output_format::OutputFormat> = {
                 let dispatch_receiver_42 = {
                     let dispatch_receiver_41 = &selected_value_9;
@@ -1413,13 +1385,13 @@ pub fn call_method(
                     .dispatch
                     .clone()
                     .dispatch_site_context_get_output_formats()
-            };
+            }?;
             {
                 let mut index: f64 = 0.0;
                 while index < (rt::conversions::usize_to_i32(formats.len())? as f64) {
                     let format: crate::models::output_format::OutputFormat =
-                        match formats.get_number(index).as_ref() {
-                            Some(flow_value_44) => flow_value_44.clone(),
+                        match formats.get_number(index) {
+                            Some(flow_value_44) => flow_value_44,
                             None => unreachable!("checked flow selected a missing optional value"),
                         };
                     if js_string::to_lower_case(&format.state.with(|state| state.rel.clone()))
@@ -1430,7 +1402,7 @@ pub fn call_method(
                             let upcast_value_18 =
                                 crate::template::values::output::OutputFormatValue::new(
                                     format.clone(),
-                                );
+                                )?;
                             crate::template::values::base::TemplateValue {
                                 identity: upcast_value_18.identity.clone(),
                                 dispatch: upcast_value_18.dispatch.clone(),
@@ -1460,8 +1432,8 @@ pub fn call_method(
                 dispatch_receiver_43.dispatch.read_shortcode_value_value()
             }
             .get(crate::template::runtime_helpers::to_plain_string(
-                match args.get_number(0.0).as_ref() {
-                    Some(flow_value_45) => flow_value_45.clone(),
+                match args.get_number(0.0) {
+                    Some(flow_value_45) => flow_value_45,
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
             )?)?;
@@ -1484,7 +1456,7 @@ pub fn call_method(
                             None => unreachable!("checked flow selected a missing optional value"),
                         };
                         dispatch_receiver_45.dispatch.read_param_value_bool_value()
-                    });
+                    })?;
                     crate::template::values::base::TemplateValue {
                         identity: upcast_value_19.identity.clone(),
                         dispatch: upcast_value_19.dispatch.clone(),
@@ -1508,7 +1480,7 @@ pub fn call_method(
                         dispatch_receiver_47
                             .dispatch
                             .read_param_value_number_value()
-                    });
+                    })?;
                     crate::template::values::base::TemplateValue {
                         identity: upcast_value_20.identity.clone(),
                         dispatch: upcast_value_20.dispatch.clone(),
@@ -1524,7 +1496,7 @@ pub fn call_method(
                     dispatch_receiver_48
                         .dispatch
                         .read_param_value_string_value()
-                });
+                })?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_21.identity.clone(),
                     dispatch: upcast_value_21.dispatch.clone(),
@@ -1549,8 +1521,8 @@ pub fn call_method(
                         dispatch_receiver_49.dispatch.read_url_query_value_value()
                     },
                     crate::template::runtime_helpers::to_plain_string(
-                        match args.get_number(0.0).as_ref() {
-                            Some(flow_value_51) => flow_value_51.clone(),
+                        match args.get_number(0.0) {
+                            Some(flow_value_51) => flow_value_51,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     )?,
@@ -1563,7 +1535,7 @@ pub fn call_method(
                         Some(flow_value_52) => flow_value_52.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
-                );
+                )?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_22.identity.clone(),
                     dispatch: upcast_value_22.dispatch.clone(),
@@ -1595,8 +1567,8 @@ pub fn call_method(
                             dispatch_receiver_50.dispatch.read_resource_value_value()
                         },
                         crate::template::runtime_helpers::to_plain_string(
-                            match args.get_number(0.0).as_ref() {
-                                Some(flow_value_53) => flow_value_53.clone(),
+                            match args.get_number(0.0) {
+                                Some(flow_value_53) => flow_value_53,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
@@ -1611,7 +1583,7 @@ pub fn call_method(
                         dispatch_receiver_53.dispatch.read_resource_value_manager()
                     },
                     resized,
-                );
+                )?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_23.identity.clone(),
                     dispatch: upcast_value_23.dispatch.clone(),
@@ -1640,6 +1612,6 @@ pub fn call_method(
             },
             None,
             None,
-        ),
+        )?,
     ))
 }

@@ -6,13 +6,19 @@ use tsonic_rust_js::string as js_string;
 
 #[doc(hidden)]
 pub trait VersionStringValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_version_string_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_version_string_value_to_version_string_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn VersionStringValueDispatch + 'static>> {
         None
     }
     fn read_version_string_value_value(&self) -> String;
-    fn write_version_string_value_value(&self, value: String);
+    fn write_version_string_value_value(&self, value: String) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -51,33 +57,32 @@ impl rt::ObjectIdentityCarrier for VersionStringValue {
 }
 
 pub(crate) struct VersionStringValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<VersionStringValueState>,
+    state: rt::ObjectState<VersionStringValueState>,
 }
 
 impl VersionStringValue {
     #[doc(hidden)]
-    pub fn initialize_state(value: String) -> VersionStringValueState {
+    pub fn initialize_state(value: String) -> Result<VersionStringValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: String = value;
-        VersionStringValueState {
+        Ok(VersionStringValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: String) -> VersionStringValue {
-        let state = VersionStringValue::initialize_state(value);
+    pub fn new(value: String) -> Result<VersionStringValue, rt::TsonicError> {
+        let state = VersionStringValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(VersionStringValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        VersionStringValue {
+        Ok(VersionStringValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 
     pub fn compare(a: String, b: String) -> Result<i32, rt::TsonicError> {
@@ -94,16 +99,16 @@ impl VersionStringValue {
             let mut i: f64 = 0.0;
             while i < max_len {
                 let av: i32 = if i < (a_len as f64) {
-                    match a_parts.get_number(i).as_ref() {
-                        Some(flow_value) => *flow_value,
+                    match a_parts.get_number(i) {
+                        Some(flow_value) => flow_value,
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                 } else {
                     0
                 };
                 let bv: i32 = if i < (b_len as f64) {
-                    match b_parts.get_number(i).as_ref() {
-                        Some(flow_value_2) => *flow_value_2,
+                    match b_parts.get_number(i) {
+                        Some(flow_value_2) => flow_value_2,
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                 } else {
@@ -133,8 +138,8 @@ impl VersionStringValue {
         {
             let mut i: f64 = 0.0;
             while i < (rt::conversions::usize_to_i32(parts.len())? as f64) {
-                let part: String = match parts.get_number(i).as_ref() {
-                    Some(flow_value) => flow_value.clone(),
+                let part: String = match parts.get_number(i) {
+                    Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 let num: i32 = VersionStringValue::extract_leading_number(part.clone())?;
@@ -147,22 +152,13 @@ impl VersionStringValue {
 
     pub fn extract_leading_number(s: String) -> Result<i32, rt::TsonicError> {
         let mut num_str: String = String::from("");
-        {
-            let mut i: f64 = 0.0;
-            'loop_value: while i < (rt::conversions::usize_to_i32(js_string::js_len(&s))? as f64) {
-                let ch: String = crate::utils::strings::substring_count(
-                    s.clone(),
-                    rt::conversions::f64_to_i32(i)?,
-                    1,
-                )?;
-                if crate::utils::strings::compare_text(ch.clone(), String::from("0")) >= 0
-                    && crate::utils::strings::compare_text(ch.clone(), String::from("9")) <= 0
-                {
-                    num_str = format!("{}{}", num_str, ch);
-                } else {
-                    break 'loop_value;
-                }
-                i += 1.0;
+        'loop_value: for ch in js_abi::NativeStringIterator::new(s.clone()) {
+            if crate::utils::strings::compare_text(ch.clone(), String::from("0")) >= 0
+                && crate::utils::strings::compare_text(ch.clone(), String::from("9")) <= 0
+            {
+                num_str = format!("{}{}", num_str, ch);
+            } else {
+                break 'loop_value;
             }
         }
         if num_str.is_empty() {
@@ -182,11 +178,11 @@ impl VersionStringValue {
                     None,
                     None,
                     None,
-                ),
+                )?,
             ));
         }
-        Ok(match value.as_ref() {
-            Some(flow_value) => *flow_value,
+        Ok(match value {
+            Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
         })
     }
@@ -208,6 +204,13 @@ impl crate::template::values::base::TemplateValueDispatch for VersionStringValue
 }
 
 impl VersionStringValueDispatch for VersionStringValueRoot {
+    fn downcast_version_string_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_version_string_value_to_version_string_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn VersionStringValueDispatch + 'static>> {
@@ -218,7 +221,13 @@ impl VersionStringValueDispatch for VersionStringValueRoot {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_version_string_value_value(&self, value: String) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_version_string_value_value(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

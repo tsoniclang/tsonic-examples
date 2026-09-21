@@ -39,31 +39,31 @@ impl rt::ObjectIdentityCarrier for ManagedDirectoryEntry {
 }
 
 impl ManagedDirectoryEntry {
-    pub fn new(path: String, directory: bool) -> ManagedDirectoryEntry {
+    pub fn new(path: String, directory: bool) -> Result<ManagedDirectoryEntry, rt::TsonicError> {
         let field_path: String = path;
         let field_directory: bool = directory;
-        ManagedDirectoryEntry {
+        Ok(ManagedDirectoryEntry {
             state: rt::ObjectRef::new(ManagedDirectoryEntryState {
                 path: field_path,
                 directory: field_directory,
             }),
-        }
+        })
     }
 }
 
 pub fn dir_exists(path: String) -> Result<bool, rt::TsonicError> {
-    Ok(tsonic_rust_node::fs::exists_sync(&path)
-        && tsonic_rust_node::fs::stat_sync(&path)?.is_directory())
+    Ok(tsonic_rust_node::fs::exists_sync(path.as_str())
+        && tsonic_rust_node::fs::stat_sync(path.as_str())?.is_directory())
 }
 
 pub fn file_exists(path: String) -> Result<bool, rt::TsonicError> {
-    Ok(tsonic_rust_node::fs::exists_sync(&path)
-        && tsonic_rust_node::fs::stat_sync(&path)?.is_file())
+    Ok(tsonic_rust_node::fs::exists_sync(path.as_str())
+        && tsonic_rust_node::fs::stat_sync(path.as_str())?.is_file())
 }
 
 pub fn ensure_dir(path: String) -> Result<(), rt::TsonicError> {
     tsonic_rust_node::fs::mkdir_sync_with_options(
-        &path,
+        path.as_str(),
         tsonic_rust_node::fs::MakeDirectoryOptions {
             recursive: Some(true),
             ..Default::default()
@@ -73,31 +73,28 @@ pub fn ensure_dir(path: String) -> Result<(), rt::TsonicError> {
 }
 
 pub fn read_text_file(path: String) -> Result<String, rt::TsonicError> {
-    REJECT_FILESYSTEM_LINK
-        .with(|module_binding| module_binding.load())
-        .call((path.clone(),))?;
-    tsonic_rust_node::fs::read_file_sync_string(&path, "utf-8").map_err(rt::TsonicError::from)
+    reject_filesystem_link(path.clone())?;
+    tsonic_rust_node::fs::read_file_sync_string(path.as_str(), "utf-8")
+        .map_err(rt::TsonicError::from)
 }
 
 pub fn read_binary_file(path: String) -> Result<tsonic_rust_node::buffer::Buffer, rt::TsonicError> {
-    REJECT_FILESYSTEM_LINK
-        .with(|module_binding| module_binding.load())
-        .call((path.clone(),))?;
-    tsonic_rust_node::fs::read_file_sync_buffer(&path).map_err(rt::TsonicError::from)
+    reject_filesystem_link(path.clone())?;
+    tsonic_rust_node::fs::read_file_sync_buffer(path.as_str()).map_err(rt::TsonicError::from)
 }
 
 pub fn write_text_file(path: String, content: String) -> Result<(), rt::TsonicError> {
     let dir: String = tsonic_rust_node::path::dirname(&path);
     if !dir.is_empty() {
         tsonic_rust_node::fs::mkdir_sync_with_options(
-            &dir,
+            dir.as_str(),
             tsonic_rust_node::fs::MakeDirectoryOptions {
                 recursive: Some(true),
                 ..Default::default()
             },
         )?;
     }
-    tsonic_rust_node::fs::write_file_sync_string(&path, &content, "utf-8")?;
+    tsonic_rust_node::fs::write_file_sync_string(path.as_str(), content.as_str(), "utf-8")?;
     Ok(())
 }
 
@@ -106,7 +103,7 @@ pub fn delete_dir_recursive(path: String) -> Result<(), rt::TsonicError> {
         return Ok(());
     }
     tsonic_rust_node::fs::rm_sync_with_options(
-        &path,
+        path.as_str(),
         tsonic_rust_node::fs::RmOptions {
             recursive: Some(true),
             force: Some(true),
@@ -116,10 +113,21 @@ pub fn delete_dir_recursive(path: String) -> Result<(), rt::TsonicError> {
     Ok(())
 }
 
-pub type RejectFilesystemLinkCallable = rt::Callable<(String,), rt::TsonicResult<()>>;
-
-std::thread_local! {
-    pub static REJECT_FILESYSTEM_LINK: rt::ModuleCell<RejectFilesystemLinkCallable> = const { rt::ModuleCell::new() };
+pub fn reject_filesystem_link(path: String) -> Result<(), rt::TsonicError> {
+    if !tsonic_rust_node::fs::lstat_sync(path.as_str())?.is_symbolic_link() {
+        return Ok(());
+    }
+    Err(rt::TsonicError::TsumoError(
+        crate::diagnostics::create_tsumo_error(
+            String::from("TSUMO_FILESYSTEM_LINK_UNSUPPORTED"),
+            String::from(
+                "Symbolic links and filesystem reparse points are not supported in Tsumo-managed filesystem trees",
+            ),
+            Some(path.clone()),
+            None,
+            None,
+        )?,
+    ))
 }
 
 pub fn list_managed_directory_entries(
@@ -128,10 +136,8 @@ pub fn list_managed_directory_entries(
     if !dir_exists(directory.clone())? {
         return Ok(js_abi::JsArray::from_dense(vec![]));
     }
-    REJECT_FILESYSTEM_LINK
-        .with(|module_binding| module_binding.load())
-        .call((directory.clone(),))?;
-    let names: js_abi::JsArray<String> = tsonic_rust_node::fs::readdir_sync(&directory)?;
+    reject_filesystem_link(directory.clone())?;
+    let names: js_abi::JsArray<String> = tsonic_rust_node::fs::readdir_sync(directory.as_str())?;
     let entries: js_abi::JsArray<ManagedDirectoryEntry> = js_abi::JsArray::from_dense(vec![]);
     {
         let mut index: f64 = 0.0;
@@ -140,22 +146,20 @@ pub fn list_managed_directory_entries(
                 let operation_input_0 = directory.clone();
                 tsonic_rust_node::path::join(&[
                     operation_input_0.as_str(),
-                    match names.get_number(index).as_ref() {
-                        Some(flow_value) => flow_value.clone(),
+                    match names.get_number(index) {
+                        Some(flow_value) => flow_value,
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                     .as_str(),
                 ])
             };
-            REJECT_FILESYSTEM_LINK
-                .with(|module_binding| module_binding.load())
-                .call((path.clone(),))?;
+            reject_filesystem_link(path.clone())?;
             {
                 let operation_input_0_2 = entries.clone();
                 operation_input_0_2.push_many_discard([ManagedDirectoryEntry::new(
                     path.clone(),
-                    tsonic_rust_node::fs::stat_sync(&path)?.is_directory(),
-                )])
+                    tsonic_rust_node::fs::stat_sync(path.as_str())?.is_directory(),
+                )?])
             };
             index += 1.0;
         }
@@ -178,8 +182,8 @@ pub fn list_files_top_directory(
     {
         let mut index: f64 = 0.0;
         while index < (rt::conversions::usize_to_i32(entries.len())? as f64) {
-            let entry: ManagedDirectoryEntry = match entries.get_number(index).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let entry: ManagedDirectoryEntry = match entries.get_number(index) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if !entry.state.with(|state| state.directory)
@@ -208,8 +212,8 @@ pub fn list_directories_top_directory(
     {
         let mut index: f64 = 0.0;
         while index < (rt::conversions::usize_to_i32(entries.len())? as f64) {
-            let entry: ManagedDirectoryEntry = match entries.get_number(index).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let entry: ManagedDirectoryEntry = match entries.get_number(index) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if entry.state.with(|state| state.directory) {
@@ -243,9 +247,8 @@ pub fn list_files_recursive(
                     'loop_value: while index
                         < (rt::conversions::usize_to_i32(entries.len())? as f64)
                     {
-                        let entry: ManagedDirectoryEntry = match entries.get_number(index).as_ref()
-                        {
-                            Some(flow_value) => flow_value.clone(),
+                        let entry: ManagedDirectoryEntry = match entries.get_number(index) {
+                            Some(flow_value) => flow_value,
                             None => unreachable!("checked flow selected a missing optional value"),
                         };
                         if entry.state.with(|state| state.directory) {
@@ -288,43 +291,17 @@ pub fn copy_dir_recursive(src_dir: String, dest_dir: String) -> Result<(), rt::T
     {
         let mut i: f64 = 0.0;
         while i < (rt::conversions::usize_to_i32(files.len())? as f64) {
-            let src_file: String = match files.get_number(i).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let src_file: String = match files.get_number(i) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let rel_path: String = tsonic_rust_node::path::relative(&src_dir, &src_file);
             let dest_file: String =
                 tsonic_rust_node::path::join(&[dest_dir.as_str(), rel_path.as_str()]);
             ensure_dir(tsonic_rust_node::path::dirname(&dest_file))?;
-            tsonic_rust_node::fs::copy_file_sync(&src_file, &dest_file)?;
+            tsonic_rust_node::fs::copy_file_sync(src_file.as_str(), dest_file.as_str())?;
             i += 1.0;
         }
     }
     Ok(())
-}
-
-#[doc(hidden)]
-pub fn module_init() {
-    {
-        let module_value = rt::Callable::<(String,), rt::TsonicResult<()>>::new(
-            move |callable_arguments| {
-                let path = callable_arguments.0;
-                if !tsonic_rust_node::fs::lstat_sync(&path)?.is_symbolic_link() {
-                    return Ok::<_, rt::TsonicError>(());
-                }
-                Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
-                        String::from("TSUMO_FILESYSTEM_LINK_UNSUPPORTED"),
-                        String::from(
-                            "Symbolic links and filesystem reparse points are not supported in Tsumo-managed filesystem trees",
-                        ),
-                        Some(path.clone()),
-                        None,
-                        None,
-                    ),
-                ))
-            },
-        );
-        REJECT_FILESYSTEM_LINK.with(|module_binding| module_binding.initialize(module_value))
-    };
 }

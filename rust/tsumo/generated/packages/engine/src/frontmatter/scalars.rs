@@ -5,31 +5,31 @@ use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
 pub fn parse_front_matter_param(
-    value: String,
+    value: &str,
     format: crate::utils::structured_scalars::StructuredScalarFormat,
     source_path: Option<String>,
     line: Option<i32>,
 ) -> Result<crate::params::ParamValue, rt::TsonicError> {
-    crate::utils::structured_scalars::parse_structured_scalar(&value, format, {
+    crate::utils::structured_scalars::parse_structured_scalar(value, format, {
         let capture_source_path = source_path.clone();
         let capture_line = line;
         rt::Callable::<(String,), rt::TsonicResult<crate::diagnostics::TsumoError>>::new(
             move |callable_arguments| {
                 let message = callable_arguments.0;
-                Ok::<_, rt::TsonicError>(crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::create_tsumo_error(
                     String::from("TSUMO_FRONTMATTER_SCALAR_INVALID"),
                     message,
                     capture_source_path.clone(),
                     capture_line.map(rt::conversions::i32_to_f64),
                     Some(1.0),
-                ))
+                )
             },
         )
     })
 }
 
 pub fn parse_front_matter_string(
-    value: String,
+    value: &str,
     field: String,
     format: crate::utils::structured_scalars::StructuredScalarFormat,
     source_path: Option<String>,
@@ -59,7 +59,7 @@ pub fn parse_front_matter_string(
             source_path.clone(),
             line.map(rt::conversions::i32_to_f64),
             Some(1.0),
-        ),
+        )?,
     ))
 }
 
@@ -85,15 +85,15 @@ pub fn record_front_matter_field(
                 source_path,
                 line.map(rt::conversions::i32_to_f64),
                 Some(1.0),
-            ),
+            )?,
         ));
     }
-    fields.add_discard(normalized.clone());
+    fields.add_discard(normalized);
     Ok(())
 }
 
 pub fn parse_front_matter_int(
-    value: String,
+    value: &str,
     field: String,
     format: crate::utils::structured_scalars::StructuredScalarFormat,
     source_path: Option<String>,
@@ -118,7 +118,7 @@ pub fn parse_front_matter_int(
                 source_path.clone(),
                 line.map(rt::conversions::i32_to_f64),
                 Some(1.0),
-            ),
+            )?,
         ));
     }
     Ok({
@@ -150,11 +150,11 @@ pub fn parse_front_matter_string_array(
                 source_path.clone(),
                 line.map(rt::conversions::i32_to_f64),
                 Some(1.0),
-            ),
+            )?,
         ));
     }
     let inner: String = crate::utils::strings::substring_count(
-        trimmed.clone(),
+        &trimmed,
         1,
         rt::conversions::usize_to_i32(js_string::js_len(&trimmed))? - 2,
     )?;
@@ -176,12 +176,20 @@ pub fn parse_front_matter_string_array(
                 };
             if escaped {
                 escaped = false;
-                index += 1;
+                index = if index == rt::conversions::usize_to_i32(js_string::js_len(&inner))? {
+                    index + 1
+                } else {
+                    crate::utils::strings::next_code_point_index(&inner, index)?
+                };
                 continue 'loop_value;
             }
             if quote == "\"" && current == "\\" {
                 escaped = true;
-                index += 1;
+                index = if index == rt::conversions::usize_to_i32(js_string::js_len(&inner))? {
+                    index + 1
+                } else {
+                    crate::utils::strings::next_code_point_index(&inner, index)?
+                };
                 continue 'loop_value;
             }
             if current == "\"" || current == "'" {
@@ -190,15 +198,23 @@ pub fn parse_front_matter_string_array(
                 } else if quote == current {
                     quote = String::from("");
                 }
-                index += 1;
+                index = if index == rt::conversions::usize_to_i32(js_string::js_len(&inner))? {
+                    index + 1
+                } else {
+                    crate::utils::strings::next_code_point_index(&inner, index)?
+                };
                 continue 'loop_value;
             }
             if current != "," || !quote.is_empty() {
-                index += 1;
+                index = if index == rt::conversions::usize_to_i32(js_string::js_len(&inner))? {
+                    index + 1
+                } else {
+                    crate::utils::strings::next_code_point_index(&inner, index)?
+                };
                 continue 'loop_value;
             }
             let item: String = js_string::trim(&crate::utils::strings::substring_count(
-                inner.clone(),
+                &inner,
                 start,
                 index - start,
             )?);
@@ -215,13 +231,13 @@ pub fn parse_front_matter_string_array(
                         source_path.clone(),
                         line.map(rt::conversions::i32_to_f64),
                         Some(1.0),
-                    ),
+                    )?,
                 ));
             }
             {
                 let operation_input_0 = values.clone();
                 operation_input_0.push_many_discard([parse_front_matter_string(
-                    item.clone(),
+                    &item,
                     field.clone(),
                     format,
                     source_path.clone(),
@@ -229,7 +245,11 @@ pub fn parse_front_matter_string_array(
                 )?])
             };
             start = index + 1;
-            index += 1;
+            index = if index == rt::conversions::usize_to_i32(js_string::js_len(&inner))? {
+                index + 1
+            } else {
+                crate::utils::strings::next_code_point_index(&inner, index)?
+            };
         }
     }
     if !quote.is_empty() {
@@ -245,7 +265,7 @@ pub fn parse_front_matter_string_array(
                 source_path.clone(),
                 line.map(rt::conversions::i32_to_f64),
                 Some(1.0),
-            ),
+            )?,
         ));
     }
     Ok(values)
@@ -265,17 +285,26 @@ pub fn apply_front_matter_scalar(
         {
             let receiver = &front_matter;
             let value_2 = Some(parse_front_matter_string(
-                value.clone(),
+                &value,
                 js_string::trim(key_raw),
                 format,
                 source_path.clone(),
                 line,
             )?);
-            receiver.state.with_mut(|state| state.title = value_2)
+            {
+                let field_owner = receiver.clone();
+                let field_value = value_2;
+                {
+                    field_owner.state.validate_data_write()?;
+                    field_owner
+                        .state
+                        .with_mut(|state| state.title = field_value)
+                }
+            }
         };
     } else if key == "date" {
         let authored: String = parse_front_matter_string(
-            value.clone(),
+            &value,
             js_string::trim(key_raw),
             format,
             source_path.clone(),
@@ -294,17 +323,26 @@ pub fn apply_front_matter_scalar(
                     source_path.clone(),
                     line.map(rt::conversions::i32_to_f64),
                     Some(1.0),
-                ),
+                )?,
             ));
         }
         {
             let receiver_2 = &front_matter;
             let value_3 = Some(js_abi::JsDate::from_millis(milliseconds));
-            receiver_2.state.with_mut(|state| state.date = value_3)
+            {
+                let field_owner_2 = receiver_2.clone();
+                let field_value_2 = value_3;
+                {
+                    field_owner_2.state.validate_data_write()?;
+                    field_owner_2
+                        .state
+                        .with_mut(|state| state.date = field_value_2)
+                }
+            }
         };
     } else if key == "draft" {
         let parsed: crate::params::ParamValue =
-            parse_front_matter_param(value.clone(), format, source_path.clone(), line)?;
+            parse_front_matter_param(&value, format, source_path.clone(), line)?;
         if ({
             let dispatch_receiver = &parsed;
             dispatch_receiver.dispatch.read_param_value_kind()
@@ -322,7 +360,7 @@ pub fn apply_front_matter_scalar(
                     source_path.clone(),
                     line.map(rt::conversions::i32_to_f64),
                     Some(1.0),
-                ),
+                )?,
             ));
         }
         {
@@ -331,57 +369,100 @@ pub fn apply_front_matter_scalar(
                 let dispatch_receiver_2 = &parsed;
                 dispatch_receiver_2.dispatch.read_param_value_bool_value()
             };
-            receiver_3.state.with_mut(|state| state.draft = value_4)
+            {
+                let field_owner_3 = receiver_3.clone();
+                let field_value_3 = value_4;
+                {
+                    field_owner_3.state.validate_data_write()?;
+                    field_owner_3
+                        .state
+                        .with_mut(|state| state.draft = field_value_3)
+                }
+            }
         };
     } else if key == "description" {
         {
             let receiver_4 = &front_matter;
             let value_5 = Some(parse_front_matter_string(
-                value.clone(),
+                &value,
                 js_string::trim(key_raw),
                 format,
                 source_path.clone(),
                 line,
             )?);
-            receiver_4
-                .state
-                .with_mut(|state| state.description = value_5)
+            {
+                let field_owner_4 = receiver_4.clone();
+                let field_value_4 = value_5;
+                {
+                    field_owner_4.state.validate_data_write()?;
+                    field_owner_4
+                        .state
+                        .with_mut(|state| state.description = field_value_4)
+                }
+            }
         };
     } else if key == "slug" {
         {
             let receiver_5 = &front_matter;
             let value_6 = Some(parse_front_matter_string(
-                value.clone(),
+                &value,
                 js_string::trim(key_raw),
                 format,
                 source_path.clone(),
                 line,
             )?);
-            receiver_5.state.with_mut(|state| state.slug = value_6)
+            {
+                let field_owner_5 = receiver_5.clone();
+                let field_value_5 = value_6;
+                {
+                    field_owner_5.state.validate_data_write()?;
+                    field_owner_5
+                        .state
+                        .with_mut(|state| state.slug = field_value_5)
+                }
+            }
         };
     } else if key == "layout" {
         {
             let receiver_6 = &front_matter;
             let value_7 = Some(parse_front_matter_string(
-                value.clone(),
+                &value,
                 js_string::trim(key_raw),
                 format,
                 source_path.clone(),
                 line,
             )?);
-            receiver_6.state.with_mut(|state| state.layout = value_7)
+            {
+                let field_owner_6 = receiver_6.clone();
+                let field_value_6 = value_7;
+                {
+                    field_owner_6.state.validate_data_write()?;
+                    field_owner_6
+                        .state
+                        .with_mut(|state| state.layout = field_value_6)
+                }
+            }
         };
     } else if key == "type" {
         {
             let receiver_7 = &front_matter;
             let value_8 = Some(parse_front_matter_string(
-                value.clone(),
+                &value,
                 js_string::trim(key_raw),
                 format,
                 source_path.clone(),
                 line,
             )?);
-            receiver_7.state.with_mut(|state| state.r#type = value_8)
+            {
+                let field_owner_7 = receiver_7.clone();
+                let field_value_7 = value_8;
+                {
+                    field_owner_7.state.validate_data_write()?;
+                    field_owner_7
+                        .state
+                        .with_mut(|state| state.r#type = field_value_7)
+                }
+            }
         };
     } else if key == "tags" {
         {
@@ -393,7 +474,16 @@ pub fn apply_front_matter_scalar(
                 source_path.clone(),
                 line,
             )?;
-            receiver_8.state.with_mut(|state| state.tags = value_9)
+            {
+                let field_owner_8 = receiver_8.clone();
+                let field_value_8 = value_9;
+                {
+                    field_owner_8.state.validate_data_write()?;
+                    field_owner_8
+                        .state
+                        .with_mut(|state| state.tags = field_value_8)
+                }
+            }
         };
     } else if key == "categories" {
         {
@@ -405,16 +495,23 @@ pub fn apply_front_matter_scalar(
                 source_path.clone(),
                 line,
             )?;
-            receiver_9
-                .state
-                .with_mut(|state| state.categories = value_10)
+            {
+                let field_owner_9 = receiver_9.clone();
+                let field_value_9 = value_10;
+                {
+                    field_owner_9.state.validate_data_write()?;
+                    field_owner_9
+                        .state
+                        .with_mut(|state| state.categories = field_value_9)
+                }
+            }
         };
     } else {
         {
             let operation_input_0 = front_matter.state.with(|state| state.params.clone());
             operation_input_0.set_discard(
                 js_string::trim(key_raw),
-                parse_front_matter_param(value.clone(), format, source_path.clone(), line)?,
+                parse_front_matter_param(&value, format, source_path.clone(), line)?,
             )
         };
     }

@@ -42,7 +42,7 @@ namespace Tsumo.Engine
             this.menu = menu;
             this.Params = @params ?? new Tsonic.CSharp.Js.Map<string, ParamValue>();
             this.page = null;
-            Tsonic.CSharp.Js.JSArray<MenuEntry> empty = new Tsonic.CSharp.Js.JSArray<MenuEntry>(new MenuEntry[] { });
+            Tsonic.CSharp.Js.JSArray<MenuEntry> empty = Tsonic.CSharp.Js.JSArray<MenuEntry>.of([]);
             this.children = empty;
         }
     }

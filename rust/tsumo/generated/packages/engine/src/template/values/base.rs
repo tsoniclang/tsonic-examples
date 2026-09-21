@@ -331,7 +331,7 @@ pub(crate) struct TemplateValueRoot {
     #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     #[expect(dead_code, reason = "retains unused generated storage")]
-    state: rt::ObjectHandle<TemplateValueState>,
+    state: rt::ObjectState<TemplateValueState>,
 }
 
 impl TemplateValue {
@@ -345,7 +345,7 @@ impl TemplateValue {
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(TemplateValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
         TemplateValue {
             identity,
@@ -373,6 +373,11 @@ pub trait NilValueDispatch: TemplateValueDispatch {
     fn downcast_nil_value_to_nil_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn NilValueDispatch + 'static>> {
+        None
+    }
+    fn downcast_nil_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateValueDispatch + 'static>> {
         None
     }
 }
@@ -415,7 +420,7 @@ pub(crate) struct NilValueRoot {
     #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     #[expect(dead_code, reason = "retains unused generated storage")]
-    state: rt::ObjectHandle<NilValueState>,
+    state: rt::ObjectState<NilValueState>,
 }
 
 impl NilValue {
@@ -430,7 +435,7 @@ impl NilValue {
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(NilValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
         NilValue {
             identity,
@@ -463,6 +468,12 @@ impl NilValueDispatch for NilValueRoot {
     fn downcast_nil_value_to_nil_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn NilValueDispatch + 'static>> {
+        Some(self)
+    }
+
+    fn downcast_nil_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateValueDispatch + 'static>> {
         Some(self)
     }
 }

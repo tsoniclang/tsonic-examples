@@ -47,7 +47,7 @@ impl ShortcodeCall {
         source_path: Option<String>,
         line: i32,
         column: i32,
-    ) -> ShortcodeCall {
+    ) -> Result<ShortcodeCall, rt::TsonicError> {
         let field_name: String = name;
         let field_params: js_abi::JsMap<String, crate::params::ParamValue> = params;
         let field_positional_params: js_abi::JsArray<String> = positional_params;
@@ -60,7 +60,7 @@ impl ShortcodeCall {
         let field_source_path: Option<String> = source_path;
         let field_line: i32 = line;
         let field_column: i32 = column;
-        ShortcodeCall {
+        Ok(ShortcodeCall {
             state: rt::ObjectRef::new(ShortcodeCallState {
                 name: field_name,
                 params: field_params,
@@ -75,7 +75,7 @@ impl ShortcodeCall {
                 line: field_line,
                 column: field_column,
             }),
-        }
+        })
     }
 }
 
@@ -98,61 +98,76 @@ impl rt::ObjectIdentityCarrier for ParseState {
 }
 
 impl ParseState {
-    pub fn new(text: String) -> ParseState {
+    pub fn new(text: String) -> Result<ParseState, rt::TsonicError> {
         let field_text: String = text;
         let field_pos: i32 = 0;
-        ParseState {
+        Ok(ParseState {
             state: rt::ObjectHandle::new(ParseStateState {
                 text: field_text,
                 pos: field_pos,
             }),
-        }
+        })
     }
 
     pub fn peek(&self, offset: i32) -> Result<String, rt::TsonicError> {
-        let idx: i32 = self.state.with(|state| state.pos) + offset;
-        Ok(
-            if idx
-                < rt::conversions::usize_to_i32(js_string::js_len(
-                    &self.state.with(|state| state.text.clone()),
-                ))?
-            {
-                crate::utils::strings::substring_count(
-                    self.state.with(|state| state.text.clone()),
-                    idx,
-                    1,
-                )?
-            } else {
-                String::from("")
-            },
+        let mut index: i32 = self.state.with(|state| state.pos);
+        #[expect(unused_variables, reason = "authored binding drop scope")]
+        for step in 0..offset {
+            index = crate::utils::strings::next_code_point_index(
+                &self.state.with(|state| state.text.clone()),
+                index,
+            )?;
+        }
+        crate::utils::strings::code_point_at_text(
+            &self.state.with(|state| state.text.clone()),
+            index,
         )
     }
 
     pub fn peek_string(&self, length: i32) -> Result<String, rt::TsonicError> {
-        let remaining: i32 = rt::conversions::usize_to_i32(js_string::js_len(
-            &self.state.with(|state| state.text.clone()),
-        ))? - self.state.with(|state| state.pos);
-        if remaining <= 0 {
-            return Ok(String::from(""));
+        let mut end: i32 = self.state.with(|state| state.pos);
+        {
+            let mut step: i32 = 0;
+            while step < length
+                && end
+                    < rt::conversions::usize_to_i32(js_string::js_len(
+                        &self.state.with(|state| state.text.clone()),
+                    ))?
+            {
+                end = crate::utils::strings::next_code_point_index(
+                    &self.state.with(|state| state.text.clone()),
+                    end,
+                )?;
+                step += 1;
+            }
         }
-        let slice_length: f64 = if length < remaining {
-            rt::conversions::i32_to_f64(length)
-        } else {
-            rt::conversions::i32_to_f64(remaining)
-        };
         crate::utils::strings::substring_count(
-            self.state.with(|state| state.text.clone()),
+            &self.state.with(|state| state.text.clone()),
             self.state.with(|state| state.pos),
-            rt::conversions::f64_to_i32(slice_length)?,
+            end - self.state.with(|state| state.pos),
         )
     }
 
-    pub fn advance(&self, count: i32) {
-        {
-            let receiver = self;
-            let value = count;
-            receiver.state.with_mut(|state| state.pos += value)
-        };
+    pub fn advance(&self, count: i32) -> Result<(), rt::TsonicError> {
+        #[expect(unused_variables, reason = "authored binding drop scope")]
+        for step in 0..count {
+            {
+                let receiver = self;
+                let value = crate::utils::strings::next_code_point_index(
+                    &self.state.with(|state| state.text.clone()),
+                    self.state.with(|state| state.pos),
+                )?;
+                {
+                    let field_owner = receiver.clone();
+                    let field_value = value;
+                    {
+                        field_owner.state.validate_data_write()?;
+                        field_owner.state.with_mut(|state| state.pos = field_value)
+                    }
+                }
+            };
+        }
+        Ok(())
     }
 
     pub fn at_end(&self) -> Result<bool, rt::TsonicError> {
@@ -168,7 +183,7 @@ impl ParseState {
             if c != " " && c != "\t" && c != "\n" && c != "\r" {
                 break 'loop_value;
             }
-            self.advance(1);
+            self.advance(1)?;
         }
         Ok(())
     }
@@ -193,15 +208,15 @@ impl rt::ObjectIdentityCarrier for ShortcodePosition {
 }
 
 impl ShortcodePosition {
-    pub fn new(line: i32, column: i32) -> ShortcodePosition {
+    pub fn new(line: i32, column: i32) -> Result<ShortcodePosition, rt::TsonicError> {
         let field_line: i32 = line;
         let field_column: i32 = column;
-        ShortcodePosition {
+        Ok(ShortcodePosition {
             state: rt::ObjectRef::new(ShortcodePositionState {
                 line: field_line,
                 column: field_column,
             }),
-        }
+        })
     }
 }
 
@@ -224,48 +239,60 @@ impl rt::ObjectIdentityCarrier for ShortcodeRange {
 }
 
 impl ShortcodeRange {
-    pub fn new(start: i32, end: i32) -> ShortcodeRange {
+    pub fn new(start: i32, end: i32) -> Result<ShortcodeRange, rt::TsonicError> {
         let field_start: i32 = start;
         let field_end: i32 = end;
-        ShortcodeRange {
+        Ok(ShortcodeRange {
             state: rt::ObjectRef::new(ShortcodeRangeState {
                 start: field_start,
                 end: field_end,
             }),
-        }
+        })
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone)]
 pub struct ShortcodeSourceMap {
     pub line_starts: js_abi::JsArray<i32>,
     pub code_fences: js_abi::JsArray<ShortcodeRange>,
+    pub wide_character_ends: js_abi::JsArray<i32>,
+    pub utf16_adjustments: js_abi::JsArray<i32>,
 }
 
 impl ShortcodeSourceMap {
-    pub fn new(text: String) -> Result<ShortcodeSourceMap, rt::TsonicError> {
+    pub fn new(text: &str) -> Result<ShortcodeSourceMap, rt::TsonicError> {
         let field_line_starts: js_abi::JsArray<i32> = js_abi::JsArray::from_dense(vec![0]);
+        let field_wide_character_ends: js_abi::JsArray<i32> = js_abi::JsArray::from_dense(vec![]);
+        let field_utf16_adjustments: js_abi::JsArray<i32> = js_abi::JsArray::from_dense(vec![]);
+        let mut adjustment: i32 = 0;
         {
             let mut index: i32 = 0;
-            while index < rt::conversions::usize_to_i32(js_string::js_len(&text))? {
-                let current: String =
-                    js_string::char_at(&text, rt::conversions::i32_to_f64(index))?;
-                if current == "\r" {
-                    if index + 1 < rt::conversions::usize_to_i32(js_string::js_len(&text))?
-                        && js_string::char_at(&text, rt::conversions::i32_to_f64(index + 1))?
-                            == "\n"
+            while index < rt::conversions::usize_to_i32(js_string::js_len(text))? {
+                let current: f64 =
+                    js_string::code_point_at(text, rt::conversions::i32_to_f64(index)).unwrap();
+                let next: i32 = crate::utils::strings::next_code_point_index(text, index)?;
+                if next - index > 1 {
+                    adjustment += rt::conversions::f64_to_i32(
+                        (next - index) as f64 - if current > 65535.0 { 2.0 } else { 1.0 },
+                    )?;
+                    field_wide_character_ends.push_many_discard([next]);
+                    field_utf16_adjustments.push_many_discard([adjustment]);
+                }
+                if current == 13.0 {
+                    if index + 1 < rt::conversions::usize_to_i32(js_string::js_len(text))?
+                        && js_string::char_at(text, rt::conversions::i32_to_f64(index + 1))? == "\n"
                     {
                         index += 1;
                     }
                     field_line_starts.push_many_discard([rt::conversions::f64_to_i32(
                         rt::conversions::i32_to_f64(index + 1),
                     )?]);
-                } else if current == "\n" {
+                } else if current == 10.0 {
                     field_line_starts.push_many_discard([rt::conversions::f64_to_i32(
                         rt::conversions::i32_to_f64(index + 1),
                     )?]);
                 }
-                index += 1;
+                index = crate::utils::strings::next_code_point_index(text, index)?;
             }
         }
         let field_code_fences: js_abi::JsArray<ShortcodeRange> =
@@ -274,12 +301,12 @@ impl ShortcodeSourceMap {
         let mut fence_character: String = String::from("");
         let mut fence_length: i32 = 0;
         let mut position: i32 = 0;
-        'loop_value_2: while position < rt::conversions::usize_to_i32(js_string::js_len(&text))? {
-            let current: String = js_string::char_at(&text, rt::conversions::i32_to_f64(position))?;
+        'loop_value_2: while position < rt::conversions::usize_to_i32(js_string::js_len(text))? {
+            let current: String = js_string::char_at(text, rt::conversions::i32_to_f64(position))?;
             if fence_start < 0 && (current == "`" || current == "~") {
                 let mut length: i32 = 1;
-                while position + length < rt::conversions::usize_to_i32(js_string::js_len(&text))?
-                    && js_string::char_at(&text, rt::conversions::i32_to_f64(position + length))?
+                while position + length < rt::conversions::usize_to_i32(js_string::js_len(text))?
+                    && js_string::char_at(text, rt::conversions::i32_to_f64(position + length))?
                         == current
                 {
                     length += 1;
@@ -289,17 +316,17 @@ impl ShortcodeSourceMap {
                     fence_character = current.clone();
                     fence_length = length;
                     position += length;
-                    while position < rt::conversions::usize_to_i32(js_string::js_len(&text))?
-                        && js_string::char_at(&text, rt::conversions::i32_to_f64(position))? != "\n"
+                    while position < rt::conversions::usize_to_i32(js_string::js_len(text))?
+                        && js_string::char_at(text, rt::conversions::i32_to_f64(position))? != "\n"
                     {
-                        position += 1;
+                        position = crate::utils::strings::next_code_point_index(text, position)?;
                     }
                     continue 'loop_value_2;
                 }
             } else if fence_start >= 0 && current == fence_character {
                 let mut length: i32 = 1;
-                while position + length < rt::conversions::usize_to_i32(js_string::js_len(&text))?
-                    && js_string::char_at(&text, rt::conversions::i32_to_f64(position + length))?
+                while position + length < rt::conversions::usize_to_i32(js_string::js_len(text))?
+                    && js_string::char_at(text, rt::conversions::i32_to_f64(position + length))?
                         == current
                 {
                     length += 1;
@@ -310,7 +337,7 @@ impl ShortcodeSourceMap {
                         operation_input_0.push_many_discard([ShortcodeRange::new(
                             fence_start,
                             position + length,
-                        )])
+                        )?])
                     };
                     fence_start = -1;
                     fence_character = String::from("");
@@ -319,20 +346,22 @@ impl ShortcodeSourceMap {
                     continue 'loop_value_2;
                 }
             }
-            position += 1;
+            position = crate::utils::strings::next_code_point_index(text, position)?;
         }
         if fence_start >= 0 {
             {
                 let operation_input_0_2 = field_code_fences.clone();
                 operation_input_0_2.push_many_discard([ShortcodeRange::new(
                     fence_start,
-                    rt::conversions::usize_to_i32(js_string::js_len(&text))?,
-                )])
+                    rt::conversions::usize_to_i32(js_string::js_len(text))?,
+                )?])
             };
         }
         Ok(ShortcodeSourceMap {
             line_starts: field_line_starts,
             code_fences: field_code_fences,
+            wide_character_ends: field_wide_character_ends,
+            utf16_adjustments: field_utf16_adjustments,
         })
     }
 
@@ -346,9 +375,8 @@ impl ShortcodeSourceMap {
             if (match self
                 .line_starts
                 .get_number(rt::conversions::i32_to_f64(middle))
-                .as_ref()
             {
-                Some(flow_value) => *flow_value,
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             }) <= offset
             {
@@ -358,19 +386,54 @@ impl ShortcodeSourceMap {
             }
         }
         let line_index: i32 = if high < 0 { 0 } else { high };
-        Ok(ShortcodePosition::new(
+        ShortcodePosition::new(
             line_index + 1,
+            self.utf16_offset_at(offset)?
+                - self.utf16_offset_at(
+                    match self
+                        .line_starts
+                        .get_number(rt::conversions::i32_to_f64(line_index))
+                    {
+                        Some(flow_value_2) => flow_value_2,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
+                )?
+                + 1,
+        )
+    }
+
+    pub fn utf16_offset_at(&self, offset: i32) -> Result<i32, rt::TsonicError> {
+        let mut low: i32 = 0;
+        let mut high: i32 = rt::conversions::usize_to_i32(self.wide_character_ends.len())?;
+        while low < high {
+            let middle: i32 = rt::conversions::f64_to_i32(
+                low as f64 + rt::conversions::i32_to_f64((high - low) / 2).floor(),
+            )?;
+            if (match self
+                .wide_character_ends
+                .get_number(rt::conversions::i32_to_f64(middle))
+            {
+                Some(flow_value) => flow_value,
+                None => unreachable!("checked flow selected a missing optional value"),
+            }) <= offset
+            {
+                low = middle + 1;
+            } else {
+                high = middle;
+            }
+        }
+        Ok(if low == 0 {
+            offset
+        } else {
             offset
                 - match self
-                    .line_starts
-                    .get_number(rt::conversions::i32_to_f64(line_index))
-                    .as_ref()
+                    .utf16_adjustments
+                    .get_number(rt::conversions::i32_to_f64(low - 1))
                 {
-                    Some(flow_value_2) => *flow_value_2,
+                    Some(flow_value_2) => flow_value_2,
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
-                + 1,
-        ))
+        })
     }
 
     pub fn is_in_code_block(&self, offset: i32) -> Result<bool, rt::TsonicError> {
@@ -383,9 +446,8 @@ impl ShortcodeSourceMap {
             let range: ShortcodeRange = match self
                 .code_fences
                 .get_number(rt::conversions::i32_to_f64(middle))
-                .as_ref()
             {
-                Some(flow_value) => flow_value.clone(),
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if offset < range.state.with(|state| state.start) {
@@ -410,24 +472,24 @@ pub fn parse_quoted_string(
     if quote != "\"" && quote != "'" {
         return Ok(String::from(""));
     }
-    state.advance(1);
+    state.advance(1)?;
     let mut result: String = String::from("");
     let mut closed: bool = false;
     'loop_value: while !state.at_end()? {
         let c: String = state.peek(0)?;
         if c == quote {
-            state.advance(1);
+            state.advance(1)?;
             closed = true;
             break 'loop_value;
         }
         if c == "\\" && !state.at_end()? {
-            state.advance(1);
+            state.advance(1)?;
             result.push_str(&state.peek(0)?);
-            state.advance(1);
+            state.advance(1)?;
             continue 'loop_value;
         }
         result.push_str(&c);
-        state.advance(1);
+        state.advance(1)?;
     }
     if !closed {
         return Err(rt::TsonicError::TsumoError(
@@ -442,7 +504,7 @@ pub fn parse_quoted_string(
                 source_path,
                 Some(rt::conversions::i32_to_f64(line)),
                 Some(rt::conversions::i32_to_f64(column)),
-            ),
+            )?,
         ));
     }
     Ok(result)
@@ -456,7 +518,7 @@ pub fn parse_unquoted_value(state: ParseState) -> Result<String, rt::TsonicError
             break 'loop_value;
         }
         result.push_str(&c);
-        state.advance(1);
+        state.advance(1)?;
     }
     Ok(result)
 }
@@ -470,7 +532,7 @@ pub fn parse_params(
     let params: js_abi::JsMap<String, crate::params::ParamValue> = js_abi::JsMap::new();
     let positional: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     let mut is_named: bool = false;
-    let state: ParseState = ParseState::new(js_string::trim(args_text));
+    let state: ParseState = ParseState::new(js_string::trim(args_text))?;
     'loop_value: while !state.at_end()? {
         state.skip_whitespace()?;
         if state.at_end()? {
@@ -488,7 +550,7 @@ pub fn parse_params(
             let c: String = state.peek(0)?;
             if c == "=" && state.peek(1)? != "=" {
                 found_equals = true;
-                state.advance(1);
+                state.advance(1)?;
                 break 'loop_value_2;
             }
             if c == " " || c == "\t" || c == "\n" || c == "\r" || c == ">" || c == "%" || c == "/" {
@@ -498,7 +560,7 @@ pub fn parse_params(
                 break 'loop_value_2;
             }
             key.push_str(&c);
-            state.advance(1);
+            state.advance(1)?;
         }
         if found_equals {
             if key.is_empty() {
@@ -509,7 +571,7 @@ pub fn parse_params(
                         source_path.clone(),
                         Some(rt::conversions::i32_to_f64(line)),
                         Some(rt::conversions::i32_to_f64(column)),
-                    ),
+                    )?,
                 ));
             }
             if params.has(&key) {
@@ -525,7 +587,7 @@ pub fn parse_params(
                         source_path.clone(),
                         Some(rt::conversions::i32_to_f64(line)),
                         Some(rt::conversions::i32_to_f64(column)),
-                    ),
+                    )?,
                 ));
             }
             is_named = true;
@@ -543,7 +605,7 @@ pub fn parse_params(
                         source_path.clone(),
                         Some(rt::conversions::i32_to_f64(line)),
                         Some(rt::conversions::i32_to_f64(column)),
-                    ),
+                    )?,
                 ));
             }
             let q: String = state.peek(0)?;
@@ -566,7 +628,7 @@ pub fn parse_params(
                         source_path.clone(),
                         Some(rt::conversions::i32_to_f64(line)),
                         Some(rt::conversions::i32_to_f64(column)),
-                    ),
+                    )?,
                 ));
             }
             {
@@ -574,7 +636,7 @@ pub fn parse_params(
                 operation_input_0.set_discard(
                     key.clone(),
                     if quoted {
-                        crate::params::ParamValue::string(value.clone())
+                        crate::params::ParamValue::string(value.clone())?
                     } else {
                         crate::params::ParamValue::parse_scalar(&value)?
                     },
@@ -600,7 +662,7 @@ pub fn parse_params(
                 source_path.clone(),
                 Some(rt::conversions::i32_to_f64(line)),
                 Some(rt::conversions::i32_to_f64(column)),
-            ),
+            )?,
         ));
     }
     Ok({
@@ -616,7 +678,7 @@ pub fn parse_params(
 }
 
 pub fn find_closing_tag(
-    text: String,
+    text: &str,
     name: String,
     start_pos: i32,
     is_markdown: bool,
@@ -639,11 +701,11 @@ pub fn find_closing_tag(
     let mut depth: i32 = 1;
     let mut pos: i32 = start_pos;
     let inner_start: i32 = start_pos;
-    while pos < rt::conversions::usize_to_i32(js_string::js_len(&text))? {
-        let remaining: String = crate::utils::strings::substring_from(&text, pos)?;
+    while pos < rt::conversions::usize_to_i32(js_string::js_len(text))? {
+        let remaining: String = crate::utils::strings::substring_from(text, pos)?;
         if js_string::starts_with_from_start(&remaining, &open_tag) {
             let after_open: String = js_string::trim_start(&crate::utils::strings::substring_from(
-                &text,
+                text,
                 pos + rt::conversions::usize_to_i32(js_string::js_len(&open_tag))?,
             )?);
             if js_string::starts_with_from_start(
@@ -664,18 +726,15 @@ pub fn find_closing_tag(
         {
             depth -= 1;
             if depth == 0 {
-                let inner: String = crate::utils::strings::substring_count(
-                    text.clone(),
-                    inner_start,
-                    pos - inner_start,
-                )?;
+                let inner: String =
+                    crate::utils::strings::substring_count(text, inner_start, pos - inner_start)?;
                 let end_suffix: String = if is_markdown {
                     String::from("%}}")
                 } else {
                     String::from(">}}")
                 };
                 let close_end: i32 =
-                    crate::utils::strings::index_of_text_from(&text, end_suffix.clone(), pos)?;
+                    crate::utils::strings::index_of_text_from(text, end_suffix.clone(), pos)?;
                 if close_end < 0 {
                     return Ok(Option::<rt::ObjectHandle<crate::shapes::EndPosInnerShape>>::None);
                 }
@@ -690,7 +749,7 @@ pub fn find_closing_tag(
                 }));
             }
         }
-        pos += 1;
+        pos = crate::utils::strings::next_code_point_index(text, pos)?;
     }
     Ok(Option::<rt::ObjectHandle<crate::shapes::EndPosInnerShape>>::None)
 }
@@ -705,7 +764,7 @@ pub fn parse_shortcodes(
     {
         return Ok(results);
     }
-    let source_map: ShortcodeSourceMap = ShortcodeSourceMap::new(text.clone())?;
+    let source_map: ShortcodeSourceMap = ShortcodeSourceMap::new(&text)?;
     let mut pos: i32 = 0;
     'loop_value: while pos < rt::conversions::usize_to_i32(js_string::js_len(&text))? {
         let open_angle: i32 =
@@ -761,18 +820,18 @@ pub fn parse_shortcodes(
                     Some(rt::conversions::i32_to_f64(
                         position.state.with(|state| state.column),
                     )),
-                ),
+                )?,
             ));
         }
         let content: String = js_string::trim(&crate::utils::strings::substring_count(
-            text.clone(),
+            &text,
             open_pos + 3,
             close_pos - (open_pos + 3),
         )?);
         let is_self_closing: bool = js_string::ends_with_at_end(&content, "/");
         let tag_content: String = if is_self_closing {
             js_string::trim(&crate::utils::strings::substring_count(
-                content.clone(),
+                &content,
                 0,
                 rt::conversions::usize_to_i32(js_string::js_len(&content))? - 1,
             )?)
@@ -787,7 +846,7 @@ pub fn parse_shortcodes(
             rt::conversions::isize_to_i32(js_string::index_of_from_start(&tag_content, " "))?;
         let name: String = if first_space >= 0 {
             js_string::trim(&crate::utils::strings::substring_count(
-                tag_content.clone(),
+                &tag_content,
                 0,
                 first_space,
             )?)
@@ -818,7 +877,7 @@ pub fn parse_shortcodes(
                         Some(rt::conversions::i32_to_f64(
                             position.state.with(|state| state.column),
                         )),
-                    ),
+                    )?,
                 ));
             }
             pos = close_pos + rt::conversions::usize_to_i32(js_string::js_len(&close_suffix))?;
@@ -845,7 +904,7 @@ pub fn parse_shortcodes(
                 source_path.clone(),
                 position.state.with(|state| state.line),
                 position.state.with(|state| state.column),
-            );
+            )?;
             results.push_many_discard([call.clone()]);
             pos = close_pos + rt::conversions::usize_to_i32(js_string::js_len(&close_suffix))?;
             continue 'loop_value;
@@ -853,7 +912,7 @@ pub fn parse_shortcodes(
         let tag_end_pos: i32 =
             close_pos + rt::conversions::usize_to_i32(js_string::js_len(&close_suffix))?;
         let close_result: Option<rt::ObjectHandle<crate::shapes::EndPosInnerShape>> =
-            find_closing_tag(text.clone(), name.clone(), tag_end_pos, is_markdown)?;
+            find_closing_tag(&text, name.clone(), tag_end_pos, is_markdown)?;
         if close_result.is_some() {
             let call: ShortcodeCall = ShortcodeCall::new(
                 name.clone(),
@@ -876,7 +935,7 @@ pub fn parse_shortcodes(
                 source_path.clone(),
                 position.state.with(|state| state.line),
                 position.state.with(|state| state.column),
-            );
+            )?;
             results.push_many_discard([call.clone()]);
             pos = match close_result.as_ref() {
                 Some(flow_value_3) => flow_value_3.clone(),
@@ -897,7 +956,7 @@ pub fn parse_shortcodes(
                 source_path.clone(),
                 position.state.with(|state| state.line),
                 position.state.with(|state| state.column),
-            );
+            )?;
             results.push_many_discard([call.clone()]);
             pos = tag_end_pos;
         }
@@ -915,11 +974,8 @@ pub fn collect_shortcode_names(
         let mut pending_index: i32 = 0;
         while pending_index < rt::conversions::usize_to_i32(pending.len())? {
             let calls: js_abi::JsArray<ShortcodeCall> = parse_shortcodes(
-                match pending
-                    .get_number(rt::conversions::i32_to_f64(pending_index))
-                    .as_ref()
-                {
-                    Some(flow_value) => flow_value.clone(),
+                match pending.get_number(rt::conversions::i32_to_f64(pending_index)) {
+                    Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
                 source_path.clone(),
@@ -927,13 +983,11 @@ pub fn collect_shortcode_names(
             {
                 let mut call_index: i32 = 0;
                 while call_index < rt::conversions::usize_to_i32(calls.len())? {
-                    let call: ShortcodeCall = match calls
-                        .get_number(rt::conversions::i32_to_f64(call_index))
-                        .as_ref()
-                    {
-                        Some(flow_value_2) => flow_value_2.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    };
+                    let call: ShortcodeCall =
+                        match calls.get_number(rt::conversions::i32_to_f64(call_index)) {
+                            Some(flow_value_2) => flow_value_2,
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        };
                     {
                         let operation_input_0 = names.clone();
                         operation_input_0
@@ -964,8 +1018,8 @@ pub fn inner_deindent(inner: String) -> Result<String, rt::TsonicError> {
     {
         let mut i: i32 = 0;
         'loop_value: while i < rt::conversions::usize_to_i32(lines.len())? {
-            let line: String = match lines.get_number(rt::conversions::i32_to_f64(i)).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let line: String = match lines.get_number(rt::conversions::i32_to_f64(i)) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if js_string::trim(&line).is_empty() {
@@ -976,7 +1030,7 @@ pub fn inner_deindent(inner: String) -> Result<String, rt::TsonicError> {
             {
                 let mut j: i32 = 0;
                 'loop_value_2: while j < rt::conversions::usize_to_i32(js_string::js_len(&line))? {
-                    let c: String = crate::utils::strings::substring_count(line.clone(), j, 1)?;
+                    let c: String = crate::utils::strings::code_point_at_text(&line, j)?;
                     if c == " " {
                         indent += 1;
                     } else if c == "\t" {
@@ -1000,8 +1054,8 @@ pub fn inner_deindent(inner: String) -> Result<String, rt::TsonicError> {
     {
         let mut i: i32 = 0;
         'loop_value_3: while i < rt::conversions::usize_to_i32(lines.len())? {
-            let line: String = match lines.get_number(rt::conversions::i32_to_f64(i)).as_ref() {
-                Some(flow_value_2) => flow_value_2.clone(),
+            let line: String = match lines.get_number(rt::conversions::i32_to_f64(i)) {
+                Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if js_string::trim(&line).is_empty() {
@@ -1016,7 +1070,7 @@ pub fn inner_deindent(inner: String) -> Result<String, rt::TsonicError> {
                 'loop_value_4: while j < rt::conversions::usize_to_i32(js_string::js_len(&line))?
                     && removed < min_indent
                 {
-                    let c: String = crate::utils::strings::substring_count(line.clone(), j, 1)?;
+                    let c: String = crate::utils::strings::code_point_at_text(&line, j)?;
                     if c == " " {
                         removed += 1;
                         start_idx += 1;
@@ -1043,12 +1097,10 @@ pub fn inner_deindent(inner: String) -> Result<String, rt::TsonicError> {
         if i > 0 {
             out.push('\n');
         }
-        out.push_str(
-            &match arr.get_number(rt::conversions::i32_to_f64(i)).as_ref() {
-                Some(flow_value_3) => flow_value_3.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            },
-        );
+        out.push_str(&match arr.get_number(rt::conversions::i32_to_f64(i)) {
+            Some(flow_value_3) => flow_value_3,
+            None => unreachable!("checked flow selected a missing optional value"),
+        });
     }
     Ok(out)
 }

@@ -27,7 +27,7 @@ namespace Tsumo.Tests
             older.Params.set("weight", ParamValue.number(20));
             newer.Params.set("weight", ParamValue.number(10));
             PageContext root = TemplateTestHarness.createPage(site, "Home", "", "home");
-            root.pages = new Tsonic.CSharp.Js.JSArray<PageContext>(new PageContext[] { older, newer });
+            root.pages = Tsonic.CSharp.Js.JSArray<PageContext>.of([older, newer]);
             PageContext section = TemplateTestHarness.createPage(site, "Section", "", "section");
             root.pages.push(section);
             site.pages = root.pages;
@@ -57,7 +57,7 @@ namespace Tsumo.Tests
             PageContext page = TemplateTestHarness.createPage(site, "Article", "2024-01-01T00:00:00Z", "page");
             PageContext term = TemplateTestHarness.createPage(site, "TypeScript", "", "term");
             Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<PageContext>> memberships = new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<PageContext>>();
-            memberships.set("typescript", new Tsonic.CSharp.Js.JSArray<PageContext>(new PageContext[] { page }));
+            memberships.set("typescript", Tsonic.CSharp.Js.JSArray<PageContext>.of([page]));
             site.Taxonomies.set("tags", memberships);
             Tsonic.CSharp.Js.Map<string, PageContext> termPages = new Tsonic.CSharp.Js.Map<string, PageContext>();
             termPages.set("typescript", term);
@@ -74,8 +74,8 @@ namespace Tsumo.Tests
             MenuEntry child = new MenuEntry("Article", "", "", "", 0, "section", "article", "", "", "main");
             parent.page = section;
             child.page = article;
-            parent.children = new Tsonic.CSharp.Js.JSArray<MenuEntry>(new MenuEntry[] { child });
-            site.Menus.set("main", new Tsonic.CSharp.Js.JSArray<MenuEntry>(new MenuEntry[] { parent }));
+            parent.children = Tsonic.CSharp.Js.JSArray<MenuEntry>.of([child]);
+            site.Menus.set("main", Tsonic.CSharp.Js.JSArray<MenuEntry>.of([parent]));
             Xunit.Assert.Equal("true|false|false|true|false", TemplateTestHarness.renderWithRoot("{{ range .Site.Menus.main }}{{ $.HasMenuCurrent \"main\" . }}|{{ $.IsMenuCurrent \"main\" . }}|" + "{{ range .Children }}{{ $.HasMenuCurrent \"main\" . }}|{{ $.IsMenuCurrent \"main\" . }}|" + "{{ $.IsMenuCurrent \"other\" . }}{{ end }}{{ end }}", new PageValue(article)));
         }
         [Xunit.FactAttribute]

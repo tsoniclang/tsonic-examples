@@ -24,17 +24,21 @@ impl rt::ObjectIdentityCarrier for SelectedDataFile {
 }
 
 impl SelectedDataFile {
-    pub fn new(semantic_path: String, source_path: String, format: String) -> SelectedDataFile {
+    pub fn new(
+        semantic_path: String,
+        source_path: String,
+        format: String,
+    ) -> Result<SelectedDataFile, rt::TsonicError> {
         let field_semantic_path: String = semantic_path;
         let field_source_path: String = source_path;
         let field_format: String = format;
-        SelectedDataFile {
+        Ok(SelectedDataFile {
             state: rt::ObjectRef::new(SelectedDataFileState {
                 semantic_path: field_semantic_path,
                 source_path: field_source_path,
                 format: field_format,
             }),
-        }
+        })
     }
 }
 
@@ -55,8 +59,8 @@ pub fn data_format(path: String) -> Option<String> {
     Option::<String>::None
 }
 
-pub fn normalize_data_path(path: String) -> Result<String, rt::TsonicError> {
-    crate::utils::strings::replace_text(&path, String::from("\\"), String::from("/"))
+pub fn normalize_data_path(path: &str) -> Result<String, rt::TsonicError> {
+    crate::utils::strings::replace_text(path, String::from("\\"), String::from("/"))
 }
 
 pub fn collect_data_layer(
@@ -72,11 +76,8 @@ pub fn collect_data_layer(
     {
         let mut index: i32 = 0;
         'loop_value: while index < rt::conversions::usize_to_i32(files.len())? {
-            let source_path: String = match files
-                .get_number(rt::conversions::i32_to_f64(index))
-                .as_ref()
-            {
-                Some(flow_value) => flow_value.clone(),
+            let source_path: String = match files.get_number(rt::conversions::i32_to_f64(index)) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let format: Option<String> = data_format(source_path.clone());
@@ -85,7 +86,7 @@ pub fn collect_data_layer(
                 continue 'loop_value;
             }
             let relative_path: String =
-                normalize_data_path(tsonic_rust_node::path::relative(&root, &source_path))?;
+                normalize_data_path(&tsonic_rust_node::path::relative(&root, &source_path))?;
             let extension: String = tsonic_rust_node::path::extname(&relative_path);
             let semantic_path: String = {
                 let operation_input_0 = relative_path.clone();
@@ -122,7 +123,7 @@ pub fn collect_data_layer(
                         Some(source_path.clone()),
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
             {
@@ -136,7 +137,7 @@ pub fn collect_data_layer(
                             Some(flow_value_3) => flow_value_3.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
-                    ),
+                    )?,
                 )
             };
             index += 1;
@@ -165,11 +166,8 @@ pub fn set_data_path(
     {
         let mut index: i32 = 0;
         'loop_value: while index < rt::conversions::usize_to_i32(segments.len())? - 1 {
-            let segment: String = match segments
-                .get_number(rt::conversions::i32_to_f64(index))
-                .as_ref()
-            {
-                Some(flow_value) => flow_value.clone(),
+            let segment: String = match segments.get_number(rt::conversions::i32_to_f64(index)) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let existing: Option<crate::template::values::base::TemplateValue> = {
@@ -179,7 +177,7 @@ pub fn set_data_path(
             .get(&segment);
             if existing.is_none() {
                 let created: crate::template::values::dict::DictValue =
-                    crate::template::values::dict::DictValue::new(js_abi::JsMap::new());
+                    crate::template::values::dict::DictValue::new(js_abi::JsMap::new())?;
                 {
                     let dispatch_receiver_2 = &current;
                     dispatch_receiver_2.dispatch.read_dict_value_value()
@@ -220,7 +218,7 @@ pub fn set_data_path(
                         Some(source_path.clone()),
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
             current = {
@@ -239,16 +237,17 @@ pub fn set_data_path(
             index += 1;
         }
     }
-    let name: String = match {
-        let operation_input_0 = segments.clone();
-        operation_input_0.get_number(rt::conversions::i32_to_f64(
-            rt::conversions::usize_to_i32(segments.len())? - 1,
-        ))
-    }
-    .as_ref()
-    {
-        Some(flow_value_3) => flow_value_3.clone(),
-        None => unreachable!("checked flow selected a missing optional value"),
+    let name: String = {
+        let flow_input = {
+            let operation_input_0 = segments.clone();
+            operation_input_0.get_number(rt::conversions::i32_to_f64(
+                rt::conversions::usize_to_i32(segments.len())? - 1,
+            ))
+        };
+        match flow_input {
+            Some(flow_value_3) => flow_value_3,
+            None => unreachable!("checked flow selected a missing optional value"),
+        }
     };
     if {
         let dispatch_receiver_3 = &current;
@@ -268,14 +267,14 @@ pub fn set_data_path(
                 Some(source_path.clone()),
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     {
         let dispatch_receiver_4 = &current;
         dispatch_receiver_4.dispatch.read_dict_value_value()
     }
-    .set_discard(name.clone(), value);
+    .set_discard(name, value);
     Ok(())
 }
 
@@ -313,14 +312,13 @@ pub fn load_site_data(
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
                 .get_number(rt::conversions::i32_to_f64(index))
-                .as_ref()
                 {
-                    Some(flow_value_4) => flow_value_4.clone(),
+                    Some(flow_value_4) => flow_value_4,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 let target: String = crate::utils::strings::trim_end_char(
                     crate::utils::strings::trim_start_char(
-                        &normalize_data_path({
+                        normalize_data_path(&{
                             let dispatch_receiver = &mount;
                             dispatch_receiver.dispatch.read_module_mount_target()
                         })?,
@@ -364,15 +362,12 @@ pub fn load_site_data(
     let identities: js_abi::JsArray<String> = js_abi::array_from_vec(&selected.keys());
     identities.sort_by_js_string();
     let root: crate::template::values::dict::DictValue =
-        crate::template::values::dict::DictValue::new(js_abi::JsMap::new());
+        crate::template::values::dict::DictValue::new(js_abi::JsMap::new())?;
     {
         let mut index: i32 = 0;
         while index < rt::conversions::usize_to_i32(identities.len())? {
-            let identity: String = match identities
-                .get_number(rt::conversions::i32_to_f64(index))
-                .as_ref()
-            {
-                Some(flow_value_5) => flow_value_5.clone(),
+            let identity: String = match identities.get_number(rt::conversions::i32_to_f64(index)) {
+                Some(flow_value_5) => flow_value_5,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let file: Option<SelectedDataFile> = selected.get(&identity);
@@ -389,7 +384,7 @@ pub fn load_site_data(
                         None,
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
             let value: crate::template::values::base::TemplateValue =

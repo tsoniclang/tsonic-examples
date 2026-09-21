@@ -50,13 +50,13 @@ namespace Tsumo.Tests
             createPage = (SiteContext site, string route, string slug) =>
             {
                 HtmlString emptyHtml = new HtmlString("");
-                Tsonic.CSharp.Js.JSArray<PageContext> emptyPages = new Tsonic.CSharp.Js.JSArray<PageContext>(new PageContext[] { });
-                Tsonic.CSharp.Js.JSArray<string> emptyStrings = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                Tsonic.CSharp.Js.JSArray<PageContext> emptyPages = Tsonic.CSharp.Js.JSArray<PageContext>.of([]);
+                Tsonic.CSharp.Js.JSArray<string> emptyStrings = Tsonic.CSharp.Js.JSArray<string>.of([]);
                 return new PageContext(slug, "2026-01-01T00:00:00.000Z", "2026-01-01T00:00:00.000Z", false, "page", "articles", "articles", slug, route, "", emptyHtml, emptyHtml, emptyHtml, "", emptyStrings, emptyStrings, site.Params, null, site.Language, emptyPages, null, site, emptyPages, null, emptyPages, null);
             };
             createSource = (string sourcePath, PageContext page) =>
             {
-                Tsonic.CSharp.Js.JSArray<FrontMatterMenu> emptyMenus = new Tsonic.CSharp.Js.JSArray<FrontMatterMenu>(new FrontMatterMenu[] { });
+                Tsonic.CSharp.Js.JSArray<FrontMatterMenu> emptyMenus = Tsonic.CSharp.Js.JSArray<FrontMatterMenu>.of([]);
                 return new ContentPageSource(sourcePath, page.section, page.type, page.slug, page.title, new Tsonic.CSharp.Js.Date("2026-01-01T00:00:00.000Z"), page.date, page.lastmod, false, false, "", page.tags, page.categories, page.Params, "", page.relPermalink, "articles/post/index.html", null, new PageFile(sourcePath, "articles/", page.slug), emptyMenus);
             };
             return null;
@@ -165,36 +165,36 @@ namespace Tsumo.Tests
         [Xunit.FactAttribute]
         public void menu_hierarchy_is_deterministic_and_fails_closed()
         {
-            Tsonic.CSharp.Js.JSArray<MenuEntry> hierarchy = Node_modules_Tsumo_engine_src_menus.buildMenuHierarchy(new Tsonic.CSharp.Js.JSArray<MenuEntry>(new MenuEntry[] { ContentAndMenuTest.createMenuEntry("beta", "", 0, ""), ContentAndMenuTest.createMenuEntry("child", "alpha", 0, ""), ContentAndMenuTest.createMenuEntry("alpha", "", 0, "") }));
+            Tsonic.CSharp.Js.JSArray<MenuEntry> hierarchy = Node_modules_Tsumo_engine_src_menus.buildMenuHierarchy(Tsonic.CSharp.Js.JSArray<MenuEntry>.of([ContentAndMenuTest.createMenuEntry("beta", "", 0, ""), ContentAndMenuTest.createMenuEntry("child", "alpha", 0, ""), ContentAndMenuTest.createMenuEntry("alpha", "", 0, "")]));
             Xunit.Assert.Equal<double>(2, hierarchy.length);
             Xunit.Assert.True(hierarchy[0].identifier == "alpha");
             Xunit.Assert.True(hierarchy[0].children[0].identifier == "child");
             Xunit.Assert.True(hierarchy[1].identifier == "beta");
             Xunit.Assert.Equal("TSUMO_MENU_IDENTITY_DUPLICATE", ContentAndMenuTest.captureContentDiagnostic(() =>
             {
-                Node_modules_Tsumo_engine_src_menus.buildMenuHierarchy(new Tsonic.CSharp.Js.JSArray<MenuEntry>(new MenuEntry[] { ContentAndMenuTest.createMenuEntry("same", "", 0, ""), ContentAndMenuTest.createMenuEntry("same", "", 1, "") }));
+                Node_modules_Tsumo_engine_src_menus.buildMenuHierarchy(Tsonic.CSharp.Js.JSArray<MenuEntry>.of([ContentAndMenuTest.createMenuEntry("same", "", 0, ""), ContentAndMenuTest.createMenuEntry("same", "", 1, "")]));
             }));
             Xunit.Assert.Equal("TSUMO_MENU_PARENT_NOT_FOUND", ContentAndMenuTest.captureContentDiagnostic(() =>
             {
-                Node_modules_Tsumo_engine_src_menus.buildMenuHierarchy(new Tsonic.CSharp.Js.JSArray<MenuEntry>(new MenuEntry[] { ContentAndMenuTest.createMenuEntry("child", "missing", 0, "") }));
+                Node_modules_Tsumo_engine_src_menus.buildMenuHierarchy(Tsonic.CSharp.Js.JSArray<MenuEntry>.of([ContentAndMenuTest.createMenuEntry("child", "missing", 0, "")]));
             }));
             Xunit.Assert.Equal("TSUMO_MENU_PARENT_CYCLE", ContentAndMenuTest.captureContentDiagnostic(() =>
             {
-                Node_modules_Tsumo_engine_src_menus.buildMenuHierarchy(new Tsonic.CSharp.Js.JSArray<MenuEntry>(new MenuEntry[] { ContentAndMenuTest.createMenuEntry("one", "two", 0, ""), ContentAndMenuTest.createMenuEntry("two", "one", 0, "") }));
+                Node_modules_Tsumo_engine_src_menus.buildMenuHierarchy(Tsonic.CSharp.Js.JSArray<MenuEntry>.of([ContentAndMenuTest.createMenuEntry("one", "two", 0, ""), ContentAndMenuTest.createMenuEntry("two", "one", 0, "")]));
             }));
         }
         [Xunit.FactAttribute]
         public void menu_page_references_use_exact_routes_without_slug_fallback()
         {
             SiteConfig config = new SiteConfig("Test", "https://example.invalid/", "en", null, null);
-            SiteContext site = new SiteContext(config, new Tsonic.CSharp.Js.JSArray<PageContext>(new PageContext[] { }), null, null);
+            SiteContext site = new SiteContext(config, Tsonic.CSharp.Js.JSArray<PageContext>.of([]), null, null);
             PageContext page = ContentAndMenuTest.createPage(site, "/articles/post/", "post");
             ContentPageSource source = ContentAndMenuTest.createSource("/content/articles/post.md", page);
-            Tsonic.CSharp.Js.JSArray<ContentPageSource> sources = new Tsonic.CSharp.Js.JSArray<ContentPageSource>(new ContentPageSource[] { source });
-            Tsonic.CSharp.Js.JSArray<PageContext> pages = new Tsonic.CSharp.Js.JSArray<PageContext>(new PageContext[] { page });
+            Tsonic.CSharp.Js.JSArray<ContentPageSource> sources = Tsonic.CSharp.Js.JSArray<ContentPageSource>.of([source]);
+            Tsonic.CSharp.Js.JSArray<PageContext> pages = Tsonic.CSharp.Js.JSArray<PageContext>.of([page]);
             site.pages = pages;
             MenuEntry exact = ContentAndMenuTest.createMenuEntry("exact", "", 0, "/articles/post/");
-            site.Menus.set("main", new Tsonic.CSharp.Js.JSArray<MenuEntry>(new MenuEntry[] { exact }));
+            site.Menus.set("main", Tsonic.CSharp.Js.JSArray<MenuEntry>.of([exact]));
             Node_modules_Tsumo_engine_src_build_menuResolution.configureSiteMenus(sources, pages, site);
             PageContext? resolvedPage = exact.page;
             Xunit.Assert.True(resolvedPage is not null);
@@ -203,7 +203,7 @@ namespace Tsumo.Tests
                 throw new Tsonic.CSharp.Runtime.Error("Expected exact menu page resolution");
             }
             Xunit.Assert.Equal("/articles/post/", resolvedPage.relPermalink);
-            site.Menus.set("main", new Tsonic.CSharp.Js.JSArray<MenuEntry>(new MenuEntry[] { ContentAndMenuTest.createMenuEntry("shorthand", "", 0, "post") }));
+            site.Menus.set("main", Tsonic.CSharp.Js.JSArray<MenuEntry>.of([ContentAndMenuTest.createMenuEntry("shorthand", "", 0, "post")]));
             Xunit.Assert.Equal("TSUMO_MENU_PAGE_REF_NOT_FOUND", ContentAndMenuTest.captureContentDiagnostic(() =>
             {
                 Node_modules_Tsumo_engine_src_build_menuResolution.configureSiteMenus(sources, pages, site);

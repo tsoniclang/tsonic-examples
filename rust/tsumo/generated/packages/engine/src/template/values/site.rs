@@ -5,13 +5,22 @@ use tsonic_rust_js::abi as js_abi;
 
 #[doc(hidden)]
 pub trait SiteValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_site_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_site_value_to_site_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn SiteValueDispatch + 'static>> {
         None
     }
     fn read_site_value_value(&self) -> crate::models::site_context::SiteContext;
-    fn write_site_value_value(&self, value: crate::models::site_context::SiteContext);
+    fn write_site_value_value(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -50,33 +59,36 @@ impl rt::ObjectIdentityCarrier for SiteValue {
 }
 
 pub(crate) struct SiteValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<SiteValueState>,
+    state: rt::ObjectState<SiteValueState>,
 }
 
 impl SiteValue {
     #[doc(hidden)]
-    pub fn initialize_state(value: crate::models::site_context::SiteContext) -> SiteValueState {
+    pub fn initialize_state(
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<SiteValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: crate::models::site_context::SiteContext = value;
-        SiteValueState {
+        Ok(SiteValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: crate::models::site_context::SiteContext) -> SiteValue {
-        let state = SiteValue::initialize_state(value);
+    pub fn new(
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<SiteValue, rt::TsonicError> {
+        let state = SiteValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(SiteValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        SiteValue {
+        Ok(SiteValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -96,6 +108,13 @@ impl crate::template::values::base::TemplateValueDispatch for SiteValueRoot {
 }
 
 impl SiteValueDispatch for SiteValueRoot {
+    fn downcast_site_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_site_value_to_site_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn SiteValueDispatch + 'static>> {
@@ -106,20 +125,38 @@ impl SiteValueDispatch for SiteValueRoot {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_site_value_value(&self, value: crate::models::site_context::SiteContext) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_site_value_value(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
 #[doc(hidden)]
 pub trait LanguageValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_language_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_language_value_to_language_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn LanguageValueDispatch + 'static>> {
         None
     }
     fn read_language_value_value(&self) -> crate::models::language::LanguageContext;
-    fn write_language_value_value(&self, value: crate::models::language::LanguageContext);
+    fn write_language_value_value(
+        &self,
+        value: crate::models::language::LanguageContext,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -158,33 +195,36 @@ impl rt::ObjectIdentityCarrier for LanguageValue {
 }
 
 pub(crate) struct LanguageValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<LanguageValueState>,
+    state: rt::ObjectState<LanguageValueState>,
 }
 
 impl LanguageValue {
     #[doc(hidden)]
-    pub fn initialize_state(value: crate::models::language::LanguageContext) -> LanguageValueState {
+    pub fn initialize_state(
+        value: crate::models::language::LanguageContext,
+    ) -> Result<LanguageValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: crate::models::language::LanguageContext = value;
-        LanguageValueState {
+        Ok(LanguageValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: crate::models::language::LanguageContext) -> LanguageValue {
-        let state = LanguageValue::initialize_state(value);
+    pub fn new(
+        value: crate::models::language::LanguageContext,
+    ) -> Result<LanguageValue, rt::TsonicError> {
+        let state = LanguageValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(LanguageValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        LanguageValue {
+        Ok(LanguageValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -204,6 +244,13 @@ impl crate::template::values::base::TemplateValueDispatch for LanguageValueRoot 
 }
 
 impl LanguageValueDispatch for LanguageValueRoot {
+    fn downcast_language_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_language_value_to_language_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn LanguageValueDispatch + 'static>> {
@@ -214,20 +261,38 @@ impl LanguageValueDispatch for LanguageValueRoot {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_language_value_value(&self, value: crate::models::language::LanguageContext) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_language_value_value(
+        &self,
+        value: crate::models::language::LanguageContext,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
 #[doc(hidden)]
 pub trait SitesValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_sites_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_sites_value_to_sites_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn SitesValueDispatch + 'static>> {
         None
     }
     fn read_sites_value_value(&self) -> crate::models::site_context::SiteContext;
-    fn write_sites_value_value(&self, value: crate::models::site_context::SiteContext);
+    fn write_sites_value_value(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -266,33 +331,36 @@ impl rt::ObjectIdentityCarrier for SitesValue {
 }
 
 pub(crate) struct SitesValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<SitesValueState>,
+    state: rt::ObjectState<SitesValueState>,
 }
 
 impl SitesValue {
     #[doc(hidden)]
-    pub fn initialize_state(value: crate::models::site_context::SiteContext) -> SitesValueState {
+    pub fn initialize_state(
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<SitesValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: crate::models::site_context::SiteContext = value;
-        SitesValueState {
+        Ok(SitesValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: crate::models::site_context::SiteContext) -> SitesValue {
-        let state = SitesValue::initialize_state(value);
+    pub fn new(
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<SitesValue, rt::TsonicError> {
+        let state = SitesValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(SitesValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        SitesValue {
+        Ok(SitesValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -312,6 +380,13 @@ impl crate::template::values::base::TemplateValueDispatch for SitesValueRoot {
 }
 
 impl SitesValueDispatch for SitesValueRoot {
+    fn downcast_sites_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_sites_value_to_sites_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn SitesValueDispatch + 'static>> {
@@ -322,13 +397,28 @@ impl SitesValueDispatch for SitesValueRoot {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_sites_value_value(&self, value: crate::models::site_context::SiteContext) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_sites_value_value(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
 #[doc(hidden)]
 pub trait SitesArrayValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_sites_array_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_sites_array_value_to_sites_array_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn SitesArrayValueDispatch + 'static>> {
@@ -340,7 +430,7 @@ pub trait SitesArrayValueDispatch: crate::template::values::base::TemplateValueD
     fn write_sites_array_value_value(
         &self,
         value: js_abi::JsArray<crate::models::site_context::SiteContext>,
-    );
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -379,37 +469,36 @@ impl rt::ObjectIdentityCarrier for SitesArrayValue {
 }
 
 pub(crate) struct SitesArrayValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<SitesArrayValueState>,
+    state: rt::ObjectState<SitesArrayValueState>,
 }
 
 impl SitesArrayValue {
     #[doc(hidden)]
     pub fn initialize_state(
         value: js_abi::JsArray<crate::models::site_context::SiteContext>,
-    ) -> SitesArrayValueState {
+    ) -> Result<SitesArrayValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: js_abi::JsArray<crate::models::site_context::SiteContext> = value;
-        SitesArrayValueState {
+        Ok(SitesArrayValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
     pub fn new(
         value: js_abi::JsArray<crate::models::site_context::SiteContext>,
-    ) -> SitesArrayValue {
-        let state = SitesArrayValue::initialize_state(value);
+    ) -> Result<SitesArrayValue, rt::TsonicError> {
+        let state = SitesArrayValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(SitesArrayValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        SitesArrayValue {
+        Ok(SitesArrayValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -429,6 +518,13 @@ impl crate::template::values::base::TemplateValueDispatch for SitesArrayValueRoo
 }
 
 impl SitesArrayValueDispatch for SitesArrayValueRoot {
+    fn downcast_sites_array_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_sites_array_value_to_sites_array_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn SitesArrayValueDispatch + 'static>> {
@@ -444,7 +540,13 @@ impl SitesArrayValueDispatch for SitesArrayValueRoot {
     fn write_sites_array_value_value(
         &self,
         value: js_abi::JsArray<crate::models::site_context::SiteContext>,
-    ) {
-        self.state.with_mut(|state| state.value = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

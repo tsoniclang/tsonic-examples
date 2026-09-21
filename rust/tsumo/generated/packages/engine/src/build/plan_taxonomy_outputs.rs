@@ -30,9 +30,8 @@ pub fn plan_taxonomy_outputs(
                     .read_standard_taxonomy_graph_taxonomies()
             }
             .get_number(taxonomy_index)
-            .as_ref()
             {
-                Some(flow_value) => flow_value.clone(),
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             {
@@ -46,9 +45,8 @@ pub fn plan_taxonomy_outputs(
                         .state
                         .with(|state| state.terms.clone())
                         .get_number(term_index)
-                        .as_ref()
                     {
-                        Some(flow_value_2) => flow_value_2.clone(),
+                        Some(flow_value_2) => flow_value_2,
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     let main: String = rt::option_coalesce(

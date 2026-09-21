@@ -4,21 +4,114 @@ namespace Tsumo.Engine
 {
     public static class Template_evaluation_render
     {
-        public static Func<double, Tsonic.CSharp.Js.JSArray<TemplateValue>> arrayKeys
+        internal static Tsonic.CSharp.Js.JSArray<TemplateValue> arrayKeys(double length)
         {
-            get;
-            private set;
-        } = default(Func<double, Tsonic.CSharp.Js.JSArray<TemplateValue>>)!;
-        public static Func<TemplateValue, TemplateRangeValues?> toRangeValues
+            Tsonic.CSharp.Js.JSArray<TemplateValue> keys = Tsonic.CSharp.Js.JSArray<TemplateValue>.of([]);
+            for (int index = 0; index < length; index++)
+            {
+                keys.push(new NumberValue(index));
+            }
+            return keys;
+        }
+        internal static TemplateRangeValues? toRangeValues(TemplateValue value)
         {
-            get;
-            private set;
-        } = default(Func<TemplateValue, TemplateRangeValues?>)!;
-        public static Func<RenderScope, TemplateValue, TemplateVariableBinding?, TemplateValue, RenderScope> createControlScope
+            Tsonic.CSharp.Js.JSArray<TemplateValue> values = Tsonic.CSharp.Js.JSArray<TemplateValue>.of([]);
+            if ((object?)value is PageArrayValue)
+            {
+                for (double index = 0; index < ((PageArrayValue)value).value.length; index++)
+                {
+                    values.push(new PageValue(((PageArrayValue)value).value[index]));
+                }
+                return new TemplateRangeValues(arrayKeys(values.length), values);
+            }
+            if ((object?)value is StringArrayValue)
+            {
+                for (double index_1 = 0; index_1 < ((StringArrayValue)value).value.length; index_1++)
+                {
+                    values.push(new StringValue(((StringArrayValue)value).value[index_1]));
+                }
+                return new TemplateRangeValues(arrayKeys(values.length), values);
+            }
+            if ((object?)value is DocsMountArrayValue)
+            {
+                for (double index_2 = 0; index_2 < ((DocsMountArrayValue)value).value.length; index_2++)
+                {
+                    values.push(new DocsMountValue(((DocsMountArrayValue)value).value[index_2]));
+                }
+                return new TemplateRangeValues(arrayKeys(values.length), values);
+            }
+            if ((object?)value is NavArrayValue)
+            {
+                for (double index_3 = 0; index_3 < ((NavArrayValue)value).value.length; index_3++)
+                {
+                    values.push(new NavItemValue(((NavArrayValue)value).value[index_3]));
+                }
+                return new TemplateRangeValues(arrayKeys(values.length), values);
+            }
+            if ((object?)value is SitesArrayValue)
+            {
+                for (double index_4 = 0; index_4 < ((SitesArrayValue)value).value.length; index_4++)
+                {
+                    values.push(new SiteValue(((SitesArrayValue)value).value[index_4]));
+                }
+                return new TemplateRangeValues(arrayKeys(values.length), values);
+            }
+            if ((object?)value is MenuArrayValue)
+            {
+                for (double index_5 = 0; index_5 < ((MenuArrayValue)value).value.length; index_5++)
+                {
+                    values.push(new MenuEntryValue(((MenuArrayValue)value).value[index_5], ((MenuArrayValue)value).site));
+                }
+                return new TemplateRangeValues(arrayKeys(values.length), values);
+            }
+            if ((object?)value is AnyArrayValue)
+            {
+                for (double index_6 = 0; index_6 < ((AnyArrayValue)value).value.length; index_6++)
+                {
+                    values.push(((AnyArrayValue)value).value[index_6]);
+                }
+                return new TemplateRangeValues(arrayKeys(values.length), values);
+            }
+            if ((object?)value is DictValue)
+            {
+                Tsonic.CSharp.Js.JSArray<string> names = Tsonic.CSharp.Js.JSArray<string>.of([]);
+                foreach (string name in ((DictValue)value).value.keys())
+                {
+                    names.push(name);
+                }
+                names.sort((string left, string right) => Utils_strings.compareText(left, right));
+                Tsonic.CSharp.Js.JSArray<TemplateValue> keys = Tsonic.CSharp.Js.JSArray<TemplateValue>.of([]);
+                for (double index_7 = 0; index_7 < names.length; index_7++)
+                {
+                    string name_1 = names[index_7];
+                    TemplateValue? item = Tsonic.CSharp.Js.Map.getReference<string, TemplateValue>(((DictValue)value).value, name_1);
+                    if (item is null)
+                    {
+                        continue;
+                    }
+                    keys.push(new StringValue(name_1));
+                    values.push(item);
+                }
+                return new TemplateRangeValues(keys, values);
+            }
+            return null;
+        }
+        internal static RenderScope createControlScope(RenderScope parent, TemplateValue dot, TemplateVariableBinding? binding, TemplateValue value)
         {
-            get;
-            private set;
-        } = default(Func<RenderScope, TemplateValue, TemplateVariableBinding?, TemplateValue, RenderScope>)!;
+            RenderScope scope = new RenderScope(parent.root, dot, parent.site, parent.env, parent);
+            if (binding is not null)
+            {
+                if (binding.declare)
+                {
+                    scope.declareVar(binding.name, value);
+                }
+                else
+                {
+                    scope.assignVar(binding.name, value);
+                }
+            }
+            return scope;
+        }
         public static Func<Tsonic.CSharp.Js.JSArray<TemplateNode>, TextBuilder, RenderScope, TemplateEnvironment, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>, string, string> renderTemplateNodes
         {
             get;
@@ -37,117 +130,9 @@ namespace Tsumo.Engine
             Template_runtimeHelpers.__tsonic_module_init();
             Template_values.__tsonic_module_init();
             Template_evaluation_evaluate.__tsonic_module_init();
-            arrayKeys = (double length) =>
-            {
-                Tsonic.CSharp.Js.JSArray<TemplateValue> keys = new Tsonic.CSharp.Js.JSArray<TemplateValue>(new TemplateValue[] { });
-                for (int index = 0; index < length; index++)
-                {
-                    keys.push(new NumberValue(index));
-                }
-                return keys;
-            };
-            toRangeValues = (TemplateValue value) =>
-            {
-                Tsonic.CSharp.Js.JSArray<TemplateValue> values = new Tsonic.CSharp.Js.JSArray<TemplateValue>(new TemplateValue[] { });
-                if (value is PageArrayValue)
-                {
-                    for (int index = 0; index < ((PageArrayValue)value).value.length; index++)
-                    {
-                        values.push(new PageValue(((PageArrayValue)value).value[index]));
-                    }
-                    return new TemplateRangeValues(arrayKeys(values.length), values);
-                }
-                if (value is StringArrayValue)
-                {
-                    for (int index_1 = 0; index_1 < ((StringArrayValue)value).value.length; index_1++)
-                    {
-                        values.push(new StringValue(((StringArrayValue)value).value[index_1]));
-                    }
-                    return new TemplateRangeValues(arrayKeys(values.length), values);
-                }
-                if (value is DocsMountArrayValue)
-                {
-                    for (int index_2 = 0; index_2 < ((DocsMountArrayValue)value).value.length; index_2++)
-                    {
-                        values.push(new DocsMountValue(((DocsMountArrayValue)value).value[index_2]));
-                    }
-                    return new TemplateRangeValues(arrayKeys(values.length), values);
-                }
-                if (value is NavArrayValue)
-                {
-                    for (int index_3 = 0; index_3 < ((NavArrayValue)value).value.length; index_3++)
-                    {
-                        values.push(new NavItemValue(((NavArrayValue)value).value[index_3]));
-                    }
-                    return new TemplateRangeValues(arrayKeys(values.length), values);
-                }
-                if (value is SitesArrayValue)
-                {
-                    for (int index_4 = 0; index_4 < ((SitesArrayValue)value).value.length; index_4++)
-                    {
-                        values.push(new SiteValue(((SitesArrayValue)value).value[index_4]));
-                    }
-                    return new TemplateRangeValues(arrayKeys(values.length), values);
-                }
-                if (value is MenuArrayValue)
-                {
-                    for (int index_5 = 0; index_5 < ((MenuArrayValue)value).value.length; index_5++)
-                    {
-                        values.push(new MenuEntryValue(((MenuArrayValue)value).value[index_5], ((MenuArrayValue)value).site));
-                    }
-                    return new TemplateRangeValues(arrayKeys(values.length), values);
-                }
-                if (value is AnyArrayValue)
-                {
-                    for (int index_6 = 0; index_6 < ((AnyArrayValue)value).value.length; index_6++)
-                    {
-                        values.push(((AnyArrayValue)value).value[index_6]);
-                    }
-                    return new TemplateRangeValues(arrayKeys(values.length), values);
-                }
-                if (value is DictValue)
-                {
-                    Tsonic.CSharp.Js.JSArray<string> names = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
-                    foreach (string name in ((DictValue)value).value.keys())
-                    {
-                        names.push(name);
-                    }
-                    names.sort((string left, string right) => Utils_strings.compareText(left, right));
-                    Tsonic.CSharp.Js.JSArray<TemplateValue> keys = new Tsonic.CSharp.Js.JSArray<TemplateValue>(new TemplateValue[] { });
-                    for (int index_7 = 0; index_7 < names.length; index_7++)
-                    {
-                        string name_1 = names[index_7];
-                        TemplateValue? item = Tsonic.CSharp.Js.Map.getReference<string, TemplateValue>(((DictValue)value).value, name_1);
-                        if (item is null)
-                        {
-                            continue;
-                        }
-                        keys.push(new StringValue(name_1));
-                        values.push(item);
-                    }
-                    return new TemplateRangeValues(keys, values);
-                }
-                return null;
-            };
-            createControlScope = (RenderScope parent, TemplateValue dot, TemplateVariableBinding? binding, TemplateValue value) =>
-            {
-                RenderScope scope = new RenderScope(parent.root, dot, parent.site, parent.env, parent);
-                if (binding is not null)
-                {
-                    if (binding.declare)
-                    {
-                        scope.declareVar(binding.name, value);
-                    }
-                    else
-                    {
-                        scope.assignVar(binding.name, value);
-                    }
-                }
-                return scope;
-            };
             renderTemplateNodes = (Tsonic.CSharp.Js.JSArray<TemplateNode> nodes, TextBuilder output, RenderScope scope, TemplateEnvironment environment, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> overrides, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> defines, string outputMode) =>
             {
-                for (int index = 0; index < nodes.length; index++)
+                for (double index = 0; index < nodes.length; index++)
                 {
                     string control = renderTemplateNode(nodes[index], output, scope, environment, overrides, defines, outputMode);
                     if (control != "normal")
@@ -159,17 +144,17 @@ namespace Tsumo.Engine
             };
             renderTemplateNode = (TemplateNode node, TextBuilder output, RenderScope scope, TemplateEnvironment environment, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> overrides, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> defines, string outputMode) =>
             {
-                if (node is TextNode)
+                if ((object?)node is TextNode)
                 {
                     output.append(((TextNode)node).text);
                     return "normal";
                 }
-                if (node is OutputNode)
+                if ((object?)node is OutputNode)
                 {
                     output.append(Template_runtimeHelpers.stringify(Template_evaluation_evaluate.evaluatePipeline(((OutputNode)node).pipeline, scope, environment, overrides, defines), outputMode == "html" && ((OutputNode)node).escape));
                     return "normal";
                 }
-                if (node is AssignmentNode)
+                if ((object?)node is AssignmentNode)
                 {
                     TemplateValue value = Template_evaluation_evaluate.evaluatePipeline(((AssignmentNode)node).pipeline, scope, environment, overrides, defines);
                     if (((AssignmentNode)node).declare)
@@ -182,18 +167,18 @@ namespace Tsumo.Engine
                     }
                     return "normal";
                 }
-                if (node is BreakNode)
+                if ((object?)node is BreakNode)
                 {
                     return "break";
                 }
-                if (node is ContinueNode)
+                if ((object?)node is ContinueNode)
                 {
                     return "continue";
                 }
-                if (node is TemplateInvokeNode)
+                if ((object?)node is TemplateInvokeNode)
                 {
                     TemplateValue context = Template_evaluation_evaluate.evaluatePipeline(((TemplateInvokeNode)node).context, scope, environment, overrides, defines);
-                    TemplateValue dot = context is NilValue ? scope.dot : context;
+                    TemplateValue dot = (object?)context is NilValue ? scope.dot : context;
                     Tsonic.CSharp.Js.JSArray<TemplateNode>? invokedNodes = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>(overrides, ((TemplateInvokeNode)node).name) ?? Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>(defines, ((TemplateInvokeNode)node).name);
                     if (invokedNodes is null)
                     {
@@ -214,20 +199,20 @@ namespace Tsumo.Engine
                     }
                     return "normal";
                 }
-                if (node is IfNode)
+                if ((object?)node is IfNode)
                 {
                     TemplateValue condition = Template_evaluation_evaluate.evaluatePipeline(((IfNode)node).condition, scope, environment, overrides, defines);
                     RenderScope blockScope = createControlScope(scope, scope.dot, ((IfNode)node).binding, condition);
                     return renderTemplateNodes(Template_runtimeHelpers.isTruthy(condition) ? ((IfNode)node).thenNodes : ((IfNode)node).elseNodes, output, blockScope, environment, overrides, defines, outputMode);
                 }
-                if (node is RangeNode)
+                if ((object?)node is RangeNode)
                 {
                     TemplateRangeValues? range = toRangeValues(Template_evaluation_evaluate.evaluatePipeline(((RangeNode)node).expr, scope, environment, overrides, defines));
                     if (range is null || range.values.length == 0)
                     {
                         return renderTemplateNodes(((RangeNode)node).elseBody, output, scope, environment, overrides, defines, outputMode);
                     }
-                    for (int index = 0; index < range.values.length; index++)
+                    for (double index = 0; index < range.values.length; index++)
                     {
                         TemplateValue value_1 = range.values[index];
                         RenderScope itemScope = new RenderScope(scope.root, value_1, scope.site, scope.env, scope);
@@ -253,10 +238,10 @@ namespace Tsumo.Engine
                     }
                     return "normal";
                 }
-                if (node is WithNode)
+                if ((object?)node is WithNode)
                 {
                     TemplateValue value_2 = Template_evaluation_evaluate.evaluatePipeline(((WithNode)node).expr, scope, environment, overrides, defines);
-                    if (value_2 is DeferredTemplateValue)
+                    if ((object?)value_2 is DeferredTemplateValue)
                     {
                         DeferredTemplateValue deferred = (DeferredTemplateValue)value_2;
                         output.append(environment.registerDeferredTemplate(deferred, ((WithNode)node).body, defines, scope.templateSourcePath, ((WithNode)node).sourceText, ((WithNode)node).sourceSegmentIndex, scope.site, overrides, scope.state));
@@ -269,10 +254,10 @@ namespace Tsumo.Engine
                     }
                     return renderTemplateNodes(((WithNode)node).body, output, nestedScope, environment, overrides, defines, outputMode);
                 }
-                if (node is BlockNode)
+                if ((object?)node is BlockNode)
                 {
                     TemplateValue context_1 = Template_evaluation_evaluate.evaluatePipeline(((BlockNode)node).context, scope, environment, overrides, defines);
-                    TemplateValue dot_1 = context_1 is NilValue ? scope.dot : context_1;
+                    TemplateValue dot_1 = (object?)context_1 is NilValue ? scope.dot : context_1;
                     RenderScope nestedScope_1 = new RenderScope(scope.root, dot_1, scope.site, scope.env, scope);
                     string control_2 = renderTemplateNodes(Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>(overrides, ((BlockNode)node).name) ?? ((BlockNode)node).fallback, output, nestedScope_1, environment, overrides, defines, outputMode);
                     if (control_2 != "normal")

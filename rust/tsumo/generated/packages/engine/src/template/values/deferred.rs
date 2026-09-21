@@ -6,18 +6,27 @@ use crate::program as rt;
 pub trait DeferredTemplateValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
+    fn downcast_deferred_template_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_deferred_template_value_to_deferred_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn DeferredTemplateValueDispatch + 'static>> {
         None
     }
     fn read_deferred_template_value_key(&self) -> Option<String>;
-    fn write_deferred_template_value_key(&self, value: Option<String>);
+    fn write_deferred_template_value_key(
+        &self,
+        value: Option<String>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_deferred_template_value_data(&self) -> crate::template::values::base::TemplateValue;
     fn write_deferred_template_value_data(
         &self,
         value: crate::template::values::base::TemplateValue,
-    );
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -57,9 +66,8 @@ impl rt::ObjectIdentityCarrier for DeferredTemplateValue {
 }
 
 pub(crate) struct DeferredTemplateValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<DeferredTemplateValueState>,
+    state: rt::ObjectState<DeferredTemplateValueState>,
 }
 
 impl DeferredTemplateValue {
@@ -67,31 +75,31 @@ impl DeferredTemplateValue {
     pub fn initialize_state(
         key: Option<String>,
         data: crate::template::values::base::TemplateValue,
-    ) -> DeferredTemplateValueState {
+    ) -> Result<DeferredTemplateValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_key: Option<String> = key;
         let field_data: crate::template::values::base::TemplateValue = data;
-        DeferredTemplateValueState {
+        Ok(DeferredTemplateValueState {
             base: base_state,
             key: field_key,
             data: field_data,
-        }
+        })
     }
 
     pub fn new(
         key: Option<String>,
         data: crate::template::values::base::TemplateValue,
-    ) -> DeferredTemplateValue {
-        let state = DeferredTemplateValue::initialize_state(key, data);
+    ) -> Result<DeferredTemplateValue, rt::TsonicError> {
+        let state = DeferredTemplateValue::initialize_state(key, data)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(DeferredTemplateValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        DeferredTemplateValue {
+        Ok(DeferredTemplateValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -111,6 +119,13 @@ impl crate::template::values::base::TemplateValueDispatch for DeferredTemplateVa
 }
 
 impl DeferredTemplateValueDispatch for DeferredTemplateValueRoot {
+    fn downcast_deferred_template_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_deferred_template_value_to_deferred_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn DeferredTemplateValueDispatch + 'static>> {
@@ -121,8 +136,17 @@ impl DeferredTemplateValueDispatch for DeferredTemplateValueRoot {
         self.state.with(|state| state.key.clone())
     }
 
-    fn write_deferred_template_value_key(&self, value: Option<String>) {
-        self.state.with_mut(|state| state.key = value);
+    fn write_deferred_template_value_key(
+        &self,
+        value: Option<String>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.key = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_deferred_template_value_data(&self) -> crate::template::values::base::TemplateValue {
@@ -132,7 +156,13 @@ impl DeferredTemplateValueDispatch for DeferredTemplateValueRoot {
     fn write_deferred_template_value_data(
         &self,
         value: crate::template::values::base::TemplateValue,
-    ) {
-        self.state.with_mut(|state| state.data = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.data = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

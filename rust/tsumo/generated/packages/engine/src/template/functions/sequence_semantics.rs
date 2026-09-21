@@ -37,8 +37,8 @@ pub fn sequence_argument(
             dispatch_receiver_2.dispatch.read_string_value_value()
         })?;
         if parsed.is_some() {
-            return Ok(match parsed.as_ref() {
-                Some(flow_value) => *flow_value,
+            return Ok(match parsed {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             });
         }
@@ -55,7 +55,7 @@ pub fn sequence_argument(
             None,
             None,
             None,
-        ),
+        )?,
     ))
 }
 
@@ -72,12 +72,12 @@ pub fn create_integer_sequence(
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     let mut first: i32 = sequence_argument(
-        match args.get_number(0.0).as_ref() {
-            Some(flow_value) => flow_value.clone(),
+        match args.get_number(0.0) {
+            Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
         },
         1,
@@ -86,9 +86,9 @@ pub fn create_integer_sequence(
     let mut last: i32 = first;
     if rt::conversions::usize_to_i32(args.len())? == 1 {
         if last == 0 {
-            return Ok(crate::template::values::arrays::AnyArrayValue::new(
+            return crate::template::values::arrays::AnyArrayValue::new(
                 js_abi::JsArray::from_dense(vec![]),
-            ));
+            );
         }
         if last > 0 {
             first = 1;
@@ -98,16 +98,17 @@ pub fn create_integer_sequence(
         }
     } else {
         last = sequence_argument(
-            match {
-                let operation_input_0 = args.clone();
-                operation_input_0.get_number(rt::conversions::i32_to_f64(
-                    rt::conversions::usize_to_i32(args.len())? - 1,
-                ))
-            }
-            .as_ref()
             {
-                Some(flow_value_2) => flow_value_2.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
+                let flow_input = {
+                    let operation_input_0 = args.clone();
+                    operation_input_0.get_number(rt::conversions::i32_to_f64(
+                        rt::conversions::usize_to_i32(args.len())? - 1,
+                    ))
+                };
+                match flow_input {
+                    Some(flow_value_2) => flow_value_2,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }
             },
             rt::conversions::usize_to_i32(args.len())?,
         )?;
@@ -117,8 +118,8 @@ pub fn create_integer_sequence(
             }
         } else {
             increment = sequence_argument(
-                match args.get_number(1.0).as_ref() {
-                    Some(flow_value_3) => flow_value_3.clone(),
+                match args.get_number(1.0) {
+                    Some(flow_value_3) => flow_value_3,
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
                 2,
@@ -133,7 +134,7 @@ pub fn create_integer_sequence(
                         None,
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
         }
@@ -163,7 +164,7 @@ pub fn create_integer_sequence(
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     let values: js_abi::JsArray<crate::template::values::base::TemplateValue> =
@@ -180,7 +181,8 @@ pub fn create_integer_sequence(
             {
                 let operation_input_0_2 = values.clone();
                 operation_input_0_2.push_many_discard([{
-                    let upcast_value = crate::template::values::primitives::NumberValue::new(value);
+                    let upcast_value =
+                        crate::template::values::primitives::NumberValue::new(value)?;
                     crate::template::values::base::TemplateValue {
                         identity: upcast_value.identity.clone(),
                         dispatch: upcast_value.dispatch.clone(),
@@ -203,7 +205,7 @@ pub fn create_integer_sequence(
                             None,
                             None,
                             None,
-                        ),
+                        )?,
                     ));
                 }
                 value = match next.as_ref() {
@@ -214,9 +216,7 @@ pub fn create_integer_sequence(
             index += 1;
         }
     }
-    Ok(crate::template::values::arrays::AnyArrayValue::new(
-        values.clone(),
-    ))
+    crate::template::values::arrays::AnyArrayValue::new(values.clone())
 }
 
 pub fn reverse_template_collection(
@@ -250,9 +250,8 @@ pub fn reverse_template_collection(
                             dispatch_receiver_2.dispatch.read_any_array_value_value()
                         }
                         .get_number(rt::conversions::i32_to_f64(index))
-                        .as_ref()
                         {
-                            Some(flow_value) => flow_value.clone(),
+                            Some(flow_value) => flow_value,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     ])
@@ -261,7 +260,7 @@ pub fn reverse_template_collection(
             }
         }
         return Ok(Some({
-            let upcast_value = crate::template::values::arrays::AnyArrayValue::new(result.clone());
+            let upcast_value = crate::template::values::arrays::AnyArrayValue::new(result.clone())?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value.identity.clone(),
                 dispatch: upcast_value.dispatch.clone(),
@@ -295,9 +294,8 @@ pub fn reverse_template_collection(
                             dispatch_receiver_4.dispatch.read_string_array_value_value()
                         }
                         .get_number(rt::conversions::i32_to_f64(index))
-                        .as_ref()
                         {
-                            Some(flow_value_2) => flow_value_2.clone(),
+                            Some(flow_value_2) => flow_value_2,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     ])
@@ -307,7 +305,7 @@ pub fn reverse_template_collection(
         }
         return Ok(Some({
             let upcast_value_2 =
-                crate::template::values::arrays::StringArrayValue::new(result.clone());
+                crate::template::values::arrays::StringArrayValue::new(result.clone())?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_2.identity.clone(),
                 dispatch: upcast_value_2.dispatch.clone(),
@@ -342,9 +340,8 @@ pub fn reverse_template_collection(
                             dispatch_receiver_6.dispatch.read_page_array_value_value()
                         }
                         .get_number(rt::conversions::i32_to_f64(index))
-                        .as_ref()
                         {
-                            Some(flow_value_3) => flow_value_3.clone(),
+                            Some(flow_value_3) => flow_value_3,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     ])
@@ -353,7 +350,8 @@ pub fn reverse_template_collection(
             }
         }
         return Ok(Some({
-            let upcast_value_3 = crate::template::values::page::PageArrayValue::new(result.clone());
+            let upcast_value_3 =
+                crate::template::values::page::PageArrayValue::new(result.clone())?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_3.identity.clone(),
                 dispatch: upcast_value_3.dispatch.clone(),

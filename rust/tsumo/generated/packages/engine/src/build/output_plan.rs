@@ -36,17 +36,17 @@ impl OutputClaim {
         relative_path: String,
         owner: String,
         asset_layer: Option<AssetLayer>,
-    ) -> OutputClaim {
+    ) -> Result<OutputClaim, rt::TsonicError> {
         let field_relative_path: String = relative_path;
         let field_owner: String = owner;
         let field_asset_layer: Option<AssetLayer> = asset_layer;
-        OutputClaim {
+        Ok(OutputClaim {
             state: rt::ObjectRef::new(OutputClaimState {
                 relative_path: field_relative_path,
                 owner: field_owner,
                 asset_layer: field_asset_layer,
             }),
-        }
+        })
     }
 }
 
@@ -68,13 +68,13 @@ impl rt::ObjectIdentityCarrier for FileSiteOutput {
 }
 
 impl FileSiteOutput {
-    pub fn new(source_path: String) -> FileSiteOutput {
+    pub fn new(source_path: String) -> Result<FileSiteOutput, rt::TsonicError> {
         let field_source_path: String = source_path;
-        FileSiteOutput {
+        Ok(FileSiteOutput {
             state: rt::ObjectRef::new(FileSiteOutputState {
                 source_path: field_source_path,
             }),
-        }
+        })
     }
 }
 
@@ -83,8 +83,7 @@ pub fn normalize_output_path(relative_path: String) -> Result<String, rt::Tsonic
     if normalized.is_empty()
         || js_string::starts_with_from_start(&normalized, "/")
         || tsonic_rust_node::path::is_absolute(&normalized)
-        || rt::conversions::usize_to_i32(js_string::js_len(&normalized))? >= 2
-            && js_string::char_at(&normalized, 1.0)? == ":"
+        || js_string::code_point_at(&normalized, 1.0) == Some(58.0)
     {
         return Err(rt::TsonicError::TsumoError(
             crate::diagnostics::create_tsumo_error(
@@ -97,16 +96,16 @@ pub fn normalize_output_path(relative_path: String) -> Result<String, rt::Tsonic
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     let segments: js_abi::JsArray<String> =
-        crate::build::site_routes::split_site_path(normalized.clone())?;
+        crate::build::site_routes::split_site_path(&normalized)?;
     {
         let mut index: f64 = 0.0;
         while index < (rt::conversions::usize_to_i32(segments.len())? as f64) {
-            let segment: String = match segments.get_number(index).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let segment: String = match segments.get_number(index) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if segment.is_empty() || segment == "." || segment == ".." {
@@ -121,7 +120,7 @@ pub fn normalize_output_path(relative_path: String) -> Result<String, rt::Tsonic
                         None,
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
             index += 1.0;
@@ -130,17 +129,14 @@ pub fn normalize_output_path(relative_path: String) -> Result<String, rt::Tsonic
     Ok(crate::build::site_routes::join_site_path(segments.clone()))
 }
 
-pub fn combine_output_path(
-    prefix: String,
-    relative_path: String,
-) -> Result<String, rt::TsonicError> {
+pub fn combine_output_path(prefix: &str, relative_path: String) -> Result<String, rt::TsonicError> {
     let normalized_relative_path: String = normalize_output_path(relative_path)?;
-    if js_string::trim(&prefix).is_empty() {
+    if js_string::trim(prefix).is_empty() {
         return Ok(normalized_relative_path);
     }
     normalize_output_path(format!(
         "{}{}{}",
-        crate::build::site_routes::normalize_site_path(&prefix)?,
+        crate::build::site_routes::normalize_site_path(prefix)?,
         String::from("/"),
         normalized_relative_path
     ))
@@ -170,7 +166,7 @@ pub fn resolve_output_path(
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     Ok(candidate)
@@ -184,11 +180,20 @@ pub trait SiteOutputPlanDispatch {
         None
     }
     fn read_site_output_plan_claims_by_path(&self) -> js_abi::JsMap<String, OutputClaim>;
-    fn write_site_output_plan_claims_by_path(&self, value: js_abi::JsMap<String, OutputClaim>);
+    fn write_site_output_plan_claims_by_path(
+        &self,
+        value: js_abi::JsMap<String, OutputClaim>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_site_output_plan_text_by_path(&self) -> js_abi::JsMap<String, String>;
-    fn write_site_output_plan_text_by_path(&self, value: js_abi::JsMap<String, String>);
+    fn write_site_output_plan_text_by_path(
+        &self,
+        value: js_abi::JsMap<String, String>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_site_output_plan_files_by_path(&self) -> js_abi::JsMap<String, FileSiteOutput>;
-    fn write_site_output_plan_files_by_path(&self, value: js_abi::JsMap<String, FileSiteOutput>);
+    fn write_site_output_plan_files_by_path(
+        &self,
+        value: js_abi::JsMap<String, FileSiteOutput>,
+    ) -> Result<(), rt::TsonicError>;
     fn dispatch_site_output_plan_add_text(
         self: alloc::rc::Rc<Self>,
         relative_path: String,
@@ -230,14 +235,14 @@ pub trait SiteOutputPlanDispatch {
     fn dispatch_site_output_plan_add_directory(
         self: alloc::rc::Rc<Self>,
         source_root: String,
-        output_prefix: String,
+        output_prefix: &str,
         owner: String,
         layer: AssetLayer,
     ) -> Result<(), rt::TsonicError>;
     fn exact_site_output_plan_add_directory(
         self: alloc::rc::Rc<Self>,
         source_root: String,
-        output_prefix: String,
+        output_prefix: &str,
         owner: String,
         layer: AssetLayer,
     ) -> Result<(), rt::TsonicError>;
@@ -310,39 +315,33 @@ impl rt::ObjectIdentityCarrier for SiteOutputPlan {
 
 pub(crate) struct SiteOutputPlanRoot {
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<SiteOutputPlanState>,
+    state: rt::ObjectState<SiteOutputPlanState>,
 }
 
 impl SiteOutputPlan {
     #[doc(hidden)]
-    pub fn initialize_state() -> SiteOutputPlanState {
+    pub fn initialize_state() -> Result<SiteOutputPlanState, rt::TsonicError> {
         let field_claims_by_path: js_abi::JsMap<String, OutputClaim> = js_abi::JsMap::new();
         let field_text_by_path: js_abi::JsMap<String, String> = js_abi::JsMap::new();
         let field_files_by_path: js_abi::JsMap<String, FileSiteOutput> = js_abi::JsMap::new();
-        SiteOutputPlanState {
+        Ok(SiteOutputPlanState {
             claims_by_path: field_claims_by_path,
             text_by_path: field_text_by_path,
             files_by_path: field_files_by_path,
-        }
+        })
     }
 
-    pub fn new() -> SiteOutputPlan {
-        let state = SiteOutputPlan::initialize_state();
+    pub fn new() -> Result<SiteOutputPlan, rt::TsonicError> {
+        let state = SiteOutputPlan::initialize_state()?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(SiteOutputPlanRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        SiteOutputPlan {
+        Ok(SiteOutputPlan {
             identity,
             dispatch: root,
-        }
-    }
-}
-
-impl Default for SiteOutputPlan {
-    fn default() -> Self {
-        Self::new()
+        })
     }
 }
 
@@ -377,7 +376,7 @@ impl SiteOutputPlanRoot {
                 };
                 operation_input_0.set_discard(
                     key.clone(),
-                    OutputClaim::new(output_path.clone(), owner.clone(), Some(layer)),
+                    OutputClaim::new(output_path.clone(), owner.clone(), Some(layer))?,
                 )
             };
             {
@@ -388,7 +387,7 @@ impl SiteOutputPlanRoot {
                         .read_site_output_plan_files_by_path()
                 };
                 operation_input_0_2
-                    .set_discard(key.clone(), FileSiteOutput::new(source_path.clone()))
+                    .set_discard(key.clone(), FileSiteOutput::new(source_path.clone())?)
             };
             return Ok(());
         }
@@ -410,7 +409,7 @@ impl SiteOutputPlanRoot {
                 };
                 operation_input_0_3.set_discard(
                     key.clone(),
-                    OutputClaim::new(output_path.clone(), owner.clone(), Some(layer)),
+                    OutputClaim::new(output_path.clone(), owner.clone(), Some(layer))?,
                 )
             };
             {
@@ -421,7 +420,7 @@ impl SiteOutputPlanRoot {
                         .read_site_output_plan_files_by_path()
                 };
                 operation_input_0_4
-                    .set_discard(key.clone(), FileSiteOutput::new(source_path.clone()))
+                    .set_discard(key.clone(), FileSiteOutput::new(source_path.clone())?)
             };
             return Ok(());
         }
@@ -432,8 +431,8 @@ impl SiteOutputPlanRoot {
                     .dispatch
                     .clone()
                     .dispatch_site_output_plan_throw_conflict(
-                        output_path.clone(),
-                        owner.clone(),
+                        output_path,
+                        owner,
                         match previous.as_ref() {
                             Some(flow_value_2) => flow_value_2.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
@@ -498,8 +497,8 @@ impl SiteOutputPlanRoot {
                     .dispatch
                     .clone()
                     .dispatch_site_output_plan_throw_conflict(
-                        output_path.clone(),
-                        owner.clone(),
+                        output_path,
+                        owner,
                         match previous.as_ref() {
                             Some(flow_value_3) => flow_value_3.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
@@ -513,7 +512,7 @@ impl SiteOutputPlanRoot {
     fn exact_site_output_plan_add_directory(
         self: alloc::rc::Rc<Self>,
         source_root: String,
-        output_prefix: String,
+        output_prefix: &str,
         owner: String,
         layer: AssetLayer,
     ) -> Result<(), rt::TsonicError> {
@@ -523,12 +522,12 @@ impl SiteOutputPlanRoot {
         };
         let files: js_abi::JsArray<String> =
             crate::fs::list_files_recursive(source_root.clone(), String::from("*"))?;
-        files.try_sort(crate::build::site_routes::compare_site_paths)?;
+        files.try_sort_borrowed(crate::build::site_routes::compare_site_paths)?;
         {
             let mut index: f64 = 0.0;
             while index < (rt::conversions::usize_to_i32(files.len())? as f64) {
-                let source_path: String = match files.get_number(index).as_ref() {
-                    Some(flow_value) => flow_value.clone(),
+                let source_path: String = match files.get_number(index) {
+                    Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 let relative_path: String = crate::build::site_routes::normalize_site_path(
@@ -540,7 +539,7 @@ impl SiteOutputPlanRoot {
                         .dispatch
                         .clone()
                         .dispatch_site_output_plan_add_asset(
-                            combine_output_path(output_prefix.clone(), relative_path.clone())?,
+                            combine_output_path(output_prefix, relative_path.clone())?,
                             source_path.clone(),
                             owner.clone(),
                             layer,
@@ -601,11 +600,7 @@ impl SiteOutputPlanRoot {
             };
             operation_input_0.set_discard(
                 key.clone(),
-                OutputClaim::new(
-                    output_path.clone(),
-                    owner.clone(),
-                    Option::<AssetLayer>::None,
-                ),
+                OutputClaim::new(output_path, owner, Option::<AssetLayer>::None)?,
             )
         };
         {
@@ -614,7 +609,7 @@ impl SiteOutputPlanRoot {
                 .dispatch
                 .read_site_output_plan_text_by_path()
         }
-        .set_discard(key.clone(), content);
+        .set_discard(key, content);
         Ok(())
     }
 
@@ -644,8 +639,8 @@ impl SiteOutputPlanRoot {
             'loop_value: while output_index
                 < (rt::conversions::usize_to_i32(output_paths.len())? as f64)
             {
-                let key: String = match output_paths.get_number(output_index).as_ref() {
-                    Some(flow_value) => flow_value.clone(),
+                let key: String = match output_paths.get_number(output_index) {
+                    Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 let mut content: Option<String> = {
@@ -669,7 +664,7 @@ impl SiteOutputPlanRoot {
                                 None,
                                 None,
                                 None,
-                            ),
+                            )?,
                         ));
                     }
                     let first: i32 =
@@ -713,7 +708,7 @@ impl SiteOutputPlanRoot {
                                     None,
                                     None,
                                     None,
-                                ),
+                                )?,
                             ));
                         }
                         resolved_placements.add_discard(token.clone());
@@ -761,7 +756,7 @@ impl SiteOutputPlanRoot {
                         None,
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
         }
@@ -805,12 +800,12 @@ impl SiteOutputPlanRoot {
             }
             .keys(),
         );
-        keys.try_sort(crate::build::site_routes::compare_site_paths)?;
+        keys.try_sort_borrowed(crate::build::site_routes::compare_site_paths)?;
         {
             let mut index: f64 = 0.0;
             'loop_value: while index < (rt::conversions::usize_to_i32(keys.len())? as f64) {
-                let key: String = match keys.get_number(index).as_ref() {
-                    Some(flow_value) => flow_value.clone(),
+                let key: String = match keys.get_number(index) {
+                    Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 let claim: Option<OutputClaim> = {
@@ -833,7 +828,7 @@ impl SiteOutputPlanRoot {
                             None,
                             None,
                             None,
-                        ),
+                        )?,
                     ));
                 }
                 let destination: String = resolve_output_path(
@@ -883,18 +878,19 @@ impl SiteOutputPlanRoot {
                             None,
                             None,
                             None,
-                        ),
+                        )?,
                     ));
                 }
                 crate::fs::ensure_dir(tsonic_rust_node::path::dirname(&destination))?;
                 tsonic_rust_node::fs::copy_file_sync(
-                    &match file.as_ref() {
+                    match file.as_ref() {
                         Some(flow_value_4) => flow_value_4.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                     .state
-                    .with(|state| state.source_path.clone()),
-                    &destination,
+                    .with(|state| state.source_path.clone())
+                    .as_str(),
+                    destination.as_str(),
                 )?;
                 index += 1.0;
             }
@@ -924,7 +920,7 @@ impl SiteOutputPlanRoot {
                 None,
                 None,
                 None,
-            ),
+            )?,
         ))
     }
 }
@@ -940,24 +936,51 @@ impl SiteOutputPlanDispatch for SiteOutputPlanRoot {
         self.state.with(|state| state.claims_by_path.clone())
     }
 
-    fn write_site_output_plan_claims_by_path(&self, value: js_abi::JsMap<String, OutputClaim>) {
-        self.state.with_mut(|state| state.claims_by_path = value);
+    fn write_site_output_plan_claims_by_path(
+        &self,
+        value: js_abi::JsMap<String, OutputClaim>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.claims_by_path = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_output_plan_text_by_path(&self) -> js_abi::JsMap<String, String> {
         self.state.with(|state| state.text_by_path.clone())
     }
 
-    fn write_site_output_plan_text_by_path(&self, value: js_abi::JsMap<String, String>) {
-        self.state.with_mut(|state| state.text_by_path = value);
+    fn write_site_output_plan_text_by_path(
+        &self,
+        value: js_abi::JsMap<String, String>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.text_by_path = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_output_plan_files_by_path(&self) -> js_abi::JsMap<String, FileSiteOutput> {
         self.state.with(|state| state.files_by_path.clone())
     }
 
-    fn write_site_output_plan_files_by_path(&self, value: js_abi::JsMap<String, FileSiteOutput>) {
-        self.state.with_mut(|state| state.files_by_path = value);
+    fn write_site_output_plan_files_by_path(
+        &self,
+        value: js_abi::JsMap<String, FileSiteOutput>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.files_by_path = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn dispatch_site_output_plan_add_text(
@@ -1041,7 +1064,7 @@ impl SiteOutputPlanDispatch for SiteOutputPlanRoot {
     fn dispatch_site_output_plan_add_directory(
         self: alloc::rc::Rc<Self>,
         source_root: String,
-        output_prefix: String,
+        output_prefix: &str,
         owner: String,
         layer: AssetLayer,
     ) -> Result<(), rt::TsonicError> {
@@ -1057,7 +1080,7 @@ impl SiteOutputPlanDispatch for SiteOutputPlanRoot {
     fn exact_site_output_plan_add_directory(
         self: alloc::rc::Rc<Self>,
         source_root: String,
-        output_prefix: String,
+        output_prefix: &str,
         owner: String,
         layer: AssetLayer,
     ) -> Result<(), rt::TsonicError> {

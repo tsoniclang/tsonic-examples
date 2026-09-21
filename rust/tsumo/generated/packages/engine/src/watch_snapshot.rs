@@ -22,15 +22,15 @@ impl rt::ObjectIdentityCarrier for WatchEntryState {
 }
 
 impl WatchEntryState {
-    pub fn new(modified_at: f64, size: f64) -> WatchEntryState {
+    pub fn new(modified_at: f64, size: f64) -> Result<WatchEntryState, rt::TsonicError> {
         let field_modified_at: f64 = modified_at;
         let field_size: f64 = size;
-        WatchEntryState {
+        Ok(WatchEntryState {
             state: rt::ObjectRef::new(WatchEntryStateState {
                 modified_at: field_modified_at,
                 size: field_size,
             }),
-        }
+        })
     }
 }
 
@@ -38,15 +38,13 @@ pub fn add_file_state(
     snapshot: js_abi::JsMap<String, WatchEntryState>,
     path: String,
 ) -> Result<(), rt::TsonicError> {
-    crate::fs::REJECT_FILESYSTEM_LINK
-        .with(|module_binding| module_binding.load())
-        .call((path.clone(),))?;
-    let stats: tsonic_rust_node::fs::Stats = tsonic_rust_node::fs::stat_sync(&path)?;
+    crate::fs::reject_filesystem_link(path.clone())?;
+    let stats: tsonic_rust_node::fs::Stats = tsonic_rust_node::fs::stat_sync(path.as_str())?;
     {
         let operation_input_0 = snapshot;
         operation_input_0.set_discard(
-            path.clone(),
-            WatchEntryState::new(stats.mtime_ms(), rt::conversions::u64_to_f64(stats.size)),
+            path,
+            WatchEntryState::new(stats.mtime_ms(), rt::conversions::u64_to_f64(stats.size))?,
         )
     };
     Ok(())
@@ -59,8 +57,8 @@ pub fn create_watch_snapshot(
     {
         let mut i: f64 = 0.0;
         'loop_value: while i < (rt::conversions::usize_to_i32(targets.len())? as f64) {
-            let target: String = match targets.get_number(i).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let target: String = match targets.get_number(i) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if crate::fs::file_exists(target.clone())? {
@@ -79,8 +77,8 @@ pub fn create_watch_snapshot(
                 while j < (rt::conversions::usize_to_i32(files.len())? as f64) {
                     add_file_state(
                         snapshot.clone(),
-                        match files.get_number(j).as_ref() {
-                            Some(flow_value_2) => flow_value_2.clone(),
+                        match files.get_number(j) {
+                            Some(flow_value_2) => flow_value_2,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     )?;

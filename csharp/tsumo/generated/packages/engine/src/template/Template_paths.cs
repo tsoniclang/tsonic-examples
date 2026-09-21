@@ -9,16 +9,22 @@ namespace Tsumo.Engine
             get;
             private set;
         } = default(Func<string, string>)!;
-        public static Func<string, string> templateDirectory
+        internal static string templateDirectory(string relativePath)
         {
-            get;
-            private set;
-        } = default(Func<string, string>)!;
-        public static Action<Tsonic.CSharp.Js.JSArray<string>, string> pushUnique
+            int lastSlash = Tsonic.CSharp.Js.String.lastIndexOf(relativePath, "/");
+            return lastSlash < 0 ? "" : Utils_strings.substringCount(relativePath, 0, lastSlash);
+        }
+        internal static void pushUnique(Tsonic.CSharp.Js.JSArray<string> values, string value)
         {
-            get;
-            private set;
-        } = default(Action<Tsonic.CSharp.Js.JSArray<string>, string>)!;
+            for (double index = 0; index < values.length; index++)
+            {
+                if (values[index] == value)
+                {
+                    return;
+                }
+            }
+            values.push(value);
+        }
         public static Func<string, string?, Tsonic.CSharp.Js.JSArray<string>> partialTemplateCandidates
         {
             get;
@@ -37,8 +43,8 @@ namespace Tsumo.Engine
                     throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_PATH_ABSOLUTE", $"Template path must be layout-root relative: {rawPath}");
                 }
                 Tsonic.CSharp.Js.JSArray<string> segments = Tsonic.CSharp.Js.String.split(normalized, "/");
-                Tsonic.CSharp.Js.JSArray<string> accepted = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
-                for (int index = 0; index < segments.length; index++)
+                Tsonic.CSharp.Js.JSArray<string> accepted = Tsonic.CSharp.Js.JSArray<string>.of([]);
+                for (double index = 0; index < segments.length; index++)
                 {
                     string segment = segments[index];
                     if (segment == "" || segment == ".")
@@ -57,22 +63,6 @@ namespace Tsumo.Engine
                 }
                 return Tsonic.CSharp.Js.Array.join(accepted, "/");
             };
-            templateDirectory = (string relativePath) =>
-            {
-                int lastSlash = Tsonic.CSharp.Js.String.lastIndexOf(relativePath, "/");
-                return lastSlash < 0 ? "" : Utils_strings.substringCount(relativePath, 0, lastSlash);
-            };
-            pushUnique = (Tsonic.CSharp.Js.JSArray<string> values, string value) =>
-            {
-                for (int index = 0; index < values.length; index++)
-                {
-                    if (values[index] == value)
-                    {
-                        return;
-                    }
-                }
-                values.push(value);
-            };
             partialTemplateCandidates = (string nameRaw, string? callerRelativePath) =>
             {
                 string name = normalizeTemplateRelativePath(nameRaw);
@@ -80,7 +70,7 @@ namespace Tsumo.Engine
                 {
                     throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_PARTIAL_NAME_EMPTY", "Template partial name cannot be empty");
                 }
-                Tsonic.CSharp.Js.JSArray<string> candidates = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                Tsonic.CSharp.Js.JSArray<string> candidates = Tsonic.CSharp.Js.JSArray<string>.of([]);
                 pushUnique(candidates, $"partials/{name}");
                 pushUnique(candidates, $"_partials/{name}");
                 if (callerRelativePath is not null)

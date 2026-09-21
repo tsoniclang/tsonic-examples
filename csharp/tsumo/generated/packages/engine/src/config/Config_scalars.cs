@@ -4,11 +4,10 @@ namespace Tsumo.Engine
 {
     public static class Config_scalars
     {
-        public static Func<string, string, string?, int, ParamValue> parseScalarText
+        internal static ParamValue parseScalarText(string value, string format, string? sourcePath, int line)
         {
-            get;
-            private set;
-        } = default(Func<string, string, string?, int, ParamValue>)!;
+            return Utils_structuredScalars.parseStructuredScalar(value, format, (string message) => Diagnostics.createTsumoError("TSUMO_CONFIG_SYNTAX_INVALID", message, sourcePath, line, 1));
+        }
         public static Func<string, string, string?, int, ParamValue> parseConfigParam
         {
             get;
@@ -29,10 +28,6 @@ namespace Tsumo.Engine
         {
             Params.__tsonic_module_init();
             Utils_structuredScalars.__tsonic_module_init();
-            parseScalarText = (string value, string format, string? sourcePath, int line) =>
-            {
-                return Utils_structuredScalars.parseStructuredScalar(value, format, (string message) => Diagnostics.createTsumoError("TSUMO_CONFIG_SYNTAX_INVALID", message, sourcePath, line, 1));
-            };
             parseConfigParam = (string value, string format, string? sourcePath, int line) => parseScalarText(value, format, sourcePath, line);
             parseConfigString = (string field, string value, string format, string? sourcePath, int line) =>
             {

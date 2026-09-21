@@ -41,6 +41,14 @@ namespace Tsumo.Tests
     public class ResourcePipelineTests
     {
         [Xunit.FactAttribute]
+        public void missing_external_tool_preserves_the_requested_diagnostic()
+        {
+            Xunit.Assert.Equal("TSUMO_TEST_TOOL_START_FAILED", ResourcePipelineTest.captureResourceDiagnostic(() =>
+            {
+                Node_modules_Tsumo_engine_src_resources_externalProcess.runExternalProcess("__tsumo_missing_external_tool__", Tsonic.CSharp.Js.JSArray<string>.of([]), "test tool", "TSUMO_TEST_TOOL_START_FAILED");
+            }));
+        }
+        [Xunit.FactAttribute]
         public void relative_path_policy_rejects_every_escape_form()
         {
             Xunit.Assert.Equal("TSUMO_RESOURCE_PATH_ESCAPES_ROOT", ResourcePipelineTest.captureResourceDiagnostic(() =>
@@ -80,8 +88,8 @@ namespace Tsumo.Tests
         public void utf8_validation_accepts_scalars_and_rejects_malformed_sequences()
         {
             Xunit.Assert.True(Node_modules_Tsumo_engine_src_resources_text.isValidUtf8(Tsonic.CSharp.Node.Buffer.from(new int[] { 65, 194, 162, 226, 130, 172, 240, 159, 152, 128 })));
-            Tsonic.CSharp.Js.JSArray<Tsonic.CSharp.Node.Buffer> malformed = new Tsonic.CSharp.Js.JSArray<Tsonic.CSharp.Node.Buffer>(new Tsonic.CSharp.Node.Buffer[] { Tsonic.CSharp.Node.Buffer.from(new int[] { 128 }), Tsonic.CSharp.Node.Buffer.from(new int[] { 192, 128 }), Tsonic.CSharp.Node.Buffer.from(new int[] { 224, 128, 128 }), Tsonic.CSharp.Node.Buffer.from(new int[] { 237, 160, 128 }), Tsonic.CSharp.Node.Buffer.from(new int[] { 244, 144, 128, 128 }), Tsonic.CSharp.Node.Buffer.from(new int[] { 240, 159, 146 }) });
-            for (int index = 0; index < malformed.length; index++)
+            Tsonic.CSharp.Js.JSArray<Tsonic.CSharp.Node.Buffer> malformed = Tsonic.CSharp.Js.JSArray<Tsonic.CSharp.Node.Buffer>.of([Tsonic.CSharp.Node.Buffer.from(new int[] { 128 }), Tsonic.CSharp.Node.Buffer.from(new int[] { 192, 128 }), Tsonic.CSharp.Node.Buffer.from(new int[] { 224, 128, 128 }), Tsonic.CSharp.Node.Buffer.from(new int[] { 237, 160, 128 }), Tsonic.CSharp.Node.Buffer.from(new int[] { 244, 144, 128, 128 }), Tsonic.CSharp.Node.Buffer.from(new int[] { 240, 159, 146 })]);
+            for (double index = 0; index < malformed.length; index++)
             {
                 Xunit.Assert.True(!Node_modules_Tsumo_engine_src_resources_text.isValidUtf8(malformed[index]));
             }

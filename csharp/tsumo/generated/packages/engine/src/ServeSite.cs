@@ -49,16 +49,65 @@ namespace Tsumo.Engine
             get;
             private set;
         } = default(Action<string, Tsonic.CSharp.Node.Http.IncomingMessage, Tsonic.CSharp.Node.Http.ServerResponse>)!;
-        public static Func<ServeRequest, Tsonic.CSharp.Js.JSArray<string>> collectWatchTargets
+        internal static Tsonic.CSharp.Js.JSArray<string> collectWatchTargets(ServeRequest req)
         {
-            get;
-            private set;
-        } = default(Func<ServeRequest, Tsonic.CSharp.Js.JSArray<string>>)!;
-        public static Action<ServeRequest, Action<string>> startWatchLoop
+            string siteDir = Tsonic.CSharp.Node.path.resolve(req.siteDir);
+            Tsonic.CSharp.Js.JSArray<string> targets = Tsonic.CSharp.Js.JSArray<string>.of([]);
+            LoadedDocsConfig? docsConfig = Docs_config.loadDocsConfig(siteDir);
+            if (docsConfig is null)
+            {
+                targets.push(Tsonic.CSharp.Node.path.resolve(siteDir, "content"));
+                targets.push(Tsonic.CSharp.Node.path.resolve(siteDir, "archetypes"));
+            }
+            else
+            {
+                Tsonic.CSharp.Js.JSArray<DocsMountConfig> mounts = docsConfig.config.mounts;
+                for (double i = 0; i < mounts.length; i++)
+                {
+                    targets.push(Tsonic.CSharp.Node.path.resolve(mounts[i].sourceDir));
+                }
+                targets.push(Tsonic.CSharp.Node.path.resolve(siteDir, "tsumo.docs.json"));
+            }
+            targets.push(Tsonic.CSharp.Node.path.resolve(siteDir, "layouts"));
+            targets.push(Tsonic.CSharp.Node.path.resolve(siteDir, "static"));
+            return targets;
+        }
+        internal static void startWatchLoop(ServeRequest req, Action<string> onRebuild)
         {
-            get;
-            private set;
-        } = default(Action<ServeRequest, Action<string>>)!;
+            Tsonic.CSharp.Js.JSArray<string> targets = collectWatchTargets(req);
+            Tsonic.CSharp.Js.Map<string, WatchEntryState> snapshot = WatchSnapshot.createWatchSnapshot(targets);
+            bool rebuilding = false;
+            Tsonic.CSharp.Node.timers.setInterval(() =>
+            {
+                if (rebuilding)
+                {
+                    return;
+                }
+                Tsonic.CSharp.Js.Map<string, WatchEntryState> next = WatchSnapshot.createWatchSnapshot(targets);
+                if (WatchSnapshot.watchSnapshotsEqual(snapshot, next))
+                {
+                    return;
+                }
+                snapshot = next;
+                rebuilding = true;
+                try
+                {
+                    BuildResult result = BuildSite.buildSite(req);
+                    onRebuild(result.outputDir);
+                    logLine($"[tsumo] rebuilt → {result.outputDir}");
+                }
+                catch (System.Exception __tsonic_catch0)
+                {
+                    Tsonic.CSharp.Runtime.TsValue error = Tsonic.CSharp.Runtime.TsThrownValueException.toValue(__tsonic_catch0);
+                    string message = Tsonic.CSharp.Runtime.TsValue.IsDynamicInstanceOf<TsumoError>(error) ? Tsonic.CSharp.Runtime.TsValue.CastDynamic<TsumoError>(error).diagnostic.format() : $"{error}";
+                    logErrorLine($"[tsumo] rebuild failed: {message}");
+                }
+                finally
+                {
+                    rebuilding = false;
+                }
+            }, (int)250);
+        }
         public static Action<ServeRequest> serveSite
         {
             get;
@@ -165,65 +214,6 @@ namespace Tsumo.Engine
                     return;
                 }
                 sendBytes(response, 200, contentType, Fs.readBinaryFile(filePath));
-            };
-            collectWatchTargets = (ServeRequest req) =>
-            {
-                string siteDir = Tsonic.CSharp.Node.path.resolve(req.siteDir);
-                Tsonic.CSharp.Js.JSArray<string> targets = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
-                LoadedDocsConfig? docsConfig = Docs_config.loadDocsConfig(siteDir);
-                if (docsConfig is null)
-                {
-                    targets.push(Tsonic.CSharp.Node.path.resolve(siteDir, "content"));
-                    targets.push(Tsonic.CSharp.Node.path.resolve(siteDir, "archetypes"));
-                }
-                else
-                {
-                    Tsonic.CSharp.Js.JSArray<DocsMountConfig> mounts = docsConfig.config.mounts;
-                    for (int i = 0; i < mounts.length; i++)
-                    {
-                        targets.push(Tsonic.CSharp.Node.path.resolve(mounts[i].sourceDir));
-                    }
-                    targets.push(Tsonic.CSharp.Node.path.resolve(siteDir, "tsumo.docs.json"));
-                }
-                targets.push(Tsonic.CSharp.Node.path.resolve(siteDir, "layouts"));
-                targets.push(Tsonic.CSharp.Node.path.resolve(siteDir, "static"));
-                return targets;
-            };
-            startWatchLoop = (ServeRequest req, Action<string> onRebuild) =>
-            {
-                Tsonic.CSharp.Js.JSArray<string> targets = collectWatchTargets(req);
-                Tsonic.CSharp.Js.Map<string, WatchEntryState> snapshot = WatchSnapshot.createWatchSnapshot(targets);
-                bool rebuilding = false;
-                Tsonic.CSharp.Node.timers.setInterval(() =>
-                {
-                    if (rebuilding)
-                    {
-                        return;
-                    }
-                    Tsonic.CSharp.Js.Map<string, WatchEntryState> next = WatchSnapshot.createWatchSnapshot(targets);
-                    if (WatchSnapshot.watchSnapshotsEqual(snapshot, next))
-                    {
-                        return;
-                    }
-                    snapshot = next;
-                    rebuilding = true;
-                    try
-                    {
-                        BuildResult result = BuildSite.buildSite(req);
-                        onRebuild(result.outputDir);
-                        logLine($"[tsumo] rebuilt → {result.outputDir}");
-                    }
-                    catch (System.Exception __tsonic_catch0)
-                    {
-                        Tsonic.CSharp.Runtime.TsValue error = Tsonic.CSharp.Runtime.TsThrownValueException.toValue(__tsonic_catch0);
-                        string message = Tsonic.CSharp.Runtime.TsValue.IsDynamicInstanceOf<TsumoError>(error) ? Tsonic.CSharp.Runtime.TsValue.CastDynamic<TsumoError>(error).diagnostic.format() : $"{error}";
-                        logErrorLine($"[tsumo] rebuild failed: {message}");
-                    }
-                    finally
-                    {
-                        rebuilding = false;
-                    }
-                }, (int)250);
             };
             serveSite = (ServeRequest req) =>
             {

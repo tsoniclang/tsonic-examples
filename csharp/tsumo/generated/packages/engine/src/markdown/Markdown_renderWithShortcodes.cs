@@ -4,16 +4,50 @@ namespace Tsumo.Engine
 {
     public static class Markdown_renderWithShortcodes
     {
-        public static Func<string, Tsonic.CSharp.Js.JSArray<ShortcodeCall>, PageContext, SiteContext, TemplateEnvironment, ShortcodeOrdinalTracker, Tsonic.CSharp.Js.Map<string, bool>, ProtectedShortcodeSource> protectStandardShortcodes
+        internal static ProtectedShortcodeSource protectStandardShortcodes(string text, Tsonic.CSharp.Js.JSArray<ShortcodeCall> calls, PageContext page, SiteContext site, TemplateEnvironment env, ShortcodeOrdinalTracker ordinalTracker, Tsonic.CSharp.Js.Map<string, bool> recursionGuard)
         {
-            get;
-            private set;
-        } = default(Func<string, Tsonic.CSharp.Js.JSArray<ShortcodeCall>, PageContext, SiteContext, TemplateEnvironment, ShortcodeOrdinalTracker, Tsonic.CSharp.Js.Map<string, bool>, ProtectedShortcodeSource>)!;
-        public static Func<string, Tsonic.CSharp.Js.JSArray<ProtectedShortcode>, string> restoreStandardShortcodes
+            Tsonic.CSharp.Js.JSArray<string> outputs = Tsonic.CSharp.Js.JSArray<string>.of([]);
+            for (double i = 0; i < calls.length; i++)
+            {
+                outputs.push(Markdown_shortcodes.renderShortcode(calls[i], page, site, env, ordinalTracker, null, recursionGuard));
+            }
+            string markerPrefix = "tsumo-shortcode-output";
+            bool markerPrefixTaken = true;
+            while (markerPrefixTaken)
+            {
+                markerPrefixTaken = Tsonic.CSharp.Js.String.includes(text, $"<!--{markerPrefix}-");
+                for (double i_1 = 0; i_1 < outputs.length && !markerPrefixTaken; i_1++)
+                {
+                    markerPrefixTaken = Tsonic.CSharp.Js.String.includes(outputs[i_1], $"<!--{markerPrefix}-");
+                }
+                if (markerPrefixTaken)
+                {
+                    markerPrefix += "-x";
+                }
+            }
+            Tsonic.CSharp.Js.JSArray<ProtectedShortcode> replacements = Tsonic.CSharp.Js.JSArray<ProtectedShortcode>.of([]);
+            for (double i_2 = 0; i_2 < calls.length; i_2++)
+            {
+                replacements.push(new ProtectedShortcode($"<!--{markerPrefix}-{i_2}-->", outputs[i_2]));
+            }
+            string source = text;
+            for (int i_3 = calls.length - 1; i_3 >= 0; i_3--)
+            {
+                ShortcodeCall call = calls[i_3];
+                source = Utils_strings.substringCount(source, 0, call.startIndex) + replacements[i_3].marker + Utils_strings.substringFrom(source, call.endIndex);
+            }
+            return new ProtectedShortcodeSource(source, replacements);
+        }
+        internal static string restoreStandardShortcodes(string html, Tsonic.CSharp.Js.JSArray<ProtectedShortcode> replacements)
         {
-            get;
-            private set;
-        } = default(Func<string, Tsonic.CSharp.Js.JSArray<ProtectedShortcode>, string>)!;
+            string result = html;
+            for (double i = 0; i < replacements.length; i++)
+            {
+                ProtectedShortcode replacement = replacements[i];
+                result = Tsonic.CSharp.Js.String.replace(result, replacement.marker, replacement.output);
+            }
+            return result;
+        }
         public static Func<string, PageContext, SiteContext, TemplateEnvironment, MarkdownResult> renderMarkdownWithShortcodes
         {
             get;
@@ -31,50 +65,6 @@ namespace Tsumo.Engine
             Markdown_shortcodes.__tsonic_module_init();
             Markdown_renderBasic.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
-            protectStandardShortcodes = (string text, Tsonic.CSharp.Js.JSArray<ShortcodeCall> calls, PageContext page, SiteContext site, TemplateEnvironment env, ShortcodeOrdinalTracker ordinalTracker, Tsonic.CSharp.Js.Map<string, bool> recursionGuard) =>
-            {
-                Tsonic.CSharp.Js.JSArray<string> outputs = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
-                for (int i = 0; i < calls.length; i++)
-                {
-                    outputs.push(Markdown_shortcodes.renderShortcode(calls[i], page, site, env, ordinalTracker, null, recursionGuard));
-                }
-                string markerPrefix = "tsumo-shortcode-output";
-                bool markerPrefixTaken = true;
-                while (markerPrefixTaken)
-                {
-                    markerPrefixTaken = Tsonic.CSharp.Js.String.includes(text, $"<!--{markerPrefix}-");
-                    for (int i_1 = 0; i_1 < outputs.length && !markerPrefixTaken; i_1++)
-                    {
-                        markerPrefixTaken = Tsonic.CSharp.Js.String.includes(outputs[i_1], $"<!--{markerPrefix}-");
-                    }
-                    if (markerPrefixTaken)
-                    {
-                        markerPrefix += "-x";
-                    }
-                }
-                Tsonic.CSharp.Js.JSArray<ProtectedShortcode> replacements = new Tsonic.CSharp.Js.JSArray<ProtectedShortcode>(new ProtectedShortcode[] { });
-                for (int i_2 = 0; i_2 < calls.length; i_2++)
-                {
-                    replacements.push(new ProtectedShortcode($"<!--{markerPrefix}-{i_2}-->", outputs[i_2]));
-                }
-                string source = text;
-                for (int i_3 = calls.length - 1; i_3 >= 0; i_3--)
-                {
-                    ShortcodeCall call = calls[i_3];
-                    source = Utils_strings.substringCount(source, 0, call.startIndex) + replacements[i_3].marker + Utils_strings.substringFrom(source, call.endIndex);
-                }
-                return new ProtectedShortcodeSource(source, replacements);
-            };
-            restoreStandardShortcodes = (string html, Tsonic.CSharp.Js.JSArray<ProtectedShortcode> replacements) =>
-            {
-                string result = html;
-                for (int i = 0; i < replacements.length; i++)
-                {
-                    ProtectedShortcode replacement = replacements[i];
-                    result = Tsonic.CSharp.Js.String.replace(result, replacement.marker, replacement.output);
-                }
-                return result;
-            };
             renderMarkdownWithShortcodes = (string markdownRaw, PageContext page, SiteContext site, TemplateEnvironment env) =>
             {
                 string markdown = Markdown_renderBasic.normalizeNewlines(markdownRaw);
@@ -82,8 +72,8 @@ namespace Tsumo.Engine
                 Tsonic.CSharp.Js.Map<string, bool> recursionGuard = new Tsonic.CSharp.Js.Map<string, bool>();
                 Tsonic.CSharp.Js.JSArray<ShortcodeCall> calls = Shortcode.parseShortcodes(markdown, page.File?.Filename);
                 string textAfterMarkdownShortcodes = markdown;
-                Tsonic.CSharp.Js.JSArray<ShortcodeCall> mdCalls = new Tsonic.CSharp.Js.JSArray<ShortcodeCall>(new ShortcodeCall[] { });
-                for (int i = 0; i < calls.length; i++)
+                Tsonic.CSharp.Js.JSArray<ShortcodeCall> mdCalls = Tsonic.CSharp.Js.JSArray<ShortcodeCall>.of([]);
+                for (double i = 0; i < calls.length; i++)
                 {
                     ShortcodeCall call = calls[i];
                     if (call.isMarkdown)
@@ -96,8 +86,8 @@ namespace Tsumo.Engine
                     textAfterMarkdownShortcodes = Markdown_shortcodes.processShortcodeCalls(markdown, mdCalls, page, site, env, ordinalTracker, null, recursionGuard);
                 }
                 Tsonic.CSharp.Js.JSArray<ShortcodeCall> parsedStandardCalls = Shortcode.parseShortcodes(textAfterMarkdownShortcodes, page.File?.Filename);
-                Tsonic.CSharp.Js.JSArray<ShortcodeCall> standardCalls = new Tsonic.CSharp.Js.JSArray<ShortcodeCall>(new ShortcodeCall[] { });
-                for (int i_1 = 0; i_1 < parsedStandardCalls.length; i_1++)
+                Tsonic.CSharp.Js.JSArray<ShortcodeCall> standardCalls = Tsonic.CSharp.Js.JSArray<ShortcodeCall>.of([]);
+                for (double i_1 = 0; i_1 < parsedStandardCalls.length; i_1++)
                 {
                     ShortcodeCall call_1 = parsedStandardCalls[i_1];
                     if (!call_1.isMarkdown)

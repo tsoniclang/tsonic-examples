@@ -5,6 +5,12 @@ use tsonic_rust_js::abi as js_abi;
 
 #[doc(hidden)]
 pub trait PaginatorValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_paginator_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_paginator_value_to_paginator_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn PaginatorValueDispatch + 'static>> {
@@ -16,13 +22,13 @@ pub trait PaginatorValueDispatch: crate::template::values::base::TemplateValueDi
     fn write_paginator_value_source_pages(
         &self,
         value: js_abi::JsArray<crate::models::page_context::PageContext>,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_paginator_value_page_size(&self) -> i32;
-    fn write_paginator_value_page_size(&self, value: i32);
+    fn write_paginator_value_page_size(&self, value: i32) -> Result<(), rt::TsonicError>;
     fn read_paginator_value_page_number(&self) -> i32;
-    fn write_paginator_value_page_number(&self, value: i32);
+    fn write_paginator_value_page_number(&self, value: i32) -> Result<(), rt::TsonicError>;
     fn read_paginator_value_base_path(&self) -> String;
-    fn write_paginator_value_base_path(&self, value: String);
+    fn write_paginator_value_base_path(&self, value: String) -> Result<(), rt::TsonicError>;
     fn dispatch_paginator_value_total_pages(
         self: alloc::rc::Rc<Self>,
     ) -> Result<i32, rt::TsonicError>;
@@ -39,11 +45,11 @@ pub trait PaginatorValueDispatch: crate::template::values::base::TemplateValueDi
     fn dispatch_paginator_value_with_page_number(
         self: alloc::rc::Rc<Self>,
         page_number: i32,
-    ) -> PaginatorValue;
+    ) -> Result<PaginatorValue, rt::TsonicError>;
     fn exact_paginator_value_with_page_number(
         self: alloc::rc::Rc<Self>,
         page_number: i32,
-    ) -> PaginatorValue;
+    ) -> Result<PaginatorValue, rt::TsonicError>;
     fn dispatch_paginator_value_has_same_source(
         self: alloc::rc::Rc<Self>,
         other: PaginatorValue,
@@ -94,7 +100,7 @@ impl rt::ObjectIdentityCarrier for PaginatorValue {
 
 pub(crate) struct PaginatorValueRoot {
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<PaginatorValueState>,
+    state: rt::ObjectState<PaginatorValueState>,
 }
 
 impl PaginatorValue {
@@ -104,20 +110,20 @@ impl PaginatorValue {
         page_size: i32,
         page_number: i32,
         base_path: String,
-    ) -> PaginatorValueState {
+    ) -> Result<PaginatorValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_source_pages: js_abi::JsArray<crate::models::page_context::PageContext> =
             source_pages;
         let field_page_size: i32 = if page_size > 0 { page_size } else { 1 };
         let field_page_number: i32 = if page_number > 0 { page_number } else { 1 };
         let field_base_path: String = base_path;
-        PaginatorValueState {
+        Ok(PaginatorValueState {
             base: base_state,
             source_pages: field_source_pages,
             page_size: field_page_size,
             page_number: field_page_number,
             base_path: field_base_path,
-        }
+        })
     }
 
     pub fn new(
@@ -125,18 +131,18 @@ impl PaginatorValue {
         page_size: i32,
         page_number: i32,
         base_path: String,
-    ) -> PaginatorValue {
+    ) -> Result<PaginatorValue, rt::TsonicError> {
         let state =
-            PaginatorValue::initialize_state(source_pages, page_size, page_number, base_path);
+            PaginatorValue::initialize_state(source_pages, page_size, page_number, base_path)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(PaginatorValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        PaginatorValue {
+        Ok(PaginatorValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -273,9 +279,8 @@ impl PaginatorValueRoot {
                             .read_paginator_value_source_pages()
                     }
                     .get_number(rt::conversions::i32_to_f64(index))
-                    .as_ref()
                     {
-                        Some(flow_value) => flow_value.clone(),
+                        Some(flow_value) => flow_value,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                 ])
@@ -367,7 +372,7 @@ impl PaginatorValueRoot {
     fn exact_paginator_value_with_page_number(
         self: alloc::rc::Rc<Self>,
         page_number: i32,
-    ) -> PaginatorValue {
+    ) -> Result<PaginatorValue, rt::TsonicError> {
         let project_this = PaginatorValue {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -412,6 +417,13 @@ impl crate::template::values::base::TemplateValueDispatch for PaginatorValueRoot
 }
 
 impl PaginatorValueDispatch for PaginatorValueRoot {
+    fn downcast_paginator_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_paginator_value_to_paginator_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn PaginatorValueDispatch + 'static>> {
@@ -427,32 +439,56 @@ impl PaginatorValueDispatch for PaginatorValueRoot {
     fn write_paginator_value_source_pages(
         &self,
         value: js_abi::JsArray<crate::models::page_context::PageContext>,
-    ) {
-        self.state.with_mut(|state| state.source_pages = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.source_pages = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_paginator_value_page_size(&self) -> i32 {
         self.state.with(|state| state.page_size)
     }
 
-    fn write_paginator_value_page_size(&self, value: i32) {
-        self.state.with_mut(|state| state.page_size = value);
+    fn write_paginator_value_page_size(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.page_size = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_paginator_value_page_number(&self) -> i32 {
         self.state.with(|state| state.page_number)
     }
 
-    fn write_paginator_value_page_number(&self, value: i32) {
-        self.state.with_mut(|state| state.page_number = value);
+    fn write_paginator_value_page_number(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.page_number = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_paginator_value_base_path(&self) -> String {
         self.state.with(|state| state.base_path.clone())
     }
 
-    fn write_paginator_value_base_path(&self, value: String) {
-        self.state.with_mut(|state| state.base_path = value);
+    fn write_paginator_value_base_path(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base_path = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn dispatch_paginator_value_total_pages(
@@ -490,14 +526,14 @@ impl PaginatorValueDispatch for PaginatorValueRoot {
     fn dispatch_paginator_value_with_page_number(
         self: alloc::rc::Rc<Self>,
         page_number: i32,
-    ) -> PaginatorValue {
+    ) -> Result<PaginatorValue, rt::TsonicError> {
         PaginatorValueRoot::exact_paginator_value_with_page_number(self, page_number)
     }
 
     fn exact_paginator_value_with_page_number(
         self: alloc::rc::Rc<Self>,
         page_number: i32,
-    ) -> PaginatorValue {
+    ) -> Result<PaginatorValue, rt::TsonicError> {
         PaginatorValueRoot::exact_paginator_value_with_page_number(self, page_number)
     }
 

@@ -21,17 +21,17 @@ impl rt::ObjectIdentityCarrier for ScratchStore {
 }
 
 impl ScratchStore {
-    pub fn new() -> ScratchStore {
+    pub fn new() -> Result<ScratchStore, rt::TsonicError> {
         let field_values: js_abi::JsMap<String, crate::template::values::base::TemplateValue> =
             js_abi::JsMap::new();
-        ScratchStore {
+        Ok(ScratchStore {
             state: rt::ObjectRef::new(ScratchStoreState {
                 values: field_values,
             }),
-        }
+        })
     }
 
-    pub fn get_values(&self) -> crate::template::values::dict::DictValue {
+    pub fn get_values(&self) -> Result<crate::template::values::dict::DictValue, rt::TsonicError> {
         crate::template::values::dict::DictValue::new(self.state.with(|state| state.values.clone()))
     }
 
@@ -39,8 +39,8 @@ impl ScratchStore {
         let v: Option<crate::template::values::base::TemplateValue> =
             self.state.with(|state| state.values.clone()).get(&key);
         if v.is_some() {
-            match v.as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            match v {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             }
         } else {
@@ -112,9 +112,8 @@ impl ScratchStore {
                                 dispatch_receiver_2.dispatch.read_any_array_value_value()
                             }
                             .get_number(i)
-                            .as_ref()
                             {
-                                Some(flow_value_2) => flow_value_2.clone(),
+                                Some(flow_value_2) => flow_value_2,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
@@ -160,9 +159,8 @@ impl ScratchStore {
                                     dispatch_receiver_4.dispatch.read_any_array_value_value()
                                 }
                                 .get_number(i)
-                                .as_ref()
                                 {
-                                    Some(flow_value_3) => flow_value_3.clone(),
+                                    Some(flow_value_3) => flow_value_3,
                                     None => unreachable!(
                                         "checked flow selected a missing optional value"
                                     ),
@@ -177,7 +175,7 @@ impl ScratchStore {
             }
             self.set(key.clone(), {
                 let upcast_value =
-                    crate::template::values::arrays::AnyArrayValue::new(merged_list.clone());
+                    crate::template::values::arrays::AnyArrayValue::new(merged_list.clone())?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value.identity.clone(),
                     dispatch: upcast_value.dispatch.clone(),
@@ -192,9 +190,9 @@ impl ScratchStore {
             None => unreachable!("checked flow selected a missing optional value"),
         }]);
         pair_list.push_many_discard([value.clone()]);
-        self.set(key.clone(), {
+        self.set(key, {
             let upcast_value_2 =
-                crate::template::values::arrays::AnyArrayValue::new(pair_list.clone());
+                crate::template::values::arrays::AnyArrayValue::new(pair_list.clone())?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_2.identity.clone(),
                 dispatch: upcast_value_2.dispatch.clone(),
@@ -212,7 +210,7 @@ impl ScratchStore {
         map_name: String,
         key: String,
         value: crate::template::values::base::TemplateValue,
-    ) {
+    ) -> Result<(), rt::TsonicError> {
         let cur: Option<crate::template::values::base::TemplateValue> =
             self.state.with(|state| state.values.clone()).get(&map_name);
         #[expect(clippy::collapsible_if, reason = "checked lexical regions")]
@@ -244,22 +242,23 @@ impl ScratchStore {
                     dispatch_receiver.dispatch.read_dict_value_value()
                 }
                 .set_discard(key.clone(), value.clone());
-                return;
+                return Ok(());
             }
         }
         let map: js_abi::JsMap<String, crate::template::values::base::TemplateValue> =
             js_abi::JsMap::new();
-        map.set_discard(key.clone(), value.clone());
+        map.set_discard(key, value.clone());
         {
             let operation_input_0 = self.state.with(|state| state.values.clone());
-            operation_input_0.set_discard(map_name.clone(), {
-                let upcast_value = crate::template::values::dict::DictValue::new(map.clone());
+            operation_input_0.set_discard(map_name, {
+                let upcast_value = crate::template::values::dict::DictValue::new(map.clone())?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value.identity.clone(),
                     dispatch: upcast_value.dispatch.clone(),
                 }
             })
         };
+        Ok(())
     }
 
     pub fn delete_in_map(&self, map_name: String, key: String) {
@@ -299,21 +298,21 @@ impl ScratchStore {
     }
 }
 
-impl Default for ScratchStore {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 #[doc(hidden)]
 pub trait ScratchValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_scratch_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_scratch_value_to_scratch_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ScratchValueDispatch + 'static>> {
         None
     }
     fn read_scratch_value_value(&self) -> ScratchStore;
-    fn write_scratch_value_value(&self, value: ScratchStore);
+    fn write_scratch_value_value(&self, value: ScratchStore) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -352,33 +351,32 @@ impl rt::ObjectIdentityCarrier for ScratchValue {
 }
 
 pub(crate) struct ScratchValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<ScratchValueState>,
+    state: rt::ObjectState<ScratchValueState>,
 }
 
 impl ScratchValue {
     #[doc(hidden)]
-    pub fn initialize_state(value: ScratchStore) -> ScratchValueState {
+    pub fn initialize_state(value: ScratchStore) -> Result<ScratchValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: ScratchStore = value;
-        ScratchValueState {
+        Ok(ScratchValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: ScratchStore) -> ScratchValue {
-        let state = ScratchValue::initialize_state(value);
+    pub fn new(value: ScratchStore) -> Result<ScratchValue, rt::TsonicError> {
+        let state = ScratchValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(ScratchValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        ScratchValue {
+        Ok(ScratchValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -398,6 +396,13 @@ impl crate::template::values::base::TemplateValueDispatch for ScratchValueRoot {
 }
 
 impl ScratchValueDispatch for ScratchValueRoot {
+    fn downcast_scratch_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_scratch_value_to_scratch_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ScratchValueDispatch + 'static>> {
@@ -408,7 +413,13 @@ impl ScratchValueDispatch for ScratchValueRoot {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_scratch_value_value(&self, value: ScratchStore) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_scratch_value_value(&self, value: ScratchStore) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

@@ -23,15 +23,18 @@ impl rt::ObjectIdentityCarrier for LoadedDocsConfig {
 }
 
 impl LoadedDocsConfig {
-    pub fn new(path: String, config: crate::docs::models::DocsSiteConfig) -> LoadedDocsConfig {
+    pub fn new(
+        path: String,
+        config: crate::docs::models::DocsSiteConfig,
+    ) -> Result<LoadedDocsConfig, rt::TsonicError> {
         let field_path: String = path;
         let field_config: crate::docs::models::DocsSiteConfig = config;
-        LoadedDocsConfig {
+        Ok(LoadedDocsConfig {
             state: rt::ObjectRef::new(LoadedDocsConfigState {
                 path: field_path,
                 config: field_config,
             }),
-        }
+        })
     }
 }
 
@@ -39,7 +42,7 @@ pub fn docs_config_error(
     code: String,
     message: String,
     path: String,
-) -> crate::diagnostics::TsumoError {
+) -> Result<crate::diagnostics::TsumoError, rt::TsonicError> {
     crate::diagnostics::create_tsumo_error(code, message, Some(path), None, None)
 }
 
@@ -65,9 +68,8 @@ pub fn assert_unique_properties(
                 dispatch_receiver_2.dispatch.read_json_object_properties()
             }
             .get_number(index)
-            .as_ref()
             {
-                Some(flow_value) => flow_value.clone(),
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let key: String =
@@ -89,7 +91,7 @@ pub fn assert_unique_properties(
                         String::from("'")
                     ),
                     path.clone(),
-                )));
+                )?));
             }
             {
                 let operation_input_0 = seen.clone();
@@ -137,7 +139,7 @@ pub fn optional_string(
                 String::from(" must be a string")
             ),
             path,
-        )));
+        )?));
     }
     Ok(Some({
         let dispatch_receiver_2 = &{
@@ -192,7 +194,7 @@ pub fn optional_bool(
                 String::from(" must be a boolean")
             ),
             path,
-        )));
+        )?));
     }
     Ok(Some({
         let dispatch_receiver_2 = &{
@@ -230,10 +232,10 @@ pub fn required_string(
                 String::from(" is required")
             ),
             path.clone(),
-        )));
+        )?));
     }
-    Ok(match value.as_ref() {
-        Some(flow_value) => flow_value.clone(),
+    Ok(match value {
+        Some(flow_value) => flow_value,
         None => unreachable!("checked flow selected a missing optional value"),
     })
 }
@@ -251,8 +253,8 @@ pub fn reject_unknown_properties(
             {
                 let operation_input_0 = allowed.clone();
                 operation_input_0.set_discard(
-                    js_string::to_lower_case(&match allowed_names.get_number(index).as_ref() {
-                        Some(flow_value) => flow_value.clone(),
+                    js_string::to_lower_case(&match allowed_names.get_number(index) {
+                        Some(flow_value) => flow_value,
                         None => unreachable!("checked flow selected a missing optional value"),
                     }),
                     true,
@@ -277,9 +279,8 @@ pub fn reject_unknown_properties(
                 dispatch_receiver_2.dispatch.read_json_object_properties()
             }
             .get_number(index)
-            .as_ref()
             {
-                Some(flow_value_2) => flow_value_2.clone(),
+                Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             }
             .state
@@ -302,7 +303,7 @@ pub fn reject_unknown_properties(
                     String::from("'")
                 ),
                 path.clone(),
-            )));
+            )?));
         }
     }
     Ok(())
@@ -324,7 +325,7 @@ pub fn resolve_source_dir(
             String::from("TSUMO_DOCS_CONFIG_SOURCE_EMPTY"),
             String::from("Docs mount source cannot be empty"),
             path,
-        )));
+        )?));
     }
     Ok(if tsonic_rust_node::path::is_absolute(&raw) {
         tsonic_rust_node::path::resolve(&[raw.as_str()])?
@@ -359,7 +360,7 @@ pub fn parse_mount(
             String::from("TSUMO_DOCS_CONFIG_TYPE"),
             format!("{}{}", context, String::from(" must be an object")),
             path.clone(),
-        )));
+        )?));
     }
     let object: crate::utils::json::JsonObject = {
         let downcast_value = &value;
@@ -413,7 +414,7 @@ pub fn parse_mount(
         String::from("Docs")
     } else {
         crate::utils::strings::trim_end_char(
-            crate::utils::strings::trim_start_char(&url_prefix, String::from("/"))?,
+            crate::utils::strings::trim_start_char(url_prefix.clone(), String::from("/"))?,
             String::from("/"),
         )?
     };
@@ -455,21 +456,17 @@ pub fn parse_mount(
         context.clone(),
         path.clone(),
     )?;
-    let nav_path: Option<String> = optional_string(
-        object.clone(),
-        String::from("navPath"),
-        context.clone(),
-        path.clone(),
-    )?;
-    Ok(crate::docs::models::DocsMountConfig::new(
+    let nav_path: Option<String> =
+        optional_string(object.clone(), String::from("navPath"), context, path)?;
+    crate::docs::models::DocsMountConfig::new(
         name,
         source_dir,
-        url_prefix.clone(),
+        url_prefix,
         repo_url,
         repo_branch,
         repo_path,
         nav_path,
-    ))
+    )
 }
 
 pub fn parse_mounts(
@@ -495,7 +492,7 @@ pub fn parse_mounts(
             String::from("TSUMO_DOCS_CONFIG_TYPE"),
             String::from("mounts must be an array"),
             path.clone(),
-        )));
+        )?));
     }
     let array: crate::utils::json::JsonArray = {
         let downcast_value = &value;
@@ -522,7 +519,7 @@ pub fn parse_mounts(
             String::from("TSUMO_DOCS_CONFIG_REQUIRED"),
             String::from("mounts must contain at least one mount"),
             path.clone(),
-        )));
+        )?));
     }
     let mounts: js_abi::JsArray<crate::docs::models::DocsMountConfig> =
         js_abi::JsArray::from_dense(vec![]);
@@ -546,9 +543,8 @@ pub fn parse_mounts(
                     dispatch_receiver_4.dispatch.read_json_array_items()
                 }
                 .get_number(index)
-                .as_ref()
                 {
-                    Some(flow_value) => flow_value.clone(),
+                    Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
                 index,
@@ -566,7 +562,7 @@ pub fn parse_mounts(
                         dispatch_receiver_6.dispatch.read_docs_mount_config_name()
                     }),
                     path.clone(),
-                )));
+                )?));
             }
             let prefix_key: String = js_string::to_lower_case(&{
                 let dispatch_receiver_7 = &mount;
@@ -584,7 +580,7 @@ pub fn parse_mounts(
                             .read_docs_mount_config_url_prefix()
                     }),
                     path.clone(),
-                )));
+                )?));
             }
             names.set_discard(name_key.clone(), true);
             prefixes.set_discard(prefix_key.clone(), true);
@@ -610,7 +606,7 @@ pub fn load_docs_config(site_dir: String) -> Result<Option<LoadedDocsConfig>, rt
             String::from("TSUMO_DOCS_CONFIG_TYPE"),
             String::from("tsumo.docs.json root must be an object"),
             candidate.clone(),
-        )));
+        )?));
     }
     let root: crate::utils::json::JsonObject = match parsed_root.as_ref() {
         Some(flow_value) => flow_value.clone(),
@@ -635,7 +631,7 @@ pub fn load_docs_config(site_dir: String) -> Result<Option<LoadedDocsConfig>, rt
         candidate.clone(),
     )?;
     let mounts: js_abi::JsArray<crate::docs::models::DocsMountConfig> =
-        parse_mounts(site_dir.clone(), root.clone(), candidate.clone())?;
+        parse_mounts(site_dir, root.clone(), candidate.clone())?;
     let generate_search_index: bool = rt::option_coalesce(
         optional_bool(
             root.clone(),
@@ -661,7 +657,7 @@ pub fn load_docs_config(site_dir: String) -> Result<Option<LoadedDocsConfig>, rt
             String::from("TSUMO_DOCS_CONFIG_SEARCH_FILE_EMPTY"),
             String::from("searchFile cannot be empty when search is enabled"),
             candidate.clone(),
-        )));
+        )?));
     }
     let config: crate::docs::models::DocsSiteConfig = crate::docs::models::DocsSiteConfig::new(
         mounts,
@@ -676,7 +672,7 @@ pub fn load_docs_config(site_dir: String) -> Result<Option<LoadedDocsConfig>, rt
             || false,
         ),
         generate_search_index,
-        search_index_file_name.clone(),
+        search_index_file_name,
         optional_string(
             root.clone(),
             String::from("homeMount"),
@@ -693,6 +689,6 @@ pub fn load_docs_config(site_dir: String) -> Result<Option<LoadedDocsConfig>, rt
             core::convert::identity,
             || String::from("Docs"),
         ),
-    );
-    Ok(Some(LoadedDocsConfig::new(candidate.clone(), config)))
+    )?;
+    Ok(Some(LoadedDocsConfig::new(candidate, config)?))
 }

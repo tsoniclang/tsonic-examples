@@ -4,21 +4,21 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn get_path_extension(path: String) -> Result<String, rt::TsonicError> {
+pub fn get_path_extension(path: &str) -> Result<String, rt::TsonicError> {
     let last_dot: i32 =
-        rt::conversions::isize_to_i32(js_string::last_index_of_from_end(&path, "."))?;
+        rt::conversions::isize_to_i32(js_string::last_index_of_from_end(path, "."))?;
     let last_slash: f64 = js_abi::math_max(&[
         rt::conversions::i32_to_f64(rt::conversions::isize_to_i32(
-            js_string::last_index_of_from_end(&path, "/"),
+            js_string::last_index_of_from_end(path, "/"),
         )?),
         rt::conversions::i32_to_f64(rt::conversions::isize_to_i32(
-            js_string::last_index_of_from_end(&path, "\\"),
+            js_string::last_index_of_from_end(path, "\\"),
         )?),
     ]);
     if last_dot < 0 || (last_dot as f64) <= last_slash {
         return Ok(String::from(""));
     }
-    crate::utils::strings::substring_from(&path, last_dot)
+    crate::utils::strings::substring_from(path, last_dot)
 }
 
 pub fn to_json(
@@ -76,12 +76,10 @@ pub fn to_json(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_3,
         };
-        return TO_JSON_STRING
-            .with(|module_binding| module_binding.load())
-            .call(({
-                let dispatch_receiver_3 = &selected_value_3;
-                dispatch_receiver_3.dispatch.read_string_value_value()
-            },));
+        return to_json_string({
+            let dispatch_receiver_3 = &selected_value_3;
+            dispatch_receiver_3.dispatch.read_string_value_value()
+        });
     }
     if let Some(selected_dispatch_4) = value
         .dispatch
@@ -92,12 +90,10 @@ pub fn to_json(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_4,
         };
-        return TO_JSON_STRING
-            .with(|module_binding| module_binding.load())
-            .call(({
-                let dispatch_receiver_4 = &selected_value_4;
-                dispatch_receiver_4.dispatch.read_date_value_value()
-            },));
+        return to_json_string({
+            let dispatch_receiver_4 = &selected_value_4;
+            dispatch_receiver_4.dispatch.read_date_value_value()
+        });
     }
     if let Some(selected_dispatch_5) = value
         .dispatch
@@ -108,15 +104,13 @@ pub fn to_json(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_5,
         };
-        return TO_JSON_STRING
-            .with(|module_binding| module_binding.load())
-            .call(({
-                let dispatch_receiver_6 = &{
-                    let dispatch_receiver_5 = &selected_value_5;
-                    dispatch_receiver_5.dispatch.read_html_value_value()
-                };
-                dispatch_receiver_6.dispatch.read_html_string_value()
-            },));
+        return to_json_string({
+            let dispatch_receiver_6 = &{
+                let dispatch_receiver_5 = &selected_value_5;
+                dispatch_receiver_5.dispatch.read_html_value_value()
+            };
+            dispatch_receiver_6.dispatch.read_html_string_value()
+        });
     }
     if let Some(selected_dispatch_6) = value
         .dispatch
@@ -159,14 +153,10 @@ pub fn to_json(
                     dispatch_receiver_10
                         .dispatch
                         .clone()
-                        .dispatch_text_builder_append(to_json(
-                            match items.get_number(i).as_ref() {
-                                Some(flow_value) => flow_value.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                        )?)
+                        .dispatch_text_builder_append(to_json(match items.get_number(i) {
+                            Some(flow_value) => flow_value,
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        })?)
                 }?;
                 i += 1.0;
             }
@@ -234,11 +224,7 @@ pub fn to_json(
                 dispatch_receiver_17
                     .dispatch
                     .clone()
-                    .dispatch_text_builder_append(
-                        TO_JSON_STRING
-                            .with(|module_binding| module_binding.load())
-                            .call((k.clone(),))?,
-                    )
+                    .dispatch_text_builder_append(to_json_string(k.clone())?)
             }?;
             {
                 let dispatch_receiver_18 = sb.clone();
@@ -276,10 +262,81 @@ pub fn to_json(
     Ok(String::from("null"))
 }
 
-pub type ToJsonStringCallable = rt::Callable<(String,), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub static TO_JSON_STRING: rt::ModuleCell<ToJsonStringCallable> = const { rt::ModuleCell::new() };
+pub fn to_json_string(value: String) -> Result<String, rt::TsonicError> {
+    let sb: crate::utils::text_builder::TextBuilder =
+        crate::utils::text_builder::TextBuilder::new();
+    {
+        let dispatch_receiver = sb.clone();
+        dispatch_receiver
+            .dispatch
+            .clone()
+            .dispatch_text_builder_append(String::from("\""))
+    }?;
+    for ch in js_abi::NativeStringIterator::new(value.clone()) {
+        if ch == "\\" {
+            {
+                let dispatch_receiver_2 = sb.clone();
+                dispatch_receiver_2
+                    .dispatch
+                    .clone()
+                    .dispatch_text_builder_append(String::from("\\\\"))
+            }?;
+        } else if ch == "\"" {
+            {
+                let dispatch_receiver_3 = sb.clone();
+                dispatch_receiver_3
+                    .dispatch
+                    .clone()
+                    .dispatch_text_builder_append(String::from("\\\""))
+            }?;
+        } else if ch == "\n" {
+            {
+                let dispatch_receiver_4 = sb.clone();
+                dispatch_receiver_4
+                    .dispatch
+                    .clone()
+                    .dispatch_text_builder_append(String::from("\\n"))
+            }?;
+        } else if ch == "\r" {
+            {
+                let dispatch_receiver_5 = sb.clone();
+                dispatch_receiver_5
+                    .dispatch
+                    .clone()
+                    .dispatch_text_builder_append(String::from("\\r"))
+            }?;
+        } else if ch == "\t" {
+            {
+                let dispatch_receiver_6 = sb.clone();
+                dispatch_receiver_6
+                    .dispatch
+                    .clone()
+                    .dispatch_text_builder_append(String::from("\\t"))
+            }?;
+        } else {
+            {
+                let dispatch_receiver_7 = sb.clone();
+                dispatch_receiver_7
+                    .dispatch
+                    .clone()
+                    .dispatch_text_builder_append(ch.clone())
+            }?;
+        }
+    }
+    {
+        let dispatch_receiver_8 = sb.clone();
+        dispatch_receiver_8
+            .dispatch
+            .clone()
+            .dispatch_text_builder_append(String::from("\""))
+    }?;
+    Ok({
+        let dispatch_receiver_9 = sb.clone();
+        dispatch_receiver_9
+            .dispatch
+            .clone()
+            .dispatch_text_builder_to_string()
+    })
 }
 
 pub fn parse_url(
@@ -294,7 +351,7 @@ pub fn parse_url(
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     crate::template::values::url::ParsedUrl::new(
@@ -304,25 +361,11 @@ pub fn parse_url(
 }
 
 pub fn trim_start_character(value: String, ch: String) -> Result<String, rt::TsonicError> {
-    let mut start: f64 = 0.0;
-    while start < (rt::conversions::usize_to_i32(js_string::js_len(&value))? as f64)
-        && crate::utils::strings::substring_count(
-            value.clone(),
-            rt::conversions::f64_to_i32(start)?,
-            1,
-        )? == ch
-    {
-        start += 1.0;
-    }
-    crate::utils::strings::substring_from(&value, rt::conversions::f64_to_i32(start)?)
+    crate::utils::strings::trim_start_char(value, ch)
 }
 
 pub fn trim_end_character(value: String, ch: String) -> Result<String, rt::TsonicError> {
-    let mut end: i32 = rt::conversions::usize_to_i32(js_string::js_len(&value))?;
-    while end > 0 && crate::utils::strings::substring_count(value.clone(), end - 1, 1)? == ch {
-        end -= 1;
-    }
-    crate::utils::strings::substring_count(value.clone(), 0, end)
+    crate::utils::strings::trim_end_char(value, ch)
 }
 
 pub fn trim_slashes(value: String) -> Result<String, rt::TsonicError> {
@@ -332,98 +375,4 @@ pub fn trim_slashes(value: String) -> Result<String, rt::TsonicError> {
 
 pub fn trim_right_whitespace(s: &str) -> String {
     js_string::trim_end(s)
-}
-
-#[doc(hidden)]
-pub fn module_init() {
-    {
-        let module_value =
-            rt::Callable::<(String,), rt::TsonicResult<String>>::new(move |callable_arguments| {
-                let value = callable_arguments.0;
-                let sb: crate::utils::text_builder::TextBuilder =
-                    crate::utils::text_builder::TextBuilder::new();
-                {
-                    let dispatch_receiver = sb.clone();
-                    dispatch_receiver
-                        .dispatch
-                        .clone()
-                        .dispatch_text_builder_append(String::from("\""))
-                }?;
-                {
-                    let mut i: f64 = 0.0;
-                    while i < (rt::conversions::usize_to_i32(js_string::js_len(&value))? as f64) {
-                        let ch: String = crate::utils::strings::substring_count(
-                            value.clone(),
-                            rt::conversions::f64_to_i32(i)?,
-                            1,
-                        )?;
-                        if ch == "\\" {
-                            {
-                                let dispatch_receiver_2 = sb.clone();
-                                dispatch_receiver_2
-                                    .dispatch
-                                    .clone()
-                                    .dispatch_text_builder_append(String::from("\\\\"))
-                            }?;
-                        } else if ch == "\"" {
-                            {
-                                let dispatch_receiver_3 = sb.clone();
-                                dispatch_receiver_3
-                                    .dispatch
-                                    .clone()
-                                    .dispatch_text_builder_append(String::from("\\\""))
-                            }?;
-                        } else if ch == "\n" {
-                            {
-                                let dispatch_receiver_4 = sb.clone();
-                                dispatch_receiver_4
-                                    .dispatch
-                                    .clone()
-                                    .dispatch_text_builder_append(String::from("\\n"))
-                            }?;
-                        } else if ch == "\r" {
-                            {
-                                let dispatch_receiver_5 = sb.clone();
-                                dispatch_receiver_5
-                                    .dispatch
-                                    .clone()
-                                    .dispatch_text_builder_append(String::from("\\r"))
-                            }?;
-                        } else if ch == "\t" {
-                            {
-                                let dispatch_receiver_6 = sb.clone();
-                                dispatch_receiver_6
-                                    .dispatch
-                                    .clone()
-                                    .dispatch_text_builder_append(String::from("\\t"))
-                            }?;
-                        } else {
-                            {
-                                let dispatch_receiver_7 = sb.clone();
-                                dispatch_receiver_7
-                                    .dispatch
-                                    .clone()
-                                    .dispatch_text_builder_append(ch.clone())
-                            }?;
-                        }
-                        i += 1.0;
-                    }
-                }
-                {
-                    let dispatch_receiver_8 = sb.clone();
-                    dispatch_receiver_8
-                        .dispatch
-                        .clone()
-                        .dispatch_text_builder_append(String::from("\""))
-                }?;
-                Ok::<_, rt::TsonicError>({
-                    let dispatch_receiver_9 = sb.clone();
-                    dispatch_receiver_9
-                        .dispatch
-                        .clone()
-                        .dispatch_text_builder_to_string()
-                })
-            });
-        TO_JSON_STRING.with(|module_binding| module_binding.initialize(module_value))
-    };
 }

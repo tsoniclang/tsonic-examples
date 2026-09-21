@@ -69,8 +69,8 @@ namespace Tsumo.Engine
             };
             processShortcodeCalls = (string text, Tsonic.CSharp.Js.JSArray<ShortcodeCall> calls, PageContext page, SiteContext site, TemplateEnvironment env, ShortcodeOrdinalTracker ordinalTracker, ShortcodeContext? parent, Tsonic.CSharp.Js.Map<string, bool> recursionGuard) =>
             {
-                Tsonic.CSharp.Js.JSArray<string> replacements = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
-                for (int i = 0; i < calls.length; i++)
+                Tsonic.CSharp.Js.JSArray<string> replacements = Tsonic.CSharp.Js.JSArray<string>.of([]);
+                for (double i = 0; i < calls.length; i++)
                 {
                     replacements.push(renderShortcode(calls[i], page, site, env, ordinalTracker, parent, recursionGuard));
                 }

@@ -192,7 +192,7 @@ namespace Tsumo.Engine
                     TemplateValue argument = args.length >= 2 ? args[1] : Template_runtimeHelpers.nil;
                     int? count = null;
                     TemplateValue renderContext = argument;
-                    if (argument is NumberValue)
+                    if ((object?)argument is NumberValue)
                     {
                         count = ((NumberValue)argument).value;
                         Tsonic.CSharp.Js.Map<string, TemplateValue> fields = new Tsonic.CSharp.Js.Map<string, TemplateValue>();
@@ -201,7 +201,7 @@ namespace Tsumo.Engine
                     }
                     else
                     {
-                        if (argument is DictValue)
+                        if ((object?)argument is DictValue)
                         {
                             foreach (string field in ((DictValue)argument).value.keys())
                             {
@@ -210,7 +210,7 @@ namespace Tsumo.Engine
                                     continue;
                                 }
                                 TemplateValue? value_2 = Tsonic.CSharp.Js.Map.getReference<string, TemplateValue>(((DictValue)argument).value, field);
-                                if (value_2 is NumberValue)
+                                if ((object?)value_2 is NumberValue)
                                 {
                                     count = ((NumberValue)value_2).value;
                                 }

@@ -10,8 +10,17 @@ pub trait StringArrayValueDispatch: crate::template::values::base::TemplateValue
     ) -> Option<alloc::rc::Rc<dyn StringArrayValueDispatch + 'static>> {
         None
     }
+    fn downcast_string_array_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn read_string_array_value_value(&self) -> js_abi::JsArray<String>;
-    fn write_string_array_value_value(&self, value: js_abi::JsArray<String>);
+    fn write_string_array_value_value(
+        &self,
+        value: js_abi::JsArray<String>,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -50,33 +59,34 @@ impl rt::ObjectIdentityCarrier for StringArrayValue {
 }
 
 pub(crate) struct StringArrayValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<StringArrayValueState>,
+    state: rt::ObjectState<StringArrayValueState>,
 }
 
 impl StringArrayValue {
     #[doc(hidden)]
-    pub fn initialize_state(value: js_abi::JsArray<String>) -> StringArrayValueState {
+    pub fn initialize_state(
+        value: js_abi::JsArray<String>,
+    ) -> Result<StringArrayValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: js_abi::JsArray<String> = value;
-        StringArrayValueState {
+        Ok(StringArrayValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: js_abi::JsArray<String>) -> StringArrayValue {
-        let state = StringArrayValue::initialize_state(value);
+    pub fn new(value: js_abi::JsArray<String>) -> Result<StringArrayValue, rt::TsonicError> {
+        let state = StringArrayValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(StringArrayValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        StringArrayValue {
+        Ok(StringArrayValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -102,12 +112,28 @@ impl StringArrayValueDispatch for StringArrayValueRoot {
         Some(self)
     }
 
+    fn downcast_string_array_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn read_string_array_value_value(&self) -> js_abi::JsArray<String> {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_string_array_value_value(&self, value: js_abi::JsArray<String>) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_string_array_value_value(
+        &self,
+        value: js_abi::JsArray<String>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -121,13 +147,19 @@ pub trait AnyArrayValueDispatch: crate::template::values::base::TemplateValueDis
     ) -> Option<alloc::rc::Rc<dyn AnyArrayValueDispatch + 'static>> {
         None
     }
+    fn downcast_any_array_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn read_any_array_value_value(
         &self,
     ) -> js_abi::JsArray<crate::template::values::base::TemplateValue>;
     fn write_any_array_value_value(
         &self,
         value: js_abi::JsArray<crate::template::values::base::TemplateValue>,
-    );
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -166,37 +198,36 @@ impl rt::ObjectIdentityCarrier for AnyArrayValue {
 }
 
 pub(crate) struct AnyArrayValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<AnyArrayValueState>,
+    state: rt::ObjectState<AnyArrayValueState>,
 }
 
 impl AnyArrayValue {
     #[doc(hidden)]
     pub fn initialize_state(
         value: js_abi::JsArray<crate::template::values::base::TemplateValue>,
-    ) -> AnyArrayValueState {
+    ) -> Result<AnyArrayValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: js_abi::JsArray<crate::template::values::base::TemplateValue> = value;
-        AnyArrayValueState {
+        Ok(AnyArrayValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
     pub fn new(
         value: js_abi::JsArray<crate::template::values::base::TemplateValue>,
-    ) -> AnyArrayValue {
-        let state = AnyArrayValue::initialize_state(value);
+    ) -> Result<AnyArrayValue, rt::TsonicError> {
+        let state = AnyArrayValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(AnyArrayValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        AnyArrayValue {
+        Ok(AnyArrayValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -222,6 +253,13 @@ impl AnyArrayValueDispatch for AnyArrayValueRoot {
         Some(self)
     }
 
+    fn downcast_any_array_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn read_any_array_value_value(
         &self,
     ) -> js_abi::JsArray<crate::template::values::base::TemplateValue> {
@@ -231,7 +269,13 @@ impl AnyArrayValueDispatch for AnyArrayValueRoot {
     fn write_any_array_value_value(
         &self,
         value: js_abi::JsArray<crate::template::values::base::TemplateValue>,
-    ) {
-        self.state.with_mut(|state| state.value = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

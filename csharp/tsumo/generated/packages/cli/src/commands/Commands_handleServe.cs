@@ -27,7 +27,7 @@ namespace Tsumo.Cli
                 bool serveWatch = true;
                 bool serveBuildDrafts = false;
                 bool serveClean = true;
-                for (int i = 1; i < args.length; i++)
+                for (double i = 1; i < args.length; i++)
                 {
                     string a = args[i];
                     if (a == "--source" || a == "-s")

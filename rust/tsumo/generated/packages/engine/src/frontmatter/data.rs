@@ -31,7 +31,7 @@ impl rt::ObjectIdentityCarrier for FrontMatter {
 }
 
 impl FrontMatter {
-    pub fn new() -> FrontMatter {
+    pub fn new() -> Result<FrontMatter, rt::TsonicError> {
         let field_title: Option<String> = Option::<String>::None;
         let field_date: Option<js_abi::JsDate> = Option::<js_abi::JsDate>::None;
         let field_draft: bool = false;
@@ -46,7 +46,7 @@ impl FrontMatter {
         let empty_menus: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu> =
             js_abi::JsArray::from_dense(vec![]);
         let field_menus: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu> = empty_menus;
-        FrontMatter {
+        Ok(FrontMatter {
             state: rt::ObjectHandle::new(FrontMatterState {
                 title: field_title,
                 date: field_date,
@@ -60,12 +60,6 @@ impl FrontMatter {
                 params: field_params,
                 menus: field_menus,
             }),
-        }
-    }
-}
-
-impl Default for FrontMatter {
-    fn default() -> Self {
-        Self::new()
+        })
     }
 }

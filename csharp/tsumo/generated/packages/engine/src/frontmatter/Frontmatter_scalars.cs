@@ -79,9 +79,9 @@ namespace Tsumo.Engine
                 string inner = Utils_strings.substringCount(trimmed, 1, trimmed.Length - 2);
                 if (Tsonic.CSharp.Js.String.trim(inner) == "")
                 {
-                    return new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                    return Tsonic.CSharp.Js.JSArray<string>.of([]);
                 }
-                Tsonic.CSharp.Js.JSArray<string> values = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                Tsonic.CSharp.Js.JSArray<string> values = Tsonic.CSharp.Js.JSArray<string>.of([]);
                 int start = 0;
                 string quote = "";
                 bool escaped = false;

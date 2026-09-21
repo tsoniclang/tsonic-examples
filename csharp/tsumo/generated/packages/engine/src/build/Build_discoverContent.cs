@@ -4,31 +4,33 @@ namespace Tsumo.Engine
 {
     public static class Build_discoverContent
     {
-        public static Func<string, bool> isBranchIndexFile
+        internal static bool isBranchIndexFile(string name)
         {
-            get;
-            private set;
-        } = default(Func<string, bool>)!;
-        public static Func<string, bool> isLeafBundleIndexFile
+            return Tsonic.CSharp.Js.String.toLowerCase(name) == "_index.md";
+        }
+        internal static bool isLeafBundleIndexFile(string name)
         {
-            get;
-            private set;
-        } = default(Func<string, bool>)!;
-        public static Func<string, string, string, PageFile> createPageFile
+            return Tsonic.CSharp.Js.String.toLowerCase(name) == "index.md";
+        }
+        internal static PageFile createPageFile(string directory, string fileName, string filePath)
         {
-            get;
-            private set;
-        } = default(Func<string, string, string, PageFile>)!;
+            return new PageFile(Tsonic.CSharp.Node.path.resolve(filePath), directory == "" ? "" : directory + "/", Build_siteRoutes.withoutMarkdownExtension(fileName));
+        }
         public static Func<ContentPageSource, ContentPageSource, double> compareContentPages
         {
             get;
             private set;
         } = default(Func<ContentPageSource, ContentPageSource, double>)!;
-        public static Action<Tsonic.CSharp.Js.Map<string, string>, string, string> assertUniqueOutput
+        internal static void assertUniqueOutput(Tsonic.CSharp.Js.Map<string, string> outputs, string outputPath, string sourcePath)
         {
-            get;
-            private set;
-        } = default(Action<Tsonic.CSharp.Js.Map<string, string>, string, string>)!;
+            string key = Tsonic.CSharp.Js.String.toLowerCase(outputPath);
+            string? previous = Tsonic.CSharp.Js.Map.getReference<string, string>(outputs, key);
+            if (previous is not null)
+            {
+                throw Diagnostics.createTsumoError("TSUMO_CONTENT_ROUTE_CONFLICT", $"Content sources '{previous}' and '{sourcePath}' both map to '{outputPath}'", sourcePath);
+            }
+            outputs.set(key, sourcePath);
+        }
         public static Func<string, bool, ContentInventory> discoverContent
         {
             get;
@@ -43,9 +45,6 @@ namespace Tsumo.Engine
             Utils_text.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
             Build_siteRoutes.__tsonic_module_init();
-            isBranchIndexFile = (string name) => Tsonic.CSharp.Js.String.toLowerCase(name) == "_index.md";
-            isLeafBundleIndexFile = (string name) => Tsonic.CSharp.Js.String.toLowerCase(name) == "index.md";
-            createPageFile = (string directory, string fileName, string filePath) => new PageFile(Tsonic.CSharp.Node.path.resolve(filePath), directory == "" ? "" : directory + "/", Build_siteRoutes.withoutMarkdownExtension(fileName));
             compareContentPages = (ContentPageSource left, ContentPageSource right) =>
             {
                 double leftTime = left.dateUtc.getTime();
@@ -61,24 +60,14 @@ namespace Tsumo.Engine
                 int route = Utils_strings.compareText(left.relPermalink, right.relPermalink);
                 return route != 0 ? route : Build_siteRoutes.compareSitePaths(left.sourcePath, right.sourcePath);
             };
-            assertUniqueOutput = (Tsonic.CSharp.Js.Map<string, string> outputs, string outputPath, string sourcePath) =>
-            {
-                string key = Tsonic.CSharp.Js.String.toLowerCase(outputPath);
-                string? previous = Tsonic.CSharp.Js.Map.getReference<string, string>(outputs, key);
-                if (previous is not null)
-                {
-                    throw Diagnostics.createTsumoError("TSUMO_CONTENT_ROUTE_CONFLICT", $"Content sources '{previous}' and '{sourcePath}' both map to '{outputPath}'", sourcePath);
-                }
-                outputs.set(key, sourcePath);
-            };
             discoverContent = (string contentDir, bool buildDrafts) =>
             {
                 Tsonic.CSharp.Js.JSArray<string> files = Fs.listFilesRecursive(contentDir, "*.md");
                 files.sort((string left, string right) => Build_siteRoutes.compareSitePaths(left, right));
-                Tsonic.CSharp.Js.JSArray<ContentPageSource> pages = new Tsonic.CSharp.Js.JSArray<ContentPageSource>(new ContentPageSource[] { });
+                Tsonic.CSharp.Js.JSArray<ContentPageSource> pages = Tsonic.CSharp.Js.JSArray<ContentPageSource>.of([]);
                 Tsonic.CSharp.Js.Map<string, ListPageSource> listPagesByRoute = new Tsonic.CSharp.Js.Map<string, ListPageSource>();
                 Tsonic.CSharp.Js.Map<string, string> outputs = new Tsonic.CSharp.Js.Map<string, string>();
-                for (int fileIndex = 0; fileIndex < files.length; fileIndex++)
+                for (double fileIndex = 0; fileIndex < files.length; fileIndex++)
                 {
                     string filePath = files[fileIndex];
                     string relativePath = Build_siteRoutes.normalizeSitePath(Tsonic.CSharp.Node.path.relative(contentDir, filePath));
@@ -87,13 +76,13 @@ namespace Tsumo.Engine
                         throw Diagnostics.createTsumoError("TSUMO_CONTENT_SOURCE_PATH_INVALID", $"Content source is outside its content root: {filePath}", filePath);
                     }
                     Tsonic.CSharp.Js.JSArray<string> pathSegments = Build_siteRoutes.splitSitePath(relativePath);
-                    for (int index = 0; index < pathSegments.length; index++)
+                    for (double index = 0; index < pathSegments.length; index++)
                     {
                         Build_siteRoutes.assertSiteRouteSegment(pathSegments[index], filePath);
                     }
                     string fileName = pathSegments[pathSegments.length - 1];
-                    Tsonic.CSharp.Js.JSArray<string> directorySegments = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
-                    for (int index_1 = 0; index_1 < pathSegments.length - 1; index_1++)
+                    Tsonic.CSharp.Js.JSArray<string> directorySegments = Tsonic.CSharp.Js.JSArray<string>.of([]);
+                    for (double index_1 = 0; index_1 < pathSegments.length - 1; index_1++)
                     {
                         directorySegments.push(pathSegments[index_1]);
                     }
@@ -123,9 +112,9 @@ namespace Tsumo.Engine
                     string defaultLeafName = isLeafBundle ? directorySegments[directorySegments.length - 1] : Build_siteRoutes.withoutMarkdownExtension(fileName);
                     string slug = frontMatter.slug ?? Utils_text.slugify(defaultLeafName);
                     Build_siteRoutes.assertSiteRouteSegment(slug, filePath);
-                    Tsonic.CSharp.Js.JSArray<string> routeSegments = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                    Tsonic.CSharp.Js.JSArray<string> routeSegments = Tsonic.CSharp.Js.JSArray<string>.of([]);
                     int directoryCount = isLeafBundle ? directorySegments.length - 1 : directorySegments.length;
-                    for (int index_2 = 0; index_2 < directoryCount; index_2++)
+                    for (double index_2 = 0; index_2 < directoryCount; index_2++)
                     {
                         routeSegments.push(directorySegments[index_2]);
                     }

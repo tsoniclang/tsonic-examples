@@ -17,7 +17,7 @@ pub fn trim_leading_character(value: String, character: String) -> Result<String
             )
         }?
     } else {
-        value.clone()
+        value
     })
 }
 
@@ -38,7 +38,7 @@ pub fn trim_trailing_character(
             )
         }?
     } else {
-        value.clone()
+        value
     })
 }
 
@@ -125,29 +125,39 @@ impl rt::ObjectIdentityCarrier for UrlParts {
 }
 
 impl UrlParts {
-    pub fn new(path: String, raw_query: String, fragment: String) -> UrlParts {
+    pub fn new(
+        path: String,
+        raw_query: String,
+        fragment: String,
+    ) -> Result<UrlParts, rt::TsonicError> {
         let field_path: String = path;
         let field_raw_query: String = raw_query;
         let field_fragment: String = fragment;
-        UrlParts {
+        Ok(UrlParts {
             state: rt::ObjectRef::new(UrlPartsState {
                 path: field_path,
                 raw_query: field_raw_query,
                 fragment: field_fragment,
             }),
-        }
+        })
     }
 }
 
 #[doc(hidden)]
 pub trait UrlValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_url_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_url_value_to_url_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn UrlValueDispatch + 'static>> {
         None
     }
     fn read_url_value_value(&self) -> ParsedUrl;
-    fn write_url_value_value(&self, value: ParsedUrl);
+    fn write_url_value_value(&self, value: ParsedUrl) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -186,33 +196,32 @@ impl rt::ObjectIdentityCarrier for UrlValue {
 }
 
 pub(crate) struct UrlValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<UrlValueState>,
+    state: rt::ObjectState<UrlValueState>,
 }
 
 impl UrlValue {
     #[doc(hidden)]
-    pub fn initialize_state(value: ParsedUrl) -> UrlValueState {
+    pub fn initialize_state(value: ParsedUrl) -> Result<UrlValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: ParsedUrl = value;
-        UrlValueState {
+        Ok(UrlValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: ParsedUrl) -> UrlValue {
-        let state = UrlValue::initialize_state(value);
+    pub fn new(value: ParsedUrl) -> Result<UrlValue, rt::TsonicError> {
+        let state = UrlValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(UrlValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        UrlValue {
+        Ok(UrlValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -232,6 +241,13 @@ impl crate::template::values::base::TemplateValueDispatch for UrlValueRoot {
 }
 
 impl UrlValueDispatch for UrlValueRoot {
+    fn downcast_url_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_url_value_to_url_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn UrlValueDispatch + 'static>> {
@@ -242,20 +258,35 @@ impl UrlValueDispatch for UrlValueRoot {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_url_value_value(&self, value: ParsedUrl) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_url_value_value(&self, value: ParsedUrl) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
 #[doc(hidden)]
 pub trait UrlQueryValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_url_query_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_url_query_value_to_url_query_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn UrlQueryValueDispatch + 'static>> {
         None
     }
     fn read_url_query_value_value(&self) -> js_abi::JsMap<String, js_abi::JsArray<String>>;
-    fn write_url_query_value_value(&self, value: js_abi::JsMap<String, js_abi::JsArray<String>>);
+    fn write_url_query_value_value(
+        &self,
+        value: js_abi::JsMap<String, js_abi::JsArray<String>>,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -294,35 +325,36 @@ impl rt::ObjectIdentityCarrier for UrlQueryValue {
 }
 
 pub(crate) struct UrlQueryValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<UrlQueryValueState>,
+    state: rt::ObjectState<UrlQueryValueState>,
 }
 
 impl UrlQueryValue {
     #[doc(hidden)]
     pub fn initialize_state(
         value: js_abi::JsMap<String, js_abi::JsArray<String>>,
-    ) -> UrlQueryValueState {
+    ) -> Result<UrlQueryValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: js_abi::JsMap<String, js_abi::JsArray<String>> = value;
-        UrlQueryValueState {
+        Ok(UrlQueryValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: js_abi::JsMap<String, js_abi::JsArray<String>>) -> UrlQueryValue {
-        let state = UrlQueryValue::initialize_state(value);
+    pub fn new(
+        value: js_abi::JsMap<String, js_abi::JsArray<String>>,
+    ) -> Result<UrlQueryValue, rt::TsonicError> {
+        let state = UrlQueryValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(UrlQueryValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        UrlQueryValue {
+        Ok(UrlQueryValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -342,6 +374,13 @@ impl crate::template::values::base::TemplateValueDispatch for UrlQueryValueRoot 
 }
 
 impl UrlQueryValueDispatch for UrlQueryValueRoot {
+    fn downcast_url_query_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_url_query_value_to_url_query_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn UrlQueryValueDispatch + 'static>> {
@@ -352,7 +391,16 @@ impl UrlQueryValueDispatch for UrlQueryValueRoot {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_url_query_value_value(&self, value: js_abi::JsMap<String, js_abi::JsArray<String>>) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_url_query_value_value(
+        &self,
+        value: js_abi::JsMap<String, js_abi::JsArray<String>>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

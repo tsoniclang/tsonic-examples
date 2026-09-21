@@ -17,7 +17,7 @@ namespace Tsumo.Engine
             addBundleResources = (string sourceDir, string outputPrefix, string owner, SiteOutputPlan outputPlan) =>
             {
                 Tsonic.CSharp.Js.JSArray<PageBundleResourceFile> files = Resources_pageBundle.discoverPageBundleResourceFiles(sourceDir);
-                for (int index = 0; index < files.length; index++)
+                for (double index = 0; index < files.length; index++)
                 {
                     PageBundleResourceFile file = files[index];
                     string outputPath = outputPrefix == "" ? file.relativePath : $"{outputPrefix}/{file.relativePath}";

@@ -96,7 +96,7 @@ namespace Tsumo.Tests
                 TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(mountDirectory, "shared.json"), "{\"value\":\"module\"}");
                 TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(siteDirectory, "data", "site.yaml"), "value: site\n");
                 TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(siteDirectory, "data", "shared.yaml"), "value: site\n");
-                DictValue data = Node_modules_Tsumo_engine_src_template_dataLoader.loadSiteData(siteDirectory, themeDirectory, new Tsonic.CSharp.Js.JSArray<ModuleMount>(new ModuleMount[] { new ModuleMount(mountDirectory, "data") }));
+                DictValue data = Node_modules_Tsumo_engine_src_template_dataLoader.loadSiteData(siteDirectory, themeDirectory, Tsonic.CSharp.Js.JSArray<ModuleMount>.of([new ModuleMount(mountDirectory, "data")]));
                 TestTemplateEnvironment environment = new TestTemplateEnvironment();
                 environment.setSiteData(data);
                 SiteContext site = TemplateTestHarness.createSite();
@@ -106,7 +106,7 @@ namespace Tsumo.Tests
                 TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(siteDirectory, "data", "shared.toml"), "value = \"duplicate\"\n");
                 Xunit.Assert.Equal("TSUMO_DATA_IDENTITY_CONFLICT", TemplateTestHarness.captureDiagnosticCode(() =>
                 {
-                    Node_modules_Tsumo_engine_src_template_dataLoader.loadSiteData(siteDirectory, themeDirectory, new Tsonic.CSharp.Js.JSArray<ModuleMount>(new ModuleMount[] { new ModuleMount(mountDirectory, "data") }));
+                    Node_modules_Tsumo_engine_src_template_dataLoader.loadSiteData(siteDirectory, themeDirectory, Tsonic.CSharp.Js.JSArray<ModuleMount>.of([new ModuleMount(mountDirectory, "data")]));
                 }));
             }
             finally

@@ -30,7 +30,7 @@ impl TemplateEvaluationContext {
         environment: crate::template::environment::TemplateEnvironment,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         defines: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    ) -> TemplateEvaluationContext {
+    ) -> Result<TemplateEvaluationContext, rt::TsonicError> {
         let field_scope: crate::template::scope::RenderScope = scope;
         let field_environment: crate::template::environment::TemplateEnvironment = environment;
         let field_overrides: js_abi::JsMap<
@@ -41,14 +41,14 @@ impl TemplateEvaluationContext {
             String,
             js_abi::JsArray<crate::template::nodes::TemplateNode>,
         > = defines;
-        TemplateEvaluationContext {
+        Ok(TemplateEvaluationContext {
             state: rt::ObjectRef::new(TemplateEvaluationContextState {
                 scope: field_scope,
                 environment: field_environment,
                 overrides: field_overrides,
                 defines: field_defines,
             }),
-        }
+        })
     }
 }
 
@@ -60,7 +60,7 @@ pub fn evaluate_pipeline(
     defines: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
 ) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
     let context: TemplateEvaluationContext =
-        TemplateEvaluationContext::new(scope, environment, overrides, defines);
+        TemplateEvaluationContext::new(scope, environment, overrides, defines)?;
     if rt::conversions::usize_to_i32(pipeline.state.with(|state| state.stages.clone()).len())? == 0
     {
         return Ok(
@@ -72,9 +72,8 @@ pub fn evaluate_pipeline(
             .state
             .with(|state| state.stages.clone())
             .get_number(0.0)
-            .as_ref()
         {
-            Some(flow_value) => flow_value.clone(),
+            Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
         },
         context.clone(),
@@ -92,9 +91,8 @@ pub fn evaluate_pipeline(
                     .state
                     .with(|state| state.stages.clone())
                     .get_number(index)
-                    .as_ref()
                 {
-                    Some(flow_value_2) => flow_value_2.clone(),
+                    Some(flow_value_2) => flow_value_2,
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
                 context.clone(),
@@ -142,9 +140,8 @@ pub fn evaluate_command(
                             .state
                             .with(|state| state.args.clone())
                             .get_number(index)
-                            .as_ref()
                         {
-                            Some(flow_value) => flow_value.clone(),
+                            Some(flow_value) => flow_value,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                         context.clone(),
@@ -269,9 +266,8 @@ pub fn evaluate_command(
                                 dispatch_receiver_6.dispatch.read_access_expr_segments()
                             }
                             .get_number(index)
-                            .as_ref()
                             {
-                                Some(flow_value_3) => flow_value_3.clone(),
+                                Some(flow_value_3) => flow_value_3,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
@@ -303,9 +299,8 @@ pub fn evaluate_command(
                             .state
                             .with(|state| state.args.clone())
                             .get_number(index)
-                            .as_ref()
                         {
-                            Some(flow_value_4) => flow_value_4.clone(),
+                            Some(flow_value_4) => flow_value_4,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                         context.clone(),
@@ -322,45 +317,46 @@ pub fn evaluate_command(
         }
         return crate::template::evaluation::expression_semantics::call_method(
             receiver.clone(),
-            match {
-                let operation_input_0_4 = {
-                    let dispatch_receiver_7 = &{
-                        let downcast_value_6 = &head;
-                        crate::template::syntax::expressions::AccessExpr {
-                            identity: downcast_value_6.identity.clone(),
-                            dispatch: downcast_value_6
-                                .dispatch
-                                .clone()
-                                .downcast_expr_to_access_expr()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver_7.dispatch.read_access_expr_segments()
-                };
-                operation_input_0_4.get_number(rt::conversions::i32_to_f64(
-                    rt::conversions::usize_to_i32(
-                        {
-                            let dispatch_receiver_8 = &{
-                                let downcast_value_7 = &head;
-                                crate::template::syntax::expressions::AccessExpr {
-                                    identity: downcast_value_7.identity.clone(),
-                                    dispatch: downcast_value_7
-                                        .dispatch
-                                        .clone()
-                                        .downcast_expr_to_access_expr()
-                                        .unwrap(),
-                                }
-                            };
-                            dispatch_receiver_8.dispatch.read_access_expr_segments()
-                        }
-                        .len(),
-                    )? - 1,
-                ))
-            }
-            .as_ref()
             {
-                Some(flow_value_6) => flow_value_6.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
+                let flow_input = {
+                    let operation_input_0_4 = {
+                        let dispatch_receiver_7 = &{
+                            let downcast_value_6 = &head;
+                            crate::template::syntax::expressions::AccessExpr {
+                                identity: downcast_value_6.identity.clone(),
+                                dispatch: downcast_value_6
+                                    .dispatch
+                                    .clone()
+                                    .downcast_expr_to_access_expr()
+                                    .unwrap(),
+                            }
+                        };
+                        dispatch_receiver_7.dispatch.read_access_expr_segments()
+                    };
+                    operation_input_0_4.get_number(rt::conversions::i32_to_f64(
+                        rt::conversions::usize_to_i32(
+                            {
+                                let dispatch_receiver_8 = &{
+                                    let downcast_value_7 = &head;
+                                    crate::template::syntax::expressions::AccessExpr {
+                                        identity: downcast_value_7.identity.clone(),
+                                        dispatch: downcast_value_7
+                                            .dispatch
+                                            .clone()
+                                            .downcast_expr_to_access_expr()
+                                            .unwrap(),
+                                    }
+                                };
+                                dispatch_receiver_8.dispatch.read_access_expr_segments()
+                            }
+                            .len(),
+                        )? - 1,
+                    ))
+                };
+                match flow_input {
+                    Some(flow_value_6) => flow_value_6,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }
             },
             args.clone(),
             context.state.with(|state| state.scope.clone()),
@@ -370,8 +366,8 @@ pub fn evaluate_command(
         );
     }
     if piped.is_some() {
-        return Ok(match piped.as_ref() {
-            Some(flow_value_7) => flow_value_7.clone(),
+        return Ok(match piped {
+            Some(flow_value_7) => flow_value_7,
             None => unreachable!("checked flow selected a missing optional value"),
         });
     }
@@ -404,11 +400,11 @@ pub fn evaluate_expression(
             || token == "resources"
             || token == "page"
             || js_string::starts_with_from_start(&token, "page.")
-            || crate::template::parser::tokens::parse_string_literal(token.clone())?.is_some()
+            || crate::template::parser::tokens::parse_string_literal(&token)?.is_some()
             || token == "true"
             || token == "false"
             || token == "nil"
-            || crate::template::evaluation::scalar_semantics::is_number_literal(token.clone())?
+            || crate::template::evaluation::scalar_semantics::is_number_literal(&token)?
         {
             return crate::template::evaluation::expression_semantics::eval_token(
                 &token,
@@ -483,6 +479,6 @@ pub fn evaluate_expression(
             None,
             None,
             None,
-        ),
+        )?,
     ))
 }

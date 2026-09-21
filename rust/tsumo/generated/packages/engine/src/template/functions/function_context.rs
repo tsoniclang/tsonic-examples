@@ -29,7 +29,7 @@ impl TemplateFunctionContext {
         environment: crate::template::environment::TemplateEnvironment,
         overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         defines: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    ) -> TemplateFunctionContext {
+    ) -> Result<TemplateFunctionContext, rt::TsonicError> {
         let field_scope: crate::template::scope::RenderScope = scope;
         let field_environment: crate::template::environment::TemplateEnvironment = environment;
         let field_overrides: js_abi::JsMap<
@@ -40,13 +40,13 @@ impl TemplateFunctionContext {
             String,
             js_abi::JsArray<crate::template::nodes::TemplateNode>,
         > = defines;
-        TemplateFunctionContext {
+        Ok(TemplateFunctionContext {
             state: rt::ObjectRef::new(TemplateFunctionContextState {
                 scope: field_scope,
                 environment: field_environment,
                 overrides: field_overrides,
                 defines: field_defines,
             }),
-        }
+        })
     }
 }

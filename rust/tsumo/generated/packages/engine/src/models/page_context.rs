@@ -11,64 +11,106 @@ pub trait PageContextDispatch {
         None
     }
     fn read_page_context_title(&self) -> String;
-    fn write_page_context_title(&self, value: String);
+    fn write_page_context_title(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_page_context_date(&self) -> String;
-    fn write_page_context_date(&self, value: String);
+    fn write_page_context_date(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_page_context_lastmod(&self) -> String;
-    fn write_page_context_lastmod(&self, value: String);
+    fn write_page_context_lastmod(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_page_context_draft(&self) -> bool;
-    fn write_page_context_draft(&self, value: bool);
+    fn write_page_context_draft(&self, value: bool) -> Result<(), rt::TsonicError>;
     fn read_page_context_kind(&self) -> String;
-    fn write_page_context_kind(&self, value: String);
+    fn write_page_context_kind(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_page_context_section(&self) -> String;
-    fn write_page_context_section(&self, value: String);
+    fn write_page_context_section(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_page_context_type(&self) -> String;
-    fn write_page_context_type(&self, value: String);
+    fn write_page_context_type(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_page_context_slug(&self) -> String;
-    fn write_page_context_slug(&self, value: String);
+    fn write_page_context_slug(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_page_context_rel_permalink(&self) -> String;
-    fn write_page_context_rel_permalink(&self, value: String);
+    fn write_page_context_rel_permalink(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_page_context_plain(&self) -> String;
-    fn write_page_context_plain(&self, value: String);
+    fn write_page_context_plain(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_page_context_table_of_contents(&self) -> crate::utils::html::HtmlString;
-    fn write_page_context_table_of_contents(&self, value: crate::utils::html::HtmlString);
+    fn write_page_context_table_of_contents(
+        &self,
+        value: crate::utils::html::HtmlString,
+    ) -> Result<(), rt::TsonicError>;
     fn read_page_context_content(&self) -> crate::utils::html::HtmlString;
-    fn write_page_context_content(&self, value: crate::utils::html::HtmlString);
+    fn write_page_context_content(
+        &self,
+        value: crate::utils::html::HtmlString,
+    ) -> Result<(), rt::TsonicError>;
     fn read_page_context_summary(&self) -> crate::utils::html::HtmlString;
-    fn write_page_context_summary(&self, value: crate::utils::html::HtmlString);
+    fn write_page_context_summary(
+        &self,
+        value: crate::utils::html::HtmlString,
+    ) -> Result<(), rt::TsonicError>;
     fn read_page_context_description(&self) -> String;
-    fn write_page_context_description(&self, value: String);
+    fn write_page_context_description(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_page_context_tags(&self) -> js_abi::JsArray<String>;
-    fn write_page_context_tags(&self, value: js_abi::JsArray<String>);
+    fn write_page_context_tags(
+        &self,
+        value: js_abi::JsArray<String>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_page_context_categories(&self) -> js_abi::JsArray<String>;
-    fn write_page_context_categories(&self, value: js_abi::JsArray<String>);
+    fn write_page_context_categories(
+        &self,
+        value: js_abi::JsArray<String>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_page_context_params(&self) -> js_abi::JsMap<String, crate::params::ParamValue>;
-    fn write_page_context_params(&self, value: js_abi::JsMap<String, crate::params::ParamValue>);
+    fn write_page_context_params(
+        &self,
+        value: js_abi::JsMap<String, crate::params::ParamValue>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_page_context_file(&self) -> Option<crate::models::page_file::PageFile>;
-    fn write_page_context_file(&self, value: Option<crate::models::page_file::PageFile>);
+    fn write_page_context_file(
+        &self,
+        value: Option<crate::models::page_file::PageFile>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_page_context_language(&self) -> crate::models::language::LanguageContext;
-    fn write_page_context_language(&self, value: crate::models::language::LanguageContext);
+    fn write_page_context_language(
+        &self,
+        value: crate::models::language::LanguageContext,
+    ) -> Result<(), rt::TsonicError>;
     fn read_page_context_translations(&self) -> js_abi::JsArray<PageContext>;
-    fn write_page_context_translations(&self, value: js_abi::JsArray<PageContext>);
+    fn write_page_context_translations(
+        &self,
+        value: js_abi::JsArray<PageContext>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_page_context_store(&self) -> Option<crate::template::values::scratch::ScratchStore>;
     fn write_page_context_store(
         &self,
         value: Option<crate::template::values::scratch::ScratchStore>,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_page_context_site(&self) -> crate::models::site_context::SiteContext;
-    fn write_page_context_site(&self, value: crate::models::site_context::SiteContext);
+    fn write_page_context_site(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError>;
     fn read_page_context_pages(&self) -> js_abi::JsArray<PageContext>;
-    fn write_page_context_pages(&self, value: js_abi::JsArray<PageContext>);
+    fn write_page_context_pages(
+        &self,
+        value: js_abi::JsArray<PageContext>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_page_context_layout(&self) -> Option<String>;
-    fn write_page_context_layout(&self, value: Option<String>);
+    fn write_page_context_layout(&self, value: Option<String>) -> Result<(), rt::TsonicError>;
     fn read_page_context_parent(&self) -> Option<PageContext>;
-    fn write_page_context_parent(&self, value: Option<PageContext>);
+    fn write_page_context_parent(&self, value: Option<PageContext>) -> Result<(), rt::TsonicError>;
     fn read_page_context_ancestors(&self) -> js_abi::JsArray<PageContext>;
-    fn write_page_context_ancestors(&self, value: js_abi::JsArray<PageContext>);
+    fn write_page_context_ancestors(
+        &self,
+        value: js_abi::JsArray<PageContext>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_page_context_resource_source_dir(&self) -> Option<String>;
-    fn write_page_context_resource_source_dir(&self, value: Option<String>);
+    fn write_page_context_resource_source_dir(
+        &self,
+        value: Option<String>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_page_context_shortcode_names(&self) -> js_abi::JsMap<String, bool>;
-    fn write_page_context_shortcode_names(&self, value: js_abi::JsMap<String, bool>);
+    fn write_page_context_shortcode_names(
+        &self,
+        value: js_abi::JsMap<String, bool>,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -132,9 +174,8 @@ impl rt::ObjectIdentityCarrier for PageContext {
 }
 
 pub(crate) struct PageContextRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<PageContextState>,
+    state: rt::ObjectState<PageContextState>,
 }
 
 impl PageContext {
@@ -167,7 +208,7 @@ impl PageContext {
         parent: Option<PageContext>,
         ancestors: js_abi::JsArray<PageContext>,
         layout: Option<String>,
-    ) -> PageContextState {
+    ) -> Result<PageContextState, rt::TsonicError> {
         let field_title: String = title;
         let field_date: String = date;
         let field_lastmod: String = lastmod;
@@ -196,7 +237,7 @@ impl PageContext {
         let field_ancestors: js_abi::JsArray<PageContext> = ancestors;
         let field_resource_source_dir: Option<String> = Option::<String>::None;
         let field_shortcode_names: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
-        PageContextState {
+        Ok(PageContextState {
             title: field_title,
             date: field_date,
             lastmod: field_lastmod,
@@ -225,7 +266,7 @@ impl PageContext {
             ancestors: field_ancestors,
             resource_source_dir: field_resource_source_dir,
             shortcode_names: field_shortcode_names,
-        }
+        })
     }
 
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
@@ -256,7 +297,7 @@ impl PageContext {
         parent: Option<PageContext>,
         ancestors: js_abi::JsArray<PageContext>,
         layout: Option<String>,
-    ) -> PageContext {
+    ) -> Result<PageContext, rt::TsonicError> {
         let state = PageContext::initialize_state(
             title,
             date,
@@ -284,16 +325,16 @@ impl PageContext {
             parent,
             ancestors,
             layout,
-        );
+        )?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(PageContextRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        PageContext {
+        Ok(PageContext {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -308,160 +349,307 @@ impl PageContextDispatch for PageContextRoot {
         self.state.with(|state| state.title.clone())
     }
 
-    fn write_page_context_title(&self, value: String) {
-        self.state.with_mut(|state| state.title = value);
+    fn write_page_context_title(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.title = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_date(&self) -> String {
         self.state.with(|state| state.date.clone())
     }
 
-    fn write_page_context_date(&self, value: String) {
-        self.state.with_mut(|state| state.date = value);
+    fn write_page_context_date(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.date = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_lastmod(&self) -> String {
         self.state.with(|state| state.lastmod.clone())
     }
 
-    fn write_page_context_lastmod(&self, value: String) {
-        self.state.with_mut(|state| state.lastmod = value);
+    fn write_page_context_lastmod(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.lastmod = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_draft(&self) -> bool {
         self.state.with(|state| state.draft)
     }
 
-    fn write_page_context_draft(&self, value: bool) {
-        self.state.with_mut(|state| state.draft = value);
+    fn write_page_context_draft(&self, value: bool) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.draft = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_kind(&self) -> String {
         self.state.with(|state| state.kind.clone())
     }
 
-    fn write_page_context_kind(&self, value: String) {
-        self.state.with_mut(|state| state.kind = value);
+    fn write_page_context_kind(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.kind = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_section(&self) -> String {
         self.state.with(|state| state.section.clone())
     }
 
-    fn write_page_context_section(&self, value: String) {
-        self.state.with_mut(|state| state.section = value);
+    fn write_page_context_section(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.section = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_type(&self) -> String {
         self.state.with(|state| state.r#type.clone())
     }
 
-    fn write_page_context_type(&self, value: String) {
-        self.state.with_mut(|state| state.r#type = value);
+    fn write_page_context_type(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.r#type = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_slug(&self) -> String {
         self.state.with(|state| state.slug.clone())
     }
 
-    fn write_page_context_slug(&self, value: String) {
-        self.state.with_mut(|state| state.slug = value);
+    fn write_page_context_slug(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.slug = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_rel_permalink(&self) -> String {
         self.state.with(|state| state.rel_permalink.clone())
     }
 
-    fn write_page_context_rel_permalink(&self, value: String) {
-        self.state.with_mut(|state| state.rel_permalink = value);
+    fn write_page_context_rel_permalink(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.rel_permalink = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_plain(&self) -> String {
         self.state.with(|state| state.plain.clone())
     }
 
-    fn write_page_context_plain(&self, value: String) {
-        self.state.with_mut(|state| state.plain = value);
+    fn write_page_context_plain(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.plain = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_table_of_contents(&self) -> crate::utils::html::HtmlString {
         self.state.with(|state| state.table_of_contents.clone())
     }
 
-    fn write_page_context_table_of_contents(&self, value: crate::utils::html::HtmlString) {
-        self.state.with_mut(|state| state.table_of_contents = value);
+    fn write_page_context_table_of_contents(
+        &self,
+        value: crate::utils::html::HtmlString,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.table_of_contents = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_content(&self) -> crate::utils::html::HtmlString {
         self.state.with(|state| state.content.clone())
     }
 
-    fn write_page_context_content(&self, value: crate::utils::html::HtmlString) {
-        self.state.with_mut(|state| state.content = value);
+    fn write_page_context_content(
+        &self,
+        value: crate::utils::html::HtmlString,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.content = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_summary(&self) -> crate::utils::html::HtmlString {
         self.state.with(|state| state.summary.clone())
     }
 
-    fn write_page_context_summary(&self, value: crate::utils::html::HtmlString) {
-        self.state.with_mut(|state| state.summary = value);
+    fn write_page_context_summary(
+        &self,
+        value: crate::utils::html::HtmlString,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.summary = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_description(&self) -> String {
         self.state.with(|state| state.description.clone())
     }
 
-    fn write_page_context_description(&self, value: String) {
-        self.state.with_mut(|state| state.description = value);
+    fn write_page_context_description(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.description = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_tags(&self) -> js_abi::JsArray<String> {
         self.state.with(|state| state.tags.clone())
     }
 
-    fn write_page_context_tags(&self, value: js_abi::JsArray<String>) {
-        self.state.with_mut(|state| state.tags = value);
+    fn write_page_context_tags(
+        &self,
+        value: js_abi::JsArray<String>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.tags = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_categories(&self) -> js_abi::JsArray<String> {
         self.state.with(|state| state.categories.clone())
     }
 
-    fn write_page_context_categories(&self, value: js_abi::JsArray<String>) {
-        self.state.with_mut(|state| state.categories = value);
+    fn write_page_context_categories(
+        &self,
+        value: js_abi::JsArray<String>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.categories = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_params(&self) -> js_abi::JsMap<String, crate::params::ParamValue> {
         self.state.with(|state| state.params.clone())
     }
 
-    fn write_page_context_params(&self, value: js_abi::JsMap<String, crate::params::ParamValue>) {
-        self.state.with_mut(|state| state.params = value);
+    fn write_page_context_params(
+        &self,
+        value: js_abi::JsMap<String, crate::params::ParamValue>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.params = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_file(&self) -> Option<crate::models::page_file::PageFile> {
         self.state.with(|state| state.file.clone())
     }
 
-    fn write_page_context_file(&self, value: Option<crate::models::page_file::PageFile>) {
-        self.state.with_mut(|state| state.file = value);
+    fn write_page_context_file(
+        &self,
+        value: Option<crate::models::page_file::PageFile>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.file = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_language(&self) -> crate::models::language::LanguageContext {
         self.state.with(|state| state.language.clone())
     }
 
-    fn write_page_context_language(&self, value: crate::models::language::LanguageContext) {
-        self.state.with_mut(|state| state.language = value);
+    fn write_page_context_language(
+        &self,
+        value: crate::models::language::LanguageContext,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.language = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_translations(&self) -> js_abi::JsArray<PageContext> {
         self.state.with(|state| state.translations.clone())
     }
 
-    fn write_page_context_translations(&self, value: js_abi::JsArray<PageContext>) {
-        self.state.with_mut(|state| state.translations = value);
+    fn write_page_context_translations(
+        &self,
+        value: js_abi::JsArray<PageContext>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.translations = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_store(&self) -> Option<crate::template::values::scratch::ScratchStore> {
@@ -471,64 +659,127 @@ impl PageContextDispatch for PageContextRoot {
     fn write_page_context_store(
         &self,
         value: Option<crate::template::values::scratch::ScratchStore>,
-    ) {
-        self.state.with_mut(|state| state.store = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.store = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_site(&self) -> crate::models::site_context::SiteContext {
         self.state.with(|state| state.site.clone())
     }
 
-    fn write_page_context_site(&self, value: crate::models::site_context::SiteContext) {
-        self.state.with_mut(|state| state.site = value);
+    fn write_page_context_site(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.site = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_pages(&self) -> js_abi::JsArray<PageContext> {
         self.state.with(|state| state.pages.clone())
     }
 
-    fn write_page_context_pages(&self, value: js_abi::JsArray<PageContext>) {
-        self.state.with_mut(|state| state.pages = value);
+    fn write_page_context_pages(
+        &self,
+        value: js_abi::JsArray<PageContext>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.pages = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_layout(&self) -> Option<String> {
         self.state.with(|state| state.layout.clone())
     }
 
-    fn write_page_context_layout(&self, value: Option<String>) {
-        self.state.with_mut(|state| state.layout = value);
+    fn write_page_context_layout(&self, value: Option<String>) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.layout = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_parent(&self) -> Option<PageContext> {
         self.state.with(|state| state.parent.clone())
     }
 
-    fn write_page_context_parent(&self, value: Option<PageContext>) {
-        self.state.with_mut(|state| state.parent = value);
+    fn write_page_context_parent(&self, value: Option<PageContext>) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.parent = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_ancestors(&self) -> js_abi::JsArray<PageContext> {
         self.state.with(|state| state.ancestors.clone())
     }
 
-    fn write_page_context_ancestors(&self, value: js_abi::JsArray<PageContext>) {
-        self.state.with_mut(|state| state.ancestors = value);
+    fn write_page_context_ancestors(
+        &self,
+        value: js_abi::JsArray<PageContext>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.ancestors = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_resource_source_dir(&self) -> Option<String> {
         self.state.with(|state| state.resource_source_dir.clone())
     }
 
-    fn write_page_context_resource_source_dir(&self, value: Option<String>) {
-        self.state
-            .with_mut(|state| state.resource_source_dir = value);
+    fn write_page_context_resource_source_dir(
+        &self,
+        value: Option<String>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state
+                    .with_mut(|state| state.resource_source_dir = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_context_shortcode_names(&self) -> js_abi::JsMap<String, bool> {
         self.state.with(|state| state.shortcode_names.clone())
     }
 
-    fn write_page_context_shortcode_names(&self, value: js_abi::JsMap<String, bool>) {
-        self.state.with_mut(|state| state.shortcode_names = value);
+    fn write_page_context_shortcode_names(
+        &self,
+        value: js_abi::JsMap<String, bool>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.shortcode_names = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

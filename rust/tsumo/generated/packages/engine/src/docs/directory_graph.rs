@@ -19,12 +19,12 @@ pub fn add_docs_directory_with_parents(
         current = if separator < 0 {
             String::from("")
         } else {
-            crate::utils::strings::substring_count(current.clone(), 0, separator)?
+            crate::utils::strings::substring_count(&current, 0, separator)?
         };
     }
 }
 
-pub fn docs_directory_depth(directory: String) -> Result<i32, rt::TsonicError> {
+pub fn docs_directory_depth(directory: &str) -> Result<i32, rt::TsonicError> {
     if directory.is_empty() {
         return Ok(0);
     }
@@ -32,7 +32,7 @@ pub fn docs_directory_depth(directory: String) -> Result<i32, rt::TsonicError> {
     let mut position: f64 = 0.0;
     loop {
         let separator: i32 =
-            rt::conversions::isize_to_i32(js_string::index_of(&directory, "/", position))?;
+            rt::conversions::isize_to_i32(js_string::index_of(directory, "/", position))?;
         if separator < 0 {
             return Ok(depth);
         }
@@ -41,13 +41,13 @@ pub fn docs_directory_depth(directory: String) -> Result<i32, rt::TsonicError> {
     }
 }
 
-pub fn docs_parent_directory(directory: String) -> Result<String, rt::TsonicError> {
+pub fn docs_parent_directory(directory: &str) -> Result<String, rt::TsonicError> {
     let separator: i32 =
-        rt::conversions::isize_to_i32(js_string::last_index_of_from_end(&directory, "/"))?;
+        rt::conversions::isize_to_i32(js_string::last_index_of_from_end(directory, "/"))?;
     Ok(if separator < 0 {
         String::from("")
     } else {
-        crate::utils::strings::substring_count(directory.clone(), 0, separator)?
+        crate::utils::strings::substring_count(directory, 0, separator)?
     })
 }
 
@@ -55,7 +55,7 @@ pub fn docs_directory_name(directory: String) -> Result<String, rt::TsonicError>
     let separator: i32 =
         rt::conversions::isize_to_i32(js_string::last_index_of_from_end(&directory, "/"))?;
     Ok(if separator < 0 {
-        directory.clone()
+        directory
     } else {
         crate::utils::strings::substring_from(&directory, separator + 1)?
     })
@@ -71,7 +71,9 @@ pub fn assign_docs_page_ancestry(
         let value = parent;
         {
             let dispatch_receiver = receiver;
-            dispatch_receiver.dispatch.write_page_context_parent(value)
+            dispatch_receiver
+                .dispatch
+                .write_page_context_parent(value)?
         }
     };
     {
@@ -81,7 +83,7 @@ pub fn assign_docs_page_ancestry(
             let dispatch_receiver_2 = receiver_2;
             dispatch_receiver_2
                 .dispatch
-                .write_page_context_ancestors(value_2)
+                .write_page_context_ancestors(value_2)?
         }
     };
     if ({
@@ -107,9 +109,8 @@ pub fn assign_docs_page_ancestry(
                 dispatch_receiver_5.dispatch.read_page_context_pages()
             }
             .get_number(index)
-            .as_ref()
             {
-                Some(flow_value) => flow_value.clone(),
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let child_ancestors: js_abi::JsArray<crate::models::page_context::PageContext> =
@@ -120,8 +121,8 @@ pub fn assign_docs_page_ancestry(
                     {
                         let operation_input_0 = child_ancestors.clone();
                         operation_input_0.push_many_discard([
-                            match ancestors.get_number(ancestor_index).as_ref() {
-                                Some(flow_value_2) => flow_value_2.clone(),
+                            match ancestors.get_number(ancestor_index) {
+                                Some(flow_value_2) => flow_value_2,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }

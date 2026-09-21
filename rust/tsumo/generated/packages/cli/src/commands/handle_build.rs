@@ -16,8 +16,8 @@ pub fn handle_build(
     {
         let mut i: i32 = build_arg_start;
         while i < rt::conversions::usize_to_i32(args.len())? {
-            let a: String = match args.get_number(rt::conversions::i32_to_f64(i)).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let a: String = match args.get_number(rt::conversions::i32_to_f64(i)) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if a == "--source" || a == "-s" {
@@ -29,11 +29,10 @@ pub fn handle_build(
                     ));
                     return Ok(());
                 }
-                build_source_dir =
-                    match args.get_number(rt::conversions::i32_to_f64(i + 1)).as_ref() {
-                        Some(flow_value_2) => flow_value_2.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    };
+                build_source_dir = match args.get_number(rt::conversions::i32_to_f64(i + 1)) {
+                    Some(flow_value_2) => flow_value_2,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                };
                 i += 1;
             } else if a == "--destination" || a == "-d" {
                 if i + 1 >= rt::conversions::usize_to_i32(args.len())? {
@@ -44,11 +43,10 @@ pub fn handle_build(
                     ));
                     return Ok(());
                 }
-                build_destination_dir =
-                    match args.get_number(rt::conversions::i32_to_f64(i + 1)).as_ref() {
-                        Some(flow_value_3) => flow_value_3.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    };
+                build_destination_dir = match args.get_number(rt::conversions::i32_to_f64(i + 1)) {
+                    Some(flow_value_3) => flow_value_3,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                };
                 i += 1;
             } else if a == "--baseURL" || a == "--baseurl" {
                 if i + 1 >= rt::conversions::usize_to_i32(args.len())? {
@@ -59,12 +57,10 @@ pub fn handle_build(
                     ));
                     return Ok(());
                 }
-                build_base_url = Some(
-                    match args.get_number(rt::conversions::i32_to_f64(i + 1)).as_ref() {
-                        Some(flow_value_4) => flow_value_4.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                );
+                build_base_url = Some(match args.get_number(rt::conversions::i32_to_f64(i + 1)) {
+                    Some(flow_value_4) => flow_value_4,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                });
                 i += 1;
             } else if a == "--themesDir" || a == "--themesdir" {
                 if i + 1 >= rt::conversions::usize_to_i32(args.len())? {
@@ -75,12 +71,11 @@ pub fn handle_build(
                     ));
                     return Ok(());
                 }
-                build_themes_dir = Some(
-                    match args.get_number(rt::conversions::i32_to_f64(i + 1)).as_ref() {
-                        Some(flow_value_5) => flow_value_5.clone(),
+                build_themes_dir =
+                    Some(match args.get_number(rt::conversions::i32_to_f64(i + 1)) {
+                        Some(flow_value_5) => flow_value_5,
                         None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                );
+                    });
                 i += 1;
             } else if a == "-D" || a == "--buildDrafts" {
                 include_drafts = true;
@@ -99,8 +94,7 @@ pub fn handle_build(
             i += 1;
         }
     }
-    let build_req: tsumo_engine::BuildRequest =
-        tsumo_engine::BuildRequest::new(build_source_dir.clone());
+    let build_req: tsumo_engine::BuildRequest = tsumo_engine::BuildRequest::new(build_source_dir)?;
     {
         let receiver = &build_req;
         let value = build_destination_dir.clone();
@@ -108,7 +102,7 @@ pub fn handle_build(
             let dispatch_receiver = receiver;
             dispatch_receiver
                 .dispatch
-                .write_build_request_destination_dir(value)
+                .write_build_request_destination_dir(value)?
         }
     };
     {
@@ -118,7 +112,7 @@ pub fn handle_build(
             let dispatch_receiver_2 = receiver_2;
             dispatch_receiver_2
                 .dispatch
-                .write_build_request_base_url(value_2)
+                .write_build_request_base_url(value_2)?
         }
     };
     {
@@ -128,7 +122,7 @@ pub fn handle_build(
             let dispatch_receiver_3 = receiver_3;
             dispatch_receiver_3
                 .dispatch
-                .write_build_request_themes_dir(value_3)
+                .write_build_request_themes_dir(value_3)?
         }
     };
     {
@@ -138,7 +132,7 @@ pub fn handle_build(
             let dispatch_receiver_4 = receiver_4;
             dispatch_receiver_4
                 .dispatch
-                .write_build_request_build_drafts(value_4)
+                .write_build_request_build_drafts(value_4)?
         }
     };
     {
@@ -148,7 +142,7 @@ pub fn handle_build(
             let dispatch_receiver_5 = receiver_5;
             dispatch_receiver_5
                 .dispatch
-                .write_build_request_clean_destination_dir(value_5)
+                .write_build_request_clean_destination_dir(value_5)?
         }
     };
     {
@@ -165,7 +159,7 @@ pub fn handle_build(
             let dispatch_receiver_7 = receiver_6;
             dispatch_receiver_7
                 .dispatch
-                .write_build_request_build_time(value_6)
+                .write_build_request_build_time(value_6)?
         }
     };
     let result: tsumo_engine::BuildResult = tsumo_engine::build_site(build_req.clone())?;

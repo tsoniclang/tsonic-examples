@@ -4,31 +4,89 @@ namespace Tsumo.Engine
 {
     public static class Frontmatter_yaml
     {
-        public static Func<string, int> indentationOf
+        internal static int indentationOf(string line)
         {
-            get;
-            private set;
-        } = default(Func<string, int>)!;
-        public static Func<string, string> yamlText
+            int indentation = 0;
+            while (indentation < line.Length && line.Substring(indentation, 1) == " ")
+            {
+                indentation++;
+            }
+            return indentation;
+        }
+        internal static string yamlText(string line)
         {
-            get;
-            private set;
-        } = default(Func<string, string>)!;
-        public static Func<string, string?, int, Tsonic.CSharp.Js.JSArray<string>> splitYamlPair
+            return Tsonic.CSharp.Js.String.trim(Utils_structuredScalars.stripStructuredComment(line, "yaml"));
+        }
+        internal static Tsonic.CSharp.Js.JSArray<string> splitYamlPair(string text, string? sourcePath, int line)
         {
-            get;
-            private set;
-        } = default(Func<string, string?, int, Tsonic.CSharp.Js.JSArray<string>>)!;
-        public static Action<FrontMatterMenu, string, string, string?, int> applyMenuProperty
+            int separator = Tsonic.CSharp.Js.String.indexOf(text, ":");
+            if (separator <= 0)
+            {
+                throw Diagnostics.createTsumoError("TSUMO_FRONTMATTER_YAML_SYNTAX_INVALID", "YAML front matter entries require 'key: value' syntax", sourcePath, line, 1);
+            }
+            return Tsonic.CSharp.Js.JSArray<string>.of([Tsonic.CSharp.Js.String.trim(Utils_strings.substringCount(text, 0, separator)), Tsonic.CSharp.Js.String.trim(Utils_strings.substringFrom(text, separator + 1))]);
+        }
+        internal static void applyMenuProperty(FrontMatterMenu entry, string keyRaw, string valueRaw, string? sourcePath, int line)
         {
-            get;
-            private set;
-        } = default(Action<FrontMatterMenu, string, string, string?, int>)!;
-        public static Action<string, string?, int> validateYamlLine
+            string key = Tsonic.CSharp.Js.String.toLowerCase(keyRaw);
+            if (key == "weight")
+            {
+                entry.weight = Frontmatter_scalars.parseFrontMatterInt(valueRaw, keyRaw, "yaml", sourcePath, line);
+            }
+            else
+            {
+                if (key == "name")
+                {
+                    entry.name = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "yaml", sourcePath, line);
+                }
+                else
+                {
+                    if (key == "parent")
+                    {
+                        entry.parent = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "yaml", sourcePath, line);
+                    }
+                    else
+                    {
+                        if (key == "identifier")
+                        {
+                            entry.identifier = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "yaml", sourcePath, line);
+                        }
+                        else
+                        {
+                            if (key == "pre")
+                            {
+                                entry.pre = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "yaml", sourcePath, line);
+                            }
+                            else
+                            {
+                                if (key == "post")
+                                {
+                                    entry.post = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "yaml", sourcePath, line);
+                                }
+                                else
+                                {
+                                    if (key == "title")
+                                    {
+                                        entry.title = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "yaml", sourcePath, line);
+                                    }
+                                    else
+                                    {
+                                        throw Diagnostics.createTsumoError("TSUMO_FRONTMATTER_MENU_FIELD_UNKNOWN", $"Unknown front matter menu field '{keyRaw}'", sourcePath, line, 1);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        internal static void validateYamlLine(string line, string? sourcePath, int lineNumber)
         {
-            get;
-            private set;
-        } = default(Action<string, string?, int>)!;
+            if (Tsonic.CSharp.Js.String.includes(line, "\t"))
+            {
+                throw Diagnostics.createTsumoError("TSUMO_FRONTMATTER_YAML_SYNTAX_INVALID", "YAML front matter indentation must use spaces", sourcePath, lineNumber, 1);
+            }
+        }
         public static Func<Tsonic.CSharp.Js.JSArray<string>, string?, FrontMatter> parseYamlFrontMatter
         {
             get;
@@ -41,86 +99,6 @@ namespace Tsumo.Engine
             Utils_structuredScalars.__tsonic_module_init();
             Frontmatter_data.__tsonic_module_init();
             Frontmatter_scalars.__tsonic_module_init();
-            indentationOf = (string line) =>
-            {
-                int indentation = 0;
-                while (indentation < line.Length && line.Substring(indentation, 1) == " ")
-                {
-                    indentation++;
-                }
-                return indentation;
-            };
-            yamlText = (string line) => Tsonic.CSharp.Js.String.trim(Utils_structuredScalars.stripStructuredComment(line, "yaml"));
-            splitYamlPair = (string text, string? sourcePath, int line) =>
-            {
-                int separator = Tsonic.CSharp.Js.String.indexOf(text, ":");
-                if (separator <= 0)
-                {
-                    throw Diagnostics.createTsumoError("TSUMO_FRONTMATTER_YAML_SYNTAX_INVALID", "YAML front matter entries require 'key: value' syntax", sourcePath, line, 1);
-                }
-                return new Tsonic.CSharp.Js.JSArray<string>(new string[] { Tsonic.CSharp.Js.String.trim(Utils_strings.substringCount(text, 0, separator)), Tsonic.CSharp.Js.String.trim(Utils_strings.substringFrom(text, separator + 1)) });
-            };
-            applyMenuProperty = (FrontMatterMenu entry, string keyRaw, string valueRaw, string? sourcePath, int line) =>
-            {
-                string key = Tsonic.CSharp.Js.String.toLowerCase(keyRaw);
-                if (key == "weight")
-                {
-                    entry.weight = Frontmatter_scalars.parseFrontMatterInt(valueRaw, keyRaw, "yaml", sourcePath, line);
-                }
-                else
-                {
-                    if (key == "name")
-                    {
-                        entry.name = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "yaml", sourcePath, line);
-                    }
-                    else
-                    {
-                        if (key == "parent")
-                        {
-                            entry.parent = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "yaml", sourcePath, line);
-                        }
-                        else
-                        {
-                            if (key == "identifier")
-                            {
-                                entry.identifier = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "yaml", sourcePath, line);
-                            }
-                            else
-                            {
-                                if (key == "pre")
-                                {
-                                    entry.pre = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "yaml", sourcePath, line);
-                                }
-                                else
-                                {
-                                    if (key == "post")
-                                    {
-                                        entry.post = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "yaml", sourcePath, line);
-                                    }
-                                    else
-                                    {
-                                        if (key == "title")
-                                        {
-                                            entry.title = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "yaml", sourcePath, line);
-                                        }
-                                        else
-                                        {
-                                            throw Diagnostics.createTsumoError("TSUMO_FRONTMATTER_MENU_FIELD_UNKNOWN", $"Unknown front matter menu field '{keyRaw}'", sourcePath, line, 1);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            };
-            validateYamlLine = (string line, string? sourcePath, int lineNumber) =>
-            {
-                if (Tsonic.CSharp.Js.String.includes(line, "\t"))
-                {
-                    throw Diagnostics.createTsumoError("TSUMO_FRONTMATTER_YAML_SYNTAX_INVALID", "YAML front matter indentation must use spaces", sourcePath, lineNumber, 1);
-                }
-            };
             parseYamlFrontMatter = (Tsonic.CSharp.Js.JSArray<string> lines, string? sourcePath) =>
             {
                 FrontMatter frontMatter = new FrontMatter();
@@ -182,7 +160,7 @@ namespace Tsumo.Engine
                     }
                     if (normalizedKey == "tags" || normalizedKey == "categories")
                     {
-                        Tsonic.CSharp.Js.JSArray<string> values = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                        Tsonic.CSharp.Js.JSArray<string> values = Tsonic.CSharp.Js.JSArray<string>.of([]);
                         while (index < lines.length && indentationOf(lines[index]) > 0)
                         {
                             string childRaw_1 = lines[index];

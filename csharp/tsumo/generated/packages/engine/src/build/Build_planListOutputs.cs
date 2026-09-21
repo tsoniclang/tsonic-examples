@@ -21,7 +21,7 @@ namespace Tsumo.Engine
             Build_standardTemplates.__tsonic_module_init();
             planListOutputs = (StandardPageGraph graph, BuildEnvironment environment, StandardTemplates templates, SiteOutputPlan outputPlan, Tsonic.CSharp.Js.Map<string, bool> sitemapUrls) =>
             {
-                for (int index = 0; index < graph.listRoutes.length; index++)
+                for (double index = 0; index < graph.listRoutes.length; index++)
                 {
                     string route = graph.listRoutes[index];
                     if (route == "")
@@ -33,8 +33,8 @@ namespace Tsumo.Engine
                     {
                         continue;
                     }
-                    string main = Build_layout.selectTemplate(environment, new Tsonic.CSharp.Js.JSArray<string>(new string[] { $"{page.type}/list.html", $"{page.section}/list.html", "_default/list.html" })) ?? templates.list;
-                    string? @base = Build_layout.selectTemplate(environment, new Tsonic.CSharp.Js.JSArray<string>(new string[] { $"{page.type}/baseof.html", $"{page.section}/baseof.html", "_default/baseof.html" })) ?? templates.@base;
+                    string main = Build_layout.selectTemplate(environment, Tsonic.CSharp.Js.JSArray<string>.of([$"{page.type}/list.html", $"{page.section}/list.html", "_default/list.html"])) ?? templates.list;
+                    string? @base = Build_layout.selectTemplate(environment, Tsonic.CSharp.Js.JSArray<string>.of([$"{page.type}/baseof.html", $"{page.section}/baseof.html", "_default/baseof.html"])) ?? templates.@base;
                     outputPlan.addText(Build_siteRoutes.siteOutputPath(Build_siteRoutes.splitSitePath(route)), Build_layout.renderWithBase(environment, @base, main, page), $"section '{route}'");
                     sitemapUrls.set(page.relPermalink, true);
                     string? bundleSource = Tsonic.CSharp.Js.Map.getReference<PageContext, string>(graph.bundleSourceByPage, page);

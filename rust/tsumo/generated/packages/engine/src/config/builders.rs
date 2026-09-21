@@ -31,7 +31,7 @@ impl rt::ObjectIdentityCarrier for MenuEntryBuilder {
 }
 
 impl MenuEntryBuilder {
-    pub fn new(menu: String) -> MenuEntryBuilder {
+    pub fn new(menu: String) -> Result<MenuEntryBuilder, rt::TsonicError> {
         let field_name: String = String::from("");
         let field_url: String = String::from("");
         let field_page_ref: String = String::from("");
@@ -43,7 +43,7 @@ impl MenuEntryBuilder {
         let field_post: String = String::from("");
         let field_menu: String = menu;
         let field_params: js_abi::JsMap<String, crate::params::ParamValue> = js_abi::JsMap::new();
-        MenuEntryBuilder {
+        Ok(MenuEntryBuilder {
             state: rt::ObjectHandle::new(MenuEntryBuilderState {
                 name: field_name,
                 url: field_url,
@@ -57,10 +57,10 @@ impl MenuEntryBuilder {
                 menu: field_menu,
                 params: field_params,
             }),
-        }
+        })
     }
 
-    pub fn to_entry(&self) -> crate::models::menu_entry::MenuEntry {
+    pub fn to_entry(&self) -> Result<crate::models::menu_entry::MenuEntry, rt::TsonicError> {
         crate::models::menu_entry::MenuEntry::new(
             self.state.with(|state| state.name.clone()),
             self.state.with(|state| state.url.clone()),
@@ -102,7 +102,7 @@ impl LanguageConfigBuilder {
     pub fn new(
         lang: String,
         source: Option<crate::models::language::LanguageConfig>,
-    ) -> LanguageConfigBuilder {
+    ) -> Result<LanguageConfigBuilder, rt::TsonicError> {
         let field_lang: String = lang.clone();
         let field_language_name: String = rt::option_coalesce(
             source.as_ref().map(|optional_receiver| {
@@ -138,7 +138,7 @@ impl LanguageConfigBuilder {
             core::convert::identity,
             || 0,
         );
-        LanguageConfigBuilder {
+        Ok(LanguageConfigBuilder {
             state: rt::ObjectHandle::new(LanguageConfigBuilderState {
                 lang: field_lang,
                 language_name: field_language_name,
@@ -146,10 +146,10 @@ impl LanguageConfigBuilder {
                 content_dir: field_content_dir,
                 weight: field_weight,
             }),
-        }
+        })
     }
 
-    pub fn to_config(&self) -> crate::models::language::LanguageConfig {
+    pub fn to_config(&self) -> Result<crate::models::language::LanguageConfig, rt::TsonicError> {
         crate::models::language::LanguageConfig::new(
             self.state.with(|state| state.lang.clone()),
             self.state.with(|state| state.language_name.clone()),

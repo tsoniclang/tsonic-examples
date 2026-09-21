@@ -10,21 +10,21 @@ pub trait FrontMatterMenuDispatch {
         None
     }
     fn read_front_matter_menu_menu(&self) -> String;
-    fn write_front_matter_menu_menu(&self, value: String);
+    fn write_front_matter_menu_menu(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_front_matter_menu_name(&self) -> String;
-    fn write_front_matter_menu_name(&self, value: String);
+    fn write_front_matter_menu_name(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_front_matter_menu_weight(&self) -> i32;
-    fn write_front_matter_menu_weight(&self, value: i32);
+    fn write_front_matter_menu_weight(&self, value: i32) -> Result<(), rt::TsonicError>;
     fn read_front_matter_menu_parent(&self) -> String;
-    fn write_front_matter_menu_parent(&self, value: String);
+    fn write_front_matter_menu_parent(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_front_matter_menu_identifier(&self) -> String;
-    fn write_front_matter_menu_identifier(&self, value: String);
+    fn write_front_matter_menu_identifier(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_front_matter_menu_pre(&self) -> String;
-    fn write_front_matter_menu_pre(&self, value: String);
+    fn write_front_matter_menu_pre(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_front_matter_menu_post(&self) -> String;
-    fn write_front_matter_menu_post(&self, value: String);
+    fn write_front_matter_menu_post(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_front_matter_menu_title(&self) -> String;
-    fn write_front_matter_menu_title(&self, value: String);
+    fn write_front_matter_menu_title(&self, value: String) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -68,14 +68,13 @@ impl rt::ObjectIdentityCarrier for FrontMatterMenu {
 }
 
 pub(crate) struct FrontMatterMenuRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<FrontMatterMenuState>,
+    state: rt::ObjectState<FrontMatterMenuState>,
 }
 
 impl FrontMatterMenu {
     #[doc(hidden)]
-    pub fn initialize_state(menu: String) -> FrontMatterMenuState {
+    pub fn initialize_state(menu: String) -> Result<FrontMatterMenuState, rt::TsonicError> {
         let field_menu: String = menu;
         let field_name: String = String::from("");
         let field_weight: i32 = 0;
@@ -84,7 +83,7 @@ impl FrontMatterMenu {
         let field_pre: String = String::from("");
         let field_post: String = String::from("");
         let field_title: String = String::from("");
-        FrontMatterMenuState {
+        Ok(FrontMatterMenuState {
             menu: field_menu,
             name: field_name,
             weight: field_weight,
@@ -93,20 +92,20 @@ impl FrontMatterMenu {
             pre: field_pre,
             post: field_post,
             title: field_title,
-        }
+        })
     }
 
-    pub fn new(menu: String) -> FrontMatterMenu {
-        let state = FrontMatterMenu::initialize_state(menu);
+    pub fn new(menu: String) -> Result<FrontMatterMenu, rt::TsonicError> {
+        let state = FrontMatterMenu::initialize_state(menu)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(FrontMatterMenuRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        FrontMatterMenu {
+        Ok(FrontMatterMenu {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -121,63 +120,111 @@ impl FrontMatterMenuDispatch for FrontMatterMenuRoot {
         self.state.with(|state| state.menu.clone())
     }
 
-    fn write_front_matter_menu_menu(&self, value: String) {
-        self.state.with_mut(|state| state.menu = value);
+    fn write_front_matter_menu_menu(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.menu = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_front_matter_menu_name(&self) -> String {
         self.state.with(|state| state.name.clone())
     }
 
-    fn write_front_matter_menu_name(&self, value: String) {
-        self.state.with_mut(|state| state.name = value);
+    fn write_front_matter_menu_name(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.name = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_front_matter_menu_weight(&self) -> i32 {
         self.state.with(|state| state.weight)
     }
 
-    fn write_front_matter_menu_weight(&self, value: i32) {
-        self.state.with_mut(|state| state.weight = value);
+    fn write_front_matter_menu_weight(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.weight = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_front_matter_menu_parent(&self) -> String {
         self.state.with(|state| state.parent.clone())
     }
 
-    fn write_front_matter_menu_parent(&self, value: String) {
-        self.state.with_mut(|state| state.parent = value);
+    fn write_front_matter_menu_parent(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.parent = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_front_matter_menu_identifier(&self) -> String {
         self.state.with(|state| state.identifier.clone())
     }
 
-    fn write_front_matter_menu_identifier(&self, value: String) {
-        self.state.with_mut(|state| state.identifier = value);
+    fn write_front_matter_menu_identifier(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.identifier = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_front_matter_menu_pre(&self) -> String {
         self.state.with(|state| state.pre.clone())
     }
 
-    fn write_front_matter_menu_pre(&self, value: String) {
-        self.state.with_mut(|state| state.pre = value);
+    fn write_front_matter_menu_pre(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.pre = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_front_matter_menu_post(&self) -> String {
         self.state.with(|state| state.post.clone())
     }
 
-    fn write_front_matter_menu_post(&self, value: String) {
-        self.state.with_mut(|state| state.post = value);
+    fn write_front_matter_menu_post(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.post = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_front_matter_menu_title(&self) -> String {
         self.state.with(|state| state.title.clone())
     }
 
-    fn write_front_matter_menu_title(&self, value: String) {
-        self.state.with_mut(|state| state.title = value);
+    fn write_front_matter_menu_title(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.title = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

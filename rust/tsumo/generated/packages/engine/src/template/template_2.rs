@@ -11,16 +11,19 @@ pub trait TemplateDispatch {
         None
     }
     fn read_template_nodes(&self) -> js_abi::JsArray<crate::template::nodes::TemplateNode>;
-    fn write_template_nodes(&self, value: js_abi::JsArray<crate::template::nodes::TemplateNode>);
+    fn write_template_nodes(
+        &self,
+        value: js_abi::JsArray<crate::template::nodes::TemplateNode>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_template_defines(
         &self,
     ) -> js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>;
     fn write_template_defines(
         &self,
         value: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_template_source_path(&self) -> Option<String>;
-    fn write_template_source_path(&self, value: Option<String>);
+    fn write_template_source_path(&self, value: Option<String>) -> Result<(), rt::TsonicError>;
     fn dispatch_template_with_inherited_definitions(
         self: alloc::rc::Rc<Self>,
         inherited: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
@@ -114,7 +117,7 @@ impl rt::ObjectIdentityCarrier for Template {
 
 pub(crate) struct TemplateRoot {
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<TemplateState>,
+    state: rt::ObjectState<TemplateState>,
 }
 
 impl Template {
@@ -123,35 +126,35 @@ impl Template {
         nodes: js_abi::JsArray<crate::template::nodes::TemplateNode>,
         defines: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         source_path: Option<String>,
-    ) -> TemplateState {
+    ) -> Result<TemplateState, rt::TsonicError> {
         let field_nodes: js_abi::JsArray<crate::template::nodes::TemplateNode> = nodes;
         let field_defines: js_abi::JsMap<
             String,
             js_abi::JsArray<crate::template::nodes::TemplateNode>,
         > = defines;
         let field_source_path: Option<String> = source_path;
-        TemplateState {
+        Ok(TemplateState {
             nodes: field_nodes,
             defines: field_defines,
             source_path: field_source_path,
-        }
+        })
     }
 
     pub fn new(
         nodes: js_abi::JsArray<crate::template::nodes::TemplateNode>,
         defines: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
         source_path: Option<String>,
-    ) -> Template {
-        let state = Template::initialize_state(nodes, defines, source_path);
+    ) -> Result<Template, rt::TsonicError> {
+        let state = Template::initialize_state(nodes, defines, source_path)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(TemplateRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        Template {
+        Ok(Template {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -172,7 +175,7 @@ impl TemplateRoot {
         let sb: crate::utils::text_builder::TextBuilder =
             crate::utils::text_builder::TextBuilder::new();
         let page_value: crate::template::values::page::PageValue =
-            crate::template::values::page::PageValue::new(root.clone());
+            crate::template::values::page::PageValue::new(root.clone())?;
         let scope: crate::template::scope::RenderScope = crate::template::scope::RenderScope::new(
             {
                 let upcast_value = page_value.clone();
@@ -199,7 +202,7 @@ impl TemplateRoot {
                 let dispatch_receiver_2 = &project_this;
                 dispatch_receiver_2.dispatch.read_template_source_path()
             },
-        );
+        )?;
         let defs: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>> =
             rt::option_coalesce(overrides, core::convert::identity, js_abi::JsMap::new);
         {
@@ -253,7 +256,7 @@ impl TemplateRoot {
                     None,
                     None,
                     None,
-                ),
+                )?,
             ));
         }
         Ok(())
@@ -294,7 +297,7 @@ impl TemplateRoot {
                     None,
                     None,
                     None,
-                ),
+                )?,
             ));
         }
         Ok(())
@@ -334,7 +337,7 @@ impl TemplateRoot {
                         },
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
             definitions.set_discard(
@@ -372,7 +375,7 @@ impl TemplateRoot {
                         },
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
             let existing: Option<js_abi::JsArray<crate::template::nodes::TemplateNode>> =
@@ -393,7 +396,7 @@ impl TemplateRoot {
                         },
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
             definitions.set_discard(
@@ -404,7 +407,7 @@ impl TemplateRoot {
                 },
             );
         }
-        Ok(Template::new(
+        Template::new(
             {
                 let dispatch_receiver_6 = &project_this;
                 dispatch_receiver_6.dispatch.read_template_nodes()
@@ -414,7 +417,7 @@ impl TemplateRoot {
                 let dispatch_receiver_7 = &project_this;
                 dispatch_receiver_7.dispatch.read_template_source_path()
             },
-        ))
+        )
     }
 }
 
@@ -429,8 +432,17 @@ impl TemplateDispatch for TemplateRoot {
         self.state.with(|state| state.nodes.clone())
     }
 
-    fn write_template_nodes(&self, value: js_abi::JsArray<crate::template::nodes::TemplateNode>) {
-        self.state.with_mut(|state| state.nodes = value);
+    fn write_template_nodes(
+        &self,
+        value: js_abi::JsArray<crate::template::nodes::TemplateNode>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.nodes = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_template_defines(
@@ -442,16 +454,28 @@ impl TemplateDispatch for TemplateRoot {
     fn write_template_defines(
         &self,
         value: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    ) {
-        self.state.with_mut(|state| state.defines = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.defines = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_template_source_path(&self) -> Option<String> {
         self.state.with(|state| state.source_path.clone())
     }
 
-    fn write_template_source_path(&self, value: Option<String>) {
-        self.state.with_mut(|state| state.source_path = value);
+    fn write_template_source_path(&self, value: Option<String>) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.source_path = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn dispatch_template_with_inherited_definitions(

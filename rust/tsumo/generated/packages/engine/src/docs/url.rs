@@ -22,15 +22,15 @@ impl rt::ObjectIdentityCarrier for UrlSuffixSplit {
 }
 
 impl UrlSuffixSplit {
-    pub fn new(path: String, suffix: String) -> UrlSuffixSplit {
+    pub fn new(path: String, suffix: String) -> Result<UrlSuffixSplit, rt::TsonicError> {
         let field_path: String = path;
         let field_suffix: String = suffix;
-        UrlSuffixSplit {
+        Ok(UrlSuffixSplit {
             state: rt::ObjectRef::new(UrlSuffixSplitState {
                 path: field_path,
                 suffix: field_suffix,
             }),
-        }
+        })
     }
 }
 
@@ -46,10 +46,10 @@ pub fn split_url_suffix(url: String) -> Result<UrlSuffixSplit, rt::TsonicError> 
         cut = h;
     }
     if cut < 0 {
-        return Ok(UrlSuffixSplit::new(url.clone(), String::from("")));
+        return UrlSuffixSplit::new(url.clone(), String::from(""));
     }
-    Ok(UrlSuffixSplit::new(
-        crate::utils::strings::substring_count(url.clone(), 0, cut)?,
+    UrlSuffixSplit::new(
+        crate::utils::strings::substring_count(&url, 0, cut)?,
         crate::utils::strings::substring_from(&url, cut)?,
-    ))
+    )
 }

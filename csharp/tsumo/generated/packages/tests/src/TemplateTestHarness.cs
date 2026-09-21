@@ -41,7 +41,7 @@ namespace Tsumo.Tests
             createSite = () =>
             {
                 SiteConfig config = new SiteConfig("Test Site", "https://example.test/", "en", null, null);
-                return new SiteContext(config, new Tsonic.CSharp.Js.JSArray<PageContext>(new PageContext[] { }), null, null);
+                return new SiteContext(config, Tsonic.CSharp.Js.JSArray<PageContext>.of([]), null, null);
             };
             renderWithRoot = (string source, TemplateValue root) =>
             {
@@ -56,8 +56,8 @@ namespace Tsumo.Tests
             render = (string source) => renderWithRoot(source, new DictValue(new Tsonic.CSharp.Js.Map<string, TemplateValue>()));
             createPage = (SiteContext site, string title, string date, string kind) =>
             {
-                Tsonic.CSharp.Js.JSArray<PageContext> emptyPages = new Tsonic.CSharp.Js.JSArray<PageContext>(new PageContext[] { });
-                Tsonic.CSharp.Js.JSArray<string> emptyStrings = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                Tsonic.CSharp.Js.JSArray<PageContext> emptyPages = Tsonic.CSharp.Js.JSArray<PageContext>.of([]);
+                Tsonic.CSharp.Js.JSArray<string> emptyStrings = Tsonic.CSharp.Js.JSArray<string>.of([]);
                 HtmlString emptyHtml = new HtmlString("");
                 return new PageContext(title, date, date, false, kind, kind == "page" ? "posts" : "", kind, Tsonic.CSharp.Js.String.toLowerCase(title), $"/{Tsonic.CSharp.Js.String.toLowerCase(title)}/", "", emptyHtml, new HtmlString($"<p>{title}</p>"), new HtmlString($"<p>{title}</p>"), "", emptyStrings, emptyStrings, new Tsonic.CSharp.Js.Map<string, ParamValue>(), null, site.Language, emptyPages, null, site, emptyPages, null, emptyPages, null);
             };

@@ -3,31 +3,21 @@
 use tsonic_rust_js::abi as js_abi;
 
 #[expect(dead_code, reason = "retains an unconstructed checked source shape")]
+#[derive(Clone)]
+pub(crate) enum Union2<Payload0, Payload1> {
+    Variant0(Payload0),
+    Variant1(Payload1),
+}
+
+#[derive(Clone)]
+pub enum Union3<Payload0, Payload1, Payload2> {
+    Variant0(Payload0),
+    Variant1(Payload1),
+    Variant2(Payload2),
+}
+
+#[expect(dead_code, reason = "retains an unconstructed checked source shape")]
 pub(crate) struct ForceRecursiveShape {
-    pub force: bool,
-    pub recursive: bool,
-}
-
-#[expect(dead_code, reason = "retains an unconstructed checked source shape")]
-pub(crate) struct ForceRecursiveShape2 {
-    pub force: bool,
-    pub recursive: bool,
-}
-
-#[expect(dead_code, reason = "retains an unconstructed checked source shape")]
-pub(crate) struct ForceRecursiveShape3 {
-    pub force: bool,
-    pub recursive: bool,
-}
-
-#[expect(dead_code, reason = "retains an unconstructed checked source shape")]
-pub(crate) struct ForceRecursiveShape4 {
-    pub force: bool,
-    pub recursive: bool,
-}
-
-#[expect(dead_code, reason = "retains an unconstructed checked source shape")]
-pub(crate) struct ForceRecursiveShape5 {
     pub force: bool,
     pub recursive: bool,
 }

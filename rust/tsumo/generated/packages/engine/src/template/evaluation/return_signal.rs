@@ -19,7 +19,7 @@ pub trait TemplateReturnSignalDispatch {
     fn write_template_return_signal_value(
         &self,
         value: crate::template::values::base::TemplateValue,
-    );
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -60,16 +60,15 @@ impl rt::ObjectIdentityCarrier for TemplateReturnSignal {
 }
 
 pub(crate) struct TemplateReturnSignalRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<TemplateReturnSignalState>,
+    state: rt::ObjectState<TemplateReturnSignalState>,
 }
 
 impl TemplateReturnSignal {
     #[doc(hidden)]
     pub fn initialize_state(
         value: crate::template::values::base::TemplateValue,
-    ) -> TemplateReturnSignalState {
+    ) -> Result<TemplateReturnSignalState, rt::TsonicError> {
         let external_base = rt::JsError::error("template return");
         #[expect(unused_assignments, reason = "checked source evaluation order")]
         let mut field_name: String = external_base.kind().to_string();
@@ -77,25 +76,27 @@ impl TemplateReturnSignal {
         let field_stack: Option<String> = None;
         field_name = String::from("TemplateReturnSignal");
         let field_value: crate::template::values::base::TemplateValue = value;
-        TemplateReturnSignalState {
+        Ok(TemplateReturnSignalState {
             name: field_name,
             message: field_message,
             stack: field_stack,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: crate::template::values::base::TemplateValue) -> TemplateReturnSignal {
-        let state = TemplateReturnSignal::initialize_state(value);
+    pub fn new(
+        value: crate::template::values::base::TemplateValue,
+    ) -> Result<TemplateReturnSignal, rt::TsonicError> {
+        let state = TemplateReturnSignal::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(TemplateReturnSignalRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        TemplateReturnSignal {
+        Ok(TemplateReturnSignal {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -137,8 +138,20 @@ impl TemplateReturnSignalDispatch for TemplateReturnSignalRoot {
     fn write_template_return_signal_value(
         &self,
         value: crate::template::values::base::TemplateValue,
-    ) {
-        self.state.with_mut(|state| state.value = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
+    }
+}
+
+impl rt::ErrorStack for TemplateReturnSignal {
+    fn set_stack(&self, stack: Option<String>) {
+        self.dispatch.write_tsumo_error_stack(stack);
     }
 }
 

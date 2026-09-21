@@ -24,25 +24,29 @@ impl rt::ObjectIdentityCarrier for ImageResizeRequest {
 }
 
 impl ImageResizeRequest {
-    pub fn new(width: i32, height: i32, format: Option<String>) -> ImageResizeRequest {
+    pub fn new(
+        width: i32,
+        height: i32,
+        format: Option<String>,
+    ) -> Result<ImageResizeRequest, rt::TsonicError> {
         let field_width: i32 = width;
         let field_height: i32 = height;
         let field_format: Option<String> = format;
-        ImageResizeRequest {
+        Ok(ImageResizeRequest {
             state: rt::ObjectRef::new(ImageResizeRequestState {
                 width: field_width,
                 height: field_height,
                 format: field_format,
             }),
-        }
+        })
     }
 }
 
-pub fn parse_positive_dimension(value: String, spec: String) -> Result<i32, rt::TsonicError> {
+pub fn parse_positive_dimension(value: &str, spec: String) -> Result<i32, rt::TsonicError> {
     if value.is_empty() {
         return Ok(0);
     }
-    let parsed: Option<i32> = crate::utils::int32::parse_int32(&value)?;
+    let parsed: Option<i32> = crate::utils::int32::parse_int32(value)?;
     if parsed.is_none()
         || (match parsed.as_ref() {
             Some(flow_value) => *flow_value,
@@ -60,11 +64,11 @@ pub fn parse_positive_dimension(value: String, spec: String) -> Result<i32, rt::
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
-    Ok(match parsed.as_ref() {
-        Some(flow_value_2) => *flow_value_2,
+    Ok(match parsed {
+        Some(flow_value_2) => flow_value_2,
         None => unreachable!("checked flow selected a missing optional value"),
     })
 }
@@ -81,34 +85,33 @@ pub fn parse_image_resize_request(spec: String) -> Result<ImageResizeRequest, rt
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
-    let dimensions: String = match tokens.get_number(0.0).as_ref() {
-        Some(flow_value) => flow_value.clone(),
+    let dimensions: String = match tokens.get_number(0.0) {
+        Some(flow_value) => flow_value,
         None => unreachable!("checked flow selected a missing optional value"),
     };
     let separator: i32 =
         rt::conversions::isize_to_i32(js_string::index_of_from_start(&dimensions, "x"))?;
     let width: i32;
-    let height: i32;
-    if separator < 0 {
-        width = parse_positive_dimension(dimensions.clone(), spec.clone())?;
-        height = 0;
+    let height: i32 = if separator < 0 {
+        width = parse_positive_dimension(&dimensions, spec.clone())?;
+        0
     } else {
         width = parse_positive_dimension(
-            js_string::slice_to(&dimensions, 0.0, rt::conversions::i32_to_f64(separator))?,
+            &js_string::slice_to(&dimensions, 0.0, rt::conversions::i32_to_f64(separator))?,
             spec.clone(),
         )?;
-        height = parse_positive_dimension(
-            js_string::slice(
+        parse_positive_dimension(
+            &js_string::slice(
                 &dimensions,
                 rt::conversions::i32_to_f64(separator + 1),
                 None,
             )?,
             spec.clone(),
-        )?;
-    }
+        )?
+    };
     if width == 0 && height == 0 {
         return Err(rt::TsonicError::TsumoError(
             crate::diagnostics::create_tsumo_error(
@@ -121,15 +124,15 @@ pub fn parse_image_resize_request(spec: String) -> Result<ImageResizeRequest, rt
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     let mut format: Option<String> = Option::<String>::None;
     {
         let mut index: f64 = 1.0;
         'loop_value: while index < (rt::conversions::usize_to_i32(tokens.len())? as f64) {
-            let token: String = match tokens.get_number(index).as_ref() {
-                Some(flow_value_2) => flow_value_2.clone(),
+            let token: String = match tokens.get_number(index) {
+                Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if token == "jpg"
@@ -150,7 +153,7 @@ pub fn parse_image_resize_request(spec: String) -> Result<ImageResizeRequest, rt
                             None,
                             None,
                             None,
-                        ),
+                        )?,
                     ));
                 }
                 format = if token == "jpeg" {
@@ -173,11 +176,11 @@ pub fn parse_image_resize_request(spec: String) -> Result<ImageResizeRequest, rt
                     None,
                     None,
                     None,
-                ),
+                )?,
             ));
         }
     }
-    Ok(ImageResizeRequest::new(width, height, format.clone()))
+    ImageResizeRequest::new(width, height, format.clone())
 }
 
 pub fn resize_image_resource(
@@ -234,7 +237,7 @@ pub fn resize_image_resource(
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     let source_name: String = rt::option_coalesce(
@@ -262,7 +265,7 @@ pub fn resize_image_resource(
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     let output_extension: String = if request.state.with(|state| state.format.clone()).is_none() {
@@ -277,11 +280,10 @@ pub fn resize_image_resource(
             }
         )
     };
-    let work_directory: String =
-        tsonic_rust_node::fs::mkdtemp_sync(&tsonic_rust_node::path::join(&[
-            tsonic_rust_node::os::tmpdir()?.as_str(),
-            "tsumo-image-",
-        ]))?;
+    let work_directory: String = tsonic_rust_node::fs::mkdtemp_sync(
+        tsonic_rust_node::path::join(&[tsonic_rust_node::os::tmpdir()?.as_str(), "tsumo-image-"])
+            .as_str(),
+    )?;
     let try_body: rt::TsonicResult<rt::Completion<crate::resources::models::Resource>> =
         rt::completion_region(|| {
             let input_path: String = tsonic_rust_node::path::join(&[
@@ -292,18 +294,15 @@ pub fn resize_image_resource(
                 work_directory.as_str(),
                 format!("{}{}", String::from("output"), output_extension).as_str(),
             ]);
+            tsonic_rust_node::fs::write_file_sync_buffer(input_path.as_str(), &{
+                let dispatch_receiver_11 = &resource;
+                dispatch_receiver_11.dispatch.read_resource_bytes()
+            })?;
             {
                 let operation_input_0 = input_path.clone();
-                tsonic_rust_node::fs::write_file_sync_buffer(&operation_input_0, &{
-                    let dispatch_receiver_11 = &resource;
-                    dispatch_receiver_11.dispatch.read_resource_bytes()
-                })
-            }?;
-            {
-                let operation_input_0_2 = input_path.clone();
                 let operation_input_1 = output_path.clone();
                 tsumo_platform::resize_image(
-                    &operation_input_0_2,
+                    &operation_input_0,
                     &operation_input_1,
                     width,
                     height,
@@ -311,7 +310,7 @@ pub fn resize_image_resource(
                 )
             }?;
             let output_bytes: tsonic_rust_node::buffer::Buffer =
-                tsonic_rust_node::fs::read_file_sync_buffer(&output_path)?;
+                tsonic_rust_node::fs::read_file_sync_buffer(output_path.as_str())?;
             let mut output_width: i32 = width;
             let mut output_height: i32 = height;
             let dimensions: Option<crate::resources::models::ImageDimensions> =
@@ -375,7 +374,7 @@ pub fn resize_image_resource(
                     )),
                     output_bytes.clone(),
                     Option::<String>::None,
-                    crate::resources::models::ResourceData::new(String::from("")),
+                    crate::resources::models::ResourceData::new(String::from(""))?,
                     Some(
                         crate::resources::media_types::resource_media_type_for_extension(
                             &output_extension,
@@ -383,14 +382,14 @@ pub fn resize_image_resource(
                     ),
                     Some(output_width),
                     Some(output_height),
-                ),
+                )?,
             ))
         });
     let try_flow = try_body;
     let finally_flow: rt::TsonicResult<rt::Completion<crate::resources::models::Resource>> =
         rt::completion_region(|| {
             tsonic_rust_node::fs::rm_sync_with_options(
-                &work_directory,
+                work_directory.as_str(),
                 tsonic_rust_node::fs::RmOptions {
                     recursive: Some(true),
                     force: Some(true),

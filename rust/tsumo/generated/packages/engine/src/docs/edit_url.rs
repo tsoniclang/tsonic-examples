@@ -44,7 +44,7 @@ pub fn create_docs_edit_url(
         }
     };
     let source_path: String =
-        crate::utils::strings::trim_start_char(&relative_path, String::from("/"))?;
+        crate::utils::strings::trim_start_char(relative_path, String::from("/"))?;
     let configured_repo_path: Option<String> = {
         let dispatch_receiver_4 = &mount;
         dispatch_receiver_4
@@ -69,7 +69,7 @@ pub fn create_docs_edit_url(
     }
     let repo_path: String = crate::utils::strings::trim_end_char(
         crate::utils::strings::trim_start_char(
-            &js_string::trim(&match configured_repo_path.as_ref() {
+            js_string::trim(&match configured_repo_path.as_ref() {
                 Some(flow_value_3) => flow_value_3.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             }),

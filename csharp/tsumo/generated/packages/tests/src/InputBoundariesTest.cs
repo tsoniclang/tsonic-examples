@@ -81,14 +81,14 @@ namespace Tsumo.Tests
               "title": "Caf\u00e9 \ud83d\ude80"
             }
             """, "config.json");
-            Xunit.Assert.True(value is JsonObject);
-            if (!(value is JsonObject))
+            Xunit.Assert.True((object?)value is JsonObject);
+            if (!((object?)value is JsonObject))
             {
                 throw new Tsonic.CSharp.Runtime.Error("Expected JSON object");
             }
             JsonValue? title = ((JsonObject)value).get("title");
-            Xunit.Assert.True(title is JsonString);
-            if (!(title is JsonString))
+            Xunit.Assert.True((object?)title is JsonString);
+            if (!((object?)title is JsonString))
             {
                 throw new Tsonic.CSharp.Runtime.Error("Expected JSON string");
             }
@@ -99,14 +99,14 @@ namespace Tsumo.Tests
         [Xunit.FactAttribute]
         public void json_tree_handles_large_indexed_inputs()
         {
-            Tsonic.CSharp.Js.JSArray<string> entries = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+            Tsonic.CSharp.Js.JSArray<string> entries = Tsonic.CSharp.Js.JSArray<string>.of([]);
             for (double index = 0; index < 27000; index++)
             {
                 entries.push("0");
             }
             JsonValue value = Node_modules_Tsumo_engine_src_utils_json.parseJson($"[{Tsonic.CSharp.Js.Array.join(entries, ",")}]", "large.json");
-            Xunit.Assert.True(value is JsonArray);
-            if (!(value is JsonArray))
+            Xunit.Assert.True((object?)value is JsonArray);
+            if (!((object?)value is JsonArray))
             {
                 throw new Tsonic.CSharp.Runtime.Error("Expected JSON array");
             }
@@ -160,9 +160,9 @@ namespace Tsumo.Tests
         [Xunit.FactAttribute]
         public void all_front_matter_formats_create_one_closed_model()
         {
-            InputBoundariesTest.assertFrontMatterModel(Tsonic.CSharp.Js.Array.join(new Tsonic.CSharp.Js.JSArray<string>(new string[] { "---", "title: 'Café 🚀'", "date: '2026-01-02T00:00:00Z'", "draft: false", "tags: ['alpha', 'beta']", "params:", "  featured: true", "menu:", "  main:", "    name: Home", "    weight: 2", "---", "Body" }), "\n"));
-            InputBoundariesTest.assertFrontMatterModel(Tsonic.CSharp.Js.Array.join(new Tsonic.CSharp.Js.JSArray<string>(new string[] { "+++", "title = 'Café 🚀'", "date = '2026-01-02T00:00:00Z'", "draft = false", "tags = ['alpha', 'beta']", "[params]", "featured = true", "[[menu.main]]", "name = 'Home'", "weight = 2", "+++", "Body" }), "\n"));
-            InputBoundariesTest.assertFrontMatterModel(Tsonic.CSharp.Js.Array.join(new Tsonic.CSharp.Js.JSArray<string>(new string[] { "{", "  \"title\": \"Caf\\u00e9 \\ud83d\\ude80\",", "  \"date\": \"2026-01-02T00:00:00Z\",", "  \"draft\": false,", "  \"tags\": [\"alpha\", \"beta\"],", "  \"params\": { \"featured\": true },", "  \"menu\": { \"main\": { \"name\": \"Home\", \"weight\": 2 } }", "}", "Body" }), "\n"));
+            InputBoundariesTest.assertFrontMatterModel(Tsonic.CSharp.Js.Array.join(Tsonic.CSharp.Js.JSArray<string>.of(["---", "title: 'Café 🚀'", "date: '2026-01-02T00:00:00Z'", "draft: false", "tags: ['alpha', 'beta']", "params:", "  featured: true", "menu:", "  main:", "    name: Home", "    weight: 2", "---", "Body"]), "\n"));
+            InputBoundariesTest.assertFrontMatterModel(Tsonic.CSharp.Js.Array.join(Tsonic.CSharp.Js.JSArray<string>.of(["+++", "title = 'Café 🚀'", "date = '2026-01-02T00:00:00Z'", "draft = false", "tags = ['alpha', 'beta']", "[params]", "featured = true", "[[menu.main]]", "name = 'Home'", "weight = 2", "+++", "Body"]), "\n"));
+            InputBoundariesTest.assertFrontMatterModel(Tsonic.CSharp.Js.Array.join(Tsonic.CSharp.Js.JSArray<string>.of(["{", "  \"title\": \"Caf\\u00e9 \\ud83d\\ude80\",", "  \"date\": \"2026-01-02T00:00:00Z\",", "  \"draft\": false,", "  \"tags\": [\"alpha\", \"beta\"],", "  \"params\": { \"featured\": true },", "  \"menu\": { \"main\": { \"name\": \"Home\", \"weight\": 2 } }", "}", "Body"]), "\n"));
         }
         [Xunit.FactAttribute]
         public void front_matter_rejects_invalid_shapes_with_exact_locations()
@@ -211,8 +211,8 @@ namespace Tsumo.Tests
         [Xunit.FactAttribute]
         public void all_configuration_formats_create_one_closed_model()
         {
-            SiteConfig toml = Node_modules_Tsumo_engine_src_config_toml.parseTomlConfig(Tsonic.CSharp.Js.Array.join(new Tsonic.CSharp.Js.JSArray<string>(new string[] { "title = 'Café'", "baseURL = 'https://example.test'", "[params]", "featured = true", "[[menu.main]]", "name = 'Home'" }), "\n"), "hugo.toml");
-            SiteConfig yaml = Node_modules_Tsumo_engine_src_config_yaml.parseYamlConfig(Tsonic.CSharp.Js.Array.join(new Tsonic.CSharp.Js.JSArray<string>(new string[] { "title: Café", "baseURL: https://example.test", "params:", "  featured: true", "menu:", "  main:", "    - name: Home" }), "\n"), "hugo.yaml");
+            SiteConfig toml = Node_modules_Tsumo_engine_src_config_toml.parseTomlConfig(Tsonic.CSharp.Js.Array.join(Tsonic.CSharp.Js.JSArray<string>.of(["title = 'Café'", "baseURL = 'https://example.test'", "[params]", "featured = true", "[[menu.main]]", "name = 'Home'"]), "\n"), "hugo.toml");
+            SiteConfig yaml = Node_modules_Tsumo_engine_src_config_yaml.parseYamlConfig(Tsonic.CSharp.Js.Array.join(Tsonic.CSharp.Js.JSArray<string>.of(["title: Café", "baseURL: https://example.test", "params:", "  featured: true", "menu:", "  main:", "    - name: Home"]), "\n"), "hugo.yaml");
             SiteConfig json = Node_modules_Tsumo_engine_src_config_json.parseJsonConfig("{\"title\":\"Caf\\u00e9\",\"baseURL\":\"https://example.test\",\"params\":{\"featured\":true},\"menu\":{\"main\":[{\"name\":\"Home\"}]}}", "hugo.json");
             ParamValue? tomlFeatured = Tsonic.CSharp.Js.Map.getReference<string, ParamValue>(toml.Params, "featured");
             ParamValue? yamlFeatured = Tsonic.CSharp.Js.Map.getReference<string, ParamValue>(yaml.Params, "featured");
@@ -276,11 +276,11 @@ namespace Tsumo.Tests
         [Xunit.FactAttribute]
         public void structured_scalars_decode_strings_and_comments()
         {
-            SiteConfig toml = Node_modules_Tsumo_engine_src_config_toml.parseTomlConfig(Tsonic.CSharp.Js.Array.join(new Tsonic.CSharp.Js.JSArray<string>(new string[] { "title = \"Caf\\u00e9 # retained\" # removed", "[params]", "message = 'literal # retained' # removed", "count = 1_024" }), "\n"), "scalars.toml");
+            SiteConfig toml = Node_modules_Tsumo_engine_src_config_toml.parseTomlConfig(Tsonic.CSharp.Js.Array.join(Tsonic.CSharp.Js.JSArray<string>.of(["title = \"Caf\\u00e9 # retained\" # removed", "[params]", "message = 'literal # retained' # removed", "count = 1_024"]), "\n"), "scalars.toml");
             Xunit.Assert.Equal("Café # retained", toml.title);
             Xunit.Assert.Equal("literal # retained", Tsonic.CSharp.Js.Map.getReference<string, ParamValue>(toml.Params, "message")?.stringValue);
             Xunit.Assert.Equal<double?>(1024, Tsonic.CSharp.Js.Map.getReference<string, ParamValue>(toml.Params, "count")?.numberValue);
-            SiteConfig yaml = Node_modules_Tsumo_engine_src_config_yaml.parseYamlConfig(Tsonic.CSharp.Js.Array.join(new Tsonic.CSharp.Js.JSArray<string>(new string[] { "title: \"Caf\\u00e9 # retained\" # removed", "copyright: 'Tsumo''s docs' # removed", "params:", "  address: value#fragment # removed" }), "\n"), "scalars.yaml");
+            SiteConfig yaml = Node_modules_Tsumo_engine_src_config_yaml.parseYamlConfig(Tsonic.CSharp.Js.Array.join(Tsonic.CSharp.Js.JSArray<string>.of(["title: \"Caf\\u00e9 # retained\" # removed", "copyright: 'Tsumo''s docs' # removed", "params:", "  address: value#fragment # removed"]), "\n"), "scalars.yaml");
             Xunit.Assert.Equal("Café # retained", yaml.title);
             Xunit.Assert.Equal("Tsumo's docs", yaml.copyright);
             Xunit.Assert.Equal("value#fragment", Tsonic.CSharp.Js.Map.getReference<string, ParamValue>(yaml.Params, "address")?.stringValue);
@@ -309,9 +309,9 @@ namespace Tsumo.Tests
                 baseURL = 'https://example.test'
                 """);
                 TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(configDir, "params.yaml"), "message: \"Hello # retained\" # removed");
-                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(configDir, "languages.toml"), Tsonic.CSharp.Js.Array.join(new Tsonic.CSharp.Js.JSArray<string>(new string[] { "[en]", "languageName = 'English'", "languageDirection = 'rtl'", "contentDir = 'content/custom'", "weight = 4" }), "\n"));
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(configDir, "languages.toml"), Tsonic.CSharp.Js.Array.join(Tsonic.CSharp.Js.JSArray<string>.of(["[en]", "languageName = 'English'", "languageDirection = 'rtl'", "contentDir = 'content/custom'", "weight = 4"]), "\n"));
                 TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(configDir, "languages.en.toml"), "weight = 1");
-                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(configDir, "module.toml"), Tsonic.CSharp.Js.Array.join(new Tsonic.CSharp.Js.JSArray<string>(new string[] { "[[mounts]]", "source = 'shared'", "target = 'content'" }), "\n"));
+                TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(configDir, "module.toml"), Tsonic.CSharp.Js.Array.join(Tsonic.CSharp.Js.JSArray<string>.of(["[[mounts]]", "source = 'shared'", "target = 'content'"]), "\n"));
                 SiteConfig loaded = Node_modules_Tsumo_engine_src_config_loader.loadSiteConfig(site).config;
                 Xunit.Assert.Equal("Example", loaded.title);
                 Xunit.Assert.Equal("https://example.test/", loaded.baseURL);

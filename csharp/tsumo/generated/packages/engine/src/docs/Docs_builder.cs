@@ -47,35 +47,35 @@ namespace Tsumo.Engine
                     config.title = Tsonic.CSharp.Js.String.trim(docsConfig.siteName);
                 }
                 string? themeDir = Build_layout.resolveThemeDir(siteDir, config, request.themesDir);
-                BuildEnvironment env = new BuildEnvironment(siteDir, themeDir, outDir, new Tsonic.CSharp.Js.JSArray<ModuleMount>(new ModuleMount[] { }), request.buildTime);
+                BuildEnvironment env = new BuildEnvironment(siteDir, themeDir, outDir, Tsonic.CSharp.Js.JSArray<ModuleMount>.of([]), request.buildTime);
                 SiteOutputPlan outputPlan = new SiteOutputPlan();
                 if (themeDir is not null)
                 {
                     outputPlan.addDirectory(Tsonic.CSharp.Node.path.join(themeDir, "static"), "", "theme static files", "theme-static");
                 }
                 outputPlan.addDirectory(Tsonic.CSharp.Node.path.join(siteDir, "static"), "", "site static files", "site-static");
-                Tsonic.CSharp.Js.JSArray<PageContext> emptyPages = new Tsonic.CSharp.Js.JSArray<PageContext>(new PageContext[] { });
-                Tsonic.CSharp.Js.JSArray<PageContext> emptyTranslations = new Tsonic.CSharp.Js.JSArray<PageContext>(new PageContext[] { });
-                Tsonic.CSharp.Js.JSArray<string> emptyStrings = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                Tsonic.CSharp.Js.JSArray<PageContext> emptyPages = Tsonic.CSharp.Js.JSArray<PageContext>.of([]);
+                Tsonic.CSharp.Js.JSArray<PageContext> emptyTranslations = Tsonic.CSharp.Js.JSArray<PageContext>.of([]);
+                Tsonic.CSharp.Js.JSArray<string> emptyStrings = Tsonic.CSharp.Js.JSArray<string>.of([]);
                 SiteContext site = new SiteContext(config, emptyPages, null, null);
-                site.Sites = new Tsonic.CSharp.Js.JSArray<SiteContext>(new SiteContext[] { site });
-                string? baseTpl = Build_layout.selectTemplate(env, new Tsonic.CSharp.Js.JSArray<string>(new string[] { "_default/baseof.html" }));
-                string homeTpl = Build_layout.selectTemplate(env, new Tsonic.CSharp.Js.JSArray<string>(new string[] { "index.html", "docs/home.html", "docs/list.html", "_default/list.html" })) ?? "_default/list.html";
-                string listTpl = Build_layout.selectTemplate(env, new Tsonic.CSharp.Js.JSArray<string>(new string[] { "docs/list.html", "_default/list.html" })) ?? "_default/list.html";
-                string singleTpl = Build_layout.selectTemplate(env, new Tsonic.CSharp.Js.JSArray<string>(new string[] { "docs/single.html", "_default/single.html" })) ?? "_default/single.html";
-                Tsonic.CSharp.Js.JSArray<PageContext> mountRootPages = new Tsonic.CSharp.Js.JSArray<PageContext>(new PageContext[] { });
-                Tsonic.CSharp.Js.JSArray<PageContext> allPagesForOutput = new Tsonic.CSharp.Js.JSArray<PageContext>(new PageContext[] { });
-                Tsonic.CSharp.Js.JSArray<DocsMountContext> mountContexts = new Tsonic.CSharp.Js.JSArray<DocsMountContext>(new DocsMountContext[] { });
-                Tsonic.CSharp.Js.JSArray<SearchDocument> searchDocs = new Tsonic.CSharp.Js.JSArray<SearchDocument>(new SearchDocument[] { });
+                site.Sites = Tsonic.CSharp.Js.JSArray<SiteContext>.of([site]);
+                string? baseTpl = Build_layout.selectTemplate(env, Tsonic.CSharp.Js.JSArray<string>.of(["_default/baseof.html"]));
+                string homeTpl = Build_layout.selectTemplate(env, Tsonic.CSharp.Js.JSArray<string>.of(["index.html", "docs/home.html", "docs/list.html", "_default/list.html"])) ?? "_default/list.html";
+                string listTpl = Build_layout.selectTemplate(env, Tsonic.CSharp.Js.JSArray<string>.of(["docs/list.html", "_default/list.html"])) ?? "_default/list.html";
+                string singleTpl = Build_layout.selectTemplate(env, Tsonic.CSharp.Js.JSArray<string>.of(["docs/single.html", "_default/single.html"])) ?? "_default/single.html";
+                Tsonic.CSharp.Js.JSArray<PageContext> mountRootPages = Tsonic.CSharp.Js.JSArray<PageContext>.of([]);
+                Tsonic.CSharp.Js.JSArray<PageContext> allPagesForOutput = Tsonic.CSharp.Js.JSArray<PageContext>.of([]);
+                Tsonic.CSharp.Js.JSArray<DocsMountContext> mountContexts = Tsonic.CSharp.Js.JSArray<DocsMountContext>.of([]);
+                Tsonic.CSharp.Js.JSArray<SearchDocument> searchDocs = Tsonic.CSharp.Js.JSArray<SearchDocument>.of([]);
                 DocsOutputClaims outputClaims = new DocsOutputClaims();
                 bool rootMountOwnsHome = false;
                 Tsonic.CSharp.Js.JSArray<DocsMountConfig> mounts = docsConfig.mounts;
-                for (int mountIndex = 0; mountIndex < mounts.length; mountIndex++)
+                for (double mountIndex = 0; mountIndex < mounts.length; mountIndex++)
                 {
                     DocsMountConfig mount = mounts[mountIndex];
                     DocsMountRoutes discovered = Docs_routes.discoverDocsMountRoutes(mount);
                     DocsContentInventory content = Docs_content.loadDocsContent(discovered.markdown, request.buildDrafts);
-                    for (int index = 0; index < discovered.assets.length; index++)
+                    for (double index = 0; index < discovered.assets.length; index++)
                     {
                         DocsAssetRoute asset = discovered.assets[index];
                         outputClaims.add(asset.outputRelPath, asset.sourcePath);
@@ -85,7 +85,7 @@ namespace Tsumo.Engine
                     {
                         outputClaims.add(indexed.route.outputRelPath, indexed.route.sourcePath);
                     }
-                    for (int index_1 = 0; index_1 < content.leaves.length; index_1++)
+                    for (double index_1 = 0; index_1 < content.leaves.length; index_1++)
                     {
                         DocsContentRoute leaf = content.leaves[index_1];
                         outputClaims.add(leaf.route.outputRelPath, leaf.route.sourcePath);
@@ -101,7 +101,7 @@ namespace Tsumo.Engine
                     Tsonic.CSharp.Js.Map<string, DocsContentRoute> indexByDir = content.indexByDirectory;
                     Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<PageContext>> leafPagesByDir = new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<PageContext>>();
                     Tsonic.CSharp.Js.JSArray<DocsContentRoute> leafArr = content.leaves;
-                    for (int i = 0; i < leafArr.length; i++)
+                    for (double i = 0; i < leafArr.length; i++)
                     {
                         DocsContentRoute source = leafArr[i];
                         DocsMarkdownRoute r = source.route;
@@ -130,7 +130,7 @@ namespace Tsumo.Engine
                         Tsonic.CSharp.Js.JSArray<PageContext>? list = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<PageContext>>(leafPagesByDir, r.dirKey);
                         if (list is null)
                         {
-                            list = new Tsonic.CSharp.Js.JSArray<PageContext>(new PageContext[] { });
+                            list = Tsonic.CSharp.Js.JSArray<PageContext>.of([]);
                             leafPagesByDir.set(r.dirKey, list);
                         }
                         list.push(ctx);
@@ -158,12 +158,12 @@ namespace Tsumo.Engine
                         Tsonic.CSharp.Js.JSArray<string>? list_1 = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<string>>(childDirsByDir, parentKey);
                         if (list_1 is null)
                         {
-                            list_1 = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                            list_1 = Tsonic.CSharp.Js.JSArray<string>.of([]);
                             childDirsByDir.set(parentKey, list_1);
                         }
                         list_1.push(childDirKey);
                     }
-                    Tsonic.CSharp.Js.JSArray<string> dirKeys = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                    Tsonic.CSharp.Js.JSArray<string> dirKeys = Tsonic.CSharp.Js.JSArray<string>.of([]);
                     foreach (string collectedDirKey in dirSet.keys())
                     {
                         dirKeys.push(collectedDirKey);
@@ -174,16 +174,16 @@ namespace Tsumo.Engine
                         return depth != 0 ? depth : Utils_strings.compareText(a, b);
                     });
                     Tsonic.CSharp.Js.Map<string, PageContext> sectionByDir = new Tsonic.CSharp.Js.Map<string, PageContext>();
-                    for (int i_1 = 0; i_1 < dirKeys.length; i_1++)
+                    for (double i_1 = 0; i_1 < dirKeys.length; i_1++)
                     {
                         string dirKey = dirKeys[i_1];
-                        Tsonic.CSharp.Js.JSArray<PageContext> childPages = new Tsonic.CSharp.Js.JSArray<PageContext>(new PageContext[] { });
+                        Tsonic.CSharp.Js.JSArray<PageContext> childPages = Tsonic.CSharp.Js.JSArray<PageContext>.of([]);
                         Tsonic.CSharp.Js.JSArray<string>? childDirList = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<string>>(childDirsByDir, dirKey);
                         if (childDirList is not null)
                         {
                             childDirList.sort((string a, string b) => Utils_strings.compareText(a, b));
                             Tsonic.CSharp.Js.JSArray<string> childDirKeys = childDirList;
-                            for (int j = 0; j < childDirKeys.length; j++)
+                            for (double j = 0; j < childDirKeys.length; j++)
                             {
                                 string childKey = childDirKeys[j];
                                 PageContext? childSection = Tsonic.CSharp.Js.Map.getReference<string, PageContext>(sectionByDir, childKey);
@@ -198,15 +198,15 @@ namespace Tsumo.Engine
                         {
                             leafList.sort((PageContext a, PageContext b) => Utils_strings.compareText(a.title, b.title));
                             Tsonic.CSharp.Js.JSArray<PageContext> leafPages = leafList;
-                            for (int j_1 = 0; j_1 < leafPages.length; j_1++)
+                            for (double j_1 = 0; j_1 < leafPages.length; j_1++)
                             {
                                 childPages.push(leafPages[j_1]);
                             }
                         }
                         Tsonic.CSharp.Js.JSArray<string> routeSegments = dirKey == "" ? emptyStrings : Tsonic.CSharp.Js.String.split(dirKey, "/");
-                        Tsonic.CSharp.Js.JSArray<string> urlParts = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+                        Tsonic.CSharp.Js.JSArray<string> urlParts = Tsonic.CSharp.Js.JSArray<string>.of([]);
                         urlParts.push(mount.urlPrefix);
-                        for (int j_2 = 0; j_2 < routeSegments.length; j_2++)
+                        for (double j_2 = 0; j_2 < routeSegments.length; j_2++)
                         {
                             urlParts.push(routeSegments[j_2]);
                         }
@@ -291,7 +291,7 @@ namespace Tsumo.Engine
                 bool homeMountMatched = chosenHome is null;
                 if (chosenHome is not null)
                 {
-                    for (int i_2 = 0; i_2 < mountRoots.length; i_2++)
+                    for (double i_2 = 0; i_2 < mountRoots.length; i_2++)
                     {
                         PageContext m = mountRoots[i_2];
                         ParamValue mountNameParam = Tsonic.CSharp.Js.Map.getReference<string, ParamValue>(m.Params, "mount") ?? ParamValue.@string("");
@@ -316,8 +316,8 @@ namespace Tsumo.Engine
                 PageContext homeCtx = new PageContext(homeTitle, "", "", false, "home", "", "docs", "", "/", "", new HtmlString(""), homeContent, homeSummary, homeDescription, emptyStrings, emptyStrings, new Tsonic.CSharp.Js.Map<string, ParamValue>(), null, site.Language, emptyTranslations, null, site, mountRoots, null, emptyPages, null);
                 Docs_directoryGraph.assignDocsPageAncestry(homeCtx, null, emptyPages);
                 site.home = homeCtx;
-                Tsonic.CSharp.Js.JSArray<PageContext> allSitePages = new Tsonic.CSharp.Js.JSArray<PageContext>(new PageContext[] { homeCtx });
-                for (int index_2 = 0; index_2 < allPagesForOutput.length; index_2++)
+                Tsonic.CSharp.Js.JSArray<PageContext> allSitePages = Tsonic.CSharp.Js.JSArray<PageContext>.of([homeCtx]);
+                for (double index_2 = 0; index_2 < allPagesForOutput.length; index_2++)
                 {
                     allSitePages.push(allPagesForOutput[index_2]);
                 }
@@ -325,7 +325,7 @@ namespace Tsumo.Engine
                 string homeHtml = Build_layout.renderWithBase(env, baseTpl, homeTpl, homeCtx);
                 outputPlan.addText("index.html", homeHtml, "docs home page");
                 Tsonic.CSharp.Js.JSArray<PageContext> allPages = allPagesForOutput;
-                for (int i_3 = 0; i_3 < allPages.length; i_3++)
+                for (double i_3 = 0; i_3 < allPages.length; i_3++)
                 {
                     PageContext page = allPages[i_3];
                     if (page.relPermalink == "/")

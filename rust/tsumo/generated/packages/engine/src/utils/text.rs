@@ -4,32 +4,22 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-std::thread_local! {
-    pub static WORD_SEPARATOR_SPACE: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
-}
+pub const WORD_SEPARATOR_SPACE: &str = " ";
 
-std::thread_local! {
-    pub static WORD_SEPARATOR_DASH: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
-}
+pub const WORD_SEPARATOR_DASH: &str = "-";
 
-std::thread_local! {
-    pub static WORD_SEPARATOR_UNDERSCORE: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
-}
+pub const WORD_SEPARATOR_UNDERSCORE: &str = "_";
 
-std::thread_local! {
-    pub static WORD_SEPARATOR_DOT: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
-}
+pub const WORD_SEPARATOR_DOT: &str = ".";
 
-std::thread_local! {
-    pub static WORD_SEPARATOR_SLASH: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
-}
+pub const WORD_SEPARATOR_SLASH: &str = "/";
 
-pub fn is_word_separator(ch: String) -> bool {
-    ch == WORD_SEPARATOR_SPACE.with(|module_binding| module_binding.load())
-        || ch == WORD_SEPARATOR_DASH.with(|module_binding| module_binding.load())
-        || ch == WORD_SEPARATOR_UNDERSCORE.with(|module_binding| module_binding.load())
-        || ch == WORD_SEPARATOR_DOT.with(|module_binding| module_binding.load())
-        || ch == WORD_SEPARATOR_SLASH.with(|module_binding| module_binding.load())
+pub fn is_word_separator(ch: &str) -> bool {
+    ch == WORD_SEPARATOR_SPACE
+        || ch == WORD_SEPARATOR_DASH
+        || ch == WORD_SEPARATOR_UNDERSCORE
+        || ch == WORD_SEPARATOR_DOT
+        || ch == WORD_SEPARATOR_SLASH
 }
 
 pub fn slugify(input: &str) -> Result<String, rt::TsonicError> {
@@ -40,8 +30,8 @@ pub fn slugify(input: &str) -> Result<String, rt::TsonicError> {
     {
         let mut i: f64 = 0.0;
         'loop_value: while i < (rt::conversions::usize_to_i32(chars.len())? as f64) {
-            let ch: String = match chars.get_number(i).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let ch: String = match chars.get_number(i) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let is_alpha_numeric: bool =
@@ -52,13 +42,11 @@ pub fn slugify(input: &str) -> Result<String, rt::TsonicError> {
                 i += 1.0;
                 continue 'loop_value;
             }
-            if is_word_separator(ch.clone())
+            if is_word_separator(&ch)
                 && rt::conversions::usize_to_i32(output.len())? > 0
                 && !wrote_dash
             {
-                output.push_many_discard([
-                    WORD_SEPARATOR_DASH.with(|module_binding| module_binding.load())
-                ]);
+                output.push_many_discard([String::from(WORD_SEPARATOR_DASH)]);
                 wrote_dash = true;
             }
             i += 1.0;
@@ -68,13 +56,13 @@ pub fn slugify(input: &str) -> Result<String, rt::TsonicError> {
     while js_string::starts_with_from_start(&out, "-") {
         out = js_string::substring_from(&out, 1.0)?;
     }
-    crate::utils::strings::trim_end_char(out.clone(), String::from("-"))
+    crate::utils::strings::trim_end_char(out, String::from("-"))
 }
 
-pub fn humanize_slug(slug: String) -> Result<String, rt::TsonicError> {
+pub fn humanize_slug(slug: &str) -> Result<String, rt::TsonicError> {
     let parts: js_abi::JsArray<String> = js_string::split_all(
         &crate::utils::strings::replace_text(
-            &crate::utils::strings::replace_text(&slug, String::from("_"), String::from("-"))?,
+            &crate::utils::strings::replace_text(slug, String::from("_"), String::from("-"))?,
             String::from("."),
             String::from("-"),
         )?,
@@ -84,13 +72,13 @@ pub fn humanize_slug(slug: String) -> Result<String, rt::TsonicError> {
     {
         let mut i: f64 = 0.0;
         'loop_value: while i < (rt::conversions::usize_to_i32(parts.len())? as f64) {
-            let part_raw: String = match parts.get_number(i).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let part_raw: String = match parts.get_number(i) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             #[expect(clippy::blocks_in_conditions, reason = "checked evaluation region")]
             if {
-                let _ = part_raw.clone();
+                let _ = part_raw;
                 {
                     let _ = rt::Undefined;
                     false
@@ -104,16 +92,15 @@ pub fn humanize_slug(slug: String) -> Result<String, rt::TsonicError> {
                 i += 1.0;
                 continue 'loop_value;
             }
+            let first_end: i32 = crate::utils::strings::next_code_point_index(&part, 0)?;
             {
                 let operation_input_0 = words.clone();
                 operation_input_0.push_many_discard([format!(
                     "{}{}",
                     js_string::to_upper_case(&crate::utils::strings::substring_count(
-                        part.clone(),
-                        0,
-                        1
+                        &part, 0, first_end
                     )?),
-                    js_string::substring_from(&part, 1.0)?
+                    js_string::substring_from(&part, rt::conversions::i32_to_f64(first_end))?
                 )])
             };
             i += 1.0;
@@ -127,7 +114,7 @@ pub fn ensure_trailing_slash(url: String) -> String {
         return url;
     }
     if js_string::ends_with_at_end(&url, "/") {
-        url.clone()
+        url
     } else {
         format!("{}{}", url, String::from("/"))
     }
@@ -139,33 +126,8 @@ pub fn ensure_leading_slash(url: &str) -> String {
         return String::from("/");
     }
     if js_string::starts_with_from_start(&trimmed, "/") {
-        trimmed.clone()
+        trimmed
     } else {
         format!("{}{}", String::from("/"), trimmed)
     }
-}
-
-#[doc(hidden)]
-pub fn module_init() {
-    {
-        let module_value = String::from(" ");
-        WORD_SEPARATOR_SPACE.with(|module_binding| module_binding.initialize(module_value))
-    };
-    {
-        let module_value_2 = String::from("-");
-        WORD_SEPARATOR_DASH.with(|module_binding_2| module_binding_2.initialize(module_value_2))
-    };
-    {
-        let module_value_3 = String::from("_");
-        WORD_SEPARATOR_UNDERSCORE
-            .with(|module_binding_3| module_binding_3.initialize(module_value_3))
-    };
-    {
-        let module_value_4 = String::from(".");
-        WORD_SEPARATOR_DOT.with(|module_binding_4| module_binding_4.initialize(module_value_4))
-    };
-    {
-        let module_value_5 = String::from("/");
-        WORD_SEPARATOR_SLASH.with(|module_binding_5| module_binding_5.initialize(module_value_5))
-    };
 }

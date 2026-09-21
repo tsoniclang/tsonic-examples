@@ -4,21 +4,87 @@ namespace Tsumo.Engine
 {
     public static class Template_functions_scalarFunctions
     {
-        public static Func<TemplateValue, string, int> requireSubstringInteger
+        internal static int requireSubstringInteger(TemplateValue value, string name)
         {
-            get;
-            private set;
-        } = default(Func<TemplateValue, string, int>)!;
-        public static Func<TemplateValue, string> templateValueTypeName
+            int? result = Utils_int32.parseInt32(Template_runtimeHelpers.toPlainString(value));
+            if (result is null)
+            {
+                throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_SUBSTRING_ARGUMENT_INVALID", $"substr {name} must be a 32-bit integer");
+            }
+            return result.Value;
+        }
+        internal static string templateValueTypeName(TemplateValue value)
         {
-            get;
-            private set;
-        } = default(Func<TemplateValue, string>)!;
-        public static Func<TemplateValue, string, string> formatTemplateValue
+            if ((object?)value is NilValue)
+            {
+                return "<nil>";
+            }
+            if ((object?)value is BoolValue)
+            {
+                return "bool";
+            }
+            if ((object?)value is NumberValue)
+            {
+                return "int";
+            }
+            if ((object?)value is StringValue)
+            {
+                return "string";
+            }
+            if ((object?)value is HtmlValue)
+            {
+                return "template.HTML";
+            }
+            if ((object?)value is DateValue)
+            {
+                return "time.Time";
+            }
+            if ((object?)value is StringArrayValue)
+            {
+                return "[]string";
+            }
+            if ((object?)value is AnyArrayValue || (object?)value is PageArrayValue)
+            {
+                return "[]interface {}";
+            }
+            if ((object?)value is DictValue)
+            {
+                return "map[string]interface {}";
+            }
+            if ((object?)value is PageValue)
+            {
+                return "*hugolib.pageState";
+            }
+            if ((object?)value is ResourceValue)
+            {
+                return "resource.Resource";
+            }
+            if ((object?)value is UrlValue)
+            {
+                return "*url.URL";
+            }
+            if ((object?)value is UrlQueryValue)
+            {
+                return "url.Values";
+            }
+            return "interface {}";
+        }
+        internal static string formatTemplateValue(TemplateValue value, string verb)
         {
-            get;
-            private set;
-        } = default(Func<TemplateValue, string, string>)!;
+            if (verb == "T")
+            {
+                return templateValueTypeName(value);
+            }
+            if (verb == "q")
+            {
+                return Template_evaluation_serialization.toJson(new StringValue(Template_runtimeHelpers.toPlainString(value)));
+            }
+            if (verb == "#v")
+            {
+                return Template_evaluation_serialization.toJson(value);
+            }
+            return Template_runtimeHelpers.toPlainString(value);
+        }
         public static Func<string, Tsonic.CSharp.Js.JSArray<TemplateValue>, TemplateFunctionContext, TemplateValue?> callScalarFunction
         {
             get;
@@ -39,87 +105,6 @@ namespace Tsumo.Engine
             Template_evaluation_serialization.__tsonic_module_init();
             Template_runtimeHelpers.__tsonic_module_init();
             Template_functions_textCompatibility.__tsonic_module_init();
-            requireSubstringInteger = (TemplateValue value, string name) =>
-            {
-                int? result = Utils_int32.parseInt32(Template_runtimeHelpers.toPlainString(value));
-                if (result is null)
-                {
-                    throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_SUBSTRING_ARGUMENT_INVALID", $"substr {name} must be a 32-bit integer");
-                }
-                return result.Value;
-            };
-            templateValueTypeName = (TemplateValue value) =>
-            {
-                if (value is NilValue)
-                {
-                    return "<nil>";
-                }
-                if (value is BoolValue)
-                {
-                    return "bool";
-                }
-                if (value is NumberValue)
-                {
-                    return "int";
-                }
-                if (value is StringValue)
-                {
-                    return "string";
-                }
-                if (value is HtmlValue)
-                {
-                    return "template.HTML";
-                }
-                if (value is DateValue)
-                {
-                    return "time.Time";
-                }
-                if (value is StringArrayValue)
-                {
-                    return "[]string";
-                }
-                if (value is AnyArrayValue || value is PageArrayValue)
-                {
-                    return "[]interface {}";
-                }
-                if (value is DictValue)
-                {
-                    return "map[string]interface {}";
-                }
-                if (value is PageValue)
-                {
-                    return "*hugolib.pageState";
-                }
-                if (value is ResourceValue)
-                {
-                    return "resource.Resource";
-                }
-                if (value is UrlValue)
-                {
-                    return "*url.URL";
-                }
-                if (value is UrlQueryValue)
-                {
-                    return "url.Values";
-                }
-                return "interface {}";
-            };
-            formatTemplateValue = (TemplateValue value, string verb) =>
-            {
-                if (verb == "T")
-                {
-                    return templateValueTypeName(value);
-                }
-                if (verb == "q")
-                {
-                    return Template_evaluation_serialization.toJson(new StringValue(Template_runtimeHelpers.toPlainString(value)));
-                }
-                if (verb == "#v")
-                {
-                    return Template_evaluation_serialization.toJson(value);
-                }
-                return Template_runtimeHelpers.toPlainString(value);
-            };
             callScalarFunction = (string name, Tsonic.CSharp.Js.JSArray<TemplateValue> args, TemplateFunctionContext context) =>
             {
                 RenderScope scope = context.scope;
@@ -134,7 +119,7 @@ namespace Tsumo.Engine
                 if (name == "add" && args.length >= 2)
                 {
                     int sum = 0;
-                    for (int i = 0; i < args.length; i++)
+                    for (double i = 0; i < args.length; i++)
                     {
                         TemplateValue v = args[i];
                         string s = Template_runtimeHelpers.toPlainString(v);
@@ -174,14 +159,14 @@ namespace Tsumo.Engine
                     }
                     return new NumberValue(a_3 % b_3);
                 }
-                if (name == "ceil" && args.length >= 1 && args[0] is NumberValue)
+                if (name == "ceil" && args.length >= 1 && (object?)args[0] is NumberValue)
                 {
                     return args[0];
                 }
                 if ((name == "min" || name == "max") && args.length >= 1)
                 {
                     int selected = Template_runtimeHelpers.toNumber(args[0]);
-                    for (int index = 1; index < args.length; index++)
+                    for (double index = 1; index < args.length; index++)
                     {
                         int candidate = Template_runtimeHelpers.toNumber(args[index]);
                         if (name == "min" ? candidate < selected : candidate > selected)
@@ -191,14 +176,14 @@ namespace Tsumo.Engine
                     }
                     return new NumberValue(selected);
                 }
-                if (name == "round" && args.length >= 1 && args[0] is NumberValue)
+                if (name == "round" && args.length >= 1 && (object?)args[0] is NumberValue)
                 {
                     return args[0];
                 }
                 if (name == "int" && args.length == 1)
                 {
                     TemplateValue value = args[0];
-                    if (value is NumberValue)
+                    if ((object?)value is NumberValue)
                     {
                         return (NumberValue)value;
                     }
@@ -216,7 +201,7 @@ namespace Tsumo.Engine
                 if ((name == "time" || name == "time.astime") && args.length == 1)
                 {
                     TemplateValue value_1 = args[0];
-                    if (value_1 is DateValue)
+                    if ((object?)value_1 is DateValue)
                     {
                         return (DateValue)value_1;
                     }
@@ -253,14 +238,14 @@ namespace Tsumo.Engine
                 }
                 if (name == "urls.joinpath" && args.length >= 1)
                 {
-                    Tsonic.CSharp.Js.JSArray<string> parts = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
-                    for (int i_1 = 0; i_1 < args.length; i_1++)
+                    Tsonic.CSharp.Js.JSArray<string> parts = Tsonic.CSharp.Js.JSArray<string>.of([]);
+                    for (double i_1 = 0; i_1 < args.length; i_1++)
                     {
                         parts.push(Template_runtimeHelpers.toPlainString(args[i_1]));
                     }
                     Tsonic.CSharp.Js.JSArray<string> arr = parts;
                     string @out = "";
-                    for (int i_2 = 0; i_2 < arr.length; i_2++)
+                    for (double i_2 = 0; i_2 < arr.length; i_2++)
                     {
                         string p = arr[i_2];
                         @out = @out == "" ? Template_evaluation_serialization.trimSlashes(p) : Template_evaluation_serialization.trimEndCharacter(@out, "/") + "/" + Template_evaluation_serialization.trimStartCharacter(p, "/");
@@ -435,8 +420,8 @@ namespace Tsumo.Engine
                     string input_1 = Template_runtimeHelpers.toPlainString(args[1]);
                     int limit_2 = args.length >= 3 ? Template_runtimeHelpers.toNumber(args[2]) : -1;
                     Tsonic.CSharp.Js.JSArray<Tsonic.CSharp.Js.JSArray<string>> matches = Utils_regularExpressions.findRegularExpressionSubmatches(pattern_2, input_1, limit_2);
-                    Tsonic.CSharp.Js.JSArray<TemplateValue> result = new Tsonic.CSharp.Js.JSArray<TemplateValue>(new TemplateValue[] { });
-                    for (int matchIndex = 0; matchIndex < matches.length; matchIndex++)
+                    Tsonic.CSharp.Js.JSArray<TemplateValue> result = Tsonic.CSharp.Js.JSArray<TemplateValue>.of([]);
+                    for (double matchIndex = 0; matchIndex < matches.length; matchIndex++)
                     {
                         result.push(new StringArrayValue(matches[matchIndex]));
                     }
@@ -523,46 +508,46 @@ namespace Tsumo.Engine
                 if (name == "len" && args.length >= 1)
                 {
                     TemplateValue v_13 = args[0];
-                    if (v_13 is StringValue)
+                    if ((object?)v_13 is StringValue)
                     {
                         int l = ((StringValue)v_13).value.Length;
                         return new NumberValue(l);
                     }
-                    if (v_13 is HtmlValue)
+                    if ((object?)v_13 is HtmlValue)
                     {
                         int l_1 = ((HtmlValue)v_13).value.value.Length;
                         return new NumberValue(l_1);
                     }
-                    if (v_13 is PageArrayValue)
+                    if ((object?)v_13 is PageArrayValue)
                     {
                         int l_2 = ((PageArrayValue)v_13).value.length;
                         return new NumberValue(l_2);
                     }
-                    if (v_13 is StringArrayValue)
+                    if ((object?)v_13 is StringArrayValue)
                     {
                         int l_3 = ((StringArrayValue)v_13).value.length;
                         return new NumberValue(l_3);
                     }
-                    if (v_13 is SitesArrayValue)
+                    if ((object?)v_13 is SitesArrayValue)
                     {
                         int l_4 = ((SitesArrayValue)v_13).value.length;
                         return new NumberValue(l_4);
                     }
-                    if (v_13 is DocsMountArrayValue)
+                    if ((object?)v_13 is DocsMountArrayValue)
                     {
                         int l_5 = ((DocsMountArrayValue)v_13).value.length;
                         return new NumberValue(l_5);
                     }
-                    if (v_13 is NavArrayValue)
+                    if ((object?)v_13 is NavArrayValue)
                     {
                         int l_6 = ((NavArrayValue)v_13).value.length;
                         return new NumberValue(l_6);
                     }
-                    if (v_13 is DictValue)
+                    if ((object?)v_13 is DictValue)
                     {
                         return new NumberValue(((DictValue)v_13).value.size);
                     }
-                    if (v_13 is AnyArrayValue)
+                    if ((object?)v_13 is AnyArrayValue)
                     {
                         return new NumberValue(((AnyArrayValue)v_13).value.length);
                     }
@@ -577,7 +562,7 @@ namespace Tsumo.Engine
                 if (name == "print" && args.length >= 1)
                 {
                     TextBuilder sb = new TextBuilder();
-                    for (int i_3 = 0; i_3 < args.length; i_3++)
+                    for (double i_3 = 0; i_3 < args.length; i_3++)
                     {
                         sb.append(Template_runtimeHelpers.toPlainString(args[i_3]));
                     }
@@ -586,14 +571,14 @@ namespace Tsumo.Engine
                 if (name == "printf" && args.length >= 1)
                 {
                     string fmt = Template_runtimeHelpers.toPlainString(args[0]);
-                    Tsonic.CSharp.Js.JSArray<TemplateValue> values = new Tsonic.CSharp.Js.JSArray<TemplateValue>(new TemplateValue[] { });
-                    for (int argumentIndex = 1; argumentIndex < args.length; argumentIndex++)
+                    Tsonic.CSharp.Js.JSArray<TemplateValue> values = Tsonic.CSharp.Js.JSArray<TemplateValue>.of([]);
+                    for (double argumentIndex = 1; argumentIndex < args.length; argumentIndex++)
                     {
                         values.push(args[argumentIndex]);
                     }
                     TextBuilder sb_1 = new TextBuilder();
                     int pos = 0;
-                    int valueIndex = 0;
+                    double valueIndex = 0;
                     while (pos < fmt.Length)
                     {
                         string ch = Utils_strings.substringCount(fmt, pos, 1);
@@ -637,7 +622,7 @@ namespace Tsumo.Engine
                         TemplateValue a_4 = args[0];
                         TemplateValue b_4 = args[1];
                         double cmp = 0;
-                        if (a_4 is VersionStringValue || b_4 is VersionStringValue)
+                        if ((object?)a_4 is VersionStringValue || (object?)b_4 is VersionStringValue)
                         {
                             string av = Template_runtimeHelpers.toPlainString(a_4);
                             string bv = Template_runtimeHelpers.toPlainString(b_4);
@@ -645,9 +630,9 @@ namespace Tsumo.Engine
                         }
                         else
                         {
-                            if (a_4 is NumberValue)
+                            if ((object?)a_4 is NumberValue)
                             {
-                                if (b_4 is NumberValue)
+                                if ((object?)b_4 is NumberValue)
                                 {
                                     int av_1 = ((NumberValue)a_4).value;
                                     int bv_1 = ((NumberValue)b_4).value;
@@ -697,7 +682,7 @@ namespace Tsumo.Engine
                 if (name == "and" && args.length >= 1)
                 {
                     TemplateValue cur = args[0];
-                    for (int i_4 = 0; i_4 < args.length; i_4++)
+                    for (double i_4 = 0; i_4 < args.length; i_4++)
                     {
                         cur = args[i_4];
                         if (!Template_runtimeHelpers.isTruthy(cur))
@@ -709,7 +694,7 @@ namespace Tsumo.Engine
                 }
                 if (name == "or" && args.length >= 1)
                 {
-                    for (int i_5 = 0; i_5 < args.length; i_5++)
+                    for (double i_5 = 0; i_5 < args.length; i_5++)
                     {
                         TemplateValue cur_1 = args[i_5];
                         if (Template_runtimeHelpers.isTruthy(cur_1))

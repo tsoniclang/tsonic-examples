@@ -2,51 +2,11 @@
 
 use crate::program as rt;
 
-pub(crate) fn capture_scaffold_diagnostic(
-    operation: rt::Callable<(), rt::TsonicResult<()>>,
-) -> Result<String, rt::TsonicError> {
-    let try_body: rt::TsonicResult<rt::Completion<String>> = rt::completion_region(|| {
-        operation.call(())?;
-        Ok(rt::Completion::Normal)
-    });
-    let try_flow: rt::TsonicResult<rt::Completion<String>> = match try_body {
-        Ok(completion) => Ok(completion),
-        Err(error) => rt::completion_region(|| {
-            if matches!(
-                error.clone(),
-                rt::TsonicError::TsumoEngineError(tsumo_engine::program::TsonicError::TsumoError(
-                    _
-                ))
-            ) {
-                return Ok(rt::Completion::Return({
-                    let dispatch_receiver_2 = &{
-                        let dispatch_receiver = &match error {
-                            rt::TsonicError::TsumoEngineError(
-                                tsumo_engine::program::TsonicError::TsumoError(program_error),
-                            ) => program_error,
-                            _ => unreachable!(
-                                "checked flow selected a different program-error variant"
-                            ),
-                        };
-                        dispatch_receiver.dispatch.read_tsumo_error_diagnostic()
-                    };
-                    dispatch_receiver_2.dispatch.read_tsumo_diagnostic_code()
-                }));
-            }
-            Err(error.clone())
-        }),
-    };
-    let try_flow = try_flow?;
-    match try_flow {
-        rt::Completion::Normal => {}
-        rt::Completion::Return(value) => return Ok(value),
-        rt::Completion::Break(_) | rt::Completion::Continue(_) => {
-            unreachable!("invalid finalized Tsonic completion target")
-        }
-    }
-    Err(rt::TsonicError::from(rt::JsError::error(
-        "Expected a scaffold diagnostic",
-    )))
+type CaptureScaffoldDiagnosticCallable =
+    rt::Callable<(rt::Callable<(), rt::TsonicResult<()>>,), rt::TsonicResult<String>>;
+
+std::thread_local! {
+    pub(crate) static CAPTURE_SCAFFOLD_DIAGNOSTIC: rt::ModuleCell<CaptureScaffoldDiagnosticCallable> = const { rt::ModuleCell::new() };
 }
 
 pub(crate) struct ScaffoldAndBuildTestsState {}
@@ -74,7 +34,8 @@ impl ScaffoldAndBuildTests {
         let out_dir: String = crate::test_root::create_test_directory(String::from("out"))?;
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
             tsumo_engine::init_site(site_dir.clone(), None)?;
-            let req: tsumo_engine::BuildRequest = tsumo_engine::BuildRequest::new(site_dir.clone());
+            let req: tsumo_engine::BuildRequest =
+                tsumo_engine::BuildRequest::new(site_dir.clone())?;
             {
                 let receiver = &req;
                 let value = out_dir.clone();
@@ -82,7 +43,7 @@ impl ScaffoldAndBuildTests {
                     let dispatch_receiver = receiver;
                     dispatch_receiver
                         .dispatch
-                        .write_build_request_destination_dir(value)
+                        .write_build_request_destination_dir(value)?
                 }
             };
             {
@@ -92,7 +53,7 @@ impl ScaffoldAndBuildTests {
                     let dispatch_receiver_2 = receiver_2;
                     dispatch_receiver_2
                         .dispatch
-                        .write_build_request_clean_destination_dir(value_2)
+                        .write_build_request_clean_destination_dir(value_2)?
                 }
             };
             let result: tsumo_engine::BuildResult = tsumo_engine::build_site(req.clone())?;
@@ -151,7 +112,8 @@ impl ScaffoldAndBuildTests {
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
             tsumo_engine::init_site(site_dir.clone(), None)?;
             tsumo_engine::new_content(site_dir.clone(), String::from("posts/my-draft.md"), None)?;
-            let req: tsumo_engine::BuildRequest = tsumo_engine::BuildRequest::new(site_dir.clone());
+            let req: tsumo_engine::BuildRequest =
+                tsumo_engine::BuildRequest::new(site_dir.clone())?;
             {
                 let receiver = &req;
                 let value = out_dir.clone();
@@ -159,7 +121,7 @@ impl ScaffoldAndBuildTests {
                     let dispatch_receiver = receiver;
                     dispatch_receiver
                         .dispatch
-                        .write_build_request_destination_dir(value)
+                        .write_build_request_destination_dir(value)?
                 }
             };
             {
@@ -169,7 +131,7 @@ impl ScaffoldAndBuildTests {
                     let dispatch_receiver_2 = receiver_2;
                     dispatch_receiver_2
                         .dispatch
-                        .write_build_request_clean_destination_dir(value_2)
+                        .write_build_request_clean_destination_dir(value_2)?
                 }
             };
             {
@@ -179,7 +141,7 @@ impl ScaffoldAndBuildTests {
                     let dispatch_receiver_3 = receiver_3;
                     dispatch_receiver_3
                         .dispatch
-                        .write_build_request_build_drafts(value_3)
+                        .write_build_request_build_drafts(value_3)?
                 }
             };
             tsumo_engine::build_site(req.clone())?;
@@ -217,7 +179,8 @@ impl ScaffoldAndBuildTests {
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
             tsumo_engine::init_site(site_dir.clone(), None)?;
             tsumo_engine::new_content(site_dir.clone(), String::from("posts/my-post.md"), None)?;
-            let req: tsumo_engine::BuildRequest = tsumo_engine::BuildRequest::new(site_dir.clone());
+            let req: tsumo_engine::BuildRequest =
+                tsumo_engine::BuildRequest::new(site_dir.clone())?;
             {
                 let receiver = &req;
                 let value = out_dir.clone();
@@ -225,7 +188,7 @@ impl ScaffoldAndBuildTests {
                     let dispatch_receiver = receiver;
                     dispatch_receiver
                         .dispatch
-                        .write_build_request_destination_dir(value)
+                        .write_build_request_destination_dir(value)?
                 }
             };
             {
@@ -235,7 +198,7 @@ impl ScaffoldAndBuildTests {
                     let dispatch_receiver_2 = receiver_2;
                     dispatch_receiver_2
                         .dispatch
-                        .write_build_request_clean_destination_dir(value_2)
+                        .write_build_request_clean_destination_dir(value_2)?
                 }
             };
             {
@@ -245,7 +208,7 @@ impl ScaffoldAndBuildTests {
                     let dispatch_receiver_3 = receiver_3;
                     dispatch_receiver_3
                         .dispatch
-                        .write_build_request_build_drafts(value_3)
+                        .write_build_request_build_drafts(value_3)?
                 }
             };
             tsumo_engine::build_site(req.clone())?;
@@ -286,44 +249,62 @@ impl ScaffoldAndBuildTests {
             )?;
             crate::test_root::Assert::string_equal(
                 String::from("TSUMO_SCAFFOLD_DESTINATION_NOT_EMPTY"),
-                Some(capture_scaffold_diagnostic({
-                    let capture_occupied = occupied.clone();
-                    rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                        tsumo_engine::init_site(capture_occupied.clone(), None)?;
-                        Ok::<_, rt::TsonicError>(())
-                    })
-                })?),
+                Some(
+                    CAPTURE_SCAFFOLD_DIAGNOSTIC
+                        .with(|module_binding| module_binding.load())
+                        .call(({
+                            let capture_occupied = occupied.clone();
+                            rt::Callable::<(), rt::TsonicResult<()>>::new(
+                                move |_callable_arguments| {
+                                    tsumo_engine::init_site(capture_occupied.clone(), None)?;
+                                    Ok::<_, rt::TsonicError>(())
+                                },
+                            )
+                        },))?,
+                ),
             )?;
             let site: String = tsonic_rust_node::path::join(&[root.as_str(), "site"]);
             tsumo_engine::init_site(site.clone(), None)?;
             crate::test_root::Assert::string_equal(
                 String::from("TSUMO_SCAFFOLD_CONTENT_PATH_ESCAPES_ROOT"),
-                Some(capture_scaffold_diagnostic({
-                    let capture_site = site.clone();
-                    rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
-                        tsumo_engine::new_content(
-                            capture_site.clone(),
-                            String::from("../outside.md"),
-                            None,
-                        )?;
-                        Ok::<_, rt::TsonicError>(())
-                    })
-                })?),
+                Some(
+                    CAPTURE_SCAFFOLD_DIAGNOSTIC
+                        .with(|module_binding| module_binding.load())
+                        .call(({
+                            let capture_site = site.clone();
+                            rt::Callable::<(), rt::TsonicResult<()>>::new(
+                                move |_callable_arguments_2| {
+                                    tsumo_engine::new_content(
+                                        capture_site.clone(),
+                                        String::from("../outside.md"),
+                                        None,
+                                    )?;
+                                    Ok::<_, rt::TsonicError>(())
+                                },
+                            )
+                        },))?,
+                ),
             )?;
             tsumo_engine::new_content(site.clone(), String::from("posts/exact.md"), None)?;
             crate::test_root::Assert::string_equal(
                 String::from("TSUMO_SCAFFOLD_CONTENT_EXISTS"),
-                Some(capture_scaffold_diagnostic({
-                    let capture_site_2 = site.clone();
-                    rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_3| {
-                        tsumo_engine::new_content(
-                            capture_site_2.clone(),
-                            String::from("posts/exact.md"),
-                            None,
-                        )?;
-                        Ok::<_, rt::TsonicError>(())
-                    })
-                })?),
+                Some(
+                    CAPTURE_SCAFFOLD_DIAGNOSTIC
+                        .with(|module_binding| module_binding.load())
+                        .call(({
+                            let capture_site_2 = site.clone();
+                            rt::Callable::<(), rt::TsonicResult<()>>::new(
+                                move |_callable_arguments_3| {
+                                    tsumo_engine::new_content(
+                                        capture_site_2.clone(),
+                                        String::from("posts/exact.md"),
+                                        None,
+                                    )?;
+                                    Ok::<_, rt::TsonicError>(())
+                                },
+                            )
+                        },))?,
+                ),
             )?;
             Ok(rt::Completion::Normal)
         });
@@ -385,4 +366,54 @@ pub fn run_scaffold_and_build_tests() -> Result<(), rt::TsonicError> {
         },
     )?;
     Ok(())
+}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = rt::Callable::<
+            (rt::Callable<(), rt::TsonicResult<()>>,),
+            rt::TsonicResult<String>,
+        >::new(move |callable_arguments| {
+            let operation = callable_arguments.0;
+            let try_body: rt::TsonicResult<rt::Completion<String>> = rt::completion_region(|| {
+                operation.call(())?;
+                Ok(rt::Completion::Normal)
+            });
+            let try_flow: rt::TsonicResult<rt::Completion<String>> = match try_body {
+                Ok(completion) => Ok(completion),
+                Err(error) => rt::completion_region(|| {
+                    if matches!(error.clone(), rt::TsonicError::TsumoError(_)) {
+                        return Ok(rt::Completion::Return({
+                            let dispatch_receiver_2 = &{
+                                let dispatch_receiver = &match &error {
+                                    rt::TsonicError::TsumoError(program_error) => {
+                                        program_error.clone()
+                                    }
+                                    _ => unreachable!(
+                                        "checked flow selected a different program-error variant"
+                                    ),
+                                };
+                                dispatch_receiver.dispatch.read_tsumo_error_diagnostic()
+                            };
+                            dispatch_receiver_2.dispatch.read_tsumo_diagnostic_code()
+                        }));
+                    }
+                    Err(error.clone())
+                }),
+            };
+            let try_flow = try_flow?;
+            match try_flow {
+                rt::Completion::Normal => {}
+                rt::Completion::Return(value) => return Ok(value),
+                rt::Completion::Break(_) | rt::Completion::Continue(_) => {
+                    unreachable!("invalid finalized Tsonic completion target")
+                }
+            }
+            Err(rt::TsonicError::from(rt::JsError::error(
+                "Expected a scaffold diagnostic",
+            )))
+        });
+        CAPTURE_SCAFFOLD_DIAGNOSTIC.with(|module_binding| module_binding.initialize(module_value))
+    };
 }

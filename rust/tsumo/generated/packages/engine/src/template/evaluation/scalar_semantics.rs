@@ -4,11 +4,11 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn is_number_literal(token: String) -> Result<bool, rt::TsonicError> {
+pub fn is_number_literal(token: &str) -> Result<bool, rt::TsonicError> {
     if token.is_empty() {
         return Ok(false);
     }
-    Ok(crate::utils::int32::parse_int32(&token)?.is_some())
+    Ok(crate::utils::int32::parse_int32(token)?.is_some())
 }
 
 std::thread_local! {
@@ -31,7 +31,7 @@ pub fn strip_leading_zero(value: String) -> Result<String, rt::TsonicError> {
     Ok(if js_string::starts_with_from_start(&value, "0") {
         js_string::slice(&value, 1.0, None)?
     } else {
-        value.clone()
+        value
     })
 }
 
@@ -54,27 +54,20 @@ pub fn add_calendar_date(
         return Ok(Option::<String>::None);
     }
     let iso: String = js_abi::JsDate::from_millis(milliseconds).to_iso_string()?;
-    let source_year: Option<i32> = crate::utils::int32::parse_int32(
-        &crate::utils::strings::substring_count(iso.clone(), 0, 4)?,
-    )?;
-    let source_month: Option<i32> = crate::utils::int32::parse_int32(
-        &crate::utils::strings::substring_count(iso.clone(), 5, 2)?,
-    )?;
-    let source_day: Option<i32> = crate::utils::int32::parse_int32(
-        &crate::utils::strings::substring_count(iso.clone(), 8, 2)?,
-    )?;
-    let hour: Option<i32> = crate::utils::int32::parse_int32(
-        &crate::utils::strings::substring_count(iso.clone(), 11, 2)?,
-    )?;
-    let minute: Option<i32> = crate::utils::int32::parse_int32(
-        &crate::utils::strings::substring_count(iso.clone(), 14, 2)?,
-    )?;
-    let second: Option<i32> = crate::utils::int32::parse_int32(
-        &crate::utils::strings::substring_count(iso.clone(), 17, 2)?,
-    )?;
-    let millisecond: Option<i32> = crate::utils::int32::parse_int32(
-        &crate::utils::strings::substring_count(iso.clone(), 20, 3)?,
-    )?;
+    let source_year: Option<i32> =
+        crate::utils::int32::parse_int32(&crate::utils::strings::substring_count(&iso, 0, 4)?)?;
+    let source_month: Option<i32> =
+        crate::utils::int32::parse_int32(&crate::utils::strings::substring_count(&iso, 5, 2)?)?;
+    let source_day: Option<i32> =
+        crate::utils::int32::parse_int32(&crate::utils::strings::substring_count(&iso, 8, 2)?)?;
+    let hour: Option<i32> =
+        crate::utils::int32::parse_int32(&crate::utils::strings::substring_count(&iso, 11, 2)?)?;
+    let minute: Option<i32> =
+        crate::utils::int32::parse_int32(&crate::utils::strings::substring_count(&iso, 14, 2)?)?;
+    let second: Option<i32> =
+        crate::utils::int32::parse_int32(&crate::utils::strings::substring_count(&iso, 17, 2)?)?;
+    let millisecond: Option<i32> =
+        crate::utils::int32::parse_int32(&crate::utils::strings::substring_count(&iso, 20, 3)?)?;
     if source_year.is_none()
         || source_month.is_none()
         || source_day.is_none()
@@ -192,18 +185,18 @@ pub fn is_date_after(left: String, right: String) -> Option<bool> {
     Some(left_milliseconds > right_milliseconds)
 }
 
-pub fn format_date_time(value: String, layout: String) -> Result<Option<String>, rt::TsonicError> {
+pub fn format_date_time(value: String, layout: &str) -> Result<Option<String>, rt::TsonicError> {
     let milliseconds: f64 = js_abi::JsDate::parse(&value);
     if js_abi::number_is_nan(milliseconds) {
         return Ok(Option::<String>::None);
     }
     let iso: String = js_abi::JsDate::from_millis(milliseconds).to_iso_string()?;
-    let year: String = crate::utils::strings::substring_count(iso.clone(), 0, 4)?;
-    let month: String = crate::utils::strings::substring_count(iso.clone(), 5, 2)?;
-    let day: String = crate::utils::strings::substring_count(iso.clone(), 8, 2)?;
-    let hour24: String = crate::utils::strings::substring_count(iso.clone(), 11, 2)?;
-    let minute: String = crate::utils::strings::substring_count(iso.clone(), 14, 2)?;
-    let second: String = crate::utils::strings::substring_count(iso.clone(), 17, 2)?;
+    let year: String = crate::utils::strings::substring_count(&iso, 0, 4)?;
+    let month: String = crate::utils::strings::substring_count(&iso, 5, 2)?;
+    let day: String = crate::utils::strings::substring_count(&iso, 8, 2)?;
+    let hour24: String = crate::utils::strings::substring_count(&iso, 11, 2)?;
+    let minute: String = crate::utils::strings::substring_count(&iso, 14, 2)?;
+    let second: String = crate::utils::strings::substring_count(&iso, 17, 2)?;
     let month_index: i32 = rt::option_coalesce(
         crate::utils::int32::parse_int32(&month)?,
         core::convert::identity,
@@ -227,9 +220,9 @@ pub fn format_date_time(value: String, layout: String) -> Result<Option<String>,
     let weekday: i32 = weekday_index(milliseconds)?;
     let output: crate::utils::text_builder::TextBuilder =
         crate::utils::text_builder::TextBuilder::new();
-    let mut index: f64 = 0.0;
-    while index < (rt::conversions::usize_to_i32(js_string::js_len(&layout))? as f64) {
-        let remaining: String = js_string::slice(&layout, index, None)?;
+    let mut index: i32 = 0;
+    while index < rt::conversions::usize_to_i32(js_string::js_len(layout))? {
+        let remaining: String = js_string::slice(layout, rt::conversions::i32_to_f64(index), None)?;
         if js_string::starts_with_from_start(&remaining, "Monday") {
             {
                 let dispatch_receiver = output.clone();
@@ -240,14 +233,13 @@ pub fn format_date_time(value: String, layout: String) -> Result<Option<String>,
                         match LONG_WEEKDAYS
                             .with(|module_binding| module_binding.load())
                             .get_number(rt::conversions::i32_to_f64(weekday))
-                            .as_ref()
                         {
-                            Some(flow_value) => flow_value.clone(),
+                            Some(flow_value) => flow_value,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     )
             }?;
-            index += 6.0;
+            index += 6;
         } else if js_string::starts_with_from_start(&remaining, "January") {
             {
                 let dispatch_receiver_2 = output.clone();
@@ -258,14 +250,13 @@ pub fn format_date_time(value: String, layout: String) -> Result<Option<String>,
                         match LONG_MONTHS
                             .with(|module_binding| module_binding.load())
                             .get_number(rt::conversions::i32_to_f64(month_index))
-                            .as_ref()
                         {
-                            Some(flow_value_2) => flow_value_2.clone(),
+                            Some(flow_value_2) => flow_value_2,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     )
             }?;
-            index += 7.0;
+            index += 7;
         } else if js_string::starts_with_from_start(&remaining, "2006") {
             {
                 let dispatch_receiver_3 = output.clone();
@@ -274,7 +265,7 @@ pub fn format_date_time(value: String, layout: String) -> Result<Option<String>,
                     .clone()
                     .dispatch_text_builder_append(year.clone())
             }?;
-            index += 4.0;
+            index += 4;
         } else if js_string::starts_with_from_start(&remaining, "Mon") {
             {
                 let dispatch_receiver_4 = output.clone();
@@ -285,14 +276,13 @@ pub fn format_date_time(value: String, layout: String) -> Result<Option<String>,
                         match SHORT_WEEKDAYS
                             .with(|module_binding| module_binding.load())
                             .get_number(rt::conversions::i32_to_f64(weekday))
-                            .as_ref()
                         {
-                            Some(flow_value_3) => flow_value_3.clone(),
+                            Some(flow_value_3) => flow_value_3,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     )
             }?;
-            index += 3.0;
+            index += 3;
         } else if js_string::starts_with_from_start(&remaining, "Jan") {
             {
                 let dispatch_receiver_5 = output.clone();
@@ -303,14 +293,13 @@ pub fn format_date_time(value: String, layout: String) -> Result<Option<String>,
                         match SHORT_MONTHS
                             .with(|module_binding| module_binding.load())
                             .get_number(rt::conversions::i32_to_f64(month_index))
-                            .as_ref()
                         {
-                            Some(flow_value_4) => flow_value_4.clone(),
+                            Some(flow_value_4) => flow_value_4,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     )
             }?;
-            index += 3.0;
+            index += 3;
         } else if js_string::starts_with_from_start(&remaining, "PM") {
             {
                 let dispatch_receiver_6 = output.clone();
@@ -323,7 +312,7 @@ pub fn format_date_time(value: String, layout: String) -> Result<Option<String>,
                         String::from("PM")
                     })
             }?;
-            index += 2.0;
+            index += 2;
         } else if js_string::starts_with_from_start(&remaining, "pm") {
             {
                 let dispatch_receiver_7 = output.clone();
@@ -336,7 +325,7 @@ pub fn format_date_time(value: String, layout: String) -> Result<Option<String>,
                         String::from("pm")
                     })
             }?;
-            index += 2.0;
+            index += 2;
         } else if js_string::starts_with_from_start(&remaining, "06") {
             {
                 let dispatch_receiver_8 = output.clone();
@@ -345,7 +334,7 @@ pub fn format_date_time(value: String, layout: String) -> Result<Option<String>,
                     .clone()
                     .dispatch_text_builder_append(js_string::slice(&year, 2.0, None)?)
             }?;
-            index += 2.0;
+            index += 2;
         } else if js_string::starts_with_from_start(&remaining, "01") {
             {
                 let dispatch_receiver_9 = output.clone();
@@ -354,7 +343,7 @@ pub fn format_date_time(value: String, layout: String) -> Result<Option<String>,
                     .clone()
                     .dispatch_text_builder_append(month.clone())
             }?;
-            index += 2.0;
+            index += 2;
         } else if js_string::starts_with_from_start(&remaining, "02") {
             {
                 let dispatch_receiver_10 = output.clone();
@@ -363,7 +352,7 @@ pub fn format_date_time(value: String, layout: String) -> Result<Option<String>,
                     .clone()
                     .dispatch_text_builder_append(day.clone())
             }?;
-            index += 2.0;
+            index += 2;
         } else if js_string::starts_with_from_start(&remaining, "15") {
             {
                 let dispatch_receiver_11 = output.clone();
@@ -372,7 +361,7 @@ pub fn format_date_time(value: String, layout: String) -> Result<Option<String>,
                     .clone()
                     .dispatch_text_builder_append(hour24.clone())
             }?;
-            index += 2.0;
+            index += 2;
         } else if js_string::starts_with_from_start(&remaining, "03") {
             {
                 let dispatch_receiver_12 = output.clone();
@@ -381,7 +370,7 @@ pub fn format_date_time(value: String, layout: String) -> Result<Option<String>,
                     .clone()
                     .dispatch_text_builder_append(hour12.clone())
             }?;
-            index += 2.0;
+            index += 2;
         } else if js_string::starts_with_from_start(&remaining, "04") {
             {
                 let dispatch_receiver_13 = output.clone();
@@ -390,7 +379,7 @@ pub fn format_date_time(value: String, layout: String) -> Result<Option<String>,
                     .clone()
                     .dispatch_text_builder_append(minute.clone())
             }?;
-            index += 2.0;
+            index += 2;
         } else if js_string::starts_with_from_start(&remaining, "05") {
             {
                 let dispatch_receiver_14 = output.clone();
@@ -399,7 +388,7 @@ pub fn format_date_time(value: String, layout: String) -> Result<Option<String>,
                     .clone()
                     .dispatch_text_builder_append(second.clone())
             }?;
-            index += 2.0;
+            index += 2;
         } else if js_string::starts_with_from_start(&remaining, "1") {
             {
                 let dispatch_receiver_15 = output.clone();
@@ -408,7 +397,7 @@ pub fn format_date_time(value: String, layout: String) -> Result<Option<String>,
                     .clone()
                     .dispatch_text_builder_append(strip_leading_zero(month.clone())?)
             }?;
-            index += 1.0;
+            index += 1;
         } else if js_string::starts_with_from_start(&remaining, "2") {
             {
                 let dispatch_receiver_16 = output.clone();
@@ -417,7 +406,7 @@ pub fn format_date_time(value: String, layout: String) -> Result<Option<String>,
                     .clone()
                     .dispatch_text_builder_append(strip_leading_zero(day.clone())?)
             }?;
-            index += 1.0;
+            index += 1;
         } else if js_string::starts_with_from_start(&remaining, "3") {
             {
                 let dispatch_receiver_17 = output.clone();
@@ -426,20 +415,18 @@ pub fn format_date_time(value: String, layout: String) -> Result<Option<String>,
                     .clone()
                     .dispatch_text_builder_append(rt::source_string(&hour12_value))
             }?;
-            index += 1.0;
+            index += 1;
         } else {
             {
                 let dispatch_receiver_18 = output.clone();
                 dispatch_receiver_18
                     .dispatch
                     .clone()
-                    .dispatch_text_builder_append(crate::utils::strings::substring_count(
-                        layout.clone(),
-                        rt::conversions::f64_to_i32(index)?,
-                        1,
+                    .dispatch_text_builder_append(crate::utils::strings::code_point_at_text(
+                        layout, index,
                     )?)
             }?;
-            index += 1.0;
+            index = crate::utils::strings::next_code_point_index(layout, index)?;
         }
     }
     Ok(Some({

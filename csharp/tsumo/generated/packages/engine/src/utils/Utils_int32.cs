@@ -28,7 +28,7 @@ namespace Tsumo.Engine
             parseInt32 = (string value) =>
             {
                 string trimmed = Tsonic.CSharp.Js.String.trim(value);
-                if (!new Tsonic.CSharp.Js.RegExp("^-?\\d+$", "").test(trimmed))
+                if (!new Tsonic.CSharp.Js.RegExp("^-?\\d+$", "").testNative(trimmed))
                 {
                     return null;
                 }

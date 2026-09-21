@@ -23,15 +23,15 @@ impl rt::ObjectIdentityCarrier for ResourcePathParts {
 }
 
 impl ResourcePathParts {
-    pub fn new(directory: String, file_name: String) -> ResourcePathParts {
+    pub fn new(directory: String, file_name: String) -> Result<ResourcePathParts, rt::TsonicError> {
         let field_directory: String = directory;
         let field_file_name: String = file_name;
-        ResourcePathParts {
+        Ok(ResourcePathParts {
             state: rt::ObjectRef::new(ResourcePathPartsState {
                 directory: field_directory,
                 file_name: field_file_name,
             }),
-        }
+        })
     }
 }
 
@@ -54,15 +54,18 @@ impl rt::ObjectIdentityCarrier for ResourceFileNameParts {
 }
 
 impl ResourceFileNameParts {
-    pub fn new(base_name: String, extension: String) -> ResourceFileNameParts {
+    pub fn new(
+        base_name: String,
+        extension: String,
+    ) -> Result<ResourceFileNameParts, rt::TsonicError> {
         let field_base_name: String = base_name;
         let field_extension: String = extension;
-        ResourceFileNameParts {
+        Ok(ResourceFileNameParts {
             state: rt::ObjectRef::new(ResourceFileNamePartsState {
                 base_name: field_base_name,
                 extension: field_extension,
             }),
-        }
+        })
     }
 }
 
@@ -75,8 +78,7 @@ pub fn normalize_resource_relative_path(path: String) -> Result<String, rt::Tson
     while js_string::starts_with_from_start(&normalized, "/") {
         normalized = crate::utils::strings::substring_from(&normalized, 1)?;
     }
-    let drive_qualified: bool = rt::conversions::usize_to_i32(js_string::js_len(&normalized))? >= 2
-        && crate::utils::strings::substring_count(normalized.clone(), 1, 1)? == ":";
+    let drive_qualified: bool = js_string::code_point_at(&normalized, 1.0) == Some(58.0);
     if tsonic_rust_node::path::is_absolute(&normalized) || drive_qualified {
         return Err(rt::TsonicError::TsumoError(
             crate::diagnostics::create_tsumo_error(
@@ -89,7 +91,7 @@ pub fn normalize_resource_relative_path(path: String) -> Result<String, rt::Tson
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     let segments: js_abi::JsArray<String> = js_string::split_all(&normalized, "/")?;
@@ -97,8 +99,8 @@ pub fn normalize_resource_relative_path(path: String) -> Result<String, rt::Tson
     {
         let mut index: f64 = 0.0;
         'loop_value_2: while index < (rt::conversions::usize_to_i32(segments.len())? as f64) {
-            let segment: String = match segments.get_number(index).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let segment: String = match segments.get_number(index) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if segment.is_empty() || segment == "." {
@@ -117,7 +119,7 @@ pub fn normalize_resource_relative_path(path: String) -> Result<String, rt::Tson
                         None,
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
             if js_string::includes_from_start(&segment, "\0") {
@@ -128,7 +130,7 @@ pub fn normalize_resource_relative_path(path: String) -> Result<String, rt::Tson
                         None,
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
             accepted.push_many_discard([segment.clone()]);
@@ -138,9 +140,9 @@ pub fn normalize_resource_relative_path(path: String) -> Result<String, rt::Tson
     Ok(accepted.join("/"))
 }
 
-pub fn resource_path_to_os_path(relative_path: String) -> Result<String, rt::TsonicError> {
+pub fn resource_path_to_os_path(relative_path: &str) -> Result<String, rt::TsonicError> {
     crate::utils::strings::replace_text(
-        &relative_path,
+        relative_path,
         String::from("/"),
         String::from(tsonic_rust_node::path::sep()),
     )
@@ -156,7 +158,7 @@ pub fn resolve_contained_resource_path(
         let operation_input_0 = root_path.clone();
         tsonic_rust_node::path::resolve(&[
             operation_input_0.as_str(),
-            resource_path_to_os_path(normalized)?.as_str(),
+            resource_path_to_os_path(&normalized)?.as_str(),
         ])
     }?;
     if !crate::utils::paths::path_contains_or_equals(root_path.clone(), candidate.clone()) {
@@ -171,7 +173,7 @@ pub fn resolve_contained_resource_path(
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     Ok(candidate)
@@ -182,12 +184,12 @@ pub fn split_resource_path(relative_path: String) -> Result<ResourcePathParts, r
     let index: i32 =
         rt::conversions::isize_to_i32(js_string::last_index_of_from_end(&normalized, "/"))?;
     if index < 0 {
-        return Ok(ResourcePathParts::new(String::from(""), normalized.clone()));
+        return ResourcePathParts::new(String::from(""), normalized.clone());
     }
-    Ok(ResourcePathParts::new(
-        crate::utils::strings::substring_count(normalized.clone(), 0, index + 1)?,
+    ResourcePathParts::new(
+        crate::utils::strings::substring_count(&normalized, 0, index + 1)?,
         crate::utils::strings::substring_from(&normalized, index + 1)?,
-    ))
+    )
 }
 
 pub fn split_resource_file_name(
@@ -196,13 +198,10 @@ pub fn split_resource_file_name(
     let index: i32 =
         rt::conversions::isize_to_i32(js_string::last_index_of_from_end(&file_name, "."))?;
     if index < 0 {
-        return Ok(ResourceFileNameParts::new(
-            file_name.clone(),
-            String::from(""),
-        ));
+        return ResourceFileNameParts::new(file_name.clone(), String::from(""));
     }
-    Ok(ResourceFileNameParts::new(
-        crate::utils::strings::substring_count(file_name.clone(), 0, index)?,
+    ResourceFileNameParts::new(
+        crate::utils::strings::substring_count(&file_name, 0, index)?,
         crate::utils::strings::substring_from(&file_name, index)?,
-    ))
+    )
 }

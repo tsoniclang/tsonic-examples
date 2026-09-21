@@ -16,17 +16,20 @@ pub trait TsumoDiagnosticDispatch {
         None
     }
     fn read_tsumo_diagnostic_code(&self) -> String;
-    fn write_tsumo_diagnostic_code(&self, value: String);
+    fn write_tsumo_diagnostic_code(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_tsumo_diagnostic_category(&self) -> TsumoDiagnosticCategory;
-    fn write_tsumo_diagnostic_category(&self, value: TsumoDiagnosticCategory);
+    fn write_tsumo_diagnostic_category(
+        &self,
+        value: TsumoDiagnosticCategory,
+    ) -> Result<(), rt::TsonicError>;
     fn read_tsumo_diagnostic_message(&self) -> String;
-    fn write_tsumo_diagnostic_message(&self, value: String);
+    fn write_tsumo_diagnostic_message(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_tsumo_diagnostic_file(&self) -> Option<String>;
-    fn write_tsumo_diagnostic_file(&self, value: Option<String>);
+    fn write_tsumo_diagnostic_file(&self, value: Option<String>) -> Result<(), rt::TsonicError>;
     fn read_tsumo_diagnostic_line(&self) -> Option<f64>;
-    fn write_tsumo_diagnostic_line(&self, value: Option<f64>);
+    fn write_tsumo_diagnostic_line(&self, value: Option<f64>) -> Result<(), rt::TsonicError>;
     fn read_tsumo_diagnostic_column(&self) -> Option<f64>;
-    fn write_tsumo_diagnostic_column(&self, value: Option<f64>);
+    fn write_tsumo_diagnostic_column(&self, value: Option<f64>) -> Result<(), rt::TsonicError>;
     fn dispatch_tsumo_diagnostic_format(self: alloc::rc::Rc<Self>) -> String;
     fn exact_tsumo_diagnostic_format(self: alloc::rc::Rc<Self>) -> String;
 }
@@ -71,7 +74,7 @@ impl rt::ObjectIdentityCarrier for TsumoDiagnostic {
 
 pub(crate) struct TsumoDiagnosticRoot {
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<TsumoDiagnosticState>,
+    state: rt::ObjectState<TsumoDiagnosticState>,
 }
 
 impl TsumoDiagnostic {
@@ -83,21 +86,21 @@ impl TsumoDiagnostic {
         file: Option<String>,
         line: Option<f64>,
         column: Option<f64>,
-    ) -> TsumoDiagnosticState {
+    ) -> Result<TsumoDiagnosticState, rt::TsonicError> {
         let field_code: String = code;
         let field_category: TsumoDiagnosticCategory = category;
         let field_message: String = message;
         let field_file: Option<String> = file;
         let field_line: Option<f64> = line;
         let field_column: Option<f64> = column;
-        TsumoDiagnosticState {
+        Ok(TsumoDiagnosticState {
             code: field_code,
             category: field_category,
             message: field_message,
             file: field_file,
             line: field_line,
             column: field_column,
-        }
+        })
     }
 
     pub fn new(
@@ -107,17 +110,17 @@ impl TsumoDiagnostic {
         file: Option<String>,
         line: Option<f64>,
         column: Option<f64>,
-    ) -> TsumoDiagnostic {
-        let state = TsumoDiagnostic::initialize_state(code, category, message, file, line, column);
+    ) -> Result<TsumoDiagnostic, rt::TsonicError> {
+        let state = TsumoDiagnostic::initialize_state(code, category, message, file, line, column)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(TsumoDiagnosticRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        TsumoDiagnostic {
+        Ok(TsumoDiagnostic {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -218,48 +221,87 @@ impl TsumoDiagnosticDispatch for TsumoDiagnosticRoot {
         self.state.with(|state| state.code.clone())
     }
 
-    fn write_tsumo_diagnostic_code(&self, value: String) {
-        self.state.with_mut(|state| state.code = value);
+    fn write_tsumo_diagnostic_code(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.code = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_tsumo_diagnostic_category(&self) -> TsumoDiagnosticCategory {
         self.state.with(|state| state.category)
     }
 
-    fn write_tsumo_diagnostic_category(&self, value: TsumoDiagnosticCategory) {
-        self.state.with_mut(|state| state.category = value);
+    fn write_tsumo_diagnostic_category(
+        &self,
+        value: TsumoDiagnosticCategory,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.category = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_tsumo_diagnostic_message(&self) -> String {
         self.state.with(|state| state.message.clone())
     }
 
-    fn write_tsumo_diagnostic_message(&self, value: String) {
-        self.state.with_mut(|state| state.message = value);
+    fn write_tsumo_diagnostic_message(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.message = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_tsumo_diagnostic_file(&self) -> Option<String> {
         self.state.with(|state| state.file.clone())
     }
 
-    fn write_tsumo_diagnostic_file(&self, value: Option<String>) {
-        self.state.with_mut(|state| state.file = value);
+    fn write_tsumo_diagnostic_file(&self, value: Option<String>) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.file = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_tsumo_diagnostic_line(&self) -> Option<f64> {
         self.state.with(|state| state.line)
     }
 
-    fn write_tsumo_diagnostic_line(&self, value: Option<f64>) {
-        self.state.with_mut(|state| state.line = value);
+    fn write_tsumo_diagnostic_line(&self, value: Option<f64>) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.line = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_tsumo_diagnostic_column(&self) -> Option<f64> {
         self.state.with(|state| state.column)
     }
 
-    fn write_tsumo_diagnostic_column(&self, value: Option<f64>) {
-        self.state.with_mut(|state| state.column = value);
+    fn write_tsumo_diagnostic_column(&self, value: Option<f64>) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.column = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn dispatch_tsumo_diagnostic_format(self: alloc::rc::Rc<Self>) -> String {
@@ -285,7 +327,7 @@ pub trait TsumoErrorDispatch {
     fn read_tsumo_error_stack(&self) -> Option<String>;
     fn write_tsumo_error_stack(&self, value: Option<String>);
     fn read_tsumo_error_diagnostic(&self) -> TsumoDiagnostic;
-    fn write_tsumo_error_diagnostic(&self, value: TsumoDiagnostic);
+    fn write_tsumo_error_diagnostic(&self, value: TsumoDiagnostic) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -326,14 +368,15 @@ impl rt::ObjectIdentityCarrier for TsumoError {
 }
 
 pub(crate) struct TsumoErrorRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<TsumoErrorState>,
+    state: rt::ObjectState<TsumoErrorState>,
 }
 
 impl TsumoError {
     #[doc(hidden)]
-    pub fn initialize_state(diagnostic: TsumoDiagnostic) -> TsumoErrorState {
+    pub fn initialize_state(
+        diagnostic: TsumoDiagnostic,
+    ) -> Result<TsumoErrorState, rt::TsonicError> {
         let external_base = rt::JsError::error(&{
             let dispatch_receiver = diagnostic.clone();
             dispatch_receiver
@@ -347,25 +390,25 @@ impl TsumoError {
         let field_stack: Option<String> = None;
         field_name = String::from("TsumoError");
         let field_diagnostic: TsumoDiagnostic = diagnostic.clone();
-        TsumoErrorState {
+        Ok(TsumoErrorState {
             name: field_name,
             message: field_message,
             stack: field_stack,
             diagnostic: field_diagnostic,
-        }
+        })
     }
 
-    pub fn new(diagnostic: TsumoDiagnostic) -> TsumoError {
-        let state = TsumoError::initialize_state(diagnostic);
+    pub fn new(diagnostic: TsumoDiagnostic) -> Result<TsumoError, rt::TsonicError> {
+        let state = TsumoError::initialize_state(diagnostic)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(TsumoErrorRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        TsumoError {
+        Ok(TsumoError {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -404,8 +447,20 @@ impl TsumoErrorDispatch for TsumoErrorRoot {
         self.state.with(|state| state.diagnostic.clone())
     }
 
-    fn write_tsumo_error_diagnostic(&self, value: TsumoDiagnostic) {
-        self.state.with_mut(|state| state.diagnostic = value);
+    fn write_tsumo_error_diagnostic(&self, value: TsumoDiagnostic) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.diagnostic = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
+    }
+}
+
+impl rt::ErrorStack for TsumoError {
+    fn set_stack(&self, stack: Option<String>) {
+        self.dispatch.write_tsumo_error_stack(stack);
     }
 }
 
@@ -432,7 +487,7 @@ pub fn create_tsumo_error(
     file: Option<String>,
     line: Option<f64>,
     column: Option<f64>,
-) -> TsumoError {
+) -> Result<TsumoError, rt::TsonicError> {
     TsumoError::new(TsumoDiagnostic::new(
         code,
         TsumoDiagnosticCategory::Error,
@@ -440,5 +495,5 @@ pub fn create_tsumo_error(
         file,
         line,
         column,
-    ))
+    )?)
 }

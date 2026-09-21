@@ -37,8 +37,9 @@ impl ThemeCompatibilityTests {
             Some(crate::template_test_harness::render_with_root(
                 String::from("{{ time . }}|{{ time.AsTime . }}"),
                 {
-                    let upcast_value =
-                        tsumo_engine::testing::DateValue::new(String::from("2026-08-15T00:00:00Z"));
+                    let upcast_value = tsumo_engine::testing::DateValue::new(String::from(
+                        "2026-08-15T00:00:00Z",
+                    ))?;
                     tsumo_engine::testing::TemplateValue {
                         identity: upcast_value.identity.clone(),
                         dispatch: upcast_value.dispatch.clone(),
@@ -70,8 +71,9 @@ impl ThemeCompatibilityTests {
                     "{{ (.AddDate 0 1 0).Format \"2006-01-02\" }}|{{ (.AddDate 0 0 2).After (.AddDate 0 0 1) }}",
                 ),
                 {
-                    let upcast_value =
-                        tsumo_engine::testing::DateValue::new(String::from("2024-01-31T00:00:00Z"));
+                    let upcast_value = tsumo_engine::testing::DateValue::new(String::from(
+                        "2024-01-31T00:00:00Z",
+                    ))?;
                     tsumo_engine::testing::TemplateValue {
                         identity: upcast_value.identity.clone(),
                         dispatch: upcast_value.dispatch.clone(),
@@ -100,7 +102,7 @@ impl ThemeCompatibilityTests {
                         {
                             let upcast_value_2 = tsumo_engine::testing::DateValue::new(
                                 String::from("2024-01-31T00:00:00Z"),
-                            );
+                            )?;
                             tsumo_engine::testing::TemplateValue {
                                 identity: upcast_value_2.identity.clone(),
                                 dispatch: upcast_value_2.dispatch.clone(),
@@ -120,7 +122,7 @@ impl ThemeCompatibilityTests {
                         {
                             let upcast_value_3 = tsumo_engine::testing::DateValue::new(
                                 String::from("2024-01-31T00:00:00Z"),
-                            );
+                            )?;
                             tsumo_engine::testing::TemplateValue {
                                 identity: upcast_value_3.identity.clone(),
                                 dispatch: upcast_value_3.dispatch.clone(),
@@ -278,18 +280,18 @@ impl ThemeCompatibilityTests {
                     tsumo_engine::testing::ModuleMount::new(
                         mount_directory.clone(),
                         String::from("data"),
-                    ),
+                    )?,
                 ])),
             )?;
             let environment: crate::template_test_harness::TestTemplateEnvironment =
-                crate::template_test_harness::TestTemplateEnvironment::new(None);
+                crate::template_test_harness::TestTemplateEnvironment::new(None)?;
             {
                 let dispatch_receiver = environment.clone();
                 dispatch_receiver
                     .dispatch
                     .clone()
                     .dispatch_template_environment_set_site_data(data)
-            };
+            }?;
             let site: tsumo_engine::testing::SiteContext =
                 crate::template_test_harness::create_site()?;
             let page: tsumo_engine::testing::PageContext =
@@ -298,7 +300,7 @@ impl ThemeCompatibilityTests {
                     String::from("Home"),
                     String::from(""),
                     String::from("home"),
-                );
+                )?;
             let template: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
                 String::from(
                     "{{ hugo.Data.theme.value }}|{{ hugo.Data.module.value }}|{{ .Site.Data.shared.value }}|{{ hugo.Data.nested.entry.value }}",
@@ -315,7 +317,7 @@ impl ThemeCompatibilityTests {
                         .dispatch_test_template_environment_render_template(
                             template,
                             {
-                                let upcast_value = tsumo_engine::testing::PageValue::new(page);
+                                let upcast_value = tsumo_engine::testing::PageValue::new(page)?;
                                 tsumo_engine::testing::TemplateValue {
                                     identity: upcast_value.identity.clone(),
                                     dispatch: upcast_value.dispatch.clone(),
@@ -345,7 +347,7 @@ impl ThemeCompatibilityTests {
                                 tsumo_engine::testing::ModuleMount::new(
                                     capture_mount_directory.clone(),
                                     String::from("data"),
-                                ),
+                                )?,
                             ])),
                         )?;
                         Ok::<_, rt::TsonicError>(())
@@ -400,7 +402,7 @@ impl ThemeCompatibilityTests {
                         Option::<String>::None,
                         output_directory,
                     )?,
-                ));
+                ))?;
             {
                 let operation_input_0 = {
                     let dispatch_receiver = &environment;
@@ -427,7 +429,7 @@ impl ThemeCompatibilityTests {
                     String::from("Home"),
                     String::from(""),
                     String::from("home"),
-                );
+                )?;
             {
                 let receiver = &page;
                 let value = Some(bundle_directory.clone());
@@ -435,14 +437,14 @@ impl ThemeCompatibilityTests {
                     let dispatch_receiver_2 = receiver;
                     dispatch_receiver_2
                         .dispatch
-                        .write_page_context_resource_source_dir(value)
+                        .write_page_context_resource_source_dir(value)?
                 }
             };
             crate::test_root::Assert::string_equal(
                 String::from("/home/cover.svg"),
                 Some({
                     let dispatch_receiver_3 = environment.clone();
-                    dispatch_receiver_3.dispatch.clone().dispatch_test_template_environment_render_template(tsumo_engine::testing::parse_template(String::from("{{ with index (partial \"_funcs/get-page-images\" .) 0 }}{{ .RelPermalink }}{{ end }}"), None)?, { let upcast_value = tsumo_engine::testing::PageValue::new(page.clone()); tsumo_engine::testing::TemplateValue { identity: upcast_value.identity.clone(), dispatch: upcast_value.dispatch.clone() } }, site.clone(), js_abi::JsMap::new(), None)
+                    dispatch_receiver_3.dispatch.clone().dispatch_test_template_environment_render_template(tsumo_engine::testing::parse_template(String::from("{{ with index (partial \"_funcs/get-page-images\" .) 0 }}{{ .RelPermalink }}{{ end }}"), None)?, { let upcast_value = tsumo_engine::testing::PageValue::new(page.clone())?; tsumo_engine::testing::TemplateValue { identity: upcast_value.identity.clone(), dispatch: upcast_value.dispatch.clone() } }, site.clone(), js_abi::JsMap::new(), None)
                 }?),
             )?;
             Ok(rt::Completion::Normal)

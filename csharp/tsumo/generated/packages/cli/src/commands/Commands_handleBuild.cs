@@ -24,7 +24,7 @@ namespace Tsumo.Cli
                 string? buildThemesDir = null;
                 bool includeDrafts = false;
                 bool cleanDestinationDir = true;
-                for (int i = buildArgStart; i < args.length; i++)
+                for (double i = buildArgStart; i < args.length; i++)
                 {
                     string a = args[i];
                     if (a == "--source" || a == "-s")

@@ -47,7 +47,7 @@ pub fn resolve_theme_dir(
     let theme_dir: String =
         tsonic_rust_node::path::join(&[site_dir.as_str(), "themes", theme_name.as_str()]);
     Ok(if crate::fs::dir_exists(theme_dir.clone())? {
-        Some(theme_dir.clone())
+        Some(theme_dir)
     } else {
         Option::<String>::None
     })
@@ -60,8 +60,8 @@ pub fn select_template(
     {
         let mut i: f64 = 0.0;
         while i < (rt::conversions::usize_to_i32(candidates.len())? as f64) {
-            let candidate: String = match candidates.get_number(i).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let candidate: String = match candidates.get_number(i) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if {

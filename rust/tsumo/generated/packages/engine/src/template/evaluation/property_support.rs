@@ -21,12 +21,12 @@ pub fn taxonomy_terms_by_count(
             {
                 let mut right: f64 = left + 1.0;
                 'loop_value_2: while right < (rt::conversions::usize_to_i32(names.len())? as f64) {
-                    let left_name: String = match names.get_number(left).as_ref() {
-                        Some(flow_value) => flow_value.clone(),
+                    let left_name: String = match names.get_number(left) {
+                        Some(flow_value) => flow_value,
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
-                    let right_name: String = match names.get_number(right).as_ref() {
-                        Some(flow_value_2) => flow_value_2.clone(),
+                    let right_name: String = match names.get_number(right) {
+                        Some(flow_value_2) => flow_value_2,
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     let left_count: i32 = rt::option_coalesce(
@@ -76,8 +76,8 @@ pub fn taxonomy_terms_by_count(
     {
         let mut index: f64 = 0.0;
         'loop_value_3: while index < (rt::conversions::usize_to_i32(names.len())? as f64) {
-            let name: String = match names.get_number(index).as_ref() {
-                Some(flow_value_3) => flow_value_3.clone(),
+            let name: String = match names.get_number(index) {
+                Some(flow_value_3) => flow_value_3,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let pages: Option<js_abi::JsArray<crate::models::page_context::PageContext>> =
@@ -92,7 +92,7 @@ pub fn taxonomy_terms_by_count(
                 let operation_input_0 = fields.clone();
                 operation_input_0.set_discard(String::from("Name"), {
                     let upcast_value =
-                        crate::template::values::primitives::StringValue::new(name.clone());
+                        crate::template::values::primitives::StringValue::new(name.clone())?;
                     crate::template::values::base::TemplateValue {
                         identity: upcast_value.identity.clone(),
                         dispatch: upcast_value.dispatch.clone(),
@@ -112,7 +112,7 @@ pub fn taxonomy_terms_by_count(
                             }
                             .len(),
                         )?,
-                    );
+                    )?;
                     crate::template::values::base::TemplateValue {
                         identity: upcast_value_2.identity.clone(),
                         dispatch: upcast_value_2.dispatch.clone(),
@@ -126,7 +126,7 @@ pub fn taxonomy_terms_by_count(
                         crate::template::values::page::PageArrayValue::new(match pages.as_ref() {
                             Some(flow_value_5) => flow_value_5.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
-                        });
+                        })?;
                     crate::template::values::base::TemplateValue {
                         identity: upcast_value_3.identity.clone(),
                         dispatch: upcast_value_3.dispatch.clone(),
@@ -137,7 +137,7 @@ pub fn taxonomy_terms_by_count(
                 let operation_input_0_4 = values.clone();
                 operation_input_0_4.push_many_discard([{
                     let upcast_value_4 =
-                        crate::template::values::dict::DictValue::new(fields.clone());
+                        crate::template::values::dict::DictValue::new(fields.clone())?;
                     crate::template::values::base::TemplateValue {
                         identity: upcast_value_4.identity.clone(),
                         dispatch: upcast_value_4.dispatch.clone(),
@@ -147,14 +147,12 @@ pub fn taxonomy_terms_by_count(
             index += 1.0;
         }
     }
-    Ok(crate::template::values::arrays::AnyArrayValue::new(
-        values.clone(),
-    ))
+    crate::template::values::arrays::AnyArrayValue::new(values.clone())
 }
 
 pub fn wrap_param_dict(
     dict: js_abi::JsMap<String, crate::params::ParamValue>,
-) -> crate::template::values::dict::DictValue {
+) -> Result<crate::template::values::dict::DictValue, rt::TsonicError> {
     let mapped: js_abi::JsMap<String, crate::template::values::base::TemplateValue> =
         js_abi::JsMap::new();
     'loop_value: for key in dict.keys() {
@@ -169,7 +167,7 @@ pub fn wrap_param_dict(
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 dispatch_receiver.dispatch.read_param_value_string_value()
-            });
+            })?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value.identity.clone(),
                 dispatch: upcast_value.dispatch.clone(),
@@ -190,7 +188,7 @@ pub fn wrap_param_dict(
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     dispatch_receiver_3.dispatch.read_param_value_bool_value()
-                });
+                })?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_2.identity.clone(),
                     dispatch: upcast_value_2.dispatch.clone(),
@@ -212,7 +210,7 @@ pub fn wrap_param_dict(
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     dispatch_receiver_5.dispatch.read_param_value_number_value()
-                });
+                })?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_3.identity.clone(),
                     dispatch: upcast_value_3.dispatch.clone(),
@@ -236,11 +234,11 @@ pub fn wrap_languages(
                 let operation_input_0 = items.clone();
                 operation_input_0.push_many_discard([{
                     let upcast_value = crate::template::values::site::LanguageValue::new(
-                        match languages.get_number(index).as_ref() {
-                            Some(flow_value) => flow_value.clone(),
+                        match languages.get_number(index) {
+                            Some(flow_value) => flow_value,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
-                    );
+                    )?;
                     crate::template::values::base::TemplateValue {
                         identity: upcast_value.identity.clone(),
                         dispatch: upcast_value.dispatch.clone(),
@@ -250,55 +248,53 @@ pub fn wrap_languages(
             index += 1.0;
         }
     }
-    Ok(crate::template::values::arrays::AnyArrayValue::new(
-        items.clone(),
-    ))
+    crate::template::values::arrays::AnyArrayValue::new(items.clone())
 }
 
 pub fn wrap_media_type(
     media_type: crate::models::media_type::MediaType,
-) -> crate::template::values::media::MediaTypeValue {
+) -> Result<crate::template::values::media::MediaTypeValue, rt::TsonicError> {
     crate::template::values::media::MediaTypeValue::new(media_type)
 }
 
 pub fn get_page_store(
     page: crate::models::page_context::PageContext,
-) -> crate::template::values::scratch::ScratchStore {
+) -> Result<crate::template::values::scratch::ScratchStore, rt::TsonicError> {
     let existing: Option<crate::template::values::scratch::ScratchStore> = PAGE_STORES
         .with(|module_binding| module_binding.load())
         .get_eq(&page);
     if existing.is_some() {
-        return match existing.as_ref() {
-            Some(flow_value) => flow_value.clone(),
+        return Ok(match existing {
+            Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
-        };
+        });
     }
     let store: crate::template::values::scratch::ScratchStore =
-        crate::template::values::scratch::ScratchStore::new();
+        crate::template::values::scratch::ScratchStore::new()?;
     PAGE_STORES
         .with(|module_binding| module_binding.load())
         .set_eq_discard(page.clone(), store.clone());
-    store
+    Ok(store)
 }
 
 pub fn get_site_store(
     site: crate::models::site_context::SiteContext,
-) -> crate::template::values::scratch::ScratchStore {
+) -> Result<crate::template::values::scratch::ScratchStore, rt::TsonicError> {
     let existing: Option<crate::template::values::scratch::ScratchStore> = SITE_STORES
         .with(|module_binding| module_binding.load())
         .get_eq(&site);
     if existing.is_some() {
-        return match existing.as_ref() {
-            Some(flow_value) => flow_value.clone(),
+        return Ok(match existing {
+            Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
-        };
+        });
     }
     let store: crate::template::values::scratch::ScratchStore =
-        crate::template::values::scratch::ScratchStore::new();
+        crate::template::values::scratch::ScratchStore::new()?;
     SITE_STORES
         .with(|module_binding| module_binding.load())
         .set_eq_discard(site.clone(), store.clone());
-    store
+    Ok(store)
 }
 
 #[doc(hidden)]

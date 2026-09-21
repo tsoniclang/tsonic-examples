@@ -22,61 +22,61 @@ pub fn call_template_function(
             environment,
             overrides,
             defines,
-        );
+        )?;
     let mut result: Option<crate::template::values::base::TemplateValue> =
         crate::template::functions::context_functions::call_context_function(
             &name_raw,
-            name.clone(),
+            &name,
             args.clone(),
             context.clone(),
         )?;
     if result.is_some() {
-        return Ok(match result.as_ref() {
-            Some(flow_value) => flow_value.clone(),
+        return Ok(match result {
+            Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
         });
     }
     result = crate::template::functions::resource_functions::call_resource_function(
-        name.clone(),
+        &name,
         args.clone(),
         context.clone(),
     )?;
     if result.is_some() {
-        return Ok(match result.as_ref() {
-            Some(flow_value_2) => flow_value_2.clone(),
+        return Ok(match result {
+            Some(flow_value_2) => flow_value_2,
             None => unreachable!("checked flow selected a missing optional value"),
         });
     }
     result = crate::template::functions::template_functions::call_template_function_family(
-        name.clone(),
+        &name,
         args.clone(),
         context.clone(),
     )?;
     if result.is_some() {
-        return Ok(match result.as_ref() {
-            Some(flow_value_3) => flow_value_3.clone(),
+        return Ok(match result {
+            Some(flow_value_3) => flow_value_3,
             None => unreachable!("checked flow selected a missing optional value"),
         });
     }
     result = crate::template::functions::collection_functions::call_collection_function(
-        name.clone(),
+        &name,
         args.clone(),
         context.clone(),
     )?;
     if result.is_some() {
-        return Ok(match result.as_ref() {
-            Some(flow_value_4) => flow_value_4.clone(),
+        return Ok(match result {
+            Some(flow_value_4) => flow_value_4,
             None => unreachable!("checked flow selected a missing optional value"),
         });
     }
     result = crate::template::functions::scalar_functions::call_scalar_function(
-        name.clone(),
+        &name,
         args.clone(),
         context.clone(),
     )?;
     if result.is_some() {
-        return Ok(match result.as_ref() {
-            Some(flow_value_5) => flow_value_5.clone(),
+        return Ok(match result {
+            Some(flow_value_5) => flow_value_5,
             None => unreachable!("checked flow selected a missing optional value"),
         });
     }
@@ -98,7 +98,7 @@ pub fn call_template_function(
                 },
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     Err(rt::TsonicError::TsumoError(
@@ -117,6 +117,6 @@ pub fn call_template_function(
             },
             None,
             None,
-        ),
+        )?,
     ))
 }

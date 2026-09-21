@@ -21,7 +21,7 @@ namespace Tsumo.Cli
                     return null;
                 }
                 string value = Tsonic.CSharp.Js.String.trim(raw);
-                if (!new Tsonic.CSharp.Js.RegExp("^\\d+$", "").test(value))
+                if (!new Tsonic.CSharp.Js.RegExp("^\\d+$", "").testNative(value))
                 {
                     throw Node_modules_Tsumo_engine_src_diagnostics.createTsumoError("TSUMO_SOURCE_DATE_EPOCH_INVALID", "SOURCE_DATE_EPOCH must be a non-negative integer number of seconds");
                 }

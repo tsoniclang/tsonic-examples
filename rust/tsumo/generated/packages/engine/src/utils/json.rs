@@ -42,11 +42,11 @@ pub trait JsonValueDispatch {
         None
     }
     fn read_json_value_kind(&self) -> String;
-    fn write_json_value_kind(&self, value: String);
+    fn write_json_value_kind(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_json_value_line(&self) -> i32;
-    fn write_json_value_line(&self, value: i32);
+    fn write_json_value_line(&self, value: i32) -> Result<(), rt::TsonicError>;
     fn read_json_value_column(&self) -> i32;
-    fn write_json_value_column(&self, value: i32);
+    fn write_json_value_column(&self, value: i32) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -85,35 +85,38 @@ impl rt::ObjectIdentityCarrier for JsonValue {
 }
 
 pub(crate) struct JsonValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<JsonValueState>,
+    state: rt::ObjectState<JsonValueState>,
 }
 
 impl JsonValue {
     #[doc(hidden)]
-    pub fn initialize_state(kind: String, line: i32, column: i32) -> JsonValueState {
+    pub fn initialize_state(
+        kind: String,
+        line: i32,
+        column: i32,
+    ) -> Result<JsonValueState, rt::TsonicError> {
         let field_kind: String = kind;
         let field_line: i32 = line;
         let field_column: i32 = column;
-        JsonValueState {
+        Ok(JsonValueState {
             kind: field_kind,
             line: field_line,
             column: field_column,
-        }
+        })
     }
 
-    pub fn new(kind: String, line: i32, column: i32) -> JsonValue {
-        let state = JsonValue::initialize_state(kind, line, column);
+    pub fn new(kind: String, line: i32, column: i32) -> Result<JsonValue, rt::TsonicError> {
+        let state = JsonValue::initialize_state(kind, line, column)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(JsonValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        JsonValue {
+        Ok(JsonValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -128,24 +131,42 @@ impl JsonValueDispatch for JsonValueRoot {
         self.state.with(|state| state.kind.clone())
     }
 
-    fn write_json_value_kind(&self, value: String) {
-        self.state.with_mut(|state| state.kind = value);
+    fn write_json_value_kind(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.kind = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_json_value_line(&self) -> i32 {
         self.state.with(|state| state.line)
     }
 
-    fn write_json_value_line(&self, value: i32) {
-        self.state.with_mut(|state| state.line = value);
+    fn write_json_value_line(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.line = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_json_value_column(&self) -> i32 {
         self.state.with(|state| state.column)
     }
 
-    fn write_json_value_column(&self, value: i32) {
-        self.state.with_mut(|state| state.column = value);
+    fn write_json_value_column(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.column = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -156,8 +177,13 @@ pub trait JsonNullDispatch: JsonValueDispatch {
     ) -> Option<alloc::rc::Rc<dyn JsonNullDispatch + 'static>> {
         None
     }
+    fn downcast_json_null_to_json_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>> {
+        None
+    }
     fn read_json_null_value(&self) -> rt::Null;
-    fn write_json_null_value(&self, value: rt::Null);
+    fn write_json_null_value(&self, value: rt::Null) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -196,33 +222,32 @@ impl rt::ObjectIdentityCarrier for JsonNull {
 }
 
 pub(crate) struct JsonNullRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<JsonNullState>,
+    state: rt::ObjectState<JsonNullState>,
 }
 
 impl JsonNull {
     #[doc(hidden)]
-    pub fn initialize_state(line: i32, column: i32) -> JsonNullState {
-        let base_state = JsonValue::initialize_state(String::from("null"), line, column);
+    pub fn initialize_state(line: i32, column: i32) -> Result<JsonNullState, rt::TsonicError> {
+        let base_state = JsonValue::initialize_state(String::from("null"), line, column)?;
         let field_value: rt::Null = rt::Null;
-        JsonNullState {
+        Ok(JsonNullState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(line: i32, column: i32) -> JsonNull {
-        let state = JsonNull::initialize_state(line, column);
+    pub fn new(line: i32, column: i32) -> Result<JsonNull, rt::TsonicError> {
+        let state = JsonNull::initialize_state(line, column)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(JsonNullRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        JsonNull {
+        Ok(JsonNull {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -243,24 +268,42 @@ impl JsonValueDispatch for JsonNullRoot {
         self.state.with(|state| state.base.kind.clone())
     }
 
-    fn write_json_value_kind(&self, value: String) {
-        self.state.with_mut(|state| state.base.kind = value);
+    fn write_json_value_kind(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base.kind = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_json_value_line(&self) -> i32 {
         self.state.with(|state| state.base.line)
     }
 
-    fn write_json_value_line(&self, value: i32) {
-        self.state.with_mut(|state| state.base.line = value);
+    fn write_json_value_line(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base.line = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_json_value_column(&self) -> i32 {
         self.state.with(|state| state.base.column)
     }
 
-    fn write_json_value_column(&self, value: i32) {
-        self.state.with_mut(|state| state.base.column = value);
+    fn write_json_value_column(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base.column = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -271,12 +314,24 @@ impl JsonNullDispatch for JsonNullRoot {
         Some(self)
     }
 
+    fn downcast_json_null_to_json_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>> {
+        Some(self)
+    }
+
     fn read_json_null_value(&self) -> rt::Null {
         self.state.with(|state| state.value)
     }
 
-    fn write_json_null_value(&self, value: rt::Null) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_json_null_value(&self, value: rt::Null) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -287,8 +342,13 @@ pub trait JsonBoolDispatch: JsonValueDispatch {
     ) -> Option<alloc::rc::Rc<dyn JsonBoolDispatch + 'static>> {
         None
     }
+    fn downcast_json_bool_to_json_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>> {
+        None
+    }
     fn read_json_bool_value(&self) -> bool;
-    fn write_json_bool_value(&self, value: bool);
+    fn write_json_bool_value(&self, value: bool) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -327,33 +387,36 @@ impl rt::ObjectIdentityCarrier for JsonBool {
 }
 
 pub(crate) struct JsonBoolRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<JsonBoolState>,
+    state: rt::ObjectState<JsonBoolState>,
 }
 
 impl JsonBool {
     #[doc(hidden)]
-    pub fn initialize_state(value: bool, line: i32, column: i32) -> JsonBoolState {
-        let base_state = JsonValue::initialize_state(String::from("bool"), line, column);
+    pub fn initialize_state(
+        value: bool,
+        line: i32,
+        column: i32,
+    ) -> Result<JsonBoolState, rt::TsonicError> {
+        let base_state = JsonValue::initialize_state(String::from("bool"), line, column)?;
         let field_value: bool = value;
-        JsonBoolState {
+        Ok(JsonBoolState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: bool, line: i32, column: i32) -> JsonBool {
-        let state = JsonBool::initialize_state(value, line, column);
+    pub fn new(value: bool, line: i32, column: i32) -> Result<JsonBool, rt::TsonicError> {
+        let state = JsonBool::initialize_state(value, line, column)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(JsonBoolRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        JsonBool {
+        Ok(JsonBool {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -374,24 +437,42 @@ impl JsonValueDispatch for JsonBoolRoot {
         self.state.with(|state| state.base.kind.clone())
     }
 
-    fn write_json_value_kind(&self, value: String) {
-        self.state.with_mut(|state| state.base.kind = value);
+    fn write_json_value_kind(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base.kind = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_json_value_line(&self) -> i32 {
         self.state.with(|state| state.base.line)
     }
 
-    fn write_json_value_line(&self, value: i32) {
-        self.state.with_mut(|state| state.base.line = value);
+    fn write_json_value_line(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base.line = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_json_value_column(&self) -> i32 {
         self.state.with(|state| state.base.column)
     }
 
-    fn write_json_value_column(&self, value: i32) {
-        self.state.with_mut(|state| state.base.column = value);
+    fn write_json_value_column(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base.column = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -402,12 +483,24 @@ impl JsonBoolDispatch for JsonBoolRoot {
         Some(self)
     }
 
+    fn downcast_json_bool_to_json_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>> {
+        Some(self)
+    }
+
     fn read_json_bool_value(&self) -> bool {
         self.state.with(|state| state.value)
     }
 
-    fn write_json_bool_value(&self, value: bool) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_json_bool_value(&self, value: bool) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -418,8 +511,13 @@ pub trait JsonNumberDispatch: JsonValueDispatch {
     ) -> Option<alloc::rc::Rc<dyn JsonNumberDispatch + 'static>> {
         None
     }
+    fn downcast_json_number_to_json_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>> {
+        None
+    }
     fn read_json_number_value(&self) -> f64;
-    fn write_json_number_value(&self, value: f64);
+    fn write_json_number_value(&self, value: f64) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -458,33 +556,36 @@ impl rt::ObjectIdentityCarrier for JsonNumber {
 }
 
 pub(crate) struct JsonNumberRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<JsonNumberState>,
+    state: rt::ObjectState<JsonNumberState>,
 }
 
 impl JsonNumber {
     #[doc(hidden)]
-    pub fn initialize_state(value: f64, line: i32, column: i32) -> JsonNumberState {
-        let base_state = JsonValue::initialize_state(String::from("number"), line, column);
+    pub fn initialize_state(
+        value: f64,
+        line: i32,
+        column: i32,
+    ) -> Result<JsonNumberState, rt::TsonicError> {
+        let base_state = JsonValue::initialize_state(String::from("number"), line, column)?;
         let field_value: f64 = value;
-        JsonNumberState {
+        Ok(JsonNumberState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: f64, line: i32, column: i32) -> JsonNumber {
-        let state = JsonNumber::initialize_state(value, line, column);
+    pub fn new(value: f64, line: i32, column: i32) -> Result<JsonNumber, rt::TsonicError> {
+        let state = JsonNumber::initialize_state(value, line, column)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(JsonNumberRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        JsonNumber {
+        Ok(JsonNumber {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -505,24 +606,42 @@ impl JsonValueDispatch for JsonNumberRoot {
         self.state.with(|state| state.base.kind.clone())
     }
 
-    fn write_json_value_kind(&self, value: String) {
-        self.state.with_mut(|state| state.base.kind = value);
+    fn write_json_value_kind(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base.kind = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_json_value_line(&self) -> i32 {
         self.state.with(|state| state.base.line)
     }
 
-    fn write_json_value_line(&self, value: i32) {
-        self.state.with_mut(|state| state.base.line = value);
+    fn write_json_value_line(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base.line = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_json_value_column(&self) -> i32 {
         self.state.with(|state| state.base.column)
     }
 
-    fn write_json_value_column(&self, value: i32) {
-        self.state.with_mut(|state| state.base.column = value);
+    fn write_json_value_column(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base.column = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -533,12 +652,24 @@ impl JsonNumberDispatch for JsonNumberRoot {
         Some(self)
     }
 
+    fn downcast_json_number_to_json_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>> {
+        Some(self)
+    }
+
     fn read_json_number_value(&self) -> f64 {
         self.state.with(|state| state.value)
     }
 
-    fn write_json_number_value(&self, value: f64) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_json_number_value(&self, value: f64) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -549,8 +680,13 @@ pub trait JsonStringDispatch: JsonValueDispatch {
     ) -> Option<alloc::rc::Rc<dyn JsonStringDispatch + 'static>> {
         None
     }
+    fn downcast_json_string_to_json_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>> {
+        None
+    }
     fn read_json_string_value(&self) -> String;
-    fn write_json_string_value(&self, value: String);
+    fn write_json_string_value(&self, value: String) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -589,33 +725,36 @@ impl rt::ObjectIdentityCarrier for JsonString {
 }
 
 pub(crate) struct JsonStringRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<JsonStringState>,
+    state: rt::ObjectState<JsonStringState>,
 }
 
 impl JsonString {
     #[doc(hidden)]
-    pub fn initialize_state(value: String, line: i32, column: i32) -> JsonStringState {
-        let base_state = JsonValue::initialize_state(String::from("string"), line, column);
+    pub fn initialize_state(
+        value: String,
+        line: i32,
+        column: i32,
+    ) -> Result<JsonStringState, rt::TsonicError> {
+        let base_state = JsonValue::initialize_state(String::from("string"), line, column)?;
         let field_value: String = value;
-        JsonStringState {
+        Ok(JsonStringState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: String, line: i32, column: i32) -> JsonString {
-        let state = JsonString::initialize_state(value, line, column);
+    pub fn new(value: String, line: i32, column: i32) -> Result<JsonString, rt::TsonicError> {
+        let state = JsonString::initialize_state(value, line, column)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(JsonStringRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        JsonString {
+        Ok(JsonString {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -636,24 +775,42 @@ impl JsonValueDispatch for JsonStringRoot {
         self.state.with(|state| state.base.kind.clone())
     }
 
-    fn write_json_value_kind(&self, value: String) {
-        self.state.with_mut(|state| state.base.kind = value);
+    fn write_json_value_kind(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base.kind = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_json_value_line(&self) -> i32 {
         self.state.with(|state| state.base.line)
     }
 
-    fn write_json_value_line(&self, value: i32) {
-        self.state.with_mut(|state| state.base.line = value);
+    fn write_json_value_line(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base.line = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_json_value_column(&self) -> i32 {
         self.state.with(|state| state.base.column)
     }
 
-    fn write_json_value_column(&self, value: i32) {
-        self.state.with_mut(|state| state.base.column = value);
+    fn write_json_value_column(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base.column = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -664,12 +821,24 @@ impl JsonStringDispatch for JsonStringRoot {
         Some(self)
     }
 
+    fn downcast_json_string_to_json_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>> {
+        Some(self)
+    }
+
     fn read_json_string_value(&self) -> String {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_json_string_value(&self, value: String) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_json_string_value(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -680,8 +849,16 @@ pub trait JsonArrayDispatch: JsonValueDispatch {
     ) -> Option<alloc::rc::Rc<dyn JsonArrayDispatch + 'static>> {
         None
     }
+    fn downcast_json_array_to_json_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>> {
+        None
+    }
     fn read_json_array_items(&self) -> js_abi::JsArray<JsonValue>;
-    fn write_json_array_items(&self, value: js_abi::JsArray<JsonValue>);
+    fn write_json_array_items(
+        &self,
+        value: js_abi::JsArray<JsonValue>,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -720,9 +897,8 @@ impl rt::ObjectIdentityCarrier for JsonArray {
 }
 
 pub(crate) struct JsonArrayRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<JsonArrayState>,
+    state: rt::ObjectState<JsonArrayState>,
 }
 
 impl JsonArray {
@@ -731,26 +907,30 @@ impl JsonArray {
         items: js_abi::JsArray<JsonValue>,
         line: i32,
         column: i32,
-    ) -> JsonArrayState {
-        let base_state = JsonValue::initialize_state(String::from("array"), line, column);
+    ) -> Result<JsonArrayState, rt::TsonicError> {
+        let base_state = JsonValue::initialize_state(String::from("array"), line, column)?;
         let field_items: js_abi::JsArray<JsonValue> = items;
-        JsonArrayState {
+        Ok(JsonArrayState {
             base: base_state,
             items: field_items,
-        }
+        })
     }
 
-    pub fn new(items: js_abi::JsArray<JsonValue>, line: i32, column: i32) -> JsonArray {
-        let state = JsonArray::initialize_state(items, line, column);
+    pub fn new(
+        items: js_abi::JsArray<JsonValue>,
+        line: i32,
+        column: i32,
+    ) -> Result<JsonArray, rt::TsonicError> {
+        let state = JsonArray::initialize_state(items, line, column)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(JsonArrayRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        JsonArray {
+        Ok(JsonArray {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -771,24 +951,42 @@ impl JsonValueDispatch for JsonArrayRoot {
         self.state.with(|state| state.base.kind.clone())
     }
 
-    fn write_json_value_kind(&self, value: String) {
-        self.state.with_mut(|state| state.base.kind = value);
+    fn write_json_value_kind(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base.kind = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_json_value_line(&self) -> i32 {
         self.state.with(|state| state.base.line)
     }
 
-    fn write_json_value_line(&self, value: i32) {
-        self.state.with_mut(|state| state.base.line = value);
+    fn write_json_value_line(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base.line = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_json_value_column(&self) -> i32 {
         self.state.with(|state| state.base.column)
     }
 
-    fn write_json_value_column(&self, value: i32) {
-        self.state.with_mut(|state| state.base.column = value);
+    fn write_json_value_column(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base.column = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -799,12 +997,27 @@ impl JsonArrayDispatch for JsonArrayRoot {
         Some(self)
     }
 
+    fn downcast_json_array_to_json_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>> {
+        Some(self)
+    }
+
     fn read_json_array_items(&self) -> js_abi::JsArray<JsonValue> {
         self.state.with(|state| state.items.clone())
     }
 
-    fn write_json_array_items(&self, value: js_abi::JsArray<JsonValue>) {
-        self.state.with_mut(|state| state.items = value);
+    fn write_json_array_items(
+        &self,
+        value: js_abi::JsArray<JsonValue>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.items = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -829,19 +1042,24 @@ impl rt::ObjectIdentityCarrier for JsonProperty {
 }
 
 impl JsonProperty {
-    pub fn new(key: String, value: JsonValue, line: i32, column: i32) -> JsonProperty {
+    pub fn new(
+        key: String,
+        value: JsonValue,
+        line: i32,
+        column: i32,
+    ) -> Result<JsonProperty, rt::TsonicError> {
         let field_key: String = key;
         let field_value: JsonValue = value;
         let field_line: i32 = line;
         let field_column: i32 = column;
-        JsonProperty {
+        Ok(JsonProperty {
             state: rt::ObjectRef::new(JsonPropertyState {
                 key: field_key,
                 value: field_value,
                 line: field_line,
                 column: field_column,
             }),
-        }
+        })
     }
 }
 
@@ -852,15 +1070,23 @@ pub trait JsonObjectDispatch: JsonValueDispatch {
     ) -> Option<alloc::rc::Rc<dyn JsonObjectDispatch + 'static>> {
         None
     }
+    fn downcast_json_object_to_json_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>> {
+        None
+    }
     fn read_json_object_properties(&self) -> js_abi::JsArray<JsonProperty>;
-    fn write_json_object_properties(&self, value: js_abi::JsArray<JsonProperty>);
+    fn write_json_object_properties(
+        &self,
+        value: js_abi::JsArray<JsonProperty>,
+    ) -> Result<(), rt::TsonicError>;
     fn dispatch_json_object_get(
         self: alloc::rc::Rc<Self>,
-        name: String,
+        name: &str,
     ) -> Result<Option<JsonValue>, rt::TsonicError>;
     fn exact_json_object_get(
         self: alloc::rc::Rc<Self>,
-        name: String,
+        name: &str,
     ) -> Result<Option<JsonValue>, rt::TsonicError>;
     fn dispatch_json_object_get_case_insensitive(
         self: alloc::rc::Rc<Self>,
@@ -909,7 +1135,7 @@ impl rt::ObjectIdentityCarrier for JsonObject {
 
 pub(crate) struct JsonObjectRoot {
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<JsonObjectState>,
+    state: rt::ObjectState<JsonObjectState>,
 }
 
 impl JsonObject {
@@ -918,33 +1144,37 @@ impl JsonObject {
         properties: js_abi::JsArray<JsonProperty>,
         line: i32,
         column: i32,
-    ) -> JsonObjectState {
-        let base_state = JsonValue::initialize_state(String::from("object"), line, column);
+    ) -> Result<JsonObjectState, rt::TsonicError> {
+        let base_state = JsonValue::initialize_state(String::from("object"), line, column)?;
         let field_properties: js_abi::JsArray<JsonProperty> = properties;
-        JsonObjectState {
+        Ok(JsonObjectState {
             base: base_state,
             properties: field_properties,
-        }
+        })
     }
 
-    pub fn new(properties: js_abi::JsArray<JsonProperty>, line: i32, column: i32) -> JsonObject {
-        let state = JsonObject::initialize_state(properties, line, column);
+    pub fn new(
+        properties: js_abi::JsArray<JsonProperty>,
+        line: i32,
+        column: i32,
+    ) -> Result<JsonObject, rt::TsonicError> {
+        let state = JsonObject::initialize_state(properties, line, column)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(JsonObjectRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        JsonObject {
+        Ok(JsonObject {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
 impl JsonObjectRoot {
     fn exact_json_object_get(
         self: alloc::rc::Rc<Self>,
-        name: String,
+        name: &str,
     ) -> Result<Option<JsonValue>, rt::TsonicError> {
         let project_this = JsonObject {
             identity: self.identity.clone(),
@@ -966,9 +1196,8 @@ impl JsonObjectRoot {
                     dispatch_receiver_2.dispatch.read_json_object_properties()
                 }
                 .get_number(i)
-                .as_ref()
                 {
-                    Some(flow_value) => flow_value.clone(),
+                    Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 if property.state.with(|state| state.key.clone()) == name {
@@ -1005,9 +1234,8 @@ impl JsonObjectRoot {
                     dispatch_receiver_2.dispatch.read_json_object_properties()
                 }
                 .get_number(i)
-                .as_ref()
                 {
-                    Some(flow_value) => flow_value.clone(),
+                    Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 if js_string::to_lower_case(&property.state.with(|state| state.key.clone()))
@@ -1039,24 +1267,42 @@ impl JsonValueDispatch for JsonObjectRoot {
         self.state.with(|state| state.base.kind.clone())
     }
 
-    fn write_json_value_kind(&self, value: String) {
-        self.state.with_mut(|state| state.base.kind = value);
+    fn write_json_value_kind(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base.kind = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_json_value_line(&self) -> i32 {
         self.state.with(|state| state.base.line)
     }
 
-    fn write_json_value_line(&self, value: i32) {
-        self.state.with_mut(|state| state.base.line = value);
+    fn write_json_value_line(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base.line = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_json_value_column(&self) -> i32 {
         self.state.with(|state| state.base.column)
     }
 
-    fn write_json_value_column(&self, value: i32) {
-        self.state.with_mut(|state| state.base.column = value);
+    fn write_json_value_column(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base.column = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -1067,24 +1313,39 @@ impl JsonObjectDispatch for JsonObjectRoot {
         Some(self)
     }
 
+    fn downcast_json_object_to_json_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>> {
+        Some(self)
+    }
+
     fn read_json_object_properties(&self) -> js_abi::JsArray<JsonProperty> {
         self.state.with(|state| state.properties.clone())
     }
 
-    fn write_json_object_properties(&self, value: js_abi::JsArray<JsonProperty>) {
-        self.state.with_mut(|state| state.properties = value);
+    fn write_json_object_properties(
+        &self,
+        value: js_abi::JsArray<JsonProperty>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.properties = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn dispatch_json_object_get(
         self: alloc::rc::Rc<Self>,
-        name: String,
+        name: &str,
     ) -> Result<Option<JsonValue>, rt::TsonicError> {
         JsonObjectRoot::exact_json_object_get(self, name)
     }
 
     fn exact_json_object_get(
         self: alloc::rc::Rc<Self>,
-        name: String,
+        name: &str,
     ) -> Result<Option<JsonValue>, rt::TsonicError> {
         JsonObjectRoot::exact_json_object_get(self, name)
     }
@@ -1104,7 +1365,7 @@ impl JsonObjectDispatch for JsonObjectRoot {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone)]
 pub struct JsonParser {
     pub source: crate::utils::indexed_source_text::IndexedSourceText,
     pub index: i32,
@@ -1190,7 +1451,7 @@ impl JsonParser {
         }
         if ch == "\"" {
             return Ok({
-                let upcast_value_3 = JsonString::new(self.parse_string()?, line, column);
+                let upcast_value_3 = JsonString::new(self.parse_string()?, line, column)?;
                 JsonValue {
                     identity: upcast_value_3.identity.clone(),
                     dispatch: upcast_value_3.dispatch.clone(),
@@ -1200,7 +1461,7 @@ impl JsonParser {
         if ch == "t" {
             self.expect_keyword(String::from("true"))?;
             return Ok({
-                let upcast_value_4 = JsonBool::new(true, line, column);
+                let upcast_value_4 = JsonBool::new(true, line, column)?;
                 JsonValue {
                     identity: upcast_value_4.identity.clone(),
                     dispatch: upcast_value_4.dispatch.clone(),
@@ -1210,7 +1471,7 @@ impl JsonParser {
         if ch == "f" {
             self.expect_keyword(String::from("false"))?;
             return Ok({
-                let upcast_value_5 = JsonBool::new(false, line, column);
+                let upcast_value_5 = JsonBool::new(false, line, column)?;
                 JsonValue {
                     identity: upcast_value_5.identity.clone(),
                     dispatch: upcast_value_5.dispatch.clone(),
@@ -1220,7 +1481,7 @@ impl JsonParser {
         if ch == "n" {
             self.expect_keyword(String::from("null"))?;
             return Ok({
-                let upcast_value_6 = JsonNull::new(line, column);
+                let upcast_value_6 = JsonNull::new(line, column)?;
                 JsonValue {
                     identity: upcast_value_6.identity.clone(),
                     dispatch: upcast_value_6.dispatch.clone(),
@@ -1253,30 +1514,22 @@ impl JsonParser {
         let property_names: js_abi::JsSet<String> = js_abi::JsSet::new();
         if self.peek() == "}" {
             {
-                let update_receiver = &mut *self;
+                let update_previous = self.index;
+                let update_next = update_previous + 1;
                 {
-                    let update_location = &mut update_receiver.index;
-                    let update_previous = *update_location;
-                    let update_next = update_previous + 1;
-                    {
-                        *update_location = update_next;
-                        update_next
-                    }
+                    self.index = update_next;
+                    update_next
                 }
             };
             {
-                let update_receiver_2 = &mut *self;
+                let update_previous_2 = self.depth;
+                let update_next_2 = update_previous_2 - 1;
                 {
-                    let update_location_2 = &mut update_receiver_2.depth;
-                    let update_previous_2 = *update_location_2;
-                    let update_next_2 = update_previous_2 - 1;
-                    {
-                        *update_location_2 = update_next_2;
-                        update_next_2
-                    }
+                    self.depth = update_next_2;
+                    update_next_2
                 }
             };
-            return Ok(JsonObject::new(properties.clone(), line, column));
+            return JsonObject::new(properties.clone(), line, column);
         }
         'loop_value: loop {
             self.skip_whitespace();
@@ -1305,21 +1558,17 @@ impl JsonParser {
                     value.clone(),
                     self.line_at(key_start)?,
                     self.column_at(key_start)?,
-                )])
+                )?])
             };
             self.skip_whitespace();
             let separator: String = self.peek();
             if separator == "}" {
                 {
-                    let update_receiver_3 = &mut *self;
+                    let update_previous_3 = self.index;
+                    let update_next_3 = update_previous_3 + 1;
                     {
-                        let update_location_3 = &mut update_receiver_3.index;
-                        let update_previous_3 = *update_location_3;
-                        let update_next_3 = update_previous_3 + 1;
-                        {
-                            *update_location_3 = update_next_3;
-                            update_next_3
-                        }
+                        self.index = update_next_3;
+                        update_next_3
                     }
                 };
                 break 'loop_value;
@@ -1331,31 +1580,23 @@ impl JsonParser {
                 )?));
             }
             {
-                let update_receiver_4 = &mut *self;
+                let update_previous_4 = self.index;
+                let update_next_4 = update_previous_4 + 1;
                 {
-                    let update_location_4 = &mut update_receiver_4.index;
-                    let update_previous_4 = *update_location_4;
-                    let update_next_4 = update_previous_4 + 1;
-                    {
-                        *update_location_4 = update_next_4;
-                        update_next_4
-                    }
+                    self.index = update_next_4;
+                    update_next_4
                 }
             };
         }
         {
-            let update_receiver_5 = &mut *self;
+            let update_previous_5 = self.depth;
+            let update_next_5 = update_previous_5 - 1;
             {
-                let update_location_5 = &mut update_receiver_5.depth;
-                let update_previous_5 = *update_location_5;
-                let update_next_5 = update_previous_5 - 1;
-                {
-                    *update_location_5 = update_next_5;
-                    update_next_5
-                }
+                self.depth = update_next_5;
+                update_next_5
             }
         };
-        Ok(JsonObject::new(properties.clone(), line, column))
+        JsonObject::new(properties.clone(), line, column)
     }
 
     pub fn parse_array(&mut self) -> Result<JsonArray, rt::TsonicError> {
@@ -1368,30 +1609,22 @@ impl JsonParser {
         let items: js_abi::JsArray<JsonValue> = js_abi::JsArray::from_dense(vec![]);
         if self.peek() == "]" {
             {
-                let update_receiver = &mut *self;
+                let update_previous = self.index;
+                let update_next = update_previous + 1;
                 {
-                    let update_location = &mut update_receiver.index;
-                    let update_previous = *update_location;
-                    let update_next = update_previous + 1;
-                    {
-                        *update_location = update_next;
-                        update_next
-                    }
+                    self.index = update_next;
+                    update_next
                 }
             };
             {
-                let update_receiver_2 = &mut *self;
+                let update_previous_2 = self.depth;
+                let update_next_2 = update_previous_2 - 1;
                 {
-                    let update_location_2 = &mut update_receiver_2.depth;
-                    let update_previous_2 = *update_location_2;
-                    let update_next_2 = update_previous_2 - 1;
-                    {
-                        *update_location_2 = update_next_2;
-                        update_next_2
-                    }
+                    self.depth = update_next_2;
+                    update_next_2
                 }
             };
-            return Ok(JsonArray::new(items.clone(), line, column));
+            return JsonArray::new(items.clone(), line, column);
         }
         'loop_value: loop {
             {
@@ -1402,15 +1635,11 @@ impl JsonParser {
             let separator: String = self.peek();
             if separator == "]" {
                 {
-                    let update_receiver_3 = &mut *self;
+                    let update_previous_3 = self.index;
+                    let update_next_3 = update_previous_3 + 1;
                     {
-                        let update_location_3 = &mut update_receiver_3.index;
-                        let update_previous_3 = *update_location_3;
-                        let update_next_3 = update_previous_3 + 1;
-                        {
-                            *update_location_3 = update_next_3;
-                            update_next_3
-                        }
+                        self.index = update_next_3;
+                        update_next_3
                     }
                 };
                 break 'loop_value;
@@ -1422,31 +1651,23 @@ impl JsonParser {
                 )?));
             }
             {
-                let update_receiver_4 = &mut *self;
+                let update_previous_4 = self.index;
+                let update_next_4 = update_previous_4 + 1;
                 {
-                    let update_location_4 = &mut update_receiver_4.index;
-                    let update_previous_4 = *update_location_4;
-                    let update_next_4 = update_previous_4 + 1;
-                    {
-                        *update_location_4 = update_next_4;
-                        update_next_4
-                    }
+                    self.index = update_next_4;
+                    update_next_4
                 }
             };
         }
         {
-            let update_receiver_5 = &mut *self;
+            let update_previous_5 = self.depth;
+            let update_next_5 = update_previous_5 - 1;
             {
-                let update_location_5 = &mut update_receiver_5.depth;
-                let update_previous_5 = *update_location_5;
-                let update_next_5 = update_previous_5 - 1;
-                {
-                    *update_location_5 = update_next_5;
-                    update_next_5
-                }
+                self.depth = update_next_5;
+                update_next_5
             }
         };
-        Ok(JsonArray::new(items.clone(), line, column))
+        JsonArray::new(items.clone(), line, column)
     }
 
     pub fn parse_string(&mut self) -> Result<String, rt::TsonicError> {
@@ -1510,9 +1731,9 @@ impl JsonParser {
                 )?));
             }
             {
-                let receiver = &mut *self;
-                let value = 2;
-                receiver.index += value
+                let field_previous = self.index;
+                let field_value = 2;
+                self.index = field_previous + field_value
             };
             let second: i32 = self.parse_unicode_code_unit()?;
             if !(56320..=57343).contains(&second) {
@@ -1560,9 +1781,9 @@ impl JsonParser {
             value = value * 16 + digit;
         }
         {
-            let receiver = &mut *self;
-            let value_2 = 4;
-            receiver.index += value_2
+            let field_previous = self.index;
+            let field_value = 4;
+            self.index = field_previous + field_value
         };
         Ok(value)
     }
@@ -1571,29 +1792,21 @@ impl JsonParser {
         let start: i32 = self.index;
         if self.peek() == "-" {
             {
-                let update_receiver = &mut *self;
+                let update_previous = self.index;
+                let update_next = update_previous + 1;
                 {
-                    let update_location = &mut update_receiver.index;
-                    let update_previous = *update_location;
-                    let update_next = update_previous + 1;
-                    {
-                        *update_location = update_next;
-                        update_next
-                    }
+                    self.index = update_next;
+                    update_next
                 }
             };
         }
         if self.peek() == "0" {
             {
-                let update_receiver_2 = &mut *self;
+                let update_previous_2 = self.index;
+                let update_next_2 = update_previous_2 + 1;
                 {
-                    let update_location_2 = &mut update_receiver_2.index;
-                    let update_previous_2 = *update_location_2;
-                    let update_next_2 = update_previous_2 + 1;
-                    {
-                        *update_location_2 = update_next_2;
-                        update_next_2
-                    }
+                    self.index = update_next_2;
+                    update_next_2
                 }
             };
             if self.is_digit(self.peek()) {
@@ -1607,15 +1820,11 @@ impl JsonParser {
         }
         if self.peek() == "." {
             {
-                let update_receiver_3 = &mut *self;
+                let update_previous_3 = self.index;
+                let update_next_3 = update_previous_3 + 1;
                 {
-                    let update_location_3 = &mut update_receiver_3.index;
-                    let update_previous_3 = *update_location_3;
-                    let update_next_3 = update_previous_3 + 1;
-                    {
-                        *update_location_3 = update_next_3;
-                        update_next_3
-                    }
+                    self.index = update_next_3;
+                    update_next_3
                 }
             };
             self.consume_digits()?;
@@ -1623,29 +1832,21 @@ impl JsonParser {
         let exponent: String = self.peek();
         if exponent == "e" || exponent == "E" {
             {
-                let update_receiver_4 = &mut *self;
+                let update_previous_4 = self.index;
+                let update_next_4 = update_previous_4 + 1;
                 {
-                    let update_location_4 = &mut update_receiver_4.index;
-                    let update_previous_4 = *update_location_4;
-                    let update_next_4 = update_previous_4 + 1;
-                    {
-                        *update_location_4 = update_next_4;
-                        update_next_4
-                    }
+                    self.index = update_next_4;
+                    update_next_4
                 }
             };
             let sign: String = self.peek();
             if sign == "+" || sign == "-" {
                 {
-                    let update_receiver_5 = &mut *self;
+                    let update_previous_5 = self.index;
+                    let update_next_5 = update_previous_5 + 1;
                     {
-                        let update_location_5 = &mut update_receiver_5.index;
-                        let update_previous_5 = *update_location_5;
-                        let update_next_5 = update_previous_5 + 1;
-                        {
-                            *update_location_5 = update_next_5;
-                            update_next_5
-                        }
+                        self.index = update_next_5;
+                        update_next_5
                     }
                 };
             }
@@ -1659,22 +1860,18 @@ impl JsonParser {
                 Some(start),
             )?));
         }
-        Ok(JsonNumber::new(value, line, column))
+        JsonNumber::new(value, line, column)
     }
 
     pub fn consume_digits(&mut self) -> Result<(), rt::TsonicError> {
         let start: i32 = self.index;
         while self.is_digit(self.peek()) {
             {
-                let update_receiver = &mut *self;
+                let update_previous = self.index;
+                let update_next = update_previous + 1;
                 {
-                    let update_location = &mut update_receiver.index;
-                    let update_previous = *update_location;
-                    let update_next = update_previous + 1;
-                    {
-                        *update_location = update_next;
-                        update_next
-                    }
+                    self.index = update_next;
+                    update_next
                 }
             };
         }
@@ -1707,9 +1904,9 @@ impl JsonParser {
             }
         }
         {
-            let receiver = &mut *self;
-            let value = rt::conversions::usize_to_i32(js_string::js_len(&keyword))?;
-            receiver.index += value
+            let field_previous = self.index;
+            let field_value = rt::conversions::usize_to_i32(js_string::js_len(&keyword))?;
+            self.index = field_previous + field_value
         };
         Ok(())
     }
@@ -1738,15 +1935,11 @@ impl JsonParser {
         }
         let ch: String = self.source.character_at(self.index);
         {
-            let update_receiver = &mut *self;
+            let update_previous = self.index;
+            let update_next = update_previous + 1;
             {
-                let update_location = &mut update_receiver.index;
-                let update_previous = *update_location;
-                let update_next = update_previous + 1;
-                {
-                    *update_location = update_next;
-                    update_next
-                }
+                self.index = update_next;
+                update_next
             }
         };
         Ok(ch)
@@ -1766,15 +1959,11 @@ impl JsonParser {
                 return;
             }
             {
-                let update_receiver = &mut *self;
+                let update_previous = self.index;
+                let update_next = update_previous + 1;
                 {
-                    let update_location = &mut update_receiver.index;
-                    let update_previous = *update_location;
-                    let update_next = update_previous + 1;
-                    {
-                        *update_location = update_next;
-                        update_next
-                    }
+                    self.index = update_next;
+                    update_next
                 }
             };
         }
@@ -1787,15 +1976,11 @@ impl JsonParser {
 
     pub fn enter_composite(&mut self, index: i32) -> Result<(), rt::TsonicError> {
         {
-            let update_receiver = &mut *self;
+            let update_previous = self.depth;
+            let update_next = update_previous + 1;
             {
-                let update_location = &mut update_receiver.depth;
-                let update_previous = *update_location;
-                let update_next = update_previous + 1;
-                {
-                    *update_location = update_next;
-                    update_next
-                }
+                self.depth = update_next;
+                update_next
             }
         };
         if self.depth > 256 {
@@ -1818,9 +2003,8 @@ impl JsonParser {
             if (match self
                 .line_starts
                 .get_number(rt::conversions::i32_to_f64(middle))
-                .as_ref()
             {
-                Some(flow_value) => *flow_value,
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             }) <= index
             {
@@ -1843,9 +2027,8 @@ impl JsonParser {
                 match self
                     .line_starts
                     .get_number(rt::conversions::i32_to_f64(line_index))
-                    .as_ref()
                 {
-                    Some(flow_value) => *flow_value,
+                    Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
             )
@@ -1870,13 +2053,13 @@ impl JsonParser {
         message: String,
         index: i32,
     ) -> Result<crate::diagnostics::TsumoError, rt::TsonicError> {
-        Ok(crate::diagnostics::create_tsumo_error(
+        crate::diagnostics::create_tsumo_error(
             code,
             message,
             self.source_path.clone(),
             Some(rt::conversions::i32_to_f64(self.line_at(index)?)),
             Some(rt::conversions::i32_to_f64(self.column_at(index)?)),
-        ))
+        )
     }
 }
 

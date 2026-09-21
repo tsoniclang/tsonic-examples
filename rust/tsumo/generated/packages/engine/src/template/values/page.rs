@@ -5,13 +5,22 @@ use tsonic_rust_js::abi as js_abi;
 
 #[doc(hidden)]
 pub trait PageValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_page_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_page_value_to_page_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn PageValueDispatch + 'static>> {
         None
     }
     fn read_page_value_value(&self) -> crate::models::page_context::PageContext;
-    fn write_page_value_value(&self, value: crate::models::page_context::PageContext);
+    fn write_page_value_value(
+        &self,
+        value: crate::models::page_context::PageContext,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -50,33 +59,36 @@ impl rt::ObjectIdentityCarrier for PageValue {
 }
 
 pub(crate) struct PageValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<PageValueState>,
+    state: rt::ObjectState<PageValueState>,
 }
 
 impl PageValue {
     #[doc(hidden)]
-    pub fn initialize_state(value: crate::models::page_context::PageContext) -> PageValueState {
+    pub fn initialize_state(
+        value: crate::models::page_context::PageContext,
+    ) -> Result<PageValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: crate::models::page_context::PageContext = value;
-        PageValueState {
+        Ok(PageValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: crate::models::page_context::PageContext) -> PageValue {
-        let state = PageValue::initialize_state(value);
+    pub fn new(
+        value: crate::models::page_context::PageContext,
+    ) -> Result<PageValue, rt::TsonicError> {
+        let state = PageValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(PageValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        PageValue {
+        Ok(PageValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -96,6 +108,13 @@ impl crate::template::values::base::TemplateValueDispatch for PageValueRoot {
 }
 
 impl PageValueDispatch for PageValueRoot {
+    fn downcast_page_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_page_value_to_page_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn PageValueDispatch + 'static>> {
@@ -106,20 +125,38 @@ impl PageValueDispatch for PageValueRoot {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_page_value_value(&self, value: crate::models::page_context::PageContext) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_page_value_value(
+        &self,
+        value: crate::models::page_context::PageContext,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
 #[doc(hidden)]
 pub trait FileValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_file_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_file_value_to_file_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn FileValueDispatch + 'static>> {
         None
     }
     fn read_file_value_value(&self) -> crate::models::page_file::PageFile;
-    fn write_file_value_value(&self, value: crate::models::page_file::PageFile);
+    fn write_file_value_value(
+        &self,
+        value: crate::models::page_file::PageFile,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -158,33 +195,34 @@ impl rt::ObjectIdentityCarrier for FileValue {
 }
 
 pub(crate) struct FileValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<FileValueState>,
+    state: rt::ObjectState<FileValueState>,
 }
 
 impl FileValue {
     #[doc(hidden)]
-    pub fn initialize_state(value: crate::models::page_file::PageFile) -> FileValueState {
+    pub fn initialize_state(
+        value: crate::models::page_file::PageFile,
+    ) -> Result<FileValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: crate::models::page_file::PageFile = value;
-        FileValueState {
+        Ok(FileValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: crate::models::page_file::PageFile) -> FileValue {
-        let state = FileValue::initialize_state(value);
+    pub fn new(value: crate::models::page_file::PageFile) -> Result<FileValue, rt::TsonicError> {
+        let state = FileValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(FileValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        FileValue {
+        Ok(FileValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -204,6 +242,13 @@ impl crate::template::values::base::TemplateValueDispatch for FileValueRoot {
 }
 
 impl FileValueDispatch for FileValueRoot {
+    fn downcast_file_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_file_value_to_file_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn FileValueDispatch + 'static>> {
@@ -214,13 +259,28 @@ impl FileValueDispatch for FileValueRoot {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_file_value_value(&self, value: crate::models::page_file::PageFile) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_file_value_value(
+        &self,
+        value: crate::models::page_file::PageFile,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
 #[doc(hidden)]
 pub trait PageArrayValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_page_array_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_page_array_value_to_page_array_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn PageArrayValueDispatch + 'static>> {
@@ -232,7 +292,7 @@ pub trait PageArrayValueDispatch: crate::template::values::base::TemplateValueDi
     fn write_page_array_value_value(
         &self,
         value: js_abi::JsArray<crate::models::page_context::PageContext>,
-    );
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -271,35 +331,36 @@ impl rt::ObjectIdentityCarrier for PageArrayValue {
 }
 
 pub(crate) struct PageArrayValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<PageArrayValueState>,
+    state: rt::ObjectState<PageArrayValueState>,
 }
 
 impl PageArrayValue {
     #[doc(hidden)]
     pub fn initialize_state(
         value: js_abi::JsArray<crate::models::page_context::PageContext>,
-    ) -> PageArrayValueState {
+    ) -> Result<PageArrayValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: js_abi::JsArray<crate::models::page_context::PageContext> = value;
-        PageArrayValueState {
+        Ok(PageArrayValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: js_abi::JsArray<crate::models::page_context::PageContext>) -> PageArrayValue {
-        let state = PageArrayValue::initialize_state(value);
+    pub fn new(
+        value: js_abi::JsArray<crate::models::page_context::PageContext>,
+    ) -> Result<PageArrayValue, rt::TsonicError> {
+        let state = PageArrayValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(PageArrayValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        PageArrayValue {
+        Ok(PageArrayValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -319,6 +380,13 @@ impl crate::template::values::base::TemplateValueDispatch for PageArrayValueRoot
 }
 
 impl PageArrayValueDispatch for PageArrayValueRoot {
+    fn downcast_page_array_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_page_array_value_to_page_array_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn PageArrayValueDispatch + 'static>> {
@@ -334,27 +402,42 @@ impl PageArrayValueDispatch for PageArrayValueRoot {
     fn write_page_array_value_value(
         &self,
         value: js_abi::JsArray<crate::models::page_context::PageContext>,
-    ) {
-        self.state.with_mut(|state| state.value = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
 #[doc(hidden)]
 pub trait PageGroupValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_page_group_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_page_group_value_to_page_group_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn PageGroupValueDispatch + 'static>> {
         None
     }
     fn read_page_group_value_key(&self) -> crate::template::values::base::TemplateValue;
-    fn write_page_group_value_key(&self, value: crate::template::values::base::TemplateValue);
+    fn write_page_group_value_key(
+        &self,
+        value: crate::template::values::base::TemplateValue,
+    ) -> Result<(), rt::TsonicError>;
     fn read_page_group_value_pages(
         &self,
     ) -> js_abi::JsArray<crate::models::page_context::PageContext>;
     fn write_page_group_value_pages(
         &self,
         value: js_abi::JsArray<crate::models::page_context::PageContext>,
-    );
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -394,9 +477,8 @@ impl rt::ObjectIdentityCarrier for PageGroupValue {
 }
 
 pub(crate) struct PageGroupValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<PageGroupValueState>,
+    state: rt::ObjectState<PageGroupValueState>,
 }
 
 impl PageGroupValue {
@@ -404,31 +486,31 @@ impl PageGroupValue {
     pub fn initialize_state(
         key: crate::template::values::base::TemplateValue,
         pages: js_abi::JsArray<crate::models::page_context::PageContext>,
-    ) -> PageGroupValueState {
+    ) -> Result<PageGroupValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_key: crate::template::values::base::TemplateValue = key;
         let field_pages: js_abi::JsArray<crate::models::page_context::PageContext> = pages;
-        PageGroupValueState {
+        Ok(PageGroupValueState {
             base: base_state,
             key: field_key,
             pages: field_pages,
-        }
+        })
     }
 
     pub fn new(
         key: crate::template::values::base::TemplateValue,
         pages: js_abi::JsArray<crate::models::page_context::PageContext>,
-    ) -> PageGroupValue {
-        let state = PageGroupValue::initialize_state(key, pages);
+    ) -> Result<PageGroupValue, rt::TsonicError> {
+        let state = PageGroupValue::initialize_state(key, pages)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(PageGroupValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        PageGroupValue {
+        Ok(PageGroupValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -448,6 +530,13 @@ impl crate::template::values::base::TemplateValueDispatch for PageGroupValueRoot
 }
 
 impl PageGroupValueDispatch for PageGroupValueRoot {
+    fn downcast_page_group_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_page_group_value_to_page_group_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn PageGroupValueDispatch + 'static>> {
@@ -458,8 +547,17 @@ impl PageGroupValueDispatch for PageGroupValueRoot {
         self.state.with(|state| state.key.clone())
     }
 
-    fn write_page_group_value_key(&self, value: crate::template::values::base::TemplateValue) {
-        self.state.with_mut(|state| state.key = value);
+    fn write_page_group_value_key(
+        &self,
+        value: crate::template::values::base::TemplateValue,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.key = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_group_value_pages(
@@ -471,20 +569,35 @@ impl PageGroupValueDispatch for PageGroupValueRoot {
     fn write_page_group_value_pages(
         &self,
         value: js_abi::JsArray<crate::models::page_context::PageContext>,
-    ) {
-        self.state.with_mut(|state| state.pages = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.pages = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
 #[doc(hidden)]
 pub trait PageDataValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_page_data_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_page_data_value_to_page_data_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn PageDataValueDispatch + 'static>> {
         None
     }
     fn read_page_data_value_page(&self) -> crate::models::page_context::PageContext;
-    fn write_page_data_value_page(&self, value: crate::models::page_context::PageContext);
+    fn write_page_data_value_page(
+        &self,
+        value: crate::models::page_context::PageContext,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -523,33 +636,36 @@ impl rt::ObjectIdentityCarrier for PageDataValue {
 }
 
 pub(crate) struct PageDataValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<PageDataValueState>,
+    state: rt::ObjectState<PageDataValueState>,
 }
 
 impl PageDataValue {
     #[doc(hidden)]
-    pub fn initialize_state(page: crate::models::page_context::PageContext) -> PageDataValueState {
+    pub fn initialize_state(
+        page: crate::models::page_context::PageContext,
+    ) -> Result<PageDataValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_page: crate::models::page_context::PageContext = page;
-        PageDataValueState {
+        Ok(PageDataValueState {
             base: base_state,
             page: field_page,
-        }
+        })
     }
 
-    pub fn new(page: crate::models::page_context::PageContext) -> PageDataValue {
-        let state = PageDataValue::initialize_state(page);
+    pub fn new(
+        page: crate::models::page_context::PageContext,
+    ) -> Result<PageDataValue, rt::TsonicError> {
+        let state = PageDataValue::initialize_state(page)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(PageDataValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        PageDataValue {
+        Ok(PageDataValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -569,6 +685,13 @@ impl crate::template::values::base::TemplateValueDispatch for PageDataValueRoot 
 }
 
 impl PageDataValueDispatch for PageDataValueRoot {
+    fn downcast_page_data_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_page_data_value_to_page_data_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn PageDataValueDispatch + 'static>> {
@@ -579,22 +702,43 @@ impl PageDataValueDispatch for PageDataValueRoot {
         self.state.with(|state| state.page.clone())
     }
 
-    fn write_page_data_value_page(&self, value: crate::models::page_context::PageContext) {
-        self.state.with_mut(|state| state.page = value);
+    fn write_page_data_value_page(
+        &self,
+        value: crate::models::page_context::PageContext,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.page = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
 #[doc(hidden)]
 pub trait PageResourcesValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_page_resources_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_page_resources_value_to_page_resources_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn PageResourcesValueDispatch + 'static>> {
         None
     }
     fn read_page_resources_value_page(&self) -> crate::models::page_context::PageContext;
-    fn write_page_resources_value_page(&self, value: crate::models::page_context::PageContext);
+    fn write_page_resources_value_page(
+        &self,
+        value: crate::models::page_context::PageContext,
+    ) -> Result<(), rt::TsonicError>;
     fn read_page_resources_value_manager(&self) -> crate::resources::manager::ResourceManager;
-    fn write_page_resources_value_manager(&self, value: crate::resources::manager::ResourceManager);
+    fn write_page_resources_value_manager(
+        &self,
+        value: crate::resources::manager::ResourceManager,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -634,9 +778,8 @@ impl rt::ObjectIdentityCarrier for PageResourcesValue {
 }
 
 pub(crate) struct PageResourcesValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<PageResourcesValueState>,
+    state: rt::ObjectState<PageResourcesValueState>,
 }
 
 impl PageResourcesValue {
@@ -644,31 +787,31 @@ impl PageResourcesValue {
     pub fn initialize_state(
         page: crate::models::page_context::PageContext,
         manager: crate::resources::manager::ResourceManager,
-    ) -> PageResourcesValueState {
+    ) -> Result<PageResourcesValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_page: crate::models::page_context::PageContext = page;
         let field_manager: crate::resources::manager::ResourceManager = manager;
-        PageResourcesValueState {
+        Ok(PageResourcesValueState {
             base: base_state,
             page: field_page,
             manager: field_manager,
-        }
+        })
     }
 
     pub fn new(
         page: crate::models::page_context::PageContext,
         manager: crate::resources::manager::ResourceManager,
-    ) -> PageResourcesValue {
-        let state = PageResourcesValue::initialize_state(page, manager);
+    ) -> Result<PageResourcesValue, rt::TsonicError> {
+        let state = PageResourcesValue::initialize_state(page, manager)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(PageResourcesValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        PageResourcesValue {
+        Ok(PageResourcesValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -688,6 +831,13 @@ impl crate::template::values::base::TemplateValueDispatch for PageResourcesValue
 }
 
 impl PageResourcesValueDispatch for PageResourcesValueRoot {
+    fn downcast_page_resources_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_page_resources_value_to_page_resources_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn PageResourcesValueDispatch + 'static>> {
@@ -698,8 +848,17 @@ impl PageResourcesValueDispatch for PageResourcesValueRoot {
         self.state.with(|state| state.page.clone())
     }
 
-    fn write_page_resources_value_page(&self, value: crate::models::page_context::PageContext) {
-        self.state.with_mut(|state| state.page = value);
+    fn write_page_resources_value_page(
+        &self,
+        value: crate::models::page_context::PageContext,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.page = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_resources_value_manager(&self) -> crate::resources::manager::ResourceManager {
@@ -709,7 +868,13 @@ impl PageResourcesValueDispatch for PageResourcesValueRoot {
     fn write_page_resources_value_manager(
         &self,
         value: crate::resources::manager::ResourceManager,
-    ) {
-        self.state.with_mut(|state| state.manager = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.manager = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

@@ -9,7 +9,7 @@ pub fn invalid_shape(
     expected: String,
     value: crate::utils::json::JsonValue,
     source_path: Option<String>,
-) -> crate::diagnostics::TsumoError {
+) -> Result<crate::diagnostics::TsumoError, rt::TsonicError> {
     crate::diagnostics::create_tsumo_error(
         String::from("TSUMO_FRONTMATTER_FIELD_INVALID"),
         format!(
@@ -51,7 +51,7 @@ pub fn require_string(
         String::from("a string"),
         value.clone(),
         source_path,
-    )))
+    )?))
 }
 
 pub fn require_int(
@@ -69,8 +69,8 @@ pub fn require_int(
             dispatch_receiver.dispatch.read_json_number_value()
         })?;
         if narrowed.is_some() {
-            return Ok(match narrowed.as_ref() {
-                Some(flow_value) => *flow_value,
+            return Ok(match narrowed {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             });
         }
@@ -80,7 +80,7 @@ pub fn require_int(
         String::from("a 32-bit integer"),
         value.clone(),
         source_path,
-    )))
+    )?))
 }
 
 pub fn require_string_array(
@@ -99,7 +99,7 @@ pub fn require_string_array(
             String::from("an array of strings"),
             value.clone(),
             source_path.clone(),
-        )));
+        )?));
     }
     let array: crate::utils::json::JsonArray = {
         let downcast_value = &value;
@@ -129,9 +129,8 @@ pub fn require_string_array(
                 dispatch_receiver_2.dispatch.read_json_array_items()
             }
             .get_number(index)
-            .as_ref()
             {
-                Some(flow_value) => flow_value.clone(),
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if let Some(selected_dispatch) =
@@ -154,7 +153,7 @@ pub fn require_string_array(
                     String::from("an array containing only strings"),
                     item.clone(),
                     source_path.clone(),
-                )));
+                )?));
             }
             index += 1.0;
         }
@@ -172,20 +171,20 @@ pub fn to_param(
             identity: value.identity.clone(),
             dispatch: selected_dispatch,
         };
-        return Ok(crate::params::ParamValue::string({
+        return crate::params::ParamValue::string({
             let dispatch_receiver = &selected_value;
             dispatch_receiver.dispatch.read_json_string_value()
-        }));
+        });
     }
     if let Some(selected_dispatch_2) = value.dispatch.clone().downcast_json_value_to_json_bool() {
         let selected_value_2 = crate::utils::json::JsonBool {
             identity: value.identity.clone(),
             dispatch: selected_dispatch_2,
         };
-        return Ok(crate::params::ParamValue::bool({
+        return crate::params::ParamValue::bool({
             let dispatch_receiver_2 = &selected_value_2;
             dispatch_receiver_2.dispatch.read_json_bool_value()
-        }));
+        });
     }
     if value
         .dispatch
@@ -193,18 +192,18 @@ pub fn to_param(
         .downcast_json_value_to_json_number()
         .is_some()
     {
-        return Ok(crate::params::ParamValue::number(require_int(
+        return crate::params::ParamValue::number(require_int(
             field.clone(),
             value.clone(),
             source_path.clone(),
-        )?));
+        )?);
     }
     Err(rt::TsonicError::TsumoError(invalid_shape(
         field.clone(),
         String::from("a string, boolean, or 32-bit integer"),
         value.clone(),
         source_path.clone(),
-    )))
+    )?))
 }
 
 pub fn assert_case_insensitive_keys_unique(
@@ -229,9 +228,8 @@ pub fn assert_case_insensitive_keys_unique(
                 dispatch_receiver_2.dispatch.read_json_object_properties()
             }
             .get_number(index)
-            .as_ref()
             {
-                Some(flow_value) => flow_value.clone(),
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let key: String =
@@ -254,7 +252,7 @@ pub fn assert_case_insensitive_keys_unique(
                         Some(rt::conversions::i32_to_f64(
                             property.state.with(|state| state.column),
                         )),
-                    ),
+                    )?,
                 ));
             }
             keys.add_discard(key.clone());
@@ -279,7 +277,7 @@ pub fn apply_menu_property(
                 let dispatch_receiver = receiver;
                 dispatch_receiver
                     .dispatch
-                    .write_front_matter_menu_weight(value_2)
+                    .write_front_matter_menu_weight(value_2)?
             }
         };
     } else if key == "name" {
@@ -290,7 +288,7 @@ pub fn apply_menu_property(
                 let dispatch_receiver_2 = receiver_2;
                 dispatch_receiver_2
                     .dispatch
-                    .write_front_matter_menu_name(value_3)
+                    .write_front_matter_menu_name(value_3)?
             }
         };
     } else if key == "parent" {
@@ -301,7 +299,7 @@ pub fn apply_menu_property(
                 let dispatch_receiver_3 = receiver_3;
                 dispatch_receiver_3
                     .dispatch
-                    .write_front_matter_menu_parent(value_4)
+                    .write_front_matter_menu_parent(value_4)?
             }
         };
     } else if key == "identifier" {
@@ -312,7 +310,7 @@ pub fn apply_menu_property(
                 let dispatch_receiver_4 = receiver_4;
                 dispatch_receiver_4
                     .dispatch
-                    .write_front_matter_menu_identifier(value_5)
+                    .write_front_matter_menu_identifier(value_5)?
             }
         };
     } else if key == "pre" {
@@ -323,7 +321,7 @@ pub fn apply_menu_property(
                 let dispatch_receiver_5 = receiver_5;
                 dispatch_receiver_5
                     .dispatch
-                    .write_front_matter_menu_pre(value_6)
+                    .write_front_matter_menu_pre(value_6)?
             }
         };
     } else if key == "post" {
@@ -334,7 +332,7 @@ pub fn apply_menu_property(
                 let dispatch_receiver_6 = receiver_6;
                 dispatch_receiver_6
                     .dispatch
-                    .write_front_matter_menu_post(value_7)
+                    .write_front_matter_menu_post(value_7)?
             }
         };
     } else if key == "title" {
@@ -345,7 +343,7 @@ pub fn apply_menu_property(
                 let dispatch_receiver_7 = receiver_7;
                 dispatch_receiver_7
                     .dispatch
-                    .write_front_matter_menu_title(value_8)
+                    .write_front_matter_menu_title(value_8)?
             }
         };
     } else {
@@ -367,7 +365,7 @@ pub fn apply_menu_property(
                     let dispatch_receiver_9 = &value;
                     dispatch_receiver_9.dispatch.read_json_value_column()
                 })),
-            ),
+            )?,
         ));
     }
     Ok(())
@@ -398,7 +396,7 @@ pub fn parse_json_front_matter(
                     let dispatch_receiver_2 = &root_value;
                     dispatch_receiver_2.dispatch.read_json_value_column()
                 })),
-            ),
+            )?,
         ));
     }
     let root: crate::utils::json::JsonObject = {
@@ -418,7 +416,7 @@ pub fn parse_json_front_matter(
         source_path.clone(),
     )?;
     let front_matter: crate::frontmatter::data::FrontMatter =
-        crate::frontmatter::data::FrontMatter::new();
+        crate::frontmatter::data::FrontMatter::new()?;
     {
         let mut index: f64 = 0.0;
         while index
@@ -435,9 +433,8 @@ pub fn parse_json_front_matter(
                 dispatch_receiver_4.dispatch.read_json_object_properties()
             }
             .get_number(index)
-            .as_ref()
             {
-                Some(flow_value) => flow_value.clone(),
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let key: String =
@@ -452,7 +449,16 @@ pub fn parse_json_front_matter(
                         value.clone(),
                         source_path.clone(),
                     )?);
-                    receiver.state.with_mut(|state| state.title = value_2)
+                    {
+                        let field_owner = receiver.clone();
+                        let field_value = value_2;
+                        {
+                            field_owner.state.validate_data_write()?;
+                            field_owner
+                                .state
+                                .with_mut(|state| state.title = field_value)
+                        }
+                    }
                 };
             } else if key == "description" {
                 {
@@ -462,9 +468,16 @@ pub fn parse_json_front_matter(
                         value.clone(),
                         source_path.clone(),
                     )?);
-                    receiver_2
-                        .state
-                        .with_mut(|state| state.description = value_3)
+                    {
+                        let field_owner_2 = receiver_2.clone();
+                        let field_value_2 = value_3;
+                        {
+                            field_owner_2.state.validate_data_write()?;
+                            field_owner_2
+                                .state
+                                .with_mut(|state| state.description = field_value_2)
+                        }
+                    }
                 };
             } else if key == "slug" {
                 {
@@ -474,7 +487,16 @@ pub fn parse_json_front_matter(
                         value.clone(),
                         source_path.clone(),
                     )?);
-                    receiver_3.state.with_mut(|state| state.slug = value_4)
+                    {
+                        let field_owner_3 = receiver_3.clone();
+                        let field_value_3 = value_4;
+                        {
+                            field_owner_3.state.validate_data_write()?;
+                            field_owner_3
+                                .state
+                                .with_mut(|state| state.slug = field_value_3)
+                        }
+                    }
                 };
             } else if key == "layout" {
                 {
@@ -484,7 +506,16 @@ pub fn parse_json_front_matter(
                         value.clone(),
                         source_path.clone(),
                     )?);
-                    receiver_4.state.with_mut(|state| state.layout = value_5)
+                    {
+                        let field_owner_4 = receiver_4.clone();
+                        let field_value_4 = value_5;
+                        {
+                            field_owner_4.state.validate_data_write()?;
+                            field_owner_4
+                                .state
+                                .with_mut(|state| state.layout = field_value_4)
+                        }
+                    }
                 };
             } else if key == "type" {
                 {
@@ -494,7 +525,16 @@ pub fn parse_json_front_matter(
                         value.clone(),
                         source_path.clone(),
                     )?);
-                    receiver_5.state.with_mut(|state| state.r#type = value_6)
+                    {
+                        let field_owner_5 = receiver_5.clone();
+                        let field_value_5 = value_6;
+                        {
+                            field_owner_5.state.validate_data_write()?;
+                            field_owner_5
+                                .state
+                                .with_mut(|state| state.r#type = field_value_5)
+                        }
+                    }
                 };
             } else if key == "draft" {
                 if let Some(selected_dispatch) =
@@ -510,7 +550,16 @@ pub fn parse_json_front_matter(
                             let dispatch_receiver_5 = &selected_value;
                             dispatch_receiver_5.dispatch.read_json_bool_value()
                         };
-                        receiver_6.state.with_mut(|state| state.draft = value_7)
+                        {
+                            let field_owner_6 = receiver_6.clone();
+                            let field_value_6 = value_7;
+                            {
+                                field_owner_6.state.validate_data_write()?;
+                                field_owner_6
+                                    .state
+                                    .with_mut(|state| state.draft = field_value_6)
+                            }
+                        }
                     };
                 } else {
                     return Err(rt::TsonicError::TsumoError(invalid_shape(
@@ -518,7 +567,7 @@ pub fn parse_json_front_matter(
                         String::from("a boolean"),
                         value.clone(),
                         source_path.clone(),
-                    )));
+                    )?));
                 }
             } else if key == "date" {
                 let authored: String = require_string(
@@ -545,13 +594,22 @@ pub fn parse_json_front_matter(
                                 let dispatch_receiver_7 = &value;
                                 dispatch_receiver_7.dispatch.read_json_value_column()
                             })),
-                        ),
+                        )?,
                     ));
                 }
                 {
                     let receiver_7 = &front_matter;
                     let value_8 = Some(js_abi::JsDate::from_millis(milliseconds));
-                    receiver_7.state.with_mut(|state| state.date = value_8)
+                    {
+                        let field_owner_7 = receiver_7.clone();
+                        let field_value_7 = value_8;
+                        {
+                            field_owner_7.state.validate_data_write()?;
+                            field_owner_7
+                                .state
+                                .with_mut(|state| state.date = field_value_7)
+                        }
+                    }
                 };
             } else if key == "tags" {
                 {
@@ -561,7 +619,16 @@ pub fn parse_json_front_matter(
                         value.clone(),
                         source_path.clone(),
                     )?;
-                    receiver_8.state.with_mut(|state| state.tags = value_9)
+                    {
+                        let field_owner_8 = receiver_8.clone();
+                        let field_value_8 = value_9;
+                        {
+                            field_owner_8.state.validate_data_write()?;
+                            field_owner_8
+                                .state
+                                .with_mut(|state| state.tags = field_value_8)
+                        }
+                    }
                 };
             } else if key == "categories" {
                 {
@@ -571,9 +638,16 @@ pub fn parse_json_front_matter(
                         value.clone(),
                         source_path.clone(),
                     )?;
-                    receiver_9
-                        .state
-                        .with_mut(|state| state.categories = value_10)
+                    {
+                        let field_owner_9 = receiver_9.clone();
+                        let field_value_9 = value_10;
+                        {
+                            field_owner_9.state.validate_data_write()?;
+                            field_owner_9
+                                .state
+                                .with_mut(|state| state.categories = field_value_9)
+                        }
+                    }
                 };
             } else if key == "params" {
                 if value
@@ -587,7 +661,7 @@ pub fn parse_json_front_matter(
                         String::from("an object of scalar values"),
                         value.clone(),
                         source_path.clone(),
-                    )));
+                    )?));
                 }
                 let params: crate::utils::json::JsonObject = {
                     let downcast_value_2 = &value;
@@ -621,9 +695,8 @@ pub fn parse_json_front_matter(
                             dispatch_receiver_9.dispatch.read_json_object_properties()
                         }
                         .get_number(param_index)
-                        .as_ref()
                         {
-                            Some(flow_value_2) => flow_value_2.clone(),
+                            Some(flow_value_2) => flow_value_2,
                             None => unreachable!("checked flow selected a missing optional value"),
                         };
                         {
@@ -653,7 +726,7 @@ pub fn parse_json_front_matter(
                         String::from("an object"),
                         value.clone(),
                         source_path.clone(),
-                    )));
+                    )?));
                 }
                 let menu_object: crate::utils::json::JsonObject = {
                     let downcast_value_3 = &value;
@@ -687,9 +760,8 @@ pub fn parse_json_front_matter(
                             dispatch_receiver_11.dispatch.read_json_object_properties()
                         }
                         .get_number(menu_index)
-                        .as_ref()
                         {
-                            Some(flow_value_3) => flow_value_3.clone(),
+                            Some(flow_value_3) => flow_value_3,
                             None => unreachable!("checked flow selected a missing optional value"),
                         };
                         if menu
@@ -705,7 +777,7 @@ pub fn parse_json_front_matter(
                                 String::from("a menu property object"),
                                 menu.state.with(|state| state.value.clone()),
                                 source_path.clone(),
-                            )));
+                            )?));
                         }
                         let menu_fields: crate::utils::json::JsonObject = {
                             let downcast_value_4 = &menu.state.with(|state| state.value.clone());
@@ -731,7 +803,7 @@ pub fn parse_json_front_matter(
                         let entry: crate::frontmatter::menu::FrontMatterMenu =
                             crate::frontmatter::menu::FrontMatterMenu::new(
                                 menu.state.with(|state| state.key.clone()),
-                            );
+                            )?;
                         {
                             let mut field_index: f64 = 0.0;
                             while field_index
@@ -748,9 +820,8 @@ pub fn parse_json_front_matter(
                                     dispatch_receiver_13.dispatch.read_json_object_properties()
                                 }
                                 .get_number(field_index)
-                                .as_ref()
                                 {
-                                    Some(flow_value_4) => flow_value_4.clone(),
+                                    Some(flow_value_4) => flow_value_4,
                                     None => unreachable!(
                                         "checked flow selected a missing optional value"
                                     ),

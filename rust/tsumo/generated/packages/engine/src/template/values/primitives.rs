@@ -4,13 +4,19 @@ use crate::program as rt;
 
 #[doc(hidden)]
 pub trait StringValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_string_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_string_value_to_string_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn StringValueDispatch + 'static>> {
         None
     }
     fn read_string_value_value(&self) -> String;
-    fn write_string_value_value(&self, value: String);
+    fn write_string_value_value(&self, value: String) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -49,33 +55,32 @@ impl rt::ObjectIdentityCarrier for StringValue {
 }
 
 pub(crate) struct StringValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<StringValueState>,
+    state: rt::ObjectState<StringValueState>,
 }
 
 impl StringValue {
     #[doc(hidden)]
-    pub fn initialize_state(value: String) -> StringValueState {
+    pub fn initialize_state(value: String) -> Result<StringValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: String = value;
-        StringValueState {
+        Ok(StringValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: String) -> StringValue {
-        let state = StringValue::initialize_state(value);
+    pub fn new(value: String) -> Result<StringValue, rt::TsonicError> {
+        let state = StringValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(StringValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        StringValue {
+        Ok(StringValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -95,6 +100,13 @@ impl crate::template::values::base::TemplateValueDispatch for StringValueRoot {
 }
 
 impl StringValueDispatch for StringValueRoot {
+    fn downcast_string_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_string_value_to_string_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn StringValueDispatch + 'static>> {
@@ -105,20 +117,32 @@ impl StringValueDispatch for StringValueRoot {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_string_value_value(&self, value: String) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_string_value_value(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
 #[doc(hidden)]
 pub trait BoolValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_bool_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_bool_value_to_bool_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn BoolValueDispatch + 'static>> {
         None
     }
     fn read_bool_value_value(&self) -> bool;
-    fn write_bool_value_value(&self, value: bool);
+    fn write_bool_value_value(&self, value: bool) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -157,33 +181,32 @@ impl rt::ObjectIdentityCarrier for BoolValue {
 }
 
 pub(crate) struct BoolValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<BoolValueState>,
+    state: rt::ObjectState<BoolValueState>,
 }
 
 impl BoolValue {
     #[doc(hidden)]
-    pub fn initialize_state(value: bool) -> BoolValueState {
+    pub fn initialize_state(value: bool) -> Result<BoolValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: bool = value;
-        BoolValueState {
+        Ok(BoolValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: bool) -> BoolValue {
-        let state = BoolValue::initialize_state(value);
+    pub fn new(value: bool) -> Result<BoolValue, rt::TsonicError> {
+        let state = BoolValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(BoolValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        BoolValue {
+        Ok(BoolValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -203,6 +226,13 @@ impl crate::template::values::base::TemplateValueDispatch for BoolValueRoot {
 }
 
 impl BoolValueDispatch for BoolValueRoot {
+    fn downcast_bool_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_bool_value_to_bool_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn BoolValueDispatch + 'static>> {
@@ -213,20 +243,32 @@ impl BoolValueDispatch for BoolValueRoot {
         self.state.with(|state| state.value)
     }
 
-    fn write_bool_value_value(&self, value: bool) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_bool_value_value(&self, value: bool) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
 #[doc(hidden)]
 pub trait NumberValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_number_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_number_value_to_number_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn NumberValueDispatch + 'static>> {
         None
     }
     fn read_number_value_value(&self) -> i32;
-    fn write_number_value_value(&self, value: i32);
+    fn write_number_value_value(&self, value: i32) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -265,33 +307,32 @@ impl rt::ObjectIdentityCarrier for NumberValue {
 }
 
 pub(crate) struct NumberValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<NumberValueState>,
+    state: rt::ObjectState<NumberValueState>,
 }
 
 impl NumberValue {
     #[doc(hidden)]
-    pub fn initialize_state(value: i32) -> NumberValueState {
+    pub fn initialize_state(value: i32) -> Result<NumberValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: i32 = value;
-        NumberValueState {
+        Ok(NumberValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: i32) -> NumberValue {
-        let state = NumberValue::initialize_state(value);
+    pub fn new(value: i32) -> Result<NumberValue, rt::TsonicError> {
+        let state = NumberValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(NumberValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        NumberValue {
+        Ok(NumberValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -311,6 +352,13 @@ impl crate::template::values::base::TemplateValueDispatch for NumberValueRoot {
 }
 
 impl NumberValueDispatch for NumberValueRoot {
+    fn downcast_number_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_number_value_to_number_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn NumberValueDispatch + 'static>> {
@@ -321,20 +369,35 @@ impl NumberValueDispatch for NumberValueRoot {
         self.state.with(|state| state.value)
     }
 
-    fn write_number_value_value(&self, value: i32) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_number_value_value(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
 #[doc(hidden)]
 pub trait HtmlValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_html_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_html_value_to_html_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn HtmlValueDispatch + 'static>> {
         None
     }
     fn read_html_value_value(&self) -> crate::utils::html::HtmlString;
-    fn write_html_value_value(&self, value: crate::utils::html::HtmlString);
+    fn write_html_value_value(
+        &self,
+        value: crate::utils::html::HtmlString,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -373,33 +436,34 @@ impl rt::ObjectIdentityCarrier for HtmlValue {
 }
 
 pub(crate) struct HtmlValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<HtmlValueState>,
+    state: rt::ObjectState<HtmlValueState>,
 }
 
 impl HtmlValue {
     #[doc(hidden)]
-    pub fn initialize_state(value: crate::utils::html::HtmlString) -> HtmlValueState {
+    pub fn initialize_state(
+        value: crate::utils::html::HtmlString,
+    ) -> Result<HtmlValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: crate::utils::html::HtmlString = value;
-        HtmlValueState {
+        Ok(HtmlValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: crate::utils::html::HtmlString) -> HtmlValue {
-        let state = HtmlValue::initialize_state(value);
+    pub fn new(value: crate::utils::html::HtmlString) -> Result<HtmlValue, rt::TsonicError> {
+        let state = HtmlValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(HtmlValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        HtmlValue {
+        Ok(HtmlValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -419,6 +483,13 @@ impl crate::template::values::base::TemplateValueDispatch for HtmlValueRoot {
 }
 
 impl HtmlValueDispatch for HtmlValueRoot {
+    fn downcast_html_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_html_value_to_html_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn HtmlValueDispatch + 'static>> {
@@ -429,7 +500,16 @@ impl HtmlValueDispatch for HtmlValueRoot {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_html_value_value(&self, value: crate::utils::html::HtmlString) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_html_value_value(
+        &self,
+        value: crate::utils::html::HtmlString,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

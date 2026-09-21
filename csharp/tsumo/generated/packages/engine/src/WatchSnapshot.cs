@@ -4,11 +4,12 @@ namespace Tsumo.Engine
 {
     public static class WatchSnapshot
     {
-        public static Action<Tsonic.CSharp.Js.Map<string, WatchEntryState>, string> addFileState
+        internal static void addFileState(Tsonic.CSharp.Js.Map<string, WatchEntryState> snapshot, string path)
         {
-            get;
-            private set;
-        } = default(Action<Tsonic.CSharp.Js.Map<string, WatchEntryState>, string>)!;
+            Fs.rejectFilesystemLink(path);
+            Tsonic.CSharp.Node.Stats stats = Tsonic.CSharp.Node.fs.statSync(path);
+            snapshot.set(path, new WatchEntryState(stats.mtimeMs, stats.size));
+        }
         public static Func<Tsonic.CSharp.Js.JSArray<string>, Tsonic.CSharp.Js.Map<string, WatchEntryState>> createWatchSnapshot
         {
             get;
@@ -23,16 +24,10 @@ namespace Tsumo.Engine
         private static object? __tsonic_module_init_core()
         {
             Fs.__tsonic_module_init();
-            addFileState = (Tsonic.CSharp.Js.Map<string, WatchEntryState> snapshot, string path) =>
-            {
-                Fs.rejectFilesystemLink(path);
-                Tsonic.CSharp.Node.Stats stats = Tsonic.CSharp.Node.fs.statSync(path);
-                snapshot.set(path, new WatchEntryState(stats.mtimeMs, stats.size));
-            };
             createWatchSnapshot = (Tsonic.CSharp.Js.JSArray<string> targets) =>
             {
                 Tsonic.CSharp.Js.Map<string, WatchEntryState> snapshot = new Tsonic.CSharp.Js.Map<string, WatchEntryState>();
-                for (int i = 0; i < targets.length; i++)
+                for (double i = 0; i < targets.length; i++)
                 {
                     string target = targets[i];
                     if (Fs.fileExists(target))
@@ -45,7 +40,7 @@ namespace Tsumo.Engine
                         continue;
                     }
                     Tsonic.CSharp.Js.JSArray<string> files = Fs.listFilesRecursive(target, "*");
-                    for (int j = 0; j < files.length; j++)
+                    for (double j = 0; j < files.length; j++)
                     {
                         addFileState(snapshot, files[j]);
                     }

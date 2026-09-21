@@ -9,7 +9,7 @@ pub fn invalid_field(
     expected: String,
     value: crate::utils::json::JsonValue,
     source_path: Option<String>,
-) -> crate::diagnostics::TsumoError {
+) -> Result<crate::diagnostics::TsumoError, rt::TsonicError> {
     crate::diagnostics::create_tsumo_error(
         String::from("TSUMO_CONFIG_INVALID_FIELD"),
         format!(
@@ -51,7 +51,7 @@ pub fn require_string(
         String::from("a string"),
         value.clone(),
         source_path,
-    )))
+    )?))
 }
 
 pub fn require_int(
@@ -69,8 +69,8 @@ pub fn require_int(
             dispatch_receiver.dispatch.read_json_number_value()
         })?;
         if narrowed.is_some() {
-            return Ok(match narrowed.as_ref() {
-                Some(flow_value) => *flow_value,
+            return Ok(match narrowed {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             });
         }
@@ -80,7 +80,7 @@ pub fn require_int(
         String::from("a 32-bit integer"),
         value.clone(),
         source_path,
-    )))
+    )?))
 }
 
 pub fn require_object(
@@ -111,7 +111,7 @@ pub fn require_object(
         String::from("an object"),
         value.clone(),
         source_path,
-    )))
+    )?))
 }
 
 pub fn require_array(
@@ -142,7 +142,7 @@ pub fn require_array(
         String::from("an array"),
         value.clone(),
         source_path,
-    )))
+    )?))
 }
 
 pub fn assert_unique_fields(
@@ -167,9 +167,8 @@ pub fn assert_unique_fields(
                 dispatch_receiver_2.dispatch.read_json_object_properties()
             }
             .get_number(index)
-            .as_ref()
             {
-                Some(flow_value) => flow_value.clone(),
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let name: String =
@@ -192,7 +191,7 @@ pub fn assert_unique_fields(
                         Some(rt::conversions::i32_to_f64(
                             property.state.with(|state| state.column),
                         )),
-                    ),
+                    )?,
                 ));
             }
             names.add_discard(name.clone());
@@ -212,20 +211,20 @@ pub fn to_param(
             identity: value.identity.clone(),
             dispatch: selected_dispatch,
         };
-        return Ok(crate::params::ParamValue::string({
+        return crate::params::ParamValue::string({
             let dispatch_receiver = &selected_value;
             dispatch_receiver.dispatch.read_json_string_value()
-        }));
+        });
     }
     if let Some(selected_dispatch_2) = value.dispatch.clone().downcast_json_value_to_json_bool() {
         let selected_value_2 = crate::utils::json::JsonBool {
             identity: value.identity.clone(),
             dispatch: selected_dispatch_2,
         };
-        return Ok(crate::params::ParamValue::bool({
+        return crate::params::ParamValue::bool({
             let dispatch_receiver_2 = &selected_value_2;
             dispatch_receiver_2.dispatch.read_json_bool_value()
-        }));
+        });
     }
     if value
         .dispatch
@@ -233,18 +232,18 @@ pub fn to_param(
         .downcast_json_value_to_json_number()
         .is_some()
     {
-        return Ok(crate::params::ParamValue::number(require_int(
+        return crate::params::ParamValue::number(require_int(
             field.clone(),
             value.clone(),
             source_path.clone(),
-        )?));
+        )?);
     }
     Err(rt::TsonicError::TsumoError(invalid_field(
         field.clone(),
         String::from("a string, boolean, or 32-bit integer"),
         value.clone(),
         source_path.clone(),
-    )))
+    )?))
 }
 
 pub fn apply_language_field(
@@ -258,31 +257,61 @@ pub fn apply_language_field(
         {
             let receiver = &builder;
             let value_2 = require_string(field.clone(), value.clone(), source_path.clone())?;
-            receiver
-                .state
-                .with_mut(|state| state.language_name = value_2)
+            {
+                let field_owner = receiver.clone();
+                let field_value = value_2;
+                {
+                    field_owner.state.validate_data_write()?;
+                    field_owner
+                        .state
+                        .with_mut(|state| state.language_name = field_value)
+                }
+            }
         };
     } else if normalized == "languagedirection" {
         {
             let receiver_2 = &builder;
             let value_3 = require_string(field.clone(), value.clone(), source_path.clone())?;
-            receiver_2
-                .state
-                .with_mut(|state| state.language_direction = value_3)
+            {
+                let field_owner_2 = receiver_2.clone();
+                let field_value_2 = value_3;
+                {
+                    field_owner_2.state.validate_data_write()?;
+                    field_owner_2
+                        .state
+                        .with_mut(|state| state.language_direction = field_value_2)
+                }
+            }
         };
     } else if normalized == "contentdir" {
         {
             let receiver_3 = &builder;
             let value_4 = require_string(field.clone(), value.clone(), source_path.clone())?;
-            receiver_3
-                .state
-                .with_mut(|state| state.content_dir = value_4)
+            {
+                let field_owner_3 = receiver_3.clone();
+                let field_value_3 = value_4;
+                {
+                    field_owner_3.state.validate_data_write()?;
+                    field_owner_3
+                        .state
+                        .with_mut(|state| state.content_dir = field_value_3)
+                }
+            }
         };
     } else if normalized == "weight" {
         {
             let receiver_4 = &builder;
             let value_5 = require_int(field.clone(), value.clone(), source_path.clone())?;
-            receiver_4.state.with_mut(|state| state.weight = value_5)
+            {
+                let field_owner_4 = receiver_4.clone();
+                let field_value_4 = value_5;
+                {
+                    field_owner_4.state.validate_data_write()?;
+                    field_owner_4
+                        .state
+                        .with_mut(|state| state.weight = field_value_4)
+                }
+            }
         };
     } else {
         return Err(rt::TsonicError::TsumoError(
@@ -303,7 +332,7 @@ pub fn apply_language_field(
                     let dispatch_receiver_2 = &value;
                     dispatch_receiver_2.dispatch.read_json_value_column()
                 })),
-            ),
+            )?,
         ));
     }
     Ok(())
@@ -320,57 +349,134 @@ pub fn apply_menu_field(
         {
             let receiver = &builder;
             let value_2 = require_string(field.clone(), value.clone(), source_path.clone())?;
-            receiver.state.with_mut(|state| state.name = value_2)
+            {
+                let field_owner = receiver.clone();
+                let field_value = value_2;
+                {
+                    field_owner.state.validate_data_write()?;
+                    field_owner.state.with_mut(|state| state.name = field_value)
+                }
+            }
         };
     } else if normalized == "url" {
         {
             let receiver_2 = &builder;
             let value_3 = require_string(field.clone(), value.clone(), source_path.clone())?;
-            receiver_2.state.with_mut(|state| state.url = value_3)
+            {
+                let field_owner_2 = receiver_2.clone();
+                let field_value_2 = value_3;
+                {
+                    field_owner_2.state.validate_data_write()?;
+                    field_owner_2
+                        .state
+                        .with_mut(|state| state.url = field_value_2)
+                }
+            }
         };
     } else if normalized == "pageref" {
         {
             let receiver_3 = &builder;
             let value_4 = require_string(field.clone(), value.clone(), source_path.clone())?;
-            receiver_3.state.with_mut(|state| state.page_ref = value_4)
+            {
+                let field_owner_3 = receiver_3.clone();
+                let field_value_3 = value_4;
+                {
+                    field_owner_3.state.validate_data_write()?;
+                    field_owner_3
+                        .state
+                        .with_mut(|state| state.page_ref = field_value_3)
+                }
+            }
         };
     } else if normalized == "title" {
         {
             let receiver_4 = &builder;
             let value_5 = require_string(field.clone(), value.clone(), source_path.clone())?;
-            receiver_4.state.with_mut(|state| state.title = value_5)
+            {
+                let field_owner_4 = receiver_4.clone();
+                let field_value_4 = value_5;
+                {
+                    field_owner_4.state.validate_data_write()?;
+                    field_owner_4
+                        .state
+                        .with_mut(|state| state.title = field_value_4)
+                }
+            }
         };
     } else if normalized == "parent" {
         {
             let receiver_5 = &builder;
             let value_6 = require_string(field.clone(), value.clone(), source_path.clone())?;
-            receiver_5.state.with_mut(|state| state.parent = value_6)
+            {
+                let field_owner_5 = receiver_5.clone();
+                let field_value_5 = value_6;
+                {
+                    field_owner_5.state.validate_data_write()?;
+                    field_owner_5
+                        .state
+                        .with_mut(|state| state.parent = field_value_5)
+                }
+            }
         };
     } else if normalized == "identifier" {
         {
             let receiver_6 = &builder;
             let value_7 = require_string(field.clone(), value.clone(), source_path.clone())?;
-            receiver_6
-                .state
-                .with_mut(|state| state.identifier = value_7)
+            {
+                let field_owner_6 = receiver_6.clone();
+                let field_value_6 = value_7;
+                {
+                    field_owner_6.state.validate_data_write()?;
+                    field_owner_6
+                        .state
+                        .with_mut(|state| state.identifier = field_value_6)
+                }
+            }
         };
     } else if normalized == "pre" {
         {
             let receiver_7 = &builder;
             let value_8 = require_string(field.clone(), value.clone(), source_path.clone())?;
-            receiver_7.state.with_mut(|state| state.pre = value_8)
+            {
+                let field_owner_7 = receiver_7.clone();
+                let field_value_7 = value_8;
+                {
+                    field_owner_7.state.validate_data_write()?;
+                    field_owner_7
+                        .state
+                        .with_mut(|state| state.pre = field_value_7)
+                }
+            }
         };
     } else if normalized == "post" {
         {
             let receiver_8 = &builder;
             let value_9 = require_string(field.clone(), value.clone(), source_path.clone())?;
-            receiver_8.state.with_mut(|state| state.post = value_9)
+            {
+                let field_owner_8 = receiver_8.clone();
+                let field_value_8 = value_9;
+                {
+                    field_owner_8.state.validate_data_write()?;
+                    field_owner_8
+                        .state
+                        .with_mut(|state| state.post = field_value_8)
+                }
+            }
         };
     } else if normalized == "weight" {
         {
             let receiver_9 = &builder;
             let value_10 = require_int(field.clone(), value.clone(), source_path.clone())?;
-            receiver_9.state.with_mut(|state| state.weight = value_10)
+            {
+                let field_owner_9 = receiver_9.clone();
+                let field_value_9 = value_10;
+                {
+                    field_owner_9.state.validate_data_write()?;
+                    field_owner_9
+                        .state
+                        .with_mut(|state| state.weight = field_value_9)
+                }
+            }
         };
     } else {
         return Err(rt::TsonicError::TsumoError(
@@ -391,7 +497,7 @@ pub fn apply_menu_field(
                     let dispatch_receiver_2 = &value;
                     dispatch_receiver_2.dispatch.read_json_value_column()
                 })),
-            ),
+            )?,
         ));
     }
     Ok(())
@@ -438,9 +544,8 @@ pub fn parse_json_config(
                 dispatch_receiver_2.dispatch.read_json_object_properties()
             }
             .get_number(index)
-            .as_ref()
             {
-                Some(flow_value) => flow_value.clone(),
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let key: String =
@@ -511,9 +616,8 @@ pub fn parse_json_config(
                             dispatch_receiver_4.dispatch.read_json_object_properties()
                         }
                         .get_number(param_index)
-                        .as_ref()
                         {
-                            Some(flow_value_2) => flow_value_2.clone(),
+                            Some(flow_value_2) => flow_value_2,
                             None => unreachable!("checked flow selected a missing optional value"),
                         };
                         {
@@ -557,9 +661,8 @@ pub fn parse_json_config(
                             dispatch_receiver_6.dispatch.read_json_object_properties()
                         }
                         .get_number(language_index)
-                        .as_ref()
                         {
-                            Some(flow_value_3) => flow_value_3.clone(),
+                            Some(flow_value_3) => flow_value_3,
                             None => unreachable!("checked flow selected a missing optional value"),
                         };
                         let fields: crate::utils::json::JsonObject = require_object(
@@ -581,7 +684,7 @@ pub fn parse_json_config(
                             crate::config::builders::LanguageConfigBuilder::new(
                                 language.state.with(|state| state.key.clone()),
                                 None,
-                            );
+                            )?;
                         {
                             let mut field_index: f64 = 0.0;
                             while field_index
@@ -598,9 +701,8 @@ pub fn parse_json_config(
                                     dispatch_receiver_8.dispatch.read_json_object_properties()
                                 }
                                 .get_number(field_index)
-                                .as_ref()
                                 {
-                                    Some(flow_value_4) => flow_value_4.clone(),
+                                    Some(flow_value_4) => flow_value_4,
                                     None => unreachable!(
                                         "checked flow selected a missing optional value"
                                     ),
@@ -616,7 +718,7 @@ pub fn parse_json_config(
                         }
                         {
                             let operation_input_0_2 = languages.clone();
-                            operation_input_0_2.push_many_discard([builder.to_config()])
+                            operation_input_0_2.push_many_discard([builder.to_config()?])
                         };
                         language_index += 1.0;
                     }
@@ -648,9 +750,8 @@ pub fn parse_json_config(
                             dispatch_receiver_10.dispatch.read_json_object_properties()
                         }
                         .get_number(menu_index)
-                        .as_ref()
                         {
-                            Some(flow_value_5) => flow_value_5.clone(),
+                            Some(flow_value_5) => flow_value_5,
                             None => unreachable!("checked flow selected a missing optional value"),
                         };
                         let menu_items: crate::utils::json::JsonArray = require_array(
@@ -676,9 +777,8 @@ pub fn parse_json_config(
                                     dispatch_receiver_12.dispatch.read_json_array_items()
                                 }
                                 .get_number(entry_index)
-                                .as_ref()
                                 {
-                                    Some(flow_value_6) => flow_value_6.clone(),
+                                    Some(flow_value_6) => flow_value_6,
                                     None => unreachable!(
                                         "checked flow selected a missing optional value"
                                     ),
@@ -707,7 +807,7 @@ pub fn parse_json_config(
                                 let builder: crate::config::builders::MenuEntryBuilder =
                                     crate::config::builders::MenuEntryBuilder::new(
                                         menu.state.with(|state| state.key.clone()),
-                                    );
+                                    )?;
                                 {
                                     let mut field_index: f64 = 0.0;
                                     while field_index
@@ -728,9 +828,8 @@ pub fn parse_json_config(
                                                 .read_json_object_properties()
                                         }
                                         .get_number(field_index)
-                                        .as_ref()
                                         {
-                                            Some(flow_value_7) => flow_value_7.clone(),
+                                            Some(flow_value_7) => flow_value_7,
                                             None => unreachable!(
                                                 "checked flow selected a missing optional value"
                                             ),
@@ -746,7 +845,7 @@ pub fn parse_json_config(
                                 }
                                 {
                                     let operation_input_0_3 = entries.clone();
-                                    operation_input_0_3.push_many_discard([builder.to_entry()])
+                                    operation_input_0_3.push_many_discard([builder.to_entry()?])
                                 };
                                 entry_index += 1.0;
                             }
@@ -778,7 +877,7 @@ pub fn parse_json_config(
                         Some(rt::conversions::i32_to_f64(
                             property.state.with(|state| state.column),
                         )),
-                    ),
+                    )?,
                 ));
             }
             index += 1.0;
@@ -786,12 +885,12 @@ pub fn parse_json_config(
     }
     let config: crate::models::site_config::SiteConfig =
         crate::models::site_config::SiteConfig::new(
-            title.clone(),
-            crate::utils::text::ensure_trailing_slash(base_url.clone()),
-            language_code.clone(),
+            title,
+            crate::utils::text::ensure_trailing_slash(base_url),
+            language_code,
             theme.clone(),
             copyright.clone(),
-        );
+        )?;
     {
         let receiver = &config;
         let value_2 = content_dir.clone();
@@ -799,7 +898,7 @@ pub fn parse_json_config(
             let dispatch_receiver_15 = receiver;
             dispatch_receiver_15
                 .dispatch
-                .write_site_config_content_dir(value_2)
+                .write_site_config_content_dir(value_2)?
         }
     };
     {
@@ -809,7 +908,7 @@ pub fn parse_json_config(
             let dispatch_receiver_16 = receiver_2;
             dispatch_receiver_16
                 .dispatch
-                .write_site_config_params(value_3)
+                .write_site_config_params(value_3)?
         }
     };
     {
@@ -819,7 +918,7 @@ pub fn parse_json_config(
             let dispatch_receiver_17 = receiver_3;
             dispatch_receiver_17
                 .dispatch
-                .write_site_config_menus(value_4)
+                .write_site_config_menus(value_4)?
         }
     };
     if rt::conversions::usize_to_i32(languages.len())? > 0 {
@@ -830,7 +929,7 @@ pub fn parse_json_config(
                 let dispatch_receiver_18 = receiver_4;
                 dispatch_receiver_18
                     .dispatch
-                    .write_site_config_languages(value_5)
+                    .write_site_config_languages(value_5)?
             }
         };
         let selected: crate::models::language::LanguageConfig = match {
@@ -838,9 +937,8 @@ pub fn parse_json_config(
             dispatch_receiver_19.dispatch.read_site_config_languages()
         }
         .get_number(0.0)
-        .as_ref()
         {
-            Some(flow_value_8) => flow_value_8.clone(),
+            Some(flow_value_8) => flow_value_8,
             None => unreachable!("checked flow selected a missing optional value"),
         };
         {
@@ -850,7 +948,7 @@ pub fn parse_json_config(
                 let dispatch_receiver_20 = receiver_5;
                 dispatch_receiver_20
                     .dispatch
-                    .write_site_config_content_dir(value_6)
+                    .write_site_config_content_dir(value_6)?
             }
         };
         if !has_language_code {
@@ -861,7 +959,7 @@ pub fn parse_json_config(
                     let dispatch_receiver_21 = receiver_6;
                     dispatch_receiver_21
                         .dispatch
-                        .write_site_config_language_code(value_7)
+                        .write_site_config_language_code(value_7)?
                 }
             };
         }

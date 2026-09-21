@@ -15,8 +15,8 @@ pub fn add_bundle_resources(
         let mut index: f64 = 0.0;
         while index < (rt::conversions::usize_to_i32(files.len())? as f64) {
             let file: crate::resources::page_bundle::PageBundleResourceFile =
-                match files.get_number(index).as_ref() {
-                    Some(flow_value) => flow_value.clone(),
+                match files.get_number(index) {
+                    Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
             let output_path: String = if output_prefix.is_empty() {

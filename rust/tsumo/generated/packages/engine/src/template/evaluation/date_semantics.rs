@@ -5,7 +5,7 @@ use tsonic_rust_js::abi as js_abi;
 
 pub fn call_date_method(
     receiver: crate::template::values::base::TemplateValue,
-    method: String,
+    method: &str,
     args: js_abi::JsArray<crate::template::values::base::TemplateValue>,
 ) -> Result<Option<crate::template::values::base::TemplateValue>, rt::TsonicError> {
     if receiver
@@ -25,7 +25,7 @@ pub fn call_date_method(
                     None,
                     None,
                     None,
-                ),
+                )?,
             ));
         }
         return Ok(Some({
@@ -46,9 +46,9 @@ pub fn call_date_method(
                             };
                             dispatch_receiver.dispatch.read_date_value_value()
                         },
-                        crate::template::runtime_helpers::to_plain_string(
-                            match args.get_number(0.0).as_ref() {
-                                Some(flow_value) => flow_value.clone(),
+                        &crate::template::runtime_helpers::to_plain_string(
+                            match args.get_number(0.0) {
+                                Some(flow_value) => flow_value,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
@@ -57,7 +57,7 @@ pub fn call_date_method(
                     )?,
                     core::convert::identity,
                     || String::from(""),
-                ));
+                ))?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value.identity.clone(),
                 dispatch: upcast_value.dispatch.clone(),
@@ -73,30 +73,27 @@ pub fn call_date_method(
                     None,
                     None,
                     None,
-                ),
+                )?,
             ));
         }
-        let years: Option<i32> =
-            crate::utils::int32::parse_int32(&crate::template::runtime_helpers::to_plain_string(
-                match args.get_number(0.0).as_ref() {
-                    Some(flow_value_2) => flow_value_2.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                },
-            )?)?;
-        let months: Option<i32> =
-            crate::utils::int32::parse_int32(&crate::template::runtime_helpers::to_plain_string(
-                match args.get_number(1.0).as_ref() {
-                    Some(flow_value_3) => flow_value_3.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                },
-            )?)?;
-        let days: Option<i32> =
-            crate::utils::int32::parse_int32(&crate::template::runtime_helpers::to_plain_string(
-                match args.get_number(2.0).as_ref() {
-                    Some(flow_value_4) => flow_value_4.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                },
-            )?)?;
+        let years: Option<i32> = crate::utils::int32::parse_int32(
+            &crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0) {
+                Some(flow_value_2) => flow_value_2,
+                None => unreachable!("checked flow selected a missing optional value"),
+            })?,
+        )?;
+        let months: Option<i32> = crate::utils::int32::parse_int32(
+            &crate::template::runtime_helpers::to_plain_string(match args.get_number(1.0) {
+                Some(flow_value_3) => flow_value_3,
+                None => unreachable!("checked flow selected a missing optional value"),
+            })?,
+        )?;
+        let days: Option<i32> = crate::utils::int32::parse_int32(
+            &crate::template::runtime_helpers::to_plain_string(match args.get_number(2.0) {
+                Some(flow_value_4) => flow_value_4,
+                None => unreachable!("checked flow selected a missing optional value"),
+            })?,
+        )?;
         if years.is_none() || months.is_none() || days.is_none() {
             return Err(rt::TsonicError::TsumoError(
                 crate::diagnostics::create_tsumo_error(
@@ -105,7 +102,7 @@ pub fn call_date_method(
                     None,
                     None,
                     None,
-                ),
+                )?,
             ));
         }
         let result: Option<String> =
@@ -163,7 +160,7 @@ pub fn call_date_method(
                     None,
                     None,
                     None,
-                ),
+                )?,
             ));
         }
         return Ok(Some({
@@ -171,7 +168,7 @@ pub fn call_date_method(
                 crate::template::values::date::DateValue::new(match result.as_ref() {
                     Some(flow_value_8) => flow_value_8.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
-                });
+                })?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_2.identity.clone(),
                 dispatch: upcast_value_2.dispatch.clone(),
@@ -181,10 +178,7 @@ pub fn call_date_method(
     if method == "after" {
         let other: Option<crate::template::values::base::TemplateValue> =
             if rt::conversions::usize_to_i32(args.len())? == 1 {
-                Some(match args.get_number(0.0).as_ref() {
-                    Some(flow_value_9) => flow_value_9.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                })
+                args.get_number(0.0)
             } else {
                 Option::<crate::template::values::base::TemplateValue>::None
             };
@@ -202,7 +196,7 @@ pub fn call_date_method(
                     None,
                     None,
                     None,
-                ),
+                )?,
             ));
         }
         let result: Option<bool> = crate::template::evaluation::scalar_semantics::is_date_after(
@@ -245,15 +239,15 @@ pub fn call_date_method(
                     None,
                     None,
                     None,
-                ),
+                )?,
             ));
         }
         return Ok(Some({
             let upcast_value_3 =
                 crate::template::values::primitives::BoolValue::new(match result.as_ref() {
-                    Some(flow_value_10) => *flow_value_10,
+                    Some(flow_value_9) => *flow_value_9,
                     None => unreachable!("checked flow selected a missing optional value"),
-                });
+                })?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_3.identity.clone(),
                 dispatch: upcast_value_3.dispatch.clone(),

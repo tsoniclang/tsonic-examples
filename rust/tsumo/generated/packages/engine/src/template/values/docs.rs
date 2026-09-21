@@ -5,13 +5,22 @@ use tsonic_rust_js::abi as js_abi;
 
 #[doc(hidden)]
 pub trait DocsMountValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_docs_mount_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_docs_mount_value_to_docs_mount_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn DocsMountValueDispatch + 'static>> {
         None
     }
     fn read_docs_mount_value_value(&self) -> crate::docs::models::DocsMountContext;
-    fn write_docs_mount_value_value(&self, value: crate::docs::models::DocsMountContext);
+    fn write_docs_mount_value_value(
+        &self,
+        value: crate::docs::models::DocsMountContext,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -50,33 +59,36 @@ impl rt::ObjectIdentityCarrier for DocsMountValue {
 }
 
 pub(crate) struct DocsMountValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<DocsMountValueState>,
+    state: rt::ObjectState<DocsMountValueState>,
 }
 
 impl DocsMountValue {
     #[doc(hidden)]
-    pub fn initialize_state(value: crate::docs::models::DocsMountContext) -> DocsMountValueState {
+    pub fn initialize_state(
+        value: crate::docs::models::DocsMountContext,
+    ) -> Result<DocsMountValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: crate::docs::models::DocsMountContext = value;
-        DocsMountValueState {
+        Ok(DocsMountValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: crate::docs::models::DocsMountContext) -> DocsMountValue {
-        let state = DocsMountValue::initialize_state(value);
+    pub fn new(
+        value: crate::docs::models::DocsMountContext,
+    ) -> Result<DocsMountValue, rt::TsonicError> {
+        let state = DocsMountValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(DocsMountValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        DocsMountValue {
+        Ok(DocsMountValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -96,6 +108,13 @@ impl crate::template::values::base::TemplateValueDispatch for DocsMountValueRoot
 }
 
 impl DocsMountValueDispatch for DocsMountValueRoot {
+    fn downcast_docs_mount_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_docs_mount_value_to_docs_mount_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn DocsMountValueDispatch + 'static>> {
@@ -106,8 +125,17 @@ impl DocsMountValueDispatch for DocsMountValueRoot {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_docs_mount_value_value(&self, value: crate::docs::models::DocsMountContext) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_docs_mount_value_value(
+        &self,
+        value: crate::docs::models::DocsMountContext,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -115,6 +143,12 @@ impl DocsMountValueDispatch for DocsMountValueRoot {
 pub trait DocsMountArrayValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
+    fn downcast_docs_mount_array_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_docs_mount_array_value_to_docs_mount_array_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn DocsMountArrayValueDispatch + 'static>> {
@@ -126,7 +160,7 @@ pub trait DocsMountArrayValueDispatch:
     fn write_docs_mount_array_value_value(
         &self,
         value: js_abi::JsArray<crate::docs::models::DocsMountContext>,
-    );
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -165,37 +199,36 @@ impl rt::ObjectIdentityCarrier for DocsMountArrayValue {
 }
 
 pub(crate) struct DocsMountArrayValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<DocsMountArrayValueState>,
+    state: rt::ObjectState<DocsMountArrayValueState>,
 }
 
 impl DocsMountArrayValue {
     #[doc(hidden)]
     pub fn initialize_state(
         value: js_abi::JsArray<crate::docs::models::DocsMountContext>,
-    ) -> DocsMountArrayValueState {
+    ) -> Result<DocsMountArrayValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: js_abi::JsArray<crate::docs::models::DocsMountContext> = value;
-        DocsMountArrayValueState {
+        Ok(DocsMountArrayValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
     pub fn new(
         value: js_abi::JsArray<crate::docs::models::DocsMountContext>,
-    ) -> DocsMountArrayValue {
-        let state = DocsMountArrayValue::initialize_state(value);
+    ) -> Result<DocsMountArrayValue, rt::TsonicError> {
+        let state = DocsMountArrayValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(DocsMountArrayValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        DocsMountArrayValue {
+        Ok(DocsMountArrayValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -215,6 +248,13 @@ impl crate::template::values::base::TemplateValueDispatch for DocsMountArrayValu
 }
 
 impl DocsMountArrayValueDispatch for DocsMountArrayValueRoot {
+    fn downcast_docs_mount_array_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_docs_mount_array_value_to_docs_mount_array_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn DocsMountArrayValueDispatch + 'static>> {
@@ -230,20 +270,35 @@ impl DocsMountArrayValueDispatch for DocsMountArrayValueRoot {
     fn write_docs_mount_array_value_value(
         &self,
         value: js_abi::JsArray<crate::docs::models::DocsMountContext>,
-    ) {
-        self.state.with_mut(|state| state.value = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
 #[doc(hidden)]
 pub trait NavItemValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_nav_item_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_nav_item_value_to_nav_item_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn NavItemValueDispatch + 'static>> {
         None
     }
     fn read_nav_item_value_value(&self) -> crate::docs::models::NavItem;
-    fn write_nav_item_value_value(&self, value: crate::docs::models::NavItem);
+    fn write_nav_item_value_value(
+        &self,
+        value: crate::docs::models::NavItem,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -282,33 +337,34 @@ impl rt::ObjectIdentityCarrier for NavItemValue {
 }
 
 pub(crate) struct NavItemValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<NavItemValueState>,
+    state: rt::ObjectState<NavItemValueState>,
 }
 
 impl NavItemValue {
     #[doc(hidden)]
-    pub fn initialize_state(value: crate::docs::models::NavItem) -> NavItemValueState {
+    pub fn initialize_state(
+        value: crate::docs::models::NavItem,
+    ) -> Result<NavItemValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: crate::docs::models::NavItem = value;
-        NavItemValueState {
+        Ok(NavItemValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: crate::docs::models::NavItem) -> NavItemValue {
-        let state = NavItemValue::initialize_state(value);
+    pub fn new(value: crate::docs::models::NavItem) -> Result<NavItemValue, rt::TsonicError> {
+        let state = NavItemValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(NavItemValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        NavItemValue {
+        Ok(NavItemValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -328,6 +384,13 @@ impl crate::template::values::base::TemplateValueDispatch for NavItemValueRoot {
 }
 
 impl NavItemValueDispatch for NavItemValueRoot {
+    fn downcast_nav_item_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_nav_item_value_to_nav_item_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn NavItemValueDispatch + 'static>> {
@@ -338,20 +401,38 @@ impl NavItemValueDispatch for NavItemValueRoot {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_nav_item_value_value(&self, value: crate::docs::models::NavItem) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_nav_item_value_value(
+        &self,
+        value: crate::docs::models::NavItem,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
 #[doc(hidden)]
 pub trait NavArrayValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_nav_array_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_nav_array_value_to_nav_array_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn NavArrayValueDispatch + 'static>> {
         None
     }
     fn read_nav_array_value_value(&self) -> js_abi::JsArray<crate::docs::models::NavItem>;
-    fn write_nav_array_value_value(&self, value: js_abi::JsArray<crate::docs::models::NavItem>);
+    fn write_nav_array_value_value(
+        &self,
+        value: js_abi::JsArray<crate::docs::models::NavItem>,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -390,35 +471,36 @@ impl rt::ObjectIdentityCarrier for NavArrayValue {
 }
 
 pub(crate) struct NavArrayValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<NavArrayValueState>,
+    state: rt::ObjectState<NavArrayValueState>,
 }
 
 impl NavArrayValue {
     #[doc(hidden)]
     pub fn initialize_state(
         value: js_abi::JsArray<crate::docs::models::NavItem>,
-    ) -> NavArrayValueState {
+    ) -> Result<NavArrayValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: js_abi::JsArray<crate::docs::models::NavItem> = value;
-        NavArrayValueState {
+        Ok(NavArrayValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: js_abi::JsArray<crate::docs::models::NavItem>) -> NavArrayValue {
-        let state = NavArrayValue::initialize_state(value);
+    pub fn new(
+        value: js_abi::JsArray<crate::docs::models::NavItem>,
+    ) -> Result<NavArrayValue, rt::TsonicError> {
+        let state = NavArrayValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(NavArrayValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        NavArrayValue {
+        Ok(NavArrayValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -438,6 +520,13 @@ impl crate::template::values::base::TemplateValueDispatch for NavArrayValueRoot 
 }
 
 impl NavArrayValueDispatch for NavArrayValueRoot {
+    fn downcast_nav_array_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_nav_array_value_to_nav_array_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn NavArrayValueDispatch + 'static>> {
@@ -448,7 +537,16 @@ impl NavArrayValueDispatch for NavArrayValueRoot {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_nav_array_value_value(&self, value: js_abi::JsArray<crate::docs::models::NavItem>) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_nav_array_value_value(
+        &self,
+        value: js_abi::JsArray<crate::docs::models::NavItem>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

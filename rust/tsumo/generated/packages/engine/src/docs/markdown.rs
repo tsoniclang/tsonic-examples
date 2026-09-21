@@ -12,20 +12,32 @@ pub trait DocsLinkRewriteContextDispatch {
         None
     }
     fn read_docs_link_rewrite_context_mount(&self) -> crate::docs::models::DocsMountConfig;
-    fn write_docs_link_rewrite_context_mount(&self, value: crate::docs::models::DocsMountConfig);
+    fn write_docs_link_rewrite_context_mount(
+        &self,
+        value: crate::docs::models::DocsMountConfig,
+    ) -> Result<(), rt::TsonicError>;
     fn read_docs_link_rewrite_context_source_path(&self) -> String;
-    fn write_docs_link_rewrite_context_source_path(&self, value: String);
+    fn write_docs_link_rewrite_context_source_path(
+        &self,
+        value: String,
+    ) -> Result<(), rt::TsonicError>;
     fn read_docs_link_rewrite_context_current_dir_key(&self) -> String;
-    fn write_docs_link_rewrite_context_current_dir_key(&self, value: String);
+    fn write_docs_link_rewrite_context_current_dir_key(
+        &self,
+        value: String,
+    ) -> Result<(), rt::TsonicError>;
     fn read_docs_link_rewrite_context_rel_permalink_by_rel_path_lower(
         &self,
     ) -> js_abi::JsMap<String, String>;
     fn write_docs_link_rewrite_context_rel_permalink_by_rel_path_lower(
         &self,
         value: js_abi::JsMap<String, String>,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_docs_link_rewrite_context_strict_links(&self) -> bool;
-    fn write_docs_link_rewrite_context_strict_links(&self, value: bool);
+    fn write_docs_link_rewrite_context_strict_links(
+        &self,
+        value: bool,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -66,9 +78,8 @@ impl rt::ObjectIdentityCarrier for DocsLinkRewriteContext {
 }
 
 pub(crate) struct DocsLinkRewriteContextRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<DocsLinkRewriteContextState>,
+    state: rt::ObjectState<DocsLinkRewriteContextState>,
 }
 
 impl DocsLinkRewriteContext {
@@ -79,20 +90,20 @@ impl DocsLinkRewriteContext {
         current_dir_key: String,
         rel_permalink_by_rel_path_lower: js_abi::JsMap<String, String>,
         strict_links: bool,
-    ) -> DocsLinkRewriteContextState {
+    ) -> Result<DocsLinkRewriteContextState, rt::TsonicError> {
         let field_mount: crate::docs::models::DocsMountConfig = mount;
         let field_source_path: String = source_path;
         let field_current_dir_key: String = current_dir_key;
         let field_rel_permalink_by_rel_path_lower: js_abi::JsMap<String, String> =
             rel_permalink_by_rel_path_lower;
         let field_strict_links: bool = strict_links;
-        DocsLinkRewriteContextState {
+        Ok(DocsLinkRewriteContextState {
             mount: field_mount,
             source_path: field_source_path,
             current_dir_key: field_current_dir_key,
             rel_permalink_by_rel_path_lower: field_rel_permalink_by_rel_path_lower,
             strict_links: field_strict_links,
-        }
+        })
     }
 
     pub fn new(
@@ -101,23 +112,23 @@ impl DocsLinkRewriteContext {
         current_dir_key: String,
         rel_permalink_by_rel_path_lower: js_abi::JsMap<String, String>,
         strict_links: bool,
-    ) -> DocsLinkRewriteContext {
+    ) -> Result<DocsLinkRewriteContext, rt::TsonicError> {
         let state = DocsLinkRewriteContext::initialize_state(
             mount,
             source_path,
             current_dir_key,
             rel_permalink_by_rel_path_lower,
             strict_links,
-        );
+        )?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(DocsLinkRewriteContextRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        DocsLinkRewriteContext {
+        Ok(DocsLinkRewriteContext {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -132,24 +143,51 @@ impl DocsLinkRewriteContextDispatch for DocsLinkRewriteContextRoot {
         self.state.with(|state| state.mount.clone())
     }
 
-    fn write_docs_link_rewrite_context_mount(&self, value: crate::docs::models::DocsMountConfig) {
-        self.state.with_mut(|state| state.mount = value);
+    fn write_docs_link_rewrite_context_mount(
+        &self,
+        value: crate::docs::models::DocsMountConfig,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.mount = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_docs_link_rewrite_context_source_path(&self) -> String {
         self.state.with(|state| state.source_path.clone())
     }
 
-    fn write_docs_link_rewrite_context_source_path(&self, value: String) {
-        self.state.with_mut(|state| state.source_path = value);
+    fn write_docs_link_rewrite_context_source_path(
+        &self,
+        value: String,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.source_path = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_docs_link_rewrite_context_current_dir_key(&self) -> String {
         self.state.with(|state| state.current_dir_key.clone())
     }
 
-    fn write_docs_link_rewrite_context_current_dir_key(&self, value: String) {
-        self.state.with_mut(|state| state.current_dir_key = value);
+    fn write_docs_link_rewrite_context_current_dir_key(
+        &self,
+        value: String,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.current_dir_key = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_docs_link_rewrite_context_rel_permalink_by_rel_path_lower(
@@ -162,17 +200,32 @@ impl DocsLinkRewriteContextDispatch for DocsLinkRewriteContextRoot {
     fn write_docs_link_rewrite_context_rel_permalink_by_rel_path_lower(
         &self,
         value: js_abi::JsMap<String, String>,
-    ) {
-        self.state
-            .with_mut(|state| state.rel_permalink_by_rel_path_lower = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state
+                    .with_mut(|state| state.rel_permalink_by_rel_path_lower = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_docs_link_rewrite_context_strict_links(&self) -> bool {
         self.state.with(|state| state.strict_links)
     }
 
-    fn write_docs_link_rewrite_context_strict_links(&self, value: bool) {
-        self.state.with_mut(|state| state.strict_links = value);
+    fn write_docs_link_rewrite_context_strict_links(
+        &self,
+        value: bool,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.strict_links = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -212,8 +265,8 @@ pub fn normalize_relative_path(
         {
             let mut i: f64 = 0.0;
             while i < (rt::conversions::usize_to_i32(base_parts.len())? as f64) {
-                let seg: String = js_string::trim(&match base_parts.get_number(i).as_ref() {
-                    Some(flow_value) => flow_value.clone(),
+                let seg: String = js_string::trim(&match base_parts.get_number(i) {
+                    Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 });
                 if !seg.is_empty() {
@@ -228,8 +281,8 @@ pub fn normalize_relative_path(
     {
         let mut i: f64 = 0.0;
         'loop_value_2: while i < (rt::conversions::usize_to_i32(parts.len())? as f64) {
-            let raw: String = match parts.get_number(i).as_ref() {
-                Some(flow_value_2) => flow_value_2.clone(),
+            let raw: String = match parts.get_number(i) {
+                Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let seg: String = js_string::trim(&raw);
@@ -253,8 +306,8 @@ pub fn normalize_relative_path(
     if rt::conversions::usize_to_i32(arr.len())? == 0 {
         return Ok(Some(String::from("")));
     }
-    let mut out: String = match arr.get_number(0.0).as_ref() {
-        Some(flow_value_3) => flow_value_3.clone(),
+    let mut out: String = match arr.get_number(0.0) {
+        Some(flow_value_3) => flow_value_3,
         None => unreachable!("checked flow selected a missing optional value"),
     };
     for i_range in 1..rt::conversions::usize_to_i32(arr.len())? {
@@ -262,8 +315,8 @@ pub fn normalize_relative_path(
         out.push_str(&format!(
             "{}{}",
             String::from("/"),
-            match arr.get_number(i).as_ref() {
-                Some(flow_value_4) => flow_value_4.clone(),
+            match arr.get_number(i) {
+                Some(flow_value_4) => flow_value_4,
                 None => unreachable!("checked flow selected a missing optional value"),
             }
         ));
@@ -313,7 +366,7 @@ pub fn compute_git_hub_blob_url(
         }
     };
     let rel: String =
-        crate::utils::strings::trim_start_char(&js_string::trim(repo_rel_path), slash.clone())?;
+        crate::utils::strings::trim_start_char(js_string::trim(repo_rel_path), slash)?;
     if rel.is_empty() {
         return Ok(Option::<String>::None);
     }
@@ -345,7 +398,7 @@ pub fn maybe_rewrite_url(
                 }),
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     if url.is_empty() || js_string::starts_with_from_start(&url, "#") || is_external_url(&url) {
@@ -376,12 +429,12 @@ pub fn maybe_rewrite_url(
     if js_string::starts_with_from_start(&path_part, "/") {
         if mount_prefix_lower == "/" {
             resolved_rel = Some(crate::utils::strings::trim_start_char(
-                &path_part,
+                path_part.clone(),
                 slash.clone(),
             )?);
         } else if js_string::starts_with_from_start(&path_lower, &mount_prefix_lower) {
             resolved_rel = Some(crate::utils::strings::trim_start_char(
-                &crate::utils::strings::substring_from(
+                crate::utils::strings::substring_from(
                     &path_part,
                     rt::conversions::usize_to_i32(js_string::js_len(&{
                         let dispatch_receiver_5 = &{
@@ -446,7 +499,7 @@ pub fn maybe_rewrite_url(
                     }),
                     None,
                     None,
-                ),
+                )?,
             ));
         }
         let repo_path_raw: Option<String> = {
@@ -471,7 +524,7 @@ pub fn maybe_rewrite_url(
         }
         let repo_path: String = crate::utils::strings::trim_end_char(
             crate::utils::strings::trim_start_char(
-                &js_string::trim(&match repo_path_raw.as_ref() {
+                js_string::trim(&match repo_path_raw.as_ref() {
                     Some(flow_value_2) => flow_value_2.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 }),
@@ -590,7 +643,7 @@ pub fn maybe_rewrite_url(
                 }),
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     Ok(Option::<String>::None)
@@ -645,25 +698,23 @@ pub fn render_docs_markdown(
         .is_empty()
     {
         String::from("")
+    } else if source_plan.state.with(|state| state.summary_source.clone())
+        == source_plan.state.with(|state| state.full_source.clone())
+    {
+        js_string::trim(&html)
     } else {
-        if source_plan.state.with(|state| state.summary_source.clone())
-            == source_plan.state.with(|state| state.full_source.clone())
-        {
-            js_string::trim(&html)
-        } else {
-            js_string::trim(
-                &create_document_with_rewrites(
-                    source_plan.state.with(|state| state.summary_source.clone()),
-                    ctx.clone(),
-                )?
-                .render(),
-            )
-        }
+        js_string::trim(
+            &create_document_with_rewrites(
+                source_plan.state.with(|state| state.summary_source.clone()),
+                ctx.clone(),
+            )?
+            .render(),
+        )
     };
-    Ok(crate::markdown::result::MarkdownResult::new(
-        html.clone(),
+    crate::markdown::result::MarkdownResult::new(
+        html,
         summary_html,
         document.plain_text(),
         String::from(""),
-    ))
+    )
 }

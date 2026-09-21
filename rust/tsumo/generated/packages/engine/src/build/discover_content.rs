@@ -17,7 +17,7 @@ pub fn create_page_file(
     file_name: String,
     file_path: String,
 ) -> Result<crate::models::page_file::PageFile, rt::TsonicError> {
-    Ok(crate::models::page_file::PageFile::new(
+    crate::models::page_file::PageFile::new(
         tsonic_rust_node::path::resolve(&[file_path.as_str()])?,
         if directory.is_empty() {
             String::from("")
@@ -25,65 +25,19 @@ pub fn create_page_file(
             format!("{}{}", directory, String::from("/"))
         },
         crate::build::site_routes::without_markdown_extension(file_name)?,
-    ))
+    )
 }
 
-pub fn compare_content_pages(
-    left: crate::build::content_model::ContentPageSource,
-    right: crate::build::content_model::ContentPageSource,
-) -> Result<f64, rt::TsonicError> {
-    let left_time: f64 = {
-        let dispatch_receiver = &left;
-        dispatch_receiver
-            .dispatch
-            .read_content_page_source_date_utc()
-    }
-    .get_time();
-    let right_time: f64 = {
-        let dispatch_receiver_2 = &right;
-        dispatch_receiver_2
-            .dispatch
-            .read_content_page_source_date_utc()
-    }
-    .get_time();
-    if right_time > left_time {
-        return Ok(1.0);
-    }
-    if right_time < left_time {
-        return Ok(-1.0);
-    }
-    let route: i32 = crate::utils::strings::compare_text(
-        {
-            let dispatch_receiver_3 = &left;
-            dispatch_receiver_3
-                .dispatch
-                .read_content_page_source_rel_permalink()
-        },
-        {
-            let dispatch_receiver_4 = &right;
-            dispatch_receiver_4
-                .dispatch
-                .read_content_page_source_rel_permalink()
-        },
-    );
-    Ok(if route != 0 {
-        rt::conversions::i32_to_f64(route)
-    } else {
-        crate::build::site_routes::compare_site_paths(
-            {
-                let dispatch_receiver_5 = &left;
-                dispatch_receiver_5
-                    .dispatch
-                    .read_content_page_source_source_path()
-            },
-            {
-                let dispatch_receiver_6 = &right;
-                dispatch_receiver_6
-                    .dispatch
-                    .read_content_page_source_source_path()
-            },
-        )?
-    })
+pub type CompareContentPagesCallable = rt::Callable<
+    (
+        crate::build::content_model::ContentPageSource,
+        crate::build::content_model::ContentPageSource,
+    ),
+    rt::TsonicResult<f64>,
+>;
+
+std::thread_local! {
+    pub static COMPARE_CONTENT_PAGES: rt::ModuleCell<CompareContentPagesCallable> = const { rt::ModuleCell::new() };
 }
 
 pub fn assert_unique_output(
@@ -113,10 +67,10 @@ pub fn assert_unique_output(
                 Some(source_path.clone()),
                 None,
                 None,
-            ),
+            )?,
         ));
     }
-    outputs.set_discard(key.clone(), source_path.clone());
+    outputs.set_discard(key, source_path);
     Ok(())
 }
 
@@ -126,7 +80,7 @@ pub fn discover_content(
 ) -> Result<crate::build::content_model::ContentInventory, rt::TsonicError> {
     let files: js_abi::JsArray<String> =
         crate::fs::list_files_recursive(content_dir.clone(), String::from("*.md"))?;
-    files.try_sort(crate::build::site_routes::compare_site_paths)?;
+    files.try_sort_borrowed(crate::build::site_routes::compare_site_paths)?;
     let pages: js_abi::JsArray<crate::build::content_model::ContentPageSource> =
         js_abi::JsArray::from_dense(vec![]);
     let list_pages_by_route: js_abi::JsMap<String, crate::build::content_model::ListPageSource> =
@@ -135,8 +89,8 @@ pub fn discover_content(
     {
         let mut file_index: f64 = 0.0;
         'loop_value: while file_index < (rt::conversions::usize_to_i32(files.len())? as f64) {
-            let file_path: String = match files.get_number(file_index).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let file_path: String = match files.get_number(file_index) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let relative_path: String = crate::build::site_routes::normalize_site_path(
@@ -157,17 +111,17 @@ pub fn discover_content(
                         Some(file_path.clone()),
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
             let path_segments: js_abi::JsArray<String> =
-                crate::build::site_routes::split_site_path(relative_path.clone())?;
+                crate::build::site_routes::split_site_path(&relative_path)?;
             {
                 let mut index: f64 = 0.0;
                 while index < (rt::conversions::usize_to_i32(path_segments.len())? as f64) {
                     crate::build::site_routes::assert_site_route_segment(
-                        match path_segments.get_number(index).as_ref() {
-                            Some(flow_value_2) => flow_value_2.clone(),
+                        match path_segments.get_number(index) {
+                            Some(flow_value_2) => flow_value_2,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                         file_path.clone(),
@@ -175,16 +129,17 @@ pub fn discover_content(
                     index += 1.0;
                 }
             }
-            let file_name: String = match {
-                let operation_input_0 = path_segments.clone();
-                operation_input_0.get_number(rt::conversions::i32_to_f64(
-                    rt::conversions::usize_to_i32(path_segments.len())? - 1,
-                ))
-            }
-            .as_ref()
-            {
-                Some(flow_value_3) => flow_value_3.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
+            let file_name: String = {
+                let flow_input = {
+                    let operation_input_0 = path_segments.clone();
+                    operation_input_0.get_number(rt::conversions::i32_to_f64(
+                        rt::conversions::usize_to_i32(path_segments.len())? - 1,
+                    ))
+                };
+                match flow_input {
+                    Some(flow_value_3) => flow_value_3,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }
             };
             let directory_segments: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
             {
@@ -193,8 +148,8 @@ pub fn discover_content(
                     {
                         let operation_input_0_2 = directory_segments.clone();
                         operation_input_0_2.push_many_discard([
-                            match path_segments.get_number(index).as_ref() {
-                                Some(flow_value_4) => flow_value_4.clone(),
+                            match path_segments.get_number(index) {
+                                Some(flow_value_4) => flow_value_4,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
@@ -214,7 +169,7 @@ pub fn discover_content(
             let front_matter: crate::frontmatter::data::FrontMatter =
                 parsed.state.with(|state| state.front_matter.clone());
             let modified_at: js_abi::JsDate = js_abi::JsDate::from_millis(
-                tsonic_rust_node::fs::stat_sync(&file_path)?.mtime_ms(),
+                tsonic_rust_node::fs::stat_sync(file_path.as_str())?.mtime_ms(),
             );
             let file: crate::models::page_file::PageFile =
                 create_page_file(directory.clone(), file_name.clone(), file_path.clone())?;
@@ -232,7 +187,7 @@ pub fn discover_content(
                             Some(file_path.clone()),
                             None,
                             None,
-                        ),
+                        )?,
                     ));
                 }
                 assert_unique_output(
@@ -257,15 +212,15 @@ pub fn discover_content(
                             front_matter.state.with(|state| state.params.clone()),
                             tsonic_rust_node::path::dirname(&file_path),
                             file.clone(),
-                        ),
+                        )?,
                     )
                 };
                 file_index += 1.0;
                 continue 'loop_value;
             }
             let section: String = if rt::conversions::usize_to_i32(directory_segments.len())? > 0 {
-                match directory_segments.get_number(0.0).as_ref() {
-                    Some(flow_value_5) => flow_value_5.clone(),
+                match directory_segments.get_number(0.0) {
+                    Some(flow_value_5) => flow_value_5,
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
             } else {
@@ -300,25 +255,25 @@ pub fn discover_content(
             let is_leaf_bundle: bool = is_leaf_bundle_index_file(&file_name)
                 && rt::conversions::usize_to_i32(directory_segments.len())? > 0;
             let default_leaf_name: String = if is_leaf_bundle {
-                match {
+                let flow_input_2 = {
                     let operation_input_0_4 = directory_segments.clone();
                     operation_input_0_4.get_number(rt::conversions::i32_to_f64(
                         rt::conversions::usize_to_i32(directory_segments.len())? - 1,
                     ))
-                }
-                .as_ref()
-                {
-                    Some(flow_value_8) => flow_value_8.clone(),
+                };
+                match flow_input_2 {
+                    Some(flow_value_8) => flow_value_8,
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
             } else {
                 crate::build::site_routes::without_markdown_extension(file_name.clone())?
             };
-            let slug: String = rt::option_coalesce(
-                front_matter.state.with(|state| state.slug.clone()),
-                Ok,
-                || crate::utils::text::slugify(&default_leaf_name),
-            )?;
+            let slug: String =
+                rt::option_coalesce::<_, core::result::Result<String, rt::TsonicError>>(
+                    front_matter.state.with(|state| state.slug.clone()),
+                    Ok,
+                    || crate::utils::text::slugify(&default_leaf_name),
+                )?;
             crate::build::site_routes::assert_site_route_segment(slug.clone(), file_path.clone())?;
             let route_segments: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
             let directory_count: f64 = if is_leaf_bundle {
@@ -336,8 +291,8 @@ pub fn discover_content(
                     {
                         let operation_input_0_5 = route_segments.clone();
                         operation_input_0_5.push_many_discard([
-                            match directory_segments.get_number(index).as_ref() {
-                                Some(flow_value_9) => flow_value_9.clone(),
+                            match directory_segments.get_number(index) {
+                                Some(flow_value_9) => flow_value_9,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
@@ -357,10 +312,10 @@ pub fn discover_content(
                     section.clone(),
                     page_type.clone(),
                     slug.clone(),
-                    rt::option_coalesce(
+                    rt::option_coalesce::<_, core::result::Result<String, rt::TsonicError>>(
                         front_matter.state.with(|state| state.title.clone()),
                         Ok,
-                        || crate::utils::text::humanize_slug(default_leaf_name.clone()),
+                        || crate::utils::text::humanize_slug(&default_leaf_name),
                     )?,
                     rt::option_coalesce(
                         front_matter.state.with(|state| state.date.clone()),
@@ -395,14 +350,84 @@ pub fn discover_content(
                     front_matter.state.with(|state| state.layout.clone()),
                     file.clone(),
                     front_matter.state.with(|state| state.menus.clone()),
-                );
+                )?;
             pages.push_many_discard([page.clone()]);
             file_index += 1.0;
         }
     }
-    pages.try_sort(compare_content_pages)?;
-    Ok(crate::build::content_model::ContentInventory::new(
-        pages.clone(),
-        list_pages_by_route.clone(),
-    ))
+    pages.try_sort(|left, right| {
+        COMPARE_CONTENT_PAGES
+            .with(|module_binding| module_binding.load())
+            .call((left, right))
+    })?;
+    crate::build::content_model::ContentInventory::new(pages.clone(), list_pages_by_route.clone())
+}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = rt::Callable::<
+            (
+                crate::build::content_model::ContentPageSource,
+                crate::build::content_model::ContentPageSource,
+            ),
+            rt::TsonicResult<f64>,
+        >::new(move |callable_arguments| {
+            let left = callable_arguments.0;
+            let right = callable_arguments.1;
+            let left_time: f64 = {
+                let dispatch_receiver = &left;
+                dispatch_receiver
+                    .dispatch
+                    .read_content_page_source_date_utc()
+            }
+            .get_time();
+            let right_time: f64 = {
+                let dispatch_receiver_2 = &right;
+                dispatch_receiver_2
+                    .dispatch
+                    .read_content_page_source_date_utc()
+            }
+            .get_time();
+            if right_time > left_time {
+                return Ok::<_, rt::TsonicError>(1.0);
+            }
+            if right_time < left_time {
+                return Ok::<_, rt::TsonicError>(-1.0);
+            }
+            let route: i32 = crate::utils::strings::compare_text(
+                {
+                    let dispatch_receiver_3 = &left;
+                    dispatch_receiver_3
+                        .dispatch
+                        .read_content_page_source_rel_permalink()
+                },
+                {
+                    let dispatch_receiver_4 = &right;
+                    dispatch_receiver_4
+                        .dispatch
+                        .read_content_page_source_rel_permalink()
+                },
+            );
+            Ok::<_, rt::TsonicError>(if route != 0 {
+                rt::conversions::i32_to_f64(route)
+            } else {
+                crate::build::site_routes::compare_site_paths(
+                    &{
+                        let dispatch_receiver_5 = &left;
+                        dispatch_receiver_5
+                            .dispatch
+                            .read_content_page_source_source_path()
+                    },
+                    &{
+                        let dispatch_receiver_6 = &right;
+                        dispatch_receiver_6
+                            .dispatch
+                            .read_content_page_source_source_path()
+                    },
+                )?
+            })
+        });
+        COMPARE_CONTENT_PAGES.with(|module_binding| module_binding.initialize(module_value))
+    };
 }

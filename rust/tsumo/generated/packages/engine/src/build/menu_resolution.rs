@@ -7,7 +7,7 @@ use tsonic_rust_js::string as js_string;
 pub fn normalize_page_reference(value: &str) -> Result<String, rt::TsonicError> {
     Ok(js_string::to_lower_case(
         &crate::utils::strings::trim_end_char(
-            crate::utils::strings::trim_start_char(&js_string::trim(value), String::from("/"))?,
+            crate::utils::strings::trim_start_char(js_string::trim(value), String::from("/"))?,
             String::from("/"),
         )?,
     ))
@@ -21,11 +21,11 @@ pub fn create_page_index(
     {
         let mut page_index: f64 = 0.0;
         while page_index < (rt::conversions::usize_to_i32(pages.len())? as f64) {
-            let page: crate::models::page_context::PageContext =
-                match pages.get_number(page_index).as_ref() {
-                    Some(flow_value) => flow_value.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                };
+            let page: crate::models::page_context::PageContext = match pages.get_number(page_index)
+            {
+                Some(flow_value) => flow_value,
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
             let key: String = normalize_page_reference(&{
                 let dispatch_receiver = &page;
                 dispatch_receiver.dispatch.read_page_context_rel_permalink()
@@ -48,7 +48,7 @@ pub fn create_page_index(
                         None,
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
             index.set_discard(key.clone(), page.clone());
@@ -65,11 +65,10 @@ pub fn resolve_menu_page_references(
     {
         let mut index: f64 = 0.0;
         while index < (rt::conversions::usize_to_i32(entries.len())? as f64) {
-            let entry: crate::models::menu_entry::MenuEntry =
-                match entries.get_number(index).as_ref() {
-                    Some(flow_value) => flow_value.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                };
+            let entry: crate::models::menu_entry::MenuEntry = match entries.get_number(index) {
+                Some(flow_value) => flow_value,
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
             if !js_string::trim(&{
                 let dispatch_receiver = &entry;
                 dispatch_receiver.dispatch.read_menu_entry_page_ref()
@@ -115,7 +114,7 @@ pub fn resolve_menu_page_references(
                             None,
                             None,
                             None,
-                        ),
+                        )?,
                     ));
                 }
                 {
@@ -126,7 +125,7 @@ pub fn resolve_menu_page_references(
                     });
                     {
                         let dispatch_receiver_7 = receiver;
-                        dispatch_receiver_7.dispatch.write_menu_entry_page(value)
+                        dispatch_receiver_7.dispatch.write_menu_entry_page(value)?
                     }
                 };
             }
@@ -158,7 +157,7 @@ pub fn configure_site_menus(
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     let front_matter_by_menu: js_abi::JsMap<
@@ -169,15 +168,15 @@ pub fn configure_site_menus(
         let mut page_index: f64 = 0.0;
         while page_index < (rt::conversions::usize_to_i32(page_sources.len())? as f64) {
             let source: crate::build::content_model::ContentPageSource =
-                match page_sources.get_number(page_index).as_ref() {
-                    Some(flow_value) => flow_value.clone(),
+                match page_sources.get_number(page_index) {
+                    Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-            let page: crate::models::page_context::PageContext =
-                match pages.get_number(page_index).as_ref() {
-                    Some(flow_value_2) => flow_value_2.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                };
+            let page: crate::models::page_context::PageContext = match pages.get_number(page_index)
+            {
+                Some(flow_value_2) => flow_value_2,
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
             {
                 let mut menu_index: f64 = 0.0;
                 while menu_index
@@ -196,9 +195,8 @@ pub fn configure_site_menus(
                             .read_content_page_source_menus()
                     }
                     .get_number(menu_index)
-                    .as_ref()
                     {
-                        Some(flow_value_3) => flow_value_3.clone(),
+                        Some(flow_value_3) => flow_value_3,
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     let menu_name: String = js_string::trim(&{
@@ -218,7 +216,7 @@ pub fn configure_site_menus(
                                 }),
                                 None,
                                 None,
-                            ),
+                            )?,
                         ));
                     }
                     let entry: crate::models::menu_entry::MenuEntry =
@@ -283,13 +281,13 @@ pub fn configure_site_menus(
                             },
                             menu_name.clone(),
                             None,
-                        );
+                        )?;
                     {
                         let receiver = &entry;
                         let value = Some(page.clone());
                         {
                             let dispatch_receiver_16 = receiver;
-                            dispatch_receiver_16.dispatch.write_menu_entry_page(value)
+                            dispatch_receiver_16.dispatch.write_menu_entry_page(value)?
                         }
                     };
                     let entries: js_abi::JsArray<crate::models::menu_entry::MenuEntry> =
@@ -313,8 +311,8 @@ pub fn configure_site_menus(
     {
         let mut index: f64 = 0.0;
         while index < (rt::conversions::usize_to_i32(menu_names.len())? as f64) {
-            let menu_name: String = match menu_names.get_number(index).as_ref() {
-                Some(flow_value_4) => flow_value_4.clone(),
+            let menu_name: String = match menu_names.get_number(index) {
+                Some(flow_value_4) => flow_value_4,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let existing: Option<js_abi::JsArray<crate::models::menu_entry::MenuEntry>> = {
@@ -348,7 +346,7 @@ pub fn configure_site_menus(
                         None,
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
             {
@@ -372,9 +370,8 @@ pub fn configure_site_menus(
                                 }
                             }
                             .get_number(entry_index)
-                            .as_ref()
                             {
-                                Some(flow_value_8) => flow_value_8.clone(),
+                                Some(flow_value_8) => flow_value_8,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }

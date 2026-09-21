@@ -42,7 +42,7 @@ pub fn build_docs_site(
                 let dispatch_receiver_3 = receiver;
                 dispatch_receiver_3
                     .dispatch
-                    .write_site_config_base_url(value)
+                    .write_site_config_base_url(value)?
             }
         };
     }
@@ -56,7 +56,7 @@ pub fn build_docs_site(
                 let dispatch_receiver_4 = receiver_2;
                 dispatch_receiver_4
                     .dispatch
-                    .write_site_config_title(value_2)
+                    .write_site_config_title(value_2)?
             }
         };
     }
@@ -76,7 +76,7 @@ pub fn build_docs_site(
         }),
     )?;
     let output_plan: crate::build::output_plan::SiteOutputPlan =
-        crate::build::output_plan::SiteOutputPlan::new();
+        crate::build::output_plan::SiteOutputPlan::new()?;
     if theme_dir.is_some() {
         {
             let dispatch_receiver_7 = output_plan.clone();
@@ -92,7 +92,7 @@ pub fn build_docs_site(
                         .as_str(),
                         "static",
                     ]),
-                    String::from(""),
+                    "",
                     String::from("theme static files"),
                     crate::build::output_plan::AssetLayer::ThemeStatic,
                 )
@@ -105,7 +105,7 @@ pub fn build_docs_site(
             .clone()
             .dispatch_site_output_plan_add_directory(
                 tsonic_rust_node::path::join(&[site_dir.as_str(), "static"]),
-                String::from(""),
+                "",
                 String::from("site static files"),
                 crate::build::output_plan::AssetLayer::SiteStatic,
             )
@@ -129,7 +129,7 @@ pub fn build_docs_site(
             let dispatch_receiver_9 = receiver_3;
             dispatch_receiver_9
                 .dispatch
-                .write_site_context_sites(value_3)
+                .write_site_context_sites(value_3)?
         }
     };
     let base_tpl: Option<String> = crate::build::layout::select_template(
@@ -204,18 +204,17 @@ pub fn build_docs_site(
     let search_docs: js_abi::JsArray<crate::docs::search_index::SearchDocument> =
         js_abi::JsArray::from_dense(vec![]);
     let output_claims: crate::docs::output::DocsOutputClaims =
-        crate::docs::output::DocsOutputClaims::new();
+        crate::docs::output::DocsOutputClaims::new()?;
     let mut root_mount_owns_home: bool = false;
     let mounts: js_abi::JsArray<crate::docs::models::DocsMountConfig> =
         docs_config.state.with(|state| state.mounts.clone());
     {
         let mut mount_index: f64 = 0.0;
         while mount_index < (rt::conversions::usize_to_i32(mounts.len())? as f64) {
-            let mount: crate::docs::models::DocsMountConfig =
-                match mounts.get_number(mount_index).as_ref() {
-                    Some(flow_value_4) => flow_value_4.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                };
+            let mount: crate::docs::models::DocsMountConfig = match mounts.get_number(mount_index) {
+                Some(flow_value_4) => flow_value_4,
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
             let discovered: crate::docs::routes::DocsMountRoutes =
                 crate::docs::routes::discover_docs_mount_routes(mount.clone())?;
             let content: crate::docs::content::DocsContentInventory =
@@ -239,9 +238,8 @@ pub fn build_docs_site(
                         .state
                         .with(|state| state.assets.clone())
                         .get_number(index)
-                        .as_ref()
                     {
-                        Some(flow_value_5) => flow_value_5.clone(),
+                        Some(flow_value_5) => flow_value_5,
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     {
@@ -309,9 +307,8 @@ pub fn build_docs_site(
                         .state
                         .with(|state| state.leaves.clone())
                         .get_number(index)
-                        .as_ref()
                     {
-                        Some(flow_value_6) => flow_value_6.clone(),
+                        Some(flow_value_6) => flow_value_6,
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     {
@@ -350,7 +347,7 @@ pub fn build_docs_site(
                             .read_docs_mount_config_url_prefix()
                     },
                     crate::docs::nav::load_mount_nav(mount.clone(), route_map.clone())?,
-                )])
+                )?])
             };
             let prefix_segs: js_abi::JsArray<String> =
                 crate::docs::routes::docs_mount_prefix_segments({
@@ -363,8 +360,8 @@ pub fn build_docs_site(
                 root_mount_owns_home = true;
             }
             let mount_section: String = if rt::conversions::usize_to_i32(prefix_segs.len())? > 0 {
-                match prefix_segs.get_number(0.0).as_ref() {
-                    Some(flow_value_7) => flow_value_7.clone(),
+                match prefix_segs.get_number(0.0) {
+                    Some(flow_value_7) => flow_value_7,
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
             } else {
@@ -383,8 +380,8 @@ pub fn build_docs_site(
                 let mut i: f64 = 0.0;
                 while i < (rt::conversions::usize_to_i32(leaf_arr.len())? as f64) {
                     let source: crate::docs::content::DocsContentRoute =
-                        match leaf_arr.get_number(i).as_ref() {
-                            Some(flow_value_8) => flow_value_8.clone(),
+                        match leaf_arr.get_number(i) {
+                            Some(flow_value_8) => flow_value_8,
                             None => unreachable!("checked flow selected a missing optional value"),
                         };
                     let r: crate::docs::routes::DocsMarkdownRoute =
@@ -402,25 +399,26 @@ pub fn build_docs_site(
                                 r.state.with(|state| state.dir_key.clone()),
                                 route_map.clone(),
                                 docs_config.state.with(|state| state.strict_links),
-                            ),
+                            )?,
                         )?;
                     let content: crate::utils::html::HtmlString =
                         crate::utils::html::HtmlString::new(
                             md.state.with(|state| state.html.clone()),
-                        );
+                        )?;
                     let summary: crate::utils::html::HtmlString =
                         crate::utils::html::HtmlString::new(
                             md.state.with(|state| state.summary_html.clone()),
-                        );
+                        )?;
                     let plain_text: String = md.state.with(|state| state.plain_text.clone());
                     let base_name: String = crate::docs::routes::without_markdown_extension(
                         r.state.with(|state| state.file_name.clone()),
                     )?;
-                    let title: String = rt::option_coalesce(
-                        fm.state.with(|state| state.title.clone()),
-                        Ok,
-                        || crate::utils::text::humanize_slug(base_name.clone()),
-                    )?;
+                    let title: String =
+                        rt::option_coalesce::<_, core::result::Result<String, rt::TsonicError>>(
+                            fm.state.with(|state| state.title.clone()),
+                            Ok,
+                            || crate::utils::text::humanize_slug(&base_name),
+                        )?;
                     let date_utc: js_abi::JsDate = rt::option_coalesce(
                         fm.state.with(|state| state.date.clone()),
                         core::convert::identity,
@@ -447,7 +445,7 @@ pub fn build_docs_site(
                                 )
                             },
                             base_name.clone(),
-                        );
+                        )?;
                     let params: js_abi::JsMap<String, crate::params::ParamValue> =
                         fm.state.with(|state| state.params.clone());
                     {
@@ -457,7 +455,7 @@ pub fn build_docs_site(
                             crate::params::ParamValue::string({
                                 let dispatch_receiver_19 = &mount;
                                 dispatch_receiver_19.dispatch.read_docs_mount_config_name()
-                            }),
+                            })?,
                         )
                     };
                     {
@@ -469,7 +467,7 @@ pub fn build_docs_site(
                                 dispatch_receiver_20
                                     .dispatch
                                     .read_docs_mount_config_url_prefix()
-                            }),
+                            })?,
                         )
                     };
                     {
@@ -478,7 +476,7 @@ pub fn build_docs_site(
                             String::from("relPath"),
                             crate::params::ParamValue::string(
                                 r.state.with(|state| state.rel_path.clone()),
-                            ),
+                            )?,
                         )
                     };
                     let edit_url: Option<String> = crate::docs::edit_url::create_docs_edit_url(
@@ -495,7 +493,7 @@ pub fn build_docs_site(
                                     None => unreachable!(
                                         "checked flow selected a missing optional value"
                                     ),
-                                }),
+                                })?,
                             )
                         };
                     }
@@ -515,7 +513,7 @@ pub fn build_docs_site(
                             base_name.clone(),
                             r.state.with(|state| state.rel_permalink.clone()),
                             plain_text.clone(),
-                            crate::utils::html::HtmlString::new(String::from("")),
+                            crate::utils::html::HtmlString::new(String::from(""))?,
                             content.clone(),
                             summary.clone(),
                             rt::option_coalesce(
@@ -538,7 +536,7 @@ pub fn build_docs_site(
                             Option::<crate::models::page_context::PageContext>::None,
                             empty_pages.clone(),
                             fm.state.with(|state| state.layout.clone()),
-                        );
+                        )?;
                     let mut list: Option<
                         js_abi::JsArray<crate::models::page_context::PageContext>,
                     > = {
@@ -577,7 +575,7 @@ pub fn build_docs_site(
                                     dispatch_receiver_22.dispatch.read_docs_mount_config_name()
                                 },
                                 plain_text.clone(),
-                            ),
+                            )?,
                         ])
                     };
                     i += 1.0;
@@ -604,7 +602,7 @@ pub fn build_docs_site(
                     continue 'loop_value_8;
                 }
                 let parent_key: String =
-                    crate::docs::directory_graph::docs_parent_directory(child_dir_key.clone())?;
+                    crate::docs::directory_graph::docs_parent_directory(&child_dir_key)?;
                 let mut list: Option<js_abi::JsArray<String>> = child_dirs_by_dir.get(&parent_key);
                 if list.is_none() {
                     list = Some(js_abi::JsArray::from_dense(vec![]));
@@ -627,8 +625,8 @@ pub fn build_docs_site(
                 dir_keys.push_many_discard([collected_dir_key.clone()]);
             }
             dir_keys.try_sort(|a, b| {
-                let depth: i32 = crate::docs::directory_graph::docs_directory_depth(b.clone())?
-                    - crate::docs::directory_graph::docs_directory_depth(a.clone())?;
+                let depth: i32 = crate::docs::directory_graph::docs_directory_depth(&b)?
+                    - crate::docs::directory_graph::docs_directory_depth(&a)?;
                 Ok::<_, rt::TsonicError>(if depth != 0 {
                     rt::conversions::i32_to_f64(depth)
                 } else {
@@ -643,8 +641,8 @@ pub fn build_docs_site(
             {
                 let mut i: f64 = 0.0;
                 while i < (rt::conversions::usize_to_i32(dir_keys.len())? as f64) {
-                    let dir_key: String = match dir_keys.get_number(i).as_ref() {
-                        Some(flow_value_14) => flow_value_14.clone(),
+                    let dir_key: String = match dir_keys.get_number(i) {
+                        Some(flow_value_14) => flow_value_14,
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     let child_pages: js_abi::JsArray<crate::models::page_context::PageContext> =
@@ -668,9 +666,8 @@ pub fn build_docs_site(
                             let mut j: f64 = 0.0;
                             while j < (rt::conversions::usize_to_i32(child_dir_keys.len())? as f64)
                             {
-                                let child_key: String = match child_dir_keys.get_number(j).as_ref()
-                                {
-                                    Some(flow_value_17) => flow_value_17.clone(),
+                                let child_key: String = match child_dir_keys.get_number(j) {
+                                    Some(flow_value_17) => flow_value_17,
                                     None => unreachable!(
                                         "checked flow selected a missing optional value"
                                     ),
@@ -723,8 +720,8 @@ pub fn build_docs_site(
                                 {
                                     let operation_input_0_9 = child_pages.clone();
                                     operation_input_0_9.push_many_discard([
-                                        match leaf_pages.get_number(j).as_ref() {
-                                            Some(flow_value_21) => flow_value_21.clone(),
+                                        match leaf_pages.get_number(j) {
+                                            Some(flow_value_21) => flow_value_21,
                                             None => unreachable!(
                                                 "checked flow selected a missing optional value"
                                             ),
@@ -756,8 +753,8 @@ pub fn build_docs_site(
                             {
                                 let operation_input_0_11 = url_parts.clone();
                                 operation_input_0_11.push_many_discard([
-                                    match route_segments.get_number(j).as_ref() {
-                                        Some(flow_value_22) => flow_value_22.clone(),
+                                    match route_segments.get_number(j) {
+                                        Some(flow_value_22) => flow_value_22,
                                         None => unreachable!(
                                             "checked flow selected a missing optional value"
                                         ),
@@ -806,12 +803,12 @@ pub fn build_docs_site(
                         let dispatch_receiver_28 = &mount;
                         dispatch_receiver_28.dispatch.read_docs_mount_config_name()
                     } else {
-                        crate::utils::text::humanize_slug(dir_slug.clone())?
+                        crate::utils::text::humanize_slug(&dir_slug)?
                     };
                     let mut content: crate::utils::html::HtmlString =
-                        crate::utils::html::HtmlString::new(String::from(""));
+                        crate::utils::html::HtmlString::new(String::from(""))?;
                     let mut summary: crate::utils::html::HtmlString =
-                        crate::utils::html::HtmlString::new(String::from(""));
+                        crate::utils::html::HtmlString::new(String::from(""))?;
                     let mut plain: String = String::from("");
                     let mut description: String = String::from("");
                     let mut params: js_abi::JsMap<String, crate::params::ParamValue> =
@@ -863,14 +860,14 @@ pub fn build_docs_site(
                                         dir_key.clone(),
                                         route_map.clone(),
                                         docs_config.state.with(|state| state.strict_links),
-                                    ),
+                                    )?,
                                 )?;
                             content = crate::utils::html::HtmlString::new(
                                 md.state.with(|state| state.html.clone()),
-                            );
+                            )?;
                             summary = crate::utils::html::HtmlString::new(
                                 md.state.with(|state| state.summary_html.clone()),
-                            );
+                            )?;
                             description = rt::option_coalesce(
                                 fm.state.with(|state| state.description.clone()),
                                 core::convert::identity,
@@ -897,7 +894,7 @@ pub fn build_docs_site(
                                                 .read_docs_mount_config_name()
                                         },
                                         plain_text.clone(),
-                                    ),
+                                    )?,
                                 ])
                             };
                             let date_utc: js_abi::JsDate = rt::option_coalesce(
@@ -935,7 +932,7 @@ pub fn build_docs_site(
                                     format!("{}{}", dir_key, String::from("/"))
                                 },
                                 String::from("_index"),
-                            ));
+                            )?);
                             params = fm.state.with(|state| state.params.clone());
                             {
                                 let operation_input_0_13 = params.clone();
@@ -943,7 +940,7 @@ pub fn build_docs_site(
                                     String::from("relPath"),
                                     crate::params::ParamValue::string(
                                         route.state.with(|state| state.rel_path.clone()),
-                                    ),
+                                    )?,
                                 )
                             };
                             let edit_url: Option<String> =
@@ -963,7 +960,7 @@ pub fn build_docs_site(
                                                     "checked flow selected a missing optional value"
                                                 ),
                                             },
-                                        ),
+                                        )?,
                                     )
                                 };
                             }
@@ -976,7 +973,7 @@ pub fn build_docs_site(
                             crate::params::ParamValue::string({
                                 let dispatch_receiver_31 = &mount;
                                 dispatch_receiver_31.dispatch.read_docs_mount_config_name()
-                            }),
+                            })?,
                         )
                     };
                     {
@@ -988,14 +985,14 @@ pub fn build_docs_site(
                                 dispatch_receiver_32
                                     .dispatch
                                     .read_docs_mount_config_url_prefix()
-                            }),
+                            })?,
                         )
                     };
                     {
                         let operation_input_0_17 = params.clone();
                         operation_input_0_17.set_discard(
                             String::from("dirKey"),
-                            crate::params::ParamValue::string(dir_key.clone()),
+                            crate::params::ParamValue::string(dir_key.clone())?,
                         )
                     };
                     let slug: String = dir_slug.clone();
@@ -1011,7 +1008,7 @@ pub fn build_docs_site(
                             slug.clone(),
                             rel_permalink.clone(),
                             plain.clone(),
-                            crate::utils::html::HtmlString::new(String::from("")),
+                            crate::utils::html::HtmlString::new(String::from(""))?,
                             content.clone(),
                             summary.clone(),
                             description.clone(),
@@ -1030,7 +1027,7 @@ pub fn build_docs_site(
                             Option::<crate::models::page_context::PageContext>::None,
                             empty_pages.clone(),
                             layout.clone(),
-                        );
+                        )?;
                     section_by_dir.set_discard(dir_key.clone(), section_ctx.clone());
                     all_pages_for_output.push_many_discard([section_ctx.clone()]);
                     i += 1.0;
@@ -1056,7 +1053,7 @@ pub fn build_docs_site(
             let dispatch_receiver_34 = receiver_4;
             dispatch_receiver_34
                 .dispatch
-                .write_site_context_pages(value_4)
+                .write_site_context_pages(value_4)?
         }
     };
     {
@@ -1066,7 +1063,7 @@ pub fn build_docs_site(
             let dispatch_receiver_35 = receiver_5;
             dispatch_receiver_35
                 .dispatch
-                .write_site_context_docs_mounts(value_5)
+                .write_site_context_docs_mounts(value_5)?
         }
     };
     let home_mount: Option<String> = docs_config.state.with(|state| state.home_mount.clone());
@@ -1101,9 +1098,9 @@ pub fn build_docs_site(
         }?;
     }
     let mut home_content: crate::utils::html::HtmlString =
-        crate::utils::html::HtmlString::new(String::from(""));
+        crate::utils::html::HtmlString::new(String::from(""))?;
     let mut home_summary: crate::utils::html::HtmlString =
-        crate::utils::html::HtmlString::new(String::from(""));
+        crate::utils::html::HtmlString::new(String::from(""))?;
     let mut home_description: String = String::from("");
     let mut home_title: String = {
         let dispatch_receiver_37 = &config;
@@ -1114,29 +1111,34 @@ pub fn build_docs_site(
         {
             let mut i: f64 = 0.0;
             'loop_value_14: while i < (rt::conversions::usize_to_i32(mount_roots.len())? as f64) {
-                let m: crate::models::page_context::PageContext =
-                    match mount_roots.get_number(i).as_ref() {
-                        Some(flow_value_31) => flow_value_31.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    };
-                let mount_name_param: crate::params::ParamValue = rt::option_coalesce(
+                let m: crate::models::page_context::PageContext = match mount_roots.get_number(i) {
+                    Some(flow_value_31) => flow_value_31,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                };
+                let mount_name_param: crate::params::ParamValue = rt::option_coalesce::<
+                    _,
+                    core::result::Result<crate::params::ParamValue, rt::TsonicError>,
+                >(
                     {
                         let dispatch_receiver_38 = &m;
                         dispatch_receiver_38.dispatch.read_page_context_params()
                     }
                     .get("mount"),
-                    core::convert::identity,
+                    Ok,
                     || crate::params::ParamValue::string(String::from("")),
-                );
-                let mount_prefix_param: crate::params::ParamValue = rt::option_coalesce(
+                )?;
+                let mount_prefix_param: crate::params::ParamValue = rt::option_coalesce::<
+                    _,
+                    core::result::Result<crate::params::ParamValue, rt::TsonicError>,
+                >(
                     {
                         let dispatch_receiver_39 = &m;
                         dispatch_receiver_39.dispatch.read_page_context_params()
                     }
                     .get("mountPrefix"),
-                    core::convert::identity,
+                    Ok,
                     || crate::params::ParamValue::string(String::from("")),
-                );
+                )?;
                 let mount_name: String = {
                     let dispatch_receiver_40 = &mount_name_param;
                     dispatch_receiver_40
@@ -1191,12 +1193,12 @@ pub fn build_docs_site(
                 Some(docs_loaded.state.with(|state| state.path.clone())),
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     let home_ctx: crate::models::page_context::PageContext =
         crate::models::page_context::PageContext::new(
-            home_title.clone(),
+            home_title,
             String::from(""),
             String::from(""),
             false,
@@ -1206,10 +1208,10 @@ pub fn build_docs_site(
             String::from(""),
             String::from("/"),
             String::from(""),
-            crate::utils::html::HtmlString::new(String::from("")),
+            crate::utils::html::HtmlString::new(String::from(""))?,
             home_content.clone(),
             home_summary.clone(),
-            home_description.clone(),
+            home_description,
             empty_strings.clone(),
             empty_strings.clone(),
             js_abi::JsMap::new(),
@@ -1225,7 +1227,7 @@ pub fn build_docs_site(
             Option::<crate::models::page_context::PageContext>::None,
             empty_pages.clone(),
             Option::<String>::None,
-        );
+        )?;
     crate::docs::directory_graph::assign_docs_page_ancestry(
         home_ctx.clone(),
         Option::<crate::models::page_context::PageContext>::None,
@@ -1238,7 +1240,7 @@ pub fn build_docs_site(
             let dispatch_receiver_47 = receiver_6;
             dispatch_receiver_47
                 .dispatch
-                .write_site_context_home(value_6)
+                .write_site_context_home(value_6)?
         }
     };
     let all_site_pages: js_abi::JsArray<crate::models::page_context::PageContext> =
@@ -1249,8 +1251,8 @@ pub fn build_docs_site(
             {
                 let operation_input_0_18 = all_site_pages.clone();
                 operation_input_0_18.push_many_discard([
-                    match all_pages_for_output.get_number(index).as_ref() {
-                        Some(flow_value_32) => flow_value_32.clone(),
+                    match all_pages_for_output.get_number(index) {
+                        Some(flow_value_32) => flow_value_32,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                 ])
@@ -1265,7 +1267,7 @@ pub fn build_docs_site(
             let dispatch_receiver_48 = receiver_7;
             dispatch_receiver_48
                 .dispatch
-                .write_site_context_all_pages(value_7)
+                .write_site_context_all_pages(value_7)?
         }
     };
     let home_html: String = crate::build::layout::render_with_base(
@@ -1296,11 +1298,10 @@ pub fn build_docs_site(
     {
         let mut i: f64 = 0.0;
         'loop_value_16: while i < (rt::conversions::usize_to_i32(all_pages.len())? as f64) {
-            let page: crate::models::page_context::PageContext =
-                match all_pages.get_number(i).as_ref() {
-                    Some(flow_value_33) => flow_value_33.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                };
+            let page: crate::models::page_context::PageContext = match all_pages.get_number(i) {
+                Some(flow_value_33) => flow_value_33,
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
             if ({
                 let dispatch_receiver_50 = &page;
                 dispatch_receiver_50
@@ -1414,7 +1415,7 @@ pub fn build_docs_site(
         dispatch_receiver_59
             .dispatch
             .clone()
-            .dispatch_site_output_plan_render(out_dir.clone())
+            .dispatch_site_output_plan_render(out_dir)
     }?;
     Ok({
         let dispatch_receiver_60 = output_plan.clone();

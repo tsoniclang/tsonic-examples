@@ -67,7 +67,7 @@ pub(crate) struct ExprRoot {
     #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     #[expect(dead_code, reason = "retains unused generated storage")]
-    state: rt::ObjectHandle<ExprState>,
+    state: rt::ObjectState<ExprState>,
 }
 
 impl Expr {
@@ -81,7 +81,7 @@ impl Expr {
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(ExprRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
         Expr {
             identity,
@@ -106,13 +106,18 @@ impl ExprDispatch for ExprRoot {
 
 #[doc(hidden)]
 pub trait TokenExprDispatch: ExprDispatch {
+    fn downcast_token_expr_to_expr(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ExprDispatch + 'static>> {
+        None
+    }
     fn downcast_token_expr_to_token_expr(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn TokenExprDispatch + 'static>> {
         None
     }
     fn read_token_expr_token(&self) -> String;
-    fn write_token_expr_token(&self, value: String);
+    fn write_token_expr_token(&self, value: String) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -151,33 +156,32 @@ impl rt::ObjectIdentityCarrier for TokenExpr {
 }
 
 pub(crate) struct TokenExprRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<TokenExprState>,
+    state: rt::ObjectState<TokenExprState>,
 }
 
 impl TokenExpr {
     #[doc(hidden)]
-    pub fn initialize_state(token: String) -> TokenExprState {
+    pub fn initialize_state(token: String) -> Result<TokenExprState, rt::TsonicError> {
         let base_state = Expr::initialize_state();
         let field_token: String = token;
-        TokenExprState {
+        Ok(TokenExprState {
             base: base_state,
             token: field_token,
-        }
+        })
     }
 
-    pub fn new(token: String) -> TokenExpr {
-        let state = TokenExpr::initialize_state(token);
+    pub fn new(token: String) -> Result<TokenExpr, rt::TsonicError> {
+        let state = TokenExpr::initialize_state(token)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(TokenExprRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        TokenExpr {
+        Ok(TokenExpr {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -196,6 +200,12 @@ impl ExprDispatch for TokenExprRoot {
 }
 
 impl TokenExprDispatch for TokenExprRoot {
+    fn downcast_token_expr_to_expr(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ExprDispatch + 'static>> {
+        Some(self)
+    }
+
     fn downcast_token_expr_to_token_expr(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn TokenExprDispatch + 'static>> {
@@ -206,20 +216,31 @@ impl TokenExprDispatch for TokenExprRoot {
         self.state.with(|state| state.token.clone())
     }
 
-    fn write_token_expr_token(&self, value: String) {
-        self.state.with_mut(|state| state.token = value);
+    fn write_token_expr_token(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.token = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
 #[doc(hidden)]
 pub trait PipelineExprDispatch: ExprDispatch {
+    fn downcast_pipeline_expr_to_expr(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ExprDispatch + 'static>> {
+        None
+    }
     fn downcast_pipeline_expr_to_pipeline_expr(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn PipelineExprDispatch + 'static>> {
         None
     }
     fn read_pipeline_expr_pipeline(&self) -> Pipeline;
-    fn write_pipeline_expr_pipeline(&self, value: Pipeline);
+    fn write_pipeline_expr_pipeline(&self, value: Pipeline) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -258,33 +279,32 @@ impl rt::ObjectIdentityCarrier for PipelineExpr {
 }
 
 pub(crate) struct PipelineExprRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<PipelineExprState>,
+    state: rt::ObjectState<PipelineExprState>,
 }
 
 impl PipelineExpr {
     #[doc(hidden)]
-    pub fn initialize_state(pipeline: Pipeline) -> PipelineExprState {
+    pub fn initialize_state(pipeline: Pipeline) -> Result<PipelineExprState, rt::TsonicError> {
         let base_state = Expr::initialize_state();
         let field_pipeline: Pipeline = pipeline;
-        PipelineExprState {
+        Ok(PipelineExprState {
             base: base_state,
             pipeline: field_pipeline,
-        }
+        })
     }
 
-    pub fn new(pipeline: Pipeline) -> PipelineExpr {
-        let state = PipelineExpr::initialize_state(pipeline);
+    pub fn new(pipeline: Pipeline) -> Result<PipelineExpr, rt::TsonicError> {
+        let state = PipelineExpr::initialize_state(pipeline)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(PipelineExprRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        PipelineExpr {
+        Ok(PipelineExpr {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -303,6 +323,12 @@ impl ExprDispatch for PipelineExprRoot {
 }
 
 impl PipelineExprDispatch for PipelineExprRoot {
+    fn downcast_pipeline_expr_to_expr(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ExprDispatch + 'static>> {
+        Some(self)
+    }
+
     fn downcast_pipeline_expr_to_pipeline_expr(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn PipelineExprDispatch + 'static>> {
@@ -313,8 +339,14 @@ impl PipelineExprDispatch for PipelineExprRoot {
         self.state.with(|state| state.pipeline.clone())
     }
 
-    fn write_pipeline_expr_pipeline(&self, value: Pipeline) {
-        self.state.with_mut(|state| state.pipeline = value);
+    fn write_pipeline_expr_pipeline(&self, value: Pipeline) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.pipeline = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -325,8 +357,13 @@ pub trait CommandExprDispatch: ExprDispatch {
     ) -> Option<alloc::rc::Rc<dyn CommandExprDispatch + 'static>> {
         None
     }
+    fn downcast_command_expr_to_expr(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ExprDispatch + 'static>> {
+        None
+    }
     fn read_command_expr_command(&self) -> Command;
-    fn write_command_expr_command(&self, value: Command);
+    fn write_command_expr_command(&self, value: Command) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -365,33 +402,32 @@ impl rt::ObjectIdentityCarrier for CommandExpr {
 }
 
 pub(crate) struct CommandExprRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<CommandExprState>,
+    state: rt::ObjectState<CommandExprState>,
 }
 
 impl CommandExpr {
     #[doc(hidden)]
-    pub fn initialize_state(command: Command) -> CommandExprState {
+    pub fn initialize_state(command: Command) -> Result<CommandExprState, rt::TsonicError> {
         let base_state = Expr::initialize_state();
         let field_command: Command = command;
-        CommandExprState {
+        Ok(CommandExprState {
             base: base_state,
             command: field_command,
-        }
+        })
     }
 
-    pub fn new(command: Command) -> CommandExpr {
-        let state = CommandExpr::initialize_state(command);
+    pub fn new(command: Command) -> Result<CommandExpr, rt::TsonicError> {
+        let state = CommandExpr::initialize_state(command)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(CommandExprRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        CommandExpr {
+        Ok(CommandExpr {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -416,12 +452,24 @@ impl CommandExprDispatch for CommandExprRoot {
         Some(self)
     }
 
+    fn downcast_command_expr_to_expr(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ExprDispatch + 'static>> {
+        Some(self)
+    }
+
     fn read_command_expr_command(&self) -> Command {
         self.state.with(|state| state.command.clone())
     }
 
-    fn write_command_expr_command(&self, value: Command) {
-        self.state.with_mut(|state| state.command = value);
+    fn write_command_expr_command(&self, value: Command) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.command = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -432,10 +480,18 @@ pub trait AccessExprDispatch: ExprDispatch {
     ) -> Option<alloc::rc::Rc<dyn AccessExprDispatch + 'static>> {
         None
     }
+    fn downcast_access_expr_to_expr(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ExprDispatch + 'static>> {
+        None
+    }
     fn read_access_expr_base(&self) -> Expr;
-    fn write_access_expr_base(&self, value: Expr);
+    fn write_access_expr_base(&self, value: Expr) -> Result<(), rt::TsonicError>;
     fn read_access_expr_segments(&self) -> js_abi::JsArray<String>;
-    fn write_access_expr_segments(&self, value: js_abi::JsArray<String>);
+    fn write_access_expr_segments(
+        &self,
+        value: js_abi::JsArray<String>,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -475,35 +531,40 @@ impl rt::ObjectIdentityCarrier for AccessExpr {
 }
 
 pub(crate) struct AccessExprRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<AccessExprState>,
+    state: rt::ObjectState<AccessExprState>,
 }
 
 impl AccessExpr {
     #[doc(hidden)]
-    pub fn initialize_state(base: Expr, segments: js_abi::JsArray<String>) -> AccessExprState {
+    pub fn initialize_state(
+        base: Expr,
+        segments: js_abi::JsArray<String>,
+    ) -> Result<AccessExprState, rt::TsonicError> {
         let base_state = Expr::initialize_state();
         let field_base: Expr = base;
         let field_segments: js_abi::JsArray<String> = segments;
-        AccessExprState {
+        Ok(AccessExprState {
             base_2: base_state,
             base: field_base,
             segments: field_segments,
-        }
+        })
     }
 
-    pub fn new(base: Expr, segments: js_abi::JsArray<String>) -> AccessExpr {
-        let state = AccessExpr::initialize_state(base, segments);
+    pub fn new(
+        base: Expr,
+        segments: js_abi::JsArray<String>,
+    ) -> Result<AccessExpr, rt::TsonicError> {
+        let state = AccessExpr::initialize_state(base, segments)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(AccessExprRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        AccessExpr {
+        Ok(AccessExpr {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -528,20 +589,41 @@ impl AccessExprDispatch for AccessExprRoot {
         Some(self)
     }
 
+    fn downcast_access_expr_to_expr(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn ExprDispatch + 'static>> {
+        Some(self)
+    }
+
     fn read_access_expr_base(&self) -> Expr {
         self.state.with(|state| state.base.clone())
     }
 
-    fn write_access_expr_base(&self, value: Expr) {
-        self.state.with_mut(|state| state.base = value);
+    fn write_access_expr_base(&self, value: Expr) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_access_expr_segments(&self) -> js_abi::JsArray<String> {
         self.state.with(|state| state.segments.clone())
     }
 
-    fn write_access_expr_segments(&self, value: js_abi::JsArray<String>) {
-        self.state.with_mut(|state| state.segments = value);
+    fn write_access_expr_segments(
+        &self,
+        value: js_abi::JsArray<String>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.segments = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -564,15 +646,15 @@ impl rt::ObjectIdentityCarrier for Command {
 }
 
 impl Command {
-    pub fn new(head: Expr, args: js_abi::JsArray<Expr>) -> Command {
+    pub fn new(head: Expr, args: js_abi::JsArray<Expr>) -> Result<Command, rt::TsonicError> {
         let field_head: Expr = head;
         let field_args: js_abi::JsArray<Expr> = args;
-        Command {
+        Ok(Command {
             state: rt::ObjectRef::new(CommandState {
                 head: field_head,
                 args: field_args,
             }),
-        }
+        })
     }
 }
 
@@ -594,12 +676,12 @@ impl rt::ObjectIdentityCarrier for Pipeline {
 }
 
 impl Pipeline {
-    pub fn new(stages: js_abi::JsArray<Command>) -> Pipeline {
+    pub fn new(stages: js_abi::JsArray<Command>) -> Result<Pipeline, rt::TsonicError> {
         let field_stages: js_abi::JsArray<Command> = stages;
-        Pipeline {
+        Ok(Pipeline {
             state: rt::ObjectRef::new(PipelineState {
                 stages: field_stages,
             }),
-        }
+        })
     }
 }

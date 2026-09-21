@@ -8,10 +8,9 @@ pub fn ensure_empty_dir(path: String) -> Result<(), rt::TsonicError> {
         crate::fs::ensure_dir(path.clone())?;
         return Ok(());
     }
-    crate::fs::REJECT_FILESYSTEM_LINK
-        .with(|module_binding| module_binding.load())
-        .call((path.clone(),))?;
-    if rt::conversions::usize_to_i32(tsonic_rust_node::fs::readdir_sync(&path)?.len())? > 0 {
+    crate::fs::reject_filesystem_link(path.clone())?;
+    if rt::conversions::usize_to_i32(tsonic_rust_node::fs::readdir_sync(path.as_str())?.len())? > 0
+    {
         return Err(rt::TsonicError::TsumoError(
             crate::diagnostics::create_tsumo_error(
                 String::from("TSUMO_SCAFFOLD_DESTINATION_NOT_EMPTY"),
@@ -19,7 +18,7 @@ pub fn ensure_empty_dir(path: String) -> Result<(), rt::TsonicError> {
                 Some(path.clone()),
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     Ok(())
@@ -114,7 +113,7 @@ pub fn init_site(
         rt::option_coalesce(creation_time, core::convert::identity, js_abi::JsDate::new);
     ensure_empty_dir(dir.clone())?;
     let base: String = tsonic_rust_node::path::basename(&dir, None);
-    let title: String = crate::utils::text::humanize_slug(if base.is_empty() {
+    let title: String = crate::utils::text::humanize_slug(&if base.is_empty() {
         String::from("Tsumo Site")
     } else {
         base.clone()

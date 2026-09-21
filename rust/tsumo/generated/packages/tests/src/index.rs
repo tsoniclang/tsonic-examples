@@ -16,6 +16,7 @@ pub fn main() -> Result<(), rt::TsonicError> {
     crate::template_page_context_test::run_template_page_context_tests()?;
     crate::template_runtime_test::run_template_runtime_tests()?;
     crate::theme_compatibility_test::run_theme_compatibility_tests()?;
-    crate::test_root::complete_tests(73.0)?;
+    crate::native_text_test::run_native_text_tests()?;
+    crate::test_root::complete_tests(83.0)?;
     Ok(())
 }

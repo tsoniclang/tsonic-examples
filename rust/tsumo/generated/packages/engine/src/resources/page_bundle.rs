@@ -23,15 +23,18 @@ impl rt::ObjectIdentityCarrier for PageBundleResourceFile {
 }
 
 impl PageBundleResourceFile {
-    pub fn new(source_path: String, relative_path: String) -> PageBundleResourceFile {
+    pub fn new(
+        source_path: String,
+        relative_path: String,
+    ) -> Result<PageBundleResourceFile, rt::TsonicError> {
         let field_source_path: String = source_path;
         let field_relative_path: String = relative_path;
-        PageBundleResourceFile {
+        Ok(PageBundleResourceFile {
             state: rt::ObjectRef::new(PageBundleResourceFileState {
                 source_path: field_source_path,
                 relative_path: field_relative_path,
             }),
-        }
+        })
     }
 }
 
@@ -62,8 +65,8 @@ pub fn collect_page_bundle_resource_files(
     {
         let mut index: f64 = 0.0;
         'loop_value: while index < (rt::conversions::usize_to_i32(files.len())? as f64) {
-            let source_path: String = match files.get_number(index).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let source_path: String = match files.get_number(index) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if js_string::ends_with_at_end(&js_string::to_lower_case(&source_path), ".md") {
@@ -85,19 +88,19 @@ pub fn collect_page_bundle_resource_files(
                 operation_input_0.push_many_discard([PageBundleResourceFile::new(
                     source_path.clone(),
                     relative_path.clone(),
-                )])
+                )?])
             };
             index += 1.0;
         }
     }
     let directories: js_abi::JsArray<String> =
-        crate::fs::list_directories_top_directory(directory.clone())?;
+        crate::fs::list_directories_top_directory(directory)?;
     sort_paths(directories.clone());
     {
         let mut index: f64 = 0.0;
         'loop_value_2: while index < (rt::conversions::usize_to_i32(directories.len())? as f64) {
-            let child: String = match directories.get_number(index).as_ref() {
-                Some(flow_value_2) => flow_value_2.clone(),
+            let child: String = match directories.get_number(index) {
+                Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if is_nested_bundle(child.clone())?

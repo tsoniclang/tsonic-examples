@@ -97,7 +97,7 @@ pub(crate) struct TemplateNodeRoot {
     #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     #[expect(dead_code, reason = "retains unused generated storage")]
-    state: rt::ObjectHandle<TemplateNodeState>,
+    state: rt::ObjectState<TemplateNodeState>,
 }
 
 impl TemplateNode {
@@ -111,7 +111,7 @@ impl TemplateNode {
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(TemplateNodeRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
         TemplateNode {
             identity,
@@ -139,6 +139,11 @@ pub trait BreakNodeDispatch: TemplateNodeDispatch {
     fn downcast_break_node_to_break_node(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn BreakNodeDispatch + 'static>> {
+        None
+    }
+    fn downcast_break_node_to_template_node(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         None
     }
 }
@@ -181,7 +186,7 @@ pub(crate) struct BreakNodeRoot {
     #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     #[expect(dead_code, reason = "retains unused generated storage")]
-    state: rt::ObjectHandle<BreakNodeState>,
+    state: rt::ObjectState<BreakNodeState>,
 }
 
 impl BreakNode {
@@ -196,7 +201,7 @@ impl BreakNode {
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(BreakNodeRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
         BreakNode {
             identity,
@@ -231,6 +236,12 @@ impl BreakNodeDispatch for BreakNodeRoot {
     ) -> Option<alloc::rc::Rc<dyn BreakNodeDispatch + 'static>> {
         Some(self)
     }
+
+    fn downcast_break_node_to_template_node(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        Some(self)
+    }
 }
 
 #[doc(hidden)]
@@ -238,6 +249,11 @@ pub trait ContinueNodeDispatch: TemplateNodeDispatch {
     fn downcast_continue_node_to_continue_node(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
+        None
+    }
+    fn downcast_continue_node_to_template_node(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         None
     }
 }
@@ -280,7 +296,7 @@ pub(crate) struct ContinueNodeRoot {
     #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     #[expect(dead_code, reason = "retains unused generated storage")]
-    state: rt::ObjectHandle<ContinueNodeState>,
+    state: rt::ObjectState<ContinueNodeState>,
 }
 
 impl ContinueNode {
@@ -295,7 +311,7 @@ impl ContinueNode {
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(ContinueNodeRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
         ContinueNode {
             identity,
@@ -330,17 +346,28 @@ impl ContinueNodeDispatch for ContinueNodeRoot {
     ) -> Option<alloc::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
         Some(self)
     }
+
+    fn downcast_continue_node_to_template_node(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        Some(self)
+    }
 }
 
 #[doc(hidden)]
 pub trait TextNodeDispatch: TemplateNodeDispatch {
+    fn downcast_text_node_to_template_node(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        None
+    }
     fn downcast_text_node_to_text_node(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn TextNodeDispatch + 'static>> {
         None
     }
     fn read_text_node_text(&self) -> String;
-    fn write_text_node_text(&self, value: String);
+    fn write_text_node_text(&self, value: String) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -379,33 +406,32 @@ impl rt::ObjectIdentityCarrier for TextNode {
 }
 
 pub(crate) struct TextNodeRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<TextNodeState>,
+    state: rt::ObjectState<TextNodeState>,
 }
 
 impl TextNode {
     #[doc(hidden)]
-    pub fn initialize_state(text: String) -> TextNodeState {
+    pub fn initialize_state(text: String) -> Result<TextNodeState, rt::TsonicError> {
         let base_state = TemplateNode::initialize_state();
         let field_text: String = text;
-        TextNodeState {
+        Ok(TextNodeState {
             base: base_state,
             text: field_text,
-        }
+        })
     }
 
-    pub fn new(text: String) -> TextNode {
-        let state = TextNode::initialize_state(text);
+    pub fn new(text: String) -> Result<TextNode, rt::TsonicError> {
+        let state = TextNode::initialize_state(text)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(TextNodeRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        TextNode {
+        Ok(TextNode {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -424,6 +450,12 @@ impl TemplateNodeDispatch for TextNodeRoot {
 }
 
 impl TextNodeDispatch for TextNodeRoot {
+    fn downcast_text_node_to_template_node(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        Some(self)
+    }
+
     fn downcast_text_node_to_text_node(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn TextNodeDispatch + 'static>> {
@@ -434,8 +466,14 @@ impl TextNodeDispatch for TextNodeRoot {
         self.state.with(|state| state.text.clone())
     }
 
-    fn write_text_node_text(&self, value: String) {
-        self.state.with_mut(|state| state.text = value);
+    fn write_text_node_text(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.text = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -446,10 +484,18 @@ pub trait OutputNodeDispatch: TemplateNodeDispatch {
     ) -> Option<alloc::rc::Rc<dyn OutputNodeDispatch + 'static>> {
         None
     }
+    fn downcast_output_node_to_template_node(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        None
+    }
     fn read_output_node_pipeline(&self) -> crate::template::syntax::expressions::Pipeline;
-    fn write_output_node_pipeline(&self, value: crate::template::syntax::expressions::Pipeline);
+    fn write_output_node_pipeline(
+        &self,
+        value: crate::template::syntax::expressions::Pipeline,
+    ) -> Result<(), rt::TsonicError>;
     fn read_output_node_escape(&self) -> bool;
-    fn write_output_node_escape(&self, value: bool);
+    fn write_output_node_escape(&self, value: bool) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -489,9 +535,8 @@ impl rt::ObjectIdentityCarrier for OutputNode {
 }
 
 pub(crate) struct OutputNodeRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<OutputNodeState>,
+    state: rt::ObjectState<OutputNodeState>,
 }
 
 impl OutputNode {
@@ -499,31 +544,31 @@ impl OutputNode {
     pub fn initialize_state(
         pipeline: crate::template::syntax::expressions::Pipeline,
         escape: bool,
-    ) -> OutputNodeState {
+    ) -> Result<OutputNodeState, rt::TsonicError> {
         let base_state = TemplateNode::initialize_state();
         let field_pipeline: crate::template::syntax::expressions::Pipeline = pipeline;
         let field_escape: bool = escape;
-        OutputNodeState {
+        Ok(OutputNodeState {
             base: base_state,
             pipeline: field_pipeline,
             escape: field_escape,
-        }
+        })
     }
 
     pub fn new(
         pipeline: crate::template::syntax::expressions::Pipeline,
         escape: bool,
-    ) -> OutputNode {
-        let state = OutputNode::initialize_state(pipeline, escape);
+    ) -> Result<OutputNode, rt::TsonicError> {
+        let state = OutputNode::initialize_state(pipeline, escape)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(OutputNodeRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        OutputNode {
+        Ok(OutputNode {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -548,20 +593,41 @@ impl OutputNodeDispatch for OutputNodeRoot {
         Some(self)
     }
 
+    fn downcast_output_node_to_template_node(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        Some(self)
+    }
+
     fn read_output_node_pipeline(&self) -> crate::template::syntax::expressions::Pipeline {
         self.state.with(|state| state.pipeline.clone())
     }
 
-    fn write_output_node_pipeline(&self, value: crate::template::syntax::expressions::Pipeline) {
-        self.state.with_mut(|state| state.pipeline = value);
+    fn write_output_node_pipeline(
+        &self,
+        value: crate::template::syntax::expressions::Pipeline,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.pipeline = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_output_node_escape(&self) -> bool {
         self.state.with(|state| state.escape)
     }
 
-    fn write_output_node_escape(&self, value: bool) {
-        self.state.with_mut(|state| state.escape = value);
+    fn write_output_node_escape(&self, value: bool) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.escape = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -572,12 +638,20 @@ pub trait AssignmentNodeDispatch: TemplateNodeDispatch {
     ) -> Option<alloc::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
         None
     }
+    fn downcast_assignment_node_to_template_node(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        None
+    }
     fn read_assignment_node_name(&self) -> String;
-    fn write_assignment_node_name(&self, value: String);
+    fn write_assignment_node_name(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_assignment_node_pipeline(&self) -> crate::template::syntax::expressions::Pipeline;
-    fn write_assignment_node_pipeline(&self, value: crate::template::syntax::expressions::Pipeline);
+    fn write_assignment_node_pipeline(
+        &self,
+        value: crate::template::syntax::expressions::Pipeline,
+    ) -> Result<(), rt::TsonicError>;
     fn read_assignment_node_declare(&self) -> bool;
-    fn write_assignment_node_declare(&self, value: bool);
+    fn write_assignment_node_declare(&self, value: bool) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -618,9 +692,8 @@ impl rt::ObjectIdentityCarrier for AssignmentNode {
 }
 
 pub(crate) struct AssignmentNodeRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<AssignmentNodeState>,
+    state: rt::ObjectState<AssignmentNodeState>,
 }
 
 impl AssignmentNode {
@@ -629,34 +702,34 @@ impl AssignmentNode {
         name: String,
         pipeline: crate::template::syntax::expressions::Pipeline,
         declare: bool,
-    ) -> AssignmentNodeState {
+    ) -> Result<AssignmentNodeState, rt::TsonicError> {
         let base_state = TemplateNode::initialize_state();
         let field_name: String = name;
         let field_pipeline: crate::template::syntax::expressions::Pipeline = pipeline;
         let field_declare: bool = declare;
-        AssignmentNodeState {
+        Ok(AssignmentNodeState {
             base: base_state,
             name: field_name,
             pipeline: field_pipeline,
             declare: field_declare,
-        }
+        })
     }
 
     pub fn new(
         name: String,
         pipeline: crate::template::syntax::expressions::Pipeline,
         declare: bool,
-    ) -> AssignmentNode {
-        let state = AssignmentNode::initialize_state(name, pipeline, declare);
+    ) -> Result<AssignmentNode, rt::TsonicError> {
+        let state = AssignmentNode::initialize_state(name, pipeline, declare)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(AssignmentNodeRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        AssignmentNode {
+        Ok(AssignmentNode {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -681,12 +754,24 @@ impl AssignmentNodeDispatch for AssignmentNodeRoot {
         Some(self)
     }
 
+    fn downcast_assignment_node_to_template_node(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        Some(self)
+    }
+
     fn read_assignment_node_name(&self) -> String {
         self.state.with(|state| state.name.clone())
     }
 
-    fn write_assignment_node_name(&self, value: String) {
-        self.state.with_mut(|state| state.name = value);
+    fn write_assignment_node_name(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.name = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_assignment_node_pipeline(&self) -> crate::template::syntax::expressions::Pipeline {
@@ -696,16 +781,28 @@ impl AssignmentNodeDispatch for AssignmentNodeRoot {
     fn write_assignment_node_pipeline(
         &self,
         value: crate::template::syntax::expressions::Pipeline,
-    ) {
-        self.state.with_mut(|state| state.pipeline = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.pipeline = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_assignment_node_declare(&self) -> bool {
         self.state.with(|state| state.declare)
     }
 
-    fn write_assignment_node_declare(&self, value: bool) {
-        self.state.with_mut(|state| state.declare = value);
+    fn write_assignment_node_declare(&self, value: bool) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.declare = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -716,13 +813,18 @@ pub trait TemplateInvokeNodeDispatch: TemplateNodeDispatch {
     ) -> Option<alloc::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
         None
     }
+    fn downcast_template_invoke_node_to_template_node(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        None
+    }
     fn read_template_invoke_node_name(&self) -> String;
-    fn write_template_invoke_node_name(&self, value: String);
+    fn write_template_invoke_node_name(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_template_invoke_node_context(&self) -> crate::template::syntax::expressions::Pipeline;
     fn write_template_invoke_node_context(
         &self,
         value: crate::template::syntax::expressions::Pipeline,
-    );
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -762,9 +864,8 @@ impl rt::ObjectIdentityCarrier for TemplateInvokeNode {
 }
 
 pub(crate) struct TemplateInvokeNodeRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<TemplateInvokeNodeState>,
+    state: rt::ObjectState<TemplateInvokeNodeState>,
 }
 
 impl TemplateInvokeNode {
@@ -772,31 +873,31 @@ impl TemplateInvokeNode {
     pub fn initialize_state(
         name: String,
         context: crate::template::syntax::expressions::Pipeline,
-    ) -> TemplateInvokeNodeState {
+    ) -> Result<TemplateInvokeNodeState, rt::TsonicError> {
         let base_state = TemplateNode::initialize_state();
         let field_name: String = name;
         let field_context: crate::template::syntax::expressions::Pipeline = context;
-        TemplateInvokeNodeState {
+        Ok(TemplateInvokeNodeState {
             base: base_state,
             name: field_name,
             context: field_context,
-        }
+        })
     }
 
     pub fn new(
         name: String,
         context: crate::template::syntax::expressions::Pipeline,
-    ) -> TemplateInvokeNode {
-        let state = TemplateInvokeNode::initialize_state(name, context);
+    ) -> Result<TemplateInvokeNode, rt::TsonicError> {
+        let state = TemplateInvokeNode::initialize_state(name, context)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(TemplateInvokeNodeRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        TemplateInvokeNode {
+        Ok(TemplateInvokeNode {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -821,12 +922,24 @@ impl TemplateInvokeNodeDispatch for TemplateInvokeNodeRoot {
         Some(self)
     }
 
+    fn downcast_template_invoke_node_to_template_node(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        Some(self)
+    }
+
     fn read_template_invoke_node_name(&self) -> String {
         self.state.with(|state| state.name.clone())
     }
 
-    fn write_template_invoke_node_name(&self, value: String) {
-        self.state.with_mut(|state| state.name = value);
+    fn write_template_invoke_node_name(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.name = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_template_invoke_node_context(&self) -> crate::template::syntax::expressions::Pipeline {
@@ -836,8 +949,14 @@ impl TemplateInvokeNodeDispatch for TemplateInvokeNodeRoot {
     fn write_template_invoke_node_context(
         &self,
         value: crate::template::syntax::expressions::Pipeline,
-    ) {
-        self.state.with_mut(|state| state.context = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.context = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -860,15 +979,15 @@ impl rt::ObjectIdentityCarrier for TemplateVariableBinding {
 }
 
 impl TemplateVariableBinding {
-    pub fn new(name: String, declare: bool) -> TemplateVariableBinding {
+    pub fn new(name: String, declare: bool) -> Result<TemplateVariableBinding, rt::TsonicError> {
         let field_name: String = name;
         let field_declare: bool = declare;
-        TemplateVariableBinding {
+        Ok(TemplateVariableBinding {
             state: rt::ObjectRef::new(TemplateVariableBindingState {
                 name: field_name,
                 declare: field_declare,
             }),
-        }
+        })
     }
 }
 
@@ -879,14 +998,31 @@ pub trait IfNodeDispatch: TemplateNodeDispatch {
     ) -> Option<alloc::rc::Rc<dyn IfNodeDispatch + 'static>> {
         None
     }
+    fn downcast_if_node_to_template_node(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        None
+    }
     fn read_if_node_condition(&self) -> crate::template::syntax::expressions::Pipeline;
-    fn write_if_node_condition(&self, value: crate::template::syntax::expressions::Pipeline);
+    fn write_if_node_condition(
+        &self,
+        value: crate::template::syntax::expressions::Pipeline,
+    ) -> Result<(), rt::TsonicError>;
     fn read_if_node_binding(&self) -> Option<TemplateVariableBinding>;
-    fn write_if_node_binding(&self, value: Option<TemplateVariableBinding>);
+    fn write_if_node_binding(
+        &self,
+        value: Option<TemplateVariableBinding>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_if_node_then_nodes(&self) -> js_abi::JsArray<TemplateNode>;
-    fn write_if_node_then_nodes(&self, value: js_abi::JsArray<TemplateNode>);
+    fn write_if_node_then_nodes(
+        &self,
+        value: js_abi::JsArray<TemplateNode>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_if_node_else_nodes(&self) -> js_abi::JsArray<TemplateNode>;
-    fn write_if_node_else_nodes(&self, value: js_abi::JsArray<TemplateNode>);
+    fn write_if_node_else_nodes(
+        &self,
+        value: js_abi::JsArray<TemplateNode>,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -928,9 +1064,8 @@ impl rt::ObjectIdentityCarrier for IfNode {
 }
 
 pub(crate) struct IfNodeRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<IfNodeState>,
+    state: rt::ObjectState<IfNodeState>,
 }
 
 impl IfNode {
@@ -940,19 +1075,19 @@ impl IfNode {
         binding: Option<TemplateVariableBinding>,
         then_nodes: js_abi::JsArray<TemplateNode>,
         else_nodes: js_abi::JsArray<TemplateNode>,
-    ) -> IfNodeState {
+    ) -> Result<IfNodeState, rt::TsonicError> {
         let base_state = TemplateNode::initialize_state();
         let field_condition: crate::template::syntax::expressions::Pipeline = condition;
         let field_binding: Option<TemplateVariableBinding> = binding;
         let field_then_nodes: js_abi::JsArray<TemplateNode> = then_nodes;
         let field_else_nodes: js_abi::JsArray<TemplateNode> = else_nodes;
-        IfNodeState {
+        Ok(IfNodeState {
             base: base_state,
             condition: field_condition,
             binding: field_binding,
             then_nodes: field_then_nodes,
             else_nodes: field_else_nodes,
-        }
+        })
     }
 
     pub fn new(
@@ -960,17 +1095,17 @@ impl IfNode {
         binding: Option<TemplateVariableBinding>,
         then_nodes: js_abi::JsArray<TemplateNode>,
         else_nodes: js_abi::JsArray<TemplateNode>,
-    ) -> IfNode {
-        let state = IfNode::initialize_state(condition, binding, then_nodes, else_nodes);
+    ) -> Result<IfNode, rt::TsonicError> {
+        let state = IfNode::initialize_state(condition, binding, then_nodes, else_nodes)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(IfNodeRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        IfNode {
+        Ok(IfNode {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -995,36 +1130,78 @@ impl IfNodeDispatch for IfNodeRoot {
         Some(self)
     }
 
+    fn downcast_if_node_to_template_node(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        Some(self)
+    }
+
     fn read_if_node_condition(&self) -> crate::template::syntax::expressions::Pipeline {
         self.state.with(|state| state.condition.clone())
     }
 
-    fn write_if_node_condition(&self, value: crate::template::syntax::expressions::Pipeline) {
-        self.state.with_mut(|state| state.condition = value);
+    fn write_if_node_condition(
+        &self,
+        value: crate::template::syntax::expressions::Pipeline,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.condition = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_if_node_binding(&self) -> Option<TemplateVariableBinding> {
         self.state.with(|state| state.binding.clone())
     }
 
-    fn write_if_node_binding(&self, value: Option<TemplateVariableBinding>) {
-        self.state.with_mut(|state| state.binding = value);
+    fn write_if_node_binding(
+        &self,
+        value: Option<TemplateVariableBinding>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.binding = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_if_node_then_nodes(&self) -> js_abi::JsArray<TemplateNode> {
         self.state.with(|state| state.then_nodes.clone())
     }
 
-    fn write_if_node_then_nodes(&self, value: js_abi::JsArray<TemplateNode>) {
-        self.state.with_mut(|state| state.then_nodes = value);
+    fn write_if_node_then_nodes(
+        &self,
+        value: js_abi::JsArray<TemplateNode>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.then_nodes = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_if_node_else_nodes(&self) -> js_abi::JsArray<TemplateNode> {
         self.state.with(|state| state.else_nodes.clone())
     }
 
-    fn write_if_node_else_nodes(&self, value: js_abi::JsArray<TemplateNode>) {
-        self.state.with_mut(|state| state.else_nodes = value);
+    fn write_if_node_else_nodes(
+        &self,
+        value: js_abi::JsArray<TemplateNode>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.else_nodes = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -1035,16 +1212,30 @@ pub trait RangeNodeDispatch: TemplateNodeDispatch {
     ) -> Option<alloc::rc::Rc<dyn RangeNodeDispatch + 'static>> {
         None
     }
+    fn downcast_range_node_to_template_node(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        None
+    }
     fn read_range_node_expr(&self) -> crate::template::syntax::expressions::Pipeline;
-    fn write_range_node_expr(&self, value: crate::template::syntax::expressions::Pipeline);
+    fn write_range_node_expr(
+        &self,
+        value: crate::template::syntax::expressions::Pipeline,
+    ) -> Result<(), rt::TsonicError>;
     fn read_range_node_key_var(&self) -> Option<String>;
-    fn write_range_node_key_var(&self, value: Option<String>);
+    fn write_range_node_key_var(&self, value: Option<String>) -> Result<(), rt::TsonicError>;
     fn read_range_node_value_var(&self) -> Option<String>;
-    fn write_range_node_value_var(&self, value: Option<String>);
+    fn write_range_node_value_var(&self, value: Option<String>) -> Result<(), rt::TsonicError>;
     fn read_range_node_body(&self) -> js_abi::JsArray<TemplateNode>;
-    fn write_range_node_body(&self, value: js_abi::JsArray<TemplateNode>);
+    fn write_range_node_body(
+        &self,
+        value: js_abi::JsArray<TemplateNode>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_range_node_else_body(&self) -> js_abi::JsArray<TemplateNode>;
-    fn write_range_node_else_body(&self, value: js_abi::JsArray<TemplateNode>);
+    fn write_range_node_else_body(
+        &self,
+        value: js_abi::JsArray<TemplateNode>,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -1087,9 +1278,8 @@ impl rt::ObjectIdentityCarrier for RangeNode {
 }
 
 pub(crate) struct RangeNodeRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<RangeNodeState>,
+    state: rt::ObjectState<RangeNodeState>,
 }
 
 impl RangeNode {
@@ -1100,21 +1290,21 @@ impl RangeNode {
         value_var: Option<String>,
         body: js_abi::JsArray<TemplateNode>,
         else_body: js_abi::JsArray<TemplateNode>,
-    ) -> RangeNodeState {
+    ) -> Result<RangeNodeState, rt::TsonicError> {
         let base_state = TemplateNode::initialize_state();
         let field_expr: crate::template::syntax::expressions::Pipeline = expr;
         let field_key_var: Option<String> = key_var;
         let field_value_var: Option<String> = value_var;
         let field_body: js_abi::JsArray<TemplateNode> = body;
         let field_else_body: js_abi::JsArray<TemplateNode> = else_body;
-        RangeNodeState {
+        Ok(RangeNodeState {
             base: base_state,
             expr: field_expr,
             key_var: field_key_var,
             value_var: field_value_var,
             body: field_body,
             else_body: field_else_body,
-        }
+        })
     }
 
     pub fn new(
@@ -1123,17 +1313,17 @@ impl RangeNode {
         value_var: Option<String>,
         body: js_abi::JsArray<TemplateNode>,
         else_body: js_abi::JsArray<TemplateNode>,
-    ) -> RangeNode {
-        let state = RangeNode::initialize_state(expr, key_var, value_var, body, else_body);
+    ) -> Result<RangeNode, rt::TsonicError> {
+        let state = RangeNode::initialize_state(expr, key_var, value_var, body, else_body)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(RangeNodeRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        RangeNode {
+        Ok(RangeNode {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -1158,66 +1348,128 @@ impl RangeNodeDispatch for RangeNodeRoot {
         Some(self)
     }
 
+    fn downcast_range_node_to_template_node(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        Some(self)
+    }
+
     fn read_range_node_expr(&self) -> crate::template::syntax::expressions::Pipeline {
         self.state.with(|state| state.expr.clone())
     }
 
-    fn write_range_node_expr(&self, value: crate::template::syntax::expressions::Pipeline) {
-        self.state.with_mut(|state| state.expr = value);
+    fn write_range_node_expr(
+        &self,
+        value: crate::template::syntax::expressions::Pipeline,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.expr = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_range_node_key_var(&self) -> Option<String> {
         self.state.with(|state| state.key_var.clone())
     }
 
-    fn write_range_node_key_var(&self, value: Option<String>) {
-        self.state.with_mut(|state| state.key_var = value);
+    fn write_range_node_key_var(&self, value: Option<String>) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.key_var = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_range_node_value_var(&self) -> Option<String> {
         self.state.with(|state| state.value_var.clone())
     }
 
-    fn write_range_node_value_var(&self, value: Option<String>) {
-        self.state.with_mut(|state| state.value_var = value);
+    fn write_range_node_value_var(&self, value: Option<String>) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value_var = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_range_node_body(&self) -> js_abi::JsArray<TemplateNode> {
         self.state.with(|state| state.body.clone())
     }
 
-    fn write_range_node_body(&self, value: js_abi::JsArray<TemplateNode>) {
-        self.state.with_mut(|state| state.body = value);
+    fn write_range_node_body(
+        &self,
+        value: js_abi::JsArray<TemplateNode>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.body = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_range_node_else_body(&self) -> js_abi::JsArray<TemplateNode> {
         self.state.with(|state| state.else_body.clone())
     }
 
-    fn write_range_node_else_body(&self, value: js_abi::JsArray<TemplateNode>) {
-        self.state.with_mut(|state| state.else_body = value);
+    fn write_range_node_else_body(
+        &self,
+        value: js_abi::JsArray<TemplateNode>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.else_body = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
 #[doc(hidden)]
 pub trait WithNodeDispatch: TemplateNodeDispatch {
+    fn downcast_with_node_to_template_node(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        None
+    }
     fn downcast_with_node_to_with_node(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn WithNodeDispatch + 'static>> {
         None
     }
     fn read_with_node_expr(&self) -> crate::template::syntax::expressions::Pipeline;
-    fn write_with_node_expr(&self, value: crate::template::syntax::expressions::Pipeline);
+    fn write_with_node_expr(
+        &self,
+        value: crate::template::syntax::expressions::Pipeline,
+    ) -> Result<(), rt::TsonicError>;
     fn read_with_node_binding(&self) -> Option<TemplateVariableBinding>;
-    fn write_with_node_binding(&self, value: Option<TemplateVariableBinding>);
+    fn write_with_node_binding(
+        &self,
+        value: Option<TemplateVariableBinding>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_with_node_body(&self) -> js_abi::JsArray<TemplateNode>;
-    fn write_with_node_body(&self, value: js_abi::JsArray<TemplateNode>);
+    fn write_with_node_body(
+        &self,
+        value: js_abi::JsArray<TemplateNode>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_with_node_else_body(&self) -> js_abi::JsArray<TemplateNode>;
-    fn write_with_node_else_body(&self, value: js_abi::JsArray<TemplateNode>);
+    fn write_with_node_else_body(
+        &self,
+        value: js_abi::JsArray<TemplateNode>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_with_node_source_text(&self) -> String;
-    fn write_with_node_source_text(&self, value: String);
+    fn write_with_node_source_text(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_with_node_source_segment_index(&self) -> i32;
-    fn write_with_node_source_segment_index(&self, value: i32);
+    fn write_with_node_source_segment_index(&self, value: i32) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -1261,9 +1513,8 @@ impl rt::ObjectIdentityCarrier for WithNode {
 }
 
 pub(crate) struct WithNodeRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<WithNodeState>,
+    state: rt::ObjectState<WithNodeState>,
 }
 
 impl WithNode {
@@ -1275,7 +1526,7 @@ impl WithNode {
         else_body: js_abi::JsArray<TemplateNode>,
         source_text: String,
         source_segment_index: i32,
-    ) -> WithNodeState {
+    ) -> Result<WithNodeState, rt::TsonicError> {
         let base_state = TemplateNode::initialize_state();
         let field_expr: crate::template::syntax::expressions::Pipeline = expr;
         let field_binding: Option<TemplateVariableBinding> = binding;
@@ -1283,7 +1534,7 @@ impl WithNode {
         let field_else_body: js_abi::JsArray<TemplateNode> = else_body;
         let field_source_text: String = source_text;
         let field_source_segment_index: i32 = source_segment_index;
-        WithNodeState {
+        Ok(WithNodeState {
             base: base_state,
             expr: field_expr,
             binding: field_binding,
@@ -1291,7 +1542,7 @@ impl WithNode {
             else_body: field_else_body,
             source_text: field_source_text,
             source_segment_index: field_source_segment_index,
-        }
+        })
     }
 
     pub fn new(
@@ -1301,7 +1552,7 @@ impl WithNode {
         else_body: js_abi::JsArray<TemplateNode>,
         source_text: String,
         source_segment_index: i32,
-    ) -> WithNode {
+    ) -> Result<WithNode, rt::TsonicError> {
         let state = WithNode::initialize_state(
             expr,
             binding,
@@ -1309,16 +1560,16 @@ impl WithNode {
             else_body,
             source_text,
             source_segment_index,
-        );
+        )?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(WithNodeRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        WithNode {
+        Ok(WithNode {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -1337,6 +1588,12 @@ impl TemplateNodeDispatch for WithNodeRoot {
 }
 
 impl WithNodeDispatch for WithNodeRoot {
+    fn downcast_with_node_to_template_node(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        Some(self)
+    }
+
     fn downcast_with_node_to_with_node(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn WithNodeDispatch + 'static>> {
@@ -1347,49 +1604,97 @@ impl WithNodeDispatch for WithNodeRoot {
         self.state.with(|state| state.expr.clone())
     }
 
-    fn write_with_node_expr(&self, value: crate::template::syntax::expressions::Pipeline) {
-        self.state.with_mut(|state| state.expr = value);
+    fn write_with_node_expr(
+        &self,
+        value: crate::template::syntax::expressions::Pipeline,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.expr = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_with_node_binding(&self) -> Option<TemplateVariableBinding> {
         self.state.with(|state| state.binding.clone())
     }
 
-    fn write_with_node_binding(&self, value: Option<TemplateVariableBinding>) {
-        self.state.with_mut(|state| state.binding = value);
+    fn write_with_node_binding(
+        &self,
+        value: Option<TemplateVariableBinding>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.binding = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_with_node_body(&self) -> js_abi::JsArray<TemplateNode> {
         self.state.with(|state| state.body.clone())
     }
 
-    fn write_with_node_body(&self, value: js_abi::JsArray<TemplateNode>) {
-        self.state.with_mut(|state| state.body = value);
+    fn write_with_node_body(
+        &self,
+        value: js_abi::JsArray<TemplateNode>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.body = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_with_node_else_body(&self) -> js_abi::JsArray<TemplateNode> {
         self.state.with(|state| state.else_body.clone())
     }
 
-    fn write_with_node_else_body(&self, value: js_abi::JsArray<TemplateNode>) {
-        self.state.with_mut(|state| state.else_body = value);
+    fn write_with_node_else_body(
+        &self,
+        value: js_abi::JsArray<TemplateNode>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.else_body = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_with_node_source_text(&self) -> String {
         self.state.with(|state| state.source_text.clone())
     }
 
-    fn write_with_node_source_text(&self, value: String) {
-        self.state.with_mut(|state| state.source_text = value);
+    fn write_with_node_source_text(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.source_text = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_with_node_source_segment_index(&self) -> i32 {
         self.state.with(|state| state.source_segment_index)
     }
 
-    fn write_with_node_source_segment_index(&self, value: i32) {
-        self.state
-            .with_mut(|state| state.source_segment_index = value);
+    fn write_with_node_source_segment_index(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state
+                    .with_mut(|state| state.source_segment_index = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -1400,12 +1705,23 @@ pub trait BlockNodeDispatch: TemplateNodeDispatch {
     ) -> Option<alloc::rc::Rc<dyn BlockNodeDispatch + 'static>> {
         None
     }
+    fn downcast_block_node_to_template_node(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        None
+    }
     fn read_block_node_name(&self) -> String;
-    fn write_block_node_name(&self, value: String);
+    fn write_block_node_name(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_block_node_context(&self) -> crate::template::syntax::expressions::Pipeline;
-    fn write_block_node_context(&self, value: crate::template::syntax::expressions::Pipeline);
+    fn write_block_node_context(
+        &self,
+        value: crate::template::syntax::expressions::Pipeline,
+    ) -> Result<(), rt::TsonicError>;
     fn read_block_node_fallback(&self) -> js_abi::JsArray<TemplateNode>;
-    fn write_block_node_fallback(&self, value: js_abi::JsArray<TemplateNode>);
+    fn write_block_node_fallback(
+        &self,
+        value: js_abi::JsArray<TemplateNode>,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -1446,9 +1762,8 @@ impl rt::ObjectIdentityCarrier for BlockNode {
 }
 
 pub(crate) struct BlockNodeRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<BlockNodeState>,
+    state: rt::ObjectState<BlockNodeState>,
 }
 
 impl BlockNode {
@@ -1457,34 +1772,34 @@ impl BlockNode {
         name: String,
         context: crate::template::syntax::expressions::Pipeline,
         fallback: js_abi::JsArray<TemplateNode>,
-    ) -> BlockNodeState {
+    ) -> Result<BlockNodeState, rt::TsonicError> {
         let base_state = TemplateNode::initialize_state();
         let field_name: String = name;
         let field_context: crate::template::syntax::expressions::Pipeline = context;
         let field_fallback: js_abi::JsArray<TemplateNode> = fallback;
-        BlockNodeState {
+        Ok(BlockNodeState {
             base: base_state,
             name: field_name,
             context: field_context,
             fallback: field_fallback,
-        }
+        })
     }
 
     pub fn new(
         name: String,
         context: crate::template::syntax::expressions::Pipeline,
         fallback: js_abi::JsArray<TemplateNode>,
-    ) -> BlockNode {
-        let state = BlockNode::initialize_state(name, context, fallback);
+    ) -> Result<BlockNode, rt::TsonicError> {
+        let state = BlockNode::initialize_state(name, context, fallback)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(BlockNodeRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        BlockNode {
+        Ok(BlockNode {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -1509,27 +1824,57 @@ impl BlockNodeDispatch for BlockNodeRoot {
         Some(self)
     }
 
+    fn downcast_block_node_to_template_node(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
+        Some(self)
+    }
+
     fn read_block_node_name(&self) -> String {
         self.state.with(|state| state.name.clone())
     }
 
-    fn write_block_node_name(&self, value: String) {
-        self.state.with_mut(|state| state.name = value);
+    fn write_block_node_name(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.name = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_block_node_context(&self) -> crate::template::syntax::expressions::Pipeline {
         self.state.with(|state| state.context.clone())
     }
 
-    fn write_block_node_context(&self, value: crate::template::syntax::expressions::Pipeline) {
-        self.state.with_mut(|state| state.context = value);
+    fn write_block_node_context(
+        &self,
+        value: crate::template::syntax::expressions::Pipeline,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.context = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_block_node_fallback(&self) -> js_abi::JsArray<TemplateNode> {
         self.state.with(|state| state.fallback.clone())
     }
 
-    fn write_block_node_fallback(&self, value: js_abi::JsArray<TemplateNode>) {
-        self.state.with_mut(|state| state.fallback = value);
+    fn write_block_node_fallback(
+        &self,
+        value: js_abi::JsArray<TemplateNode>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.fallback = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

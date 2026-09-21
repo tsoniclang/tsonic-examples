@@ -4,13 +4,19 @@ use crate::program as rt;
 
 #[doc(hidden)]
 pub trait DateValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_date_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_date_value_to_date_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn DateValueDispatch + 'static>> {
         None
     }
     fn read_date_value_value(&self) -> String;
-    fn write_date_value_value(&self, value: String);
+    fn write_date_value_value(&self, value: String) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -49,33 +55,32 @@ impl rt::ObjectIdentityCarrier for DateValue {
 }
 
 pub(crate) struct DateValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<DateValueState>,
+    state: rt::ObjectState<DateValueState>,
 }
 
 impl DateValue {
     #[doc(hidden)]
-    pub fn initialize_state(value: String) -> DateValueState {
+    pub fn initialize_state(value: String) -> Result<DateValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: String = value;
-        DateValueState {
+        Ok(DateValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: String) -> DateValue {
-        let state = DateValue::initialize_state(value);
+    pub fn new(value: String) -> Result<DateValue, rt::TsonicError> {
+        let state = DateValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(DateValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        DateValue {
+        Ok(DateValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -95,6 +100,13 @@ impl crate::template::values::base::TemplateValueDispatch for DateValueRoot {
 }
 
 impl DateValueDispatch for DateValueRoot {
+    fn downcast_date_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_date_value_to_date_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn DateValueDispatch + 'static>> {
@@ -105,7 +117,13 @@ impl DateValueDispatch for DateValueRoot {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_date_value_value(&self, value: String) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_date_value_value(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

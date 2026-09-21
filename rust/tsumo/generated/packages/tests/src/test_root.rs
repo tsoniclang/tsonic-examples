@@ -129,7 +129,8 @@ impl Default for Assert {
 }
 
 pub fn create_test_directory(name: String) -> Result<String, rt::TsonicError> {
-    let configured_root: Option<String> = tsonic_rust_node::process::env_get("TSUMO_TEST_ROOT");
+    let configured_root: Option<String> =
+        tsonic_rust_node::process::environment().get("TSUMO_TEST_ROOT");
     if configured_root.is_none()
         || js_string::trim(&match configured_root.as_ref() {
             Some(flow_value) => flow_value.clone(),
@@ -147,25 +148,28 @@ pub fn create_test_directory(name: String) -> Result<String, rt::TsonicError> {
     }
     .as_str()])?;
     tsonic_rust_node::fs::mkdir_sync_with_options(
-        &root,
+        root.as_str(),
         tsonic_rust_node::fs::MakeDirectoryOptions {
             recursive: Some(true),
             ..Default::default()
         },
     )?;
-    tsonic_rust_node::fs::mkdtemp_sync(&{
-        let operation_input_0 = root.clone();
-        tsonic_rust_node::path::join(&[
-            operation_input_0.as_str(),
-            format!("{}{}", name, String::from("-")).as_str(),
-        ])
-    })
+    tsonic_rust_node::fs::mkdtemp_sync(
+        {
+            let operation_input_0 = root;
+            tsonic_rust_node::path::join(&[
+                operation_input_0.as_str(),
+                format!("{}{}", name, String::from("-")).as_str(),
+            ])
+        }
+        .as_str(),
+    )
     .map_err(rt::TsonicError::from)
 }
 
 pub fn create_directory(path: String) -> Result<(), rt::TsonicError> {
     tsonic_rust_node::fs::mkdir_sync_with_options(
-        &path,
+        path.as_str(),
         tsonic_rust_node::fs::MakeDirectoryOptions {
             recursive: Some(true),
             ..Default::default()
@@ -175,37 +179,38 @@ pub fn create_directory(path: String) -> Result<(), rt::TsonicError> {
 }
 
 pub fn write_text_file(path: String, content: String) -> Result<(), rt::TsonicError> {
-    tsonic_rust_node::fs::write_file_sync_string(&path, &content, "utf-8")?;
+    tsonic_rust_node::fs::write_file_sync_string(path.as_str(), content.as_str(), "utf-8")?;
     Ok(())
 }
 
 pub fn read_text_file(path: String) -> Result<String, rt::TsonicError> {
-    tsonic_rust_node::fs::read_file_sync_string(&path, "utf-8").map_err(rt::TsonicError::from)
+    tsonic_rust_node::fs::read_file_sync_string(path.as_str(), "utf-8")
+        .map_err(rt::TsonicError::from)
 }
 
 #[allow(dead_code, reason = "retains an unused authored declaration")]
 pub fn path_exists(path: String) -> bool {
-    tsonic_rust_node::fs::exists_sync(&path)
+    tsonic_rust_node::fs::exists_sync(path.as_str())
 }
 
 pub fn directory_exists(path: String) -> Result<bool, rt::TsonicError> {
-    Ok(tsonic_rust_node::fs::exists_sync(&path)
-        && tsonic_rust_node::fs::stat_sync(&path)?.is_directory())
+    Ok(tsonic_rust_node::fs::exists_sync(path.as_str())
+        && tsonic_rust_node::fs::stat_sync(path.as_str())?.is_directory())
 }
 
 pub fn file_exists(path: String) -> Result<bool, rt::TsonicError> {
-    Ok(tsonic_rust_node::fs::exists_sync(&path)
-        && tsonic_rust_node::fs::stat_sync(&path)?.is_file())
+    Ok(tsonic_rust_node::fs::exists_sync(path.as_str())
+        && tsonic_rust_node::fs::stat_sync(path.as_str())?.is_file())
 }
 
 pub fn create_symbolic_link(target: String, path: String) -> Result<(), rt::TsonicError> {
-    tsonic_rust_node::fs::symlink_sync(&target, &path)?;
+    tsonic_rust_node::fs::symlink_sync(target.as_str(), path.as_str())?;
     Ok(())
 }
 
 pub fn delete_test_directory(path: String) -> Result<(), rt::TsonicError> {
     tsonic_rust_node::fs::rm_sync_with_options(
-        &path,
+        path.as_str(),
         tsonic_rust_node::fs::RmOptions {
             recursive: Some(true),
             force: Some(true),

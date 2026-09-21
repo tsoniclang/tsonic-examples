@@ -17,15 +17,15 @@ pub fn handle_new(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError> 
             crate::report_usage_error::report_usage_error(format!(
                 "{}{}",
                 String::from("Unknown new site option: "),
-                match args.get_number(3.0).as_ref() {
-                    Some(flow_value) => flow_value.clone(),
+                match args.get_number(3.0) {
+                    Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
             ));
             return Ok(());
         }
-        let dir: String = match args.get_number(2.0).as_ref() {
-            Some(flow_value_2) => flow_value_2.clone(),
+        let dir: String = match args.get_number(2.0) {
+            Some(flow_value_2) => flow_value_2,
             None => unreachable!("checked flow selected a missing optional value"),
         };
         tsumo_engine::init_site(
@@ -45,8 +45,8 @@ pub fn handle_new(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError> 
     {
         let mut i: f64 = 2.0;
         while i < (rt::conversions::usize_to_i32(args.len())? as f64) {
-            let a: String = match args.get_number(i).as_ref() {
-                Some(flow_value_3) => flow_value_3.clone(),
+            let a: String = match args.get_number(i) {
+                Some(flow_value_3) => flow_value_3,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if a == "--source" || a == "-s" {
@@ -58,8 +58,8 @@ pub fn handle_new(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError> 
                     ));
                     return Ok(());
                 }
-                content_source_dir = match args.get_number(i + 1.0).as_ref() {
-                    Some(flow_value_4) => flow_value_4.clone(),
+                content_source_dir = match args.get_number(i + 1.0) {
+                    Some(flow_value_4) => flow_value_4,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 i += 1.0;
@@ -75,9 +75,9 @@ pub fn handle_new(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError> 
         }
     }
     let created: String = tsumo_engine::new_content(
-        content_source_dir.clone(),
-        match args.get_number(1.0).as_ref() {
-            Some(flow_value_5) => flow_value_5.clone(),
+        content_source_dir,
+        match args.get_number(1.0) {
+            Some(flow_value_5) => flow_value_5,
             None => unreachable!("checked flow selected a missing optional value"),
         },
         crate::source_date_epoch::read_source_date_epoch()?,

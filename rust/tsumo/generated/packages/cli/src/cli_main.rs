@@ -4,9 +4,7 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-std::thread_local! {
-    pub(crate) static VERSION: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
-}
+pub(crate) const VERSION: &str = "0.0.0";
 
 pub(crate) fn run() -> Result<(), rt::TsonicError> {
     let args: js_abi::JsArray<String> = tsonic_rust_node::process::argv()?.slice_from(2.0);
@@ -21,7 +19,7 @@ pub(crate) fn run() -> Result<(), rt::TsonicError> {
         return Ok(());
     }
     if first == "-v" || first == "--version" || first == "version" {
-        crate::log_line::log_line(VERSION.with(|module_binding| module_binding.load()));
+        crate::log_line::log_line(String::from(VERSION));
         return Ok(());
     }
     let cmd: String = if first.is_empty() || js_string::starts_with_from_start(&first, "-") {
@@ -66,17 +64,10 @@ pub fn main() {
         Ok(completion) => completion,
         Err(error) => rt::completion_region(|| {
             crate::log_error_line::log_error_line(
-                if matches!(
-                    error.clone(),
-                    rt::TsonicError::TsumoEngineError(
-                        tsumo_engine::program::TsonicError::TsumoError(_)
-                    )
-                ) {
+                if matches!(error.clone(), rt::TsonicError::TsumoError(_)) {
                     let dispatch_receiver_2 = {
-                        let dispatch_receiver = &match error {
-                            rt::TsonicError::TsumoEngineError(
-                                tsumo_engine::program::TsonicError::TsumoError(program_error),
-                            ) => program_error,
+                        let dispatch_receiver = &match &error {
+                            rt::TsonicError::TsumoError(program_error) => program_error.clone(),
                             _ => unreachable!(
                                 "checked flow selected a different program-error variant"
                             ),
@@ -101,12 +92,4 @@ pub fn main() {
             unreachable!("invalid finalized Tsonic completion target")
         }
     }
-}
-
-#[doc(hidden)]
-pub fn module_init() {
-    {
-        let module_value = String::from("0.0.0");
-        VERSION.with(|module_binding| module_binding.initialize(module_value))
-    };
 }

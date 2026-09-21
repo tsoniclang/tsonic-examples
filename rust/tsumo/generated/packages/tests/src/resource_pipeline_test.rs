@@ -4,51 +4,11 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub(crate) fn capture_resource_diagnostic(
-    operation: rt::Callable<(), rt::TsonicResult<()>>,
-) -> Result<String, rt::TsonicError> {
-    let try_body: rt::TsonicResult<rt::Completion<String>> = rt::completion_region(|| {
-        operation.call(())?;
-        Ok(rt::Completion::Normal)
-    });
-    let try_flow: rt::TsonicResult<rt::Completion<String>> = match try_body {
-        Ok(completion) => Ok(completion),
-        Err(error) => rt::completion_region(|| {
-            if matches!(
-                error.clone(),
-                rt::TsonicError::TsumoEngineError(tsumo_engine::program::TsonicError::TsumoError(
-                    _
-                ))
-            ) {
-                return Ok(rt::Completion::Return({
-                    let dispatch_receiver_2 = &{
-                        let dispatch_receiver = &match error {
-                            rt::TsonicError::TsumoEngineError(
-                                tsumo_engine::program::TsonicError::TsumoError(program_error),
-                            ) => program_error,
-                            _ => unreachable!(
-                                "checked flow selected a different program-error variant"
-                            ),
-                        };
-                        dispatch_receiver.dispatch.read_tsumo_error_diagnostic()
-                    };
-                    dispatch_receiver_2.dispatch.read_tsumo_diagnostic_code()
-                }));
-            }
-            Err(error.clone())
-        }),
-    };
-    let try_flow = try_flow?;
-    match try_flow {
-        rt::Completion::Normal => {}
-        rt::Completion::Return(value) => return Ok(value),
-        rt::Completion::Break(_) | rt::Completion::Continue(_) => {
-            unreachable!("invalid finalized Tsonic completion target")
-        }
-    }
-    Err(rt::TsonicError::from(rt::JsError::error(
-        "Expected a resource diagnostic",
-    )))
+type CaptureResourceDiagnosticCallable =
+    rt::Callable<(rt::Callable<(), rt::TsonicResult<()>>,), rt::TsonicResult<String>>;
+
+std::thread_local! {
+    pub(crate) static CAPTURE_RESOURCE_DIAGNOSTIC: rt::ModuleCell<CaptureResourceDiagnosticCallable> = const { rt::ModuleCell::new() };
 }
 
 pub(crate) struct ResourcePipelineTestsState {}
@@ -71,48 +31,75 @@ impl ResourcePipelineTests {
         }
     }
 
+    pub fn missing_external_tool_preserves_the_requested_diagnostic(
+        &self,
+    ) -> Result<(), rt::TsonicError> {
+        crate::test_root::Assert::string_equal(
+            String::from("TSUMO_TEST_TOOL_START_FAILED"),
+            Some(
+                CAPTURE_RESOURCE_DIAGNOSTIC
+                    .with(|module_binding| module_binding.load())
+                    .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
+                        move |_callable_arguments| {
+                            tsumo_engine::testing::run_external_process(
+                                String::from("__tsumo_missing_external_tool__"),
+                                js_abi::JsArray::from_dense(vec![]),
+                                String::from("test tool"),
+                                String::from("TSUMO_TEST_TOOL_START_FAILED"),
+                            )?;
+                            Ok::<_, rt::TsonicError>(())
+                        },
+                    ),))?,
+            ),
+        )?;
+        Ok(())
+    }
+
     pub fn relative_path_policy_rejects_every_escape_form(&self) -> Result<(), rt::TsonicError> {
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_RESOURCE_PATH_ESCAPES_ROOT"),
-            Some(capture_resource_diagnostic(rt::Callable::<
-                (),
-                rt::TsonicResult<()>,
-            >::new(
-                move |_callable_arguments| {
-                    tsumo_engine::testing::normalize_resource_relative_path(String::from(
-                        "../secret.txt",
-                    ))?;
-                    Ok::<_, rt::TsonicError>(())
-                },
-            ))?),
+            Some(
+                CAPTURE_RESOURCE_DIAGNOSTIC
+                    .with(|module_binding| module_binding.load())
+                    .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
+                        move |_callable_arguments| {
+                            tsumo_engine::testing::normalize_resource_relative_path(String::from(
+                                "../secret.txt",
+                            ))?;
+                            Ok::<_, rt::TsonicError>(())
+                        },
+                    ),))?,
+            ),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_RESOURCE_PATH_ESCAPES_ROOT"),
-            Some(capture_resource_diagnostic(rt::Callable::<
-                (),
-                rt::TsonicResult<()>,
-            >::new(
-                move |_callable_arguments_2| {
-                    tsumo_engine::testing::normalize_resource_relative_path(String::from(
-                        "assets/../../secret.txt",
-                    ))?;
-                    Ok::<_, rt::TsonicError>(())
-                },
-            ))?),
+            Some(
+                CAPTURE_RESOURCE_DIAGNOSTIC
+                    .with(|module_binding| module_binding.load())
+                    .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
+                        move |_callable_arguments_2| {
+                            tsumo_engine::testing::normalize_resource_relative_path(String::from(
+                                "assets/../../secret.txt",
+                            ))?;
+                            Ok::<_, rt::TsonicError>(())
+                        },
+                    ),))?,
+            ),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_RESOURCE_PATH_ABSOLUTE"),
-            Some(capture_resource_diagnostic(rt::Callable::<
-                (),
-                rt::TsonicResult<()>,
-            >::new(
-                move |_callable_arguments_3| {
-                    tsumo_engine::testing::normalize_resource_relative_path(String::from(
-                        "C:\\secret.txt",
-                    ))?;
-                    Ok::<_, rt::TsonicError>(())
-                },
-            ))?),
+            Some(
+                CAPTURE_RESOURCE_DIAGNOSTIC
+                    .with(|module_binding| module_binding.load())
+                    .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
+                        move |_callable_arguments_3| {
+                            tsumo_engine::testing::normalize_resource_relative_path(String::from(
+                                "C:\\secret.txt",
+                            ))?;
+                            Ok::<_, rt::TsonicError>(())
+                        },
+                    ),))?,
+            ),
         )?;
         crate::test_root::Assert::string_equal(
             String::from("images/logo.png"),
@@ -230,8 +217,8 @@ impl ResourcePipelineTests {
             let mut index: f64 = 0.0;
             while index < (rt::conversions::usize_to_i32(malformed.len())? as f64) {
                 crate::test_root::Assert::r#true(!tsumo_engine::testing::is_valid_utf8(
-                    match malformed.get_number(index).as_ref() {
-                        Some(flow_value) => flow_value.clone(),
+                    match malformed.get_number(index) {
+                        Some(flow_value) => flow_value,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                 )?)?;
@@ -255,7 +242,7 @@ impl ResourcePipelineTests {
                     vec![97.0, 160.0, 98.0],
                 ));
             tsonic_rust_node::fs::write_file_sync_buffer(
-                &tsonic_rust_node::path::join(&[assets_dir.as_str(), "legacy.js"]),
+                tsonic_rust_node::path::join(&[assets_dir.as_str(), "legacy.js"]).as_str(),
                 &source_bytes,
             )?;
             let manager: tsumo_engine::testing::ResourceManager =
@@ -297,10 +284,9 @@ impl ResourcePipelineTests {
                     })
             }?;
             let published: tsonic_rust_node::buffer::Buffer =
-                tsonic_rust_node::fs::read_file_sync_buffer(&tsonic_rust_node::path::join(&[
-                    output_dir.as_str(),
-                    "legacy.js",
-                ]))?;
+                tsonic_rust_node::fs::read_file_sync_buffer(
+                    tsonic_rust_node::path::join(&[output_dir.as_str(), "legacy.js"]).as_str(),
+                )?;
             crate::test_root::Assert::number_equal(
                 3.0,
                 Some(rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
@@ -315,21 +301,27 @@ impl ResourcePipelineTests {
             )?;
             crate::test_root::Assert::string_equal(
                 String::from("TSUMO_RESOURCE_TEXT_ENCODING_INVALID"),
-                Some(capture_resource_diagnostic({
-                    let capture_resource = resource.clone();
-                    rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                        tsumo_engine::testing::read_resource_text(
-                            match capture_resource.as_ref() {
-                                Some(flow_value_3) => flow_value_3.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                            String::from("Resource.Content"),
-                        )?;
-                        Ok::<_, rt::TsonicError>(())
-                    })
-                })?),
+                Some(
+                    CAPTURE_RESOURCE_DIAGNOSTIC
+                        .with(|module_binding| module_binding.load())
+                        .call(({
+                            let capture_resource = resource.clone();
+                            rt::Callable::<(), rt::TsonicResult<()>>::new(
+                                move |_callable_arguments| {
+                                    tsumo_engine::testing::read_resource_text(
+                                        match capture_resource.as_ref() {
+                                            Some(flow_value_3) => flow_value_3.clone(),
+                                            None => unreachable!(
+                                                "checked flow selected a missing optional value"
+                                            ),
+                                        },
+                                        String::from("Resource.Content"),
+                                    )?;
+                                    Ok::<_, rt::TsonicError>(())
+                                },
+                            )
+                        },))?,
+                ),
             )?;
             Ok(rt::Completion::Normal)
         });
@@ -391,11 +383,11 @@ impl ResourcePipelineTests {
             Some(String::from("css/site.css")),
             tsonic_rust_node::buffer::Buffer::from_string_enc("body {}", "utf8")?,
             Some(String::from("body {}")),
-            tsumo_engine::testing::ResourceData::new(String::from("")),
+            tsumo_engine::testing::ResourceData::new(String::from(""))?,
             Some(String::from("text/css")),
             Some(10),
             Some(20),
-        );
+        )?;
         let fingerprinted: tsumo_engine::testing::Resource =
             tsumo_engine::testing::fingerprint_resource(source.clone())?;
         crate::test_root::Assert::string_equal(
@@ -514,8 +506,8 @@ impl ResourcePipelineTests {
             )?;
             crate::test_root::Assert::r#true(
                 ({
-                    let dispatch_receiver_2 = &match matched.get_number(0.0).as_ref() {
-                        Some(flow_value) => flow_value.clone(),
+                    let dispatch_receiver_2 = &match matched.get_number(0.0) {
+                        Some(flow_value) => flow_value,
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     dispatch_receiver_2.dispatch.read_resource_output_rel_path()
@@ -523,8 +515,8 @@ impl ResourcePipelineTests {
             )?;
             crate::test_root::Assert::r#true(
                 ({
-                    let dispatch_receiver_3 = &match matched.get_number(1.0).as_ref() {
-                        Some(flow_value_2) => flow_value_2.clone(),
+                    let dispatch_receiver_3 = &match matched.get_number(1.0) {
+                        Some(flow_value_2) => flow_value_2,
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     dispatch_receiver_3.dispatch.read_resource_output_rel_path()
@@ -532,8 +524,8 @@ impl ResourcePipelineTests {
             )?;
             crate::test_root::Assert::r#true(
                 ({
-                    let dispatch_receiver_4 = &match matched.get_number(2.0).as_ref() {
-                        Some(flow_value_3) => flow_value_3.clone(),
+                    let dispatch_receiver_4 = &match matched.get_number(2.0) {
+                        Some(flow_value_3) => flow_value_3,
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     dispatch_receiver_4.dispatch.read_resource_output_rel_path()
@@ -541,8 +533,8 @@ impl ResourcePipelineTests {
             )?;
             crate::test_root::Assert::r#true(
                 {
-                    let dispatch_receiver_5 = &match matched.get_number(0.0).as_ref() {
-                        Some(flow_value_4) => flow_value_4.clone(),
+                    let dispatch_receiver_5 = &match matched.get_number(0.0) {
+                        Some(flow_value_4) => flow_value_4,
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     dispatch_receiver_5.dispatch.read_resource_text()
@@ -552,8 +544,8 @@ impl ResourcePipelineTests {
             crate::test_root::Assert::string_equal(
                 String::from("site-a"),
                 Some(tsumo_engine::testing::read_resource_text(
-                    match matched.get_number(0.0).as_ref() {
-                        Some(flow_value_5) => flow_value_5.clone(),
+                    match matched.get_number(0.0) {
+                        Some(flow_value_5) => flow_value_5,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                     String::from("test"),
@@ -567,7 +559,7 @@ impl ResourcePipelineTests {
                         dispatch_receiver_6
                             .dispatch
                             .clone()
-                            .dispatch_resource_manager_by_type(String::from("text"))
+                            .dispatch_resource_manager_by_type("text")
                     }?
                     .len(),
                 )?)),
@@ -638,28 +630,38 @@ impl Default for ResourcePipelineTests {
 pub fn run_resource_pipeline_tests() -> Result<(), rt::TsonicError> {
     let tests: ResourcePipelineTests = ResourcePipelineTests::new();
     crate::test_root::run_test(
-        String::from("relative path policy rejects every escape form"),
+        String::from("missing external tool preserves the requested diagnostic"),
         {
             let capture_tests = tests.clone();
             rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                capture_tests.relative_path_policy_rejects_every_escape_form()?;
+                capture_tests.missing_external_tool_preserves_the_requested_diagnostic()?;
+                Ok::<_, rt::TsonicError>(())
+            })
+        },
+    )?;
+    crate::test_root::run_test(
+        String::from("relative path policy rejects every escape form"),
+        {
+            let capture_tests_2 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
+                capture_tests_2.relative_path_policy_rejects_every_escape_form()?;
                 Ok::<_, rt::TsonicError>(())
             })
         },
     )?;
     crate::test_root::run_test(String::from("glob matching is segment exact"), {
-        let capture_tests_2 = tests.clone();
-        rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
-            capture_tests_2.glob_matching_is_segment_exact()?;
+        let capture_tests_3 = tests.clone();
+        rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_3| {
+            capture_tests_3.glob_matching_is_segment_exact()?;
             Ok::<_, rt::TsonicError>(())
         })
     })?;
     crate::test_root::run_test(
         String::from("image dimensions are read from exact file signatures"),
         {
-            let capture_tests_3 = tests.clone();
-            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_3| {
-                capture_tests_3.image_dimensions_are_read_from_exact_file_signatures()?;
+            let capture_tests_4 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_4| {
+                capture_tests_4.image_dimensions_are_read_from_exact_file_signatures()?;
                 Ok::<_, rt::TsonicError>(())
             })
         },
@@ -667,9 +669,9 @@ pub fn run_resource_pipeline_tests() -> Result<(), rt::TsonicError> {
     crate::test_root::run_test(
         String::from("UTF-8 validation accepts scalars and rejects malformed sequences"),
         {
-            let capture_tests_4 = tests.clone();
-            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_4| {
-                capture_tests_4
+            let capture_tests_5 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_5| {
+                capture_tests_5
                     .utf8_validation_accepts_scalars_and_rejects_malformed_sequences()?;
                 Ok::<_, rt::TsonicError>(())
             })
@@ -678,9 +680,9 @@ pub fn run_resource_pipeline_tests() -> Result<(), rt::TsonicError> {
     crate::test_root::run_test(
         String::from("file resources publish raw bytes and decode only for text operations"),
         {
-            let capture_tests_5 = tests.clone();
-            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_5| {
-                capture_tests_5
+            let capture_tests_6 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_6| {
+                capture_tests_6
                     .file_resources_publish_raw_bytes_and_decode_only_for_text_operations()?;
                 Ok::<_, rt::TsonicError>(())
             })
@@ -689,9 +691,9 @@ pub fn run_resource_pipeline_tests() -> Result<(), rt::TsonicError> {
     crate::test_root::run_test(
         String::from("transform identity and metadata are content exact"),
         {
-            let capture_tests_6 = tests.clone();
-            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_6| {
-                capture_tests_6.transform_identity_and_metadata_are_content_exact()?;
+            let capture_tests_7 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_7| {
+                capture_tests_7.transform_identity_and_metadata_are_content_exact()?;
                 Ok::<_, rt::TsonicError>(())
             })
         },
@@ -699,13 +701,63 @@ pub fn run_resource_pipeline_tests() -> Result<(), rt::TsonicError> {
     crate::test_root::run_test(
         String::from("resource lookup is sorted and site assets override theme assets"),
         {
-            let capture_tests_7 = tests.clone();
-            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_7| {
-                capture_tests_7
+            let capture_tests_8 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_8| {
+                capture_tests_8
                     .resource_lookup_is_sorted_and_site_assets_override_theme_assets()?;
                 Ok::<_, rt::TsonicError>(())
             })
         },
     )?;
     Ok(())
+}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = rt::Callable::<
+            (rt::Callable<(), rt::TsonicResult<()>>,),
+            rt::TsonicResult<String>,
+        >::new(move |callable_arguments| {
+            let operation = callable_arguments.0;
+            let try_body: rt::TsonicResult<rt::Completion<String>> = rt::completion_region(|| {
+                operation.call(())?;
+                Ok(rt::Completion::Normal)
+            });
+            let try_flow: rt::TsonicResult<rt::Completion<String>> = match try_body {
+                Ok(completion) => Ok(completion),
+                Err(error) => rt::completion_region(|| {
+                    if matches!(error.clone(), rt::TsonicError::TsumoError(_)) {
+                        return Ok(rt::Completion::Return({
+                            let dispatch_receiver_2 = &{
+                                let dispatch_receiver = &match &error {
+                                    rt::TsonicError::TsumoError(program_error) => {
+                                        program_error.clone()
+                                    }
+                                    _ => unreachable!(
+                                        "checked flow selected a different program-error variant"
+                                    ),
+                                };
+                                dispatch_receiver.dispatch.read_tsumo_error_diagnostic()
+                            };
+                            dispatch_receiver_2.dispatch.read_tsumo_diagnostic_code()
+                        }));
+                    }
+                    Err(error.clone())
+                }),
+            };
+            let try_flow = try_flow?;
+            match try_flow {
+                rt::Completion::Normal => {}
+                rt::Completion::Return(value) => return Ok(value),
+                rt::Completion::Break(_) | rt::Completion::Continue(_) => {
+                    unreachable!("invalid finalized Tsonic completion target")
+                }
+            }
+            Err(rt::TsonicError::from(rt::JsError::error(
+                "Expected a resource diagnostic",
+            )))
+        });
+        CAPTURE_RESOURCE_DIAGNOSTIC.with(|module_binding| module_binding.initialize(module_value))
+    };
 }

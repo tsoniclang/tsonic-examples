@@ -6,6 +6,12 @@ use crate::program as rt;
 pub trait ResourceNamespaceValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
+    fn downcast_resource_namespace_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_resource_namespace_value_to_resource_namespace_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ResourceNamespaceValueDispatch + 'static>> {
@@ -51,7 +57,7 @@ pub(crate) struct ResourceNamespaceValueRoot {
     #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     #[expect(dead_code, reason = "retains unused generated storage")]
-    state: rt::ObjectHandle<ResourceNamespaceValueState>,
+    state: rt::ObjectState<ResourceNamespaceValueState>,
 }
 
 impl ResourceNamespaceValue {
@@ -66,7 +72,7 @@ impl ResourceNamespaceValue {
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(ResourceNamespaceValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
         ResourceNamespaceValue {
             identity,
@@ -97,6 +103,13 @@ impl crate::template::values::base::TemplateValueDispatch for ResourceNamespaceV
 }
 
 impl ResourceNamespaceValueDispatch for ResourceNamespaceValueRoot {
+    fn downcast_resource_namespace_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_resource_namespace_value_to_resource_namespace_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ResourceNamespaceValueDispatch + 'static>> {
@@ -106,13 +119,22 @@ impl ResourceNamespaceValueDispatch for ResourceNamespaceValueRoot {
 
 #[doc(hidden)]
 pub trait ResourceDataValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_resource_data_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_resource_data_value_to_resource_data_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ResourceDataValueDispatch + 'static>> {
         None
     }
     fn read_resource_data_value_value(&self) -> crate::resources::models::ResourceData;
-    fn write_resource_data_value_value(&self, value: crate::resources::models::ResourceData);
+    fn write_resource_data_value_value(
+        &self,
+        value: crate::resources::models::ResourceData,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -151,35 +173,36 @@ impl rt::ObjectIdentityCarrier for ResourceDataValue {
 }
 
 pub(crate) struct ResourceDataValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<ResourceDataValueState>,
+    state: rt::ObjectState<ResourceDataValueState>,
 }
 
 impl ResourceDataValue {
     #[doc(hidden)]
     pub fn initialize_state(
         value: crate::resources::models::ResourceData,
-    ) -> ResourceDataValueState {
+    ) -> Result<ResourceDataValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: crate::resources::models::ResourceData = value;
-        ResourceDataValueState {
+        Ok(ResourceDataValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: crate::resources::models::ResourceData) -> ResourceDataValue {
-        let state = ResourceDataValue::initialize_state(value);
+    pub fn new(
+        value: crate::resources::models::ResourceData,
+    ) -> Result<ResourceDataValue, rt::TsonicError> {
+        let state = ResourceDataValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(ResourceDataValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        ResourceDataValue {
+        Ok(ResourceDataValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -199,6 +222,13 @@ impl crate::template::values::base::TemplateValueDispatch for ResourceDataValueR
 }
 
 impl ResourceDataValueDispatch for ResourceDataValueRoot {
+    fn downcast_resource_data_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_resource_data_value_to_resource_data_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ResourceDataValueDispatch + 'static>> {
@@ -209,22 +239,43 @@ impl ResourceDataValueDispatch for ResourceDataValueRoot {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_resource_data_value_value(&self, value: crate::resources::models::ResourceData) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_resource_data_value_value(
+        &self,
+        value: crate::resources::models::ResourceData,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
 #[doc(hidden)]
 pub trait ResourceValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_resource_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_resource_value_to_resource_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ResourceValueDispatch + 'static>> {
         None
     }
     fn read_resource_value_value(&self) -> crate::resources::models::Resource;
-    fn write_resource_value_value(&self, value: crate::resources::models::Resource);
+    fn write_resource_value_value(
+        &self,
+        value: crate::resources::models::Resource,
+    ) -> Result<(), rt::TsonicError>;
     fn read_resource_value_manager(&self) -> crate::resources::manager::ResourceManager;
-    fn write_resource_value_manager(&self, value: crate::resources::manager::ResourceManager);
+    fn write_resource_value_manager(
+        &self,
+        value: crate::resources::manager::ResourceManager,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -264,9 +315,8 @@ impl rt::ObjectIdentityCarrier for ResourceValue {
 }
 
 pub(crate) struct ResourceValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<ResourceValueState>,
+    state: rt::ObjectState<ResourceValueState>,
 }
 
 impl ResourceValue {
@@ -274,31 +324,31 @@ impl ResourceValue {
     pub fn initialize_state(
         manager: crate::resources::manager::ResourceManager,
         value: crate::resources::models::Resource,
-    ) -> ResourceValueState {
+    ) -> Result<ResourceValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_manager: crate::resources::manager::ResourceManager = manager;
         let field_value: crate::resources::models::Resource = value;
-        ResourceValueState {
+        Ok(ResourceValueState {
             base: base_state,
             value: field_value,
             manager: field_manager,
-        }
+        })
     }
 
     pub fn new(
         manager: crate::resources::manager::ResourceManager,
         value: crate::resources::models::Resource,
-    ) -> ResourceValue {
-        let state = ResourceValue::initialize_state(manager, value);
+    ) -> Result<ResourceValue, rt::TsonicError> {
+        let state = ResourceValue::initialize_state(manager, value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(ResourceValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        ResourceValue {
+        Ok(ResourceValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -318,6 +368,13 @@ impl crate::template::values::base::TemplateValueDispatch for ResourceValueRoot 
 }
 
 impl ResourceValueDispatch for ResourceValueRoot {
+    fn downcast_resource_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_resource_value_to_resource_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ResourceValueDispatch + 'static>> {
@@ -328,15 +385,33 @@ impl ResourceValueDispatch for ResourceValueRoot {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_resource_value_value(&self, value: crate::resources::models::Resource) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_resource_value_value(
+        &self,
+        value: crate::resources::models::Resource,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_resource_value_manager(&self) -> crate::resources::manager::ResourceManager {
         self.state.with(|state| state.manager.clone())
     }
 
-    fn write_resource_value_manager(&self, value: crate::resources::manager::ResourceManager) {
-        self.state.with_mut(|state| state.manager = value);
+    fn write_resource_value_manager(
+        &self,
+        value: crate::resources::manager::ResourceManager,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.manager = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
