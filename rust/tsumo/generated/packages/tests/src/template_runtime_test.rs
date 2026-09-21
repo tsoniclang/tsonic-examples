@@ -39,7 +39,7 @@ impl TemplateRuntimeTests {
             String::from("Home"),
             String::from(""),
             String::from("home"),
-        );
+        )?;
         crate::test_root::Assert::string_equal(
             String::from("false|exact"),
             Some(crate::template_test_harness::render_with_root(
@@ -47,7 +47,7 @@ impl TemplateRuntimeTests {
                     "{{ in (slice \"posts\" \"tags\") .Section }}|{{ (dict \"value\" \"exact\").value }}",
                 ),
                 {
-                    let upcast_value = tsumo_engine::testing::PageValue::new(page);
+                    let upcast_value = tsumo_engine::testing::PageValue::new(page)?;
                     tsumo_engine::testing::TemplateValue {
                         identity: upcast_value.identity.clone(),
                         dispatch: upcast_value.dispatch.clone(),
@@ -109,7 +109,7 @@ impl TemplateRuntimeTests {
             String::from("Home"),
             String::from(""),
             String::from("home"),
-        );
+        )?;
         {
             let receiver = &page;
             let value = tsumo_engine::testing::collect_shortcode_names(
@@ -122,7 +122,7 @@ impl TemplateRuntimeTests {
                 let dispatch_receiver = receiver;
                 dispatch_receiver
                     .dispatch
-                    .write_page_context_shortcode_names(value)
+                    .write_page_context_shortcode_names(value)?
             }
         };
         crate::test_root::Assert::string_equal(
@@ -132,7 +132,7 @@ impl TemplateRuntimeTests {
                     "{{ .HasShortcode \"outer\" }}|{{ .HasShortcode \"inner\" }}|{{ .HasShortcode \"ignored\" }}|{{ .HasShortcode \"Outer\" }}",
                 ),
                 {
-                    let upcast_value = tsumo_engine::testing::PageValue::new(page.clone());
+                    let upcast_value = tsumo_engine::testing::PageValue::new(page.clone())?;
                     tsumo_engine::testing::TemplateValue {
                         identity: upcast_value.identity.clone(),
                         dispatch: upcast_value.dispatch.clone(),
@@ -145,20 +145,20 @@ impl TemplateRuntimeTests {
 
     pub fn hugo_sites_exposes_the_checked_site_graph(&self) -> Result<(), rt::TsonicError> {
         let environment: crate::template_test_harness::TestTemplateEnvironment =
-            crate::template_test_harness::TestTemplateEnvironment::new(None);
+            crate::template_test_harness::TestTemplateEnvironment::new(None)?;
         let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
         let root: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
             site.clone(),
             String::from("Home"),
             String::from(""),
             String::from("home"),
-        );
+        )?;
         {
             let receiver = &site;
             let value = Some(root.clone());
             {
                 let dispatch_receiver = receiver;
-                dispatch_receiver.dispatch.write_site_context_home(value)
+                dispatch_receiver.dispatch.write_site_context_home(value)?
             }
         };
         {
@@ -168,7 +168,7 @@ impl TemplateRuntimeTests {
                 let dispatch_receiver_2 = receiver_2;
                 dispatch_receiver_2
                     .dispatch
-                    .write_site_context_sites(value_2)
+                    .write_site_context_sites(value_2)?
             }
         };
         let template: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
@@ -187,7 +187,7 @@ impl TemplateRuntimeTests {
                     .dispatch_test_template_environment_render_template(
                         template,
                         {
-                            let upcast_value = tsumo_engine::testing::PageValue::new(root.clone());
+                            let upcast_value = tsumo_engine::testing::PageValue::new(root.clone())?;
                             tsumo_engine::testing::TemplateValue {
                                 identity: upcast_value.identity.clone(),
                                 dispatch: upcast_value.dispatch.clone(),
@@ -206,39 +206,40 @@ impl TemplateRuntimeTests {
         &self,
     ) -> Result<(), rt::TsonicError> {
         let environment: crate::template_test_harness::TestTemplateEnvironment =
-            crate::template_test_harness::TestTemplateEnvironment::new(None);
+            crate::template_test_harness::TestTemplateEnvironment::new(None)?;
         let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
-        let current: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
-            site.clone(),
-            String::from("Current"),
-            String::from("2026-08-15T00:00:00Z"),
-            String::from("page"),
-        );
+        let current: tsumo_engine::testing::PageContext =
+            crate::template_test_harness::create_page(
+                site.clone(),
+                String::from("Current"),
+                String::from("2026-08-15T00:00:00Z"),
+                String::from("page"),
+            )?;
         let older: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
             site.clone(),
             String::from("Older"),
             String::from("2025-08-15T00:00:00Z"),
             String::from("page"),
-        );
+        )?;
         let newer: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
             site.clone(),
             String::from("Newer"),
             String::from("2027-08-15T00:00:00Z"),
             String::from("page"),
-        );
+        )?;
         let unrelated: tsumo_engine::testing::PageContext =
             crate::template_test_harness::create_page(
                 site.clone(),
                 String::from("Unrelated"),
                 String::from("2024-08-15T00:00:00Z"),
                 String::from("page"),
-            );
+            )?;
         {
             let receiver = &current;
             let value = js_abi::JsArray::from_dense(vec![String::from("shared")]);
             {
                 let dispatch_receiver = receiver;
-                dispatch_receiver.dispatch.write_page_context_tags(value)
+                dispatch_receiver.dispatch.write_page_context_tags(value)?
             }
         };
         {
@@ -248,7 +249,7 @@ impl TemplateRuntimeTests {
                 let dispatch_receiver_2 = receiver_2;
                 dispatch_receiver_2
                     .dispatch
-                    .write_page_context_tags(value_2)
+                    .write_page_context_tags(value_2)?
             }
         };
         {
@@ -258,7 +259,7 @@ impl TemplateRuntimeTests {
                 let dispatch_receiver_3 = receiver_3;
                 dispatch_receiver_3
                     .dispatch
-                    .write_page_context_tags(value_3)
+                    .write_page_context_tags(value_3)?
             }
         };
         {
@@ -268,7 +269,7 @@ impl TemplateRuntimeTests {
                 let dispatch_receiver_4 = receiver_4;
                 dispatch_receiver_4
                     .dispatch
-                    .write_page_context_tags(value_4)
+                    .write_page_context_tags(value_4)?
             }
         };
         {
@@ -283,7 +284,7 @@ impl TemplateRuntimeTests {
                 let dispatch_receiver_5 = receiver_5;
                 dispatch_receiver_5
                     .dispatch
-                    .write_site_context_all_pages(value_5)
+                    .write_site_context_all_pages(value_5)?
             }
         };
         let template: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
@@ -301,7 +302,7 @@ impl TemplateRuntimeTests {
                         template,
                         {
                             let upcast_value =
-                                tsumo_engine::testing::PageValue::new(current.clone());
+                                tsumo_engine::testing::PageValue::new(current.clone())?;
                             tsumo_engine::testing::TemplateValue {
                                 identity: upcast_value.identity.clone(),
                                 dispatch: upcast_value.dispatch.clone(),
@@ -330,7 +331,7 @@ impl TemplateRuntimeTests {
                     output_directory,
                 )?;
             let environment: crate::template_test_harness::TestTemplateEnvironment =
-                crate::template_test_harness::TestTemplateEnvironment::new(Some(manager));
+                crate::template_test_harness::TestTemplateEnvironment::new(Some(manager))?;
             let site: tsumo_engine::testing::SiteContext =
                 crate::template_test_harness::create_site()?;
             let page: tsumo_engine::testing::PageContext =
@@ -339,7 +340,7 @@ impl TemplateRuntimeTests {
                     String::from("Home"),
                     String::from(""),
                     String::from("home"),
-                );
+                )?;
             let template: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
                 String::from(
                     "{{ $style := resources.FromString \"theme.css\" \"body { color: red; }\\n\" }}{{ $style = $style | css.Build (dict \"targetPath\" \"css/main.css\" \"minify\" true \"sourceMap\" \"none\") }}{{ $style.RelPermalink }}|{{ $style.Content }}",
@@ -357,7 +358,7 @@ impl TemplateRuntimeTests {
                             template,
                             {
                                 let upcast_value =
-                                    tsumo_engine::testing::PageValue::new(page.clone());
+                                    tsumo_engine::testing::PageValue::new(page.clone())?;
                                 tsumo_engine::testing::TemplateValue {
                                     identity: upcast_value.identity.clone(),
                                     dispatch: upcast_value.dispatch.clone(),
@@ -387,7 +388,7 @@ impl TemplateRuntimeTests {
                             namespace_template,
                             {
                                 let upcast_value_2 =
-                                    tsumo_engine::testing::PageValue::new(page.clone());
+                                    tsumo_engine::testing::PageValue::new(page.clone())?;
                                 tsumo_engine::testing::TemplateValue {
                                     identity: upcast_value_2.identity.clone(),
                                     dispatch: upcast_value_2.dispatch.clone(),
@@ -443,7 +444,7 @@ impl TemplateRuntimeTests {
                     "- id: toggleMenu # site override\n  translation: Site Menu\n- id: legacy\n  translation: Legacy {{ .Name }}\n- id: continued\n  translation:\n    \"Continued scalar\"\n- id: folded\n  translation: >-\n    Folded\n    scalar\n- id: literal\n  translation: |\n    Literal\n    scalar\n- id: escapedQuoted\n  translation:\n    \"Generated with \\\n    exact continuity.\"\n- id: foldedQuoted\n  translation: \"Folded\n  quoted scalar\"\n- id: singleQuoted\n  translation:\n    'Single\n    quoted ''value'''\n- id: plainWithQuotes\n  translation: Tagged '{{ . }}'\n",
                 ),
             )?;
-            let store: tsumo_engine::testing::I18nStore = tsumo_engine::testing::I18nStore::new();
+            let store: tsumo_engine::testing::I18nStore = tsumo_engine::testing::I18nStore::new()?;
             {
                 let dispatch_receiver = store.clone();
                 dispatch_receiver
@@ -559,7 +560,7 @@ impl TemplateRuntimeTests {
                 }?),
             )?;
             let environment: crate::template_test_harness::TestTemplateEnvironment =
-                crate::template_test_harness::TestTemplateEnvironment::new(None);
+                crate::template_test_harness::TestTemplateEnvironment::new(None)?;
             {
                 let receiver = &environment;
                 let value = Some(store.clone());
@@ -567,7 +568,7 @@ impl TemplateRuntimeTests {
                     let dispatch_receiver_13 = receiver;
                     dispatch_receiver_13
                         .dispatch
-                        .write_test_template_environment_i18n_store(value)
+                        .write_test_template_environment_i18n_store(value)?
                 }
             };
             let site: tsumo_engine::testing::SiteContext =
@@ -578,7 +579,7 @@ impl TemplateRuntimeTests {
                     String::from("Home"),
                     String::from(""),
                     String::from("home"),
-                );
+                )?;
             let template: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
                 String::from(
                     "{{ T \"toggleMenu\" }}|{{ T \"footer.builtWith\" (dict \"Generator\" \"<strong>Tsumo</strong>\") | safeHTML }}|{{ T \"list.page\" 1 }}|{{ T \"list.page\" 2 }}|{{ T \"legacy\" (dict \"Name\" \"Ada\") }}|{{ T \"continued\" }}",
@@ -597,7 +598,7 @@ impl TemplateRuntimeTests {
                         .dispatch_test_template_environment_render_template(
                             template,
                             {
-                                let upcast_value = tsumo_engine::testing::PageValue::new(page);
+                                let upcast_value = tsumo_engine::testing::PageValue::new(page)?;
                                 tsumo_engine::testing::TemplateValue {
                                     identity: upcast_value.identity.clone(),
                                     dispatch: upcast_value.dispatch.clone(),
@@ -632,14 +633,14 @@ impl TemplateRuntimeTests {
         &self,
     ) -> Result<(), rt::TsonicError> {
         let environment: crate::template_test_harness::TestTemplateEnvironment =
-            crate::template_test_harness::TestTemplateEnvironment::new(None);
+            crate::template_test_harness::TestTemplateEnvironment::new(None)?;
         let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
         let page: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
             site.clone(),
             String::from("Home"),
             String::from(""),
             String::from("home"),
-        );
+        )?;
         let template: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
             String::from(
                 "{{ with (templates.Defer (dict \"key\" \"shared\")) }}{{ site.Store.Add \"runs\" 1 }}{{ site.Store.Get \"late\" }}{{ end }}{{ site.Store.Set \"late\" \"ready\" }}",
@@ -654,7 +655,7 @@ impl TemplateRuntimeTests {
                 .dispatch_test_template_environment_render_template(
                     template.clone(),
                     {
-                        let upcast_value = tsumo_engine::testing::PageValue::new(page.clone());
+                        let upcast_value = tsumo_engine::testing::PageValue::new(page.clone())?;
                         tsumo_engine::testing::TemplateValue {
                             identity: upcast_value.identity.clone(),
                             dispatch: upcast_value.dispatch.clone(),
@@ -673,7 +674,7 @@ impl TemplateRuntimeTests {
                 .dispatch_test_template_environment_render_template(
                     template.clone(),
                     {
-                        let upcast_value_2 = tsumo_engine::testing::PageValue::new(page.clone());
+                        let upcast_value_2 = tsumo_engine::testing::PageValue::new(page.clone())?;
                         tsumo_engine::testing::TemplateValue {
                             identity: upcast_value_2.identity.clone(),
                             dispatch: upcast_value_2.dispatch.clone(),
@@ -715,8 +716,8 @@ impl TemplateRuntimeTests {
                 },
             )?;
         }
-        crate::test_root::Assert::string_equal(String::from("ready"), Some(first.clone()))?;
-        crate::test_root::Assert::string_equal(String::from("ready"), Some(second.clone()))?;
+        crate::test_root::Assert::string_equal(String::from("ready"), Some(first))?;
+        crate::test_root::Assert::string_equal(String::from("ready"), Some(second))?;
         crate::test_root::Assert::string_equal(
             String::from("1"),
             Some({
@@ -731,7 +732,7 @@ impl TemplateRuntimeTests {
                         )?,
                         {
                             let upcast_value_3 =
-                                tsumo_engine::testing::PageValue::new(page.clone());
+                                tsumo_engine::testing::PageValue::new(page.clone())?;
                             tsumo_engine::testing::TemplateValue {
                                 identity: upcast_value_3.identity.clone(),
                                 dispatch: upcast_value_3.dispatch.clone(),
@@ -750,14 +751,14 @@ impl TemplateRuntimeTests {
         &self,
     ) -> Result<(), rt::TsonicError> {
         let environment: crate::template_test_harness::TestTemplateEnvironment =
-            crate::template_test_harness::TestTemplateEnvironment::new(None);
+            crate::template_test_harness::TestTemplateEnvironment::new(None)?;
         let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
         let page: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
             site.clone(),
             String::from("Home"),
             String::from(""),
             String::from("home"),
-        );
+        )?;
         let template: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
             String::from(
                 "{{ with (templates.Defer (dict \"key\" \"shared\")) }}first{{ end }}|{{ with (templates.Defer (dict \"key\" \"shared\")) }}second{{ end }}",
@@ -772,7 +773,7 @@ impl TemplateRuntimeTests {
                 .dispatch_test_template_environment_render_template(
                     template,
                     {
-                        let upcast_value = tsumo_engine::testing::PageValue::new(page);
+                        let upcast_value = tsumo_engine::testing::PageValue::new(page)?;
                         tsumo_engine::testing::TemplateValue {
                             identity: upcast_value.identity.clone(),
                             dispatch: upcast_value.dispatch.clone(),
@@ -812,13 +813,13 @@ impl TemplateRuntimeTests {
                 },
             )?;
         }
-        crate::test_root::Assert::string_equal(String::from("first|second"), Some(output.clone()))?;
+        crate::test_root::Assert::string_equal(String::from("first|second"), Some(output))?;
         Ok(())
     }
 
     pub fn return_evaluates_its_complete_value_expression(&self) -> Result<(), rt::TsonicError> {
         let environment: crate::template_test_harness::TestTemplateEnvironment =
-            crate::template_test_harness::TestTemplateEnvironment::new(None);
+            crate::template_test_harness::TestTemplateEnvironment::new(None)?;
         {
             let operation_input_0 = {
                 let dispatch_receiver = &environment;
@@ -840,7 +841,7 @@ impl TemplateRuntimeTests {
             String::from("Home"),
             String::from(""),
             String::from("home"),
-        );
+        )?;
         let parent: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
             String::from("{{ partial \"selection\" . }}"),
             Some(String::from("partials/parent")),
@@ -855,7 +856,7 @@ impl TemplateRuntimeTests {
                     .dispatch_test_template_environment_render_template(
                         parent,
                         {
-                            let upcast_value = tsumo_engine::testing::PageValue::new(root);
+                            let upcast_value = tsumo_engine::testing::PageValue::new(root)?;
                             tsumo_engine::testing::TemplateValue {
                                 identity: upcast_value.identity.clone(),
                                 dispatch: upcast_value.dispatch.clone(),
@@ -1116,7 +1117,7 @@ impl TemplateRuntimeTests {
         )?;
         crate::test_root::Assert::string_equal(
             String::from("a=first;z=last;"),
-            Some(crate::template_test_harness::render(source.clone())?),
+            Some(crate::template_test_harness::render(source)?),
         )?;
         Ok(())
     }
@@ -1271,8 +1272,8 @@ impl TemplateRuntimeTests {
         )?;
         crate::test_root::Assert::string_equal(
             String::from(""),
-            match quoted.get_number(0.0).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            match quoted.get_number(0.0) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             }
             .state
@@ -1286,8 +1287,8 @@ impl TemplateRuntimeTests {
         )?;
         crate::test_root::Assert::string_equal(
             String::from("true"),
-            match quoted.get_number(0.0).as_ref() {
-                Some(flow_value_2) => flow_value_2.clone(),
+            match quoted.get_number(0.0) {
+                Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             }
             .state
@@ -1301,8 +1302,8 @@ impl TemplateRuntimeTests {
         )?;
         crate::test_root::Assert::number_equal(
             2.0,
-            match quoted.get_number(0.0).as_ref() {
-                Some(flow_value_3) => flow_value_3.clone(),
+            match quoted.get_number(0.0) {
+                Some(flow_value_3) => flow_value_3,
                 None => unreachable!("checked flow selected a missing optional value"),
             }
             .state
@@ -1401,7 +1402,7 @@ impl TemplateRuntimeTests {
         {
             let operation_input_0 = values.clone();
             operation_input_0.set_discard(String::from("message"), {
-                let upcast_value = tsumo_engine::testing::StringValue::new(String::from("exact"));
+                let upcast_value = tsumo_engine::testing::StringValue::new(String::from("exact"))?;
                 tsumo_engine::testing::TemplateValue {
                     identity: upcast_value.identity.clone(),
                     dispatch: upcast_value.dispatch.clone(),
@@ -1413,7 +1414,7 @@ impl TemplateRuntimeTests {
             Some(crate::template_test_harness::render_with_root(
                 String::from("{{ .message }}"),
                 {
-                    let upcast_value_2 = tsumo_engine::testing::DictValue::new(values.clone());
+                    let upcast_value_2 = tsumo_engine::testing::DictValue::new(values.clone())?;
                     tsumo_engine::testing::TemplateValue {
                         identity: upcast_value_2.identity.clone(),
                         dispatch: upcast_value_2.dispatch.clone(),

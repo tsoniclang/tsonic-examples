@@ -11,55 +11,77 @@ pub trait ContentPageSourceDispatch {
         None
     }
     fn read_content_page_source_source_path(&self) -> String;
-    fn write_content_page_source_source_path(&self, value: String);
+    fn write_content_page_source_source_path(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_content_page_source_section(&self) -> String;
-    fn write_content_page_source_section(&self, value: String);
+    fn write_content_page_source_section(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_content_page_source_type(&self) -> String;
-    fn write_content_page_source_type(&self, value: String);
+    fn write_content_page_source_type(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_content_page_source_slug(&self) -> String;
-    fn write_content_page_source_slug(&self, value: String);
+    fn write_content_page_source_slug(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_content_page_source_title(&self) -> String;
-    fn write_content_page_source_title(&self, value: String);
+    fn write_content_page_source_title(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_content_page_source_date_utc(&self) -> js_abi::JsDate;
-    fn write_content_page_source_date_utc(&self, value: js_abi::JsDate);
+    fn write_content_page_source_date_utc(
+        &self,
+        value: js_abi::JsDate,
+    ) -> Result<(), rt::TsonicError>;
     fn read_content_page_source_date_string(&self) -> String;
-    fn write_content_page_source_date_string(&self, value: String);
+    fn write_content_page_source_date_string(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_content_page_source_lastmod_string(&self) -> String;
-    fn write_content_page_source_lastmod_string(&self, value: String);
+    fn write_content_page_source_lastmod_string(
+        &self,
+        value: String,
+    ) -> Result<(), rt::TsonicError>;
     fn read_content_page_source_draft(&self) -> bool;
-    fn write_content_page_source_draft(&self, value: bool);
+    fn write_content_page_source_draft(&self, value: bool) -> Result<(), rt::TsonicError>;
     fn read_content_page_source_leaf_bundle(&self) -> bool;
-    fn write_content_page_source_leaf_bundle(&self, value: bool);
+    fn write_content_page_source_leaf_bundle(&self, value: bool) -> Result<(), rt::TsonicError>;
     fn read_content_page_source_description(&self) -> String;
-    fn write_content_page_source_description(&self, value: String);
+    fn write_content_page_source_description(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_content_page_source_tags(&self) -> js_abi::JsArray<String>;
-    fn write_content_page_source_tags(&self, value: js_abi::JsArray<String>);
+    fn write_content_page_source_tags(
+        &self,
+        value: js_abi::JsArray<String>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_content_page_source_categories(&self) -> js_abi::JsArray<String>;
-    fn write_content_page_source_categories(&self, value: js_abi::JsArray<String>);
+    fn write_content_page_source_categories(
+        &self,
+        value: js_abi::JsArray<String>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_content_page_source_parameters(
         &self,
     ) -> js_abi::JsMap<String, crate::params::ParamValue>;
     fn write_content_page_source_parameters(
         &self,
         value: js_abi::JsMap<String, crate::params::ParamValue>,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_content_page_source_raw_body(&self) -> String;
-    fn write_content_page_source_raw_body(&self, value: String);
+    fn write_content_page_source_raw_body(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_content_page_source_rel_permalink(&self) -> String;
-    fn write_content_page_source_rel_permalink(&self, value: String);
+    fn write_content_page_source_rel_permalink(&self, value: String)
+    -> Result<(), rt::TsonicError>;
     fn read_content_page_source_output_rel_path(&self) -> String;
-    fn write_content_page_source_output_rel_path(&self, value: String);
+    fn write_content_page_source_output_rel_path(
+        &self,
+        value: String,
+    ) -> Result<(), rt::TsonicError>;
     fn read_content_page_source_layout(&self) -> Option<String>;
-    fn write_content_page_source_layout(&self, value: Option<String>);
+    fn write_content_page_source_layout(
+        &self,
+        value: Option<String>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_content_page_source_file(&self) -> crate::models::page_file::PageFile;
-    fn write_content_page_source_file(&self, value: crate::models::page_file::PageFile);
+    fn write_content_page_source_file(
+        &self,
+        value: crate::models::page_file::PageFile,
+    ) -> Result<(), rt::TsonicError>;
     fn read_content_page_source_menus(
         &self,
     ) -> js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu>;
     fn write_content_page_source_menus(
         &self,
         value: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu>,
-    );
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -115,9 +137,8 @@ impl rt::ObjectIdentityCarrier for ContentPageSource {
 }
 
 pub(crate) struct ContentPageSourceRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<ContentPageSourceState>,
+    state: rt::ObjectState<ContentPageSourceState>,
 }
 
 impl ContentPageSource {
@@ -144,7 +165,7 @@ impl ContentPageSource {
         layout: Option<String>,
         file: crate::models::page_file::PageFile,
         menus: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu>,
-    ) -> ContentPageSourceState {
+    ) -> Result<ContentPageSourceState, rt::TsonicError> {
         let field_source_path: String = source_path;
         let field_section: String = section;
         let field_type: String = r#type;
@@ -165,7 +186,7 @@ impl ContentPageSource {
         let field_layout: Option<String> = layout;
         let field_file: crate::models::page_file::PageFile = file;
         let field_menus: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu> = menus;
-        ContentPageSourceState {
+        Ok(ContentPageSourceState {
             source_path: field_source_path,
             section: field_section,
             r#type: field_type,
@@ -186,7 +207,7 @@ impl ContentPageSource {
             layout: field_layout,
             file: field_file,
             menus: field_menus,
-        }
+        })
     }
 
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
@@ -211,7 +232,7 @@ impl ContentPageSource {
         layout: Option<String>,
         file: crate::models::page_file::PageFile,
         menus: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu>,
-    ) -> ContentPageSource {
+    ) -> Result<ContentPageSource, rt::TsonicError> {
         let state = ContentPageSource::initialize_state(
             source_path,
             section,
@@ -233,16 +254,16 @@ impl ContentPageSource {
             layout,
             file,
             menus,
-        );
+        )?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(ContentPageSourceRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        ContentPageSource {
+        Ok(ContentPageSource {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -257,104 +278,194 @@ impl ContentPageSourceDispatch for ContentPageSourceRoot {
         self.state.with(|state| state.source_path.clone())
     }
 
-    fn write_content_page_source_source_path(&self, value: String) {
-        self.state.with_mut(|state| state.source_path = value);
+    fn write_content_page_source_source_path(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.source_path = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_content_page_source_section(&self) -> String {
         self.state.with(|state| state.section.clone())
     }
 
-    fn write_content_page_source_section(&self, value: String) {
-        self.state.with_mut(|state| state.section = value);
+    fn write_content_page_source_section(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.section = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_content_page_source_type(&self) -> String {
         self.state.with(|state| state.r#type.clone())
     }
 
-    fn write_content_page_source_type(&self, value: String) {
-        self.state.with_mut(|state| state.r#type = value);
+    fn write_content_page_source_type(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.r#type = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_content_page_source_slug(&self) -> String {
         self.state.with(|state| state.slug.clone())
     }
 
-    fn write_content_page_source_slug(&self, value: String) {
-        self.state.with_mut(|state| state.slug = value);
+    fn write_content_page_source_slug(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.slug = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_content_page_source_title(&self) -> String {
         self.state.with(|state| state.title.clone())
     }
 
-    fn write_content_page_source_title(&self, value: String) {
-        self.state.with_mut(|state| state.title = value);
+    fn write_content_page_source_title(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.title = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_content_page_source_date_utc(&self) -> js_abi::JsDate {
         self.state.with(|state| state.date_utc.clone())
     }
 
-    fn write_content_page_source_date_utc(&self, value: js_abi::JsDate) {
-        self.state.with_mut(|state| state.date_utc = value);
+    fn write_content_page_source_date_utc(
+        &self,
+        value: js_abi::JsDate,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.date_utc = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_content_page_source_date_string(&self) -> String {
         self.state.with(|state| state.date_string.clone())
     }
 
-    fn write_content_page_source_date_string(&self, value: String) {
-        self.state.with_mut(|state| state.date_string = value);
+    fn write_content_page_source_date_string(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.date_string = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_content_page_source_lastmod_string(&self) -> String {
         self.state.with(|state| state.lastmod_string.clone())
     }
 
-    fn write_content_page_source_lastmod_string(&self, value: String) {
-        self.state.with_mut(|state| state.lastmod_string = value);
+    fn write_content_page_source_lastmod_string(
+        &self,
+        value: String,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.lastmod_string = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_content_page_source_draft(&self) -> bool {
         self.state.with(|state| state.draft)
     }
 
-    fn write_content_page_source_draft(&self, value: bool) {
-        self.state.with_mut(|state| state.draft = value);
+    fn write_content_page_source_draft(&self, value: bool) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.draft = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_content_page_source_leaf_bundle(&self) -> bool {
         self.state.with(|state| state.leaf_bundle)
     }
 
-    fn write_content_page_source_leaf_bundle(&self, value: bool) {
-        self.state.with_mut(|state| state.leaf_bundle = value);
+    fn write_content_page_source_leaf_bundle(&self, value: bool) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.leaf_bundle = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_content_page_source_description(&self) -> String {
         self.state.with(|state| state.description.clone())
     }
 
-    fn write_content_page_source_description(&self, value: String) {
-        self.state.with_mut(|state| state.description = value);
+    fn write_content_page_source_description(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.description = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_content_page_source_tags(&self) -> js_abi::JsArray<String> {
         self.state.with(|state| state.tags.clone())
     }
 
-    fn write_content_page_source_tags(&self, value: js_abi::JsArray<String>) {
-        self.state.with_mut(|state| state.tags = value);
+    fn write_content_page_source_tags(
+        &self,
+        value: js_abi::JsArray<String>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.tags = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_content_page_source_categories(&self) -> js_abi::JsArray<String> {
         self.state.with(|state| state.categories.clone())
     }
 
-    fn write_content_page_source_categories(&self, value: js_abi::JsArray<String>) {
-        self.state.with_mut(|state| state.categories = value);
+    fn write_content_page_source_categories(
+        &self,
+        value: js_abi::JsArray<String>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.categories = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_content_page_source_parameters(
@@ -366,48 +477,96 @@ impl ContentPageSourceDispatch for ContentPageSourceRoot {
     fn write_content_page_source_parameters(
         &self,
         value: js_abi::JsMap<String, crate::params::ParamValue>,
-    ) {
-        self.state.with_mut(|state| state.parameters = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.parameters = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_content_page_source_raw_body(&self) -> String {
         self.state.with(|state| state.raw_body.clone())
     }
 
-    fn write_content_page_source_raw_body(&self, value: String) {
-        self.state.with_mut(|state| state.raw_body = value);
+    fn write_content_page_source_raw_body(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.raw_body = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_content_page_source_rel_permalink(&self) -> String {
         self.state.with(|state| state.rel_permalink.clone())
     }
 
-    fn write_content_page_source_rel_permalink(&self, value: String) {
-        self.state.with_mut(|state| state.rel_permalink = value);
+    fn write_content_page_source_rel_permalink(
+        &self,
+        value: String,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.rel_permalink = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_content_page_source_output_rel_path(&self) -> String {
         self.state.with(|state| state.output_rel_path.clone())
     }
 
-    fn write_content_page_source_output_rel_path(&self, value: String) {
-        self.state.with_mut(|state| state.output_rel_path = value);
+    fn write_content_page_source_output_rel_path(
+        &self,
+        value: String,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.output_rel_path = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_content_page_source_layout(&self) -> Option<String> {
         self.state.with(|state| state.layout.clone())
     }
 
-    fn write_content_page_source_layout(&self, value: Option<String>) {
-        self.state.with_mut(|state| state.layout = value);
+    fn write_content_page_source_layout(
+        &self,
+        value: Option<String>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.layout = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_content_page_source_file(&self) -> crate::models::page_file::PageFile {
         self.state.with(|state| state.file.clone())
     }
 
-    fn write_content_page_source_file(&self, value: crate::models::page_file::PageFile) {
-        self.state.with_mut(|state| state.file = value);
+    fn write_content_page_source_file(
+        &self,
+        value: crate::models::page_file::PageFile,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.file = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_content_page_source_menus(
@@ -419,8 +578,14 @@ impl ContentPageSourceDispatch for ContentPageSourceRoot {
     fn write_content_page_source_menus(
         &self,
         value: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu>,
-    ) {
-        self.state.with_mut(|state| state.menus = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.menus = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -459,7 +624,7 @@ impl ListPageSource {
         parameters: js_abi::JsMap<String, crate::params::ParamValue>,
         source_dir: String,
         file: crate::models::page_file::PageFile,
-    ) -> ListPageSource {
+    ) -> Result<ListPageSource, rt::TsonicError> {
         let field_title: Option<String> = title;
         let field_raw_body: String = raw_body;
         let field_description: String = description;
@@ -468,7 +633,7 @@ impl ListPageSource {
         let field_parameters: js_abi::JsMap<String, crate::params::ParamValue> = parameters;
         let field_source_dir: String = source_dir;
         let field_file: crate::models::page_file::PageFile = file;
-        ListPageSource {
+        Ok(ListPageSource {
             state: rt::ObjectRef::new(ListPageSourceState {
                 title: field_title,
                 raw_body: field_raw_body,
@@ -479,7 +644,7 @@ impl ListPageSource {
                 source_dir: field_source_dir,
                 file: field_file,
             }),
-        }
+        })
     }
 }
 
@@ -505,14 +670,14 @@ impl ContentInventory {
     pub fn new(
         pages: js_abi::JsArray<ContentPageSource>,
         list_pages_by_route: js_abi::JsMap<String, ListPageSource>,
-    ) -> ContentInventory {
+    ) -> Result<ContentInventory, rt::TsonicError> {
         let field_pages: js_abi::JsArray<ContentPageSource> = pages;
         let field_list_pages_by_route: js_abi::JsMap<String, ListPageSource> = list_pages_by_route;
-        ContentInventory {
+        Ok(ContentInventory {
             state: rt::ObjectRef::new(ContentInventoryState {
                 pages: field_pages,
                 list_pages_by_route: field_list_pages_by_route,
             }),
-        }
+        })
     }
 }

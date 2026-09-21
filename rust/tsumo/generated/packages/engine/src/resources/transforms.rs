@@ -30,11 +30,10 @@ pub fn concatenate_resources(
     {
         let mut index: f64 = 0.0;
         while index < (rt::conversions::usize_to_i32(resources.len())? as f64) {
-            let resource: crate::resources::models::Resource =
-                match resources.get_number(index).as_ref() {
-                    Some(flow_value) => flow_value.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                };
+            let resource: crate::resources::models::Resource = match resources.get_number(index) {
+                Some(flow_value) => flow_value,
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
             {
                 let dispatch_receiver_4 = identity.clone();
                 dispatch_receiver_4
@@ -80,7 +79,7 @@ pub fn concatenate_resources(
         crate::resources::paths::split_resource_file_name(
             path.state.with(|state| state.file_name.clone()),
         )?;
-    Ok(crate::resources::models::Resource::new(
+    crate::resources::models::Resource::new(
         {
             let dispatch_receiver_8 = identity.clone();
             dispatch_receiver_8
@@ -90,10 +89,10 @@ pub fn concatenate_resources(
         },
         Option::<String>::None,
         true,
-        Some(target.clone()),
+        Some(target),
         tsonic_rust_node::buffer::Buffer::from_string_enc(&content, "utf8")?,
-        Some(content.clone()),
-        crate::resources::models::ResourceData::new(String::from("")),
+        Some(content),
+        crate::resources::models::ResourceData::new(String::from(""))?,
         Some(
             crate::resources::media_types::resource_media_type_for_extension(
                 &file.state.with(|state| state.extension.clone()),
@@ -101,7 +100,7 @@ pub fn concatenate_resources(
         ),
         None,
         None,
-    ))
+    )
 }
 
 pub fn create_string_resource(
@@ -122,7 +121,7 @@ pub fn create_string_resource(
         )?)
     }?
     .digest_string("hex")?;
-    Ok(crate::resources::models::Resource::new(
+    crate::resources::models::Resource::new(
         format!(
             "{}{}{}{}",
             String::from("fromString:"),
@@ -132,10 +131,10 @@ pub fn create_string_resource(
         ),
         Option::<String>::None,
         true,
-        Some(normalized_name.clone()),
+        Some(normalized_name),
         tsonic_rust_node::buffer::Buffer::from_string_enc(&content, "utf8")?,
-        Some(content.clone()),
-        crate::resources::models::ResourceData::new(String::from("")),
+        Some(content),
+        crate::resources::models::ResourceData::new(String::from(""))?,
         Some(
             crate::resources::media_types::resource_media_type_for_extension(
                 &file.state.with(|state| state.extension.clone()),
@@ -143,7 +142,7 @@ pub fn create_string_resource(
         ),
         None,
         None,
-    ))
+    )
 }
 
 pub fn minify_resource(
@@ -170,8 +169,8 @@ pub fn minify_resource(
     {
         let mut index: f64 = 0.0;
         'loop_value: while index < (rt::conversions::usize_to_i32(lines.len())? as f64) {
-            let line: String = js_string::trim(&match lines.get_number(index).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let line: String = js_string::trim(&match lines.get_number(index) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             });
             if line.is_empty() {
@@ -204,7 +203,7 @@ pub fn minify_resource(
             .clone()
             .dispatch_text_builder_to_string()
     };
-    Ok(crate::resources::models::Resource::new(
+    crate::resources::models::Resource::new(
         identity,
         {
             let dispatch_receiver_5 = &resource;
@@ -219,7 +218,7 @@ pub fn minify_resource(
             dispatch_receiver_7.dispatch.read_resource_output_rel_path()
         },
         tsonic_rust_node::buffer::Buffer::from_string_enc(&text, "utf8")?,
-        Some(text.clone()),
+        Some(text),
         {
             let dispatch_receiver_8 = &resource;
             dispatch_receiver_8.dispatch.read_resource_data()
@@ -236,7 +235,7 @@ pub fn minify_resource(
             let dispatch_receiver_11 = &resource;
             dispatch_receiver_11.dispatch.read_resource_height()
         }),
-    ))
+    )
 }
 
 pub fn fingerprint_resource(
@@ -262,7 +261,7 @@ pub fn fingerprint_resource(
         })
     }?
     .digest_string("hex")?;
-    let short_hex: String = crate::utils::strings::substring_count(full_hex, 0, 16)?;
+    let short_hex: String = crate::utils::strings::substring_count(&full_hex, 0, 16)?;
     let output_path: Option<String> = {
         let dispatch_receiver_3 = &resource;
         dispatch_receiver_3.dispatch.read_resource_output_rel_path()
@@ -300,7 +299,7 @@ pub fn fingerprint_resource(
             hashed_file
         ));
     }
-    Ok(crate::resources::models::Resource::new(
+    crate::resources::models::Resource::new(
         format!(
             "{}{}",
             {
@@ -326,7 +325,7 @@ pub fn fingerprint_resource(
             let dispatch_receiver_8 = &resource;
             dispatch_receiver_8.dispatch.read_resource_text()
         },
-        crate::resources::models::ResourceData::new(integrity),
+        crate::resources::models::ResourceData::new(integrity)?,
         Some({
             let dispatch_receiver_9 = &resource;
             dispatch_receiver_9.dispatch.read_resource_media_type()
@@ -339,14 +338,14 @@ pub fn fingerprint_resource(
             let dispatch_receiver_11 = &resource;
             dispatch_receiver_11.dispatch.read_resource_height()
         }),
-    ))
+    )
 }
 
 pub fn copy_resource(
     target_path: String,
     resource: crate::resources::models::Resource,
 ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
-    Ok(crate::resources::models::Resource::new(
+    crate::resources::models::Resource::new(
         format!(
             "{}{}{}",
             {
@@ -391,5 +390,5 @@ pub fn copy_resource(
             let dispatch_receiver_9 = &resource;
             dispatch_receiver_9.dispatch.read_resource_height()
         }),
-    ))
+    )
 }

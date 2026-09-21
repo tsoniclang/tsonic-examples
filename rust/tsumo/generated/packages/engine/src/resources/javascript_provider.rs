@@ -38,7 +38,7 @@ impl rt::ObjectIdentityCarrier for JavaScriptBuildOptions {
 }
 
 impl JavaScriptBuildOptions {
-    pub fn new() -> JavaScriptBuildOptions {
+    pub fn new() -> Result<JavaScriptBuildOptions, rt::TsonicError> {
         let field_target_path: Option<String> = Option::<String>::None;
         let field_minify: bool = false;
         let field_format: String = String::from("iife");
@@ -47,7 +47,7 @@ impl JavaScriptBuildOptions {
         let field_source_map: String = String::from("none");
         let field_params_json: Option<String> = Option::<String>::None;
         let field_jsx_factory: Option<String> = Option::<String>::None;
-        JavaScriptBuildOptions {
+        Ok(JavaScriptBuildOptions {
             state: rt::ObjectHandle::new(JavaScriptBuildOptionsState {
                 target_path: field_target_path,
                 minify: field_minify,
@@ -58,7 +58,7 @@ impl JavaScriptBuildOptions {
                 params_json: field_params_json,
                 jsx_factory: field_jsx_factory,
             }),
-        }
+        })
     }
 
     pub fn cache_key(&self) -> Result<String, rt::TsonicError> {
@@ -92,20 +92,14 @@ impl JavaScriptBuildOptions {
         {
             let mut index: f64 = 0.0;
             while index < (rt::conversions::usize_to_i32(values.len())? as f64) {
-                result.push_str(&cache_key_part(match values.get_number(index).as_ref() {
-                    Some(flow_value) => flow_value.clone(),
+                result.push_str(&cache_key_part(match values.get_number(index) {
+                    Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 })?);
                 index += 1.0;
             }
         }
         Ok(result)
-    }
-}
-
-impl Default for JavaScriptBuildOptions {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -186,10 +180,11 @@ pub fn build_java_script_resource(
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
-    let configured_executable: Option<String> = tsonic_rust_node::process::env_get("TSUMO_ESBUILD");
+    let configured_executable: Option<String> =
+        tsonic_rust_node::process::environment().get("TSUMO_ESBUILD");
     let executable: String = {
         let conditional_test = configured_executable.is_some()
             && !js_string::trim(&match configured_executable.as_ref() {
@@ -206,11 +201,10 @@ pub fn build_java_script_resource(
             String::from("esbuild")
         }
     };
-    let work_directory: String =
-        tsonic_rust_node::fs::mkdtemp_sync(&tsonic_rust_node::path::join(&[
-            tsonic_rust_node::os::tmpdir()?.as_str(),
-            "tsumo-esbuild-",
-        ]))?;
+    let work_directory: String = tsonic_rust_node::fs::mkdtemp_sync(
+        tsonic_rust_node::path::join(&[tsonic_rust_node::os::tmpdir()?.as_str(), "tsumo-esbuild-"])
+            .as_str(),
+    )?;
     let try_body: rt::TsonicResult<rt::Completion<crate::resources::models::Resource>> =
         rt::completion_region(|| {
             let mut input_path: String = {
@@ -244,7 +238,11 @@ pub fn build_java_script_resource(
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
             } else {
-                tsonic_rust_node::fs::write_file_sync_string(&input_path, &source_text, "utf8")?;
+                tsonic_rust_node::fs::write_file_sync_string(
+                    input_path.as_str(),
+                    source_text.as_str(),
+                    "utf8",
+                )?;
             }
             let output_path: String =
                 tsonic_rust_node::path::join(&[work_directory.as_str(), "output.js"]);
@@ -292,11 +290,12 @@ pub fn build_java_script_resource(
                 let params_path: String =
                     tsonic_rust_node::path::join(&[work_directory.as_str(), "params.json"]);
                 tsonic_rust_node::fs::write_file_sync_string(
-                    &params_path,
-                    &match params_json.as_ref() {
+                    params_path.as_str(),
+                    match params_json.as_ref() {
                         Some(flow_value_7) => flow_value_7.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
-                    },
+                    }
+                    .as_str(),
                     "utf8",
                 )?;
                 {
@@ -335,10 +334,10 @@ pub fn build_java_script_resource(
                         None,
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
-            if !tsonic_rust_node::fs::exists_sync(&output_path) {
+            if !tsonic_rust_node::fs::exists_sync(output_path.as_str()) {
                 return Err(rt::TsonicError::TsumoError(
                     crate::diagnostics::create_tsumo_error(
                         String::from("TSUMO_ESBUILD_OUTPUT_MISSING"),
@@ -346,10 +345,11 @@ pub fn build_java_script_resource(
                         None,
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
-            let text: String = tsonic_rust_node::fs::read_file_sync_string(&output_path, "utf8")?;
+            let text: String =
+                tsonic_rust_node::fs::read_file_sync_string(output_path.as_str(), "utf8")?;
             Ok(rt::Completion::Return(
                 crate::resources::models::Resource::new(
                     format!(
@@ -376,14 +376,14 @@ pub fn build_java_script_resource(
                     Some(String::from("application/javascript")),
                     None,
                     None,
-                ),
+                )?,
             ))
         });
     let try_flow = try_body;
     let finally_flow: rt::TsonicResult<rt::Completion<crate::resources::models::Resource>> =
         rt::completion_region(|| {
             tsonic_rust_node::fs::rm_sync_with_options(
-                &work_directory,
+                work_directory.as_str(),
                 tsonic_rust_node::fs::RmOptions {
                     recursive: Some(true),
                     force: Some(true),

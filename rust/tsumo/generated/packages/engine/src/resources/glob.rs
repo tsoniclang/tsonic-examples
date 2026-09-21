@@ -4,19 +4,19 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn resource_segment_matches(pattern: String, segment: String) -> Result<bool, rt::TsonicError> {
+pub fn resource_segment_matches(pattern: &str, segment: &str) -> Result<bool, rt::TsonicError> {
     let brace_start: i32 =
-        rt::conversions::isize_to_i32(js_string::index_of_from_start(&pattern, "{"))?;
+        rt::conversions::isize_to_i32(js_string::index_of_from_start(pattern, "{"))?;
     if brace_start >= 0 {
         let brace_end: i32 = rt::conversions::isize_to_i32(js_string::index_of(
-            &pattern,
+            pattern,
             "}",
             rt::conversions::i32_to_f64(brace_start + 1),
         ))?;
         if brace_end > brace_start + 1 {
             let alternatives: js_abi::JsArray<String> = js_string::split_all(
                 &js_string::substring(
-                    &pattern,
+                    pattern,
                     rt::conversions::i32_to_f64(brace_start + 1),
                     rt::conversions::i32_to_f64(brace_end),
                 )?,
@@ -24,27 +24,25 @@ pub fn resource_segment_matches(pattern: String, segment: String) -> Result<bool
             )?;
             if rt::conversions::usize_to_i32(alternatives.len())? > 1 {
                 let prefix: String =
-                    js_string::substring(&pattern, 0.0, rt::conversions::i32_to_f64(brace_start))?;
-                let suffix: String = js_string::substring_from(
-                    &pattern,
-                    rt::conversions::i32_to_f64(brace_end + 1),
-                )?;
+                    js_string::substring(pattern, 0.0, rt::conversions::i32_to_f64(brace_start))?;
+                let suffix: String =
+                    js_string::substring_from(pattern, rt::conversions::i32_to_f64(brace_end + 1))?;
                 {
                     let mut index: f64 = 0.0;
                     while index < (rt::conversions::usize_to_i32(alternatives.len())? as f64) {
                         if resource_segment_matches(
-                            format!(
+                            &format!(
                                 "{}{}{}",
                                 prefix,
-                                match alternatives.get_number(index).as_ref() {
-                                    Some(flow_value) => flow_value.clone(),
+                                match alternatives.get_number(index) {
+                                    Some(flow_value) => flow_value,
                                     None => unreachable!(
                                         "checked flow selected a missing optional value"
                                     ),
                                 },
                                 suffix
                             ),
-                            segment.clone(),
+                            segment,
                         )? {
                             return Ok(true);
                         }
@@ -58,17 +56,17 @@ pub fn resource_segment_matches(pattern: String, segment: String) -> Result<bool
     if pattern == "*" {
         return Ok(true);
     }
-    let star: i32 = rt::conversions::isize_to_i32(js_string::index_of_from_start(&pattern, "*"))?;
+    let star: i32 = rt::conversions::isize_to_i32(js_string::index_of_from_start(pattern, "*"))?;
     if star < 0 {
         return Ok(pattern == segment);
     }
-    let parts: js_abi::JsArray<String> = js_string::split_all(&pattern, "*")?;
+    let parts: js_abi::JsArray<String> = js_string::split_all(pattern, "*")?;
     let mut position: f64 = 0.0;
     {
         let mut index: f64 = 0.0;
         'loop_value_2: while index < (rt::conversions::usize_to_i32(parts.len())? as f64) {
-            let part: String = match parts.get_number(index).as_ref() {
-                Some(flow_value_2) => flow_value_2.clone(),
+            let part: String = match parts.get_number(index) {
+                Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if part.is_empty() {
@@ -76,11 +74,11 @@ pub fn resource_segment_matches(pattern: String, segment: String) -> Result<bool
                 continue 'loop_value_2;
             }
             let found: i32 =
-                rt::conversions::isize_to_i32(js_string::index_of(&segment, &part, position))?;
+                rt::conversions::isize_to_i32(js_string::index_of(segment, &part, position))?;
             if found < 0 {
                 return Ok(false);
             }
-            if index == 0.0 && !js_string::starts_with_from_start(&pattern, "*") && found != 0 {
+            if index == 0.0 && !js_string::starts_with_from_start(pattern, "*") && found != 0 {
                 return Ok(false);
             }
             position = rt::conversions::i32_to_f64(
@@ -89,8 +87,8 @@ pub fn resource_segment_matches(pattern: String, segment: String) -> Result<bool
             index += 1.0;
         }
     }
-    Ok(js_string::ends_with_at_end(&pattern, "*")
-        || position == rt::conversions::usize_to_i32(js_string::js_len(&segment))? as f64)
+    Ok(js_string::ends_with_at_end(pattern, "*")
+        || position == rt::conversions::usize_to_i32(js_string::js_len(segment))? as f64)
 }
 
 pub fn split_glob_segments(value: String) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
@@ -110,13 +108,11 @@ pub fn resource_glob_matches_at(
     if pattern_index >= rt::conversions::usize_to_i32(pattern_segments.len())? {
         return Ok(path_index >= rt::conversions::usize_to_i32(path_segments.len())?);
     }
-    let pattern: String = match pattern_segments
-        .get_number(rt::conversions::i32_to_f64(pattern_index))
-        .as_ref()
-    {
-        Some(flow_value) => flow_value.clone(),
-        None => unreachable!("checked flow selected a missing optional value"),
-    };
+    let pattern: String =
+        match pattern_segments.get_number(rt::conversions::i32_to_f64(pattern_index)) {
+            Some(flow_value) => flow_value,
+            None => unreachable!("checked flow selected a missing optional value"),
+        };
     if pattern == "**" {
         {
             let mut index: i32 = path_index;
@@ -138,12 +134,9 @@ pub fn resource_glob_matches_at(
         return Ok(false);
     }
     if !resource_segment_matches(
-        pattern.clone(),
-        match path_segments
-            .get_number(rt::conversions::i32_to_f64(path_index))
-            .as_ref()
-        {
-            Some(flow_value_2) => flow_value_2.clone(),
+        &pattern,
+        &match path_segments.get_number(rt::conversions::i32_to_f64(path_index)) {
+            Some(flow_value_2) => flow_value_2,
             None => unreachable!("checked flow selected a missing optional value"),
         },
     )? {

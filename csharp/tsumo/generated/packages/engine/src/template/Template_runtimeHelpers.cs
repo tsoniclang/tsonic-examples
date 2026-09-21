@@ -51,59 +51,59 @@ namespace Tsumo.Engine
             Utils_int32.__tsonic_module_init();
             Template_values.__tsonic_module_init();
             nil = new NilValue();
-            isTemplateMap = (TemplateValue value) => value is DictValue || value is MenusValue || value is TaxonomiesValue || value is TaxonomyTermsValue;
-            isTemplateSlice = (TemplateValue value) => value is AnyArrayValue || value is DocsMountArrayValue || value is MenuArrayValue || value is NavArrayValue || value is PageArrayValue || value is SitesArrayValue || value is StringArrayValue;
+            isTemplateMap = (TemplateValue value) => (object?)value is DictValue || (object?)value is MenusValue || (object?)value is TaxonomiesValue || (object?)value is TaxonomyTermsValue;
+            isTemplateSlice = (TemplateValue value) => (object?)value is AnyArrayValue || (object?)value is DocsMountArrayValue || (object?)value is MenuArrayValue || (object?)value is NavArrayValue || (object?)value is PageArrayValue || (object?)value is SitesArrayValue || (object?)value is StringArrayValue;
             isTruthy = (TemplateValue value) =>
             {
-                if (value is NilValue)
+                if ((object?)value is NilValue)
                 {
                     return false;
                 }
-                if (value is BoolValue)
+                if ((object?)value is BoolValue)
                 {
                     return ((BoolValue)value).value;
                 }
-                if (value is NumberValue)
+                if ((object?)value is NumberValue)
                 {
                     return ((NumberValue)value).value != 0;
                 }
-                if (value is StringValue)
+                if ((object?)value is StringValue)
                 {
                     return ((StringValue)value).value != "";
                 }
-                if (value is HtmlValue)
+                if ((object?)value is HtmlValue)
                 {
                     return ((HtmlValue)value).value.value != "";
                 }
-                if (value is DateValue)
+                if ((object?)value is DateValue)
                 {
                     return Tsonic.CSharp.Js.String.trim(((DateValue)value).value) != "";
                 }
-                if (value is DictValue)
+                if ((object?)value is DictValue)
                 {
                     return ((DictValue)value).value.size > 0;
                 }
-                if (value is PageArrayValue)
+                if ((object?)value is PageArrayValue)
                 {
                     return ((PageArrayValue)value).value.length > 0;
                 }
-                if (value is StringArrayValue)
+                if ((object?)value is StringArrayValue)
                 {
                     return ((StringArrayValue)value).value.length > 0;
                 }
-                if (value is SitesArrayValue)
+                if ((object?)value is SitesArrayValue)
                 {
                     return ((SitesArrayValue)value).value.length > 0;
                 }
-                if (value is DocsMountArrayValue)
+                if ((object?)value is DocsMountArrayValue)
                 {
                     return ((DocsMountArrayValue)value).value.length > 0;
                 }
-                if (value is NavArrayValue)
+                if ((object?)value is NavArrayValue)
                 {
                     return ((NavArrayValue)value).value.length > 0;
                 }
-                if (value is AnyArrayValue)
+                if ((object?)value is AnyArrayValue)
                 {
                     return ((AnyArrayValue)value).value.length > 0;
                 }
@@ -111,55 +111,55 @@ namespace Tsumo.Engine
             };
             isDefaultSet = (TemplateValue value) =>
             {
-                if (value is NilValue)
+                if ((object?)value is NilValue)
                 {
                     return false;
                 }
-                if (value is BoolValue)
+                if ((object?)value is BoolValue)
                 {
                     return true;
                 }
-                if (value is NumberValue)
+                if ((object?)value is NumberValue)
                 {
                     return ((NumberValue)value).value != 0;
                 }
-                if (value is StringValue)
+                if ((object?)value is StringValue)
                 {
                     return ((StringValue)value).value != "";
                 }
-                if (value is HtmlValue)
+                if ((object?)value is HtmlValue)
                 {
                     return ((HtmlValue)value).value.value != "";
                 }
-                if (value is DateValue)
+                if ((object?)value is DateValue)
                 {
                     return Tsonic.CSharp.Js.String.trim(((DateValue)value).value) != "";
                 }
-                if (value is DictValue)
+                if ((object?)value is DictValue)
                 {
                     return ((DictValue)value).value.size > 0;
                 }
-                if (value is PageArrayValue)
+                if ((object?)value is PageArrayValue)
                 {
                     return ((PageArrayValue)value).value.length > 0;
                 }
-                if (value is StringArrayValue)
+                if ((object?)value is StringArrayValue)
                 {
                     return ((StringArrayValue)value).value.length > 0;
                 }
-                if (value is SitesArrayValue)
+                if ((object?)value is SitesArrayValue)
                 {
                     return ((SitesArrayValue)value).value.length > 0;
                 }
-                if (value is DocsMountArrayValue)
+                if ((object?)value is DocsMountArrayValue)
                 {
                     return ((DocsMountArrayValue)value).value.length > 0;
                 }
-                if (value is NavArrayValue)
+                if ((object?)value is NavArrayValue)
                 {
                     return ((NavArrayValue)value).value.length > 0;
                 }
-                if (value is AnyArrayValue)
+                if ((object?)value is AnyArrayValue)
                 {
                     return ((AnyArrayValue)value).value.length > 0;
                 }
@@ -167,32 +167,32 @@ namespace Tsumo.Engine
             };
             stringify = (TemplateValue value, bool escape) =>
             {
-                if (value is DeferredTemplateValue)
+                if ((object?)value is DeferredTemplateValue)
                 {
                     throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_DEFER_CONTEXT_INVALID", "templates.Defer can only be evaluated by a with block");
                 }
-                if (value is NilValue)
+                if ((object?)value is NilValue)
                 {
                     return "";
                 }
-                if (value is HtmlValue)
+                if ((object?)value is HtmlValue)
                 {
                     return ((HtmlValue)value).value.value;
                 }
-                if (value is StringValue)
+                if ((object?)value is StringValue)
                 {
                     string s = ((StringValue)value).value;
                     return escape ? Utils_html.escapeHtml(s) : s;
                 }
-                if (value is BoolValue)
+                if ((object?)value is BoolValue)
                 {
                     return ((BoolValue)value).value ? "true" : "false";
                 }
-                if (value is NumberValue)
+                if ((object?)value is NumberValue)
                 {
                     return $"{((NumberValue)value).value}";
                 }
-                if (value is DateValue)
+                if ((object?)value is DateValue)
                 {
                     return escape ? Utils_html.escapeHtml(((DateValue)value).value) : ((DateValue)value).value;
                 }
@@ -200,35 +200,35 @@ namespace Tsumo.Engine
             };
             toPlainString = (TemplateValue value) =>
             {
-                if (value is DeferredTemplateValue)
+                if ((object?)value is DeferredTemplateValue)
                 {
                     throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_DEFER_CONTEXT_INVALID", "templates.Defer cannot be converted to text outside a with block");
                 }
-                if (value is StringValue)
+                if ((object?)value is StringValue)
                 {
                     return ((StringValue)value).value;
                 }
-                if (value is HtmlValue)
+                if ((object?)value is HtmlValue)
                 {
                     return ((HtmlValue)value).value.value;
                 }
-                if (value is DateValue)
+                if ((object?)value is DateValue)
                 {
                     return ((DateValue)value).value;
                 }
-                if (value is BoolValue)
+                if ((object?)value is BoolValue)
                 {
                     return ((BoolValue)value).value ? "true" : "false";
                 }
-                if (value is NumberValue)
+                if ((object?)value is NumberValue)
                 {
                     return $"{((NumberValue)value).value}";
                 }
-                if (value is PageValue)
+                if ((object?)value is PageValue)
                 {
                     return ((PageValue)value).value.relPermalink;
                 }
-                if (value is VersionStringValue)
+                if ((object?)value is VersionStringValue)
                 {
                     return ((VersionStringValue)value).value;
                 }
@@ -236,15 +236,15 @@ namespace Tsumo.Engine
             };
             toNumber = (TemplateValue value) =>
             {
-                if (value is NumberValue)
+                if ((object?)value is NumberValue)
                 {
                     return ((NumberValue)value).value;
                 }
-                if (value is StringValue)
+                if ((object?)value is StringValue)
                 {
                     return Utils_int32.parseInt32(((StringValue)value).value) ?? 0;
                 }
-                if (value is BoolValue)
+                if ((object?)value is BoolValue)
                 {
                     return ((BoolValue)value).value ? 1 : 0;
                 }

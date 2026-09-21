@@ -10,11 +10,11 @@ pub trait PageFileDispatch {
         None
     }
     fn read_page_file_filename(&self) -> String;
-    fn write_page_file_filename(&self, value: String);
+    fn write_page_file_filename(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_page_file_dir(&self) -> String;
-    fn write_page_file_dir(&self, value: String);
+    fn write_page_file_dir(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_page_file_base_file_name(&self) -> String;
-    fn write_page_file_base_file_name(&self, value: String);
+    fn write_page_file_base_file_name(&self, value: String) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -53,9 +53,8 @@ impl rt::ObjectIdentityCarrier for PageFile {
 }
 
 pub(crate) struct PageFileRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<PageFileState>,
+    state: rt::ObjectState<PageFileState>,
 }
 
 impl PageFile {
@@ -64,28 +63,32 @@ impl PageFile {
         filename: String,
         dir: String,
         base_file_name: String,
-    ) -> PageFileState {
+    ) -> Result<PageFileState, rt::TsonicError> {
         let field_filename: String = filename;
         let field_dir: String = dir;
         let field_base_file_name: String = base_file_name;
-        PageFileState {
+        Ok(PageFileState {
             filename: field_filename,
             dir: field_dir,
             base_file_name: field_base_file_name,
-        }
+        })
     }
 
-    pub fn new(filename: String, dir: String, base_file_name: String) -> PageFile {
-        let state = PageFile::initialize_state(filename, dir, base_file_name);
+    pub fn new(
+        filename: String,
+        dir: String,
+        base_file_name: String,
+    ) -> Result<PageFile, rt::TsonicError> {
+        let state = PageFile::initialize_state(filename, dir, base_file_name)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(PageFileRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        PageFile {
+        Ok(PageFile {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -100,23 +103,41 @@ impl PageFileDispatch for PageFileRoot {
         self.state.with(|state| state.filename.clone())
     }
 
-    fn write_page_file_filename(&self, value: String) {
-        self.state.with_mut(|state| state.filename = value);
+    fn write_page_file_filename(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.filename = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_file_dir(&self) -> String {
         self.state.with(|state| state.dir.clone())
     }
 
-    fn write_page_file_dir(&self, value: String) {
-        self.state.with_mut(|state| state.dir = value);
+    fn write_page_file_dir(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.dir = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_page_file_base_file_name(&self) -> String {
         self.state.with(|state| state.base_file_name.clone())
     }
 
-    fn write_page_file_base_file_name(&self, value: String) {
-        self.state.with_mut(|state| state.base_file_name = value);
+    fn write_page_file_base_file_name(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base_file_name = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

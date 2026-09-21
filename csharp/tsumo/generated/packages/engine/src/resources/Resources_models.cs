@@ -30,8 +30,9 @@ namespace Tsumo.Engine
         public string mediaType;
         public int width;
         public int height;
-        public Resource(string id, string? sourcePath, bool publishable, string? outputRelPath, Tsonic.CSharp.Node.Buffer bytes, string? text, ResourceData data, string mediaType = "", int width = 0, int height = 0)
+        public Resource(string id, string? sourcePath, bool publishable, string? outputRelPath, Tsonic.CSharp.Node.Buffer bytes, string? text, ResourceData data, string? __tsonic_param0 = null, int width = 0, int height = 0)
         {
+            string mediaType = __tsonic_param0 ?? "";
             this.id = id;
             this.sourcePath = sourcePath;
             this.publishable = publishable;

@@ -5,11 +5,11 @@ use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
 pub fn split_assignment(
-    line: String,
+    line: &str,
     source_path: Option<String>,
     line_number: i32,
 ) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
-    let separator: i32 = rt::conversions::isize_to_i32(js_string::index_of_from_start(&line, "="))?;
+    let separator: i32 = rt::conversions::isize_to_i32(js_string::index_of_from_start(line, "="))?;
     if separator <= 0 {
         return Err(rt::TsonicError::TsumoError(
             crate::diagnostics::create_tsumo_error(
@@ -18,18 +18,12 @@ pub fn split_assignment(
                 source_path.clone(),
                 Some(rt::conversions::i32_to_f64(line_number)),
                 Some(1.0),
-            ),
+            )?,
         ));
     }
-    let key: String = js_string::trim(&crate::utils::strings::substring_count(
-        line.clone(),
-        0,
-        separator,
-    )?);
-    let value: String = js_string::trim(&crate::utils::strings::substring_from(
-        &line,
-        separator + 1,
-    )?);
+    let key: String = js_string::trim(&crate::utils::strings::substring_count(line, 0, separator)?);
+    let value: String =
+        js_string::trim(&crate::utils::strings::substring_from(line, separator + 1)?);
     if value.is_empty() {
         return Err(rt::TsonicError::TsumoError(
             crate::diagnostics::create_tsumo_error(
@@ -43,7 +37,7 @@ pub fn split_assignment(
                 source_path.clone(),
                 Some(rt::conversions::i32_to_f64(line_number)),
                 Some(1.0),
-            ),
+            )?,
         ));
     }
     Ok(js_abi::JsArray::from_dense(vec![
@@ -74,17 +68,17 @@ pub fn record_field(
                 source_path,
                 Some(rt::conversions::i32_to_f64(line)),
                 Some(1.0),
-            ),
+            )?,
         ));
     }
-    fields.add_discard(normalized.clone());
+    fields.add_discard(normalized);
     Ok(())
 }
 
 pub fn apply_menu_field(
     builder: crate::config::builders::MenuEntryBuilder,
     key_raw: String,
-    value: String,
+    value: &str,
     source_path: Option<String>,
     line: i32,
 ) -> Result<(), rt::TsonicError> {
@@ -94,110 +88,187 @@ pub fn apply_menu_field(
             let receiver = &builder;
             let value_2 = crate::config::scalars::parse_config_string(
                 key_raw.clone(),
-                value.clone(),
+                value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
                 line,
             )?;
-            receiver.state.with_mut(|state| state.name = value_2)
+            {
+                let field_owner = receiver.clone();
+                let field_value = value_2;
+                {
+                    field_owner.state.validate_data_write()?;
+                    field_owner.state.with_mut(|state| state.name = field_value)
+                }
+            }
         };
     } else if key == "url" {
         {
             let receiver_2 = &builder;
             let value_3 = crate::config::scalars::parse_config_string(
                 key_raw.clone(),
-                value.clone(),
+                value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
                 line,
             )?;
-            receiver_2.state.with_mut(|state| state.url = value_3)
+            {
+                let field_owner_2 = receiver_2.clone();
+                let field_value_2 = value_3;
+                {
+                    field_owner_2.state.validate_data_write()?;
+                    field_owner_2
+                        .state
+                        .with_mut(|state| state.url = field_value_2)
+                }
+            }
         };
     } else if key == "pageref" {
         {
             let receiver_3 = &builder;
             let value_4 = crate::config::scalars::parse_config_string(
                 key_raw.clone(),
-                value.clone(),
+                value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
                 line,
             )?;
-            receiver_3.state.with_mut(|state| state.page_ref = value_4)
+            {
+                let field_owner_3 = receiver_3.clone();
+                let field_value_3 = value_4;
+                {
+                    field_owner_3.state.validate_data_write()?;
+                    field_owner_3
+                        .state
+                        .with_mut(|state| state.page_ref = field_value_3)
+                }
+            }
         };
     } else if key == "title" {
         {
             let receiver_4 = &builder;
             let value_5 = crate::config::scalars::parse_config_string(
                 key_raw.clone(),
-                value.clone(),
+                value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
                 line,
             )?;
-            receiver_4.state.with_mut(|state| state.title = value_5)
+            {
+                let field_owner_4 = receiver_4.clone();
+                let field_value_4 = value_5;
+                {
+                    field_owner_4.state.validate_data_write()?;
+                    field_owner_4
+                        .state
+                        .with_mut(|state| state.title = field_value_4)
+                }
+            }
         };
     } else if key == "parent" {
         {
             let receiver_5 = &builder;
             let value_6 = crate::config::scalars::parse_config_string(
                 key_raw.clone(),
-                value.clone(),
+                value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
                 line,
             )?;
-            receiver_5.state.with_mut(|state| state.parent = value_6)
+            {
+                let field_owner_5 = receiver_5.clone();
+                let field_value_5 = value_6;
+                {
+                    field_owner_5.state.validate_data_write()?;
+                    field_owner_5
+                        .state
+                        .with_mut(|state| state.parent = field_value_5)
+                }
+            }
         };
     } else if key == "identifier" {
         {
             let receiver_6 = &builder;
             let value_7 = crate::config::scalars::parse_config_string(
                 key_raw.clone(),
-                value.clone(),
+                value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
                 line,
             )?;
-            receiver_6
-                .state
-                .with_mut(|state| state.identifier = value_7)
+            {
+                let field_owner_6 = receiver_6.clone();
+                let field_value_6 = value_7;
+                {
+                    field_owner_6.state.validate_data_write()?;
+                    field_owner_6
+                        .state
+                        .with_mut(|state| state.identifier = field_value_6)
+                }
+            }
         };
     } else if key == "pre" {
         {
             let receiver_7 = &builder;
             let value_8 = crate::config::scalars::parse_config_string(
                 key_raw.clone(),
-                value.clone(),
+                value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
                 line,
             )?;
-            receiver_7.state.with_mut(|state| state.pre = value_8)
+            {
+                let field_owner_7 = receiver_7.clone();
+                let field_value_7 = value_8;
+                {
+                    field_owner_7.state.validate_data_write()?;
+                    field_owner_7
+                        .state
+                        .with_mut(|state| state.pre = field_value_7)
+                }
+            }
         };
     } else if key == "post" {
         {
             let receiver_8 = &builder;
             let value_9 = crate::config::scalars::parse_config_string(
                 key_raw.clone(),
-                value.clone(),
+                value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
                 line,
             )?;
-            receiver_8.state.with_mut(|state| state.post = value_9)
+            {
+                let field_owner_8 = receiver_8.clone();
+                let field_value_8 = value_9;
+                {
+                    field_owner_8.state.validate_data_write()?;
+                    field_owner_8
+                        .state
+                        .with_mut(|state| state.post = field_value_8)
+                }
+            }
         };
     } else if key == "weight" {
         {
             let receiver_9 = &builder;
             let value_10 = crate::config::scalars::parse_config_int(
                 key_raw.clone(),
-                value.clone(),
+                value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
                 line,
             )?;
-            receiver_9.state.with_mut(|state| state.weight = value_10)
+            {
+                let field_owner_9 = receiver_9.clone();
+                let field_value_9 = value_10;
+                {
+                    field_owner_9.state.validate_data_write()?;
+                    field_owner_9
+                        .state
+                        .with_mut(|state| state.weight = field_value_9)
+                }
+            }
         };
     } else {
         return Err(rt::TsonicError::TsumoError(
@@ -212,7 +283,7 @@ pub fn apply_menu_field(
                 source_path.clone(),
                 Some(rt::conversions::i32_to_f64(line)),
                 Some(1.0),
-            ),
+            )?,
         ));
     }
     Ok(())
@@ -221,7 +292,7 @@ pub fn apply_menu_field(
 pub fn apply_language_field(
     builder: crate::config::builders::LanguageConfigBuilder,
     key_raw: String,
-    value: String,
+    value: &str,
     source_path: Option<String>,
     line: i32,
 ) -> Result<(), rt::TsonicError> {
@@ -231,54 +302,84 @@ pub fn apply_language_field(
             let receiver = &builder;
             let value_2 = crate::config::scalars::parse_config_string(
                 key_raw.clone(),
-                value.clone(),
+                value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
                 line,
             )?;
-            receiver
-                .state
-                .with_mut(|state| state.language_name = value_2)
+            {
+                let field_owner = receiver.clone();
+                let field_value = value_2;
+                {
+                    field_owner.state.validate_data_write()?;
+                    field_owner
+                        .state
+                        .with_mut(|state| state.language_name = field_value)
+                }
+            }
         };
     } else if key == "languagedirection" {
         {
             let receiver_2 = &builder;
             let value_3 = crate::config::scalars::parse_config_string(
                 key_raw.clone(),
-                value.clone(),
+                value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
                 line,
             )?;
-            receiver_2
-                .state
-                .with_mut(|state| state.language_direction = value_3)
+            {
+                let field_owner_2 = receiver_2.clone();
+                let field_value_2 = value_3;
+                {
+                    field_owner_2.state.validate_data_write()?;
+                    field_owner_2
+                        .state
+                        .with_mut(|state| state.language_direction = field_value_2)
+                }
+            }
         };
     } else if key == "contentdir" {
         {
             let receiver_3 = &builder;
             let value_4 = crate::config::scalars::parse_config_string(
                 key_raw.clone(),
-                value.clone(),
+                value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
                 line,
             )?;
-            receiver_3
-                .state
-                .with_mut(|state| state.content_dir = value_4)
+            {
+                let field_owner_3 = receiver_3.clone();
+                let field_value_3 = value_4;
+                {
+                    field_owner_3.state.validate_data_write()?;
+                    field_owner_3
+                        .state
+                        .with_mut(|state| state.content_dir = field_value_3)
+                }
+            }
         };
     } else if key == "weight" {
         {
             let receiver_4 = &builder;
             let value_5 = crate::config::scalars::parse_config_int(
                 key_raw.clone(),
-                value.clone(),
+                value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
                 line,
             )?;
-            receiver_4.state.with_mut(|state| state.weight = value_5)
+            {
+                let field_owner_4 = receiver_4.clone();
+                let field_value_4 = value_5;
+                {
+                    field_owner_4.state.validate_data_write()?;
+                    field_owner_4
+                        .state
+                        .with_mut(|state| state.weight = field_value_4)
+                }
+            }
         };
     } else {
         return Err(rt::TsonicError::TsumoError(
@@ -293,7 +394,7 @@ pub fn apply_language_field(
                 source_path.clone(),
                 Some(rt::conversions::i32_to_f64(line)),
                 Some(1.0),
-            ),
+            )?,
         ));
     }
     Ok(())
@@ -302,7 +403,7 @@ pub fn apply_language_field(
 pub fn apply_root_field(
     config: crate::models::site_config::SiteConfig,
     key_raw: String,
-    value: String,
+    value: &str,
     source_path: Option<String>,
     line: i32,
 ) -> Result<(), rt::TsonicError> {
@@ -312,14 +413,16 @@ pub fn apply_root_field(
             let receiver = &config;
             let value_2 = crate::config::scalars::parse_config_string(
                 key_raw.clone(),
-                value.clone(),
+                value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
                 line,
             )?;
             {
                 let dispatch_receiver = receiver;
-                dispatch_receiver.dispatch.write_site_config_title(value_2)
+                dispatch_receiver
+                    .dispatch
+                    .write_site_config_title(value_2)?
             }
         };
     } else if key == "baseurl" {
@@ -328,7 +431,7 @@ pub fn apply_root_field(
             let value_3 = crate::utils::text::ensure_trailing_slash(
                 crate::config::scalars::parse_config_string(
                     key_raw.clone(),
-                    value.clone(),
+                    value,
                     crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                     source_path.clone(),
                     line,
@@ -338,7 +441,7 @@ pub fn apply_root_field(
                 let dispatch_receiver_2 = receiver_2;
                 dispatch_receiver_2
                     .dispatch
-                    .write_site_config_base_url(value_3)
+                    .write_site_config_base_url(value_3)?
             }
         };
     } else if key == "languagecode" {
@@ -346,7 +449,7 @@ pub fn apply_root_field(
             let receiver_3 = &config;
             let value_4 = crate::config::scalars::parse_config_string(
                 key_raw.clone(),
-                value.clone(),
+                value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
                 line,
@@ -355,7 +458,7 @@ pub fn apply_root_field(
                 let dispatch_receiver_3 = receiver_3;
                 dispatch_receiver_3
                     .dispatch
-                    .write_site_config_language_code(value_4)
+                    .write_site_config_language_code(value_4)?
             }
         };
     } else if key == "contentdir" {
@@ -363,7 +466,7 @@ pub fn apply_root_field(
             let receiver_4 = &config;
             let value_5 = crate::config::scalars::parse_config_string(
                 key_raw.clone(),
-                value.clone(),
+                value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
                 line,
@@ -372,7 +475,7 @@ pub fn apply_root_field(
                 let dispatch_receiver_4 = receiver_4;
                 dispatch_receiver_4
                     .dispatch
-                    .write_site_config_content_dir(value_5)
+                    .write_site_config_content_dir(value_5)?
             }
         };
     } else if key == "theme" {
@@ -380,7 +483,7 @@ pub fn apply_root_field(
             let receiver_5 = &config;
             let value_6 = Some(crate::config::scalars::parse_config_string(
                 key_raw.clone(),
-                value.clone(),
+                value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
                 line,
@@ -389,7 +492,7 @@ pub fn apply_root_field(
                 let dispatch_receiver_5 = receiver_5;
                 dispatch_receiver_5
                     .dispatch
-                    .write_site_config_theme(value_6)
+                    .write_site_config_theme(value_6)?
             }
         };
     } else if key == "copyright" {
@@ -397,7 +500,7 @@ pub fn apply_root_field(
             let receiver_6 = &config;
             let value_7 = Some(crate::config::scalars::parse_config_string(
                 key_raw.clone(),
-                value.clone(),
+                value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
                 line,
@@ -406,7 +509,7 @@ pub fn apply_root_field(
                 let dispatch_receiver_6 = receiver_6;
                 dispatch_receiver_6
                     .dispatch
-                    .write_site_config_copyright(value_7)
+                    .write_site_config_copyright(value_7)?
             }
         };
     } else {
@@ -422,7 +525,7 @@ pub fn apply_root_field(
                 source_path.clone(),
                 Some(rt::conversions::i32_to_f64(line)),
                 Some(1.0),
-            ),
+            )?,
         ));
     }
     Ok(())
@@ -452,7 +555,7 @@ pub fn menu_builders_to_entries(
                     None,
                     None,
                     None,
-                ),
+                )?,
             ));
         }
         let entries: js_abi::JsArray<crate::models::menu_entry::MenuEntry> =
@@ -475,12 +578,11 @@ pub fn menu_builders_to_entries(
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                     .get_number(index)
-                    .as_ref()
                     {
-                        Some(flow_value_3) => flow_value_3.clone(),
+                        Some(flow_value_3) => flow_value_3,
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
-                    .to_entry()])
+                    .to_entry()?])
                 };
                 index += 1.0;
             }
@@ -497,18 +599,20 @@ pub fn menu_builders_to_entries(
 }
 
 pub fn parse_module_toml(
-    text: String,
+    text: &str,
     source_path: Option<String>,
 ) -> Result<js_abi::JsArray<crate::models::site_config::ModuleMount>, rt::TsonicError> {
     let mounts: js_abi::JsArray<crate::models::site_config::ModuleMount> =
         js_abi::JsArray::from_dense(vec![]);
     let lines: js_abi::JsArray<String> = js_string::split_all(
-        &crate::utils::strings::replace_line_endings(&text, String::from("\n"))?,
+        &crate::utils::strings::replace_line_endings(text, String::from("\n"))?,
         "\n",
     )?;
-    let source: rt::Location<String> = rt::Location::allocate(String::from(""));
-    let target: rt::Location<String> = rt::Location::allocate(String::from(""));
-    let in_mount: rt::Location<bool> = rt::Location::allocate(false);
+    let source: rt::Location<String, core::convert::Infallible> =
+        rt::Location::allocate(String::from(""));
+    let target: rt::Location<String, core::convert::Infallible> =
+        rt::Location::allocate(String::from(""));
+    let in_mount: rt::Location<bool, core::convert::Infallible> = rt::Location::allocate(false);
     let mut mount_fields: js_abi::JsSet<String> = js_abi::JsSet::new();
     let finish_mount: rt::Callable<(i32,), rt::TsonicResult<()>> = {
         let capture_in_mount = in_mount.clone();
@@ -529,7 +633,7 @@ pub fn parse_module_toml(
                         capture_source_path.clone(),
                         Some(rt::conversions::i32_to_f64(line)),
                         Some(1.0),
-                    ),
+                    )?,
                 ));
             }
             {
@@ -537,7 +641,7 @@ pub fn parse_module_toml(
                 operation_input_0.push_many_discard([crate::models::site_config::ModuleMount::new(
                     capture_source.load(),
                     capture_target.load(),
-                )])
+                )?])
             };
             Ok::<_, rt::TsonicError>(())
         })
@@ -548,11 +652,8 @@ pub fn parse_module_toml(
             let line_number: i32 = index + 1;
             let line: String =
                 js_string::trim(&crate::utils::structured_scalars::strip_structured_comment(
-                    match lines
-                        .get_number(rt::conversions::i32_to_f64(index))
-                        .as_ref()
-                    {
-                        Some(flow_value) => flow_value.clone(),
+                    match lines.get_number(rt::conversions::i32_to_f64(index)) {
+                        Some(flow_value) => flow_value,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                     crate::utils::structured_scalars::StructuredScalarFormat::Toml,
@@ -578,34 +679,33 @@ pub fn parse_module_toml(
                         source_path.clone(),
                         Some(rt::conversions::i32_to_f64(line_number)),
                         Some(1.0),
-                    ),
+                    )?,
                 ));
             }
             let assignment: js_abi::JsArray<String> =
-                split_assignment(line.clone(), source_path.clone(), line_number)?;
+                split_assignment(&line, source_path.clone(), line_number)?;
             record_field(
                 mount_fields.clone(),
-                match assignment.get_number(0.0).as_ref() {
-                    Some(flow_value_2) => flow_value_2.clone(),
+                match assignment.get_number(0.0) {
+                    Some(flow_value_2) => flow_value_2,
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
                 String::from("Module mount"),
                 source_path.clone(),
                 line_number,
             )?;
-            let key: String =
-                js_string::to_lower_case(&match assignment.get_number(0.0).as_ref() {
-                    Some(flow_value_3) => flow_value_3.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                });
+            let key: String = js_string::to_lower_case(&match assignment.get_number(0.0) {
+                Some(flow_value_3) => flow_value_3,
+                None => unreachable!("checked flow selected a missing optional value"),
+            });
             if key == "source" {
                 source.store(crate::config::scalars::parse_config_string(
-                    match assignment.get_number(0.0).as_ref() {
-                        Some(flow_value_4) => flow_value_4.clone(),
+                    match assignment.get_number(0.0) {
+                        Some(flow_value_4) => flow_value_4,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
-                    match assignment.get_number(1.0).as_ref() {
-                        Some(flow_value_5) => flow_value_5.clone(),
+                    &match assignment.get_number(1.0) {
+                        Some(flow_value_5) => flow_value_5,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                     crate::utils::structured_scalars::StructuredScalarFormat::Toml,
@@ -614,12 +714,12 @@ pub fn parse_module_toml(
                 )?);
             } else if key == "target" {
                 target.store(crate::config::scalars::parse_config_string(
-                    match assignment.get_number(0.0).as_ref() {
-                        Some(flow_value_6) => flow_value_6.clone(),
+                    match assignment.get_number(0.0) {
+                        Some(flow_value_6) => flow_value_6,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
-                    match assignment.get_number(1.0).as_ref() {
-                        Some(flow_value_7) => flow_value_7.clone(),
+                    &match assignment.get_number(1.0) {
+                        Some(flow_value_7) => flow_value_7,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                     crate::utils::structured_scalars::StructuredScalarFormat::Toml,
@@ -633,8 +733,8 @@ pub fn parse_module_toml(
                         format!(
                             "{}{}{}",
                             String::from("Unknown module mount field '"),
-                            match assignment.get_number(0.0).as_ref() {
-                                Some(flow_value_8) => flow_value_8.clone(),
+                            match assignment.get_number(0.0) {
+                                Some(flow_value_8) => flow_value_8,
                                 None =>
                                     unreachable!("checked flow selected a missing optional value"),
                             },
@@ -643,7 +743,7 @@ pub fn parse_module_toml(
                         source_path.clone(),
                         Some(rt::conversions::i32_to_f64(line_number)),
                         Some(1.0),
-                    ),
+                    )?,
                 ));
             }
             index += 1;
@@ -654,7 +754,7 @@ pub fn parse_module_toml(
 }
 
 pub fn parse_toml_config(
-    text: String,
+    text: &str,
     source_path: Option<String>,
 ) -> Result<crate::models::site_config::SiteConfig, rt::TsonicError> {
     let config: crate::models::site_config::SiteConfig =
@@ -664,7 +764,7 @@ pub fn parse_toml_config(
             String::from("en-us"),
             Option::<String>::None,
             Option::<String>::None,
-        );
+        )?;
     let languages: js_abi::JsMap<String, crate::config::builders::LanguageConfigBuilder> =
         js_abi::JsMap::new();
     let menu_builders: js_abi::JsMap<
@@ -672,7 +772,7 @@ pub fn parse_toml_config(
         js_abi::JsArray<crate::config::builders::MenuEntryBuilder>,
     > = js_abi::JsMap::new();
     let lines: js_abi::JsArray<String> = js_string::split_all(
-        &crate::utils::strings::replace_line_endings(&text, String::from("\n"))?,
+        &crate::utils::strings::replace_line_endings(text, String::from("\n"))?,
         "\n",
     )?;
     let mut table: String = String::from("");
@@ -688,11 +788,8 @@ pub fn parse_toml_config(
             let line_number: i32 = index + 1;
             let line: String =
                 js_string::trim(&crate::utils::structured_scalars::strip_structured_comment(
-                    match lines
-                        .get_number(rt::conversions::i32_to_f64(index))
-                        .as_ref()
-                    {
-                        Some(flow_value) => flow_value.clone(),
+                    match lines.get_number(rt::conversions::i32_to_f64(index)) {
+                        Some(flow_value) => flow_value,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                     crate::utils::structured_scalars::StructuredScalarFormat::Toml,
@@ -710,12 +807,12 @@ pub fn parse_toml_config(
                             source_path.clone(),
                             Some(rt::conversions::i32_to_f64(line_number)),
                             Some(1.0),
-                        ),
+                        )?,
                     ));
                 }
                 table = js_string::to_lower_case(&js_string::trim(
                     &crate::utils::strings::substring_count(
-                        line.clone(),
+                        &line,
                         2,
                         rt::conversions::usize_to_i32(js_string::js_len(&line))? - 4,
                     )?,
@@ -736,7 +833,7 @@ pub fn parse_toml_config(
                             source_path.clone(),
                             Some(rt::conversions::i32_to_f64(line_number)),
                             Some(1.0),
-                        ),
+                        )?,
                     ));
                 }
                 let menu_name: String = crate::utils::strings::substring_from(
@@ -745,7 +842,7 @@ pub fn parse_toml_config(
                 )?;
                 current_menu = Some(crate::config::builders::MenuEntryBuilder::new(
                     menu_name.clone(),
-                ));
+                )?);
                 menu_fields = js_abi::JsSet::new();
                 let entries: js_abi::JsArray<crate::config::builders::MenuEntryBuilder> =
                     rt::option_coalesce(
@@ -770,12 +867,12 @@ pub fn parse_toml_config(
                             source_path.clone(),
                             Some(rt::conversions::i32_to_f64(line_number)),
                             Some(1.0),
-                        ),
+                        )?,
                     ));
                 }
                 table = js_string::to_lower_case(&js_string::trim(
                     &crate::utils::strings::substring_count(
-                        line.clone(),
+                        &line,
                         1,
                         rt::conversions::usize_to_i32(js_string::js_len(&line))? - 2,
                     )?,
@@ -794,7 +891,7 @@ pub fn parse_toml_config(
                             source_path.clone(),
                             Some(rt::conversions::i32_to_f64(line_number)),
                             Some(1.0),
-                        ),
+                        )?,
                     ));
                 }
                 declared_tables.add_discard(table.clone());
@@ -819,7 +916,7 @@ pub fn parse_toml_config(
                                 crate::config::builders::LanguageConfigBuilder::new(
                                     lang.clone(),
                                     None,
-                                ),
+                                )?,
                             )
                         };
                     }
@@ -838,17 +935,17 @@ pub fn parse_toml_config(
                         source_path.clone(),
                         Some(rt::conversions::i32_to_f64(line_number)),
                         Some(1.0),
-                    ),
+                    )?,
                 ));
             }
             let assignment: js_abi::JsArray<String> =
-                split_assignment(line.clone(), source_path.clone(), line_number)?;
-            let key: String = match assignment.get_number(0.0).as_ref() {
-                Some(flow_value_3) => flow_value_3.clone(),
+                split_assignment(&line, source_path.clone(), line_number)?;
+            let key: String = match assignment.get_number(0.0) {
+                Some(flow_value_3) => flow_value_3,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let value: String = match assignment.get_number(1.0).as_ref() {
-                Some(flow_value_4) => flow_value_4.clone(),
+            let value: String = match assignment.get_number(1.0) {
+                Some(flow_value_4) => flow_value_4,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if current_menu.is_some() {
@@ -875,7 +972,7 @@ pub fn parse_toml_config(
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                     key.clone(),
-                    value.clone(),
+                    &value,
                     source_path.clone(),
                     line_number,
                 )?;
@@ -895,7 +992,7 @@ pub fn parse_toml_config(
                     operation_input_0_2.set_discard(
                         key.clone(),
                         crate::config::scalars::parse_config_param(
-                            value.clone(),
+                            &value,
                             crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                             source_path.clone(),
                             line_number,
@@ -922,7 +1019,7 @@ pub fn parse_toml_config(
                             source_path.clone(),
                             Some(rt::conversions::i32_to_f64(line_number)),
                             Some(1.0),
-                        ),
+                        )?,
                     ));
                 }
                 record_field(
@@ -943,7 +1040,7 @@ pub fn parse_toml_config(
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                     key.clone(),
-                    value.clone(),
+                    &value,
                     source_path.clone(),
                     line_number,
                 )?;
@@ -958,7 +1055,7 @@ pub fn parse_toml_config(
                 apply_root_field(
                     config.clone(),
                     key.clone(),
-                    value.clone(),
+                    &value,
                     source_path.clone(),
                     line_number,
                 )?;
@@ -978,7 +1075,7 @@ pub fn parse_toml_config(
                         source_path.clone(),
                         Some(rt::conversions::i32_to_f64(line_number)),
                         Some(1.0),
-                    ),
+                    )?,
                 ));
             }
             index += 1;
@@ -991,20 +1088,20 @@ pub fn parse_toml_config(
             let dispatch_receiver_2 = receiver;
             dispatch_receiver_2
                 .dispatch
-                .write_site_config_menus(value_2)
+                .write_site_config_menus(value_2)?
         }
     };
     {
         let receiver_2 = &config;
-        let value_3 = crate::config::helpers::sort_languages(js_abi::array_from_vec_map(
+        let value_3 = crate::config::helpers::sort_languages(js_abi::array_from_vec_try_map(
             &languages.values(),
             |language| language.to_config(),
-        ))?;
+        )?)?;
         {
             let dispatch_receiver_3 = receiver_2;
             dispatch_receiver_3
                 .dispatch
-                .write_site_config_languages(value_3)
+                .write_site_config_languages(value_3)?
         }
     };
     if rt::conversions::usize_to_i32(
@@ -1020,9 +1117,8 @@ pub fn parse_toml_config(
             dispatch_receiver_5.dispatch.read_site_config_languages()
         }
         .get_number(0.0)
-        .as_ref()
         {
-            Some(flow_value_8) => flow_value_8.clone(),
+            Some(flow_value_8) => flow_value_8,
             None => unreachable!("checked flow selected a missing optional value"),
         };
         {
@@ -1032,7 +1128,7 @@ pub fn parse_toml_config(
                 let dispatch_receiver_6 = receiver_3;
                 dispatch_receiver_6
                     .dispatch
-                    .write_site_config_content_dir(value_4)
+                    .write_site_config_content_dir(value_4)?
             }
         };
         if !has_language_code {
@@ -1043,7 +1139,7 @@ pub fn parse_toml_config(
                     let dispatch_receiver_7 = receiver_4;
                     dispatch_receiver_7
                         .dispatch
-                        .write_site_config_language_code(value_5)
+                        .write_site_config_language_code(value_5)?
                 }
             };
         }
@@ -1053,29 +1149,29 @@ pub fn parse_toml_config(
 
 pub fn merge_toml_into_config(
     config: crate::models::site_config::SiteConfig,
-    text: String,
+    text: &str,
     file_name: String,
     source_path: Option<String>,
 ) -> Result<crate::models::site_config::SiteConfig, rt::TsonicError> {
     let lower: String = js_string::to_lower_case(&file_name);
     if lower == "hugo.toml" || lower == "config.toml" {
-        return parse_toml_config(text.clone(), source_path.clone());
+        return parse_toml_config(text, source_path.clone());
     }
     if lower == "module.toml" {
         {
             let receiver = &config;
-            let value = parse_module_toml(text.clone(), source_path.clone())?;
+            let value = parse_module_toml(text, source_path.clone())?;
             {
                 let dispatch_receiver = receiver;
                 dispatch_receiver
                     .dispatch
-                    .write_site_config_module_mounts(value)
+                    .write_site_config_module_mounts(value)?
             }
         };
         return Ok(config);
     }
     let lines: js_abi::JsArray<String> = js_string::split_all(
-        &crate::utils::strings::replace_line_endings(&text, String::from("\n"))?,
+        &crate::utils::strings::replace_line_endings(text, String::from("\n"))?,
         "\n",
     )?;
     if lower == "params.toml" {
@@ -1088,11 +1184,8 @@ pub fn merge_toml_into_config(
                 let line_number: i32 = index + 1;
                 let line: String =
                     js_string::trim(&crate::utils::structured_scalars::strip_structured_comment(
-                        match lines
-                            .get_number(rt::conversions::i32_to_f64(index))
-                            .as_ref()
-                        {
-                            Some(flow_value) => flow_value.clone(),
+                        match lines.get_number(rt::conversions::i32_to_f64(index)) {
+                            Some(flow_value) => flow_value,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                         crate::utils::structured_scalars::StructuredScalarFormat::Toml,
@@ -1106,7 +1199,7 @@ pub fn merge_toml_into_config(
                     && !js_string::starts_with_from_start(&line, "[[")
                 {
                     prefix = js_string::trim(&crate::utils::strings::substring_count(
-                        line.clone(),
+                        &line,
                         1,
                         rt::conversions::usize_to_i32(js_string::js_len(&line))? - 2,
                     )?);
@@ -1124,7 +1217,7 @@ pub fn merge_toml_into_config(
                                 source_path.clone(),
                                 Some(rt::conversions::i32_to_f64(line_number)),
                                 Some(1.0),
-                            ),
+                            )?,
                         ));
                     }
                     tables.add_discard(normalized.clone());
@@ -1135,12 +1228,12 @@ pub fn merge_toml_into_config(
                     continue 'loop_value;
                 }
                 let assignment: js_abi::JsArray<String> =
-                    split_assignment(line.clone(), source_path.clone(), line_number)?;
+                    split_assignment(&line, source_path.clone(), line_number)?;
                 let key: String = format!(
                     "{}{}",
                     prefix,
-                    match assignment.get_number(0.0).as_ref() {
-                        Some(flow_value_2) => flow_value_2.clone(),
+                    match assignment.get_number(0.0) {
+                        Some(flow_value_2) => flow_value_2,
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                 );
@@ -1159,8 +1252,8 @@ pub fn merge_toml_into_config(
                     operation_input_0.set_discard(
                         key.clone(),
                         crate::config::scalars::parse_config_param(
-                            match assignment.get_number(1.0).as_ref() {
-                                Some(flow_value_3) => flow_value_3.clone(),
+                            &match assignment.get_number(1.0) {
+                                Some(flow_value_3) => flow_value_3,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
@@ -1203,9 +1296,8 @@ pub fn merge_toml_into_config(
                                 dispatch_receiver_4.dispatch.read_site_config_languages()
                             }
                             .get_number(index)
-                            .as_ref()
                             {
-                                Some(flow_value_4) => flow_value_4.clone(),
+                                Some(flow_value_4) => flow_value_4,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
@@ -1218,9 +1310,8 @@ pub fn merge_toml_into_config(
                             dispatch_receiver_5.dispatch.read_site_config_languages()
                         }
                         .get_number(index)
-                        .as_ref()
                         {
-                            Some(flow_value_5) => flow_value_5.clone(),
+                            Some(flow_value_5) => flow_value_5,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     )
@@ -1235,7 +1326,7 @@ pub fn merge_toml_into_config(
         let mut current: String = String::from("");
         if !aggregate {
             current = crate::utils::strings::substring_count(
-                lower.clone(),
+                &lower,
                 rt::conversions::usize_to_i32(js_string::js_len("languages."))?,
                 rt::conversions::usize_to_i32(js_string::js_len(&lower))?
                     - rt::conversions::usize_to_i32(js_string::js_len("languages."))?
@@ -1248,11 +1339,8 @@ pub fn merge_toml_into_config(
                 let line_number: i32 = index + 1;
                 let line: String =
                     js_string::trim(&crate::utils::structured_scalars::strip_structured_comment(
-                        match lines
-                            .get_number(rt::conversions::i32_to_f64(index))
-                            .as_ref()
-                        {
-                            Some(flow_value_6) => flow_value_6.clone(),
+                        match lines.get_number(rt::conversions::i32_to_f64(index)) {
+                            Some(flow_value_6) => flow_value_6,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                         crate::utils::structured_scalars::StructuredScalarFormat::Toml,
@@ -1280,12 +1368,12 @@ pub fn merge_toml_into_config(
                                 source_path.clone(),
                                 Some(rt::conversions::i32_to_f64(line_number)),
                                 Some(1.0),
-                            ),
+                            )?,
                         ));
                     }
                     current = js_string::to_lower_case(&js_string::trim(
                         &crate::utils::strings::substring_count(
-                            line.clone(),
+                            &line,
                             1,
                             rt::conversions::usize_to_i32(js_string::js_len(&line))? - 2,
                         )?,
@@ -1303,7 +1391,7 @@ pub fn merge_toml_into_config(
                                 source_path.clone(),
                                 Some(rt::conversions::i32_to_f64(line_number)),
                                 Some(1.0),
-                            ),
+                            )?,
                         ));
                     }
                     if tables.has(&current) {
@@ -1319,7 +1407,7 @@ pub fn merge_toml_into_config(
                                 source_path.clone(),
                                 Some(rt::conversions::i32_to_f64(line_number)),
                                 Some(1.0),
-                            ),
+                            )?,
                         ));
                     }
                     tables.add_discard(current.clone());
@@ -1334,7 +1422,7 @@ pub fn merge_toml_into_config(
                             source_path.clone(),
                             Some(rt::conversions::i32_to_f64(line_number)),
                             Some(1.0),
-                        ),
+                        )?,
                     ));
                 }
                 let mut builder: Option<crate::config::builders::LanguageConfigBuilder> =
@@ -1343,7 +1431,7 @@ pub fn merge_toml_into_config(
                     builder = Some(crate::config::builders::LanguageConfigBuilder::new(
                         current.clone(),
                         existing.get(&current),
-                    ));
+                    )?);
                     builders.set_discard(
                         current.clone(),
                         match builder.as_ref() {
@@ -1357,7 +1445,7 @@ pub fn merge_toml_into_config(
                     };
                 }
                 let assignment: js_abi::JsArray<String> =
-                    split_assignment(line.clone(), source_path.clone(), line_number)?;
+                    split_assignment(&line, source_path.clone(), line_number)?;
                 let language_fields: Option<js_abi::JsSet<String>> = fields.get(&current);
                 if language_fields.is_none() {
                     return Err(rt::TsonicError::TsumoError(
@@ -1372,7 +1460,7 @@ pub fn merge_toml_into_config(
                             source_path.clone(),
                             None,
                             None,
-                        ),
+                        )?,
                     ));
                 }
                 record_field(
@@ -1380,8 +1468,8 @@ pub fn merge_toml_into_config(
                         Some(flow_value_8) => flow_value_8.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
-                    match assignment.get_number(0.0).as_ref() {
-                        Some(flow_value_9) => flow_value_9.clone(),
+                    match assignment.get_number(0.0) {
+                        Some(flow_value_9) => flow_value_9,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                     format!(
@@ -1398,12 +1486,12 @@ pub fn merge_toml_into_config(
                         Some(flow_value_10) => flow_value_10.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
-                    match assignment.get_number(0.0).as_ref() {
-                        Some(flow_value_11) => flow_value_11.clone(),
+                    match assignment.get_number(0.0) {
+                        Some(flow_value_11) => flow_value_11,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
-                    match assignment.get_number(1.0).as_ref() {
-                        Some(flow_value_12) => flow_value_12.clone(),
+                    &match assignment.get_number(1.0) {
+                        Some(flow_value_12) => flow_value_12,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                     source_path.clone(),
@@ -1428,7 +1516,7 @@ pub fn merge_toml_into_config(
                         source_path.clone(),
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
             {
@@ -1439,7 +1527,7 @@ pub fn merge_toml_into_config(
                         Some(flow_value_13) => flow_value_13.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
-                    .to_config(),
+                    .to_config()?,
                 )
             };
         }
@@ -1451,7 +1539,7 @@ pub fn merge_toml_into_config(
                 let dispatch_receiver_6 = receiver_2;
                 dispatch_receiver_6
                     .dispatch
-                    .write_site_config_languages(value_2)
+                    .write_site_config_languages(value_2)?
             }
         };
         if rt::conversions::usize_to_i32(
@@ -1469,9 +1557,8 @@ pub fn merge_toml_into_config(
                     dispatch_receiver_8.dispatch.read_site_config_languages()
                 }
                 .get_number(0.0)
-                .as_ref()
                 {
-                    Some(flow_value_14) => flow_value_14.clone(),
+                    Some(flow_value_14) => flow_value_14,
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
                 .state
@@ -1480,7 +1567,7 @@ pub fn merge_toml_into_config(
                     let dispatch_receiver_9 = receiver_3;
                     dispatch_receiver_9
                         .dispatch
-                        .write_site_config_content_dir(value_3)
+                        .write_site_config_content_dir(value_3)?
                 }
             };
             {
@@ -1490,9 +1577,8 @@ pub fn merge_toml_into_config(
                     dispatch_receiver_10.dispatch.read_site_config_languages()
                 }
                 .get_number(0.0)
-                .as_ref()
                 {
-                    Some(flow_value_15) => flow_value_15.clone(),
+                    Some(flow_value_15) => flow_value_15,
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
                 .state
@@ -1501,7 +1587,7 @@ pub fn merge_toml_into_config(
                     let dispatch_receiver_11 = receiver_4;
                     dispatch_receiver_11
                         .dispatch
-                        .write_site_config_language_code(value_4)
+                        .write_site_config_language_code(value_4)?
                 }
             };
         }
@@ -1511,7 +1597,7 @@ pub fn merge_toml_into_config(
         && js_string::ends_with_at_end(&lower, ".toml")
     {
         let menu_name: String = crate::utils::strings::substring_count(
-            lower.clone(),
+            &lower,
             rt::conversions::usize_to_i32(js_string::js_len("menus."))?,
             rt::conversions::usize_to_i32(js_string::js_len(&lower))?
                 - rt::conversions::usize_to_i32(js_string::js_len("menus."))?
@@ -1530,7 +1616,7 @@ pub fn merge_toml_into_config(
                     source_path.clone(),
                     None,
                     None,
-                ),
+                )?,
             ));
         }
         let builders: js_abi::JsArray<crate::config::builders::MenuEntryBuilder> =
@@ -1543,11 +1629,8 @@ pub fn merge_toml_into_config(
                 let line_number: i32 = index + 1;
                 let line: String =
                     js_string::trim(&crate::utils::structured_scalars::strip_structured_comment(
-                        match lines
-                            .get_number(rt::conversions::i32_to_f64(index))
-                            .as_ref()
-                        {
-                            Some(flow_value_16) => flow_value_16.clone(),
+                        match lines.get_number(rt::conversions::i32_to_f64(index)) {
+                            Some(flow_value_16) => flow_value_16,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                         crate::utils::structured_scalars::StructuredScalarFormat::Toml,
@@ -1561,7 +1644,7 @@ pub fn merge_toml_into_config(
                 {
                     let table: String = js_string::to_lower_case(&js_string::trim(
                         &crate::utils::strings::substring_count(
-                            line.clone(),
+                            &line,
                             2,
                             rt::conversions::usize_to_i32(js_string::js_len(&line))? - 4,
                         )?,
@@ -1581,12 +1664,12 @@ pub fn merge_toml_into_config(
                                 source_path.clone(),
                                 Some(rt::conversions::i32_to_f64(line_number)),
                                 Some(1.0),
-                            ),
+                            )?,
                         ));
                     }
                     current = Some(crate::config::builders::MenuEntryBuilder::new(
                         menu_name.clone(),
-                    ));
+                    )?);
                     fields = js_abi::JsSet::new();
                     builders.push_many_discard([match current.as_ref() {
                         Some(flow_value_17) => flow_value_17.clone(),
@@ -1610,15 +1693,15 @@ pub fn merge_toml_into_config(
                             source_path.clone(),
                             Some(rt::conversions::i32_to_f64(line_number)),
                             Some(1.0),
-                        ),
+                        )?,
                     ));
                 }
                 let assignment: js_abi::JsArray<String> =
-                    split_assignment(line.clone(), source_path.clone(), line_number)?;
+                    split_assignment(&line, source_path.clone(), line_number)?;
                 record_field(
                     fields.clone(),
-                    match assignment.get_number(0.0).as_ref() {
-                        Some(flow_value_18) => flow_value_18.clone(),
+                    match assignment.get_number(0.0) {
+                        Some(flow_value_18) => flow_value_18,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                     format!(
@@ -1635,12 +1718,12 @@ pub fn merge_toml_into_config(
                         Some(flow_value_19) => flow_value_19.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
-                    match assignment.get_number(0.0).as_ref() {
-                        Some(flow_value_20) => flow_value_20.clone(),
+                    match assignment.get_number(0.0) {
+                        Some(flow_value_20) => flow_value_20,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
-                    match assignment.get_number(1.0).as_ref() {
-                        Some(flow_value_21) => flow_value_21.clone(),
+                    &match assignment.get_number(1.0) {
+                        Some(flow_value_21) => flow_value_21,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                     source_path.clone(),
@@ -1656,13 +1739,11 @@ pub fn merge_toml_into_config(
             while index < (rt::conversions::usize_to_i32(builders.len())? as f64) {
                 {
                     let operation_input_0_5 = entries.clone();
-                    operation_input_0_5.push_many_discard([
-                        match builders.get_number(index).as_ref() {
-                            Some(flow_value_22) => flow_value_22.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        }
-                        .to_entry(),
-                    ])
+                    operation_input_0_5.push_many_discard([match builders.get_number(index) {
+                        Some(flow_value_22) => flow_value_22,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }
+                    .to_entry()?])
                 };
                 index += 1.0;
             }
@@ -1691,6 +1772,6 @@ pub fn merge_toml_into_config(
             source_path.clone(),
             None,
             None,
-        ),
+        )?,
     ))
 }

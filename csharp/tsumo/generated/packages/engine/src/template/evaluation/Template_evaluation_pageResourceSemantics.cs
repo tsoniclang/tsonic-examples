@@ -4,16 +4,34 @@ namespace Tsumo.Engine
 {
     public static class Template_evaluation_pageResourceSemantics
     {
-        public static Func<Tsonic.CSharp.Js.JSArray<PageResourceEntry>, Tsonic.CSharp.Js.JSArray<TemplateValue>> pageResourceTemplateValues
+        internal static Tsonic.CSharp.Js.JSArray<TemplateValue> pageResourceTemplateValues(Tsonic.CSharp.Js.JSArray<PageResourceEntry> entries)
         {
-            get;
-            private set;
-        } = default(Func<Tsonic.CSharp.Js.JSArray<PageResourceEntry>, Tsonic.CSharp.Js.JSArray<TemplateValue>>)!;
-        public static Func<PageResourcesValue, Tsonic.CSharp.Js.JSArray<PageResourceEntry>> pageResourceEntries
+            Tsonic.CSharp.Js.JSArray<TemplateValue> values = Tsonic.CSharp.Js.JSArray<TemplateValue>.of([]);
+            for (double index = 0; index < entries.length; index++)
+            {
+                values.push(entries[index].value);
+            }
+            return values;
+        }
+        internal static Tsonic.CSharp.Js.JSArray<PageResourceEntry> pageResourceEntries(PageResourcesValue resources)
         {
-            get;
-            private set;
-        } = default(Func<PageResourcesValue, Tsonic.CSharp.Js.JSArray<PageResourceEntry>>)!;
+            string? sourceDirectory = resources.page.resourceSourceDir;
+            if (sourceDirectory is null)
+            {
+                return Tsonic.CSharp.Js.JSArray<PageResourceEntry>.of([]);
+            }
+            Tsonic.CSharp.Js.JSArray<PageBundleResourceFile> files = Resources_pageBundle.discoverPageBundleResourceFiles(sourceDirectory);
+            Tsonic.CSharp.Js.JSArray<PageResourceEntry> entries = Tsonic.CSharp.Js.JSArray<PageResourceEntry>.of([]);
+            string @base = Template_evaluation_serialization.trimSlashes(resources.page.relPermalink);
+            for (double index = 0; index < files.length; index++)
+            {
+                PageBundleResourceFile file = files[index];
+                string outputPath = @base == "" ? file.relativePath : $"{Template_evaluation_serialization.trimEndCharacter(@base, "/")}/{file.relativePath}";
+                string identity = $"page-resource:{resources.page.relPermalink}:{file.relativePath}";
+                entries.push(new PageResourceEntry(file.relativePath, new ResourceValue(resources.manager, resources.manager.loadFile(identity, file.sourcePath, outputPath))));
+            }
+            return entries;
+        }
         public static Func<PageResourcesValue, string, TemplateValue> getPageResource
         {
             get;
@@ -39,11 +57,19 @@ namespace Tsumo.Engine
             get;
             private set;
         } = default(Func<PageResourceCollectionValue, string, PageResourceCollectionValue>)!;
-        public static Func<Tsonic.CSharp.Js.JSArray<PageResourceEntry>, string, PageResourceCollectionValue> filterPageResourcesByType
+        internal static PageResourceCollectionValue filterPageResourcesByType(Tsonic.CSharp.Js.JSArray<PageResourceEntry> entries, string mediaType)
         {
-            get;
-            private set;
-        } = default(Func<Tsonic.CSharp.Js.JSArray<PageResourceEntry>, string, PageResourceCollectionValue>)!;
+            Tsonic.CSharp.Js.JSArray<PageResourceEntry> selected = Tsonic.CSharp.Js.JSArray<PageResourceEntry>.of([]);
+            for (double index = 0; index < entries.length; index++)
+            {
+                PageResourceEntry entry = entries[index];
+                if (Resources_mediaTypes.resourceMatchesMediaType(entry.value.value.mediaType, mediaType))
+                {
+                    selected.push(entry);
+                }
+            }
+            return new PageResourceCollectionValue(selected);
+        }
         public static Func<PageResourcesValue, string, PageResourceCollectionValue> getPageResourcesByType
         {
             get;
@@ -74,34 +100,6 @@ namespace Tsumo.Engine
             Template_values.__tsonic_module_init();
             Template_runtimeHelpers.__tsonic_module_init();
             Template_evaluation_serialization.__tsonic_module_init();
-            pageResourceTemplateValues = (Tsonic.CSharp.Js.JSArray<PageResourceEntry> entries) =>
-            {
-                Tsonic.CSharp.Js.JSArray<TemplateValue> values = new Tsonic.CSharp.Js.JSArray<TemplateValue>(new TemplateValue[] { });
-                for (int index = 0; index < entries.length; index++)
-                {
-                    values.push(entries[index].value);
-                }
-                return values;
-            };
-            pageResourceEntries = (PageResourcesValue resources) =>
-            {
-                string? sourceDirectory = resources.page.resourceSourceDir;
-                if (sourceDirectory is null)
-                {
-                    return new Tsonic.CSharp.Js.JSArray<PageResourceEntry>(new PageResourceEntry[] { });
-                }
-                Tsonic.CSharp.Js.JSArray<PageBundleResourceFile> files = Resources_pageBundle.discoverPageBundleResourceFiles(sourceDirectory);
-                Tsonic.CSharp.Js.JSArray<PageResourceEntry> entries = new Tsonic.CSharp.Js.JSArray<PageResourceEntry>(new PageResourceEntry[] { });
-                string @base = Template_evaluation_serialization.trimSlashes(resources.page.relPermalink);
-                for (int index = 0; index < files.length; index++)
-                {
-                    PageBundleResourceFile file = files[index];
-                    string outputPath = @base == "" ? file.relativePath : $"{Template_evaluation_serialization.trimEndCharacter(@base, "/")}/{file.relativePath}";
-                    string identity = $"page-resource:{resources.page.relPermalink}:{file.relativePath}";
-                    entries.push(new PageResourceEntry(file.relativePath, new ResourceValue(resources.manager, resources.manager.loadFile(identity, file.sourcePath, outputPath))));
-                }
-                return entries;
-            };
             getPageResource = (PageResourcesValue resources, string pathRaw) =>
             {
                 string path = Resources_paths.normalizeResourceRelativePath(pathRaw);
@@ -110,7 +108,7 @@ namespace Tsumo.Engine
                     return Template_runtimeHelpers.nil;
                 }
                 Tsonic.CSharp.Js.JSArray<PageResourceEntry> entries = pageResourceEntries(resources);
-                for (int index = 0; index < entries.length; index++)
+                for (double index = 0; index < entries.length; index++)
                 {
                     PageResourceEntry entry = entries[index];
                     if (entry.relativePath == path)
@@ -127,7 +125,7 @@ namespace Tsumo.Engine
             getMatchingPageResourceFromCollection = (PageResourceCollectionValue resources, string pattern) =>
             {
                 Tsonic.CSharp.Js.JSArray<PageResourceEntry> entries = resources.entries;
-                for (int index = 0; index < entries.length; index++)
+                for (double index = 0; index < entries.length; index++)
                 {
                     PageResourceEntry entry = entries[index];
                     if (Resources_glob.resourceGlobMatches(pattern, entry.relativePath))
@@ -140,24 +138,11 @@ namespace Tsumo.Engine
             getMatchingPageResources = (PageResourcesValue resources, string pattern) => getMatchingPageResourcesFromCollection(new PageResourceCollectionValue(pageResourceEntries(resources)), pattern);
             getMatchingPageResourcesFromCollection = (PageResourceCollectionValue resources, string pattern) =>
             {
-                Tsonic.CSharp.Js.JSArray<PageResourceEntry> selected = new Tsonic.CSharp.Js.JSArray<PageResourceEntry>(new PageResourceEntry[] { });
-                for (int index = 0; index < resources.entries.length; index++)
+                Tsonic.CSharp.Js.JSArray<PageResourceEntry> selected = Tsonic.CSharp.Js.JSArray<PageResourceEntry>.of([]);
+                for (double index = 0; index < resources.entries.length; index++)
                 {
                     PageResourceEntry entry = resources.entries[index];
                     if (Resources_glob.resourceGlobMatches(pattern, entry.relativePath))
-                    {
-                        selected.push(entry);
-                    }
-                }
-                return new PageResourceCollectionValue(selected);
-            };
-            filterPageResourcesByType = (Tsonic.CSharp.Js.JSArray<PageResourceEntry> entries, string mediaType) =>
-            {
-                Tsonic.CSharp.Js.JSArray<PageResourceEntry> selected = new Tsonic.CSharp.Js.JSArray<PageResourceEntry>(new PageResourceEntry[] { });
-                for (int index = 0; index < entries.length; index++)
-                {
-                    PageResourceEntry entry = entries[index];
-                    if (Resources_mediaTypes.resourceMatchesMediaType(entry.value.value.mediaType, mediaType))
                     {
                         selected.push(entry);
                     }

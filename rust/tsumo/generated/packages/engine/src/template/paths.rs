@@ -10,8 +10,7 @@ pub fn normalize_template_relative_path(raw_path: String) -> Result<String, rt::
         String::from("\\"),
         String::from("/"),
     )?;
-    let drive_qualified: bool = rt::conversions::usize_to_i32(js_string::js_len(&normalized))? >= 2
-        && crate::utils::strings::substring_count(normalized.clone(), 1, 1)? == ":";
+    let drive_qualified: bool = js_string::code_point_at(&normalized, 1.0) == Some(58.0);
     if js_string::starts_with_from_start(&normalized, "/") || drive_qualified {
         return Err(rt::TsonicError::TsumoError(
             crate::diagnostics::create_tsumo_error(
@@ -24,7 +23,7 @@ pub fn normalize_template_relative_path(raw_path: String) -> Result<String, rt::
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     let segments: js_abi::JsArray<String> = js_string::split_all(&normalized, "/")?;
@@ -32,8 +31,8 @@ pub fn normalize_template_relative_path(raw_path: String) -> Result<String, rt::
     {
         let mut index: f64 = 0.0;
         'loop_value: while index < (rt::conversions::usize_to_i32(segments.len())? as f64) {
-            let segment: String = match segments.get_number(index).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let segment: String = match segments.get_number(index) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if segment.is_empty() || segment == "." {
@@ -52,7 +51,7 @@ pub fn normalize_template_relative_path(raw_path: String) -> Result<String, rt::
                         None,
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
             if js_string::includes_from_start(&segment, "\0") {
@@ -63,7 +62,7 @@ pub fn normalize_template_relative_path(raw_path: String) -> Result<String, rt::
                         None,
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
             accepted.push_many_discard([segment.clone()]);
@@ -73,13 +72,13 @@ pub fn normalize_template_relative_path(raw_path: String) -> Result<String, rt::
     Ok(accepted.join("/"))
 }
 
-pub fn template_directory(relative_path: String) -> Result<String, rt::TsonicError> {
+pub fn template_directory(relative_path: &str) -> Result<String, rt::TsonicError> {
     let last_slash: i32 =
-        rt::conversions::isize_to_i32(js_string::last_index_of_from_end(&relative_path, "/"))?;
+        rt::conversions::isize_to_i32(js_string::last_index_of_from_end(relative_path, "/"))?;
     Ok(if last_slash < 0 {
         String::from("")
     } else {
-        crate::utils::strings::substring_count(relative_path.clone(), 0, last_slash)?
+        crate::utils::strings::substring_count(relative_path, 0, last_slash)?
     })
 }
 
@@ -93,7 +92,7 @@ pub fn push_unique(values: js_abi::JsArray<String>, value: String) -> Result<(),
             index += 1.0;
         }
     }
-    values.push_many_discard([value.clone()]);
+    values.push_many_discard([value]);
     Ok(())
 }
 
@@ -110,7 +109,7 @@ pub fn partial_template_candidates(
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     let candidates: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
@@ -128,7 +127,7 @@ pub fn partial_template_candidates(
             None => unreachable!("checked flow selected a missing optional value"),
         };
         let caller: String = normalize_template_relative_path(selected_caller_path)?;
-        let directory: String = template_directory(caller)?;
+        let directory: String = template_directory(&caller)?;
         if directory == "partials"
             || js_string::starts_with_from_start(&directory, "partials/")
             || directory == "_partials"

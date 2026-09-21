@@ -30,9 +30,8 @@ pub fn plan_list_outputs(
                     .read_standard_page_graph_list_routes()
             }
             .get_number(index)
-            .as_ref()
             {
-                Some(flow_value) => flow_value.clone(),
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if route.is_empty() {
@@ -141,7 +140,7 @@ pub fn plan_list_outputs(
                     .clone()
                     .dispatch_site_output_plan_add_text(
                         crate::build::site_routes::site_output_path(
-                            crate::build::site_routes::split_site_path(route.clone())?,
+                            crate::build::site_routes::split_site_path(&route)?,
                         )?,
                         crate::build::layout::render_with_base(
                             {

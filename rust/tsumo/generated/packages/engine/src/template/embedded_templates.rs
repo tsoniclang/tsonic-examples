@@ -3,21 +3,13 @@
 use crate::program as rt;
 use tsonic_rust_js::string as js_string;
 
-std::thread_local! {
-    pub static OPEN_GRAPH_SOURCE: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
-}
+pub const OPEN_GRAPH_SOURCE: &str = "{{ with .Title }}<meta property=\"og:title\" content=\"{{ . }}\">{{ end }}{{ with .Description }}<meta property=\"og:description\" content=\"{{ . }}\">{{ end }}{{ with .Permalink }}<meta property=\"og:url\" content=\"{{ . }}\">{{ end }}{{ with .Site.Title }}<meta property=\"og:site_name\" content=\"{{ . }}\">{{ end }}";
 
-std::thread_local! {
-    pub static TWITTER_CARDS_SOURCE: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
-}
+pub const TWITTER_CARDS_SOURCE: &str = "<meta name=\"twitter:card\" content=\"summary\">{{ with .Title }}<meta name=\"twitter:title\" content=\"{{ . }}\">{{ end }}{{ with .Description }}<meta name=\"twitter:description\" content=\"{{ . }}\">{{ end }}";
 
-std::thread_local! {
-    pub static SCHEMA_SOURCE: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
-}
+pub const SCHEMA_SOURCE: &str = "<script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"name\":{{ .Title | jsonify | safeJS }},\"url\":{{ .Permalink | jsonify | safeJS }}}</script>";
 
-std::thread_local! {
-    pub static PAGINATION_SOURCE: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
-}
+pub const PAGINATION_SOURCE: &str = "{{ $page := . }}{{ if reflect.IsMap . }}{{ $page = .page }}{{ end }}{{ with $page.Paginator }}{{ if gt .TotalPages 1 }}<nav class=\"pagination\" role=\"navigation\">{{ with .Prev }}<a class=\"pagination__previous\" href=\"{{ .URL }}\">Previous</a>{{ end }}{{ with .Next }}<a class=\"pagination__next\" href=\"{{ .URL }}\">Next</a>{{ end }}</nav>{{ end }}{{ end }}";
 
 std::thread_local! {
     pub static PAGE_IMAGES_SOURCE: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
@@ -26,16 +18,16 @@ std::thread_local! {
 pub fn get_embedded_template_source(path: &str) -> Option<String> {
     let normalized: String = js_string::to_lower_case(path);
     if normalized == "_internal/opengraph.html" {
-        return Some(OPEN_GRAPH_SOURCE.with(|module_binding| module_binding.load()));
+        return Some(String::from(OPEN_GRAPH_SOURCE));
     }
     if normalized == "_internal/twitter_cards.html" {
-        return Some(TWITTER_CARDS_SOURCE.with(|module_binding| module_binding.load()));
+        return Some(String::from(TWITTER_CARDS_SOURCE));
     }
     if normalized == "_internal/schema.html" {
-        return Some(SCHEMA_SOURCE.with(|module_binding| module_binding.load()));
+        return Some(String::from(SCHEMA_SOURCE));
     }
     if normalized == "_internal/pagination.html" {
-        return Some(PAGINATION_SOURCE.with(|module_binding| module_binding.load()));
+        return Some(String::from(PAGINATION_SOURCE));
     }
     if normalized == "_internal/disqus.html" {
         return Some(String::from(""));
@@ -44,16 +36,16 @@ pub fn get_embedded_template_source(path: &str) -> Option<String> {
         return Some(String::from(""));
     }
     if normalized == "partials/opengraph.html" || normalized == "_partials/opengraph.html" {
-        return Some(OPEN_GRAPH_SOURCE.with(|module_binding| module_binding.load()));
+        return Some(String::from(OPEN_GRAPH_SOURCE));
     }
     if normalized == "partials/twitter_cards.html" || normalized == "_partials/twitter_cards.html" {
-        return Some(TWITTER_CARDS_SOURCE.with(|module_binding| module_binding.load()));
+        return Some(String::from(TWITTER_CARDS_SOURCE));
     }
     if normalized == "partials/schema.html" || normalized == "_partials/schema.html" {
-        return Some(SCHEMA_SOURCE.with(|module_binding| module_binding.load()));
+        return Some(String::from(SCHEMA_SOURCE));
     }
     if normalized == "partials/pagination.html" || normalized == "_partials/pagination.html" {
-        return Some(PAGINATION_SOURCE.with(|module_binding| module_binding.load()));
+        return Some(String::from(PAGINATION_SOURCE));
     }
     if normalized == "partials/_funcs/get-page-images.html"
         || normalized == "_partials/_funcs/get-page-images.html"
@@ -75,32 +67,8 @@ pub fn get_embedded_template_source(path: &str) -> Option<String> {
 pub fn module_init() {
     {
         let module_value = String::from(
-            "{{ with .Title }}<meta property=\"og:title\" content=\"{{ . }}\">{{ end }}{{ with .Description }}<meta property=\"og:description\" content=\"{{ . }}\">{{ end }}{{ with .Permalink }}<meta property=\"og:url\" content=\"{{ . }}\">{{ end }}{{ with .Site.Title }}<meta property=\"og:site_name\" content=\"{{ . }}\">{{ end }}",
-        );
-        OPEN_GRAPH_SOURCE.with(|module_binding| module_binding.initialize(module_value))
-    };
-    {
-        let module_value_2 = String::from(
-            "<meta name=\"twitter:card\" content=\"summary\">{{ with .Title }}<meta name=\"twitter:title\" content=\"{{ . }}\">{{ end }}{{ with .Description }}<meta name=\"twitter:description\" content=\"{{ . }}\">{{ end }}",
-        );
-        TWITTER_CARDS_SOURCE.with(|module_binding_2| module_binding_2.initialize(module_value_2))
-    };
-    {
-        let module_value_3 = String::from(
-            "<script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"name\":{{ .Title | jsonify | safeJS }},\"url\":{{ .Permalink | jsonify | safeJS }}}</script>",
-        );
-        SCHEMA_SOURCE.with(|module_binding_3| module_binding_3.initialize(module_value_3))
-    };
-    {
-        let module_value_4 = String::from(
-            "{{ $page := . }}{{ if reflect.IsMap . }}{{ $page = .page }}{{ end }}{{ with $page.Paginator }}{{ if gt .TotalPages 1 }}<nav class=\"pagination\" role=\"navigation\">{{ with .Prev }}<a class=\"pagination__previous\" href=\"{{ .URL }}\">Previous</a>{{ end }}{{ with .Next }}<a class=\"pagination__next\" href=\"{{ .URL }}\">Next</a>{{ end }}</nav>{{ end }}{{ end }}",
-        );
-        PAGINATION_SOURCE.with(|module_binding_4| module_binding_4.initialize(module_value_4))
-    };
-    {
-        let module_value_5 = String::from(
             "{{ $imgs := slice }}{{ $imgParams := .Params.images }}{{ $resources := .Resources.ByType \"image\" }}{{ if not $imgParams }}{{ $featured := $resources.GetMatch \"*feature*\" }}{{ if not $featured }}{{ $featured = $resources.GetMatch \"{*cover*,*thumbnail*}\" }}{{ end }}{{ with $featured }}{{ $imgs = $imgs | append (dict \"Image\" . \"RelPermalink\" .RelPermalink \"Permalink\" .Permalink) }}{{ end }}{{ end }}{{ if and (not $imgParams) (not $imgs) }}{{ with site.Params.images }}{{ $imgParams = first 1 . }}{{ end }}{{ end }}{{ range $imgParams }}{{ $img := . }}{{ $url := urls.Parse $img }}{{ if eq $url.Scheme \"\" }}{{ with or ($resources.GetMatch $img) (resources.GetMatch $img) }}{{ $imgs = $imgs | append (dict \"Image\" . \"RelPermalink\" .RelPermalink \"Permalink\" .Permalink) }}{{ else }}{{ $imgs = $imgs | append (dict \"RelPermalink\" (relURL $img) \"Permalink\" (absURL $img)) }}{{ end }}{{ else }}{{ $imgs = $imgs | append (dict \"RelPermalink\" $img \"Permalink\" $img) }}{{ end }}{{ end }}{{ return $imgs }}",
         );
-        PAGE_IMAGES_SOURCE.with(|module_binding_5| module_binding_5.initialize(module_value_5))
+        PAGE_IMAGES_SOURCE.with(|module_binding| module_binding.initialize(module_value))
     };
 }

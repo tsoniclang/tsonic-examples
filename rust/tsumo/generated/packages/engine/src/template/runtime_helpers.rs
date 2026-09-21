@@ -501,7 +501,7 @@ pub fn stringify(
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     if value
@@ -545,7 +545,7 @@ pub fn stringify(
         return Ok(if escape {
             crate::utils::html::escape_html(s.clone())?
         } else {
-            s.clone()
+            s
         });
     }
     if let Some(selected_dispatch_3) = value
@@ -621,7 +621,7 @@ pub fn to_plain_string(
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     if let Some(selected_dispatch) = value

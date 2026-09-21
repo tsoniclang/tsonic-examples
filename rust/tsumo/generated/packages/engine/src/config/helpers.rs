@@ -9,8 +9,8 @@ pub fn try_get_first_existing(
     {
         let mut i: f64 = 0.0;
         while i < (rt::conversions::usize_to_i32(paths.len())? as f64) {
-            let p: String = match paths.get_number(i).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let p: String = match paths.get_number(i) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if crate::fs::file_exists(p.clone())? {
@@ -32,8 +32,8 @@ pub fn sort_languages(
         while i < (rt::conversions::usize_to_i32(langs.len())? as f64) {
             {
                 let operation_input_0 = copy.clone();
-                operation_input_0.push_many_discard([match langs.get_number(i).as_ref() {
-                    Some(flow_value) => flow_value.clone(),
+                operation_input_0.push_many_discard([match langs.get_number(i) {
+                    Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 }])
             };

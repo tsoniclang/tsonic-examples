@@ -9,31 +9,22 @@ pub fn is_hex_digit(value: &str) -> bool {
     (48.0..=57.0).contains(&code) || (65.0..=70.0).contains(&code) || (97.0..=102.0).contains(&code)
 }
 
-pub fn decode_query_component(value: String) -> Result<String, rt::TsonicError> {
+pub fn decode_query_component(value: &str) -> Result<String, rt::TsonicError> {
     {
-        let mut index: f64 = 0.0;
-        'loop_value: while index
-            < (rt::conversions::usize_to_i32(js_string::js_len(&value))? as f64)
-        {
-            if crate::utils::strings::substring_count(
-                value.clone(),
-                rt::conversions::f64_to_i32(index)?,
-                1,
-            )? != "%"
-            {
-                index += 1.0;
+        let mut index: i32 = 0;
+        'loop_value: while index < rt::conversions::usize_to_i32(js_string::js_len(value))? {
+            if crate::utils::strings::code_point_at_text(value, index)? != "%" {
+                index = crate::utils::strings::next_code_point_index(value, index)?;
                 continue 'loop_value;
             }
-            if index + 2.0 >= (rt::conversions::usize_to_i32(js_string::js_len(&value))? as f64)
-                || !is_hex_digit(&crate::utils::strings::substring_count(
-                    value.clone(),
-                    rt::conversions::f64_to_i32(index + 1.0)?,
-                    1,
+            if index + 2 >= rt::conversions::usize_to_i32(js_string::js_len(value))?
+                || !is_hex_digit(&crate::utils::strings::code_point_at_text(
+                    value,
+                    index + 1,
                 )?)
-                || !is_hex_digit(&crate::utils::strings::substring_count(
-                    value.clone(),
-                    rt::conversions::f64_to_i32(index + 2.0)?,
-                    1,
+                || !is_hex_digit(&crate::utils::strings::code_point_at_text(
+                    value,
+                    index + 2,
                 )?)
             {
                 return Err(rt::TsonicError::TsumoError(
@@ -43,17 +34,17 @@ pub fn decode_query_component(value: String) -> Result<String, rt::TsonicError> 
                         None,
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
-            index += 2.0;
-            index += 1.0;
+            index += 2;
+            index = crate::utils::strings::next_code_point_index(value, index)?;
         }
     }
     let try_body: rt::TsonicResult<rt::Completion<String>> = rt::completion_region(|| {
         Ok(rt::Completion::Return(
             crate::utils::url_components::decode_url_component(
-                crate::utils::strings::replace_text(&value, String::from("+"), String::from(" "))?,
+                crate::utils::strings::replace_text(value, String::from("+"), String::from(" "))?,
             )?,
         ))
     });
@@ -67,7 +58,7 @@ pub fn decode_query_component(value: String) -> Result<String, rt::TsonicError> 
                     None,
                     None,
                     None,
-                ),
+                )?,
             ))
         }),
     };
@@ -84,20 +75,18 @@ pub fn decode_query_component(value: String) -> Result<String, rt::TsonicError> 
 }
 
 pub fn parse_url_query(
-    raw_query: String,
+    raw_query: &str,
 ) -> Result<crate::template::values::url::UrlQueryValue, rt::TsonicError> {
     let values: js_abi::JsMap<String, js_abi::JsArray<String>> = js_abi::JsMap::new();
     if raw_query.is_empty() {
-        return Ok(crate::template::values::url::UrlQueryValue::new(
-            values.clone(),
-        ));
+        return crate::template::values::url::UrlQueryValue::new(values.clone());
     }
-    let fields: js_abi::JsArray<String> = js_string::split_all(&raw_query, "&")?;
+    let fields: js_abi::JsArray<String> = js_string::split_all(raw_query, "&")?;
     {
         let mut index: f64 = 0.0;
         'loop_value: while index < (rt::conversions::usize_to_i32(fields.len())? as f64) {
-            let field: String = match fields.get_number(index).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let field: String = match fields.get_number(index) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if field.is_empty() {
@@ -109,15 +98,15 @@ pub fn parse_url_query(
             let raw_name: String = if separator < 0 {
                 field.clone()
             } else {
-                crate::utils::strings::substring_count(field.clone(), 0, separator)?
+                crate::utils::strings::substring_count(&field, 0, separator)?
             };
             let raw_value: String = if separator < 0 {
                 String::from("")
             } else {
                 crate::utils::strings::substring_from(&field, separator + 1)?
             };
-            let name: String = decode_query_component(raw_name.clone())?;
-            let value: String = decode_query_component(raw_value.clone())?;
+            let name: String = decode_query_component(&raw_name)?;
+            let value: String = decode_query_component(&raw_value)?;
             let existing: Option<js_abi::JsArray<String>> = values.get(&name);
             if existing.is_none() {
                 values.set_discard(
@@ -134,9 +123,7 @@ pub fn parse_url_query(
             index += 1.0;
         }
     }
-    Ok(crate::template::values::url::UrlQueryValue::new(
-        values.clone(),
-    ))
+    crate::template::values::url::UrlQueryValue::new(values.clone())
 }
 
 pub fn get_url_query_value(
@@ -156,18 +143,11 @@ pub fn get_url_query_value(
         if conditional_test {
             Option::<String>::None
         } else {
-            Some(
-                match match values.as_ref() {
-                    Some(flow_value_2) => flow_value_2.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }
-                .get_number(0.0)
-                .as_ref()
-                {
-                    Some(flow_value_3) => flow_value_3.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                },
-            )
+            match values.as_ref() {
+                Some(flow_value_2) => flow_value_2.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            }
+            .get_number(0.0)
         }
     })
 }

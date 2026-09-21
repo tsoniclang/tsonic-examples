@@ -41,7 +41,7 @@ namespace Tsumo.Cli
                     return;
                 }
                 string contentSourceDir = Tsonic.CSharp.Node.process.cwd();
-                for (int i = 2; i < args.length; i++)
+                for (double i = 2; i < args.length; i++)
                 {
                     string a = args[i];
                     if (a == "--source" || a == "-s")

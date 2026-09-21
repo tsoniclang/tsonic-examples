@@ -98,24 +98,18 @@ pub use crate::serve_site::serve_site;
 
 #[doc(hidden)]
 pub fn initialize() {
-    crate::fs::module_init();
-    crate::utils::text::module_init();
     crate::params::module_init();
     crate::template::runtime_helpers::module_init();
-    crate::markdown::shortcodes::module_init();
-    crate::template::evaluation::serialization::module_init();
     crate::template::evaluation::scalar_semantics::module_init();
-    crate::template::evaluation::page_resource_semantics::module_init();
-    crate::template::evaluation::page_semantics::module_init();
     crate::template::evaluation::property_support::module_init();
-    crate::template::functions::context_functions::module_init();
     crate::template::functions::function_registry::module_init();
-    crate::utils::regular_expressions::module_init();
     crate::template::functions::text_compatibility::module_init();
-    crate::template::evaluation::render::module_init();
-    crate::template::parser::parse_pipeline::module_init();
+    crate::template::evaluation::toml_data::module_init();
     crate::i18n::module_init();
     crate::template::embedded_templates::module_init();
-    crate::layouts::module_init();
-    crate::output_publication::module_init();
+    crate::menus::module_init();
+    crate::docs::routes::module_init();
+    crate::docs::search_index::module_init();
+    crate::build::discover_content::module_init();
+    crate::serve_site::module_init();
 }

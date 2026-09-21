@@ -20,12 +20,12 @@ impl rt::ObjectIdentityCarrier for MediaType {
 }
 
 impl MediaType {
-    pub fn new(r#type: String) -> MediaType {
+    pub fn new(r#type: String) -> Result<MediaType, rt::TsonicError> {
         let field_r_type: String = r#type;
-        MediaType {
+        Ok(MediaType {
             state: rt::ObjectRef::new(MediaTypeState {
                 r#type: field_r_type,
             }),
-        }
+        })
     }
 }

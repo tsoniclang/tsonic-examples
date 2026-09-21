@@ -3,49 +3,13 @@
 use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
-pub(crate) fn capture_tsumo_diagnostic(
-    operation: rt::Callable<(), rt::TsonicResult<()>>,
-) -> Result<tsumo_engine::TsumoDiagnostic, rt::TsonicError> {
-    let try_body: rt::TsonicResult<rt::Completion<tsumo_engine::TsumoDiagnostic>> =
-        rt::completion_region(|| {
-            operation.call(())?;
-            Ok(rt::Completion::Normal)
-        });
-    let try_flow: rt::TsonicResult<rt::Completion<tsumo_engine::TsumoDiagnostic>> = match try_body {
-        Ok(completion) => Ok(completion),
-        Err(error) => rt::completion_region(|| {
-            if matches!(
-                error.clone(),
-                rt::TsonicError::TsumoEngineError(tsumo_engine::program::TsonicError::TsumoError(
-                    _
-                ))
-            ) {
-                return Ok(rt::Completion::Return({
-                    let dispatch_receiver = &match error {
-                        rt::TsonicError::TsumoEngineError(
-                            tsumo_engine::program::TsonicError::TsumoError(program_error),
-                        ) => program_error,
-                        _ => {
-                            unreachable!("checked flow selected a different program-error variant")
-                        }
-                    };
-                    dispatch_receiver.dispatch.read_tsumo_error_diagnostic()
-                }));
-            }
-            Err(error.clone())
-        }),
-    };
-    let try_flow = try_flow?;
-    match try_flow {
-        rt::Completion::Normal => {}
-        rt::Completion::Return(value) => return Ok(value),
-        rt::Completion::Break(_) | rt::Completion::Continue(_) => {
-            unreachable!("invalid finalized Tsonic completion target")
-        }
-    }
-    Err(rt::TsonicError::from(rt::JsError::error(
-        "Expected a Tsumo error",
-    )))
+type CaptureTsumoDiagnosticCallable = rt::Callable<
+    (rt::Callable<(), rt::TsonicResult<()>>,),
+    rt::TsonicResult<tsumo_engine::TsumoDiagnostic>,
+>;
+
+std::thread_local! {
+    pub(crate) static CAPTURE_TSUMO_DIAGNOSTIC: rt::ModuleCell<CaptureTsumoDiagnosticCallable> = const { rt::ModuleCell::new() };
 }
 
 pub(crate) struct FilesystemBoundaryTestsState {}
@@ -117,16 +81,18 @@ impl FilesystemBoundaryTests {
             )?;
             let link: String = tsonic_rust_node::path::join(&[source.as_str(), "linked-directory"]);
             crate::test_root::create_symbolic_link(outside.clone(), link.clone())?;
-            let diagnostic: tsumo_engine::TsumoDiagnostic = capture_tsumo_diagnostic({
-                let capture_source = source.clone();
-                rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                    tsumo_engine::testing::list_files_recursive(
-                        capture_source.clone(),
-                        String::from("*"),
-                    )?;
-                    Ok::<_, rt::TsonicError>(())
-                })
-            })?;
+            let diagnostic: tsumo_engine::TsumoDiagnostic = CAPTURE_TSUMO_DIAGNOSTIC
+                .with(|module_binding| module_binding.load())
+                .call(({
+                    let capture_source = source.clone();
+                    rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
+                        tsumo_engine::testing::list_files_recursive(
+                            capture_source.clone(),
+                            String::from("*"),
+                        )?;
+                        Ok::<_, rt::TsonicError>(())
+                    })
+                },))?;
             crate::test_root::Assert::string_equal(
                 String::from("TSUMO_FILESYSTEM_LINK_UNSUPPORTED"),
                 Some({
@@ -191,15 +157,19 @@ impl FilesystemBoundaryTests {
             crate::test_root::Assert::string_equal(
                 String::from("TSUMO_FILESYSTEM_LINK_UNSUPPORTED"),
                 Some({
-                    let dispatch_receiver = &capture_tsumo_diagnostic({
-                        let capture_watched = watched.clone();
-                        rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                            tsumo_engine::testing::create_watch_snapshot(
-                                js_abi::JsArray::from_dense(vec![capture_watched.clone()]),
-                            )?;
-                            Ok::<_, rt::TsonicError>(())
-                        })
-                    })?;
+                    let dispatch_receiver = &CAPTURE_TSUMO_DIAGNOSTIC
+                        .with(|module_binding| module_binding.load())
+                        .call(({
+                            let capture_watched = watched.clone();
+                            rt::Callable::<(), rt::TsonicResult<()>>::new(
+                                move |_callable_arguments| {
+                                    tsumo_engine::testing::create_watch_snapshot(
+                                        js_abi::JsArray::from_dense(vec![capture_watched.clone()]),
+                                    )?;
+                                    Ok::<_, rt::TsonicError>(())
+                                },
+                            )
+                        },))?;
                     dispatch_receiver.dispatch.read_tsumo_diagnostic_code()
                 }),
             )?;
@@ -252,4 +222,53 @@ pub fn run_filesystem_boundary_tests() -> Result<(), rt::TsonicError> {
         },
     )?;
     Ok(())
+}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = rt::Callable::<
+            (rt::Callable<(), rt::TsonicResult<()>>,),
+            rt::TsonicResult<tsumo_engine::TsumoDiagnostic>,
+        >::new(move |callable_arguments| {
+            let operation = callable_arguments.0;
+            let try_body: rt::TsonicResult<rt::Completion<tsumo_engine::TsumoDiagnostic>> =
+                rt::completion_region(|| {
+                    operation.call(())?;
+                    Ok(rt::Completion::Normal)
+                });
+            let try_flow: rt::TsonicResult<rt::Completion<tsumo_engine::TsumoDiagnostic>> =
+                match try_body {
+                    Ok(completion) => Ok(completion),
+                    Err(error) => rt::completion_region(|| {
+                        if matches!(error.clone(), rt::TsonicError::TsumoError(_)) {
+                            return Ok(rt::Completion::Return({
+                                let dispatch_receiver = &match &error {
+                                    rt::TsonicError::TsumoError(program_error) => {
+                                        program_error.clone()
+                                    }
+                                    _ => unreachable!(
+                                        "checked flow selected a different program-error variant"
+                                    ),
+                                };
+                                dispatch_receiver.dispatch.read_tsumo_error_diagnostic()
+                            }));
+                        }
+                        Err(error.clone())
+                    }),
+                };
+            let try_flow = try_flow?;
+            match try_flow {
+                rt::Completion::Normal => {}
+                rt::Completion::Return(value) => return Ok(value),
+                rt::Completion::Break(_) | rt::Completion::Continue(_) => {
+                    unreachable!("invalid finalized Tsonic completion target")
+                }
+            }
+            Err(rt::TsonicError::from(rt::JsError::error(
+                "Expected a Tsumo error",
+            )))
+        });
+        CAPTURE_TSUMO_DIAGNOSTIC.with(|module_binding| module_binding.initialize(module_value))
+    };
 }

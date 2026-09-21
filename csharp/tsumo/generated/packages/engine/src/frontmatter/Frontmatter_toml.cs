@@ -4,11 +4,60 @@ namespace Tsumo.Engine
 {
     public static class Frontmatter_toml
     {
-        public static Action<FrontMatterMenu, string, string, string?, int> applyMenuProperty
+        internal static void applyMenuProperty(FrontMatterMenu entry, string keyRaw, string valueRaw, string? sourcePath, int line)
         {
-            get;
-            private set;
-        } = default(Action<FrontMatterMenu, string, string, string?, int>)!;
+            string key = Tsonic.CSharp.Js.String.toLowerCase(keyRaw);
+            if (key == "weight")
+            {
+                entry.weight = Frontmatter_scalars.parseFrontMatterInt(valueRaw, keyRaw, "toml", sourcePath, line);
+            }
+            else
+            {
+                if (key == "name")
+                {
+                    entry.name = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "toml", sourcePath, line);
+                }
+                else
+                {
+                    if (key == "parent")
+                    {
+                        entry.parent = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "toml", sourcePath, line);
+                    }
+                    else
+                    {
+                        if (key == "identifier")
+                        {
+                            entry.identifier = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "toml", sourcePath, line);
+                        }
+                        else
+                        {
+                            if (key == "pre")
+                            {
+                                entry.pre = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "toml", sourcePath, line);
+                            }
+                            else
+                            {
+                                if (key == "post")
+                                {
+                                    entry.post = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "toml", sourcePath, line);
+                                }
+                                else
+                                {
+                                    if (key == "title")
+                                    {
+                                        entry.title = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "toml", sourcePath, line);
+                                    }
+                                    else
+                                    {
+                                        throw Diagnostics.createTsumoError("TSUMO_FRONTMATTER_MENU_FIELD_UNKNOWN", $"Unknown front matter menu field '{keyRaw}'", sourcePath, line, 1);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         public static Func<Tsonic.CSharp.Js.JSArray<string>, string?, FrontMatter> parseTomlFrontMatter
         {
             get;
@@ -21,60 +70,6 @@ namespace Tsumo.Engine
             Utils_structuredScalars.__tsonic_module_init();
             Frontmatter_data.__tsonic_module_init();
             Frontmatter_scalars.__tsonic_module_init();
-            applyMenuProperty = (FrontMatterMenu entry, string keyRaw, string valueRaw, string? sourcePath, int line) =>
-            {
-                string key = Tsonic.CSharp.Js.String.toLowerCase(keyRaw);
-                if (key == "weight")
-                {
-                    entry.weight = Frontmatter_scalars.parseFrontMatterInt(valueRaw, keyRaw, "toml", sourcePath, line);
-                }
-                else
-                {
-                    if (key == "name")
-                    {
-                        entry.name = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "toml", sourcePath, line);
-                    }
-                    else
-                    {
-                        if (key == "parent")
-                        {
-                            entry.parent = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "toml", sourcePath, line);
-                        }
-                        else
-                        {
-                            if (key == "identifier")
-                            {
-                                entry.identifier = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "toml", sourcePath, line);
-                            }
-                            else
-                            {
-                                if (key == "pre")
-                                {
-                                    entry.pre = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "toml", sourcePath, line);
-                                }
-                                else
-                                {
-                                    if (key == "post")
-                                    {
-                                        entry.post = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "toml", sourcePath, line);
-                                    }
-                                    else
-                                    {
-                                        if (key == "title")
-                                        {
-                                            entry.title = Frontmatter_scalars.parseFrontMatterString(valueRaw, keyRaw, "toml", sourcePath, line);
-                                        }
-                                        else
-                                        {
-                                            throw Diagnostics.createTsumoError("TSUMO_FRONTMATTER_MENU_FIELD_UNKNOWN", $"Unknown front matter menu field '{keyRaw}'", sourcePath, line, 1);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            };
             parseTomlFrontMatter = (Tsonic.CSharp.Js.JSArray<string> lines, string? sourcePath) =>
             {
                 FrontMatter frontMatter = new FrontMatter();

@@ -22,7 +22,7 @@ namespace Tsumo.Engine
             Utils_strings.__tsonic_module_init();
             tryGetFirstExisting = (Tsonic.CSharp.Js.JSArray<string> paths) =>
             {
-                for (int i = 0; i < paths.length; i++)
+                for (double i = 0; i < paths.length; i++)
                 {
                     string p = paths[i];
                     if (Fs.fileExists(p))
@@ -34,8 +34,8 @@ namespace Tsumo.Engine
             };
             sortLanguages = (Tsonic.CSharp.Js.JSArray<LanguageConfig> langs) =>
             {
-                Tsonic.CSharp.Js.JSArray<LanguageConfig> copy = new Tsonic.CSharp.Js.JSArray<LanguageConfig>(new LanguageConfig[] { });
-                for (int i = 0; i < langs.length; i++)
+                Tsonic.CSharp.Js.JSArray<LanguageConfig> copy = Tsonic.CSharp.Js.JSArray<LanguageConfig>.of([]);
+                for (double i = 0; i < langs.length; i++)
                 {
                     copy.push(langs[i]);
                 }

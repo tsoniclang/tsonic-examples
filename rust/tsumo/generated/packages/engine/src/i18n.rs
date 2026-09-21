@@ -50,45 +50,41 @@ impl rt::ObjectIdentityCarrier for I18nMessage {
 }
 
 impl I18nMessage {
-    pub fn new(variants: js_abi::JsMap<String, String>) -> I18nMessage {
+    pub fn new(variants: js_abi::JsMap<String, String>) -> Result<I18nMessage, rt::TsonicError> {
         let field_variants: js_abi::JsMap<String, String> = variants;
-        I18nMessage {
+        Ok(I18nMessage {
             state: rt::ObjectRef::new(I18nMessageState {
                 variants: field_variants,
             }),
-        }
+        })
     }
 
     pub fn select(&self, count: Option<i32>) -> Result<String, rt::TsonicError> {
         if count.is_some() {
             let exact_name: String = if count == Some(0) {
                 String::from("zero")
+            } else if count == Some(1) {
+                String::from("one")
+            } else if count == Some(2) {
+                String::from("two")
             } else {
-                if count == Some(1) {
-                    String::from("one")
-                } else {
-                    if count == Some(2) {
-                        String::from("two")
-                    } else {
-                        String::from("other")
-                    }
-                }
+                String::from("other")
             };
             let exact: Option<String> = self
                 .state
                 .with(|state| state.variants.clone())
                 .get(&exact_name);
             if exact.is_some() {
-                return Ok(match exact.as_ref() {
-                    Some(flow_value) => flow_value.clone(),
+                return Ok(match exact {
+                    Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 });
             }
         }
         let other: Option<String> = self.state.with(|state| state.variants.clone()).get("other");
         if other.is_some() {
-            return Ok(match other.as_ref() {
-                Some(flow_value_2) => flow_value_2.clone(),
+            return Ok(match other {
+                Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             });
         }
@@ -106,9 +102,8 @@ impl I18nMessage {
                     operation_input_0.get(&match PLURAL_VARIANT_NAMES
                         .with(|module_binding| module_binding.load())
                         .get_number(rt::conversions::i32_to_f64(index))
-                        .as_ref()
                     {
-                        Some(flow_value_3) => flow_value_3.clone(),
+                        Some(flow_value_3) => flow_value_3,
                         None => unreachable!("checked flow selected a missing optional value"),
                     })
                 };
@@ -128,7 +123,7 @@ impl I18nMessage {
                 None,
                 None,
                 None,
-            ),
+            )?,
         ))
     }
 }
@@ -164,7 +159,7 @@ pub fn i18n_text(
             Some(source_path),
             None,
             None,
-        ),
+        )?,
     ))
 }
 
@@ -190,7 +185,7 @@ pub fn message_from_value(
                 dispatch_receiver.dispatch.read_string_value_value()
             })
         };
-        return Ok(Some(I18nMessage::new(variants.clone())));
+        return Ok(Some(I18nMessage::new(variants.clone())?));
     }
     if value
         .dispatch
@@ -247,7 +242,7 @@ pub fn message_from_value(
                     Some(source_path.clone()),
                     None,
                     None,
-                ),
+                )?,
             ));
         }
         {
@@ -268,7 +263,7 @@ pub fn message_from_value(
     Ok(if rt::conversions::usize_to_i32(variants.len())? == 0 {
         Option::<I18nMessage>::None
     } else {
-        Some(I18nMessage::new(variants.clone()))
+        Some(I18nMessage::new(variants.clone())?)
     })
 }
 
@@ -286,7 +281,7 @@ pub fn set_layer_message(
                 Some(source_path.clone()),
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     if layer.has(&identity) {
@@ -302,10 +297,10 @@ pub fn set_layer_message(
                 Some(source_path.clone()),
                 None,
                 None,
-            ),
+            )?,
         ));
     }
-    layer.set_discard(identity.clone(), message);
+    layer.set_discard(identity, message);
     Ok(())
 }
 
@@ -347,7 +342,7 @@ pub fn collect_message_tree(
                 Some(source_path.clone()),
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     for key in {
@@ -394,7 +389,7 @@ pub fn collect_message_tree(
                     Some(source_path.clone()),
                     None,
                     None,
-                ),
+                )?,
             ));
         }
         collect_message_tree(
@@ -435,9 +430,8 @@ pub fn collect_legacy_messages(
                 dispatch_receiver_2.dispatch.read_any_array_value_value()
             }
             .get_number(rt::conversions::i32_to_f64(index))
-            .as_ref()
             {
-                Some(flow_value) => flow_value.clone(),
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if item
@@ -455,7 +449,7 @@ pub fn collect_legacy_messages(
                         Some(source_path.clone()),
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
             let identity_value: Option<crate::template::values::base::TemplateValue> = {
@@ -505,7 +499,7 @@ pub fn collect_legacy_messages(
                         Some(source_path.clone()),
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
             let message: Option<I18nMessage> = message_from_value(
@@ -563,7 +557,7 @@ pub fn collect_legacy_messages(
                         Some(source_path.clone()),
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
             set_layer_message(
@@ -598,14 +592,14 @@ pub fn collect_legacy_messages(
 
 pub fn collect_i18n_file(
     content: String,
-    format: String,
+    format: &str,
     source_path: String,
     layer: js_abi::JsMap<String, I18nMessage>,
 ) -> Result<(), rt::TsonicError> {
     let value: crate::template::values::base::TemplateValue =
         crate::template::evaluation::structured_data::parse_template_data_text(
             content,
-            &format,
+            format,
             Some(source_path.clone()),
         )?;
     if value
@@ -650,7 +644,7 @@ pub trait I18nStoreDispatch {
     fn write_i18n_store_translations(
         &self,
         value: js_abi::JsMap<String, js_abi::JsMap<String, I18nMessage>>,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn dispatch_i18n_store_load_from_dir(
         self: alloc::rc::Rc<Self>,
         dir: String,
@@ -708,36 +702,30 @@ impl rt::ObjectIdentityCarrier for I18nStore {
 
 pub(crate) struct I18nStoreRoot {
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<I18nStoreState>,
+    state: rt::ObjectState<I18nStoreState>,
 }
 
 impl I18nStore {
     #[doc(hidden)]
-    pub fn initialize_state() -> I18nStoreState {
+    pub fn initialize_state() -> Result<I18nStoreState, rt::TsonicError> {
         let field_translations: js_abi::JsMap<String, js_abi::JsMap<String, I18nMessage>> =
             js_abi::JsMap::new();
-        I18nStoreState {
+        Ok(I18nStoreState {
             translations: field_translations,
-        }
+        })
     }
 
-    pub fn new() -> I18nStore {
-        let state = I18nStore::initialize_state();
+    pub fn new() -> Result<I18nStore, rt::TsonicError> {
+        let state = I18nStore::initialize_state()?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(I18nStoreRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        I18nStore {
+        Ok(I18nStore {
             identity,
             dispatch: root,
-        }
-    }
-}
-
-impl Default for I18nStore {
-    fn default() -> Self {
-        Self::new()
+        })
     }
 }
 
@@ -757,11 +745,8 @@ impl I18nStoreRoot {
         {
             let mut index: i32 = 0;
             'loop_value: while index < rt::conversions::usize_to_i32(files.len())? {
-                let file: String = match files
-                    .get_number(rt::conversions::i32_to_f64(index))
-                    .as_ref()
-                {
-                    Some(flow_value) => flow_value.clone(),
+                let file: String = match files.get_number(rt::conversions::i32_to_f64(index)) {
+                    Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 let extension: String =
@@ -809,7 +794,7 @@ impl I18nStoreRoot {
                 }
                 collect_i18n_file(
                     crate::fs::read_text_file(file.clone())?,
-                    format.clone(),
+                    &format,
                     file.clone(),
                     match language_layer.as_ref() {
                         Some(flow_value_3) => flow_value_3.clone(),
@@ -853,7 +838,7 @@ impl I18nStoreRoot {
                         Some(dir.clone()),
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
             for identity in match messages.as_ref() {
@@ -880,7 +865,7 @@ impl I18nStoreRoot {
                             Some(dir.clone()),
                             None,
                             None,
-                        ),
+                        )?,
                     ));
                 }
                 match selected.as_ref() {
@@ -946,7 +931,7 @@ impl I18nStoreRoot {
         }
         .get(&key);
         Ok(if message.is_none() {
-            key.clone()
+            key
         } else {
             match message.as_ref() {
                 Some(flow_value_2) => flow_value_2.clone(),
@@ -973,8 +958,14 @@ impl I18nStoreDispatch for I18nStoreRoot {
     fn write_i18n_store_translations(
         &self,
         value: js_abi::JsMap<String, js_abi::JsMap<String, I18nMessage>>,
-    ) {
-        self.state.with_mut(|state| state.translations = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.translations = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn dispatch_i18n_store_load_from_dir(

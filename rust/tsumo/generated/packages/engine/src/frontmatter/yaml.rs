@@ -4,10 +4,10 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn indentation_of(line: String) -> Result<i32, rt::TsonicError> {
+pub fn indentation_of(line: &str) -> Result<i32, rt::TsonicError> {
     let mut indentation: i32 = 0;
-    while indentation < rt::conversions::usize_to_i32(js_string::js_len(&line))?
-        && js_string::char_at(&line, rt::conversions::i32_to_f64(indentation))? == " "
+    while indentation < rt::conversions::usize_to_i32(js_string::js_len(line))?
+        && js_string::char_at(line, rt::conversions::i32_to_f64(indentation))? == " "
     {
         indentation += 1;
     }
@@ -24,11 +24,11 @@ pub fn yaml_text(line: String) -> Result<String, rt::TsonicError> {
 }
 
 pub fn split_yaml_pair(
-    text: String,
+    text: &str,
     source_path: Option<String>,
     line: i32,
 ) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
-    let separator: i32 = rt::conversions::isize_to_i32(js_string::index_of_from_start(&text, ":"))?;
+    let separator: i32 = rt::conversions::isize_to_i32(js_string::index_of_from_start(text, ":"))?;
     if separator <= 0 {
         return Err(rt::TsonicError::TsumoError(
             crate::diagnostics::create_tsumo_error(
@@ -37,26 +37,19 @@ pub fn split_yaml_pair(
                 source_path,
                 Some(rt::conversions::i32_to_f64(line)),
                 Some(1.0),
-            ),
+            )?,
         ));
     }
     Ok(js_abi::JsArray::from_dense(vec![
-        js_string::trim(&crate::utils::strings::substring_count(
-            text.clone(),
-            0,
-            separator,
-        )?),
-        js_string::trim(&crate::utils::strings::substring_from(
-            &text,
-            separator + 1,
-        )?),
+        js_string::trim(&crate::utils::strings::substring_count(text, 0, separator)?),
+        js_string::trim(&crate::utils::strings::substring_from(text, separator + 1)?),
     ]))
 }
 
 pub fn apply_menu_property(
     entry: crate::frontmatter::menu::FrontMatterMenu,
     key_raw: String,
-    value_raw: String,
+    value_raw: &str,
     source_path: Option<String>,
     line: i32,
 ) -> Result<(), rt::TsonicError> {
@@ -65,7 +58,7 @@ pub fn apply_menu_property(
         {
             let receiver = &entry;
             let value = crate::frontmatter::scalars::parse_front_matter_int(
-                value_raw.clone(),
+                value_raw,
                 key_raw.clone(),
                 crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
                 source_path.clone(),
@@ -75,14 +68,14 @@ pub fn apply_menu_property(
                 let dispatch_receiver = receiver;
                 dispatch_receiver
                     .dispatch
-                    .write_front_matter_menu_weight(value)
+                    .write_front_matter_menu_weight(value)?
             }
         };
     } else if key == "name" {
         {
             let receiver_2 = &entry;
             let value_2 = crate::frontmatter::scalars::parse_front_matter_string(
-                value_raw.clone(),
+                value_raw,
                 key_raw.clone(),
                 crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
                 source_path.clone(),
@@ -92,14 +85,14 @@ pub fn apply_menu_property(
                 let dispatch_receiver_2 = receiver_2;
                 dispatch_receiver_2
                     .dispatch
-                    .write_front_matter_menu_name(value_2)
+                    .write_front_matter_menu_name(value_2)?
             }
         };
     } else if key == "parent" {
         {
             let receiver_3 = &entry;
             let value_3 = crate::frontmatter::scalars::parse_front_matter_string(
-                value_raw.clone(),
+                value_raw,
                 key_raw.clone(),
                 crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
                 source_path.clone(),
@@ -109,14 +102,14 @@ pub fn apply_menu_property(
                 let dispatch_receiver_3 = receiver_3;
                 dispatch_receiver_3
                     .dispatch
-                    .write_front_matter_menu_parent(value_3)
+                    .write_front_matter_menu_parent(value_3)?
             }
         };
     } else if key == "identifier" {
         {
             let receiver_4 = &entry;
             let value_4 = crate::frontmatter::scalars::parse_front_matter_string(
-                value_raw.clone(),
+                value_raw,
                 key_raw.clone(),
                 crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
                 source_path.clone(),
@@ -126,14 +119,14 @@ pub fn apply_menu_property(
                 let dispatch_receiver_4 = receiver_4;
                 dispatch_receiver_4
                     .dispatch
-                    .write_front_matter_menu_identifier(value_4)
+                    .write_front_matter_menu_identifier(value_4)?
             }
         };
     } else if key == "pre" {
         {
             let receiver_5 = &entry;
             let value_5 = crate::frontmatter::scalars::parse_front_matter_string(
-                value_raw.clone(),
+                value_raw,
                 key_raw.clone(),
                 crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
                 source_path.clone(),
@@ -143,14 +136,14 @@ pub fn apply_menu_property(
                 let dispatch_receiver_5 = receiver_5;
                 dispatch_receiver_5
                     .dispatch
-                    .write_front_matter_menu_pre(value_5)
+                    .write_front_matter_menu_pre(value_5)?
             }
         };
     } else if key == "post" {
         {
             let receiver_6 = &entry;
             let value_6 = crate::frontmatter::scalars::parse_front_matter_string(
-                value_raw.clone(),
+                value_raw,
                 key_raw.clone(),
                 crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
                 source_path.clone(),
@@ -160,14 +153,14 @@ pub fn apply_menu_property(
                 let dispatch_receiver_6 = receiver_6;
                 dispatch_receiver_6
                     .dispatch
-                    .write_front_matter_menu_post(value_6)
+                    .write_front_matter_menu_post(value_6)?
             }
         };
     } else if key == "title" {
         {
             let receiver_7 = &entry;
             let value_7 = crate::frontmatter::scalars::parse_front_matter_string(
-                value_raw.clone(),
+                value_raw,
                 key_raw.clone(),
                 crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
                 source_path.clone(),
@@ -177,7 +170,7 @@ pub fn apply_menu_property(
                 let dispatch_receiver_7 = receiver_7;
                 dispatch_receiver_7
                     .dispatch
-                    .write_front_matter_menu_title(value_7)
+                    .write_front_matter_menu_title(value_7)?
             }
         };
     } else {
@@ -193,7 +186,7 @@ pub fn apply_menu_property(
                 source_path.clone(),
                 Some(rt::conversions::i32_to_f64(line)),
                 Some(1.0),
-            ),
+            )?,
         ));
     }
     Ok(())
@@ -212,7 +205,7 @@ pub fn validate_yaml_line(
                 source_path,
                 Some(rt::conversions::i32_to_f64(line_number)),
                 Some(1.0),
-            ),
+            )?,
         ));
     }
     Ok(())
@@ -223,15 +216,12 @@ pub fn parse_yaml_front_matter(
     source_path: Option<String>,
 ) -> Result<crate::frontmatter::data::FrontMatter, rt::TsonicError> {
     let front_matter: crate::frontmatter::data::FrontMatter =
-        crate::frontmatter::data::FrontMatter::new();
+        crate::frontmatter::data::FrontMatter::new()?;
     let root_fields: js_abi::JsSet<String> = js_abi::JsSet::new();
     let mut index: i32 = 0;
     'loop_value: while index < rt::conversions::usize_to_i32(lines.len())? {
-        let raw: String = match lines
-            .get_number(rt::conversions::i32_to_f64(index))
-            .as_ref()
-        {
-            Some(flow_value) => flow_value.clone(),
+        let raw: String = match lines.get_number(rt::conversions::i32_to_f64(index)) {
+            Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
         };
         let line_number: i32 = index + 2;
@@ -241,7 +231,7 @@ pub fn parse_yaml_front_matter(
             index += 1;
             continue 'loop_value;
         }
-        if indentation_of(raw.clone())? != 0 {
+        if indentation_of(&raw)? != 0 {
             return Err(rt::TsonicError::TsumoError(
                 crate::diagnostics::create_tsumo_error(
                     String::from("TSUMO_FRONTMATTER_YAML_SYNTAX_INVALID"),
@@ -249,17 +239,17 @@ pub fn parse_yaml_front_matter(
                     source_path.clone(),
                     Some(rt::conversions::i32_to_f64(line_number)),
                     Some(1.0),
-                ),
+                )?,
             ));
         }
         let pair: js_abi::JsArray<String> =
-            split_yaml_pair(text.clone(), source_path.clone(), line_number)?;
-        let key: String = match pair.get_number(0.0).as_ref() {
-            Some(flow_value_2) => flow_value_2.clone(),
+            split_yaml_pair(&text, source_path.clone(), line_number)?;
+        let key: String = match pair.get_number(0.0) {
+            Some(flow_value_2) => flow_value_2,
             None => unreachable!("checked flow selected a missing optional value"),
         };
-        let value: String = match pair.get_number(1.0).as_ref() {
-            Some(flow_value_3) => flow_value_3.clone(),
+        let value: String = match pair.get_number(1.0) {
+            Some(flow_value_3) => flow_value_3,
             None => unreachable!("checked flow selected a missing optional value"),
         };
         crate::frontmatter::scalars::record_front_matter_field(
@@ -287,27 +277,21 @@ pub fn parse_yaml_front_matter(
             let param_fields: js_abi::JsSet<String> = js_abi::JsSet::new();
             while index < rt::conversions::usize_to_i32(lines.len())?
                 && indentation_of(
-                    match lines
-                        .get_number(rt::conversions::i32_to_f64(index))
-                        .as_ref()
-                    {
-                        Some(flow_value_4) => flow_value_4.clone(),
+                    &match lines.get_number(rt::conversions::i32_to_f64(index)) {
+                        Some(flow_value_4) => flow_value_4,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                 )? > 0
             {
-                let child_raw: String = match lines
-                    .get_number(rt::conversions::i32_to_f64(index))
-                    .as_ref()
-                {
-                    Some(flow_value_5) => flow_value_5.clone(),
+                let child_raw: String = match lines.get_number(rt::conversions::i32_to_f64(index)) {
+                    Some(flow_value_5) => flow_value_5,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 let child_line: i32 = index + 2;
                 validate_yaml_line(&child_raw, source_path.clone(), child_line)?;
                 let child_text: String = yaml_text(child_raw.clone())?;
                 if !child_text.is_empty() && !js_string::starts_with_from_start(&child_text, "#") {
-                    if indentation_of(child_raw.clone())? != 2 {
+                    if indentation_of(&child_raw)? != 2 {
                         return Err(rt::TsonicError::TsumoError(
                             crate::diagnostics::create_tsumo_error(
                                 String::from("TSUMO_FRONTMATTER_YAML_SYNTAX_INVALID"),
@@ -317,11 +301,11 @@ pub fn parse_yaml_front_matter(
                                 source_path.clone(),
                                 Some(rt::conversions::i32_to_f64(child_line)),
                                 Some(1.0),
-                            ),
+                            )?,
                         ));
                     }
                     let child: js_abi::JsArray<String> =
-                        split_yaml_pair(child_text.clone(), source_path.clone(), child_line)?;
+                        split_yaml_pair(&child_text, source_path.clone(), child_line)?;
                     if child.get_number(1.0) == Some(String::from("")) {
                         return Err(rt::TsonicError::TsumoError(
                             crate::diagnostics::create_tsumo_error(
@@ -329,8 +313,8 @@ pub fn parse_yaml_front_matter(
                                 format!(
                                     "{}{}{}",
                                     String::from("Front matter param '"),
-                                    match child.get_number(0.0).as_ref() {
-                                        Some(flow_value_6) => flow_value_6.clone(),
+                                    match child.get_number(0.0) {
+                                        Some(flow_value_6) => flow_value_6,
                                         None => unreachable!(
                                             "checked flow selected a missing optional value"
                                         ),
@@ -340,13 +324,13 @@ pub fn parse_yaml_front_matter(
                                 source_path.clone(),
                                 Some(rt::conversions::i32_to_f64(child_line)),
                                 Some(1.0),
-                            ),
+                            )?,
                         ));
                     }
                     crate::frontmatter::scalars::record_front_matter_field(
                         param_fields.clone(),
-                        match child.get_number(0.0).as_ref() {
-                            Some(flow_value_7) => flow_value_7.clone(),
+                        match child.get_number(0.0) {
+                            Some(flow_value_7) => flow_value_7,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                         String::from("Front matter params"),
@@ -357,15 +341,15 @@ pub fn parse_yaml_front_matter(
                         let operation_input_0 =
                             front_matter.state.with(|state| state.params.clone());
                         operation_input_0.set_discard(
-                            match child.get_number(0.0).as_ref() {
-                                Some(flow_value_8) => flow_value_8.clone(),
+                            match child.get_number(0.0) {
+                                Some(flow_value_8) => flow_value_8,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
                             },
                             crate::frontmatter::scalars::parse_front_matter_param(
-                                match child.get_number(1.0).as_ref() {
-                                    Some(flow_value_9) => flow_value_9.clone(),
+                                &match child.get_number(1.0) {
+                                    Some(flow_value_9) => flow_value_9,
                                     None => unreachable!(
                                         "checked flow selected a missing optional value"
                                     ),
@@ -385,27 +369,21 @@ pub fn parse_yaml_front_matter(
             let values: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
             while index < rt::conversions::usize_to_i32(lines.len())?
                 && indentation_of(
-                    match lines
-                        .get_number(rt::conversions::i32_to_f64(index))
-                        .as_ref()
-                    {
-                        Some(flow_value_10) => flow_value_10.clone(),
+                    &match lines.get_number(rt::conversions::i32_to_f64(index)) {
+                        Some(flow_value_10) => flow_value_10,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                 )? > 0
             {
-                let child_raw: String = match lines
-                    .get_number(rt::conversions::i32_to_f64(index))
-                    .as_ref()
-                {
-                    Some(flow_value_11) => flow_value_11.clone(),
+                let child_raw: String = match lines.get_number(rt::conversions::i32_to_f64(index)) {
+                    Some(flow_value_11) => flow_value_11,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 let child_line: i32 = index + 2;
                 validate_yaml_line(&child_raw, source_path.clone(), child_line)?;
                 let child_text: String = yaml_text(child_raw.clone())?;
                 if !child_text.is_empty() && !js_string::starts_with_from_start(&child_text, "#") {
-                    if indentation_of(child_raw.clone())? != 2
+                    if indentation_of(&child_raw)? != 2
                         || !js_string::starts_with_from_start(&child_text, "-")
                     {
                         return Err(rt::TsonicError::TsumoError(
@@ -420,7 +398,7 @@ pub fn parse_yaml_front_matter(
                                 source_path.clone(),
                                 Some(rt::conversions::i32_to_f64(child_line)),
                                 Some(1.0),
-                            ),
+                            )?,
                         ));
                     }
                     let item: String =
@@ -438,14 +416,14 @@ pub fn parse_yaml_front_matter(
                                 source_path.clone(),
                                 Some(rt::conversions::i32_to_f64(child_line)),
                                 Some(1.0),
-                            ),
+                            )?,
                         ));
                     }
                     {
                         let operation_input_0_2 = values.clone();
                         operation_input_0_2.push_many_discard([
                             crate::frontmatter::scalars::parse_front_matter_string(
-                                item.clone(),
+                                &item,
                                 key.clone(),
                                 crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
                                 source_path.clone(),
@@ -460,15 +438,29 @@ pub fn parse_yaml_front_matter(
                 {
                     let receiver = &front_matter;
                     let value_2 = values.clone();
-                    receiver.state.with_mut(|state| state.tags = value_2)
+                    {
+                        let field_owner = receiver.clone();
+                        let field_value = value_2;
+                        {
+                            field_owner.state.validate_data_write()?;
+                            field_owner.state.with_mut(|state| state.tags = field_value)
+                        }
+                    }
                 };
             } else {
                 {
                     let receiver_2 = &front_matter;
                     let value_3 = values.clone();
-                    receiver_2
-                        .state
-                        .with_mut(|state| state.categories = value_3)
+                    {
+                        let field_owner_2 = receiver_2.clone();
+                        let field_value_2 = value_3;
+                        {
+                            field_owner_2.state.validate_data_write()?;
+                            field_owner_2
+                                .state
+                                .with_mut(|state| state.categories = field_value_2)
+                        }
+                    }
                 };
             }
             continue 'loop_value;
@@ -477,20 +469,14 @@ pub fn parse_yaml_front_matter(
             let menu_names: js_abi::JsSet<String> = js_abi::JsSet::new();
             'loop_value_4: while index < rt::conversions::usize_to_i32(lines.len())?
                 && indentation_of(
-                    match lines
-                        .get_number(rt::conversions::i32_to_f64(index))
-                        .as_ref()
-                    {
-                        Some(flow_value_12) => flow_value_12.clone(),
+                    &match lines.get_number(rt::conversions::i32_to_f64(index)) {
+                        Some(flow_value_12) => flow_value_12,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                 )? > 0
             {
-                let entry_raw: String = match lines
-                    .get_number(rt::conversions::i32_to_f64(index))
-                    .as_ref()
-                {
-                    Some(flow_value_13) => flow_value_13.clone(),
+                let entry_raw: String = match lines.get_number(rt::conversions::i32_to_f64(index)) {
+                    Some(flow_value_13) => flow_value_13,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 let entry_line: i32 = index + 2;
@@ -500,7 +486,7 @@ pub fn parse_yaml_front_matter(
                     index += 1;
                     continue 'loop_value_4;
                 }
-                if indentation_of(entry_raw.clone())? != 2 {
+                if indentation_of(&entry_raw)? != 2 {
                     return Err(rt::TsonicError::TsumoError(
                         crate::diagnostics::create_tsumo_error(
                             String::from("TSUMO_FRONTMATTER_YAML_SYNTAX_INVALID"),
@@ -508,11 +494,11 @@ pub fn parse_yaml_front_matter(
                             source_path.clone(),
                             Some(rt::conversions::i32_to_f64(entry_line)),
                             Some(1.0),
-                        ),
+                        )?,
                     ));
                 }
                 let entry_pair: js_abi::JsArray<String> =
-                    split_yaml_pair(entry_text.clone(), source_path.clone(), entry_line)?;
+                    split_yaml_pair(&entry_text, source_path.clone(), entry_line)?;
                 if entry_pair.get_number(1.0) != Some(String::from("")) {
                     return Err(rt::TsonicError::TsumoError(
                         crate::diagnostics::create_tsumo_error(
@@ -520,8 +506,8 @@ pub fn parse_yaml_front_matter(
                             format!(
                                 "{}{}{}",
                                 String::from("Front matter menu '"),
-                                match entry_pair.get_number(0.0).as_ref() {
-                                    Some(flow_value_14) => flow_value_14.clone(),
+                                match entry_pair.get_number(0.0) {
+                                    Some(flow_value_14) => flow_value_14,
                                     None => unreachable!(
                                         "checked flow selected a missing optional value"
                                     ),
@@ -531,13 +517,13 @@ pub fn parse_yaml_front_matter(
                             source_path.clone(),
                             Some(rt::conversions::i32_to_f64(entry_line)),
                             Some(1.0),
-                        ),
+                        )?,
                     ));
                 }
                 crate::frontmatter::scalars::record_front_matter_field(
                     menu_names.clone(),
-                    match entry_pair.get_number(0.0).as_ref() {
-                        Some(flow_value_15) => flow_value_15.clone(),
+                    match entry_pair.get_number(0.0) {
+                        Some(flow_value_15) => flow_value_15,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                     String::from("Front matter menu"),
@@ -546,38 +532,33 @@ pub fn parse_yaml_front_matter(
                 )?;
                 let entry: crate::frontmatter::menu::FrontMatterMenu =
                     crate::frontmatter::menu::FrontMatterMenu::new(
-                        match entry_pair.get_number(0.0).as_ref() {
-                            Some(flow_value_16) => flow_value_16.clone(),
+                        match entry_pair.get_number(0.0) {
+                            Some(flow_value_16) => flow_value_16,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
-                    );
+                    )?;
                 let menu_fields: js_abi::JsSet<String> = js_abi::JsSet::new();
                 index += 1;
                 while index < rt::conversions::usize_to_i32(lines.len())?
                     && indentation_of(
-                        match lines
-                            .get_number(rt::conversions::i32_to_f64(index))
-                            .as_ref()
-                        {
-                            Some(flow_value_17) => flow_value_17.clone(),
+                        &match lines.get_number(rt::conversions::i32_to_f64(index)) {
+                            Some(flow_value_17) => flow_value_17,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     )? > 2
                 {
-                    let property_raw: String = match lines
-                        .get_number(rt::conversions::i32_to_f64(index))
-                        .as_ref()
-                    {
-                        Some(flow_value_18) => flow_value_18.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    };
+                    let property_raw: String =
+                        match lines.get_number(rt::conversions::i32_to_f64(index)) {
+                            Some(flow_value_18) => flow_value_18,
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        };
                     let property_line: i32 = index + 2;
                     validate_yaml_line(&property_raw, source_path.clone(), property_line)?;
                     let property_text: String = yaml_text(property_raw.clone())?;
                     if !property_text.is_empty()
                         && !js_string::starts_with_from_start(&property_text, "#")
                     {
-                        if indentation_of(property_raw.clone())? != 4 {
+                        if indentation_of(&property_raw)? != 4 {
                             return Err(rt::TsonicError::TsumoError(
                                 crate::diagnostics::create_tsumo_error(
                                     String::from("TSUMO_FRONTMATTER_YAML_SYNTAX_INVALID"),
@@ -587,14 +568,11 @@ pub fn parse_yaml_front_matter(
                                     source_path.clone(),
                                     Some(rt::conversions::i32_to_f64(property_line)),
                                     Some(1.0),
-                                ),
+                                )?,
                             ));
                         }
-                        let property: js_abi::JsArray<String> = split_yaml_pair(
-                            property_text.clone(),
-                            source_path.clone(),
-                            property_line,
-                        )?;
+                        let property: js_abi::JsArray<String> =
+                            split_yaml_pair(&property_text, source_path.clone(), property_line)?;
                         if property.get_number(1.0) == Some(String::from("")) {
                             return Err(rt::TsonicError::TsumoError(
                                 crate::diagnostics::create_tsumo_error(
@@ -602,8 +580,8 @@ pub fn parse_yaml_front_matter(
                                     format!(
                                         "{}{}{}",
                                         String::from("Front matter menu field '"),
-                                        match property.get_number(0.0).as_ref() {
-                                            Some(flow_value_19) => flow_value_19.clone(),
+                                        match property.get_number(0.0) {
+                                            Some(flow_value_19) => flow_value_19,
                                             None => unreachable!(
                                                 "checked flow selected a missing optional value"
                                             ),
@@ -613,13 +591,13 @@ pub fn parse_yaml_front_matter(
                                     source_path.clone(),
                                     Some(rt::conversions::i32_to_f64(property_line)),
                                     Some(1.0),
-                                ),
+                                )?,
                             ));
                         }
                         crate::frontmatter::scalars::record_front_matter_field(
                             menu_fields.clone(),
-                            match property.get_number(0.0).as_ref() {
-                                Some(flow_value_20) => flow_value_20.clone(),
+                            match property.get_number(0.0) {
+                                Some(flow_value_20) => flow_value_20,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
@@ -638,14 +616,14 @@ pub fn parse_yaml_front_matter(
                         )?;
                         apply_menu_property(
                             entry.clone(),
-                            match property.get_number(0.0).as_ref() {
-                                Some(flow_value_21) => flow_value_21.clone(),
+                            match property.get_number(0.0) {
+                                Some(flow_value_21) => flow_value_21,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
                             },
-                            match property.get_number(1.0).as_ref() {
-                                Some(flow_value_22) => flow_value_22.clone(),
+                            &match property.get_number(1.0) {
+                                Some(flow_value_22) => flow_value_22,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
@@ -675,7 +653,7 @@ pub fn parse_yaml_front_matter(
                 source_path.clone(),
                 Some(rt::conversions::i32_to_f64(line_number)),
                 Some(1.0),
-            ),
+            )?,
         ));
     }
     Ok(front_matter)

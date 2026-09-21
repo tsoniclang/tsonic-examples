@@ -3,7 +3,9 @@
 use crate::program as rt;
 use tsonic_rust_js::string as js_string;
 
-pub fn invalid_string_literal(message: String) -> crate::diagnostics::TsumoError {
+pub fn invalid_string_literal(
+    message: String,
+) -> Result<crate::diagnostics::TsumoError, rt::TsonicError> {
     crate::diagnostics::create_tsumo_error(
         String::from("TSUMO_TEMPLATE_STRING_ESCAPE_INVALID"),
         message,
@@ -26,14 +28,14 @@ pub fn digit_value(character: &str, radix: i32) -> Result<i32, rt::TsonicError> 
 }
 
 pub fn decode_fixed_escape(
-    source: String,
+    source: &str,
     start: i32,
     count: i32,
     radix: i32,
     maximum: i32,
     description: String,
 ) -> Result<String, rt::TsonicError> {
-    if start + count > rt::conversions::usize_to_i32(js_string::js_len(&source))? {
+    if start + count > rt::conversions::usize_to_i32(js_string::js_len(source))? {
         return Err(rt::TsonicError::TsumoError(invalid_string_literal(
             format!(
                 "{}{}{}{}",
@@ -42,12 +44,12 @@ pub fn decode_fixed_escape(
                 rt::source_string(&count),
                 String::from(" digits")
             ),
-        )));
+        )?));
     }
     let mut value: i32 = 0;
     for offset in 0..count {
         let digit: i32 = digit_value(
-            &crate::utils::strings::code_point_at_text(&source, start + offset)?,
+            &crate::utils::strings::code_point_at_text(source, start + offset)?,
             radix,
         )?;
         if digit < 0 {
@@ -57,7 +59,7 @@ pub fn decode_fixed_escape(
                     description,
                     String::from(" contains an invalid digit")
                 ),
-            )));
+            )?));
         }
         let maximum_before_digit: i32 = rt::conversions::f64_to_i32(
             rt::conversions::i32_to_f64((maximum - digit) / radix).floor(),
@@ -69,7 +71,7 @@ pub fn decode_fixed_escape(
                     description,
                     String::from(" is outside its valid range")
                 ),
-            )));
+            )?));
         }
         value = value * radix + digit;
     }
@@ -80,36 +82,36 @@ pub fn decode_fixed_escape(
                 description,
                 String::from(" does not name a Unicode scalar value")
             ),
-        )));
+        )?));
     }
     js_string::from_code_point(&[rt::conversions::i32_to_f64(value)]).map_err(rt::TsonicError::from)
 }
 
-pub fn decode_interpreted_string(inner: String, quote: String) -> Result<String, rt::TsonicError> {
+pub fn decode_interpreted_string(inner: &str, quote: &str) -> Result<String, rt::TsonicError> {
     let mut result: String = String::from("");
     let mut index: i32 = 0;
-    'loop_value: while index < rt::conversions::usize_to_i32(js_string::js_len(&inner))? {
-        let current: String = crate::utils::strings::code_point_at_text(&inner, index)?;
+    'loop_value: while index < rt::conversions::usize_to_i32(js_string::js_len(inner))? {
+        let current: String = crate::utils::strings::code_point_at_text(inner, index)?;
         if current == "\n" || current == "\r" {
             return Err(rt::TsonicError::TsumoError(invalid_string_literal(
                 String::from("Interpreted template strings cannot contain unescaped line breaks"),
-            )));
+            )?));
         }
         if current != "\\" {
             result.push_str(&current);
-            index = crate::utils::strings::next_code_point_index(inner.clone(), index)?;
+            index = crate::utils::strings::next_code_point_index(inner, index)?;
             continue 'loop_value;
         }
-        let escape_index: i32 = crate::utils::strings::next_code_point_index(inner.clone(), index)?;
-        if escape_index >= rt::conversions::usize_to_i32(js_string::js_len(&inner))? {
+        let escape_index: i32 = crate::utils::strings::next_code_point_index(inner, index)?;
+        if escape_index >= rt::conversions::usize_to_i32(js_string::js_len(inner))? {
             return Err(rt::TsonicError::TsumoError(invalid_string_literal(
                 String::from("Template string ends with an incomplete escape"),
-            )));
+            )?));
         }
-        let escaped: String = crate::utils::strings::code_point_at_text(&inner, escape_index)?;
+        let escaped: String = crate::utils::strings::code_point_at_text(inner, escape_index)?;
         if escaped == quote || escaped == "\\" {
             result.push_str(&escaped);
-            index = crate::utils::strings::next_code_point_index(inner.clone(), escape_index)?;
+            index = crate::utils::strings::next_code_point_index(inner, escape_index)?;
             continue 'loop_value;
         }
         if escaped == "a" {
@@ -128,7 +130,7 @@ pub fn decode_interpreted_string(inner: String, quote: String) -> Result<String,
             result.push('');
         } else if digit_value(&escaped, 8)? >= 0 {
             result.push_str(&decode_fixed_escape(
-                inner.clone(),
+                inner,
                 escape_index,
                 3,
                 8,
@@ -139,7 +141,7 @@ pub fn decode_interpreted_string(inner: String, quote: String) -> Result<String,
             continue 'loop_value;
         } else if escaped == "x" {
             result.push_str(&decode_fixed_escape(
-                inner.clone(),
+                inner,
                 escape_index + 1,
                 2,
                 16,
@@ -150,7 +152,7 @@ pub fn decode_interpreted_string(inner: String, quote: String) -> Result<String,
             continue 'loop_value;
         } else if escaped == "u" {
             result.push_str(&decode_fixed_escape(
-                inner.clone(),
+                inner,
                 escape_index + 1,
                 4,
                 16,
@@ -161,7 +163,7 @@ pub fn decode_interpreted_string(inner: String, quote: String) -> Result<String,
             continue 'loop_value;
         } else if escaped == "U" {
             result.push_str(&decode_fixed_escape(
-                inner.clone(),
+                inner,
                 escape_index + 1,
                 8,
                 16,
@@ -178,9 +180,9 @@ pub fn decode_interpreted_string(inner: String, quote: String) -> Result<String,
                     escaped,
                     String::from("'")
                 ),
-            )));
+            )?));
         }
-        index = crate::utils::strings::next_code_point_index(inner.clone(), escape_index)?;
+        index = crate::utils::strings::next_code_point_index(inner, escape_index)?;
     }
     Ok(result)
 }
@@ -198,13 +200,13 @@ pub fn decode_template_string_literal(token: &str) -> Result<Option<String>, rt:
         return Ok(Option::<String>::None);
     }
     let inner: String = crate::utils::strings::substring_count(
-        value.clone(),
+        &value,
         1,
         rt::conversions::usize_to_i32(js_string::js_len(&value))? - 2,
     )?;
     Ok(if quote == "`" {
         Some(js_string::replace_all(&inner, "\r", "")?)
     } else {
-        Some(decode_interpreted_string(inner.clone(), quote.clone())?)
+        Some(decode_interpreted_string(&inner, &quote)?)
     })
 }

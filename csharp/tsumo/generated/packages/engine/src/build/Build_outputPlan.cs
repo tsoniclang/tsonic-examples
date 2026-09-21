@@ -1,67 +1,50 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Build_outputPlan
     {
-        public static Func<string, string> normalizeOutputPath
+        internal static string normalizeOutputPath(string relativePath)
         {
-            get;
-            private set;
-        } = default(Func<string, string>)!;
-        public static Func<string, string, string> combineOutputPath
+            string normalized = Build_siteRoutes.normalizeSitePath(relativePath);
+            if (normalized == "" || Tsonic.CSharp.Js.String.startsWith(normalized, "/") || Tsonic.CSharp.Node.path.isAbsolute(normalized) || (normalized.Length >= 2 && normalized.Substring(1, 1) == ":"))
+            {
+                throw Diagnostics.createTsumoError("TSUMO_OUTPUT_PATH_ABSOLUTE", $"Site output path must be relative: {relativePath}");
+            }
+            Tsonic.CSharp.Js.JSArray<string> segments = Build_siteRoutes.splitSitePath(normalized);
+            for (double index = 0; index < segments.length; index++)
+            {
+                string segment = segments[index];
+                if (segment == "" || segment == "." || segment == "..")
+                {
+                    throw Diagnostics.createTsumoError("TSUMO_OUTPUT_PATH_ESCAPES_ROOT", $"Site output path is not canonical: {relativePath}");
+                }
+            }
+            return Build_siteRoutes.joinSitePath(segments);
+        }
+        internal static string combineOutputPath(string prefix, string relativePath)
         {
-            get;
-            private set;
-        } = default(Func<string, string, string>)!;
-        public static Func<string, string, string> resolveOutputPath
+            string normalizedRelativePath = normalizeOutputPath(relativePath);
+            if (Tsonic.CSharp.Js.String.trim(prefix) == "")
+            {
+                return normalizedRelativePath;
+            }
+            return normalizeOutputPath(Build_siteRoutes.normalizeSitePath(prefix) + "/" + normalizedRelativePath);
+        }
+        internal static string resolveOutputPath(string outputRoot, string relativePath)
         {
-            get;
-            private set;
-        } = default(Func<string, string, string>)!;
+            string root = Tsonic.CSharp.Node.path.resolve(outputRoot);
+            string candidate = Tsonic.CSharp.Node.path.resolve(root, normalizeOutputPath(relativePath));
+            if (!Utils_paths.pathContainsOrEquals(root, candidate))
+            {
+                throw Diagnostics.createTsumoError("TSUMO_OUTPUT_PATH_ESCAPES_ROOT", $"Site output path escapes its root: {relativePath}");
+            }
+            return candidate;
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
             Fs.__tsonic_module_init();
             Utils_paths.__tsonic_module_init();
             Build_siteRoutes.__tsonic_module_init();
-            normalizeOutputPath = (string relativePath) =>
-            {
-                string normalized = Build_siteRoutes.normalizeSitePath(relativePath);
-                if (normalized == "" || Tsonic.CSharp.Js.String.startsWith(normalized, "/") || Tsonic.CSharp.Node.path.isAbsolute(normalized) || (normalized.Length >= 2 && normalized.Substring(1, 1) == ":"))
-                {
-                    throw Diagnostics.createTsumoError("TSUMO_OUTPUT_PATH_ABSOLUTE", $"Site output path must be relative: {relativePath}");
-                }
-                Tsonic.CSharp.Js.JSArray<string> segments = Build_siteRoutes.splitSitePath(normalized);
-                for (int index = 0; index < segments.length; index++)
-                {
-                    string segment = segments[index];
-                    if (segment == "" || segment == "." || segment == "..")
-                    {
-                        throw Diagnostics.createTsumoError("TSUMO_OUTPUT_PATH_ESCAPES_ROOT", $"Site output path is not canonical: {relativePath}");
-                    }
-                }
-                return Build_siteRoutes.joinSitePath(segments);
-            };
-            combineOutputPath = (string prefix, string relativePath) =>
-            {
-                string normalizedRelativePath = normalizeOutputPath(relativePath);
-                if (Tsonic.CSharp.Js.String.trim(prefix) == "")
-                {
-                    return normalizedRelativePath;
-                }
-                return normalizeOutputPath(Build_siteRoutes.normalizeSitePath(prefix) + "/" + normalizedRelativePath);
-            };
-            resolveOutputPath = (string outputRoot, string relativePath) =>
-            {
-                string root = Tsonic.CSharp.Node.path.resolve(outputRoot);
-                string candidate = Tsonic.CSharp.Node.path.resolve(root, normalizeOutputPath(relativePath));
-                if (!Utils_paths.pathContainsOrEquals(root, candidate))
-                {
-                    throw Diagnostics.createTsumoError("TSUMO_OUTPUT_PATH_ESCAPES_ROOT", $"Site output path escapes its root: {relativePath}");
-                }
-                return candidate;
-            };
             return null;
         }
         public static void __tsonic_module_init()
@@ -150,7 +133,7 @@ namespace Tsumo.Engine
         {
             Tsonic.CSharp.Js.JSArray<string> files = Fs.listFilesRecursive(sourceRoot, "*");
             files.sort((string left, string right) => Build_siteRoutes.compareSitePaths(left, right));
-            for (int index = 0; index < files.length; index++)
+            for (double index = 0; index < files.length; index++)
             {
                 string sourcePath = files[index];
                 string relativePath = Build_siteRoutes.normalizeSitePath(Tsonic.CSharp.Node.path.relative(sourceRoot, sourcePath));
@@ -174,7 +157,7 @@ namespace Tsumo.Engine
             }
             Tsonic.CSharp.Js.Set<string> resolvedPlacements = new Tsonic.CSharp.Js.Set<string>();
             Tsonic.CSharp.Js.JSArray<string> outputPaths = Tsonic.CSharp.Js.JSArrayStatics.from<string>(this.textByPath.keys());
-            for (int outputIndex = 0; outputIndex < outputPaths.length; outputIndex++)
+            for (double outputIndex = 0; outputIndex < outputPaths.length; outputIndex++)
             {
                 string key = outputPaths[outputIndex];
                 string? content = Tsonic.CSharp.Js.Map.getReference<string, string>(this.textByPath, key);
@@ -214,7 +197,7 @@ namespace Tsumo.Engine
         {
             Tsonic.CSharp.Js.JSArray<string> keys = Tsonic.CSharp.Js.JSArrayStatics.from<string>(this.claimsByPath.keys());
             keys.sort((string left, string right) => Build_siteRoutes.compareSitePaths(left, right));
-            for (int index = 0; index < keys.length; index++)
+            for (double index = 0; index < keys.length; index++)
             {
                 string key = keys[index];
                 OutputClaim? claim = Tsonic.CSharp.Js.Map.getReference<string, OutputClaim>(this.claimsByPath, key);

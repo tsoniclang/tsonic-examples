@@ -4,13 +4,22 @@ use crate::program as rt;
 
 #[doc(hidden)]
 pub trait OutputFormatsValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_output_formats_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_output_formats_value_to_output_formats_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn OutputFormatsValueDispatch + 'static>> {
         None
     }
     fn read_output_formats_value_site(&self) -> crate::models::site_context::SiteContext;
-    fn write_output_formats_value_site(&self, value: crate::models::site_context::SiteContext);
+    fn write_output_formats_value_site(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -49,35 +58,36 @@ impl rt::ObjectIdentityCarrier for OutputFormatsValue {
 }
 
 pub(crate) struct OutputFormatsValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<OutputFormatsValueState>,
+    state: rt::ObjectState<OutputFormatsValueState>,
 }
 
 impl OutputFormatsValue {
     #[doc(hidden)]
     pub fn initialize_state(
         site: crate::models::site_context::SiteContext,
-    ) -> OutputFormatsValueState {
+    ) -> Result<OutputFormatsValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_site: crate::models::site_context::SiteContext = site;
-        OutputFormatsValueState {
+        Ok(OutputFormatsValueState {
             base: base_state,
             site: field_site,
-        }
+        })
     }
 
-    pub fn new(site: crate::models::site_context::SiteContext) -> OutputFormatsValue {
-        let state = OutputFormatsValue::initialize_state(site);
+    pub fn new(
+        site: crate::models::site_context::SiteContext,
+    ) -> Result<OutputFormatsValue, rt::TsonicError> {
+        let state = OutputFormatsValue::initialize_state(site)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(OutputFormatsValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        OutputFormatsValue {
+        Ok(OutputFormatsValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -97,6 +107,13 @@ impl crate::template::values::base::TemplateValueDispatch for OutputFormatsValue
 }
 
 impl OutputFormatsValueDispatch for OutputFormatsValueRoot {
+    fn downcast_output_formats_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_output_formats_value_to_output_formats_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn OutputFormatsValueDispatch + 'static>> {
@@ -107,20 +124,38 @@ impl OutputFormatsValueDispatch for OutputFormatsValueRoot {
         self.state.with(|state| state.site.clone())
     }
 
-    fn write_output_formats_value_site(&self, value: crate::models::site_context::SiteContext) {
-        self.state.with_mut(|state| state.site = value);
+    fn write_output_formats_value_site(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.site = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
 #[doc(hidden)]
 pub trait OutputFormatValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_output_format_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_output_format_value_to_output_format_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn OutputFormatValueDispatch + 'static>> {
         None
     }
     fn read_output_format_value_value(&self) -> crate::models::output_format::OutputFormat;
-    fn write_output_format_value_value(&self, value: crate::models::output_format::OutputFormat);
+    fn write_output_format_value_value(
+        &self,
+        value: crate::models::output_format::OutputFormat,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -159,35 +194,36 @@ impl rt::ObjectIdentityCarrier for OutputFormatValue {
 }
 
 pub(crate) struct OutputFormatValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<OutputFormatValueState>,
+    state: rt::ObjectState<OutputFormatValueState>,
 }
 
 impl OutputFormatValue {
     #[doc(hidden)]
     pub fn initialize_state(
         value: crate::models::output_format::OutputFormat,
-    ) -> OutputFormatValueState {
+    ) -> Result<OutputFormatValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: crate::models::output_format::OutputFormat = value;
-        OutputFormatValueState {
+        Ok(OutputFormatValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: crate::models::output_format::OutputFormat) -> OutputFormatValue {
-        let state = OutputFormatValue::initialize_state(value);
+    pub fn new(
+        value: crate::models::output_format::OutputFormat,
+    ) -> Result<OutputFormatValue, rt::TsonicError> {
+        let state = OutputFormatValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(OutputFormatValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        OutputFormatValue {
+        Ok(OutputFormatValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -207,6 +243,13 @@ impl crate::template::values::base::TemplateValueDispatch for OutputFormatValueR
 }
 
 impl OutputFormatValueDispatch for OutputFormatValueRoot {
+    fn downcast_output_format_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_output_format_value_to_output_format_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn OutputFormatValueDispatch + 'static>> {
@@ -217,8 +260,17 @@ impl OutputFormatValueDispatch for OutputFormatValueRoot {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_output_format_value_value(&self, value: crate::models::output_format::OutputFormat) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_output_format_value_value(
+        &self,
+        value: crate::models::output_format::OutputFormat,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -226,13 +278,22 @@ impl OutputFormatValueDispatch for OutputFormatValueRoot {
 pub trait OutputFormatsGetValueDispatch:
     crate::template::values::base::TemplateValueDispatch
 {
+    fn downcast_output_formats_get_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_output_formats_get_value_to_output_formats_get_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn OutputFormatsGetValueDispatch + 'static>> {
         None
     }
     fn read_output_formats_get_value_site(&self) -> crate::models::site_context::SiteContext;
-    fn write_output_formats_get_value_site(&self, value: crate::models::site_context::SiteContext);
+    fn write_output_formats_get_value_site(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -271,35 +332,36 @@ impl rt::ObjectIdentityCarrier for OutputFormatsGetValue {
 }
 
 pub(crate) struct OutputFormatsGetValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<OutputFormatsGetValueState>,
+    state: rt::ObjectState<OutputFormatsGetValueState>,
 }
 
 impl OutputFormatsGetValue {
     #[doc(hidden)]
     pub fn initialize_state(
         site: crate::models::site_context::SiteContext,
-    ) -> OutputFormatsGetValueState {
+    ) -> Result<OutputFormatsGetValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_site: crate::models::site_context::SiteContext = site;
-        OutputFormatsGetValueState {
+        Ok(OutputFormatsGetValueState {
             base: base_state,
             site: field_site,
-        }
+        })
     }
 
-    pub fn new(site: crate::models::site_context::SiteContext) -> OutputFormatsGetValue {
-        let state = OutputFormatsGetValue::initialize_state(site);
+    pub fn new(
+        site: crate::models::site_context::SiteContext,
+    ) -> Result<OutputFormatsGetValue, rt::TsonicError> {
+        let state = OutputFormatsGetValue::initialize_state(site)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(OutputFormatsGetValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        OutputFormatsGetValue {
+        Ok(OutputFormatsGetValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -319,6 +381,13 @@ impl crate::template::values::base::TemplateValueDispatch for OutputFormatsGetVa
 }
 
 impl OutputFormatsGetValueDispatch for OutputFormatsGetValueRoot {
+    fn downcast_output_formats_get_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_output_formats_get_value_to_output_formats_get_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn OutputFormatsGetValueDispatch + 'static>> {
@@ -329,7 +398,16 @@ impl OutputFormatsGetValueDispatch for OutputFormatsGetValueRoot {
         self.state.with(|state| state.site.clone())
     }
 
-    fn write_output_formats_get_value_site(&self, value: crate::models::site_context::SiteContext) {
-        self.state.with_mut(|state| state.site = value);
+    fn write_output_formats_get_value_site(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.site = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

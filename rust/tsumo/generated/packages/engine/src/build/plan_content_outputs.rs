@@ -4,7 +4,7 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn output_directory(relative_path: String) -> Result<String, rt::TsonicError> {
+pub fn output_directory(relative_path: &str) -> Result<String, rt::TsonicError> {
     let segments: js_abi::JsArray<String> =
         crate::build::site_routes::split_site_path(relative_path)?;
     let directory_segments: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
@@ -13,8 +13,8 @@ pub fn output_directory(relative_path: String) -> Result<String, rt::TsonicError
         while index < ((rt::conversions::usize_to_i32(segments.len())? - 1) as f64) {
             {
                 let operation_input_0 = directory_segments.clone();
-                operation_input_0.push_many_discard([match segments.get_number(index).as_ref() {
-                    Some(flow_value) => flow_value.clone(),
+                operation_input_0.push_many_discard([match segments.get_number(index) {
+                    Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 }])
             };
@@ -53,9 +53,8 @@ pub fn plan_content_outputs(
                     .read_standard_page_graph_page_sources()
             }
             .get_number(index)
-            .as_ref()
             {
-                Some(flow_value) => flow_value.clone(),
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let page: crate::models::page_context::PageContext = match {
@@ -65,9 +64,8 @@ pub fn plan_content_outputs(
                     .read_standard_page_graph_content_pages()
             }
             .get_number(index)
-            .as_ref()
             {
-                Some(flow_value_2) => flow_value_2.clone(),
+                Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let template_type: String = {
@@ -301,7 +299,7 @@ pub fn plan_content_outputs(
                         Some(flow_value_8) => flow_value_8.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
-                    output_directory({
+                    output_directory(&{
                         let dispatch_receiver_18 = &source;
                         dispatch_receiver_18
                             .dispatch

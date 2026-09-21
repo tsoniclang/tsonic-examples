@@ -27,14 +27,14 @@ namespace Tsumo.Engine
             resolvePath = (TemplateValue value, Tsonic.CSharp.Js.JSArray<string> segments, RenderScope scope) =>
             {
                 TemplateValue cur = value;
-                for (int i = 0; i < segments.length; i++)
+                for (double i = 0; i < segments.length; i++)
                 {
                     string seg = segments[i];
-                    if (cur is NilValue)
+                    if ((object?)cur is NilValue)
                     {
                         return Template_runtimeHelpers.nil;
                     }
-                    if (cur is PageValue)
+                    if ((object?)cur is PageValue)
                     {
                         PageContext page = ((PageValue)cur).value;
                         string k = Tsonic.CSharp.Js.String.toLowerCase(seg);
@@ -430,7 +430,7 @@ namespace Tsumo.Engine
                         }
                         continue;
                     }
-                    if (cur is DateValue)
+                    if ((object?)cur is DateValue)
                     {
                         string key = Tsonic.CSharp.Js.String.toLowerCase(seg);
                         if (key == "iszero")
@@ -456,7 +456,7 @@ namespace Tsumo.Engine
                         }
                         continue;
                     }
-                    if (cur is PageDataValue)
+                    if ((object?)cur is PageDataValue)
                     {
                         PageContext page_1 = ((PageDataValue)cur).page;
                         string key_1 = Tsonic.CSharp.Js.String.toLowerCase(seg);
@@ -478,7 +478,7 @@ namespace Tsumo.Engine
                         }
                         continue;
                     }
-                    if (cur is SiteValue)
+                    if ((object?)cur is SiteValue)
                     {
                         SiteContext site = ((SiteValue)cur).value;
                         string k_1 = Tsonic.CSharp.Js.String.toLowerCase(seg);
@@ -634,7 +634,7 @@ namespace Tsumo.Engine
                         }
                         continue;
                     }
-                    if (cur is LanguageValue)
+                    if ((object?)cur is LanguageValue)
                     {
                         LanguageContext lang = ((LanguageValue)cur).value;
                         string k_2 = Tsonic.CSharp.Js.String.toLowerCase(seg);
@@ -662,7 +662,7 @@ namespace Tsumo.Engine
                         }
                         continue;
                     }
-                    if (cur is FileValue)
+                    if ((object?)cur is FileValue)
                     {
                         PageFile f = ((FileValue)cur).value;
                         string k_3 = Tsonic.CSharp.Js.String.toLowerCase(seg);
@@ -690,7 +690,7 @@ namespace Tsumo.Engine
                         }
                         continue;
                     }
-                    if (cur is SitesValue)
+                    if ((object?)cur is SitesValue)
                     {
                         string k_4 = Tsonic.CSharp.Js.String.toLowerCase(seg);
                         if (k_4 == "default")
@@ -703,14 +703,14 @@ namespace Tsumo.Engine
                         }
                         continue;
                     }
-                    if (cur is MenusValue)
+                    if ((object?)cur is MenusValue)
                     {
                         SiteContext site_1 = ((MenusValue)cur).site;
                         Tsonic.CSharp.Js.JSArray<MenuEntry>? entries = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>(site_1.Menus, seg) ?? Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>(site_1.Menus, Tsonic.CSharp.Js.String.toLowerCase(seg));
                         cur = entries is not null ? new MenuArrayValue(entries, site_1) : Template_runtimeHelpers.nil;
                         continue;
                     }
-                    if (cur is MenuEntryValue)
+                    if ((object?)cur is MenuEntryValue)
                     {
                         MenuEntry entry = ((MenuEntryValue)cur).value;
                         SiteContext site_2 = ((MenuEntryValue)cur).site;
@@ -804,7 +804,7 @@ namespace Tsumo.Engine
                         }
                         continue;
                     }
-                    if (cur is OutputFormatsValue)
+                    if ((object?)cur is OutputFormatsValue)
                     {
                         SiteContext site_3 = ((OutputFormatsValue)cur).site;
                         string k_6 = Tsonic.CSharp.Js.String.toLowerCase(seg);
@@ -818,7 +818,7 @@ namespace Tsumo.Engine
                         }
                         continue;
                     }
-                    if (cur is OutputFormatValue)
+                    if ((object?)cur is OutputFormatValue)
                     {
                         OutputFormat fmt = ((OutputFormatValue)cur).value;
                         string k_7 = Tsonic.CSharp.Js.String.toLowerCase(seg);
@@ -846,7 +846,7 @@ namespace Tsumo.Engine
                         }
                         continue;
                     }
-                    if (cur is MediaTypeValue)
+                    if ((object?)cur is MediaTypeValue)
                     {
                         MediaType mt = ((MediaTypeValue)cur).value;
                         string k_8 = Tsonic.CSharp.Js.String.toLowerCase(seg);
@@ -860,7 +860,7 @@ namespace Tsumo.Engine
                         }
                         continue;
                     }
-                    if (cur is ShortcodeValue)
+                    if ((object?)cur is ShortcodeValue)
                     {
                         ShortcodeContext sc = ((ShortcodeValue)cur).value;
                         string k_9 = Tsonic.CSharp.Js.String.toLowerCase(seg);
@@ -931,7 +931,7 @@ namespace Tsumo.Engine
                         }
                         continue;
                     }
-                    if (cur is LinkHookValue)
+                    if ((object?)cur is LinkHookValue)
                     {
                         LinkHookContext hook = ((LinkHookValue)cur).value;
                         string k_10 = Tsonic.CSharp.Js.String.toLowerCase(seg);
@@ -987,7 +987,7 @@ namespace Tsumo.Engine
                         }
                         continue;
                     }
-                    if (cur is ImageHookValue)
+                    if ((object?)cur is ImageHookValue)
                     {
                         ImageHookContext hook_1 = ((ImageHookValue)cur).value;
                         string k_11 = Tsonic.CSharp.Js.String.toLowerCase(seg);
@@ -1043,7 +1043,7 @@ namespace Tsumo.Engine
                         }
                         continue;
                     }
-                    if (cur is HeadingHookValue)
+                    if ((object?)cur is HeadingHookValue)
                     {
                         HeadingHookContext hook_2 = ((HeadingHookValue)cur).value;
                         string k_12 = Tsonic.CSharp.Js.String.toLowerCase(seg);
@@ -1099,14 +1099,14 @@ namespace Tsumo.Engine
                         }
                         continue;
                     }
-                    if (cur is TaxonomiesValue)
+                    if ((object?)cur is TaxonomiesValue)
                     {
                         SiteContext site_4 = ((TaxonomiesValue)cur).site;
                         Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<PageContext>>? terms_1 = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<PageContext>>>(site_4.Taxonomies, seg) ?? Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<PageContext>>>(site_4.Taxonomies, Tsonic.CSharp.Js.String.toLowerCase(seg));
                         cur = terms_1 is not null ? new TaxonomyTermsValue(terms_1, site_4) : Template_runtimeHelpers.nil;
                         continue;
                     }
-                    if (cur is TaxonomyTermsValue)
+                    if ((object?)cur is TaxonomyTermsValue)
                     {
                         Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<PageContext>> termsDict = ((TaxonomyTermsValue)cur).terms;
                         SiteContext site_5 = ((TaxonomyTermsValue)cur).site;
@@ -1119,7 +1119,7 @@ namespace Tsumo.Engine
                         cur = pages_1 is not null ? new PageArrayValue(pages_1) : Template_runtimeHelpers.nil;
                         continue;
                     }
-                    if (cur is UrlValue)
+                    if ((object?)cur is UrlValue)
                     {
                         ParsedUrl uri = ((UrlValue)cur).value;
                         string k_13 = Tsonic.CSharp.Js.String.toLowerCase(seg);
@@ -1173,13 +1173,13 @@ namespace Tsumo.Engine
                         cur = Template_runtimeHelpers.nil;
                         continue;
                     }
-                    if (cur is UrlQueryValue)
+                    if ((object?)cur is UrlQueryValue)
                     {
                         string? selected_1 = Template_evaluation_urlQuerySemantics.getUrlQueryValue(((UrlQueryValue)cur).value, seg);
                         cur = selected_1 is null ? Template_runtimeHelpers.nil : new StringValue(selected_1);
                         continue;
                     }
-                    if (cur is ResourceValue)
+                    if ((object?)cur is ResourceValue)
                     {
                         ResourceValue rv = (ResourceValue)cur;
                         Resource res = rv.value;
@@ -1240,7 +1240,7 @@ namespace Tsumo.Engine
                         cur = Template_runtimeHelpers.nil;
                         continue;
                     }
-                    if (cur is ResourceDataValue)
+                    if ((object?)cur is ResourceDataValue)
                     {
                         ResourceData data = ((ResourceDataValue)cur).value;
                         string k_15 = Tsonic.CSharp.Js.String.toLowerCase(seg);
@@ -1252,7 +1252,7 @@ namespace Tsumo.Engine
                         cur = Template_runtimeHelpers.nil;
                         continue;
                     }
-                    if (cur is DocsMountValue)
+                    if ((object?)cur is DocsMountValue)
                     {
                         DocsMountContext mount = ((DocsMountValue)cur).value;
                         string k_16 = Tsonic.CSharp.Js.String.toLowerCase(seg);
@@ -1280,7 +1280,7 @@ namespace Tsumo.Engine
                         }
                         continue;
                     }
-                    if (cur is NavItemValue)
+                    if ((object?)cur is NavItemValue)
                     {
                         NavItem item = ((NavItemValue)cur).value;
                         string k_17 = Tsonic.CSharp.Js.String.toLowerCase(seg);
@@ -1329,7 +1329,7 @@ namespace Tsumo.Engine
                         }
                         continue;
                     }
-                    if (cur is DictValue)
+                    if ((object?)cur is DictValue)
                     {
                         Tsonic.CSharp.Js.Map<string, TemplateValue> dict = ((DictValue)cur).value;
                         TemplateValue? direct = Tsonic.CSharp.Js.Map.getReference<string, TemplateValue>(dict, seg);
@@ -1348,7 +1348,7 @@ namespace Tsumo.Engine
                         cur = Template_runtimeHelpers.nil;
                         continue;
                     }
-                    if (cur is PaginatorValue)
+                    if ((object?)cur is PaginatorValue)
                     {
                         string key_2 = Tsonic.CSharp.Js.String.toLowerCase(seg);
                         int totalPages = ((PaginatorValue)cur).totalPages();
@@ -1411,7 +1411,7 @@ namespace Tsumo.Engine
                         }
                         continue;
                     }
-                    if (cur is PageGroupValue)
+                    if ((object?)cur is PageGroupValue)
                     {
                         PageGroupValue group = (PageGroupValue)cur;
                         string key_3 = Tsonic.CSharp.Js.String.toLowerCase(seg);
@@ -1432,7 +1432,7 @@ namespace Tsumo.Engine
                         }
                         continue;
                     }
-                    if (cur is PageArrayValue)
+                    if ((object?)cur is PageArrayValue)
                     {
                         cur = Template_evaluation_pageSemantics.resolvePageCollectionProperty((PageArrayValue)cur, seg) ?? Template_runtimeHelpers.nil;
                         continue;

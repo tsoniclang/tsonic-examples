@@ -39,14 +39,14 @@ impl ParseNodesResult {
         else_tokens: js_abi::JsArray<String>,
         terminator_segment: Option<crate::template::parser::tokens::TemplateSegment>,
         terminator_segment_index: i32,
-    ) -> ParseNodesResult {
+    ) -> Result<ParseNodesResult, rt::TsonicError> {
         let field_nodes: js_abi::JsArray<crate::template::nodes::TemplateNode> = nodes;
         let field_terminator: TemplateTerminator = terminator;
         let field_else_tokens: js_abi::JsArray<String> = else_tokens;
         let field_terminator_segment: Option<crate::template::parser::tokens::TemplateSegment> =
             terminator_segment;
         let field_terminator_segment_index: i32 = terminator_segment_index;
-        ParseNodesResult {
+        Ok(ParseNodesResult {
             state: rt::ObjectRef::new(ParseNodesResultState {
                 nodes: field_nodes,
                 terminator: field_terminator,
@@ -54,7 +54,7 @@ impl ParseNodesResult {
                 terminator_segment: field_terminator_segment,
                 terminator_segment_index: field_terminator_segment_index,
             }),
-        }
+        })
     }
 }
 
@@ -80,15 +80,15 @@ impl ParsedControlPipeline {
     pub fn new(
         pipeline: crate::template::syntax::expressions::Pipeline,
         binding: Option<crate::template::nodes::TemplateVariableBinding>,
-    ) -> ParsedControlPipeline {
+    ) -> Result<ParsedControlPipeline, rt::TsonicError> {
         let field_pipeline: crate::template::syntax::expressions::Pipeline = pipeline;
         let field_binding: Option<crate::template::nodes::TemplateVariableBinding> = binding;
-        ParsedControlPipeline {
+        Ok(ParsedControlPipeline {
             state: rt::ObjectRef::new(ParsedControlPipelineState {
                 pipeline: field_pipeline,
                 binding: field_binding,
             }),
-        }
+        })
     }
 }
 
@@ -99,16 +99,16 @@ pub fn parse_control_pipeline(
     column: i32,
 ) -> Result<ParsedControlPipeline, rt::TsonicError> {
     let first: String = if rt::conversions::usize_to_i32(tokens.len())? > 0 {
-        match tokens.get_number(0.0).as_ref() {
-            Some(flow_value) => flow_value.clone(),
+        match tokens.get_number(0.0) {
+            Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
         }
     } else {
         String::from("")
     };
     let operation: String = if rt::conversions::usize_to_i32(tokens.len())? > 1 {
-        match tokens.get_number(1.0).as_ref() {
-            Some(flow_value_2) => flow_value_2.clone(),
+        match tokens.get_number(1.0) {
+            Some(flow_value_2) => flow_value_2,
             None => unreachable!("checked flow selected a missing optional value"),
         }
     } else {
@@ -120,7 +120,7 @@ pub fn parse_control_pipeline(
         && rt::conversions::isize_to_i32(js_string::index_of_from_start(&first, "."))? < 0
         && (operation == ":=" || operation == "=");
     if !has_binding {
-        return Ok(ParsedControlPipeline::new(
+        return ParsedControlPipeline::new(
             crate::template::parser::parse_pipeline::parse_pipeline(
                 tokens.clone(),
                 source_path.clone(),
@@ -128,7 +128,7 @@ pub fn parse_control_pipeline(
                 Some(column),
             )?,
             Option::<crate::template::nodes::TemplateVariableBinding>::None,
-        ));
+        );
     }
     if rt::conversions::usize_to_i32(tokens.len())? < 3 {
         return Err(rt::TsonicError::TsumoError(
@@ -138,10 +138,10 @@ pub fn parse_control_pipeline(
                 source_path.clone(),
                 Some(rt::conversions::i32_to_f64(line)),
                 Some(rt::conversions::i32_to_f64(column)),
-            ),
+            )?,
         ));
     }
-    Ok(ParsedControlPipeline::new(
+    ParsedControlPipeline::new(
         crate::template::parser::parse_pipeline::parse_pipeline(
             crate::template::parser::tokens::slice_tokens(tokens.clone(), 2)?,
             source_path.clone(),
@@ -151,11 +151,11 @@ pub fn parse_control_pipeline(
         Some(crate::template::nodes::TemplateVariableBinding::new(
             crate::utils::strings::substring_from(&first, 1)?,
             operation == ":=",
-        )),
-    ))
+        )?),
+    )
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone)]
 pub struct TemplateParser {
     pub segments: js_abi::JsArray<crate::template::parser::tokens::TemplateSegment>,
     pub index: i32,
@@ -197,11 +197,11 @@ impl TemplateParser {
             false,
             Option::<crate::template::parser::tokens::TemplateSegment>::None,
         )?;
-        Ok(crate::template::template_2::Template::new(
+        crate::template::template_2::Template::new(
             result.state.with(|state| state.nodes.clone()),
             self.defines.clone(),
             self.source_path.clone(),
-        ))
+        )
     }
 
     pub fn parse_independent_nodes(
@@ -210,15 +210,13 @@ impl TemplateParser {
     ) -> Result<ParseNodesResult, rt::TsonicError> {
         let previous_range_depth: i32 = self.range_depth;
         {
-            let receiver = &mut *self;
-            let value = 0;
-            receiver.range_depth = value
+            let field_value = 0;
+            self.range_depth = field_value
         };
         let result: ParseNodesResult = self.parse_nodes(false, true, Some(opening))?;
         {
-            let receiver_2 = &mut *self;
-            let value_2 = previous_range_depth;
-            receiver_2.range_depth = value_2
+            let field_value_2 = previous_range_depth;
+            self.range_depth = field_value_2
         };
         Ok(result)
     }
@@ -230,12 +228,12 @@ impl TemplateParser {
     ) -> Result<crate::template::nodes::IfNode, rt::TsonicError> {
         let then_result: ParseNodesResult = self.parse_nodes(true, true, Some(opening.clone()))?;
         if then_result.state.with(|state| state.terminator) == TemplateTerminator::End {
-            return Ok(crate::template::nodes::IfNode::new(
+            return crate::template::nodes::IfNode::new(
                 control.state.with(|state| state.pipeline.clone()),
                 control.state.with(|state| state.binding.clone()),
                 then_result.state.with(|state| state.nodes.clone()),
                 js_abi::JsArray::from_dense(vec![]),
-            ));
+            );
         }
         if then_result.state.with(|state| state.terminator) != TemplateTerminator::Else {
             return Err(rt::TsonicError::TsumoError(
@@ -249,15 +247,15 @@ impl TemplateParser {
                     Some(rt::conversions::i32_to_f64(
                         opening.state.with(|state| state.column),
                     )),
-                ),
+                )?,
             ));
         }
-        Ok(crate::template::nodes::IfNode::new(
+        crate::template::nodes::IfNode::new(
             control.state.with(|state| state.pipeline.clone()),
             control.state.with(|state| state.binding.clone()),
             then_result.state.with(|state| state.nodes.clone()),
             self.parse_alternative(then_result.clone(), opening.clone())?,
-        ))
+        )
     }
 
     pub fn parse_with(
@@ -273,14 +271,14 @@ impl TemplateParser {
             } else {
                 js_abi::JsArray::from_dense(vec![])
             };
-        Ok(crate::template::nodes::WithNode::new(
+        crate::template::nodes::WithNode::new(
             control.state.with(|state| state.pipeline.clone()),
             control.state.with(|state| state.binding.clone()),
             body.state.with(|state| state.nodes.clone()),
             else_nodes,
             self.source_text.clone(),
             source_segment_index,
-        ))
+        )
     }
 
     pub fn parse_alternative(
@@ -349,7 +347,7 @@ impl TemplateParser {
                 Some(rt::conversions::i32_to_f64(
                     else_segment.state.with(|state| state.column),
                 )),
-            ),
+            )?,
         ))
     }
 
@@ -363,25 +361,22 @@ impl TemplateParser {
             js_abi::JsArray::from_dense(vec![]);
         'loop_value: while self.index < rt::conversions::usize_to_i32(self.segments.len())? {
             let source_segment_index: i32 = self.index;
-            let segment: crate::template::parser::tokens::TemplateSegment = match {
-                let operation_input_0 = self.segments.clone();
-                operation_input_0.get_number(rt::conversions::i32_to_f64(self.index))
-            }
-            .as_ref()
-            {
-                Some(flow_value) => flow_value.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
+            let segment: crate::template::parser::tokens::TemplateSegment = {
+                let flow_input = {
+                    let operation_input_0 = self.segments.clone();
+                    operation_input_0.get_number(rt::conversions::i32_to_f64(self.index))
+                };
+                match flow_input {
+                    Some(flow_value) => flow_value,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }
             };
             {
-                let update_receiver = &mut *self;
+                let update_previous = self.index;
+                let update_next = update_previous + 1;
                 {
-                    let update_location = &mut update_receiver.index;
-                    let update_previous = *update_location;
-                    let update_next = update_previous + 1;
-                    {
-                        *update_location = update_next;
-                        update_next
-                    }
+                    self.index = update_next;
+                    update_next
                 }
             };
             if !segment.state.with(|state| state.is_action) {
@@ -390,7 +385,7 @@ impl TemplateParser {
                     operation_input_0_2.push_many_discard([{
                         let upcast_value = crate::template::nodes::TextNode::new(
                             segment.state.with(|state| state.text.clone()),
-                        );
+                        )?;
                         crate::template::nodes::TemplateNode {
                             identity: upcast_value.identity.clone(),
                             dispatch: upcast_value.dispatch.clone(),
@@ -418,8 +413,8 @@ impl TemplateParser {
             if rt::conversions::usize_to_i32(tokens.len())? == 0 {
                 continue 'loop_value;
             }
-            let head: String = match tokens.get_number(0.0).as_ref() {
-                Some(flow_value_2) => flow_value_2.clone(),
+            let head: String = match tokens.get_number(0.0) {
+                Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if head == "end" {
@@ -435,16 +430,16 @@ impl TemplateParser {
                             Some(rt::conversions::i32_to_f64(
                                 segment.state.with(|state| state.column),
                             )),
-                        ),
+                        )?,
                     ));
                 }
-                return Ok(ParseNodesResult::new(
+                return ParseNodesResult::new(
                     nodes.clone(),
                     TemplateTerminator::End,
                     js_abi::JsArray::from_dense(vec![]),
                     Some(segment.clone()),
                     source_segment_index,
-                ));
+                );
             }
             if head == "else" {
                 if !allow_else {
@@ -461,16 +456,16 @@ impl TemplateParser {
                             Some(rt::conversions::i32_to_f64(
                                 segment.state.with(|state| state.column),
                             )),
-                        ),
+                        )?,
                     ));
                 }
-                return Ok(ParseNodesResult::new(
+                return ParseNodesResult::new(
                     nodes.clone(),
                     TemplateTerminator::Else,
                     tokens.clone(),
                     Some(segment.clone()),
                     source_segment_index,
-                ));
+                );
             }
             if head == "break" || head == "continue" {
                 if rt::conversions::usize_to_i32(tokens.len())? != 1 {
@@ -490,7 +485,7 @@ impl TemplateParser {
                             Some(rt::conversions::i32_to_f64(
                                 segment.state.with(|state| state.column),
                             )),
-                        ),
+                        )?,
                     ));
                 }
                 if self.range_depth == 0 {
@@ -514,7 +509,7 @@ impl TemplateParser {
                             Some(rt::conversions::i32_to_f64(
                                 segment.state.with(|state| state.column),
                             )),
-                        ),
+                        )?,
                     ));
                 }
                 {
@@ -548,19 +543,19 @@ impl TemplateParser {
                             Some(rt::conversions::i32_to_f64(
                                 segment.state.with(|state| state.column),
                             )),
-                        ),
+                        )?,
                     ));
                 }
                 let name: String = rt::option_coalesce(
-                    crate::template::parser::tokens::parse_string_literal(
-                        match tokens.get_number(1.0).as_ref() {
-                            Some(flow_value_3) => flow_value_3.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },
-                    )?,
+                    crate::template::parser::tokens::parse_string_literal(&match tokens
+                        .get_number(1.0)
+                    {
+                        Some(flow_value_3) => flow_value_3,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    })?,
                     core::convert::identity,
-                    || match tokens.get_number(1.0).as_ref() {
-                        Some(flow_value_4) => flow_value_4.clone(),
+                    || match tokens.get_number(1.0) {
+                        Some(flow_value_4) => flow_value_4,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                 );
@@ -581,7 +576,7 @@ impl TemplateParser {
                             Some(rt::conversions::i32_to_f64(
                                 segment.state.with(|state| state.column),
                             )),
-                        ),
+                        )?,
                     ));
                 }
                 let body: ParseNodesResult = self.parse_independent_nodes(segment.clone())?;
@@ -605,19 +600,19 @@ impl TemplateParser {
                             Some(rt::conversions::i32_to_f64(
                                 segment.state.with(|state| state.column),
                             )),
-                        ),
+                        )?,
                     ));
                 }
                 let name: String = rt::option_coalesce(
-                    crate::template::parser::tokens::parse_string_literal(
-                        match tokens.get_number(1.0).as_ref() {
-                            Some(flow_value_5) => flow_value_5.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },
-                    )?,
+                    crate::template::parser::tokens::parse_string_literal(&match tokens
+                        .get_number(1.0)
+                    {
+                        Some(flow_value_5) => flow_value_5,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    })?,
                     core::convert::identity,
-                    || match tokens.get_number(1.0).as_ref() {
-                        Some(flow_value_6) => flow_value_6.clone(),
+                    || match tokens.get_number(1.0) {
+                        Some(flow_value_6) => flow_value_6,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                 );
@@ -640,7 +635,7 @@ impl TemplateParser {
                                 Some(segment.state.with(|state| state.column)),
                             )?,
                             body.state.with(|state| state.nodes.clone()),
-                        );
+                        )?;
                         crate::template::nodes::TemplateNode {
                             identity: upcast_value_4.identity.clone(),
                             dispatch: upcast_value_4.dispatch.clone(),
@@ -696,11 +691,8 @@ impl TemplateParser {
                 let mut key_variable: Option<String> = Option::<String>::None;
                 let mut value_variable: Option<String> = Option::<String>::None;
                 let first: String = if token_index < rt::conversions::usize_to_i32(tokens.len())? {
-                    match tokens
-                        .get_number(rt::conversions::i32_to_f64(token_index))
-                        .as_ref()
-                    {
-                        Some(flow_value_7) => flow_value_7.clone(),
+                    match tokens.get_number(rt::conversions::i32_to_f64(token_index)) {
+                        Some(flow_value_7) => flow_value_7,
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                 } else {
@@ -718,11 +710,8 @@ impl TemplateParser {
                 let has_key_value_declaration: bool = token_index + 3
                     < rt::conversions::usize_to_i32(tokens.len())?
                     && js_string::starts_with_from_start(
-                        &match tokens
-                            .get_number(rt::conversions::i32_to_f64(token_index))
-                            .as_ref()
-                        {
-                            Some(flow_value_8) => flow_value_8.clone(),
+                        &match tokens.get_number(rt::conversions::i32_to_f64(token_index)) {
+                            Some(flow_value_8) => flow_value_8,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                         "$",
@@ -730,11 +719,8 @@ impl TemplateParser {
                     && tokens.get_number(rt::conversions::i32_to_f64(token_index + 1))
                         == Some(String::from(","))
                     && js_string::starts_with_from_start(
-                        &match tokens
-                            .get_number(rt::conversions::i32_to_f64(token_index + 2))
-                            .as_ref()
-                        {
-                            Some(flow_value_9) => flow_value_9.clone(),
+                        &match tokens.get_number(rt::conversions::i32_to_f64(token_index + 2)) {
+                            Some(flow_value_9) => flow_value_9,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                         "$",
@@ -743,72 +729,51 @@ impl TemplateParser {
                         == Some(String::from(":="))
                         || tokens.get_number(rt::conversions::i32_to_f64(token_index + 3))
                             == Some(String::from("=")));
-                let expression_tokens: js_abi::JsArray<String>;
-                if has_key_value_declaration {
+                let expression_tokens: js_abi::JsArray<String> = if has_key_value_declaration {
                     key_variable = Some(crate::utils::strings::substring_from(
-                        &match tokens
-                            .get_number(rt::conversions::i32_to_f64(token_index))
-                            .as_ref()
-                        {
-                            Some(flow_value_10) => flow_value_10.clone(),
+                        &match tokens.get_number(rt::conversions::i32_to_f64(token_index)) {
+                            Some(flow_value_10) => flow_value_10,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                         1,
                     )?);
                     value_variable = Some(crate::utils::strings::substring_from(
-                        &match tokens
-                            .get_number(rt::conversions::i32_to_f64(token_index + 2))
-                            .as_ref()
-                        {
-                            Some(flow_value_11) => flow_value_11.clone(),
+                        &match tokens.get_number(rt::conversions::i32_to_f64(token_index + 2)) {
+                            Some(flow_value_11) => flow_value_11,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                         1,
                     )?);
                     token_index += 4;
-                    expression_tokens =
-                        crate::template::parser::tokens::slice_tokens(tokens.clone(), token_index)?;
+                    crate::template::parser::tokens::slice_tokens(tokens.clone(), token_index)?
                 } else if is_variable && has_value_declaration {
                     value_variable = Some(crate::utils::strings::substring_from(
-                        &match tokens
-                            .get_number(rt::conversions::i32_to_f64(token_index))
-                            .as_ref()
-                        {
-                            Some(flow_value_12) => flow_value_12.clone(),
+                        &match tokens.get_number(rt::conversions::i32_to_f64(token_index)) {
+                            Some(flow_value_12) => flow_value_12,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                         1,
                     )?);
                     token_index += 2;
-                    expression_tokens =
-                        crate::template::parser::tokens::slice_tokens(tokens.clone(), token_index)?;
+                    crate::template::parser::tokens::slice_tokens(tokens.clone(), token_index)?
                 } else {
-                    expression_tokens =
-                        crate::template::parser::tokens::slice_tokens(tokens.clone(), 1)?;
-                }
+                    crate::template::parser::tokens::slice_tokens(tokens.clone(), 1)?
+                };
                 {
-                    let update_receiver_2 = &mut *self;
+                    let update_previous_2 = self.range_depth;
+                    let update_next_2 = update_previous_2 + 1;
                     {
-                        let update_location_2 = &mut update_receiver_2.range_depth;
-                        let update_previous_2 = *update_location_2;
-                        let update_next_2 = update_previous_2 + 1;
-                        {
-                            *update_location_2 = update_next_2;
-                            update_next_2
-                        }
+                        self.range_depth = update_next_2;
+                        update_next_2
                     }
                 };
                 let body: ParseNodesResult = self.parse_nodes(true, true, Some(segment.clone()))?;
                 {
-                    let update_receiver_3 = &mut *self;
+                    let update_previous_3 = self.range_depth;
+                    let update_next_3 = update_previous_3 - 1;
                     {
-                        let update_location_3 = &mut update_receiver_3.range_depth;
-                        let update_previous_3 = *update_location_3;
-                        let update_next_3 = update_previous_3 - 1;
-                        {
-                            *update_location_3 = update_next_3;
-                            update_next_3
-                        }
+                        self.range_depth = update_next_3;
+                        update_next_3
                     }
                 };
                 let else_nodes: js_abi::JsArray<crate::template::nodes::TemplateNode> =
@@ -831,7 +796,7 @@ impl TemplateParser {
                             value_variable.clone(),
                             body.state.with(|state| state.nodes.clone()),
                             else_nodes.clone(),
-                        );
+                        )?;
                         crate::template::nodes::TemplateNode {
                             identity: upcast_value_7.identity.clone(),
                             dispatch: upcast_value_7.dispatch.clone(),
@@ -853,19 +818,19 @@ impl TemplateParser {
                             Some(rt::conversions::i32_to_f64(
                                 segment.state.with(|state| state.column),
                             )),
-                        ),
+                        )?,
                     ));
                 }
                 let name: String = rt::option_coalesce(
-                    crate::template::parser::tokens::parse_string_literal(
-                        match tokens.get_number(1.0).as_ref() {
-                            Some(flow_value_13) => flow_value_13.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },
-                    )?,
+                    crate::template::parser::tokens::parse_string_literal(&match tokens
+                        .get_number(1.0)
+                    {
+                        Some(flow_value_13) => flow_value_13,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    })?,
                     core::convert::identity,
-                    || match tokens.get_number(1.0).as_ref() {
-                        Some(flow_value_14) => flow_value_14.clone(),
+                    || match tokens.get_number(1.0) {
+                        Some(flow_value_14) => flow_value_14,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                 );
@@ -886,7 +851,7 @@ impl TemplateParser {
                                 Some(segment.state.with(|state| state.line)),
                                 Some(segment.state.with(|state| state.column)),
                             )?,
-                        );
+                        )?;
                         crate::template::nodes::TemplateNode {
                             identity: upcast_value_8.identity.clone(),
                             dispatch: upcast_value_8.dispatch.clone(),
@@ -900,8 +865,8 @@ impl TemplateParser {
                 && head != "$"
                 && !js_string::starts_with_from_start(&head, "$.")
             {
-                let operation: String = match tokens.get_number(1.0).as_ref() {
-                    Some(flow_value_15) => flow_value_15.clone(),
+                let operation: String = match tokens.get_number(1.0) {
+                    Some(flow_value_15) => flow_value_15,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 if operation == ":=" || operation == "=" {
@@ -920,7 +885,7 @@ impl TemplateParser {
                                     Some(segment.state.with(|state| state.column)),
                                 )?,
                                 operation == ":=",
-                            );
+                            )?;
                             crate::template::nodes::TemplateNode {
                                 identity: upcast_value_9.identity.clone(),
                                 dispatch: upcast_value_9.dispatch.clone(),
@@ -941,7 +906,7 @@ impl TemplateParser {
                             Some(segment.state.with(|state| state.column)),
                         )?,
                         true,
-                    );
+                    )?;
                     crate::template::nodes::TemplateNode {
                         identity: upcast_value_10.identity.clone(),
                         dispatch: upcast_value_10.dispatch.clone(),
@@ -965,16 +930,16 @@ impl TemplateParser {
                             optional_receiver_2.state.with(|state| state.column)
                         })
                         .map(rt::conversions::i32_to_f64),
-                ),
+                )?,
             ));
         }
-        Ok(ParseNodesResult::new(
+        ParseNodesResult::new(
             nodes.clone(),
             TemplateTerminator::Eof,
             js_abi::JsArray::from_dense(vec![]),
             Option::<crate::template::parser::tokens::TemplateSegment>::None,
             -1,
-        ))
+        )
     }
 }
 

@@ -42,13 +42,13 @@ namespace Tsumo.Engine
             this.baseURL = baseURL;
             this.languageCode = languageCode;
             this.contentDir = "content";
-            Tsonic.CSharp.Js.JSArray<LanguageConfig> empty = new Tsonic.CSharp.Js.JSArray<LanguageConfig>(new LanguageConfig[] { });
+            Tsonic.CSharp.Js.JSArray<LanguageConfig> empty = Tsonic.CSharp.Js.JSArray<LanguageConfig>.of([]);
             this.languages = empty;
             this.theme = theme;
             this.copyright = copyright;
             this.Params = new Tsonic.CSharp.Js.Map<string, ParamValue>();
             this.Menus = new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>();
-            Tsonic.CSharp.Js.JSArray<ModuleMount> emptyMounts = new Tsonic.CSharp.Js.JSArray<ModuleMount>(new ModuleMount[] { });
+            Tsonic.CSharp.Js.JSArray<ModuleMount> emptyMounts = Tsonic.CSharp.Js.JSArray<ModuleMount>.of([]);
             this.moduleMounts = emptyMounts;
         }
     }

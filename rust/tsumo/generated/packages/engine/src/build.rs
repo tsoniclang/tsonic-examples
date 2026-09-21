@@ -64,19 +64,20 @@ pub trait BuildRequestDispatch {
         None
     }
     fn read_build_request_site_dir(&self) -> String;
-    fn write_build_request_site_dir(&self, value: String);
+    fn write_build_request_site_dir(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_build_request_destination_dir(&self) -> String;
-    fn write_build_request_destination_dir(&self, value: String);
+    fn write_build_request_destination_dir(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_build_request_base_url(&self) -> Option<String>;
-    fn write_build_request_base_url(&self, value: Option<String>);
+    fn write_build_request_base_url(&self, value: Option<String>) -> Result<(), rt::TsonicError>;
     fn read_build_request_themes_dir(&self) -> Option<String>;
-    fn write_build_request_themes_dir(&self, value: Option<String>);
+    fn write_build_request_themes_dir(&self, value: Option<String>) -> Result<(), rt::TsonicError>;
     fn read_build_request_build_drafts(&self) -> bool;
-    fn write_build_request_build_drafts(&self, value: bool);
+    fn write_build_request_build_drafts(&self, value: bool) -> Result<(), rt::TsonicError>;
     fn read_build_request_clean_destination_dir(&self) -> bool;
-    fn write_build_request_clean_destination_dir(&self, value: bool);
+    fn write_build_request_clean_destination_dir(&self, value: bool)
+    -> Result<(), rt::TsonicError>;
     fn read_build_request_build_time(&self) -> js_abi::JsDate;
-    fn write_build_request_build_time(&self, value: js_abi::JsDate);
+    fn write_build_request_build_time(&self, value: js_abi::JsDate) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -119,14 +120,13 @@ impl rt::ObjectIdentityCarrier for BuildRequest {
 }
 
 pub(crate) struct BuildRequestRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<BuildRequestState>,
+    state: rt::ObjectState<BuildRequestState>,
 }
 
 impl BuildRequest {
     #[doc(hidden)]
-    pub fn initialize_state(site_dir: String) -> BuildRequestState {
+    pub fn initialize_state(site_dir: String) -> Result<BuildRequestState, rt::TsonicError> {
         let field_site_dir: String = site_dir;
         let field_destination_dir: String = String::from("public");
         let field_base_url: Option<String> = Option::<String>::None;
@@ -134,7 +134,7 @@ impl BuildRequest {
         let field_build_drafts: bool = false;
         let field_clean_destination_dir: bool = true;
         let field_build_time: js_abi::JsDate = js_abi::JsDate::new();
-        BuildRequestState {
+        Ok(BuildRequestState {
             site_dir: field_site_dir,
             destination_dir: field_destination_dir,
             base_url: field_base_url,
@@ -142,20 +142,20 @@ impl BuildRequest {
             build_drafts: field_build_drafts,
             clean_destination_dir: field_clean_destination_dir,
             build_time: field_build_time,
-        }
+        })
     }
 
-    pub fn new(site_dir: String) -> BuildRequest {
-        let state = BuildRequest::initialize_state(site_dir);
+    pub fn new(site_dir: String) -> Result<BuildRequest, rt::TsonicError> {
+        let state = BuildRequest::initialize_state(site_dir)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(BuildRequestRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        BuildRequest {
+        Ok(BuildRequest {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -170,73 +170,123 @@ impl BuildRequestDispatch for BuildRequestRoot {
         self.state.with(|state| state.site_dir.clone())
     }
 
-    fn write_build_request_site_dir(&self, value: String) {
-        self.state.with_mut(|state| state.site_dir = value);
+    fn write_build_request_site_dir(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.site_dir = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_build_request_destination_dir(&self) -> String {
         self.state.with(|state| state.destination_dir.clone())
     }
 
-    fn write_build_request_destination_dir(&self, value: String) {
-        self.state.with_mut(|state| state.destination_dir = value);
+    fn write_build_request_destination_dir(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.destination_dir = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_build_request_base_url(&self) -> Option<String> {
         self.state.with(|state| state.base_url.clone())
     }
 
-    fn write_build_request_base_url(&self, value: Option<String>) {
-        self.state.with_mut(|state| state.base_url = value);
+    fn write_build_request_base_url(&self, value: Option<String>) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base_url = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_build_request_themes_dir(&self) -> Option<String> {
         self.state.with(|state| state.themes_dir.clone())
     }
 
-    fn write_build_request_themes_dir(&self, value: Option<String>) {
-        self.state.with_mut(|state| state.themes_dir = value);
+    fn write_build_request_themes_dir(&self, value: Option<String>) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.themes_dir = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_build_request_build_drafts(&self) -> bool {
         self.state.with(|state| state.build_drafts)
     }
 
-    fn write_build_request_build_drafts(&self, value: bool) {
-        self.state.with_mut(|state| state.build_drafts = value);
+    fn write_build_request_build_drafts(&self, value: bool) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.build_drafts = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_build_request_clean_destination_dir(&self) -> bool {
         self.state.with(|state| state.clean_destination_dir)
     }
 
-    fn write_build_request_clean_destination_dir(&self, value: bool) {
-        self.state
-            .with_mut(|state| state.clean_destination_dir = value);
+    fn write_build_request_clean_destination_dir(
+        &self,
+        value: bool,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state
+                    .with_mut(|state| state.clean_destination_dir = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_build_request_build_time(&self) -> js_abi::JsDate {
         self.state.with(|state| state.build_time.clone())
     }
 
-    fn write_build_request_build_time(&self, value: js_abi::JsDate) {
-        self.state.with_mut(|state| state.build_time = value);
+    fn write_build_request_build_time(&self, value: js_abi::JsDate) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.build_time = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
 #[doc(hidden)]
 pub trait ServeRequestDispatch: BuildRequestDispatch {
+    fn downcast_serve_request_to_build_request(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BuildRequestDispatch + 'static>> {
+        None
+    }
     fn downcast_serve_request_to_serve_request(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ServeRequestDispatch + 'static>> {
         None
     }
     fn read_serve_request_host(&self) -> String;
-    fn write_serve_request_host(&self, value: String);
+    fn write_serve_request_host(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_serve_request_port(&self) -> i32;
-    fn write_serve_request_port(&self, value: i32);
+    fn write_serve_request_port(&self, value: i32) -> Result<(), rt::TsonicError>;
     fn read_serve_request_watch(&self) -> bool;
-    fn write_serve_request_watch(&self, value: bool);
+    fn write_serve_request_watch(&self, value: bool) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -277,37 +327,36 @@ impl rt::ObjectIdentityCarrier for ServeRequest {
 }
 
 pub(crate) struct ServeRequestRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<ServeRequestState>,
+    state: rt::ObjectState<ServeRequestState>,
 }
 
 impl ServeRequest {
     #[doc(hidden)]
-    pub fn initialize_state(site_dir: String) -> ServeRequestState {
-        let base_state = BuildRequest::initialize_state(site_dir);
+    pub fn initialize_state(site_dir: String) -> Result<ServeRequestState, rt::TsonicError> {
+        let base_state = BuildRequest::initialize_state(site_dir)?;
         let field_host: String = String::from("localhost");
         let field_port: i32 = 1313;
         let field_watch: bool = true;
-        ServeRequestState {
+        Ok(ServeRequestState {
             base: base_state,
             host: field_host,
             port: field_port,
             watch: field_watch,
-        }
+        })
     }
 
-    pub fn new(site_dir: String) -> ServeRequest {
-        let state = ServeRequest::initialize_state(site_dir);
+    pub fn new(site_dir: String) -> Result<ServeRequest, rt::TsonicError> {
+        let state = ServeRequest::initialize_state(site_dir)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(ServeRequestRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        ServeRequest {
+        Ok(ServeRequest {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -328,62 +377,113 @@ impl BuildRequestDispatch for ServeRequestRoot {
         self.state.with(|state| state.base.site_dir.clone())
     }
 
-    fn write_build_request_site_dir(&self, value: String) {
-        self.state.with_mut(|state| state.base.site_dir = value);
+    fn write_build_request_site_dir(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base.site_dir = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_build_request_destination_dir(&self) -> String {
         self.state.with(|state| state.base.destination_dir.clone())
     }
 
-    fn write_build_request_destination_dir(&self, value: String) {
-        self.state
-            .with_mut(|state| state.base.destination_dir = value);
+    fn write_build_request_destination_dir(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state
+                    .with_mut(|state| state.base.destination_dir = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_build_request_base_url(&self) -> Option<String> {
         self.state.with(|state| state.base.base_url.clone())
     }
 
-    fn write_build_request_base_url(&self, value: Option<String>) {
-        self.state.with_mut(|state| state.base.base_url = value);
+    fn write_build_request_base_url(&self, value: Option<String>) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base.base_url = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_build_request_themes_dir(&self) -> Option<String> {
         self.state.with(|state| state.base.themes_dir.clone())
     }
 
-    fn write_build_request_themes_dir(&self, value: Option<String>) {
-        self.state.with_mut(|state| state.base.themes_dir = value);
+    fn write_build_request_themes_dir(&self, value: Option<String>) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base.themes_dir = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_build_request_build_drafts(&self) -> bool {
         self.state.with(|state| state.base.build_drafts)
     }
 
-    fn write_build_request_build_drafts(&self, value: bool) {
-        self.state.with_mut(|state| state.base.build_drafts = value);
+    fn write_build_request_build_drafts(&self, value: bool) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base.build_drafts = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_build_request_clean_destination_dir(&self) -> bool {
         self.state.with(|state| state.base.clean_destination_dir)
     }
 
-    fn write_build_request_clean_destination_dir(&self, value: bool) {
-        self.state
-            .with_mut(|state| state.base.clean_destination_dir = value);
+    fn write_build_request_clean_destination_dir(
+        &self,
+        value: bool,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state
+                    .with_mut(|state| state.base.clean_destination_dir = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_build_request_build_time(&self) -> js_abi::JsDate {
         self.state.with(|state| state.base.build_time.clone())
     }
 
-    fn write_build_request_build_time(&self, value: js_abi::JsDate) {
-        self.state.with_mut(|state| state.base.build_time = value);
+    fn write_build_request_build_time(&self, value: js_abi::JsDate) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base.build_time = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
 impl ServeRequestDispatch for ServeRequestRoot {
+    fn downcast_serve_request_to_build_request(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn BuildRequestDispatch + 'static>> {
+        Some(self)
+    }
+
     fn downcast_serve_request_to_serve_request(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ServeRequestDispatch + 'static>> {
@@ -394,24 +494,42 @@ impl ServeRequestDispatch for ServeRequestRoot {
         self.state.with(|state| state.host.clone())
     }
 
-    fn write_serve_request_host(&self, value: String) {
-        self.state.with_mut(|state| state.host = value);
+    fn write_serve_request_host(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.host = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_serve_request_port(&self) -> i32 {
         self.state.with(|state| state.port)
     }
 
-    fn write_serve_request_port(&self, value: i32) {
-        self.state.with_mut(|state| state.port = value);
+    fn write_serve_request_port(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.port = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_serve_request_watch(&self) -> bool {
         self.state.with(|state| state.watch)
     }
 
-    fn write_serve_request_watch(&self, value: bool) {
-        self.state.with_mut(|state| state.watch = value);
+    fn write_serve_request_watch(&self, value: bool) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.watch = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -423,9 +541,9 @@ pub trait BuildResultDispatch {
         None
     }
     fn read_build_result_output_dir(&self) -> String;
-    fn write_build_result_output_dir(&self, value: String);
+    fn write_build_result_output_dir(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_build_result_pages_built(&self) -> i32;
-    fn write_build_result_pages_built(&self, value: i32);
+    fn write_build_result_pages_built(&self, value: i32) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -463,33 +581,35 @@ impl rt::ObjectIdentityCarrier for BuildResult {
 }
 
 pub(crate) struct BuildResultRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<BuildResultState>,
+    state: rt::ObjectState<BuildResultState>,
 }
 
 impl BuildResult {
     #[doc(hidden)]
-    pub fn initialize_state(output_dir: String, pages_built: i32) -> BuildResultState {
+    pub fn initialize_state(
+        output_dir: String,
+        pages_built: i32,
+    ) -> Result<BuildResultState, rt::TsonicError> {
         let field_output_dir: String = output_dir;
         let field_pages_built: i32 = pages_built;
-        BuildResultState {
+        Ok(BuildResultState {
             output_dir: field_output_dir,
             pages_built: field_pages_built,
-        }
+        })
     }
 
-    pub fn new(output_dir: String, pages_built: i32) -> BuildResult {
-        let state = BuildResult::initialize_state(output_dir, pages_built);
+    pub fn new(output_dir: String, pages_built: i32) -> Result<BuildResult, rt::TsonicError> {
+        let state = BuildResult::initialize_state(output_dir, pages_built)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(BuildResultRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        BuildResult {
+        Ok(BuildResult {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -504,15 +624,27 @@ impl BuildResultDispatch for BuildResultRoot {
         self.state.with(|state| state.output_dir.clone())
     }
 
-    fn write_build_result_output_dir(&self, value: String) {
-        self.state.with_mut(|state| state.output_dir = value);
+    fn write_build_result_output_dir(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.output_dir = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_build_result_pages_built(&self) -> i32 {
         self.state.with(|state| state.pages_built)
     }
 
-    fn write_build_result_pages_built(&self, value: i32) {
-        self.state.with_mut(|state| state.pages_built = value);
+    fn write_build_result_pages_built(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.pages_built = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

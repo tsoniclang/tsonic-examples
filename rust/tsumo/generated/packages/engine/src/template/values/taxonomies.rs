@@ -5,13 +5,22 @@ use tsonic_rust_js::abi as js_abi;
 
 #[doc(hidden)]
 pub trait TaxonomiesValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_taxonomies_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_taxonomies_value_to_taxonomies_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn TaxonomiesValueDispatch + 'static>> {
         None
     }
     fn read_taxonomies_value_site(&self) -> crate::models::site_context::SiteContext;
-    fn write_taxonomies_value_site(&self, value: crate::models::site_context::SiteContext);
+    fn write_taxonomies_value_site(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -50,35 +59,36 @@ impl rt::ObjectIdentityCarrier for TaxonomiesValue {
 }
 
 pub(crate) struct TaxonomiesValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<TaxonomiesValueState>,
+    state: rt::ObjectState<TaxonomiesValueState>,
 }
 
 impl TaxonomiesValue {
     #[doc(hidden)]
     pub fn initialize_state(
         site: crate::models::site_context::SiteContext,
-    ) -> TaxonomiesValueState {
+    ) -> Result<TaxonomiesValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_site: crate::models::site_context::SiteContext = site;
-        TaxonomiesValueState {
+        Ok(TaxonomiesValueState {
             base: base_state,
             site: field_site,
-        }
+        })
     }
 
-    pub fn new(site: crate::models::site_context::SiteContext) -> TaxonomiesValue {
-        let state = TaxonomiesValue::initialize_state(site);
+    pub fn new(
+        site: crate::models::site_context::SiteContext,
+    ) -> Result<TaxonomiesValue, rt::TsonicError> {
+        let state = TaxonomiesValue::initialize_state(site)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(TaxonomiesValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        TaxonomiesValue {
+        Ok(TaxonomiesValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -98,6 +108,13 @@ impl crate::template::values::base::TemplateValueDispatch for TaxonomiesValueRoo
 }
 
 impl TaxonomiesValueDispatch for TaxonomiesValueRoot {
+    fn downcast_taxonomies_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_taxonomies_value_to_taxonomies_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn TaxonomiesValueDispatch + 'static>> {
@@ -108,13 +125,28 @@ impl TaxonomiesValueDispatch for TaxonomiesValueRoot {
         self.state.with(|state| state.site.clone())
     }
 
-    fn write_taxonomies_value_site(&self, value: crate::models::site_context::SiteContext) {
-        self.state.with_mut(|state| state.site = value);
+    fn write_taxonomies_value_site(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.site = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
 #[doc(hidden)]
 pub trait TaxonomyTermsValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_taxonomy_terms_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_taxonomy_terms_value_to_taxonomy_terms_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn TaxonomyTermsValueDispatch + 'static>> {
@@ -126,9 +158,12 @@ pub trait TaxonomyTermsValueDispatch: crate::template::values::base::TemplateVal
     fn write_taxonomy_terms_value_terms(
         &self,
         value: js_abi::JsMap<String, js_abi::JsArray<crate::models::page_context::PageContext>>,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_taxonomy_terms_value_site(&self) -> crate::models::site_context::SiteContext;
-    fn write_taxonomy_terms_value_site(&self, value: crate::models::site_context::SiteContext);
+    fn write_taxonomy_terms_value_site(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -168,9 +203,8 @@ impl rt::ObjectIdentityCarrier for TaxonomyTermsValue {
 }
 
 pub(crate) struct TaxonomyTermsValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<TaxonomyTermsValueState>,
+    state: rt::ObjectState<TaxonomyTermsValueState>,
 }
 
 impl TaxonomyTermsValue {
@@ -178,34 +212,34 @@ impl TaxonomyTermsValue {
     pub fn initialize_state(
         terms: js_abi::JsMap<String, js_abi::JsArray<crate::models::page_context::PageContext>>,
         site: crate::models::site_context::SiteContext,
-    ) -> TaxonomyTermsValueState {
+    ) -> Result<TaxonomyTermsValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_terms: js_abi::JsMap<
             String,
             js_abi::JsArray<crate::models::page_context::PageContext>,
         > = terms;
         let field_site: crate::models::site_context::SiteContext = site;
-        TaxonomyTermsValueState {
+        Ok(TaxonomyTermsValueState {
             base: base_state,
             terms: field_terms,
             site: field_site,
-        }
+        })
     }
 
     pub fn new(
         terms: js_abi::JsMap<String, js_abi::JsArray<crate::models::page_context::PageContext>>,
         site: crate::models::site_context::SiteContext,
-    ) -> TaxonomyTermsValue {
-        let state = TaxonomyTermsValue::initialize_state(terms, site);
+    ) -> Result<TaxonomyTermsValue, rt::TsonicError> {
+        let state = TaxonomyTermsValue::initialize_state(terms, site)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(TaxonomyTermsValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        TaxonomyTermsValue {
+        Ok(TaxonomyTermsValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -225,6 +259,13 @@ impl crate::template::values::base::TemplateValueDispatch for TaxonomyTermsValue
 }
 
 impl TaxonomyTermsValueDispatch for TaxonomyTermsValueRoot {
+    fn downcast_taxonomy_terms_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_taxonomy_terms_value_to_taxonomy_terms_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn TaxonomyTermsValueDispatch + 'static>> {
@@ -240,15 +281,30 @@ impl TaxonomyTermsValueDispatch for TaxonomyTermsValueRoot {
     fn write_taxonomy_terms_value_terms(
         &self,
         value: js_abi::JsMap<String, js_abi::JsArray<crate::models::page_context::PageContext>>,
-    ) {
-        self.state.with_mut(|state| state.terms = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.terms = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_taxonomy_terms_value_site(&self) -> crate::models::site_context::SiteContext {
         self.state.with(|state| state.site.clone())
     }
 
-    fn write_taxonomy_terms_value_site(&self, value: crate::models::site_context::SiteContext) {
-        self.state.with_mut(|state| state.site = value);
+    fn write_taxonomy_terms_value_site(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.site = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

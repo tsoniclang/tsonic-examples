@@ -3,51 +3,11 @@
 use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
-pub(crate) fn capture_output_diagnostic(
-    operation: rt::Callable<(), rt::TsonicResult<()>>,
-) -> Result<String, rt::TsonicError> {
-    let try_body: rt::TsonicResult<rt::Completion<String>> = rt::completion_region(|| {
-        operation.call(())?;
-        Ok(rt::Completion::Normal)
-    });
-    let try_flow: rt::TsonicResult<rt::Completion<String>> = match try_body {
-        Ok(completion) => Ok(completion),
-        Err(error) => rt::completion_region(|| {
-            if matches!(
-                error.clone(),
-                rt::TsonicError::TsumoEngineError(tsumo_engine::program::TsonicError::TsumoError(
-                    _
-                ))
-            ) {
-                return Ok(rt::Completion::Return({
-                    let dispatch_receiver_2 = &{
-                        let dispatch_receiver = &match error {
-                            rt::TsonicError::TsumoEngineError(
-                                tsumo_engine::program::TsonicError::TsumoError(program_error),
-                            ) => program_error,
-                            _ => unreachable!(
-                                "checked flow selected a different program-error variant"
-                            ),
-                        };
-                        dispatch_receiver.dispatch.read_tsumo_error_diagnostic()
-                    };
-                    dispatch_receiver_2.dispatch.read_tsumo_diagnostic_code()
-                }));
-            }
-            Err(error.clone())
-        }),
-    };
-    let try_flow = try_flow?;
-    match try_flow {
-        rt::Completion::Normal => {}
-        rt::Completion::Return(value) => return Ok(value),
-        rt::Completion::Break(_) | rt::Completion::Continue(_) => {
-            unreachable!("invalid finalized Tsonic completion target")
-        }
-    }
-    Err(rt::TsonicError::from(rt::JsError::error(
-        "Expected an output-plan diagnostic",
-    )))
+type CaptureOutputDiagnosticCallable =
+    rt::Callable<(rt::Callable<(), rt::TsonicResult<()>>,), rt::TsonicResult<String>>;
+
+std::thread_local! {
+    pub(crate) static CAPTURE_OUTPUT_DIAGNOSTIC: rt::ModuleCell<CaptureOutputDiagnosticCallable> = const { rt::ModuleCell::new() };
 }
 
 pub(crate) struct OutputPlanTestsState {}
@@ -72,26 +32,30 @@ impl OutputPlanTests {
 
     pub fn paths_and_collisions_fail_before_rendering(&self) -> Result<(), rt::TsonicError> {
         let plan: tsumo_engine::testing::SiteOutputPlan =
-            tsumo_engine::testing::SiteOutputPlan::new();
+            tsumo_engine::testing::SiteOutputPlan::new()?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_OUTPUT_PATH_ESCAPES_ROOT"),
-            Some(capture_output_diagnostic({
-                let capture_plan = plan.clone();
-                rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                    {
-                        let dispatch_receiver = capture_plan.clone();
-                        dispatch_receiver
-                            .dispatch
-                            .clone()
-                            .dispatch_site_output_plan_add_text(
-                                String::from("../outside.html"),
-                                String::from("outside"),
-                                String::from("escape"),
-                            )
-                    }?;
-                    Ok::<_, rt::TsonicError>(())
-                })
-            })?),
+            Some(
+                CAPTURE_OUTPUT_DIAGNOSTIC
+                    .with(|module_binding| module_binding.load())
+                    .call(({
+                        let capture_plan = plan.clone();
+                        rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
+                            {
+                                let dispatch_receiver = capture_plan.clone();
+                                dispatch_receiver
+                                    .dispatch
+                                    .clone()
+                                    .dispatch_site_output_plan_add_text(
+                                        String::from("../outside.html"),
+                                        String::from("outside"),
+                                        String::from("escape"),
+                                    )
+                            }?;
+                            Ok::<_, rt::TsonicError>(())
+                        })
+                    },))?,
+            ),
         )?;
         {
             let dispatch_receiver_2 = plan.clone();
@@ -106,23 +70,29 @@ impl OutputPlanTests {
         }?;
         crate::test_root::Assert::string_equal(
             String::from("TSUMO_OUTPUT_PATH_CONFLICT"),
-            Some(capture_output_diagnostic({
-                let capture_plan_2 = plan.clone();
-                rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
-                    {
-                        let dispatch_receiver_3 = capture_plan_2.clone();
-                        dispatch_receiver_3
-                            .dispatch
-                            .clone()
-                            .dispatch_site_output_plan_add_text(
-                                String::from("PAGES/index.html"),
-                                String::from("second"),
-                                String::from("second page"),
-                            )
-                    }?;
-                    Ok::<_, rt::TsonicError>(())
-                })
-            })?),
+            Some(
+                CAPTURE_OUTPUT_DIAGNOSTIC
+                    .with(|module_binding| module_binding.load())
+                    .call(({
+                        let capture_plan_2 = plan.clone();
+                        rt::Callable::<(), rt::TsonicResult<()>>::new(
+                            move |_callable_arguments_2| {
+                                {
+                                    let dispatch_receiver_3 = capture_plan_2.clone();
+                                    dispatch_receiver_3
+                                        .dispatch
+                                        .clone()
+                                        .dispatch_site_output_plan_add_text(
+                                            String::from("PAGES/index.html"),
+                                            String::from("second"),
+                                            String::from("second page"),
+                                        )
+                                }?;
+                                Ok::<_, rt::TsonicError>(())
+                            },
+                        )
+                    },))?,
+            ),
         )?;
         Ok(())
     }
@@ -153,7 +123,7 @@ impl OutputPlanTests {
                 String::from("site robots"),
             )?;
             let plan: tsumo_engine::testing::SiteOutputPlan =
-                tsumo_engine::testing::SiteOutputPlan::new();
+                tsumo_engine::testing::SiteOutputPlan::new()?;
             {
                 let dispatch_receiver = plan.clone();
                 dispatch_receiver
@@ -161,7 +131,7 @@ impl OutputPlanTests {
                     .clone()
                     .dispatch_site_output_plan_add_directory(
                         theme.clone(),
-                        String::from(""),
+                        "",
                         String::from("theme static"),
                         tsumo_engine::build::output_plan::AssetLayer::ThemeStatic,
                     )
@@ -173,7 +143,7 @@ impl OutputPlanTests {
                     .clone()
                     .dispatch_site_output_plan_add_directory(
                         site.clone(),
-                        String::from(""),
+                        "",
                         String::from("site static"),
                         tsumo_engine::build::output_plan::AssetLayer::SiteStatic,
                     )
@@ -261,7 +231,7 @@ impl OutputPlanTests {
             let asset: String = tsonic_rust_node::path::join(&[root.as_str(), "index.html"]);
             crate::test_root::write_text_file(asset.clone(), String::from("asset"))?;
             let plan: tsumo_engine::testing::SiteOutputPlan =
-                tsumo_engine::testing::SiteOutputPlan::new();
+                tsumo_engine::testing::SiteOutputPlan::new()?;
             {
                 let dispatch_receiver = plan.clone();
                 dispatch_receiver
@@ -275,25 +245,31 @@ impl OutputPlanTests {
             }?;
             crate::test_root::Assert::string_equal(
                 String::from("TSUMO_OUTPUT_PATH_CONFLICT"),
-                Some(capture_output_diagnostic({
-                    let capture_plan = plan.clone();
-                    let capture_asset = asset.clone();
-                    rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                        {
-                            let dispatch_receiver_2 = capture_plan.clone();
-                            dispatch_receiver_2
-                                .dispatch
-                                .clone()
-                                .dispatch_site_output_plan_add_asset(
-                                    String::from("index.html"),
-                                    capture_asset.clone(),
-                                    String::from("bundle"),
-                                    tsumo_engine::build::output_plan::AssetLayer::Bundle,
-                                )
-                        }?;
-                        Ok::<_, rt::TsonicError>(())
-                    })
-                })?),
+                Some(
+                    CAPTURE_OUTPUT_DIAGNOSTIC
+                        .with(|module_binding| module_binding.load())
+                        .call(({
+                            let capture_plan = plan.clone();
+                            let capture_asset = asset.clone();
+                            rt::Callable::<(), rt::TsonicResult<()>>::new(
+                                move |_callable_arguments| {
+                                    {
+                                        let dispatch_receiver_2 = capture_plan.clone();
+                                        dispatch_receiver_2
+                                            .dispatch
+                                            .clone()
+                                            .dispatch_site_output_plan_add_asset(
+                                            String::from("index.html"),
+                                            capture_asset.clone(),
+                                            String::from("bundle"),
+                                            tsumo_engine::build::output_plan::AssetLayer::Bundle,
+                                        )
+                                    }?;
+                                    Ok::<_, rt::TsonicError>(())
+                                },
+                            )
+                        },))?,
+                ),
             )?;
             Ok(rt::Completion::Normal)
         });
@@ -322,7 +298,7 @@ impl OutputPlanTests {
         let output: String = tsonic_rust_node::path::join(&[root.as_str(), "output"]);
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
             let plan: tsumo_engine::testing::SiteOutputPlan =
-                tsumo_engine::testing::SiteOutputPlan::new();
+                tsumo_engine::testing::SiteOutputPlan::new()?;
             {
                 let dispatch_receiver = plan.clone();
                 dispatch_receiver
@@ -442,4 +418,54 @@ pub fn run_output_plan_tests() -> Result<(), rt::TsonicError> {
         },
     )?;
     Ok(())
+}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = rt::Callable::<
+            (rt::Callable<(), rt::TsonicResult<()>>,),
+            rt::TsonicResult<String>,
+        >::new(move |callable_arguments| {
+            let operation = callable_arguments.0;
+            let try_body: rt::TsonicResult<rt::Completion<String>> = rt::completion_region(|| {
+                operation.call(())?;
+                Ok(rt::Completion::Normal)
+            });
+            let try_flow: rt::TsonicResult<rt::Completion<String>> = match try_body {
+                Ok(completion) => Ok(completion),
+                Err(error) => rt::completion_region(|| {
+                    if matches!(error.clone(), rt::TsonicError::TsumoError(_)) {
+                        return Ok(rt::Completion::Return({
+                            let dispatch_receiver_2 = &{
+                                let dispatch_receiver = &match &error {
+                                    rt::TsonicError::TsumoError(program_error) => {
+                                        program_error.clone()
+                                    }
+                                    _ => unreachable!(
+                                        "checked flow selected a different program-error variant"
+                                    ),
+                                };
+                                dispatch_receiver.dispatch.read_tsumo_error_diagnostic()
+                            };
+                            dispatch_receiver_2.dispatch.read_tsumo_diagnostic_code()
+                        }));
+                    }
+                    Err(error.clone())
+                }),
+            };
+            let try_flow = try_flow?;
+            match try_flow {
+                rt::Completion::Normal => {}
+                rt::Completion::Return(value) => return Ok(value),
+                rt::Completion::Break(_) | rt::Completion::Continue(_) => {
+                    unreachable!("invalid finalized Tsonic completion target")
+                }
+            }
+            Err(rt::TsonicError::from(rt::JsError::error(
+                "Expected an output-plan diagnostic",
+            )))
+        });
+        CAPTURE_OUTPUT_DIAGNOSTIC.with(|module_binding| module_binding.initialize(module_value))
+    };
 }

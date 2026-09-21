@@ -12,7 +12,7 @@ pub fn combine_url_path(parts: js_abi::JsArray<String>) -> Result<String, rt::Ts
             move |part| {
                 crate::utils::strings::trim_end_char(
                     crate::utils::strings::trim_start_char(
-                        &js_string::trim(&part),
+                        js_string::trim(&part),
                         capture_slash.clone(),
                     )?,
                     capture_slash.clone(),

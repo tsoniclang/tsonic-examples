@@ -29,35 +29,27 @@ pub fn is_ascii_letter_or_digit(character: &str) -> bool {
     (48.0..=57.0).contains(&code) || (65.0..=90.0).contains(&code) || (97.0..=122.0).contains(&code)
 }
 
-pub fn is_ascii_whitespace(character: String) -> bool {
+pub fn is_ascii_whitespace(character: &str) -> bool {
     character == " " || character == "\t" || character == "\n" || character == "\r"
 }
 
-pub fn anchorize_text(input: &str) -> Result<String, rt::TsonicError> {
+pub fn anchorize_text(input: &str) -> String {
     let lower: String = js_string::to_lower_case(input);
     let result: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-    {
-        let mut index: f64 = 0.0;
-        'loop_value: while index
-            < (rt::conversions::usize_to_i32(js_string::js_len(&lower))? as f64)
+    'loop_value: for character in js_abi::NativeStringIterator::new(lower.clone()) {
+        if is_ascii_whitespace(&character) {
+            result.push_many_discard([String::from("-")]);
+            continue 'loop_value;
+        }
+        if is_ascii_letter_or_digit(&character)
+            || character == "-"
+            || character == "_"
+            || js_string::char_code_at(&character, 0.0) >= 128.0
         {
-            let character: String = js_string::char_at(&lower, index)?;
-            if is_ascii_whitespace(character.clone()) {
-                result.push_many_discard([String::from("-")]);
-                index += 1.0;
-                continue 'loop_value;
-            }
-            if is_ascii_letter_or_digit(&character)
-                || character == "-"
-                || character == "_"
-                || js_string::char_code_at(&character, 0.0) >= 128.0
-            {
-                result.push_many_discard([character.clone()]);
-            }
-            index += 1.0;
+            result.push_many_discard([character.clone()]);
         }
     }
-    Ok(result.join(""))
+    result.join("")
 }
 
 pub fn emojify_text(input: &str) -> Result<String, rt::TsonicError> {

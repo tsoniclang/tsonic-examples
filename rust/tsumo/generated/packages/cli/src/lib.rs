@@ -5,9 +5,6 @@ extern crate alloc;
 #[doc(hidden)]
 pub mod program;
 
-#[doc(hidden)]
-pub mod initializers;
-
 pub(crate) mod cli_main;
 
 pub(crate) mod commands;
@@ -28,25 +25,18 @@ pub use crate::cli_main::main as tsonic_entry;
 
 #[doc(hidden)]
 pub fn initialize() {
-    tsumo_engine::initializers::fs_initialize();
-    tsumo_engine::initializers::utils_text_initialize();
     tsumo_engine::initializers::params_initialize();
     tsumo_engine::initializers::template_runtime_helpers_initialize();
-    tsumo_engine::initializers::markdown_shortcodes_initialize();
-    tsumo_engine::initializers::template_evaluation_serialization_initialize();
     tsumo_engine::initializers::template_evaluation_scalar_semantics_initialize();
-    tsumo_engine::initializers::template_evaluation_page_resource_semantics_initialize();
-    tsumo_engine::initializers::template_evaluation_page_semantics_initialize();
     tsumo_engine::initializers::template_evaluation_property_support_initialize();
-    tsumo_engine::initializers::template_functions_context_functions_initialize();
     tsumo_engine::initializers::template_functions_function_registry_initialize();
-    tsumo_engine::initializers::utils_regular_expressions_initialize();
     tsumo_engine::initializers::template_functions_text_compatibility_initialize();
-    tsumo_engine::initializers::template_evaluation_render_initialize();
-    tsumo_engine::initializers::template_parser_parse_pipeline_initialize();
+    tsumo_engine::initializers::template_evaluation_toml_data_initialize();
     tsumo_engine::initializers::i18n_initialize();
     tsumo_engine::initializers::template_embedded_templates_initialize();
-    tsumo_engine::initializers::layouts_initialize();
-    tsumo_engine::initializers::output_publication_initialize();
-    crate::cli_main::module_init();
+    tsumo_engine::initializers::menus_initialize();
+    tsumo_engine::initializers::docs_routes_initialize();
+    tsumo_engine::initializers::docs_search_index_initialize();
+    tsumo_engine::initializers::build_discover_content_initialize();
+    tsumo_engine::initializers::serve_site_initialize();
 }

@@ -21,13 +21,13 @@ impl rt::ObjectIdentityCarrier for ShortcodeOrdinalTracker {
 }
 
 impl ShortcodeOrdinalTracker {
-    pub fn new() -> ShortcodeOrdinalTracker {
+    pub fn new() -> Result<ShortcodeOrdinalTracker, rt::TsonicError> {
         let field_counts: js_abi::JsMap<String, i32> = js_abi::JsMap::new();
-        ShortcodeOrdinalTracker {
+        Ok(ShortcodeOrdinalTracker {
             state: rt::ObjectRef::new(ShortcodeOrdinalTrackerState {
                 counts: field_counts,
             }),
-        }
+        })
     }
 
     pub fn next(&self, name: String) -> Result<i32, rt::TsonicError> {
@@ -44,14 +44,8 @@ impl ShortcodeOrdinalTracker {
         })?;
         self.state
             .with(|state| state.counts.clone())
-            .set_discard(name.clone(), next_val);
+            .set_discard(name, next_val);
         Ok(next_val)
-    }
-}
-
-impl Default for ShortcodeOrdinalTracker {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -70,7 +64,7 @@ pub fn render_shortcode(
             .dispatch
             .clone()
             .dispatch_template_environment_get_shortcode_template(
-                call.state.with(|state| state.name.clone()),
+                &call.state.with(|state| state.name.clone()),
             )
     }?;
     if template.is_none() {
@@ -103,7 +97,7 @@ pub fn render_shortcode(
                 Some(rt::conversions::i32_to_f64(
                     call.state.with(|state| state.column),
                 )),
-            ),
+            )?,
         ));
     }
     let guard_key: String = call.state.with(|state| state.name.clone());
@@ -143,24 +137,22 @@ pub fn render_shortcode(
                 Some(rt::conversions::i32_to_f64(
                     call.state.with(|state| state.column),
                 )),
-            ),
+            )?,
         ));
     }
     recursion_guard.set_discard(guard_key.clone(), true);
     let ordinal: i32 = ordinal_tracker.next(call.state.with(|state| state.name.clone()))?;
     let mut processed_inner: String = call.state.with(|state| state.inner.clone());
     if !call.state.with(|state| state.inner.clone()).is_empty() {
-        processed_inner = PROCESS_SHORTCODES
-            .with(|module_binding| module_binding.load())
-            .call((
-                call.state.with(|state| state.inner.clone()),
-                page.clone(),
-                site.clone(),
-                env.clone(),
-                ordinal_tracker.clone(),
-                Option::<crate::template::contexts::ShortcodeContext>::None,
-                recursion_guard.clone(),
-            ))?;
+        processed_inner = process_shortcodes(
+            call.state.with(|state| state.inner.clone()),
+            page.clone(),
+            site.clone(),
+            env.clone(),
+            ordinal_tracker.clone(),
+            Option::<crate::template::contexts::ShortcodeContext>::None,
+            recursion_guard.clone(),
+        )?;
     }
     let ctx: crate::template::contexts::ShortcodeContext =
         crate::template::contexts::ShortcodeContext::new(
@@ -170,12 +162,12 @@ pub fn render_shortcode(
             call.state.with(|state| state.params.clone()),
             call.state.with(|state| state.positional_params.clone()),
             call.state.with(|state| state.is_named_params),
-            processed_inner.clone(),
+            processed_inner,
             ordinal,
             parent,
         )?;
     let shortcode_value: crate::template::contexts::ShortcodeValue =
-        crate::template::contexts::ShortcodeValue::new(ctx);
+        crate::template::contexts::ShortcodeValue::new(ctx)?;
     let empty_overrides: js_abi::JsMap<
         String,
         js_abi::JsArray<crate::template::nodes::TemplateNode>,
@@ -202,181 +194,111 @@ pub fn render_shortcode(
                 None,
             )
     }?;
-    recursion_guard.set_discard(guard_key.clone(), false);
+    recursion_guard.set_discard(guard_key, false);
     Ok(result)
 }
 
-pub type ProcessShortcodesCallable = rt::Callable<
-    (
-        String,
-        crate::models::page_context::PageContext,
-        crate::models::site_context::SiteContext,
-        crate::template::environment::TemplateEnvironment,
-        ShortcodeOrdinalTracker,
-        Option<crate::template::contexts::ShortcodeContext>,
-        js_abi::JsMap<String, bool>,
-    ),
-    rt::TsonicResult<String>,
->;
-
-std::thread_local! {
-    pub static PROCESS_SHORTCODES: rt::ModuleCell<ProcessShortcodesCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type ProcessShortcodeCallsCallable = rt::Callable<
-    (
-        String,
-        js_abi::JsArray<crate::shortcode::ShortcodeCall>,
-        crate::models::page_context::PageContext,
-        crate::models::site_context::SiteContext,
-        crate::template::environment::TemplateEnvironment,
-        ShortcodeOrdinalTracker,
-        Option<crate::template::contexts::ShortcodeContext>,
-        js_abi::JsMap<String, bool>,
-    ),
-    rt::TsonicResult<String>,
->;
-
-std::thread_local! {
-    pub static PROCESS_SHORTCODE_CALLS: rt::ModuleCell<ProcessShortcodeCallsCallable> = const { rt::ModuleCell::new() };
-}
-
-pub fn create_ordinal_tracker() -> ShortcodeOrdinalTracker {
-    ShortcodeOrdinalTracker::new()
-}
-
-#[doc(hidden)]
-pub fn module_init() {
-    {
-        let module_value = rt::Callable::<
-            (
-                String,
-                crate::models::page_context::PageContext,
-                crate::models::site_context::SiteContext,
-                crate::template::environment::TemplateEnvironment,
-                ShortcodeOrdinalTracker,
-                Option<crate::template::contexts::ShortcodeContext>,
-                js_abi::JsMap<String, bool>,
-            ),
-            rt::TsonicResult<String>,
-        >::new(move |callable_arguments| {
-            let text = callable_arguments.0;
-            let page = callable_arguments.1;
-            let site = callable_arguments.2;
-            let env = callable_arguments.3;
-            let ordinal_tracker = callable_arguments.4;
-            let parent = callable_arguments.5;
-            let recursion_guard = callable_arguments.6;
-            let calls: js_abi::JsArray<crate::shortcode::ShortcodeCall> =
-                crate::shortcode::parse_shortcodes(
-                    text.clone(),
-                    {
-                        let dispatch_receiver = &page;
-                        dispatch_receiver.dispatch.read_page_context_file()
-                    }
-                    .as_ref()
-                    .map(|optional_receiver| {
-                        let dispatch_receiver_2 = optional_receiver;
-                        dispatch_receiver_2.dispatch.read_page_file_filename()
-                    }),
-                )?;
-            if rt::conversions::usize_to_i32(calls.len())? == 0 {
-                return Ok::<_, rt::TsonicError>(text);
+pub fn process_shortcodes(
+    text: String,
+    page: crate::models::page_context::PageContext,
+    site: crate::models::site_context::SiteContext,
+    env: crate::template::environment::TemplateEnvironment,
+    ordinal_tracker: ShortcodeOrdinalTracker,
+    parent: Option<crate::template::contexts::ShortcodeContext>,
+    recursion_guard: js_abi::JsMap<String, bool>,
+) -> Result<String, rt::TsonicError> {
+    let calls: js_abi::JsArray<crate::shortcode::ShortcodeCall> =
+        crate::shortcode::parse_shortcodes(
+            text.clone(),
+            {
+                let dispatch_receiver = &page;
+                dispatch_receiver.dispatch.read_page_context_file()
             }
-            PROCESS_SHORTCODE_CALLS
-                .with(|module_binding| module_binding.load())
-                .call((
-                    text.clone(),
-                    calls.clone(),
+            .as_ref()
+            .map(|optional_receiver| {
+                let dispatch_receiver_2 = optional_receiver;
+                dispatch_receiver_2.dispatch.read_page_file_filename()
+            }),
+        )?;
+    if rt::conversions::usize_to_i32(calls.len())? == 0 {
+        return Ok(text);
+    }
+    process_shortcode_calls(
+        text,
+        calls.clone(),
+        page.clone(),
+        site,
+        env,
+        ordinal_tracker,
+        parent,
+        recursion_guard,
+    )
+}
+
+#[expect(clippy::too_many_arguments, reason = "checked source signature")]
+pub fn process_shortcode_calls(
+    text: String,
+    calls: js_abi::JsArray<crate::shortcode::ShortcodeCall>,
+    page: crate::models::page_context::PageContext,
+    site: crate::models::site_context::SiteContext,
+    env: crate::template::environment::TemplateEnvironment,
+    ordinal_tracker: ShortcodeOrdinalTracker,
+    parent: Option<crate::template::contexts::ShortcodeContext>,
+    recursion_guard: js_abi::JsMap<String, bool>,
+) -> Result<String, rt::TsonicError> {
+    let replacements: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    {
+        let mut i: f64 = 0.0;
+        while i < (rt::conversions::usize_to_i32(calls.len())? as f64) {
+            {
+                let operation_input_0 = replacements.clone();
+                operation_input_0.push_many_discard([render_shortcode(
+                    match calls.get_number(i) {
+                        Some(flow_value) => flow_value,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
                     page.clone(),
-                    site,
-                    env,
-                    ordinal_tracker,
-                    parent,
-                    recursion_guard,
-                ))
-        });
-        PROCESS_SHORTCODES.with(|module_binding| module_binding.initialize(module_value))
-    };
+                    site.clone(),
+                    env.clone(),
+                    ordinal_tracker.clone(),
+                    parent.clone(),
+                    recursion_guard.clone(),
+                )?])
+            };
+            i += 1.0;
+        }
+    }
+    let mut result: String = text;
     {
-        let module_value_2 = rt::Callable::<
-            (
-                String,
-                js_abi::JsArray<crate::shortcode::ShortcodeCall>,
-                crate::models::page_context::PageContext,
-                crate::models::site_context::SiteContext,
-                crate::template::environment::TemplateEnvironment,
-                ShortcodeOrdinalTracker,
-                Option<crate::template::contexts::ShortcodeContext>,
-                js_abi::JsMap<String, bool>,
-            ),
-            rt::TsonicResult<String>,
-        >::new(move |callable_arguments_2| {
-            let text = callable_arguments_2.0;
-            let calls = callable_arguments_2.1;
-            let page = callable_arguments_2.2;
-            let site = callable_arguments_2.3;
-            let env = callable_arguments_2.4;
-            let ordinal_tracker = callable_arguments_2.5;
-            let parent = callable_arguments_2.6;
-            let recursion_guard = callable_arguments_2.7;
-            let replacements: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-            {
-                let mut i: f64 = 0.0;
-                while i < (rt::conversions::usize_to_i32(calls.len())? as f64) {
-                    {
-                        let operation_input_0 = replacements.clone();
-                        operation_input_0.push_many_discard([render_shortcode(
-                            match calls.get_number(i).as_ref() {
-                                Some(flow_value) => flow_value.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                            page.clone(),
-                            site.clone(),
-                            env.clone(),
-                            ordinal_tracker.clone(),
-                            parent.clone(),
-                            recursion_guard.clone(),
-                        )?])
-                    };
-                    i += 1.0;
-                }
-            }
-            let mut result: String = text;
-            {
-                let mut i: i32 = rt::conversions::usize_to_i32(calls.len())? - 1;
-                while i >= 0 {
-                    let call: crate::shortcode::ShortcodeCall =
-                        match calls.get_number(rt::conversions::i32_to_f64(i)).as_ref() {
-                            Some(flow_value_2) => flow_value_2.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        };
-                    result = format!(
-                        "{}{}{}",
-                        crate::utils::strings::substring_count(
-                            result.clone(),
-                            0,
-                            call.state.with(|state| state.start_index)
-                        )?,
-                        match replacements
-                            .get_number(rt::conversions::i32_to_f64(i))
-                            .as_ref()
-                        {
-                            Some(flow_value_3) => flow_value_3.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },
-                        crate::utils::strings::substring_from(
-                            &result,
-                            call.state.with(|state| state.end_index)
-                        )?
-                    );
-                    i -= 1;
-                }
-            }
-            Ok::<_, rt::TsonicError>(result)
-        });
-        PROCESS_SHORTCODE_CALLS.with(|module_binding_2| module_binding_2.initialize(module_value_2))
-    };
+        let mut i: i32 = rt::conversions::usize_to_i32(calls.len())? - 1;
+        while i >= 0 {
+            let call: crate::shortcode::ShortcodeCall =
+                match calls.get_number(rt::conversions::i32_to_f64(i)) {
+                    Some(flow_value_2) => flow_value_2,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                };
+            result = format!(
+                "{}{}{}",
+                crate::utils::strings::substring_count(
+                    &result,
+                    0,
+                    call.state.with(|state| state.start_index)
+                )?,
+                match replacements.get_number(rt::conversions::i32_to_f64(i)) {
+                    Some(flow_value_3) => flow_value_3,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                },
+                crate::utils::strings::substring_from(
+                    &result,
+                    call.state.with(|state| state.end_index)
+                )?
+            );
+            i -= 1;
+        }
+    }
+    Ok(result)
+}
+
+pub fn create_ordinal_tracker() -> Result<ShortcodeOrdinalTracker, rt::TsonicError> {
+    ShortcodeOrdinalTracker::new()
 }

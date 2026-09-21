@@ -20,25 +20,27 @@ duplicate dependency source inside their own output trees.
 
 ## Provenance
 
-Generated on 2026-09-03 from clean checkouts:
+Generated on 2026-09-21 with the certified compiler sources now merged to `main`:
 
 | Component | Commit |
 |---|---|
-| [`tsoniclang/tsumo-rust`](https://github.com/tsoniclang/tsumo-rust) | `3bd06f7be6e5839f741bbc1fc8f3b54a8234a990` |
-| [`tsoniclang/tsonic`](https://github.com/tsoniclang/tsonic) | `7bcfca0770c91c545f6a4abc4dff03f204a4ec36` |
-| [`tsoniclang/tsonic-rust`](https://github.com/tsoniclang/tsonic-rust) | `d8ac1c71bee79cd0f7a71f3640fcfedbb6e6d63a` |
-| [`tsoniclang/rust-nodejs`](https://github.com/tsoniclang/rust-nodejs) | `25a3e1097f6c41b8e41cd3fd9b6a52f3bc41b66e` |
-| [`tsoniclang/rust-js`](https://github.com/tsoniclang/rust-js) | `62b4f3e1a436634d30045dc900bf83ca4f494697` |
-| [`tsoniclang/rust-runtime`](https://github.com/tsoniclang/rust-runtime) | `9e6b15493a513ac385e374e04dc652616a845c6b` |
+| [`tsoniclang/tsumo-rust`](https://github.com/tsoniclang/tsumo-rust) | `59d988e8857f523d77c1d20a90fe498038512257` |
+| [`tsoniclang/tsonic`](https://github.com/tsoniclang/tsonic) | `59e96dc9a57440d7c26971719f98c1e00f69c6aa` |
+| [`tsoniclang/tsonic-rust`](https://github.com/tsoniclang/tsonic-rust) | `7095b343878a4f7413d0f07621bbecb313bd4ffe` |
+| [`tsoniclang/rust-nodejs`](https://github.com/tsoniclang/rust-nodejs) | `e9ff840d4731ba6381bf715ed22757603b48deaf` |
+| [`tsoniclang/rust-js`](https://github.com/tsoniclang/rust-js) | `3160d8d3361ed84e28b7f66951814a11d108fc8f` |
+| [`tsoniclang/rust-runtime`](https://github.com/tsoniclang/rust-runtime) | `b31a26553f662ac7fc99ccf4cf267af6a73d3c63` |
 
-Two consecutive normal Tsumo generation passes succeeded for `engine`, `cli`,
-and `tests` and produced byte-identical output. The resulting locked Rust
-workspace then compiled successfully with Cargo.
+All three projects passed the September 21 certification: deterministic double
+generation, Cargo/Clippy, 83 compiled tests, 28 application tests, 11 native tests
+and release/debug generated-site equivalence.
 
 | Tree | Files | Bytes | Sorted relative-path/content manifest SHA-256 |
 |---|---:|---:|---|
-| Authored source | 209 | 822,621 | `5848c6e3275df9c0195edb903b815cbbdc64f583d579378f96fd5703b24832c3` |
-| Generated Rust | 224 | 3,818,671 | `7027b36f441cb5492b6ab809c141f2d12be11b4b964dc068d5cec37f250f8d3e` |
+| Authored source | 210 | 832,161 | `868307d801861977acab6d76759b080fc207ca8c92ad6639b1e80c70ee126b02` |
+| Generated Rust | 224 | 3,943,320 | `7f6fdfe89d30909d385f9d7ffc4cbb2bb22b56fcf3d835e6d480b70028ba7f0f` |
+
+The manifest hashes sorted lines of `<file SHA-256>  <relative path>\n`.
 
 The snapshot intentionally excludes `node_modules`, Cargo build output,
 compiled binaries, runtime packages, temporary files, and generated site

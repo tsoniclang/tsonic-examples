@@ -3,31 +3,31 @@
 use crate::program as rt;
 
 pub fn parse_scalar_text(
-    value: String,
+    value: &str,
     format: crate::utils::structured_scalars::StructuredScalarFormat,
     source_path: Option<String>,
     line: i32,
 ) -> Result<crate::params::ParamValue, rt::TsonicError> {
-    crate::utils::structured_scalars::parse_structured_scalar(&value, format, {
+    crate::utils::structured_scalars::parse_structured_scalar(value, format, {
         let capture_source_path = source_path.clone();
         let capture_line = line;
         rt::Callable::<(String,), rt::TsonicResult<crate::diagnostics::TsumoError>>::new(
             move |callable_arguments| {
                 let message = callable_arguments.0;
-                Ok::<_, rt::TsonicError>(crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::create_tsumo_error(
                     String::from("TSUMO_CONFIG_SYNTAX_INVALID"),
                     message,
                     capture_source_path.clone(),
                     Some(rt::conversions::i32_to_f64(capture_line)),
                     Some(1.0),
-                ))
+                )
             },
         )
     })
 }
 
 pub fn parse_config_param(
-    value: String,
+    value: &str,
     format: crate::utils::structured_scalars::StructuredScalarFormat,
     source_path: Option<String>,
     line: i32,
@@ -37,7 +37,7 @@ pub fn parse_config_param(
 
 pub fn parse_config_string(
     field: String,
-    value: String,
+    value: &str,
     format: crate::utils::structured_scalars::StructuredScalarFormat,
     source_path: Option<String>,
     line: i32,
@@ -66,13 +66,13 @@ pub fn parse_config_string(
             source_path.clone(),
             Some(rt::conversions::i32_to_f64(line)),
             Some(1.0),
-        ),
+        )?,
     ))
 }
 
 pub fn parse_config_int(
     field: String,
-    value: String,
+    value: &str,
     format: crate::utils::structured_scalars::StructuredScalarFormat,
     source_path: Option<String>,
     line: i32,
@@ -101,6 +101,6 @@ pub fn parse_config_int(
             source_path.clone(),
             Some(rt::conversions::i32_to_f64(line)),
             Some(1.0),
-        ),
+        )?,
     ))
 }

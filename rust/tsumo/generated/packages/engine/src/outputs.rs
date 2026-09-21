@@ -24,12 +24,12 @@ pub fn escape_xml(value: String) -> Result<String, rt::TsonicError> {
     crate::utils::html::escape_html(value)
 }
 
-pub fn wrap_cdata(raw: String) -> Result<String, rt::TsonicError> {
+pub fn wrap_cdata(raw: &str) -> Result<String, rt::TsonicError> {
     Ok(format!(
         "{}{}{}",
         String::from("<![CDATA["),
         crate::utils::strings::replace_text(
-            &raw,
+            raw,
             String::from("]]>"),
             String::from("]]]]><![CDATA[>")
         )?,
@@ -109,9 +109,8 @@ pub fn render_rss(
     {
         let mut i: f64 = 0.0;
         while i < (rt::conversions::usize_to_i32(pages.len())? as f64) {
-            let page: crate::models::page_context::PageContext = match pages.get_number(i).as_ref()
-            {
-                Some(flow_value) => flow_value.clone(),
+            let page: crate::models::page_context::PageContext = match pages.get_number(i) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let link: String = to_absolute_url(
@@ -179,7 +178,7 @@ pub fn render_rss(
                 operation_input_0_5.push_many_discard([format!(
                     "{}{}{}",
                     String::from("<description>"),
-                    wrap_cdata({
+                    wrap_cdata(&{
                         let dispatch_receiver_10 = &{
                             let dispatch_receiver_9 = &page;
                             dispatch_receiver_9.dispatch.read_page_context_summary()
@@ -194,7 +193,7 @@ pub fn render_rss(
                 operation_input_0_6.push_many_discard([format!(
                     "{}{}{}",
                     String::from("<content:encoded>"),
-                    wrap_cdata({
+                    wrap_cdata(&{
                         let dispatch_receiver_12 = &{
                             let dispatch_receiver_11 = &page;
                             dispatch_receiver_11.dispatch.read_page_context_content()
@@ -226,8 +225,8 @@ pub fn render_sitemap(
     {
         let mut i: f64 = 0.0;
         while i < (rt::conversions::usize_to_i32(rel_permalinks.len())? as f64) {
-            let rel: String = match rel_permalinks.get_number(i).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let rel: String = match rel_permalinks.get_number(i) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let loc: String = to_absolute_url(

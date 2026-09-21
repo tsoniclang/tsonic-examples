@@ -22,17 +22,21 @@ impl rt::ObjectIdentityCarrier for OutputFormat {
 }
 
 impl OutputFormat {
-    pub fn new(rel: String, media_type: String, permalink: String) -> OutputFormat {
+    pub fn new(
+        rel: String,
+        media_type: String,
+        permalink: String,
+    ) -> Result<OutputFormat, rt::TsonicError> {
         let field_rel: String = rel;
         let field_media_type: crate::models::media_type::MediaType =
-            crate::models::media_type::MediaType::new(media_type);
+            crate::models::media_type::MediaType::new(media_type)?;
         let field_permalink: String = permalink;
-        OutputFormat {
+        Ok(OutputFormat {
             state: rt::ObjectRef::new(OutputFormatState {
                 rel: field_rel,
                 media_type: field_media_type,
                 permalink: field_permalink,
             }),
-        }
+        })
     }
 }

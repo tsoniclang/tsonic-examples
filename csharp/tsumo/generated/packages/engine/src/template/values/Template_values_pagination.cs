@@ -38,7 +38,7 @@ namespace Tsumo.Engine
         {
             int start = (this.pageNumber - 1) * this.pageSize;
             int end = (int)Tsonic.CSharp.Js.Math.min(start + this.pageSize, this.sourcePages.length);
-            Tsonic.CSharp.Js.JSArray<PageContext> pages = new Tsonic.CSharp.Js.JSArray<PageContext>(new PageContext[] { });
+            Tsonic.CSharp.Js.JSArray<PageContext> pages = Tsonic.CSharp.Js.JSArray<PageContext>.of([]);
             for (int index = start; index < end; index++)
             {
                 pages.push(this.sourcePages[index]);
@@ -47,7 +47,7 @@ namespace Tsumo.Engine
         }
         public string url()
         {
-            return this.pageNumber <= 1 ? Utils_urlPath.combineUrlPath(new Tsonic.CSharp.Js.JSArray<string>(new string[] { this.basePath })) : Utils_urlPath.combineUrlPath(new Tsonic.CSharp.Js.JSArray<string>(new string[] { this.basePath, "page", $"{this.pageNumber}" }));
+            return this.pageNumber <= 1 ? Utils_urlPath.combineUrlPath(Tsonic.CSharp.Js.JSArray<string>.of([this.basePath])) : Utils_urlPath.combineUrlPath(Tsonic.CSharp.Js.JSArray<string>.of([this.basePath, "page", $"{this.pageNumber}"]));
         }
         public PaginatorValue withPageNumber(int pageNumber)
         {
@@ -59,7 +59,7 @@ namespace Tsumo.Engine
             {
                 return false;
             }
-            for (int index = 0; index < this.sourcePages.length; index++)
+            for (double index = 0; index < this.sourcePages.length; index++)
             {
                 if (!object.ReferenceEquals(this.sourcePages[index], other.sourcePages[index]))
                 {

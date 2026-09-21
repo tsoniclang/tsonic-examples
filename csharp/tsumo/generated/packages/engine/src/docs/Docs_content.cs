@@ -18,9 +18,9 @@ namespace Tsumo.Engine
             loadDocsContent = (Tsonic.CSharp.Js.JSArray<DocsMarkdownRoute> routes, bool buildDrafts) =>
             {
                 Tsonic.CSharp.Js.Map<string, DocsContentRoute> indexByDirectory = new Tsonic.CSharp.Js.Map<string, DocsContentRoute>();
-                Tsonic.CSharp.Js.JSArray<DocsContentRoute> leaves = new Tsonic.CSharp.Js.JSArray<DocsContentRoute>(new DocsContentRoute[] { });
+                Tsonic.CSharp.Js.JSArray<DocsContentRoute> leaves = Tsonic.CSharp.Js.JSArray<DocsContentRoute>.of([]);
                 Tsonic.CSharp.Js.Map<string, string> permalinkByRelativePath = new Tsonic.CSharp.Js.Map<string, string>();
-                for (int index = 0; index < routes.length; index++)
+                for (double index = 0; index < routes.length; index++)
                 {
                     DocsMarkdownRoute route = routes[index];
                     ParsedContent parsed = Frontmatter_parse.parseContent(Fs.readTextFile(route.sourcePath), route.sourcePath);

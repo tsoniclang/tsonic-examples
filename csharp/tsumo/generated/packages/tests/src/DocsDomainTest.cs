@@ -159,7 +159,7 @@ namespace Tsumo.Tests
                 {
                     claims.add("DOCS/index.html", "second.md");
                 }));
-                Tsonic.CSharp.Js.JSArray<SearchDocument> documents = new Tsonic.CSharp.Js.JSArray<SearchDocument>(new SearchDocument[] { new SearchDocument("Zulu", "/z/", "Docs", "last"), new SearchDocument("Alpha", "/a/", "Docs", "quoted \"value\"") });
+                Tsonic.CSharp.Js.JSArray<SearchDocument> documents = Tsonic.CSharp.Js.JSArray<SearchDocument>.of([new SearchDocument("Zulu", "/z/", "Docs", "last"), new SearchDocument("Alpha", "/a/", "Docs", "quoted \"value\"")]);
                 string expected = "[{\"title\":\"Alpha\",\"url\":\"/a/\",\"mount\":\"Docs\",\"text\":\"quoted \\\"value\\\"\"},{\"title\":\"Zulu\",\"url\":\"/z/\",\"mount\":\"Docs\",\"text\":\"last\"}]";
                 Xunit.Assert.Equal(expected, Node_modules_Tsumo_engine_src_docs_searchIndex.renderSearchIndexJson(documents));
                 Xunit.Assert.Equal(expected, Node_modules_Tsumo_engine_src_docs_searchIndex.renderSearchIndexJson(documents));

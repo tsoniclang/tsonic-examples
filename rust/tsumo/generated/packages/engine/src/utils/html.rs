@@ -24,7 +24,7 @@ pub trait HtmlStringDispatch {
         None
     }
     fn read_html_string_value(&self) -> String;
-    fn write_html_string_value(&self, value: String);
+    fn write_html_string_value(&self, value: String) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -61,29 +61,28 @@ impl rt::ObjectIdentityCarrier for HtmlString {
 }
 
 pub(crate) struct HtmlStringRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<HtmlStringState>,
+    state: rt::ObjectState<HtmlStringState>,
 }
 
 impl HtmlString {
     #[doc(hidden)]
-    pub fn initialize_state(value: String) -> HtmlStringState {
+    pub fn initialize_state(value: String) -> Result<HtmlStringState, rt::TsonicError> {
         let field_value: String = value;
-        HtmlStringState { value: field_value }
+        Ok(HtmlStringState { value: field_value })
     }
 
-    pub fn new(value: String) -> HtmlString {
-        let state = HtmlString::initialize_state(value);
+    pub fn new(value: String) -> Result<HtmlString, rt::TsonicError> {
+        let state = HtmlString::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(HtmlStringRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        HtmlString {
+        Ok(HtmlString {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -98,7 +97,13 @@ impl HtmlStringDispatch for HtmlStringRoot {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_html_string_value(&self, value: String) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_html_string_value(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

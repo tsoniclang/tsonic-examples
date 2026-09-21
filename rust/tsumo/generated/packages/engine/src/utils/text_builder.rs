@@ -71,7 +71,7 @@ impl rt::ObjectIdentityCarrier for TextBuilder {
 
 pub(crate) struct TextBuilderRoot {
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<TextBuilderState>,
+    state: rt::ObjectState<TextBuilderState>,
 }
 
 impl TextBuilder {
@@ -86,7 +86,7 @@ impl TextBuilder {
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(TextBuilderRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
         TextBuilder {
             identity,

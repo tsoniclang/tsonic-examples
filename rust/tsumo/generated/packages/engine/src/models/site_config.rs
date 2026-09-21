@@ -11,9 +11,9 @@ pub trait ModuleMountDispatch {
         None
     }
     fn read_module_mount_source(&self) -> String;
-    fn write_module_mount_source(&self, value: String);
+    fn write_module_mount_source(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_module_mount_target(&self) -> String;
-    fn write_module_mount_target(&self, value: String);
+    fn write_module_mount_target(&self, value: String) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -51,33 +51,35 @@ impl rt::ObjectIdentityCarrier for ModuleMount {
 }
 
 pub(crate) struct ModuleMountRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<ModuleMountState>,
+    state: rt::ObjectState<ModuleMountState>,
 }
 
 impl ModuleMount {
     #[doc(hidden)]
-    pub fn initialize_state(source: String, target: String) -> ModuleMountState {
+    pub fn initialize_state(
+        source: String,
+        target: String,
+    ) -> Result<ModuleMountState, rt::TsonicError> {
         let field_source: String = source;
         let field_target: String = target;
-        ModuleMountState {
+        Ok(ModuleMountState {
             source: field_source,
             target: field_target,
-        }
+        })
     }
 
-    pub fn new(source: String, target: String) -> ModuleMount {
-        let state = ModuleMount::initialize_state(source, target);
+    pub fn new(source: String, target: String) -> Result<ModuleMount, rt::TsonicError> {
+        let state = ModuleMount::initialize_state(source, target)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(ModuleMountRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        ModuleMount {
+        Ok(ModuleMount {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -92,16 +94,28 @@ impl ModuleMountDispatch for ModuleMountRoot {
         self.state.with(|state| state.source.clone())
     }
 
-    fn write_module_mount_source(&self, value: String) {
-        self.state.with_mut(|state| state.source = value);
+    fn write_module_mount_source(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.source = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_module_mount_target(&self) -> String {
         self.state.with(|state| state.target.clone())
     }
 
-    fn write_module_mount_target(&self, value: String) {
-        self.state.with_mut(|state| state.target = value);
+    fn write_module_mount_target(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.target = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -113,35 +127,41 @@ pub trait SiteConfigDispatch {
         None
     }
     fn read_site_config_title(&self) -> String;
-    fn write_site_config_title(&self, value: String);
+    fn write_site_config_title(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_site_config_base_url(&self) -> String;
-    fn write_site_config_base_url(&self, value: String);
+    fn write_site_config_base_url(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_site_config_language_code(&self) -> String;
-    fn write_site_config_language_code(&self, value: String);
+    fn write_site_config_language_code(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_site_config_content_dir(&self) -> String;
-    fn write_site_config_content_dir(&self, value: String);
+    fn write_site_config_content_dir(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_site_config_languages(
         &self,
     ) -> js_abi::JsArray<crate::models::language::LanguageConfig>;
     fn write_site_config_languages(
         &self,
         value: js_abi::JsArray<crate::models::language::LanguageConfig>,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_site_config_theme(&self) -> Option<String>;
-    fn write_site_config_theme(&self, value: Option<String>);
+    fn write_site_config_theme(&self, value: Option<String>) -> Result<(), rt::TsonicError>;
     fn read_site_config_copyright(&self) -> Option<String>;
-    fn write_site_config_copyright(&self, value: Option<String>);
+    fn write_site_config_copyright(&self, value: Option<String>) -> Result<(), rt::TsonicError>;
     fn read_site_config_params(&self) -> js_abi::JsMap<String, crate::params::ParamValue>;
-    fn write_site_config_params(&self, value: js_abi::JsMap<String, crate::params::ParamValue>);
+    fn write_site_config_params(
+        &self,
+        value: js_abi::JsMap<String, crate::params::ParamValue>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_site_config_menus(
         &self,
     ) -> js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>>;
     fn write_site_config_menus(
         &self,
         value: js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>>,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_site_config_module_mounts(&self) -> js_abi::JsArray<ModuleMount>;
-    fn write_site_config_module_mounts(&self, value: js_abi::JsArray<ModuleMount>);
+    fn write_site_config_module_mounts(
+        &self,
+        value: js_abi::JsArray<ModuleMount>,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -187,9 +207,8 @@ impl rt::ObjectIdentityCarrier for SiteConfig {
 }
 
 pub(crate) struct SiteConfigRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<SiteConfigState>,
+    state: rt::ObjectState<SiteConfigState>,
 }
 
 impl SiteConfig {
@@ -200,7 +219,7 @@ impl SiteConfig {
         language_code: String,
         theme: Option<String>,
         copyright: Option<String>,
-    ) -> SiteConfigState {
+    ) -> Result<SiteConfigState, rt::TsonicError> {
         let field_title: String = title;
         let field_base_url: String = base_url;
         let field_language_code: String = language_code;
@@ -217,7 +236,7 @@ impl SiteConfig {
         > = js_abi::JsMap::new();
         let empty_mounts: js_abi::JsArray<ModuleMount> = js_abi::JsArray::from_dense(vec![]);
         let field_module_mounts: js_abi::JsArray<ModuleMount> = empty_mounts;
-        SiteConfigState {
+        Ok(SiteConfigState {
             title: field_title,
             base_url: field_base_url,
             language_code: field_language_code,
@@ -228,7 +247,7 @@ impl SiteConfig {
             params: field_params,
             menus: field_menus,
             module_mounts: field_module_mounts,
-        }
+        })
     }
 
     pub fn new(
@@ -237,17 +256,17 @@ impl SiteConfig {
         language_code: String,
         theme: Option<String>,
         copyright: Option<String>,
-    ) -> SiteConfig {
-        let state = SiteConfig::initialize_state(title, base_url, language_code, theme, copyright);
+    ) -> Result<SiteConfig, rt::TsonicError> {
+        let state = SiteConfig::initialize_state(title, base_url, language_code, theme, copyright)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(SiteConfigRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        SiteConfig {
+        Ok(SiteConfig {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -262,32 +281,56 @@ impl SiteConfigDispatch for SiteConfigRoot {
         self.state.with(|state| state.title.clone())
     }
 
-    fn write_site_config_title(&self, value: String) {
-        self.state.with_mut(|state| state.title = value);
+    fn write_site_config_title(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.title = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_config_base_url(&self) -> String {
         self.state.with(|state| state.base_url.clone())
     }
 
-    fn write_site_config_base_url(&self, value: String) {
-        self.state.with_mut(|state| state.base_url = value);
+    fn write_site_config_base_url(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base_url = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_config_language_code(&self) -> String {
         self.state.with(|state| state.language_code.clone())
     }
 
-    fn write_site_config_language_code(&self, value: String) {
-        self.state.with_mut(|state| state.language_code = value);
+    fn write_site_config_language_code(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.language_code = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_config_content_dir(&self) -> String {
         self.state.with(|state| state.content_dir.clone())
     }
 
-    fn write_site_config_content_dir(&self, value: String) {
-        self.state.with_mut(|state| state.content_dir = value);
+    fn write_site_config_content_dir(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.content_dir = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_config_languages(
@@ -299,32 +342,59 @@ impl SiteConfigDispatch for SiteConfigRoot {
     fn write_site_config_languages(
         &self,
         value: js_abi::JsArray<crate::models::language::LanguageConfig>,
-    ) {
-        self.state.with_mut(|state| state.languages = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.languages = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_config_theme(&self) -> Option<String> {
         self.state.with(|state| state.theme.clone())
     }
 
-    fn write_site_config_theme(&self, value: Option<String>) {
-        self.state.with_mut(|state| state.theme = value);
+    fn write_site_config_theme(&self, value: Option<String>) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.theme = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_config_copyright(&self) -> Option<String> {
         self.state.with(|state| state.copyright.clone())
     }
 
-    fn write_site_config_copyright(&self, value: Option<String>) {
-        self.state.with_mut(|state| state.copyright = value);
+    fn write_site_config_copyright(&self, value: Option<String>) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.copyright = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_config_params(&self) -> js_abi::JsMap<String, crate::params::ParamValue> {
         self.state.with(|state| state.params.clone())
     }
 
-    fn write_site_config_params(&self, value: js_abi::JsMap<String, crate::params::ParamValue>) {
-        self.state.with_mut(|state| state.params = value);
+    fn write_site_config_params(
+        &self,
+        value: js_abi::JsMap<String, crate::params::ParamValue>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.params = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_config_menus(
@@ -336,15 +406,30 @@ impl SiteConfigDispatch for SiteConfigRoot {
     fn write_site_config_menus(
         &self,
         value: js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>>,
-    ) {
-        self.state.with_mut(|state| state.menus = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.menus = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_config_module_mounts(&self) -> js_abi::JsArray<ModuleMount> {
         self.state.with(|state| state.module_mounts.clone())
     }
 
-    fn write_site_config_module_mounts(&self, value: js_abi::JsArray<ModuleMount>) {
-        self.state.with_mut(|state| state.module_mounts = value);
+    fn write_site_config_module_mounts(
+        &self,
+        value: js_abi::JsArray<ModuleMount>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.module_mounts = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

@@ -29,19 +29,19 @@ impl StandardTemplates {
         home: String,
         list: String,
         single: String,
-    ) -> StandardTemplates {
+    ) -> Result<StandardTemplates, rt::TsonicError> {
         let field_base: Option<String> = base;
         let field_home: String = home;
         let field_list: String = list;
         let field_single: String = single;
-        StandardTemplates {
+        Ok(StandardTemplates {
             state: rt::ObjectRef::new(StandardTemplatesState {
                 base: field_base,
                 home: field_home,
                 list: field_list,
                 single: field_single,
             }),
-        }
+        })
     }
 }
 
@@ -79,12 +79,12 @@ pub fn select_standard_templates(
             list_candidates.clone(),
         )?,
         core::convert::identity,
-        || match list_candidates.get_number(0.0).as_ref() {
-            Some(flow_value) => flow_value.clone(),
+        || match list_candidates.get_number(0.0) {
+            Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
         },
     );
-    Ok(StandardTemplates::new(
+    StandardTemplates::new(
         crate::build::layout::select_template(
             {
                 let upcast_value_2 = environment.clone();
@@ -109,7 +109,7 @@ pub fn select_standard_templates(
             core::convert::identity,
             || list.clone(),
         ),
-        list.clone(),
+        list,
         rt::option_coalesce(
             crate::build::layout::select_template(
                 {
@@ -122,10 +122,10 @@ pub fn select_standard_templates(
                 single_candidates.clone(),
             )?,
             core::convert::identity,
-            || match single_candidates.get_number(0.0).as_ref() {
-                Some(flow_value_2) => flow_value_2.clone(),
+            || match single_candidates.get_number(0.0) {
+                Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             },
         ),
-    ))
+    )
 }

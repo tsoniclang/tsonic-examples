@@ -28,17 +28,17 @@ impl StructuredInput {
         text: String,
         source_path: Option<String>,
         format_hint: Option<String>,
-    ) -> StructuredInput {
+    ) -> Result<StructuredInput, rt::TsonicError> {
         let field_text: String = text;
         let field_source_path: Option<String> = source_path;
         let field_format_hint: Option<String> = format_hint;
-        StructuredInput {
+        Ok(StructuredInput {
             state: rt::ObjectRef::new(StructuredInputState {
                 text: field_text,
                 source_path: field_source_path,
                 format_hint: field_format_hint,
             }),
-        }
+        })
     }
 }
 
@@ -62,17 +62,21 @@ impl rt::ObjectIdentityCarrier for YamlLine {
 }
 
 impl YamlLine {
-    pub fn new(indent: i32, content: String, line_number: i32) -> YamlLine {
+    pub fn new(
+        indent: i32,
+        content: String,
+        line_number: i32,
+    ) -> Result<YamlLine, rt::TsonicError> {
         let field_indent: i32 = indent;
         let field_content: String = content;
         let field_line_number: i32 = line_number;
-        YamlLine {
+        Ok(YamlLine {
             state: rt::ObjectRef::new(YamlLineState {
                 indent: field_indent,
                 content: field_content,
                 line_number: field_line_number,
             }),
-        }
+        })
     }
 }
 
@@ -95,15 +99,18 @@ impl rt::ObjectIdentityCarrier for YamlLogicalLine {
 }
 
 impl YamlLogicalLine {
-    pub fn new(content: String, next_source_index: i32) -> YamlLogicalLine {
+    pub fn new(
+        content: String,
+        next_source_index: i32,
+    ) -> Result<YamlLogicalLine, rt::TsonicError> {
         let field_content: String = content;
         let field_next_source_index: i32 = next_source_index;
-        YamlLogicalLine {
+        Ok(YamlLogicalLine {
             state: rt::ObjectRef::new(YamlLogicalLineState {
                 content: field_content,
                 next_source_index: field_next_source_index,
             }),
-        }
+        })
     }
 }
 
@@ -126,15 +133,15 @@ impl rt::ObjectIdentityCarrier for YamlQuoteScan {
 }
 
 impl YamlQuoteScan {
-    pub fn new(closed: bool, escaped_line_break: bool) -> YamlQuoteScan {
+    pub fn new(closed: bool, escaped_line_break: bool) -> Result<YamlQuoteScan, rt::TsonicError> {
         let field_closed: bool = closed;
         let field_escaped_line_break: bool = escaped_line_break;
-        YamlQuoteScan {
+        Ok(YamlQuoteScan {
             state: rt::ObjectRef::new(YamlQuoteScanState {
                 closed: field_closed,
                 escaped_line_break: field_escaped_line_break,
             }),
-        }
+        })
     }
 }
 
@@ -142,7 +149,7 @@ pub fn yaml_error(
     message: String,
     source_path: Option<String>,
     line: i32,
-) -> crate::diagnostics::TsumoError {
+) -> Result<crate::diagnostics::TsumoError, rt::TsonicError> {
     crate::diagnostics::create_tsumo_error(
         String::from("TSUMO_TEMPLATE_UNMARSHAL_YAML_INVALID"),
         message,
@@ -153,86 +160,93 @@ pub fn yaml_error(
 }
 
 pub fn yaml_source_indentation(
-    raw: String,
+    raw: &str,
     source_path: Option<String>,
     line: i32,
 ) -> Result<i32, rt::TsonicError> {
     let mut indentation: i32 = 0;
-    while indentation < rt::conversions::usize_to_i32(js_string::js_len(&raw))?
-        && js_string::char_at(&raw, rt::conversions::i32_to_f64(indentation))? == " "
+    while indentation < rt::conversions::usize_to_i32(js_string::js_len(raw))?
+        && js_string::char_at(raw, rt::conversions::i32_to_f64(indentation))? == " "
     {
         indentation += 1;
     }
-    if indentation < rt::conversions::usize_to_i32(js_string::js_len(&raw))?
-        && js_string::char_at(&raw, rt::conversions::i32_to_f64(indentation))? == "\t"
+    if indentation < rt::conversions::usize_to_i32(js_string::js_len(raw))?
+        && js_string::char_at(raw, rt::conversions::i32_to_f64(indentation))? == "\t"
     {
         return Err(rt::TsonicError::TsumoError(yaml_error(
             String::from("YAML indentation cannot contain tabs"),
             source_path,
             line,
-        )));
+        )?));
     }
     Ok(indentation)
 }
 
-pub fn yaml_mapping_separator(value: String) -> Result<i32, rt::TsonicError> {
+pub fn yaml_mapping_separator(value: &str) -> Result<i32, rt::TsonicError> {
     let mut quote: String = String::from("");
     let mut escaped: bool = false;
-    'loop_value: for index in 0..rt::conversions::usize_to_i32(js_string::js_len(&value))? {
-        let character: String = js_string::char_at(&value, rt::conversions::i32_to_f64(index))?;
-        if escaped {
-            escaped = false;
-            continue 'loop_value;
-        }
-        if quote == "\"" && character == "\\" {
-            escaped = true;
-            continue 'loop_value;
-        }
-        if character == "\"" || character == "'" {
-            if quote.is_empty() {
-                quote = character.clone();
-            } else if quote == character {
-                quote = String::from("");
+    {
+        let mut index: i32 = 0;
+        'loop_value: while index < rt::conversions::usize_to_i32(js_string::js_len(value))? {
+            let character: String = js_string::char_at(value, rt::conversions::i32_to_f64(index))?;
+            if escaped {
+                escaped = false;
+                index = crate::utils::strings::next_code_point_index(value, index)?;
+                continue 'loop_value;
             }
-            continue 'loop_value;
-        }
-        if quote.is_empty()
-            && character == ":"
-            && (index + 1 == rt::conversions::usize_to_i32(js_string::js_len(&value))?
-                || js_string::char_at(&value, rt::conversions::i32_to_f64(index + 1))? == " "
-                || js_string::char_at(&value, rt::conversions::i32_to_f64(index + 1))? == "\t")
-        {
-            return Ok(index);
+            if quote == "\"" && character == "\\" {
+                escaped = true;
+                index = crate::utils::strings::next_code_point_index(value, index)?;
+                continue 'loop_value;
+            }
+            if character == "\"" || character == "'" {
+                if quote.is_empty() {
+                    quote = character.clone();
+                } else if quote == character {
+                    quote = String::from("");
+                }
+                index = crate::utils::strings::next_code_point_index(value, index)?;
+                continue 'loop_value;
+            }
+            if quote.is_empty()
+                && character == ":"
+                && (index + 1 == rt::conversions::usize_to_i32(js_string::js_len(value))?
+                    || js_string::char_at(value, rt::conversions::i32_to_f64(index + 1))? == " "
+                    || js_string::char_at(value, rt::conversions::i32_to_f64(index + 1))? == "\t")
+            {
+                return Ok(index);
+            }
+            index = crate::utils::strings::next_code_point_index(value, index)?;
         }
     }
     Ok(-1)
 }
 
-pub fn yaml_quoted_scalar_start(content: String) -> Result<Option<i32>, rt::TsonicError> {
+pub fn yaml_quoted_scalar_start(content: &str) -> Result<Option<i32>, rt::TsonicError> {
     let mut start: i32 = 0;
-    if js_string::starts_with_from_start(&content, "- ") {
+    if js_string::starts_with_from_start(content, "- ") {
         start = 2;
     }
-    while start < rt::conversions::usize_to_i32(js_string::js_len(&content))?
-        && (js_string::char_at(&content, rt::conversions::i32_to_f64(start))? == " "
-            || js_string::char_at(&content, rt::conversions::i32_to_f64(start))? == "\t")
+    while start < rt::conversions::usize_to_i32(js_string::js_len(content))?
+        && (js_string::char_at(content, rt::conversions::i32_to_f64(start))? == " "
+            || js_string::char_at(content, rt::conversions::i32_to_f64(start))? == "\t")
     {
         start += 1;
     }
-    let candidate: String = crate::utils::strings::substring_from(&content, start)?;
-    let separator: i32 = yaml_mapping_separator(candidate)?;
+    let candidate: String = crate::utils::strings::substring_from(content, start)?;
+    let separator: i32 = yaml_mapping_separator(&candidate)?;
     if separator >= 0 {
         start += separator + 1;
-        while start < rt::conversions::usize_to_i32(js_string::js_len(&content))?
-            && (js_string::char_at(&content, rt::conversions::i32_to_f64(start))? == " "
-                || js_string::char_at(&content, rt::conversions::i32_to_f64(start))? == "\t")
+        while start < rt::conversions::usize_to_i32(js_string::js_len(content))?
+            && (js_string::char_at(content, rt::conversions::i32_to_f64(start))? == " "
+                || js_string::char_at(content, rt::conversions::i32_to_f64(start))? == "\t")
         {
             start += 1;
         }
     }
-    if start >= rt::conversions::usize_to_i32(js_string::js_len(&content))?
-        || js_string::char_at(&content, rt::conversions::i32_to_f64(start))? != "\""
-            && js_string::char_at(&content, rt::conversions::i32_to_f64(start))? != "'"
+    if start >= rt::conversions::usize_to_i32(js_string::js_len(content))?
+        || js_string::char_at(content, rt::conversions::i32_to_f64(start))? != "\""
+            && js_string::char_at(content, rt::conversions::i32_to_f64(start))? != "'"
     {
         return Ok(Option::<i32>::None);
     }
@@ -240,39 +254,39 @@ pub fn yaml_quoted_scalar_start(content: String) -> Result<Option<i32>, rt::Tson
 }
 
 pub fn scan_yaml_quoted_scalar(
-    content: String,
+    content: &str,
     quote_start: i32,
-    quote: String,
+    quote: &str,
 ) -> Result<YamlQuoteScan, rt::TsonicError> {
     {
         let mut index: i32 = quote_start + 1;
-        'loop_value: while index < rt::conversions::usize_to_i32(js_string::js_len(&content))? {
+        'loop_value: while index < rt::conversions::usize_to_i32(js_string::js_len(content))? {
             let character: String =
-                js_string::char_at(&content, rt::conversions::i32_to_f64(index))?;
+                js_string::char_at(content, rt::conversions::i32_to_f64(index))?;
             if quote == "\"" && character == "\\" {
-                if index + 1 >= rt::conversions::usize_to_i32(js_string::js_len(&content))? {
-                    return Ok(YamlQuoteScan::new(false, true));
+                if index + 1 >= rt::conversions::usize_to_i32(js_string::js_len(content))? {
+                    return YamlQuoteScan::new(false, true);
                 }
                 index += 1;
-                index += 1;
+                index = crate::utils::strings::next_code_point_index(content, index)?;
                 continue 'loop_value;
             }
             if character != quote {
-                index += 1;
+                index = crate::utils::strings::next_code_point_index(content, index)?;
                 continue 'loop_value;
             }
             if quote == "'"
-                && index + 1 < rt::conversions::usize_to_i32(js_string::js_len(&content))?
-                && js_string::char_at(&content, rt::conversions::i32_to_f64(index + 1))? == "'"
+                && index + 1 < rt::conversions::usize_to_i32(js_string::js_len(content))?
+                && js_string::char_at(content, rt::conversions::i32_to_f64(index + 1))? == "'"
             {
                 index += 1;
-                index += 1;
+                index = crate::utils::strings::next_code_point_index(content, index)?;
                 continue 'loop_value;
             }
-            return Ok(YamlQuoteScan::new(true, false));
+            return YamlQuoteScan::new(true, false);
         }
     }
-    Ok(YamlQuoteScan::new(false, false))
+    YamlQuoteScan::new(false, false)
 }
 
 pub fn read_yaml_logical_line(
@@ -281,11 +295,8 @@ pub fn read_yaml_logical_line(
     indent: i32,
     source_path: Option<String>,
 ) -> Result<YamlLogicalLine, rt::TsonicError> {
-    let raw: String = match source_lines
-        .get_number(rt::conversions::i32_to_f64(source_index))
-        .as_ref()
-    {
-        Some(flow_value) => flow_value.clone(),
+    let raw: String = match source_lines.get_number(rt::conversions::i32_to_f64(source_index)) {
+        Some(flow_value) => flow_value,
         None => unreachable!("checked flow selected a missing optional value"),
     };
     let mut content: String =
@@ -293,9 +304,9 @@ pub fn read_yaml_logical_line(
             crate::utils::strings::substring_from(&raw, indent)?,
             crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
         )?);
-    let quote_start: Option<i32> = yaml_quoted_scalar_start(content.clone())?;
+    let quote_start: Option<i32> = yaml_quoted_scalar_start(&content)?;
     if quote_start.is_none() {
-        return Ok(YamlLogicalLine::new(content.clone(), source_index + 1));
+        return YamlLogicalLine::new(content.clone(), source_index + 1);
     }
     let quote: String = js_string::char_at(
         &content,
@@ -305,15 +316,15 @@ pub fn read_yaml_logical_line(
         }),
     )?;
     let mut scan: YamlQuoteScan = scan_yaml_quoted_scalar(
-        content.clone(),
+        &content,
         match quote_start.as_ref() {
             Some(flow_value_3) => *flow_value_3,
             None => unreachable!("checked flow selected a missing optional value"),
         },
-        quote.clone(),
+        &quote,
     )?;
     if scan.state.with(|state| state.closed) {
-        return Ok(YamlLogicalLine::new(content.clone(), source_index + 1));
+        return YamlLogicalLine::new(content.clone(), source_index + 1);
     }
     let minimum_continuation_indent: i32 = indent;
     let mut next_source_index: i32 = source_index + 1;
@@ -336,17 +347,15 @@ pub fn read_yaml_logical_line(
                 String::from("String has mismatched quotes"),
                 source_path.clone(),
                 source_index + 1,
-            )));
+            )?));
         }
-        let continuation_raw: String = match source_lines
-            .get_number(rt::conversions::i32_to_f64(next_source_index))
-            .as_ref()
-        {
-            Some(flow_value_4) => flow_value_4.clone(),
-            None => unreachable!("checked flow selected a missing optional value"),
-        };
+        let continuation_raw: String =
+            match source_lines.get_number(rt::conversions::i32_to_f64(next_source_index)) {
+                Some(flow_value_4) => flow_value_4,
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
         let continuation_indent: i32 = yaml_source_indentation(
-            continuation_raw.clone(),
+            &continuation_raw,
             source_path.clone(),
             next_source_index + 1,
         )?;
@@ -361,7 +370,7 @@ pub fn read_yaml_logical_line(
                 String::from("Multiline YAML scalar indentation is inconsistent"),
                 source_path.clone(),
                 next_source_index,
-            )));
+            )?));
         }
         if !scan.state.with(|state| state.escaped_line_break) {
             content.push_str(&if blank_line_count == 0 {
@@ -378,21 +387,21 @@ pub fn read_yaml_logical_line(
         content.push_str(&continuation);
         blank_line_count = 0;
         scan = scan_yaml_quoted_scalar(
-            content.clone(),
+            &content,
             match quote_start.as_ref() {
                 Some(flow_value_5) => *flow_value_5,
                 None => unreachable!("checked flow selected a missing optional value"),
             },
-            quote.clone(),
+            &quote,
         )?;
     }
-    Ok(YamlLogicalLine::new(
+    YamlLogicalLine::new(
         js_string::trim_end(&crate::utils::structured_scalars::strip_structured_comment(
             content.clone(),
             crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
         )?),
         next_source_index,
-    ))
+    )
 }
 
 #[doc(hidden)]
@@ -417,15 +426,15 @@ impl YamlParseResult {
     pub fn new(
         value: crate::template::values::base::TemplateValue,
         next_index: i32,
-    ) -> YamlParseResult {
+    ) -> Result<YamlParseResult, rt::TsonicError> {
         let field_value: crate::template::values::base::TemplateValue = value;
         let field_next_index: i32 = next_index;
-        YamlParseResult {
+        Ok(YamlParseResult {
             state: rt::ObjectRef::new(YamlParseResultState {
                 value: field_value,
                 next_index: field_next_index,
             }),
-        }
+        })
     }
 }
 
@@ -449,17 +458,21 @@ impl rt::ObjectIdentityCarrier for YamlBlockScalarHeader {
 }
 
 impl YamlBlockScalarHeader {
-    pub fn new(folded: bool, chomping: String, indentation: Option<i32>) -> YamlBlockScalarHeader {
+    pub fn new(
+        folded: bool,
+        chomping: String,
+        indentation: Option<i32>,
+    ) -> Result<YamlBlockScalarHeader, rt::TsonicError> {
         let field_folded: bool = folded;
         let field_chomping: String = chomping;
         let field_indentation: Option<i32> = indentation;
-        YamlBlockScalarHeader {
+        Ok(YamlBlockScalarHeader {
             state: rt::ObjectRef::new(YamlBlockScalarHeaderState {
                 folded: field_folded,
                 chomping: field_chomping,
                 indentation: field_indentation,
             }),
-        }
+        })
     }
 }
 
@@ -485,7 +498,7 @@ pub fn json_to_template_value(
             let upcast_value = crate::template::values::primitives::BoolValue::new({
                 let dispatch_receiver = &selected_value;
                 dispatch_receiver.dispatch.read_json_bool_value()
-            });
+            })?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value.identity.clone(),
                 dispatch: upcast_value.dispatch.clone(),
@@ -524,7 +537,7 @@ pub fn json_to_template_value(
                         let dispatch_receiver_6 = &selected_value_2;
                         dispatch_receiver_6.dispatch.read_json_value_column()
                     })),
-                ),
+                )?,
             ));
         }
         return Ok({
@@ -533,7 +546,7 @@ pub fn json_to_template_value(
                     let dispatch_receiver_7 = &selected_value_2;
                     dispatch_receiver_7.dispatch.read_json_number_value()
                 })?,
-            );
+            )?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_2.identity.clone(),
                 dispatch: upcast_value_2.dispatch.clone(),
@@ -549,7 +562,7 @@ pub fn json_to_template_value(
             let upcast_value_3 = crate::template::values::primitives::StringValue::new({
                 let dispatch_receiver_8 = &selected_value_3;
                 dispatch_receiver_8.dispatch.read_json_string_value()
-            });
+            })?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_3.identity.clone(),
                 dispatch: upcast_value_3.dispatch.clone(),
@@ -582,9 +595,8 @@ pub fn json_to_template_value(
                             dispatch_receiver_10.dispatch.read_json_array_items()
                         }
                         .get_number(index)
-                        .as_ref()
                         {
-                            Some(flow_value) => flow_value.clone(),
+                            Some(flow_value) => flow_value,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     )?])
@@ -593,7 +605,8 @@ pub fn json_to_template_value(
             }
         }
         return Ok({
-            let upcast_value_4 = crate::template::values::arrays::AnyArrayValue::new(items.clone());
+            let upcast_value_4 =
+                crate::template::values::arrays::AnyArrayValue::new(items.clone())?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_4.identity.clone(),
                 dispatch: upcast_value_4.dispatch.clone(),
@@ -623,9 +636,8 @@ pub fn json_to_template_value(
                     dispatch_receiver_12.dispatch.read_json_object_properties()
                 }
                 .get_number(index)
-                .as_ref()
                 {
-                    Some(flow_value_2) => flow_value_2.clone(),
+                    Some(flow_value_2) => flow_value_2,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 {
@@ -639,7 +651,7 @@ pub fn json_to_template_value(
             }
         }
         return Ok({
-            let upcast_value_5 = crate::template::values::dict::DictValue::new(fields.clone());
+            let upcast_value_5 = crate::template::values::dict::DictValue::new(fields.clone())?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_5.identity.clone(),
                 dispatch: upcast_value_5.dispatch.clone(),
@@ -653,11 +665,11 @@ pub fn json_to_template_value(
             None,
             None,
             None,
-        ),
+        )?,
     ))
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone)]
 pub struct YamlTemplateParser {
     pub lines: js_abi::JsArray<YamlLine>,
     pub source_lines: js_abi::JsArray<String>,
@@ -677,14 +689,11 @@ impl YamlTemplateParser {
         let field_source_lines: js_abi::JsArray<String> = source_lines.clone();
         let mut index: i32 = 0;
         'loop_value: while index < rt::conversions::usize_to_i32(source_lines.len())? {
-            let raw: String = match source_lines
-                .get_number(rt::conversions::i32_to_f64(index))
-                .as_ref()
-            {
-                Some(flow_value) => flow_value.clone(),
+            let raw: String = match source_lines.get_number(rt::conversions::i32_to_f64(index)) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let indent: i32 = yaml_source_indentation(raw.clone(), source_path.clone(), index + 1)?;
+            let indent: i32 = yaml_source_indentation(&raw, source_path.clone(), index + 1)?;
             let logical: YamlLogicalLine =
                 read_yaml_logical_line(source_lines.clone(), index, indent, source_path.clone())?;
             let content: String = logical.state.with(|state| state.content.clone());
@@ -702,7 +711,7 @@ impl YamlTemplateParser {
                     indent,
                     content.clone(),
                     line_number,
-                )])
+                )?])
             };
         }
         Ok(YamlTemplateParser {
@@ -720,8 +729,8 @@ impl YamlTemplateParser {
         }
         let result: YamlParseResult = self.parse_block(
             0,
-            match self.lines.get_number(0.0).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            match self.lines.get_number(0.0) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             }
             .state
@@ -730,39 +739,36 @@ impl YamlTemplateParser {
         if result.state.with(|state| state.next_index)
             != rt::conversions::usize_to_i32(self.lines.len())?
         {
-            let line: YamlLine = match {
-                let operation_input_0 = self.lines.clone();
-                operation_input_0.get_number(rt::conversions::i32_to_f64(
-                    result.state.with(|state| state.next_index),
-                ))
-            }
-            .as_ref()
-            {
-                Some(flow_value_2) => flow_value_2.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
+            let line: YamlLine = {
+                let flow_input = {
+                    let operation_input_0 = self.lines.clone();
+                    operation_input_0.get_number(rt::conversions::i32_to_f64(
+                        result.state.with(|state| state.next_index),
+                    ))
+                };
+                match flow_input {
+                    Some(flow_value_2) => flow_value_2,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }
             };
             return Err(rt::TsonicError::TsumoError(self.error(
                 String::from("YAML indentation does not belong to the preceding value"),
                 line.state.with(|state| state.line_number),
-            )));
+            )?));
         }
         Ok(result.state.with(|state| state.value.clone()))
     }
 
     pub fn parse_block(&self, index: i32, indent: i32) -> Result<YamlParseResult, rt::TsonicError> {
-        let line: YamlLine = match self
-            .lines
-            .get_number(rt::conversions::i32_to_f64(index))
-            .as_ref()
-        {
-            Some(flow_value) => flow_value.clone(),
+        let line: YamlLine = match self.lines.get_number(rt::conversions::i32_to_f64(index)) {
+            Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
         };
         if line.state.with(|state| state.indent) != indent {
             return Err(rt::TsonicError::TsumoError(self.error(
                 String::from("YAML block indentation is inconsistent"),
                 line.state.with(|state| state.line_number),
-            )));
+            )?));
         }
         if line.state.with(|state| state.content.clone()) == "-"
             || js_string::starts_with_from_start(
@@ -772,16 +778,16 @@ impl YamlTemplateParser {
         {
             return self.parse_sequence(index, indent);
         }
-        if yaml_mapping_separator(line.state.with(|state| state.content.clone()))? >= 0 {
+        if yaml_mapping_separator(&line.state.with(|state| state.content.clone()))? >= 0 {
             return self.parse_mapping(index, indent);
         }
-        Ok(YamlParseResult::new(
+        YamlParseResult::new(
             self.parse_scalar(
-                line.state.with(|state| state.content.clone()),
+                &line.state.with(|state| state.content.clone()),
                 line.state.with(|state| state.line_number),
             )?,
             index + 1,
-        ))
+        )
     }
 
     pub fn parse_sequence(
@@ -793,12 +799,8 @@ impl YamlTemplateParser {
             js_abi::JsArray::from_dense(vec![]);
         let mut current: i32 = index;
         'loop_value: while current < rt::conversions::usize_to_i32(self.lines.len())? {
-            let line: YamlLine = match self
-                .lines
-                .get_number(rt::conversions::i32_to_f64(current))
-                .as_ref()
-            {
-                Some(flow_value) => flow_value.clone(),
+            let line: YamlLine = match self.lines.get_number(rt::conversions::i32_to_f64(current)) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if line.state.with(|state| state.indent) < indent {
@@ -816,7 +818,7 @@ impl YamlTemplateParser {
                         "YAML sequence entries must use the same indentation and '-' marker",
                     ),
                     line.state.with(|state| state.line_number),
-                )));
+                )?));
             }
             let item: String = if line.state.with(|state| state.content.clone()) == "-" {
                 String::from("")
@@ -828,7 +830,7 @@ impl YamlTemplateParser {
             };
             current += 1;
             if !item.is_empty() {
-                let separator: i32 = yaml_mapping_separator(item.clone())?;
+                let separator: i32 = yaml_mapping_separator(&item)?;
                 if separator >= 0 {
                     let key: String = js_string::trim(&js_string::slice_to(
                         &item,
@@ -839,7 +841,7 @@ impl YamlTemplateParser {
                         return Err(rt::TsonicError::TsumoError(self.error(
                             String::from("YAML mapping key cannot be empty"),
                             line.state.with(|state| state.line_number),
-                        )));
+                        )?));
                     }
                     let value_text: String = js_string::trim(
                         &crate::utils::strings::substring_from(&item, separator + 1)?,
@@ -850,7 +852,7 @@ impl YamlTemplateParser {
                                 "A YAML sequence mapping must begin with a scalar-valued field",
                             ),
                             line.state.with(|state| state.line_number),
-                        )));
+                        )?));
                     }
                     let fields: js_abi::JsMap<
                         String,
@@ -887,19 +889,15 @@ impl YamlTemplateParser {
                             operation_input_0_2.set_discard(
                                 key.clone(),
                                 self.parse_scalar(
-                                    value_text.clone(),
+                                    &value_text,
                                     line.state.with(|state| state.line_number),
                                 )?,
                             )
                         };
                     }
                     if current < rt::conversions::usize_to_i32(self.lines.len())?
-                        && match self
-                            .lines
-                            .get_number(rt::conversions::i32_to_f64(current))
-                            .as_ref()
-                        {
-                            Some(flow_value_3) => flow_value_3.clone(),
+                        && match self.lines.get_number(rt::conversions::i32_to_f64(current)) {
+                            Some(flow_value_3) => flow_value_3,
                             None => unreachable!("checked flow selected a missing optional value"),
                         }
                         .state
@@ -908,12 +906,8 @@ impl YamlTemplateParser {
                     {
                         let continuation: YamlParseResult = self.parse_block(
                             current,
-                            match self
-                                .lines
-                                .get_number(rt::conversions::i32_to_f64(current))
-                                .as_ref()
-                            {
-                                Some(flow_value_4) => flow_value_4.clone(),
+                            match self.lines.get_number(rt::conversions::i32_to_f64(current)) {
+                                Some(flow_value_4) => flow_value_4,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
@@ -937,16 +931,15 @@ impl YamlTemplateParser {
                                     match self
                                         .lines
                                         .get_number(rt::conversions::i32_to_f64(current))
-                                        .as_ref()
                                     {
-                                        Some(flow_value_5) => flow_value_5.clone(),
+                                        Some(flow_value_5) => flow_value_5,
                                         None => unreachable!(
                                             "checked flow selected a missing optional value"
                                         ),
                                     }
                                     .state
                                     .with(|state| state.line_number),
-                                ),
+                                )?,
                             ));
                         }
                         let continuation_fields: js_abi::JsMap<
@@ -980,16 +973,15 @@ impl YamlTemplateParser {
                                         match self
                                             .lines
                                             .get_number(rt::conversions::i32_to_f64(current))
-                                            .as_ref()
                                         {
-                                            Some(flow_value_6) => flow_value_6.clone(),
+                                            Some(flow_value_6) => flow_value_6,
                                             None => unreachable!(
                                                 "checked flow selected a missing optional value"
                                             ),
                                         }
                                         .state
                                         .with(|state| state.line_number),
-                                    ),
+                                    )?,
                                 ));
                             }
                             let continuation_value: Option<
@@ -1007,16 +999,15 @@ impl YamlTemplateParser {
                                         match self
                                             .lines
                                             .get_number(rt::conversions::i32_to_f64(current))
-                                            .as_ref()
                                         {
-                                            Some(flow_value_7) => flow_value_7.clone(),
+                                            Some(flow_value_7) => flow_value_7,
                                             None => unreachable!(
                                                 "checked flow selected a missing optional value"
                                             ),
                                         }
                                         .state
                                         .with(|state| state.line_number),
-                                    ),
+                                    )?,
                                 ));
                             }
                             fields.set_discard(
@@ -1035,7 +1026,7 @@ impl YamlTemplateParser {
                         let operation_input_0_3 = values.clone();
                         operation_input_0_3.push_many_discard([{
                             let upcast_value =
-                                crate::template::values::dict::DictValue::new(fields.clone());
+                                crate::template::values::dict::DictValue::new(fields.clone())?;
                             crate::template::values::base::TemplateValue {
                                 identity: upcast_value.identity.clone(),
                                 dispatch: upcast_value.dispatch.clone(),
@@ -1046,16 +1037,13 @@ impl YamlTemplateParser {
                 }
                 {
                     let operation_input_0_4 = values.clone();
-                    operation_input_0_4.push_many_discard([self
-                        .parse_scalar(item.clone(), line.state.with(|state| state.line_number))?])
+                    operation_input_0_4.push_many_discard([
+                        self.parse_scalar(&item, line.state.with(|state| state.line_number))?
+                    ])
                 };
                 if current < rt::conversions::usize_to_i32(self.lines.len())?
-                    && match self
-                        .lines
-                        .get_number(rt::conversions::i32_to_f64(current))
-                        .as_ref()
-                    {
-                        Some(flow_value_9) => flow_value_9.clone(),
+                    && match self.lines.get_number(rt::conversions::i32_to_f64(current)) {
+                        Some(flow_value_9) => flow_value_9,
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                     .state
@@ -1067,30 +1055,22 @@ impl YamlTemplateParser {
                             String::from(
                                 "A scalar YAML sequence entry cannot own an indented block",
                             ),
-                            match self
-                                .lines
-                                .get_number(rt::conversions::i32_to_f64(current))
-                                .as_ref()
-                            {
-                                Some(flow_value_10) => flow_value_10.clone(),
+                            match self.lines.get_number(rt::conversions::i32_to_f64(current)) {
+                                Some(flow_value_10) => flow_value_10,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
                             }
                             .state
                             .with(|state| state.line_number),
-                        ),
+                        )?,
                     ));
                 }
                 continue 'loop_value;
             }
             if current >= rt::conversions::usize_to_i32(self.lines.len())?
-                || match self
-                    .lines
-                    .get_number(rt::conversions::i32_to_f64(current))
-                    .as_ref()
-                {
-                    Some(flow_value_11) => flow_value_11.clone(),
+                || match self.lines.get_number(rt::conversions::i32_to_f64(current)) {
+                    Some(flow_value_11) => flow_value_11,
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
                 .state
@@ -1103,12 +1083,8 @@ impl YamlTemplateParser {
             }
             let nested: YamlParseResult = self.parse_block(
                 current,
-                match self
-                    .lines
-                    .get_number(rt::conversions::i32_to_f64(current))
-                    .as_ref()
-                {
-                    Some(flow_value_12) => flow_value_12.clone(),
+                match self.lines.get_number(rt::conversions::i32_to_f64(current)) {
+                    Some(flow_value_12) => flow_value_12,
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
                 .state
@@ -1121,17 +1097,17 @@ impl YamlTemplateParser {
             };
             current = nested.state.with(|state| state.next_index);
         }
-        Ok(YamlParseResult::new(
+        YamlParseResult::new(
             {
                 let upcast_value_2 =
-                    crate::template::values::arrays::AnyArrayValue::new(values.clone());
+                    crate::template::values::arrays::AnyArrayValue::new(values.clone())?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_2.identity.clone(),
                     dispatch: upcast_value_2.dispatch.clone(),
                 }
             },
             current,
-        ))
+        )
     }
 
     pub fn parse_mapping(
@@ -1143,12 +1119,8 @@ impl YamlTemplateParser {
             js_abi::JsMap::new();
         let mut current: i32 = index;
         'loop_value: while current < rt::conversions::usize_to_i32(self.lines.len())? {
-            let line: YamlLine = match self
-                .lines
-                .get_number(rt::conversions::i32_to_f64(current))
-                .as_ref()
-            {
-                Some(flow_value) => flow_value.clone(),
+            let line: YamlLine = match self.lines.get_number(rt::conversions::i32_to_f64(current)) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if line.state.with(|state| state.indent) < indent {
@@ -1164,15 +1136,15 @@ impl YamlTemplateParser {
                 return Err(rt::TsonicError::TsumoError(self.error(
                     String::from("YAML mapping entries must use consistent indentation"),
                     line.state.with(|state| state.line_number),
-                )));
+                )?));
             }
             let separator: i32 =
-                yaml_mapping_separator(line.state.with(|state| state.content.clone()))?;
+                yaml_mapping_separator(&line.state.with(|state| state.content.clone()))?;
             if separator < 0 {
                 return Err(rt::TsonicError::TsumoError(self.error(
                     String::from("YAML mapping entry requires a ':' separator"),
                     line.state.with(|state| state.line_number),
-                )));
+                )?));
             }
             let key: String = js_string::trim(&js_string::slice_to(
                 &line.state.with(|state| state.content.clone()),
@@ -1183,7 +1155,7 @@ impl YamlTemplateParser {
                 return Err(rt::TsonicError::TsumoError(self.error(
                     String::from("YAML mapping key cannot be empty"),
                     line.state.with(|state| state.line_number),
-                )));
+                )?));
             }
             if fields.has(&key) {
                 return Err(rt::TsonicError::TsumoError(self.error(
@@ -1194,7 +1166,7 @@ impl YamlTemplateParser {
                         String::from("' is declared more than once")
                     ),
                     line.state.with(|state| state.line_number),
-                )));
+                )?));
             }
             let value_text: String = js_string::trim(&crate::utils::strings::substring_from(
                 &line.state.with(|state| state.content.clone()),
@@ -1228,19 +1200,12 @@ impl YamlTemplateParser {
                     let operation_input_0_2 = fields.clone();
                     operation_input_0_2.set_discard(
                         key.clone(),
-                        self.parse_scalar(
-                            value_text.clone(),
-                            line.state.with(|state| state.line_number),
-                        )?,
+                        self.parse_scalar(&value_text, line.state.with(|state| state.line_number))?,
                     )
                 };
                 if current < rt::conversions::usize_to_i32(self.lines.len())?
-                    && match self
-                        .lines
-                        .get_number(rt::conversions::i32_to_f64(current))
-                        .as_ref()
-                    {
-                        Some(flow_value_3) => flow_value_3.clone(),
+                    && match self.lines.get_number(rt::conversions::i32_to_f64(current)) {
+                        Some(flow_value_3) => flow_value_3,
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                     .state
@@ -1252,30 +1217,22 @@ impl YamlTemplateParser {
                             String::from(
                                 "A scalar YAML mapping value cannot own an indented block",
                             ),
-                            match self
-                                .lines
-                                .get_number(rt::conversions::i32_to_f64(current))
-                                .as_ref()
-                            {
-                                Some(flow_value_4) => flow_value_4.clone(),
+                            match self.lines.get_number(rt::conversions::i32_to_f64(current)) {
+                                Some(flow_value_4) => flow_value_4,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
                             }
                             .state
                             .with(|state| state.line_number),
-                        ),
+                        )?,
                     ));
                 }
                 continue 'loop_value;
             }
             if current >= rt::conversions::usize_to_i32(self.lines.len())?
-                || match self
-                    .lines
-                    .get_number(rt::conversions::i32_to_f64(current))
-                    .as_ref()
-                {
-                    Some(flow_value_5) => flow_value_5.clone(),
+                || match self.lines.get_number(rt::conversions::i32_to_f64(current)) {
+                    Some(flow_value_5) => flow_value_5,
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
                 .state
@@ -1291,12 +1248,8 @@ impl YamlTemplateParser {
             }
             let nested: YamlParseResult = self.parse_block(
                 current,
-                match self
-                    .lines
-                    .get_number(rt::conversions::i32_to_f64(current))
-                    .as_ref()
-                {
-                    Some(flow_value_6) => flow_value_6.clone(),
+                match self.lines.get_number(rt::conversions::i32_to_f64(current)) {
+                    Some(flow_value_6) => flow_value_6,
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
                 .state
@@ -1309,16 +1262,16 @@ impl YamlTemplateParser {
             };
             current = nested.state.with(|state| state.next_index);
         }
-        Ok(YamlParseResult::new(
+        YamlParseResult::new(
             {
-                let upcast_value = crate::template::values::dict::DictValue::new(fields.clone());
+                let upcast_value = crate::template::values::dict::DictValue::new(fields.clone())?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value.identity.clone(),
                     dispatch: upcast_value.dispatch.clone(),
                 }
             },
             current,
-        ))
+        )
     }
 
     pub fn parse_block_scalar_header(
@@ -1343,7 +1296,7 @@ impl YamlTemplateParser {
                         return Err(rt::TsonicError::TsumoError(self.error(
                             String::from("YAML block scalar has more than one chomping indicator"),
                             line,
-                        )));
+                        )?));
                     }
                     chomping = if character == "-" {
                         String::from("strip")
@@ -1372,13 +1325,13 @@ impl YamlTemplateParser {
                             String::from("' is invalid")
                         ),
                         line,
-                    )));
+                    )?));
                 }
                 if indentation.is_some() {
                     return Err(rt::TsonicError::TsumoError(self.error(
                         String::from("YAML block scalar has more than one indentation indicator"),
                         line,
-                    )));
+                    )?));
                 }
                 indentation = Some(match parsed_indentation.as_ref() {
                     Some(flow_value_3) => *flow_value_3,
@@ -1389,9 +1342,9 @@ impl YamlTemplateParser {
         }
         Ok(Some(YamlBlockScalarHeader::new(
             js_string::starts_with_from_start(&value, ">"),
-            chomping.clone(),
+            chomping,
             indentation,
-        )))
+        )?))
     }
 
     pub fn parse_block_scalar(
@@ -1407,9 +1360,8 @@ impl YamlTemplateParser {
             let raw: String = match self
                 .source_lines
                 .get_number(rt::conversions::i32_to_f64(source_end))
-                .as_ref()
             {
-                Some(flow_value) => flow_value.clone(),
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if js_string::trim(&raw).is_empty() {
@@ -1417,7 +1369,7 @@ impl YamlTemplateParser {
                 continue 'loop_value;
             }
             let indentation: i32 =
-                yaml_source_indentation(raw.clone(), self.source_path.clone(), source_end + 1)?;
+                yaml_source_indentation(&raw, self.source_path.clone(), source_end + 1)?;
             if indentation <= parent_indent {
                 break 'loop_value;
             }
@@ -1428,9 +1380,8 @@ impl YamlTemplateParser {
             && match self
                 .lines
                 .get_number(rt::conversions::i32_to_f64(parsed_index))
-                .as_ref()
             {
-                Some(flow_value_2) => flow_value_2.clone(),
+                Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             }
             .state
@@ -1457,9 +1408,8 @@ impl YamlTemplateParser {
                     let raw: String = match self
                         .source_lines
                         .get_number(rt::conversions::i32_to_f64(source_index))
-                        .as_ref()
                     {
-                        Some(flow_value_4) => flow_value_4.clone(),
+                        Some(flow_value_4) => flow_value_4,
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     if js_string::trim(&raw).is_empty() {
@@ -1467,7 +1417,7 @@ impl YamlTemplateParser {
                         continue 'loop_value_3;
                     }
                     content_indent = Some(yaml_source_indentation(
-                        raw.clone(),
+                        &raw,
                         self.source_path.clone(),
                         source_index + 1,
                     )?);
@@ -1491,9 +1441,8 @@ impl YamlTemplateParser {
                 let raw: String = match self
                     .source_lines
                     .get_number(rt::conversions::i32_to_f64(source_index))
-                    .as_ref()
                 {
-                    Some(flow_value_6) => flow_value_6.clone(),
+                    Some(flow_value_6) => flow_value_6,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 if js_string::trim(&raw).is_empty() {
@@ -1502,16 +1451,13 @@ impl YamlTemplateParser {
                     source_index += 1;
                     continue 'loop_value_4;
                 }
-                let indentation: i32 = yaml_source_indentation(
-                    raw.clone(),
-                    self.source_path.clone(),
-                    source_index + 1,
-                )?;
+                let indentation: i32 =
+                    yaml_source_indentation(&raw, self.source_path.clone(), source_index + 1)?;
                 if indentation < selected_indent {
                     return Err(rt::TsonicError::TsumoError(self.error(
                         String::from("YAML block scalar indentation is inconsistent"),
                         source_index + 1,
-                    )));
+                    )?));
                 }
                 {
                     let operation_input_0 = values.clone();
@@ -1535,13 +1481,12 @@ impl YamlTemplateParser {
         {
             let mut index: i32 = 0;
             'loop_value_6: while index <= last_content_index {
-                rendered.push_str(&match values
-                    .get_number(rt::conversions::i32_to_f64(index))
-                    .as_ref()
-                {
-                    Some(flow_value_7) => flow_value_7.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                });
+                rendered.push_str(
+                    &match values.get_number(rt::conversions::i32_to_f64(index)) {
+                        Some(flow_value_7) => flow_value_7,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
+                );
                 if index >= last_content_index {
                     index += 1;
                     continue 'loop_value_6;
@@ -1551,18 +1496,12 @@ impl YamlTemplateParser {
                         == Some(String::from(""))
                     || values.get_number(rt::conversions::i32_to_f64(index + 1))
                         == Some(String::from(""))
-                    || (match indentations
-                        .get_number(rt::conversions::i32_to_f64(index))
-                        .as_ref()
-                    {
-                        Some(flow_value_8) => *flow_value_8,
+                    || (match indentations.get_number(rt::conversions::i32_to_f64(index)) {
+                        Some(flow_value_8) => flow_value_8,
                         None => unreachable!("checked flow selected a missing optional value"),
                     }) > selected_indent
-                    || (match indentations
-                        .get_number(rt::conversions::i32_to_f64(index + 1))
-                        .as_ref()
-                    {
-                        Some(flow_value_9) => *flow_value_9,
+                    || (match indentations.get_number(rt::conversions::i32_to_f64(index + 1)) {
+                        Some(flow_value_9) => flow_value_9,
                         None => unreachable!("checked flow selected a missing optional value"),
                     }) > selected_indent
                 {
@@ -1584,44 +1523,43 @@ impl YamlTemplateParser {
                 rt::conversions::i32_to_f64(trailing_line_count),
             )?);
         }
-        Ok(YamlParseResult::new(
+        YamlParseResult::new(
             {
-                let upcast_value =
-                    crate::template::values::primitives::StringValue::new(rendered.clone());
+                let upcast_value = crate::template::values::primitives::StringValue::new(rendered)?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value.identity.clone(),
                     dispatch: upcast_value.dispatch.clone(),
                 }
             },
             parsed_index,
-        ))
+        )
     }
 
     pub fn parse_scalar(
         &self,
-        value: String,
+        value: &str,
         line: i32,
     ) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
-        let normalized: String = js_string::to_lower_case(&js_string::trim(&value));
+        let normalized: String = js_string::to_lower_case(&js_string::trim(value));
         if normalized == "null" || normalized == "~" {
             return Ok(
                 crate::template::runtime_helpers::NIL.with(|module_binding| module_binding.load())
             );
         }
-        if js_string::starts_with_from_start(&value, "[")
-            || js_string::starts_with_from_start(&value, "{")
+        if js_string::starts_with_from_start(value, "[")
+            || js_string::starts_with_from_start(value, "{")
         {
             return Err(rt::TsonicError::TsumoError(self.error(
                 String::from(
                     "YAML flow collections are not supported by the current template data contract",
                 ),
                 line,
-            )));
+            )?));
         }
         let source_path: Option<String> = self.source_path.clone();
         let parsed: crate::params::ParamValue =
             crate::utils::structured_scalars::parse_structured_scalar(
-                &value,
+                value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
                 {
                     let capture_source_path = source_path.clone();
@@ -1629,13 +1567,13 @@ impl YamlTemplateParser {
                     rt::Callable::<(String,), rt::TsonicResult<crate::diagnostics::TsumoError>>::new(
                         move |callable_arguments| {
                             let message = callable_arguments.0;
-                            Ok::<_, rt::TsonicError>(crate::diagnostics::create_tsumo_error(
+                            crate::diagnostics::create_tsumo_error(
                                 String::from("TSUMO_TEMPLATE_UNMARSHAL_YAML_INVALID"),
                                 message,
                                 capture_source_path.clone(),
                                 Some(rt::conversions::i32_to_f64(capture_line)),
                                 Some(1.0),
-                            ))
+                            )
                         },
                     )
                 },
@@ -1649,7 +1587,7 @@ impl YamlTemplateParser {
                 let upcast_value = crate::template::values::primitives::BoolValue::new({
                     let dispatch_receiver_2 = &parsed;
                     dispatch_receiver_2.dispatch.read_param_value_bool_value()
-                });
+                })?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value.identity.clone(),
                     dispatch: upcast_value.dispatch.clone(),
@@ -1665,7 +1603,7 @@ impl YamlTemplateParser {
                 let upcast_value_2 = crate::template::values::primitives::NumberValue::new({
                     let dispatch_receiver_4 = &parsed;
                     dispatch_receiver_4.dispatch.read_param_value_number_value()
-                });
+                })?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_2.identity.clone(),
                     dispatch: upcast_value_2.dispatch.clone(),
@@ -1676,7 +1614,7 @@ impl YamlTemplateParser {
             let upcast_value_3 = crate::template::values::primitives::StringValue::new({
                 let dispatch_receiver_5 = &parsed;
                 dispatch_receiver_5.dispatch.read_param_value_string_value()
-            });
+            })?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_3.identity.clone(),
                 dispatch: upcast_value_3.dispatch.clone(),
@@ -1684,7 +1622,11 @@ impl YamlTemplateParser {
         })
     }
 
-    pub fn error(&self, message: String, line: i32) -> crate::diagnostics::TsumoError {
+    pub fn error(
+        &self,
+        message: String,
+        line: i32,
+    ) -> Result<crate::diagnostics::TsumoError, rt::TsonicError> {
         crate::diagnostics::create_tsumo_error(
             String::from("TSUMO_TEMPLATE_UNMARSHAL_YAML_INVALID"),
             message,
@@ -1725,14 +1667,14 @@ pub fn input_from_value(
                 },
             )))
         };
-        return Ok(StructuredInput::new(
+        return StructuredInput::new(
             crate::resources::text::read_resource_text(
                 resource.clone(),
                 String::from("transform.Unmarshal"),
             )?,
             source_path.clone(),
             format_hint,
-        ));
+        );
     }
     if let Some(selected_dispatch_2) = value
         .dispatch
@@ -1743,14 +1685,14 @@ pub fn input_from_value(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_2,
         };
-        return Ok(StructuredInput::new(
+        return StructuredInput::new(
             {
                 let dispatch_receiver_3 = &selected_value_2;
                 dispatch_receiver_3.dispatch.read_string_value_value()
             },
             None,
             None,
-        ));
+        );
     }
     if let Some(selected_dispatch_3) = value
         .dispatch
@@ -1761,7 +1703,7 @@ pub fn input_from_value(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_3,
         };
-        return Ok(StructuredInput::new(
+        return StructuredInput::new(
             {
                 let dispatch_receiver_5 = &{
                     let dispatch_receiver_4 = &selected_value_3;
@@ -1771,7 +1713,7 @@ pub fn input_from_value(
             },
             None,
             None,
-        ));
+        );
     }
     Err(rt::TsonicError::TsumoError(
         crate::diagnostics::create_tsumo_error(
@@ -1780,7 +1722,7 @@ pub fn input_from_value(
             None,
             None,
             None,
-        ),
+        )?,
     ))
 }
 
@@ -1832,15 +1774,15 @@ pub fn option_value(
 pub fn normalize_format(requested: Option<String>, input: StructuredInput) -> String {
     let explicit: Option<String> = requested
         .as_ref()
-        .map(|optional_receiver| js_string::trim(optional_receiver))
+        .map(|optional_receiver| js_string::trim(optional_receiver.as_str()))
         .as_ref()
-        .map(|optional_receiver_2| js_string::to_lower_case(optional_receiver_2));
+        .map(|optional_receiver_2| js_string::to_lower_case(optional_receiver_2.as_str()));
     if explicit.is_some() && explicit != Some(String::from("")) {
         return if explicit == Some(String::from("yml")) {
             String::from("yaml")
         } else {
-            match explicit.as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            match explicit {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             }
         };
@@ -1883,7 +1825,7 @@ pub fn parse_template_data_text(
     if format == "toml" {
         return Ok({
             let upcast_value = crate::template::evaluation::toml_data::parse_toml_template_data(
-                text.clone(),
+                &text,
                 source_path.clone(),
             )?;
             crate::template::values::base::TemplateValue {
@@ -1904,7 +1846,7 @@ pub fn parse_template_data_text(
             source_path.clone(),
             None,
             None,
-        ),
+        )?,
     ))
 }
 
@@ -1919,16 +1861,15 @@ pub fn unmarshal_template_data(
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     let mut requested_format: Option<String> = Option::<String>::None;
     if rt::conversions::usize_to_i32(args.len())? >= 2 {
-        let options: crate::template::values::base::TemplateValue =
-            match args.get_number(0.0).as_ref() {
-                Some(flow_value) => flow_value.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            };
+        let options: crate::template::values::base::TemplateValue = match args.get_number(0.0) {
+            Some(flow_value) => flow_value,
+            None => unreachable!("checked flow selected a missing optional value"),
+        };
         if options
             .dispatch
             .clone()
@@ -1942,7 +1883,7 @@ pub fn unmarshal_template_data(
                     None,
                     None,
                     None,
-                ),
+                )?,
             ));
         }
         requested_format = option_value(
@@ -1960,19 +1901,18 @@ pub fn unmarshal_template_data(
             String::from("format"),
         )?;
     }
-    let input: StructuredInput = input_from_value(
-        match {
+    let input: StructuredInput = input_from_value({
+        let flow_input = {
             let operation_input_0 = args.clone();
             operation_input_0.get_number(rt::conversions::i32_to_f64(
                 rt::conversions::usize_to_i32(args.len())? - 1,
             ))
-        }
-        .as_ref()
-        {
-            Some(flow_value_2) => flow_value_2.clone(),
+        };
+        match flow_input {
+            Some(flow_value_2) => flow_value_2,
             None => unreachable!("checked flow selected a missing optional value"),
-        },
-    )?;
+        }
+    })?;
     let format: String = normalize_format(requested_format.clone(), input.clone());
     parse_template_data_text(
         input.state.with(|state| state.text.clone()),

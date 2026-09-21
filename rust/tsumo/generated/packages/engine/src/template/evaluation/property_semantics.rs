@@ -13,8 +13,8 @@ pub fn resolve_path(
     {
         let mut i: f64 = 0.0;
         'loop_value: while i < (rt::conversions::usize_to_i32(segments.len())? as f64) {
-            let seg: String = match segments.get_number(i).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let seg: String = match segments.get_number(i) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if cur
@@ -49,10 +49,11 @@ pub fn resolve_path(
                 let k: String = js_string::to_lower_case(&seg);
                 if k == "title" {
                     cur = {
-                        let upcast_value = crate::template::values::primitives::StringValue::new({
-                            let dispatch_receiver_2 = &page;
-                            dispatch_receiver_2.dispatch.read_page_context_title()
-                        });
+                        let upcast_value =
+                            crate::template::values::primitives::StringValue::new({
+                                let dispatch_receiver_2 = &page;
+                                dispatch_receiver_2.dispatch.read_page_context_title()
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value.identity.clone(),
                             dispatch: upcast_value.dispatch.clone(),
@@ -60,10 +61,11 @@ pub fn resolve_path(
                     };
                 } else if k == "content" {
                     cur = {
-                        let upcast_value_2 = crate::template::values::primitives::HtmlValue::new({
-                            let dispatch_receiver_3 = &page;
-                            dispatch_receiver_3.dispatch.read_page_context_content()
-                        });
+                        let upcast_value_2 =
+                            crate::template::values::primitives::HtmlValue::new({
+                                let dispatch_receiver_3 = &page;
+                                dispatch_receiver_3.dispatch.read_page_context_content()
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_2.identity.clone(),
                             dispatch: upcast_value_2.dispatch.clone(),
@@ -71,10 +73,11 @@ pub fn resolve_path(
                     };
                 } else if k == "summary" {
                     cur = {
-                        let upcast_value_3 = crate::template::values::primitives::HtmlValue::new({
-                            let dispatch_receiver_4 = &page;
-                            dispatch_receiver_4.dispatch.read_page_context_summary()
-                        });
+                        let upcast_value_3 =
+                            crate::template::values::primitives::HtmlValue::new({
+                                let dispatch_receiver_4 = &page;
+                                dispatch_receiver_4.dispatch.read_page_context_summary()
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_3.identity.clone(),
                             dispatch: upcast_value_3.dispatch.clone(),
@@ -85,7 +88,7 @@ pub fn resolve_path(
                         let upcast_value_4 = crate::template::values::date::DateValue::new({
                             let dispatch_receiver_5 = &page;
                             dispatch_receiver_5.dispatch.read_page_context_date()
-                        });
+                        })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_4.identity.clone(),
                             dispatch: upcast_value_4.dispatch.clone(),
@@ -96,7 +99,7 @@ pub fn resolve_path(
                         let upcast_value_5 = crate::template::values::date::DateValue::new({
                             let dispatch_receiver_6 = &page;
                             dispatch_receiver_6.dispatch.read_page_context_lastmod()
-                        });
+                        })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_5.identity.clone(),
                             dispatch: upcast_value_5.dispatch.clone(),
@@ -108,7 +111,7 @@ pub fn resolve_path(
                             crate::template::values::primitives::StringValue::new({
                                 let dispatch_receiver_7 = &page;
                                 dispatch_receiver_7.dispatch.read_page_context_plain()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_6.identity.clone(),
                             dispatch: upcast_value_6.dispatch.clone(),
@@ -116,12 +119,13 @@ pub fn resolve_path(
                     };
                 } else if k == "tableofcontents" {
                     cur = {
-                        let upcast_value_7 = crate::template::values::primitives::HtmlValue::new({
-                            let dispatch_receiver_8 = &page;
-                            dispatch_receiver_8
-                                .dispatch
-                                .read_page_context_table_of_contents()
-                        });
+                        let upcast_value_7 =
+                            crate::template::values::primitives::HtmlValue::new({
+                                let dispatch_receiver_8 = &page;
+                                dispatch_receiver_8
+                                    .dispatch
+                                    .read_page_context_table_of_contents()
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_7.identity.clone(),
                             dispatch: upcast_value_7.dispatch.clone(),
@@ -129,10 +133,11 @@ pub fn resolve_path(
                     };
                 } else if k == "draft" {
                     cur = {
-                        let upcast_value_8 = crate::template::values::primitives::BoolValue::new({
-                            let dispatch_receiver_9 = &page;
-                            dispatch_receiver_9.dispatch.read_page_context_draft()
-                        });
+                        let upcast_value_8 =
+                            crate::template::values::primitives::BoolValue::new({
+                                let dispatch_receiver_9 = &page;
+                                dispatch_receiver_9.dispatch.read_page_context_draft()
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_8.identity.clone(),
                             dispatch: upcast_value_8.dispatch.clone(),
@@ -142,7 +147,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_9 = crate::template::values::primitives::NumberValue::new(
                             crate::template::evaluation::page_semantics::page_weight(page.clone())?,
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_9.identity.clone(),
                             dispatch: upcast_value_9.dispatch.clone(),
@@ -154,7 +159,7 @@ pub fn resolve_path(
                             crate::template::values::primitives::StringValue::new({
                                 let dispatch_receiver_10 = &page;
                                 dispatch_receiver_10.dispatch.read_page_context_kind()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_10.identity.clone(),
                             dispatch: upcast_value_10.dispatch.clone(),
@@ -166,7 +171,7 @@ pub fn resolve_path(
                             crate::template::values::primitives::StringValue::new({
                                 let dispatch_receiver_11 = &page;
                                 dispatch_receiver_11.dispatch.read_page_context_section()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_11.identity.clone(),
                             dispatch: upcast_value_11.dispatch.clone(),
@@ -178,7 +183,7 @@ pub fn resolve_path(
                             crate::template::values::primitives::StringValue::new({
                                 let dispatch_receiver_12 = &page;
                                 dispatch_receiver_12.dispatch.read_page_context_type()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_12.identity.clone(),
                             dispatch: upcast_value_12.dispatch.clone(),
@@ -190,7 +195,7 @@ pub fn resolve_path(
                             crate::template::values::primitives::StringValue::new({
                                 let dispatch_receiver_13 = &page;
                                 dispatch_receiver_13.dispatch.read_page_context_slug()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_13.identity.clone(),
                             dispatch: upcast_value_13.dispatch.clone(),
@@ -204,7 +209,7 @@ pub fn resolve_path(
                                 dispatch_receiver_14
                                     .dispatch
                                     .read_page_context_rel_permalink()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_14.identity.clone(),
                             dispatch: upcast_value_14.dispatch.clone(),
@@ -233,7 +238,7 @@ pub fn resolve_path(
                                             "checked flow selected a missing optional value"
                                         ),
                                     },
-                                );
+                                )?;
                             crate::template::values::base::TemplateValue {
                                 identity: upcast_value_15.identity.clone(),
                                 dispatch: upcast_value_15.dispatch.clone(),
@@ -256,7 +261,7 @@ pub fn resolve_path(
                                     unreachable!("checked flow selected a missing optional value")
                                 }
                             },
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_16.identity.clone(),
                             dispatch: upcast_value_16.dispatch.clone(),
@@ -270,7 +275,7 @@ pub fn resolve_path(
                         let upcast_value_17 = crate::template::values::site::LanguageValue::new({
                             let dispatch_receiver_17 = &page;
                             dispatch_receiver_17.dispatch.read_page_context_language()
-                        });
+                        })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_17.identity.clone(),
                             dispatch: upcast_value_17.dispatch.clone(),
@@ -278,12 +283,13 @@ pub fn resolve_path(
                     };
                 } else if k == "translations" {
                     cur = {
-                        let upcast_value_18 = crate::template::values::page::PageArrayValue::new({
-                            let dispatch_receiver_18 = &page;
-                            dispatch_receiver_18
-                                .dispatch
-                                .read_page_context_translations()
-                        });
+                        let upcast_value_18 =
+                            crate::template::values::page::PageArrayValue::new({
+                                let dispatch_receiver_18 = &page;
+                                dispatch_receiver_18
+                                    .dispatch
+                                    .read_page_context_translations()
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_18.identity.clone(),
                             dispatch: upcast_value_18.dispatch.clone(),
@@ -294,8 +300,8 @@ pub fn resolve_path(
                         let upcast_value_19 = crate::template::values::scratch::ScratchValue::new(
                             crate::template::evaluation::property_support::get_page_store(
                                 page.clone(),
-                            ),
-                        );
+                            )?,
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_19.identity.clone(),
                             dispatch: upcast_value_19.dispatch.clone(),
@@ -306,7 +312,7 @@ pub fn resolve_path(
                         let upcast_value_20 = crate::template::values::site::SitesValue::new({
                             let dispatch_receiver_19 = &scope;
                             dispatch_receiver_19.dispatch.read_render_scope_site()
-                        });
+                        })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_20.identity.clone(),
                             dispatch: upcast_value_20.dispatch.clone(),
@@ -327,7 +333,7 @@ pub fn resolve_path(
                                     unreachable!("checked flow selected a missing optional value")
                                 }
                             },
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_21.identity.clone(),
                             dispatch: upcast_value_21.dispatch.clone(),
@@ -338,10 +344,11 @@ pub fn resolve_path(
                     };
                 } else if k == "ancestors" {
                     cur = {
-                        let upcast_value_22 = crate::template::values::page::PageArrayValue::new({
-                            let dispatch_receiver_21 = &page;
-                            dispatch_receiver_21.dispatch.read_page_context_ancestors()
-                        });
+                        let upcast_value_22 =
+                            crate::template::values::page::PageArrayValue::new({
+                                let dispatch_receiver_21 = &page;
+                                dispatch_receiver_21.dispatch.read_page_context_ancestors()
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_22.identity.clone(),
                             dispatch: upcast_value_22.dispatch.clone(),
@@ -387,7 +394,7 @@ pub fn resolve_path(
                                     dispatch_receiver_26.dispatch.read_site_context_base_url()
                                 }),
                                 rel
-                            ));
+                            ))?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_23.identity.clone(),
                             dispatch: upcast_value_23.dispatch.clone(),
@@ -398,7 +405,7 @@ pub fn resolve_path(
                         let upcast_value_24 = crate::template::values::site::SiteValue::new({
                             let dispatch_receiver_27 = &page;
                             dispatch_receiver_27.dispatch.read_page_context_site()
-                        });
+                        })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_24.identity.clone(),
                             dispatch: upcast_value_24.dispatch.clone(),
@@ -425,7 +432,7 @@ pub fn resolve_path(
                                         "checked flow selected a missing optional value"
                                     ),
                                 },
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_25.identity.clone(),
                             dispatch: upcast_value_25.dispatch.clone(),
@@ -436,10 +443,11 @@ pub fn resolve_path(
                     };
                 } else if k == "pages" {
                     cur = {
-                        let upcast_value_26 = crate::template::values::page::PageArrayValue::new({
-                            let dispatch_receiver_30 = &page;
-                            dispatch_receiver_30.dispatch.read_page_context_pages()
-                        });
+                        let upcast_value_26 =
+                            crate::template::values::page::PageArrayValue::new({
+                                let dispatch_receiver_30 = &page;
+                                dispatch_receiver_30.dispatch.read_page_context_pages()
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_26.identity.clone(),
                             dispatch: upcast_value_26.dispatch.clone(),
@@ -453,9 +461,9 @@ pub fn resolve_path(
                                     let dispatch_receiver_31 = &page;
                                     dispatch_receiver_31.dispatch.read_page_context_pages()
                                 },
-                                String::from("page"),
+                                "page",
                             )?,
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_27.identity.clone(),
                             dispatch: upcast_value_27.dispatch.clone(),
@@ -469,9 +477,9 @@ pub fn resolve_path(
                                     let dispatch_receiver_32 = &page;
                                     dispatch_receiver_32.dispatch.read_page_context_pages()
                                 },
-                                String::from("section"),
+                                "section",
                             )?,
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_28.identity.clone(),
                             dispatch: upcast_value_28.dispatch.clone(),
@@ -480,7 +488,7 @@ pub fn resolve_path(
                 } else if k == "data" {
                     cur = {
                         let upcast_value_29 =
-                            crate::template::values::page::PageDataValue::new(page.clone());
+                            crate::template::values::page::PageDataValue::new(page.clone())?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_29.identity.clone(),
                             dispatch: upcast_value_29.dispatch.clone(),
@@ -494,7 +502,7 @@ pub fn resolve_path(
                                 dispatch_receiver_33
                                     .dispatch
                                     .read_page_context_description()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_30.identity.clone(),
                             dispatch: upcast_value_30.dispatch.clone(),
@@ -506,7 +514,7 @@ pub fn resolve_path(
                             crate::template::values::arrays::StringArrayValue::new({
                                 let dispatch_receiver_34 = &page;
                                 dispatch_receiver_34.dispatch.read_page_context_tags()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_31.identity.clone(),
                             dispatch: upcast_value_31.dispatch.clone(),
@@ -518,7 +526,7 @@ pub fn resolve_path(
                             crate::template::values::arrays::StringArrayValue::new({
                                 let dispatch_receiver_35 = &page;
                                 dispatch_receiver_35.dispatch.read_page_context_categories()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_32.identity.clone(),
                             dispatch: upcast_value_32.dispatch.clone(),
@@ -530,7 +538,7 @@ pub fn resolve_path(
                             crate::template::evaluation::property_support::wrap_param_dict({
                                 let dispatch_receiver_36 = &page;
                                 dispatch_receiver_36.dispatch.read_page_context_params()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_33.identity.clone(),
                             dispatch: upcast_value_33.dispatch.clone(),
@@ -543,7 +551,7 @@ pub fn resolve_path(
                                 let dispatch_receiver_37 = &page;
                                 dispatch_receiver_37.dispatch.read_page_context_kind()
                             }) == "home",
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_34.identity.clone(),
                             dispatch: upcast_value_34.dispatch.clone(),
@@ -556,7 +564,7 @@ pub fn resolve_path(
                                 let dispatch_receiver_38 = &page;
                                 dispatch_receiver_38.dispatch.read_page_context_kind()
                             }) == "page",
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_35.identity.clone(),
                             dispatch: upcast_value_35.dispatch.clone(),
@@ -569,7 +577,7 @@ pub fn resolve_path(
                                 let dispatch_receiver_39 = &page;
                                 dispatch_receiver_39.dispatch.read_page_context_kind()
                             }) == "section",
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_36.identity.clone(),
                             dispatch: upcast_value_36.dispatch.clone(),
@@ -582,7 +590,7 @@ pub fn resolve_path(
                                 let dispatch_receiver_40 = &page;
                                 dispatch_receiver_40.dispatch.read_page_context_kind()
                             }) == "taxonomy",
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_37.identity.clone(),
                             dispatch: upcast_value_37.dispatch.clone(),
@@ -595,7 +603,7 @@ pub fn resolve_path(
                                 let dispatch_receiver_41 = &page;
                                 dispatch_receiver_41.dispatch.read_page_context_kind()
                             }) == "term",
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_38.identity.clone(),
                             dispatch: upcast_value_38.dispatch.clone(),
@@ -608,7 +616,7 @@ pub fn resolve_path(
                                 let dispatch_receiver_42 = &page;
                                 dispatch_receiver_42.dispatch.read_page_context_kind()
                             }) != "page",
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_39.identity.clone(),
                             dispatch: upcast_value_39.dispatch.clone(),
@@ -638,7 +646,7 @@ pub fn resolve_path(
                                     };
                                     dispatch_receiver_48.dispatch.read_html_string_value()
                                 },
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_40.identity.clone(),
                             dispatch: upcast_value_40.dispatch.clone(),
@@ -650,7 +658,7 @@ pub fn resolve_path(
                             crate::template::values::primitives::StringValue::new({
                                 let dispatch_receiver_49 = &page;
                                 dispatch_receiver_49.dispatch.read_page_context_title()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_41.identity.clone(),
                             dispatch: upcast_value_41.dispatch.clone(),
@@ -662,7 +670,7 @@ pub fn resolve_path(
                             crate::template::values::output::OutputFormatsValue::new({
                                 let dispatch_receiver_50 = &page;
                                 dispatch_receiver_50.dispatch.read_page_context_site()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_42.identity.clone(),
                             dispatch: upcast_value_42.dispatch.clone(),
@@ -677,48 +685,57 @@ pub fn resolve_path(
                             .dispatch_render_scope_get_paginator()
                     };
                     cur = {
-                        let upcast_value_43 = rt::option_coalesce(selected.clone(), Ok, || {
-                            let dispatch_receiver_58 = scope.clone();
-                            dispatch_receiver_58
-                                .dispatch
-                                .clone()
-                                .dispatch_render_scope_select_paginator(
-                                    crate::template::values::pagination::PaginatorValue::new(
-                                        {
-                                            let dispatch_receiver_52 = &page;
-                                            dispatch_receiver_52.dispatch.read_page_context_pages()
-                                        },
-                                        {
-                                            let dispatch_receiver_54 = &{
-                                                let dispatch_receiver_53 = &scope;
-                                                dispatch_receiver_53
+                        let upcast_value_43 =
+                            rt::option_coalesce::<
+                                _,
+                                core::result::Result<
+                                    crate::template::values::pagination::PaginatorValue,
+                                    rt::TsonicError,
+                                >,
+                            >(selected.clone(), Ok, || {
+                                let dispatch_receiver_58 = scope.clone();
+                                dispatch_receiver_58
+                                    .dispatch
+                                    .clone()
+                                    .dispatch_render_scope_select_paginator(
+                                        crate::template::values::pagination::PaginatorValue::new(
+                                            {
+                                                let dispatch_receiver_52 = &page;
+                                                dispatch_receiver_52
                                                     .dispatch
-                                                    .read_render_scope_site()
-                                            };
-                                            dispatch_receiver_54
-                                                .dispatch
-                                                .read_site_context_pagination_size()
-                                        },
-                                        {
-                                            let dispatch_receiver_56 = &{
-                                                let dispatch_receiver_55 = &scope;
-                                                dispatch_receiver_55
+                                                    .read_page_context_pages()
+                                            },
+                                            {
+                                                let dispatch_receiver_54 = &{
+                                                    let dispatch_receiver_53 = &scope;
+                                                    dispatch_receiver_53
+                                                        .dispatch
+                                                        .read_render_scope_site()
+                                                };
+                                                dispatch_receiver_54
                                                     .dispatch
-                                                    .read_render_scope_state()
-                                            };
-                                            dispatch_receiver_56
-                                                .dispatch
-                                                .read_render_state_pagination_page_number()
-                                        },
-                                        {
-                                            let dispatch_receiver_57 = &page;
-                                            dispatch_receiver_57
-                                                .dispatch
-                                                .read_page_context_rel_permalink()
-                                        },
-                                    ),
-                                )
-                        })?;
+                                                    .read_site_context_pagination_size()
+                                            },
+                                            {
+                                                let dispatch_receiver_56 = &{
+                                                    let dispatch_receiver_55 = &scope;
+                                                    dispatch_receiver_55
+                                                        .dispatch
+                                                        .read_render_scope_state()
+                                                };
+                                                dispatch_receiver_56
+                                                    .dispatch
+                                                    .read_render_state_pagination_page_number()
+                                            },
+                                            {
+                                                let dispatch_receiver_57 = &page;
+                                                dispatch_receiver_57
+                                                    .dispatch
+                                                    .read_page_context_rel_permalink()
+                                            },
+                                        )?,
+                                    )
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_43.identity.clone(),
                             dispatch: upcast_value_43.dispatch.clone(),
@@ -731,17 +748,15 @@ pub fn resolve_path(
                     };
                     if parent_page.is_some() {
                         let siblings: js_abi::JsArray<crate::models::page_context::PageContext> =
-                            crate::template::evaluation::page_semantics::COPY_PAGE_ARRAY
-                                .with(|module_binding| module_binding.load())
-                                .call(({
-                                    let dispatch_receiver_60 = &match parent_page.as_ref() {
-                                        Some(flow_value_7) => flow_value_7.clone(),
-                                        None => unreachable!(
-                                            "checked flow selected a missing optional value"
-                                        ),
-                                    };
-                                    dispatch_receiver_60.dispatch.read_page_context_pages()
-                                },))?;
+                            crate::template::evaluation::page_semantics::copy_page_array({
+                                let dispatch_receiver_60 = &match parent_page.as_ref() {
+                                    Some(flow_value_7) => flow_value_7.clone(),
+                                    None => unreachable!(
+                                        "checked flow selected a missing optional value"
+                                    ),
+                                };
+                                dispatch_receiver_60.dispatch.read_page_context_pages()
+                            })?;
                         let mut found_idx: i32 = -1;
                         {
                             let mut pi: f64 = 0.0;
@@ -749,8 +764,8 @@ pub fn resolve_path(
                                 < (rt::conversions::usize_to_i32(siblings.len())? as f64)
                             {
                                 let sibling: crate::models::page_context::PageContext =
-                                    match siblings.get_number(pi).as_ref() {
-                                        Some(flow_value_8) => flow_value_8.clone(),
+                                    match siblings.get_number(pi) {
+                                        Some(flow_value_8) => flow_value_8,
                                         None => unreachable!(
                                             "checked flow selected a missing optional value"
                                         ),
@@ -775,17 +790,15 @@ pub fn resolve_path(
                         if found_idx > 0 {
                             let prev_idx: i32 = found_idx - 1;
                             cur = {
-                                let upcast_value_44 = crate::template::values::page::PageValue::new(
-                                    match siblings
+                                let upcast_value_44 =
+                                    crate::template::values::page::PageValue::new(match siblings
                                         .get_number(rt::conversions::i32_to_f64(prev_idx))
-                                        .as_ref()
                                     {
-                                        Some(flow_value_9) => flow_value_9.clone(),
+                                        Some(flow_value_9) => flow_value_9,
                                         None => unreachable!(
                                             "checked flow selected a missing optional value"
                                         ),
-                                    },
-                                );
+                                    })?;
                                 crate::template::values::base::TemplateValue {
                                     identity: upcast_value_44.identity.clone(),
                                     dispatch: upcast_value_44.dispatch.clone(),
@@ -806,17 +819,15 @@ pub fn resolve_path(
                     };
                     if parent_page.is_some() {
                         let siblings: js_abi::JsArray<crate::models::page_context::PageContext> =
-                            crate::template::evaluation::page_semantics::COPY_PAGE_ARRAY
-                                .with(|module_binding| module_binding.load())
-                                .call(({
-                                    let dispatch_receiver_64 = &match parent_page.as_ref() {
-                                        Some(flow_value_10) => flow_value_10.clone(),
-                                        None => unreachable!(
-                                            "checked flow selected a missing optional value"
-                                        ),
-                                    };
-                                    dispatch_receiver_64.dispatch.read_page_context_pages()
-                                },))?;
+                            crate::template::evaluation::page_semantics::copy_page_array({
+                                let dispatch_receiver_64 = &match parent_page.as_ref() {
+                                    Some(flow_value_10) => flow_value_10.clone(),
+                                    None => unreachable!(
+                                        "checked flow selected a missing optional value"
+                                    ),
+                                };
+                                dispatch_receiver_64.dispatch.read_page_context_pages()
+                            })?;
                         let mut found_idx: i32 = -1;
                         {
                             let mut ni: f64 = 0.0;
@@ -824,8 +835,8 @@ pub fn resolve_path(
                                 < (rt::conversions::usize_to_i32(siblings.len())? as f64)
                             {
                                 let sibling: crate::models::page_context::PageContext =
-                                    match siblings.get_number(ni).as_ref() {
-                                        Some(flow_value_11) => flow_value_11.clone(),
+                                    match siblings.get_number(ni) {
+                                        Some(flow_value_11) => flow_value_11,
                                         None => unreachable!(
                                             "checked flow selected a missing optional value"
                                         ),
@@ -852,17 +863,15 @@ pub fn resolve_path(
                         {
                             let next_idx: i32 = found_idx + 1;
                             cur = {
-                                let upcast_value_45 = crate::template::values::page::PageValue::new(
-                                    match siblings
+                                let upcast_value_45 =
+                                    crate::template::values::page::PageValue::new(match siblings
                                         .get_number(rt::conversions::i32_to_f64(next_idx))
-                                        .as_ref()
                                     {
-                                        Some(flow_value_12) => flow_value_12.clone(),
+                                        Some(flow_value_12) => flow_value_12,
                                         None => unreachable!(
                                             "checked flow selected a missing optional value"
                                         ),
-                                    },
-                                );
+                                    })?;
                                 crate::template::values::base::TemplateValue {
                                     identity: upcast_value_45.identity.clone(),
                                     dispatch: upcast_value_45.dispatch.clone(),
@@ -922,7 +931,7 @@ pub fn resolve_path(
                                     };
                                     dispatch_receiver_68.dispatch.read_date_value_value()
                                 })),
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_46.identity.clone(),
                             dispatch: upcast_value_46.dispatch.clone(),
@@ -949,7 +958,7 @@ pub fn resolve_path(
                         rt::conversions::i32_to_f64(rt::option_coalesce(
                             crate::utils::int32::parse_int32(
                                 &crate::utils::strings::substring_count(
-                                    js_abi::JsDate::from_millis(milliseconds).to_iso_string()?,
+                                    &js_abi::JsDate::from_millis(milliseconds).to_iso_string()?,
                                     0,
                                     4,
                                 )?,
@@ -959,9 +968,10 @@ pub fn resolve_path(
                         ))
                     };
                     cur = {
-                        let upcast_value_47 = crate::template::values::primitives::NumberValue::new(
-                            rt::conversions::f64_to_i32(year)?,
-                        );
+                        let upcast_value_47 =
+                            crate::template::values::primitives::NumberValue::new(
+                                rt::conversions::f64_to_i32(year)?,
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_47.identity.clone(),
                             dispatch: upcast_value_47.dispatch.clone(),
@@ -997,10 +1007,11 @@ pub fn resolve_path(
                 let key: String = js_string::to_lower_case(&seg);
                 if key == "pages" {
                     cur = {
-                        let upcast_value_48 = crate::template::values::page::PageArrayValue::new({
-                            let dispatch_receiver_71 = &page;
-                            dispatch_receiver_71.dispatch.read_page_context_pages()
-                        });
+                        let upcast_value_48 =
+                            crate::template::values::page::PageArrayValue::new({
+                                let dispatch_receiver_71 = &page;
+                                dispatch_receiver_71.dispatch.read_page_context_pages()
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_48.identity.clone(),
                             dispatch: upcast_value_48.dispatch.clone(),
@@ -1054,7 +1065,7 @@ pub fn resolve_path(
                                     let dispatch_receiver_78 = &page;
                                     dispatch_receiver_78.dispatch.read_page_context_site()
                                 },
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_49.identity.clone(),
                             dispatch: upcast_value_49.dispatch.clone(),
@@ -1097,7 +1108,7 @@ pub fn resolve_path(
                             crate::template::values::primitives::StringValue::new({
                                 let dispatch_receiver_80 = &site;
                                 dispatch_receiver_80.dispatch.read_site_context_title()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_50.identity.clone(),
                             dispatch: upcast_value_50.dispatch.clone(),
@@ -1109,7 +1120,7 @@ pub fn resolve_path(
                             crate::template::values::primitives::StringValue::new({
                                 let dispatch_receiver_81 = &site;
                                 dispatch_receiver_81.dispatch.read_site_context_base_url()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_51.identity.clone(),
                             dispatch: upcast_value_51.dispatch.clone(),
@@ -1123,7 +1134,7 @@ pub fn resolve_path(
                                 dispatch_receiver_82
                                     .dispatch
                                     .read_site_context_language_code()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_52.identity.clone(),
                             dispatch: upcast_value_52.dispatch.clone(),
@@ -1135,7 +1146,7 @@ pub fn resolve_path(
                             crate::template::values::primitives::StringValue::new({
                                 let dispatch_receiver_83 = &site;
                                 dispatch_receiver_83.dispatch.read_site_context_copyright()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_53.identity.clone(),
                             dispatch: upcast_value_53.dispatch.clone(),
@@ -1146,7 +1157,7 @@ pub fn resolve_path(
                         let upcast_value_54 = crate::template::values::site::LanguageValue::new({
                             let dispatch_receiver_84 = &site;
                             dispatch_receiver_84.dispatch.read_site_context_language()
-                        });
+                        })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_54.identity.clone(),
                             dispatch: upcast_value_54.dispatch.clone(),
@@ -1172,7 +1183,7 @@ pub fn resolve_path(
                                 dispatch_receiver_86
                                     .dispatch
                                     .read_site_context_is_multi_lingual()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_56.identity.clone(),
                             dispatch: upcast_value_56.dispatch.clone(),
@@ -1186,7 +1197,7 @@ pub fn resolve_path(
                                 dispatch_receiver_87
                                     .dispatch
                                     .read_site_context_language_prefix()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_57.identity.clone(),
                             dispatch: upcast_value_57.dispatch.clone(),
@@ -1205,7 +1216,7 @@ pub fn resolve_path(
                                     unreachable!("checked flow selected a missing optional value")
                                 }
                             },
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_58.identity.clone(),
                             dispatch: upcast_value_58.dispatch.clone(),
@@ -1216,10 +1227,11 @@ pub fn resolve_path(
                     };
                 } else if k == "allpages" {
                     cur = {
-                        let upcast_value_59 = crate::template::values::page::PageArrayValue::new({
-                            let dispatch_receiver_89 = &site;
-                            dispatch_receiver_89.dispatch.read_site_context_all_pages()
-                        });
+                        let upcast_value_59 =
+                            crate::template::values::page::PageArrayValue::new({
+                                let dispatch_receiver_89 = &site;
+                                dispatch_receiver_89.dispatch.read_site_context_all_pages()
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_59.identity.clone(),
                             dispatch: upcast_value_59.dispatch.clone(),
@@ -1230,8 +1242,8 @@ pub fn resolve_path(
                         let upcast_value_60 = crate::template::values::scratch::ScratchValue::new(
                             crate::template::evaluation::property_support::get_site_store(
                                 site.clone(),
-                            ),
-                        );
+                            )?,
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_60.identity.clone(),
                             dispatch: upcast_value_60.dispatch.clone(),
@@ -1243,7 +1255,7 @@ pub fn resolve_path(
                             crate::template::evaluation::property_support::wrap_param_dict({
                                 let dispatch_receiver_90 = &site;
                                 dispatch_receiver_90.dispatch.read_site_context_params()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_61.identity.clone(),
                             dispatch: upcast_value_61.dispatch.clone(),
@@ -1251,10 +1263,11 @@ pub fn resolve_path(
                     };
                 } else if k == "pages" {
                     cur = {
-                        let upcast_value_62 = crate::template::values::page::PageArrayValue::new({
-                            let dispatch_receiver_91 = &site;
-                            dispatch_receiver_91.dispatch.read_site_context_pages()
-                        });
+                        let upcast_value_62 =
+                            crate::template::values::page::PageArrayValue::new({
+                                let dispatch_receiver_91 = &site;
+                                dispatch_receiver_91.dispatch.read_site_context_pages()
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_62.identity.clone(),
                             dispatch: upcast_value_62.dispatch.clone(),
@@ -1281,9 +1294,9 @@ pub fn resolve_path(
                         let upcast_value_63 = crate::template::values::page::PageArrayValue::new(
                             crate::template::evaluation::page_semantics::pages_with_kind(
                                 pages.clone(),
-                                String::from("page"),
+                                "page",
                             )?,
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_63.identity.clone(),
                             dispatch: upcast_value_63.dispatch.clone(),
@@ -1295,7 +1308,7 @@ pub fn resolve_path(
                             crate::template::evaluation::page_semantics::site_last_modification(
                                 site.clone(),
                             )?,
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_64.identity.clone(),
                             dispatch: upcast_value_64.dispatch.clone(),
@@ -1326,7 +1339,7 @@ pub fn resolve_path(
                                 dispatch_receiver_97
                                     .dispatch
                                     .read_site_context_docs_mounts()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_66.identity.clone(),
                             dispatch: upcast_value_66.dispatch.clone(),
@@ -1335,7 +1348,7 @@ pub fn resolve_path(
                 } else if k == "menus" {
                     cur = {
                         let upcast_value_67 =
-                            crate::template::values::menus::MenusValue::new(site.clone());
+                            crate::template::values::menus::MenusValue::new(site.clone())?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_67.identity.clone(),
                             dispatch: upcast_value_67.dispatch.clone(),
@@ -1344,7 +1357,9 @@ pub fn resolve_path(
                 } else if k == "taxonomies" {
                     cur = {
                         let upcast_value_68 =
-                            crate::template::values::taxonomies::TaxonomiesValue::new(site.clone());
+                            crate::template::values::taxonomies::TaxonomiesValue::new(
+                                site.clone(),
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_68.identity.clone(),
                             dispatch: upcast_value_68.dispatch.clone(),
@@ -1353,7 +1368,7 @@ pub fn resolve_path(
                 } else if k == "outputformats" {
                     cur = {
                         let upcast_value_69 =
-                            crate::template::values::output::OutputFormatsValue::new(site.clone());
+                            crate::template::values::output::OutputFormatsValue::new(site.clone())?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_69.identity.clone(),
                             dispatch: upcast_value_69.dispatch.clone(),
@@ -1365,7 +1380,7 @@ pub fn resolve_path(
                             crate::template::values::site::SitesArrayValue::new({
                                 let dispatch_receiver_98 = &site;
                                 dispatch_receiver_98.dispatch.read_site_context_sites()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_70.identity.clone(),
                             dispatch: upcast_value_70.dispatch.clone(),
@@ -1405,7 +1420,7 @@ pub fn resolve_path(
                             crate::template::values::primitives::StringValue::new({
                                 let dispatch_receiver_100 = &lang;
                                 dispatch_receiver_100.dispatch.read_language_context_lang()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_71.identity.clone(),
                             dispatch: upcast_value_71.dispatch.clone(),
@@ -1419,7 +1434,7 @@ pub fn resolve_path(
                                 dispatch_receiver_101
                                     .dispatch
                                     .read_language_context_language_name()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_72.identity.clone(),
                             dispatch: upcast_value_72.dispatch.clone(),
@@ -1433,7 +1448,7 @@ pub fn resolve_path(
                                 dispatch_receiver_102
                                     .dispatch
                                     .read_language_context_language_direction()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_73.identity.clone(),
                             dispatch: upcast_value_73.dispatch.clone(),
@@ -1473,7 +1488,7 @@ pub fn resolve_path(
                             crate::template::values::primitives::StringValue::new({
                                 let dispatch_receiver_104 = &f;
                                 dispatch_receiver_104.dispatch.read_page_file_filename()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_74.identity.clone(),
                             dispatch: upcast_value_74.dispatch.clone(),
@@ -1485,7 +1500,7 @@ pub fn resolve_path(
                             crate::template::values::primitives::StringValue::new({
                                 let dispatch_receiver_105 = &f;
                                 dispatch_receiver_105.dispatch.read_page_file_dir()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_75.identity.clone(),
                             dispatch: upcast_value_75.dispatch.clone(),
@@ -1499,7 +1514,7 @@ pub fn resolve_path(
                                 dispatch_receiver_106
                                     .dispatch
                                     .read_page_file_base_file_name()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_76.identity.clone(),
                             dispatch: upcast_value_76.dispatch.clone(),
@@ -1534,7 +1549,7 @@ pub fn resolve_path(
                                 }
                             };
                             dispatch_receiver_107.dispatch.read_sites_value_value()
-                        });
+                        })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_77.identity.clone(),
                             dispatch: upcast_value_77.dispatch.clone(),
@@ -1590,7 +1605,7 @@ pub fn resolve_path(
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                         site.clone(),
-                    );
+                    )?;
                     crate::template::values::base::TemplateValue {
                         identity: upcast_value_78.identity.clone(),
                         dispatch: upcast_value_78.dispatch.clone(),
@@ -1643,7 +1658,7 @@ pub fn resolve_path(
                             crate::template::values::primitives::StringValue::new({
                                 let dispatch_receiver_113 = &entry;
                                 dispatch_receiver_113.dispatch.read_menu_entry_name()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_79.identity.clone(),
                             dispatch: upcast_value_79.dispatch.clone(),
@@ -1665,23 +1680,20 @@ pub fn resolve_path(
                                 if conditional_test_4 {
                                     let dispatch_receiver_116 = &entry;
                                     dispatch_receiver_116.dispatch.read_menu_entry_url()
+                                } else if entry_page_for_url.is_some() {
+                                    let dispatch_receiver_117 = &match entry_page_for_url.as_ref() {
+                                        Some(flow_value_16) => flow_value_16.clone(),
+                                        None => unreachable!(
+                                            "checked flow selected a missing optional value"
+                                        ),
+                                    };
+                                    dispatch_receiver_117
+                                        .dispatch
+                                        .read_page_context_rel_permalink()
                                 } else {
-                                    if entry_page_for_url.is_some() {
-                                        let dispatch_receiver_117 =
-                                            &match entry_page_for_url.as_ref() {
-                                                Some(flow_value_16) => flow_value_16.clone(),
-                                                None => unreachable!(
-                                                    "checked flow selected a missing optional value"
-                                                ),
-                                            };
-                                        dispatch_receiver_117
-                                            .dispatch
-                                            .read_page_context_rel_permalink()
-                                    } else {
-                                        String::from("")
-                                    }
+                                    String::from("")
                                 }
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_80.identity.clone(),
                             dispatch: upcast_value_80.dispatch.clone(),
@@ -1693,7 +1705,7 @@ pub fn resolve_path(
                             crate::template::values::primitives::StringValue::new({
                                 let dispatch_receiver_118 = &entry;
                                 dispatch_receiver_118.dispatch.read_menu_entry_title()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_81.identity.clone(),
                             dispatch: upcast_value_81.dispatch.clone(),
@@ -1705,7 +1717,7 @@ pub fn resolve_path(
                             crate::template::values::primitives::NumberValue::new({
                                 let dispatch_receiver_119 = &entry;
                                 dispatch_receiver_119.dispatch.read_menu_entry_weight()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_82.identity.clone(),
                             dispatch: upcast_value_82.dispatch.clone(),
@@ -1717,7 +1729,7 @@ pub fn resolve_path(
                             crate::template::values::primitives::StringValue::new({
                                 let dispatch_receiver_120 = &entry;
                                 dispatch_receiver_120.dispatch.read_menu_entry_parent()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_83.identity.clone(),
                             dispatch: upcast_value_83.dispatch.clone(),
@@ -1729,7 +1741,7 @@ pub fn resolve_path(
                             crate::template::values::primitives::StringValue::new({
                                 let dispatch_receiver_121 = &entry;
                                 dispatch_receiver_121.dispatch.read_menu_entry_identifier()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_84.identity.clone(),
                             dispatch: upcast_value_84.dispatch.clone(),
@@ -1741,7 +1753,7 @@ pub fn resolve_path(
                             crate::template::values::primitives::StringValue::new({
                                 let dispatch_receiver_122 = &entry;
                                 dispatch_receiver_122.dispatch.read_menu_entry_pre()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_85.identity.clone(),
                             dispatch: upcast_value_85.dispatch.clone(),
@@ -1753,7 +1765,7 @@ pub fn resolve_path(
                             crate::template::values::primitives::StringValue::new({
                                 let dispatch_receiver_123 = &entry;
                                 dispatch_receiver_123.dispatch.read_menu_entry_post()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_86.identity.clone(),
                             dispatch: upcast_value_86.dispatch.clone(),
@@ -1765,7 +1777,7 @@ pub fn resolve_path(
                             crate::template::values::primitives::StringValue::new({
                                 let dispatch_receiver_124 = &entry;
                                 dispatch_receiver_124.dispatch.read_menu_entry_menu()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_87.identity.clone(),
                             dispatch: upcast_value_87.dispatch.clone(),
@@ -1784,7 +1796,7 @@ pub fn resolve_path(
                                     unreachable!("checked flow selected a missing optional value")
                                 }
                             },
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_88.identity.clone(),
                             dispatch: upcast_value_88.dispatch.clone(),
@@ -1801,7 +1813,7 @@ pub fn resolve_path(
                                 dispatch_receiver_126.dispatch.read_menu_entry_children()
                             },
                             site.clone(),
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_89.identity.clone(),
                             dispatch: upcast_value_89.dispatch.clone(),
@@ -1813,7 +1825,7 @@ pub fn resolve_path(
                             crate::template::evaluation::property_support::wrap_param_dict({
                                 let dispatch_receiver_127 = &entry;
                                 dispatch_receiver_127.dispatch.read_menu_entry_params()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_90.identity.clone(),
                             dispatch: upcast_value_90.dispatch.clone(),
@@ -1854,7 +1866,7 @@ pub fn resolve_path(
                         let upcast_value_91 =
                             crate::template::values::output::OutputFormatsGetValue::new(
                                 site.clone(),
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_91.identity.clone(),
                             dispatch: upcast_value_91.dispatch.clone(),
@@ -1892,9 +1904,10 @@ pub fn resolve_path(
                 let k: String = js_string::to_lower_case(&seg);
                 if k == "rel" {
                     cur = {
-                        let upcast_value_92 = crate::template::values::primitives::StringValue::new(
-                            fmt.state.with(|state| state.rel.clone()),
-                        );
+                        let upcast_value_92 =
+                            crate::template::values::primitives::StringValue::new(
+                                fmt.state.with(|state| state.rel.clone()),
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_92.identity.clone(),
                             dispatch: upcast_value_92.dispatch.clone(),
@@ -1905,7 +1918,7 @@ pub fn resolve_path(
                         let upcast_value_93 =
                             crate::template::evaluation::property_support::wrap_media_type(
                                 fmt.state.with(|state| state.media_type.clone()),
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_93.identity.clone(),
                             dispatch: upcast_value_93.dispatch.clone(),
@@ -1913,9 +1926,10 @@ pub fn resolve_path(
                     };
                 } else if k == "permalink" {
                     cur = {
-                        let upcast_value_94 = crate::template::values::primitives::StringValue::new(
-                            fmt.state.with(|state| state.permalink.clone()),
-                        );
+                        let upcast_value_94 =
+                            crate::template::values::primitives::StringValue::new(
+                                fmt.state.with(|state| state.permalink.clone()),
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_94.identity.clone(),
                             dispatch: upcast_value_94.dispatch.clone(),
@@ -1951,9 +1965,10 @@ pub fn resolve_path(
                 let k: String = js_string::to_lower_case(&seg);
                 if k == "type" {
                     cur = {
-                        let upcast_value_95 = crate::template::values::primitives::StringValue::new(
-                            mt.state.with(|state| state.r#type.clone()),
-                        );
+                        let upcast_value_95 =
+                            crate::template::values::primitives::StringValue::new(
+                                mt.state.with(|state| state.r#type.clone()),
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_95.identity.clone(),
                             dispatch: upcast_value_95.dispatch.clone(),
@@ -1989,9 +2004,10 @@ pub fn resolve_path(
                 let k: String = js_string::to_lower_case(&seg);
                 if k == "name" {
                     cur = {
-                        let upcast_value_96 = crate::template::values::primitives::StringValue::new(
-                            sc.state.with(|state| state.name.clone()),
-                        );
+                        let upcast_value_96 =
+                            crate::template::values::primitives::StringValue::new(
+                                sc.state.with(|state| state.name.clone()),
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_96.identity.clone(),
                             dispatch: upcast_value_96.dispatch.clone(),
@@ -2001,7 +2017,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_97 = crate::template::values::page::PageValue::new(
                             sc.state.with(|state| state.page.clone()),
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_97.identity.clone(),
                             dispatch: upcast_value_97.dispatch.clone(),
@@ -2011,7 +2027,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_98 = crate::template::values::site::SiteValue::new(
                             sc.state.with(|state| state.site.clone()),
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_98.identity.clone(),
                             dispatch: upcast_value_98.dispatch.clone(),
@@ -2022,7 +2038,7 @@ pub fn resolve_path(
                         let upcast_value_99 =
                             crate::template::evaluation::property_support::wrap_param_dict(
                                 sc.state.with(|state| state.params.clone()),
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_99.identity.clone(),
                             dispatch: upcast_value_99.dispatch.clone(),
@@ -2032,7 +2048,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_100 = crate::template::values::primitives::BoolValue::new(
                             sc.state.with(|state| state.is_named_params),
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_100.identity.clone(),
                             dispatch: upcast_value_100.dispatch.clone(),
@@ -2043,8 +2059,8 @@ pub fn resolve_path(
                         let upcast_value_101 = crate::template::values::primitives::HtmlValue::new(
                             crate::utils::html::HtmlString::new(
                                 sc.state.with(|state| state.inner.clone()),
-                            ),
-                        );
+                            )?,
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_101.identity.clone(),
                             dispatch: upcast_value_101.dispatch.clone(),
@@ -2055,8 +2071,8 @@ pub fn resolve_path(
                         let upcast_value_102 = crate::template::values::primitives::HtmlValue::new(
                             crate::utils::html::HtmlString::new(
                                 sc.state.with(|state| state.inner_deindent.clone()),
-                            ),
-                        );
+                            )?,
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_102.identity.clone(),
                             dispatch: upcast_value_102.dispatch.clone(),
@@ -2067,7 +2083,7 @@ pub fn resolve_path(
                         let upcast_value_103 =
                             crate::template::values::primitives::NumberValue::new(
                                 sc.state.with(|state| state.ordinal),
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_103.identity.clone(),
                             dispatch: upcast_value_103.dispatch.clone(),
@@ -2084,7 +2100,7 @@ pub fn resolve_path(
                                     unreachable!("checked flow selected a missing optional value")
                                 }
                             },
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_104.identity.clone(),
                             dispatch: upcast_value_104.dispatch.clone(),
@@ -2126,7 +2142,7 @@ pub fn resolve_path(
                         let upcast_value_105 =
                             crate::template::values::primitives::StringValue::new(
                                 hook.state.with(|state| state.destination.clone()),
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_105.identity.clone(),
                             dispatch: upcast_value_105.dispatch.clone(),
@@ -2137,8 +2153,8 @@ pub fn resolve_path(
                         let upcast_value_106 = crate::template::values::primitives::HtmlValue::new(
                             crate::utils::html::HtmlString::new(
                                 hook.state.with(|state| state.text.clone()),
-                            ),
-                        );
+                            )?,
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_106.identity.clone(),
                             dispatch: upcast_value_106.dispatch.clone(),
@@ -2149,7 +2165,7 @@ pub fn resolve_path(
                         let upcast_value_107 =
                             crate::template::values::primitives::StringValue::new(
                                 hook.state.with(|state| state.title.clone()),
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_107.identity.clone(),
                             dispatch: upcast_value_107.dispatch.clone(),
@@ -2160,7 +2176,7 @@ pub fn resolve_path(
                         let upcast_value_108 =
                             crate::template::values::primitives::StringValue::new(
                                 hook.state.with(|state| state.plain_text.clone()),
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_108.identity.clone(),
                             dispatch: upcast_value_108.dispatch.clone(),
@@ -2170,7 +2186,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_109 = crate::template::values::page::PageValue::new(
                             hook.state.with(|state| state.page.clone()),
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_109.identity.clone(),
                             dispatch: upcast_value_109.dispatch.clone(),
@@ -2180,7 +2196,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_110 = crate::template::values::page::PageValue::new(
                             hook.state.with(|state| state.page_inner.clone()),
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_110.identity.clone(),
                             dispatch: upcast_value_110.dispatch.clone(),
@@ -2190,7 +2206,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_111 = crate::template::values::page::PageValue::new(
                             hook.state.with(|state| state.page_outer.clone()),
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_111.identity.clone(),
                             dispatch: upcast_value_111.dispatch.clone(),
@@ -2229,7 +2245,7 @@ pub fn resolve_path(
                         let upcast_value_112 =
                             crate::template::values::primitives::StringValue::new(
                                 hook.state.with(|state| state.destination.clone()),
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_112.identity.clone(),
                             dispatch: upcast_value_112.dispatch.clone(),
@@ -2240,7 +2256,7 @@ pub fn resolve_path(
                         let upcast_value_113 =
                             crate::template::values::primitives::StringValue::new(
                                 hook.state.with(|state| state.text.clone()),
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_113.identity.clone(),
                             dispatch: upcast_value_113.dispatch.clone(),
@@ -2251,7 +2267,7 @@ pub fn resolve_path(
                         let upcast_value_114 =
                             crate::template::values::primitives::StringValue::new(
                                 hook.state.with(|state| state.title.clone()),
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_114.identity.clone(),
                             dispatch: upcast_value_114.dispatch.clone(),
@@ -2262,7 +2278,7 @@ pub fn resolve_path(
                         let upcast_value_115 =
                             crate::template::values::primitives::StringValue::new(
                                 hook.state.with(|state| state.plain_text.clone()),
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_115.identity.clone(),
                             dispatch: upcast_value_115.dispatch.clone(),
@@ -2272,7 +2288,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_116 = crate::template::values::page::PageValue::new(
                             hook.state.with(|state| state.page.clone()),
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_116.identity.clone(),
                             dispatch: upcast_value_116.dispatch.clone(),
@@ -2282,7 +2298,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_117 = crate::template::values::page::PageValue::new(
                             hook.state.with(|state| state.page_inner.clone()),
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_117.identity.clone(),
                             dispatch: upcast_value_117.dispatch.clone(),
@@ -2292,7 +2308,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_118 = crate::template::values::page::PageValue::new(
                             hook.state.with(|state| state.page_outer.clone()),
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_118.identity.clone(),
                             dispatch: upcast_value_118.dispatch.clone(),
@@ -2333,7 +2349,7 @@ pub fn resolve_path(
                         let upcast_value_119 =
                             crate::template::values::primitives::NumberValue::new(
                                 hook.state.with(|state| state.level),
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_119.identity.clone(),
                             dispatch: upcast_value_119.dispatch.clone(),
@@ -2344,8 +2360,8 @@ pub fn resolve_path(
                         let upcast_value_120 = crate::template::values::primitives::HtmlValue::new(
                             crate::utils::html::HtmlString::new(
                                 hook.state.with(|state| state.text.clone()),
-                            ),
-                        );
+                            )?,
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_120.identity.clone(),
                             dispatch: upcast_value_120.dispatch.clone(),
@@ -2356,7 +2372,7 @@ pub fn resolve_path(
                         let upcast_value_121 =
                             crate::template::values::primitives::StringValue::new(
                                 hook.state.with(|state| state.plain_text.clone()),
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_121.identity.clone(),
                             dispatch: upcast_value_121.dispatch.clone(),
@@ -2367,7 +2383,7 @@ pub fn resolve_path(
                         let upcast_value_122 =
                             crate::template::values::primitives::StringValue::new(
                                 hook.state.with(|state| state.anchor.clone()),
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_122.identity.clone(),
                             dispatch: upcast_value_122.dispatch.clone(),
@@ -2377,7 +2393,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_123 = crate::template::values::page::PageValue::new(
                             hook.state.with(|state| state.page.clone()),
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_123.identity.clone(),
                             dispatch: upcast_value_123.dispatch.clone(),
@@ -2387,7 +2403,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_124 = crate::template::values::page::PageValue::new(
                             hook.state.with(|state| state.page_inner.clone()),
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_124.identity.clone(),
                             dispatch: upcast_value_124.dispatch.clone(),
@@ -2397,7 +2413,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_125 = crate::template::values::page::PageValue::new(
                             hook.state.with(|state| state.page_outer.clone()),
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_125.identity.clone(),
                             dispatch: upcast_value_125.dispatch.clone(),
@@ -2464,7 +2480,7 @@ pub fn resolve_path(
                                 }
                             },
                             site.clone(),
-                        );
+                        )?;
                     crate::template::values::base::TemplateValue {
                         identity: upcast_value_126.identity.clone(),
                         dispatch: upcast_value_126.dispatch.clone(),
@@ -2542,7 +2558,7 @@ pub fn resolve_path(
                         crate::template::values::page::PageArrayValue::new(match pages.as_ref() {
                             Some(flow_value_20) => flow_value_20.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
-                        });
+                        })?;
                     crate::template::values::base::TemplateValue {
                         identity: upcast_value_128.identity.clone(),
                         dispatch: upcast_value_128.dispatch.clone(),
@@ -2579,7 +2595,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_129 = crate::template::values::primitives::BoolValue::new(
                             uri.state.with(|state| state.absolute),
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_129.identity.clone(),
                             dispatch: upcast_value_129.dispatch.clone(),
@@ -2597,7 +2613,7 @@ pub fn resolve_path(
                                 } else {
                                     String::from("")
                                 },
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_130.identity.clone(),
                             dispatch: upcast_value_130.dispatch.clone(),
@@ -2615,7 +2631,7 @@ pub fn resolve_path(
                                 } else {
                                     String::from("")
                                 },
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_131.identity.clone(),
                             dispatch: upcast_value_131.dispatch.clone(),
@@ -2629,7 +2645,7 @@ pub fn resolve_path(
                         let upcast_value_132 =
                             crate::template::values::primitives::StringValue::new(
                                 uri.state.with(|state| state.original_string.clone()),
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_132.identity.clone(),
                             dispatch: upcast_value_132.dispatch.clone(),
@@ -2642,13 +2658,13 @@ pub fn resolve_path(
                     let parts: crate::template::values::url::UrlParts =
                         crate::template::evaluation::url_property_semantics::split_url_parts(
                             uri.clone(),
-                        );
+                        )?;
                     if k == "path" {
                         cur = {
                             let upcast_value_133 =
                                 crate::template::values::primitives::StringValue::new(
                                     parts.state.with(|state| state.path.clone()),
-                                );
+                                )?;
                             crate::template::values::base::TemplateValue {
                                 identity: upcast_value_133.identity.clone(),
                                 dispatch: upcast_value_133.dispatch.clone(),
@@ -2659,7 +2675,7 @@ pub fn resolve_path(
                             let upcast_value_134 =
                                 crate::template::values::primitives::StringValue::new(
                                     parts.state.with(|state| state.raw_query.clone()),
-                                );
+                                )?;
                             crate::template::values::base::TemplateValue {
                                 identity: upcast_value_134.identity.clone(),
                                 dispatch: upcast_value_134.dispatch.clone(),
@@ -2670,7 +2686,7 @@ pub fn resolve_path(
                             let upcast_value_135 =
                                 crate::template::values::primitives::StringValue::new(
                                     parts.state.with(|state| state.fragment.clone()),
-                                );
+                                )?;
                             crate::template::values::base::TemplateValue {
                                 identity: upcast_value_135.identity.clone(),
                                 dispatch: upcast_value_135.dispatch.clone(),
@@ -2680,7 +2696,7 @@ pub fn resolve_path(
                         cur = {
                             let upcast_value_136 =
                                 crate::template::evaluation::url_query_semantics::parse_url_query(
-                                    parts.state.with(|state| state.raw_query.clone()),
+                                    &parts.state.with(|state| state.raw_query.clone()),
                                 )?;
                             crate::template::values::base::TemplateValue {
                                 identity: upcast_value_136.identity.clone(),
@@ -2729,7 +2745,7 @@ pub fn resolve_path(
                             Some(flow_value_21) => flow_value_21.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
-                    );
+                    )?;
                     crate::template::values::base::TemplateValue {
                         identity: upcast_value_137.identity.clone(),
                         dispatch: upcast_value_137.dispatch.clone(),
@@ -2768,7 +2784,7 @@ pub fn resolve_path(
                                     res.clone(),
                                     String::from("Resource.Content"),
                                 )?,
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_138.identity.clone(),
                             dispatch: upcast_value_138.dispatch.clone(),
@@ -2783,7 +2799,7 @@ pub fn resolve_path(
                             crate::template::values::resources::ResourceDataValue::new({
                                 let dispatch_receiver_143 = &res;
                                 dispatch_receiver_143.dispatch.read_resource_data()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_139.identity.clone(),
                             dispatch: upcast_value_139.dispatch.clone(),
@@ -2823,7 +2839,7 @@ pub fn resolve_path(
                     }?;
                     let slash: String = String::from("/");
                     let rel: String = crate::utils::strings::trim_start_char(
-                        &match output_rel_path.as_ref() {
+                        match output_rel_path.as_ref() {
                             Some(flow_value_23) => flow_value_23.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
@@ -2835,7 +2851,7 @@ pub fn resolve_path(
                                 "{}{}",
                                 String::from("/"),
                                 rel
-                            ));
+                            ))?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_140.identity.clone(),
                             dispatch: upcast_value_140.dispatch.clone(),
@@ -2875,7 +2891,7 @@ pub fn resolve_path(
                     }?;
                     let slash: String = String::from("/");
                     let rel: String = crate::utils::strings::trim_start_char(
-                        &match output_rel_path.as_ref() {
+                        match output_rel_path.as_ref() {
                             Some(flow_value_25) => flow_value_25.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
@@ -2893,7 +2909,7 @@ pub fn resolve_path(
                                     dispatch_receiver_151.dispatch.read_site_context_base_url()
                                 }),
                                 rel
-                            ));
+                            ))?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_141.identity.clone(),
                             dispatch: upcast_value_141.dispatch.clone(),
@@ -2908,7 +2924,7 @@ pub fn resolve_path(
                             crate::template::values::primitives::NumberValue::new({
                                 let dispatch_receiver_152 = &res;
                                 dispatch_receiver_152.dispatch.read_resource_width()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_142.identity.clone(),
                             dispatch: upcast_value_142.dispatch.clone(),
@@ -2923,7 +2939,7 @@ pub fn resolve_path(
                             crate::template::values::primitives::NumberValue::new({
                                 let dispatch_receiver_153 = &res;
                                 dispatch_receiver_153.dispatch.read_resource_height()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_143.identity.clone(),
                             dispatch: upcast_value_143.dispatch.clone(),
@@ -2938,7 +2954,7 @@ pub fn resolve_path(
                             crate::template::values::primitives::StringValue::new({
                                 let dispatch_receiver_154 = &res;
                                 dispatch_receiver_154.dispatch.read_resource_media_type()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_144.identity.clone(),
                             dispatch: upcast_value_144.dispatch.clone(),
@@ -2983,7 +2999,7 @@ pub fn resolve_path(
                                 dispatch_receiver_156
                                     .dispatch
                                     .read_resource_data_integrity()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_145.identity.clone(),
                             dispatch: upcast_value_145.dispatch.clone(),
@@ -3023,7 +3039,7 @@ pub fn resolve_path(
                         let upcast_value_146 =
                             crate::template::values::primitives::StringValue::new(
                                 mount.state.with(|state| state.name.clone()),
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_146.identity.clone(),
                             dispatch: upcast_value_146.dispatch.clone(),
@@ -3034,7 +3050,7 @@ pub fn resolve_path(
                         let upcast_value_147 =
                             crate::template::values::primitives::StringValue::new(
                                 mount.state.with(|state| state.url_prefix.clone()),
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_147.identity.clone(),
                             dispatch: upcast_value_147.dispatch.clone(),
@@ -3044,7 +3060,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_148 = crate::template::values::docs::NavArrayValue::new(
                             mount.state.with(|state| state.nav.clone()),
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_148.identity.clone(),
                             dispatch: upcast_value_148.dispatch.clone(),
@@ -3083,7 +3099,7 @@ pub fn resolve_path(
                         let upcast_value_149 =
                             crate::template::values::primitives::StringValue::new(
                                 item.state.with(|state| state.title.clone()),
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_149.identity.clone(),
                             dispatch: upcast_value_149.dispatch.clone(),
@@ -3094,7 +3110,7 @@ pub fn resolve_path(
                         let upcast_value_150 =
                             crate::template::values::primitives::StringValue::new(
                                 item.state.with(|state| state.url.clone()),
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_150.identity.clone(),
                             dispatch: upcast_value_150.dispatch.clone(),
@@ -3104,7 +3120,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_151 = crate::template::values::docs::NavArrayValue::new(
                             item.state.with(|state| state.children.clone()),
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_151.identity.clone(),
                             dispatch: upcast_value_151.dispatch.clone(),
@@ -3114,7 +3130,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_152 = crate::template::values::primitives::BoolValue::new(
                             item.state.with(|state| state.is_section),
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_152.identity.clone(),
                             dispatch: upcast_value_152.dispatch.clone(),
@@ -3124,7 +3140,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_153 = crate::template::values::primitives::BoolValue::new(
                             item.state.with(|state| state.is_current),
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_153.identity.clone(),
                             dispatch: upcast_value_153.dispatch.clone(),
@@ -3135,7 +3151,7 @@ pub fn resolve_path(
                         let upcast_value_154 =
                             crate::template::values::primitives::NumberValue::new(
                                 item.state.with(|state| state.order),
-                            );
+                            )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_154.identity.clone(),
                             dispatch: upcast_value_154.dispatch.clone(),
@@ -3236,7 +3252,7 @@ pub fn resolve_path(
                                     .dispatch
                                     .clone()
                                     .dispatch_paginator_value_pages()
-                            }?);
+                            }?)?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_155.identity.clone(),
                             dispatch: upcast_value_155.dispatch.clone(),
@@ -3261,7 +3277,7 @@ pub fn resolve_path(
                                     .dispatch
                                     .read_paginator_value_page_number()
                             }) > 1,
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_156.identity.clone(),
                             dispatch: upcast_value_156.dispatch.clone(),
@@ -3286,7 +3302,7 @@ pub fn resolve_path(
                                     .dispatch
                                     .read_paginator_value_page_number()
                             }) < total_pages,
-                        );
+                        )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_157.identity.clone(),
                             dispatch: upcast_value_157.dispatch.clone(),
@@ -3310,7 +3326,7 @@ pub fn resolve_path(
                                 dispatch_receiver_164
                                     .dispatch
                                     .read_paginator_value_page_number()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_158.identity.clone(),
                             dispatch: upcast_value_158.dispatch.clone(),
@@ -3319,7 +3335,7 @@ pub fn resolve_path(
                 } else if key == "totalpages" {
                     cur = {
                         let upcast_value_159 =
-                            crate::template::values::primitives::NumberValue::new(total_pages);
+                            crate::template::values::primitives::NumberValue::new(total_pages)?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_159.identity.clone(),
                             dispatch: upcast_value_159.dispatch.clone(),
@@ -3357,7 +3373,7 @@ pub fn resolve_path(
                                     }
                                 };
                                 dispatch_receiver_167.dispatch.clone().dispatch_paginator_value_with_page_number(({ let dispatch_receiver_166 = &{ let downcast_value_36 = &cur; crate::template::values::pagination::PaginatorValue { identity: downcast_value_36.identity.clone(), dispatch: downcast_value_36.dispatch.clone().downcast_template_value_to_paginator_value().unwrap() } }; dispatch_receiver_166.dispatch.read_paginator_value_page_number() }) - 1)
-                            };
+                            }?;
                             crate::template::values::base::TemplateValue {
                                 identity: upcast_value_160.identity.clone(),
                                 dispatch: upcast_value_160.dispatch.clone(),
@@ -3399,7 +3415,7 @@ pub fn resolve_path(
                                     }
                                 };
                                 dispatch_receiver_170.dispatch.clone().dispatch_paginator_value_with_page_number(({ let dispatch_receiver_169 = &{ let downcast_value_39 = &cur; crate::template::values::pagination::PaginatorValue { identity: downcast_value_39.identity.clone(), dispatch: downcast_value_39.dispatch.clone().downcast_template_value_to_paginator_value().unwrap() } }; dispatch_receiver_169.dispatch.read_paginator_value_page_number() }) + 1)
-                            };
+                            }?;
                             crate::template::values::base::TemplateValue {
                                 identity: upcast_value_161.identity.clone(),
                                 dispatch: upcast_value_161.dispatch.clone(),
@@ -3428,7 +3444,7 @@ pub fn resolve_path(
                                     .dispatch
                                     .clone()
                                     .dispatch_paginator_value_url()
-                            }?);
+                            }?)?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_162.identity.clone(),
                             dispatch: upcast_value_162.dispatch.clone(),
@@ -3470,14 +3486,14 @@ pub fn resolve_path(
                             crate::template::values::page::PageArrayValue::new({
                                 let dispatch_receiver_173 = &group;
                                 dispatch_receiver_173.dispatch.read_page_group_value_pages()
-                            });
+                            })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_163.identity.clone(),
                             dispatch: upcast_value_163.dispatch.clone(),
                         }
                     };
                 } else {
-                    cur = rt::option_coalesce(crate::template::evaluation::page_semantics::resolve_page_collection_property(crate::template::values::page::PageArrayValue::new({ let dispatch_receiver_174 = &group; dispatch_receiver_174.dispatch.read_page_group_value_pages() }), &seg)?, core::convert::identity, || crate::template::runtime_helpers::NIL.with(|module_binding| module_binding.load()));
+                    cur = rt::option_coalesce(crate::template::evaluation::page_semantics::resolve_page_collection_property(crate::template::values::page::PageArrayValue::new({ let dispatch_receiver_174 = &group; dispatch_receiver_174.dispatch.read_page_group_value_pages() })?, &seg)?, core::convert::identity, || crate::template::runtime_helpers::NIL.with(|module_binding| module_binding.load()));
                 }
                 i += 1.0;
                 continue 'loop_value;

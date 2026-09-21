@@ -9,9 +9,7 @@ pub fn find_regular_expression_matches(
     input: &str,
     limit: i32,
 ) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
-    let expression: js_abi::JsRegExp = COMPILE_REGULAR_EXPRESSION
-        .with(|module_binding| module_binding.load())
-        .call((pattern,))?;
+    let expression: js_abi::JsRegExp = compile_regular_expression(pattern)?;
     if limit == 0 {
         return Ok(js_abi::JsArray::from_dense(vec![]));
     }
@@ -22,9 +20,7 @@ pub fn find_regular_expression_matches(
         let r#match = fallible_item?;
         {
             let operation_input_0 = result.clone();
-            operation_input_0.push_many_discard([REQUIRE_FULL_MATCH
-                .with(|module_binding| module_binding.load())
-                .call((r#match.clone(),))?])
+            operation_input_0.push_many_discard([require_full_match(r#match.clone())?])
         };
         if limit > 0 && rt::conversions::usize_to_i32(result.len())? >= limit {
             break 'loop_value;
@@ -38,9 +34,7 @@ pub fn find_regular_expression_submatches(
     input: &str,
     limit: i32,
 ) -> Result<js_abi::JsArray<js_abi::JsArray<String>>, rt::TsonicError> {
-    let expression: js_abi::JsRegExp = COMPILE_REGULAR_EXPRESSION
-        .with(|module_binding| module_binding.load())
-        .call((pattern,))?;
+    let expression: js_abi::JsRegExp = compile_regular_expression(pattern)?;
     if limit == 0 {
         return Ok(js_abi::JsArray::from_dense(vec![]));
     }
@@ -49,18 +43,15 @@ pub fn find_regular_expression_submatches(
         js_abi::string_match_all_regexp_native(input, &expression)?.iterator()
     {
         let r#match = fallible_item?;
-        let row: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
-            REQUIRE_FULL_MATCH
-                .with(|module_binding| module_binding.load())
-                .call((r#match.clone(),))?,
-        ]);
+        let row: js_abi::JsArray<String> =
+            js_abi::JsArray::from_dense(vec![require_full_match(r#match.clone())?]);
         {
             let mut group_index: f64 = 1.0;
             while group_index < (rt::conversions::usize_to_i32(r#match.len())? as f64) {
                 {
                     let operation_input_0 = row.clone();
                     operation_input_0.push_many_discard([rt::option_coalesce(
-                        r#match.get_number(group_index),
+                        r#match.get_number(group_index).flatten(),
                         core::convert::identity,
                         || String::from(""),
                     )])
@@ -82,9 +73,7 @@ pub fn replace_regular_expression(
     input: String,
     limit: i32,
 ) -> Result<String, rt::TsonicError> {
-    let expression: js_abi::JsRegExp = COMPILE_REGULAR_EXPRESSION
-        .with(|module_binding| module_binding.load())
-        .call((pattern,))?;
+    let expression: js_abi::JsRegExp = compile_regular_expression(pattern)?;
     if limit == 0 {
         return Ok(input);
     }
@@ -103,9 +92,7 @@ pub fn replace_regular_expression(
             break 'loop_value;
         }
         let match_index: i32 = rt::conversions::f64_to_i32(r#match.index())?;
-        let full_match: String = REQUIRE_FULL_MATCH
-            .with(|module_binding| module_binding.load())
-            .call((r#match.clone(),))?;
+        let full_match: String = require_full_match(r#match.clone())?;
         {
             let operation_input_0 = result.clone();
             operation_input_0.push_many_discard([js_string::slice_to(
@@ -116,15 +103,13 @@ pub fn replace_regular_expression(
         };
         {
             let operation_input_0_2 = result.clone();
-            operation_input_0_2.push_many_discard([EXPAND_REGULAR_EXPRESSION_REPLACEMENT
-                .with(|module_binding| module_binding.load())
-                .call((
-                    replacement.clone(),
-                    input.clone(),
-                    r#match.clone(),
-                    full_match.clone(),
-                    match_index,
-                ))?])
+            operation_input_0_2.push_many_discard([expand_regular_expression_replacement(
+                &replacement,
+                &input,
+                r#match.clone(),
+                full_match.clone(),
+                match_index,
+            )?])
         };
         cursor = match_index + rt::conversions::usize_to_i32(js_string::js_len(&full_match))?;
         remaining -= 1;
@@ -140,302 +125,229 @@ pub fn replace_regular_expression(
     Ok(result.join(""))
 }
 
-pub type CompileRegularExpressionCallable =
-    rt::Callable<(String,), rt::TsonicResult<js_abi::JsRegExp>>;
-
-std::thread_local! {
-    pub static COMPILE_REGULAR_EXPRESSION: rt::ModuleCell<CompileRegularExpressionCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type ExpandRegularExpressionReplacementCallable =
-    rt::Callable<(String, String, js_abi::RegExpExecArray, String, i32), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub static EXPAND_REGULAR_EXPRESSION_REPLACEMENT: rt::ModuleCell<ExpandRegularExpressionReplacementCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type RegularExpressionNamedGroupCallable =
-    rt::Callable<(js_abi::RegExpExecArray, String), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub static REGULAR_EXPRESSION_NAMED_GROUP: rt::ModuleCell<RegularExpressionNamedGroupCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type RequireFullMatchCallable =
-    rt::Callable<(js_abi::RegExpExecArray,), rt::TsonicResult<String>>;
-
-std::thread_local! {
-    pub static REQUIRE_FULL_MATCH: rt::ModuleCell<RequireFullMatchCallable> = const { rt::ModuleCell::new() };
-}
-
-pub type DigitValueCallable = rt::Callable<(String,), rt::TsonicResult<i32>>;
-
-std::thread_local! {
-    pub static DIGIT_VALUE: rt::ModuleCell<DigitValueCallable> = const { rt::ModuleCell::new() };
-}
-
-#[doc(hidden)]
-pub fn module_init() {
-    {
-        let module_value = rt::Callable::<(String,), rt::TsonicResult<js_abi::JsRegExp>>::new(
-            move |callable_arguments| {
-                let pattern = callable_arguments.0;
-                let try_body: rt::TsonicResult<rt::Completion<js_abi::JsRegExp>> =
-                    rt::completion_region(|| {
-                        Ok(rt::Completion::Return(
-                            js_abi::regexp_from_string_with_flags_native(&pattern, "g")?,
-                        ))
-                    });
-                let try_flow: rt::TsonicResult<rt::Completion<js_abi::JsRegExp>> = match try_body {
-                    Ok(completion) => Ok(completion),
-                    Err(_) => rt::completion_region(|| {
-                        Err(rt::TsonicError::TsumoError(
-                            crate::diagnostics::create_tsumo_error(
-                                String::from("TSUMO_TEMPLATE_REGEXP_INVALID"),
-                                format!(
-                                    "{}{}{}",
-                                    String::from("Invalid regular expression '"),
-                                    pattern,
-                                    String::from("'")
-                                ),
-                                None,
-                                None,
-                                None,
-                            ),
-                        ))
-                    }),
-                };
-                let try_flow = try_flow?;
-                match try_flow {
-                    rt::Completion::Normal => {
-                        unreachable!("terminating Tsonic completion scope completed normally")
-                    }
-                    rt::Completion::Return(value) => Ok(value),
-                    rt::Completion::Break(_) | rt::Completion::Continue(_) => {
-                        unreachable!("invalid finalized Tsonic completion target")
-                    }
-                }
-            },
-        );
-        COMPILE_REGULAR_EXPRESSION.with(|module_binding| module_binding.initialize(module_value))
-    };
-    {
-        let module_value_2 = rt::Callable::<
-            (String, String, js_abi::RegExpExecArray, String, i32),
-            rt::TsonicResult<String>,
-        >::new(move |callable_arguments_2| {
-            let replacement = callable_arguments_2.0;
-            let input = callable_arguments_2.1;
-            let r#match = callable_arguments_2.2;
-            let full_match = callable_arguments_2.3;
-            let match_index = callable_arguments_2.4;
-            let result: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-            {
-                let mut index: f64 = 0.0;
-                'loop_value: while index
-                    < (rt::conversions::usize_to_i32(js_string::js_len(&replacement))? as f64)
-                {
-                    let current: String = js_string::char_at(&replacement, index)?;
-                    if current != "$"
-                        || index + 1.0
-                            >= (rt::conversions::usize_to_i32(js_string::js_len(&replacement))?
-                                as f64)
-                    {
-                        result.push_many_discard([current.clone()]);
-                        index += 1.0;
-                        continue 'loop_value;
-                    }
-                    let next: String = js_string::char_at(&replacement, index + 1.0)?;
-                    if next == "$" {
-                        result.push_many_discard([String::from("$")]);
-                        index += 1.0;
-                        index += 1.0;
-                        continue 'loop_value;
-                    }
-                    if next == "&" {
-                        result.push_many_discard([full_match.clone()]);
-                        index += 1.0;
-                        index += 1.0;
-                        continue 'loop_value;
-                    }
-                    if next == "`" {
-                        {
-                            let operation_input_0 = result.clone();
-                            operation_input_0.push_many_discard([js_string::slice_to(
-                                &input,
-                                0.0,
-                                rt::conversions::i32_to_f64(match_index),
-                            )?])
-                        };
-                        index += 1.0;
-                        index += 1.0;
-                        continue 'loop_value;
-                    }
-                    if next == "'" {
-                        {
-                            let operation_input_0_2 = result.clone();
-                            operation_input_0_2.push_many_discard([{
-                                let operation_input_0_3 = input.clone();
-                                js_string::slice(
-                                    &operation_input_0_3,
-                                    rt::conversions::i32_to_f64(
-                                        match_index
-                                            + rt::conversions::usize_to_i32(js_string::js_len(
-                                                &full_match,
-                                            ))?,
-                                    ),
-                                    None,
-                                )
-                            }?])
-                        };
-                        index += 1.0;
-                        index += 1.0;
-                        continue 'loop_value;
-                    }
-                    if next == "<" && r#match.groups().is_some() {
-                        let closing: i32 = rt::conversions::isize_to_i32(js_string::index_of(
-                            &replacement,
-                            ">",
-                            index + 2.0,
-                        ))?;
-                        if closing >= 0 {
-                            let group_name: String = js_string::slice_to(
-                                &replacement,
-                                index + 2.0,
-                                rt::conversions::i32_to_f64(closing),
-                            )?;
-                            {
-                                let operation_input_0_4 = result.clone();
-                                operation_input_0_4.push_many_discard([
-                                    REGULAR_EXPRESSION_NAMED_GROUP
-                                        .with(|module_binding| module_binding.load())
-                                        .call((r#match.clone(), group_name.clone()))?,
-                                ])
-                            };
-                            index = rt::conversions::i32_to_f64(closing);
-                            index += 1.0;
-                            continue 'loop_value;
-                        }
-                    }
-                    let first_digit: i32 = DIGIT_VALUE
-                        .with(|module_binding| module_binding.load())
-                        .call((next.clone(),))?;
-                    if first_digit >= 0 {
-                        let mut capture_index: i32 = -1;
-                        let mut consumed_digits: i32 = 0;
-                        if index + 2.0
-                            < (rt::conversions::usize_to_i32(js_string::js_len(&replacement))?
-                                as f64)
-                        {
-                            let second_digit: i32 = DIGIT_VALUE
-                                .with(|module_binding| module_binding.load())
-                                .call((js_string::char_at(&replacement, index + 2.0)?,))?;
-                            let two_digit_index: i32 = first_digit * 10 + second_digit;
-                            if second_digit >= 0
-                                && two_digit_index > 0
-                                && two_digit_index < rt::conversions::usize_to_i32(r#match.len())?
-                            {
-                                capture_index = two_digit_index;
-                                consumed_digits = 2;
-                            }
-                        }
-                        if capture_index < 0
-                            && first_digit > 0
-                            && first_digit < rt::conversions::usize_to_i32(r#match.len())?
-                        {
-                            capture_index = first_digit;
-                            consumed_digits = 1;
-                        }
-                        if capture_index > 0 {
-                            {
-                                let operation_input_0_5 = result.clone();
-                                operation_input_0_5.push_many_discard([rt::option_coalesce(
-                                    r#match.get_number(rt::conversions::i32_to_f64(capture_index)),
-                                    core::convert::identity,
-                                    || String::from(""),
-                                )])
-                            };
-                            index += rt::conversions::i32_to_f64(consumed_digits);
-                            index += 1.0;
-                            continue 'loop_value;
-                        }
-                    }
-                    result.push_many_discard([String::from("$")]);
-                    index += 1.0;
-                }
-            }
-            Ok::<_, rt::TsonicError>(result.join(""))
-        });
-        EXPAND_REGULAR_EXPRESSION_REPLACEMENT
-            .with(|module_binding_2| module_binding_2.initialize(module_value_2))
-    };
-    {
-        let module_value_3 = rt::Callable::<
-            (js_abi::RegExpExecArray, String),
-            rt::TsonicResult<String>,
-        >::new(move |callable_arguments_3| {
-            let r#match = callable_arguments_3.0;
-            let group_name = callable_arguments_3.1;
-            Ok::<_, rt::TsonicError>(rt::option_coalesce(
-                r#match.groups().as_ref().and_then(|optional_receiver| {
-                    js_abi::regexp_named_groups_get_native(optional_receiver, &group_name)
-                }),
-                core::convert::identity,
-                || String::from(""),
+pub fn compile_regular_expression(pattern: String) -> Result<js_abi::JsRegExp, rt::TsonicError> {
+    let try_body: rt::TsonicResult<rt::Completion<js_abi::JsRegExp>> =
+        rt::completion_region(|| {
+            Ok(rt::Completion::Return(
+                js_abi::regexp_from_string_with_flags_native(&pattern, "g")?,
             ))
         });
-        REGULAR_EXPRESSION_NAMED_GROUP
-            .with(|module_binding_3| module_binding_3.initialize(module_value_3))
+    let try_flow: rt::TsonicResult<rt::Completion<js_abi::JsRegExp>> = match try_body {
+        Ok(completion) => Ok(completion),
+        Err(_) => rt::completion_region(|| {
+            Err(rt::TsonicError::TsumoError(
+                crate::diagnostics::create_tsumo_error(
+                    String::from("TSUMO_TEMPLATE_REGEXP_INVALID"),
+                    format!(
+                        "{}{}{}",
+                        String::from("Invalid regular expression '"),
+                        pattern,
+                        String::from("'")
+                    ),
+                    None,
+                    None,
+                    None,
+                )?,
+            ))
+        }),
     };
+    let try_flow = try_flow?;
+    match try_flow {
+        rt::Completion::Normal => {
+            unreachable!("terminating Tsonic completion scope completed normally")
+        }
+        rt::Completion::Return(value) => Ok(value),
+        rt::Completion::Break(_) | rt::Completion::Continue(_) => {
+            unreachable!("invalid finalized Tsonic completion target")
+        }
+    }
+}
+
+pub fn expand_regular_expression_replacement(
+    replacement: &str,
+    input: &str,
+    r#match: js_abi::RegExpExecArray,
+    full_match: String,
+    match_index: i32,
+) -> Result<String, rt::TsonicError> {
+    let result: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     {
-        let module_value_4 =
-            rt::Callable::<(js_abi::RegExpExecArray,), rt::TsonicResult<String>>::new(
-                move |callable_arguments_4| {
-                    let r#match = callable_arguments_4.0;
-                    let full_match: Option<String> = Some(r#match.required_group(0.0));
-                    #[expect(clippy::blocks_in_conditions, reason = "checked evaluation region")]
-                    if {
-                        let _ = match full_match.as_ref() {
-                            Some(flow_value) => flow_value.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        };
-                        {
-                            let _ = rt::Undefined;
-                            false
-                        }
-                    } {
-                        return Err(rt::TsonicError::TsumoError(
-                            crate::diagnostics::create_tsumo_error(
-                                String::from("TSUMO_TEMPLATE_REGEXP_RESULT_INVALID"),
-                                String::from("Regular expression execution returned no full match"),
-                                None,
-                                None,
-                                None,
-                            ),
-                        ));
-                    }
-                    Ok::<_, rt::TsonicError>(match full_match.as_ref() {
-                        Some(flow_value_2) => flow_value_2.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    })
-                },
-            );
-        REQUIRE_FULL_MATCH.with(|module_binding_4| module_binding_4.initialize(module_value_4))
-    };
-    {
-        let module_value_5 =
-            rt::Callable::<(String,), rt::TsonicResult<i32>>::new(move |callable_arguments_5| {
-                let value = callable_arguments_5.0;
-                if rt::conversions::usize_to_i32(js_string::js_len(&value))? != 1 {
-                    return Ok::<_, rt::TsonicError>(-1);
+        let mut index: i32 = 0;
+        'loop_value: while index < rt::conversions::usize_to_i32(js_string::js_len(replacement))? {
+            let current: String =
+                js_string::char_at(replacement, rt::conversions::i32_to_f64(index))?;
+            if current != "$"
+                || index + 1 >= rt::conversions::usize_to_i32(js_string::js_len(replacement))?
+            {
+                result.push_many_discard([current.clone()]);
+                index = crate::utils::strings::next_code_point_index(replacement, index)?;
+                continue 'loop_value;
+            }
+            let next: String =
+                js_string::char_at(replacement, rt::conversions::i32_to_f64(index + 1))?;
+            if next == "$" {
+                result.push_many_discard([String::from("$")]);
+                index += 1;
+                index = crate::utils::strings::next_code_point_index(replacement, index)?;
+                continue 'loop_value;
+            }
+            if next == "&" {
+                result.push_many_discard([full_match.clone()]);
+                index += 1;
+                index = crate::utils::strings::next_code_point_index(replacement, index)?;
+                continue 'loop_value;
+            }
+            if next == "`" {
+                {
+                    let operation_input_0 = result.clone();
+                    operation_input_0.push_many_discard([js_string::slice_to(
+                        input,
+                        0.0,
+                        rt::conversions::i32_to_f64(match_index),
+                    )?])
+                };
+                index += 1;
+                index = crate::utils::strings::next_code_point_index(replacement, index)?;
+                continue 'loop_value;
+            }
+            if next == "'" {
+                {
+                    let operation_input_0_2 = result.clone();
+                    operation_input_0_2.push_many_discard([js_string::slice(
+                        input,
+                        rt::conversions::i32_to_f64(
+                            match_index
+                                + rt::conversions::usize_to_i32(js_string::js_len(&full_match))?,
+                        ),
+                        None,
+                    )?])
+                };
+                index += 1;
+                index = crate::utils::strings::next_code_point_index(replacement, index)?;
+                continue 'loop_value;
+            }
+            if next == "<" && r#match.groups().is_some() {
+                let closing: i32 = rt::conversions::isize_to_i32(js_string::index_of(
+                    replacement,
+                    ">",
+                    rt::conversions::i32_to_f64(index + 2),
+                ))?;
+                if closing >= 0 {
+                    let group_name: String = js_string::slice_to(
+                        replacement,
+                        rt::conversions::i32_to_f64(index + 2),
+                        rt::conversions::i32_to_f64(closing),
+                    )?;
+                    {
+                        let operation_input_0_3 = result.clone();
+                        operation_input_0_3.push_many_discard([regular_expression_named_group(
+                            r#match.clone(),
+                            group_name.clone(),
+                        )])
+                    };
+                    index = closing;
+                    index = crate::utils::strings::next_code_point_index(replacement, index)?;
+                    continue 'loop_value;
                 }
-                let code: i32 = rt::conversions::f64_to_i32(js_string::char_code_at(&value, 0.0))?;
-                Ok::<_, rt::TsonicError>(if (48..=57).contains(&code) {
-                    code - 48
-                } else {
-                    -1
-                })
-            });
-        DIGIT_VALUE.with(|module_binding_5| module_binding_5.initialize(module_value_5))
-    };
+            }
+            let first_digit: i32 = digit_value(&next)?;
+            if first_digit >= 0 {
+                let mut capture_index: i32 = -1;
+                let mut consumed_digits: i32 = 0;
+                if index + 2 < rt::conversions::usize_to_i32(js_string::js_len(replacement))? {
+                    let second_digit: i32 = digit_value(&js_string::char_at(
+                        replacement,
+                        rt::conversions::i32_to_f64(index + 2),
+                    )?)?;
+                    let two_digit_index: i32 = first_digit * 10 + second_digit;
+                    if second_digit >= 0
+                        && two_digit_index > 0
+                        && two_digit_index < rt::conversions::usize_to_i32(r#match.len())?
+                    {
+                        capture_index = two_digit_index;
+                        consumed_digits = 2;
+                    }
+                }
+                if capture_index < 0
+                    && first_digit > 0
+                    && first_digit < rt::conversions::usize_to_i32(r#match.len())?
+                {
+                    capture_index = first_digit;
+                    consumed_digits = 1;
+                }
+                if capture_index > 0 {
+                    {
+                        let operation_input_0_4 = result.clone();
+                        operation_input_0_4.push_many_discard([rt::option_coalesce(
+                            r#match
+                                .get_number(rt::conversions::i32_to_f64(capture_index))
+                                .flatten(),
+                            core::convert::identity,
+                            || String::from(""),
+                        )])
+                    };
+                    index += consumed_digits;
+                    index = crate::utils::strings::next_code_point_index(replacement, index)?;
+                    continue 'loop_value;
+                }
+            }
+            result.push_many_discard([String::from("$")]);
+            index = crate::utils::strings::next_code_point_index(replacement, index)?;
+        }
+    }
+    Ok(result.join(""))
+}
+
+pub fn regular_expression_named_group(
+    r#match: js_abi::RegExpExecArray,
+    group_name: String,
+) -> String {
+    rt::option_coalesce(
+        r#match.groups().as_ref().and_then(|optional_receiver| {
+            js_abi::regexp_named_groups_get_native(optional_receiver, &group_name)
+        }),
+        core::convert::identity,
+        || String::from(""),
+    )
+}
+
+pub fn require_full_match(r#match: js_abi::RegExpExecArray) -> Result<String, rt::TsonicError> {
+    let full_match: Option<String> = Some(r#match.required_group(0.0));
+    #[expect(clippy::blocks_in_conditions, reason = "checked evaluation region")]
+    if {
+        let _ = match full_match.as_ref() {
+            Some(flow_value) => flow_value.clone(),
+            None => unreachable!("checked flow selected a missing optional value"),
+        };
+        {
+            let _ = rt::Undefined;
+            false
+        }
+    } {
+        return Err(rt::TsonicError::TsumoError(
+            crate::diagnostics::create_tsumo_error(
+                String::from("TSUMO_TEMPLATE_REGEXP_RESULT_INVALID"),
+                String::from("Regular expression execution returned no full match"),
+                None,
+                None,
+                None,
+            )?,
+        ));
+    }
+    Ok(match full_match {
+        Some(flow_value_2) => flow_value_2,
+        None => unreachable!("checked flow selected a missing optional value"),
+    })
+}
+
+pub fn digit_value(value: &str) -> Result<i32, rt::TsonicError> {
+    if rt::conversions::usize_to_i32(js_string::js_len(value))? != 1 {
+        return Ok(-1);
+    }
+    let code: i32 = rt::conversions::f64_to_i32(js_string::char_code_at(value, 0.0))?;
+    Ok(if (48..=57).contains(&code) {
+        code - 48
+    } else {
+        -1
+    })
 }

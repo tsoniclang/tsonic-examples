@@ -4,26 +4,33 @@ namespace Tsumo.Engine
 {
     public static class Outputs
     {
-        public static Func<string, string, string> toAbsoluteUrl
+        internal static string toAbsoluteUrl(string baseURL, string relPermalink)
         {
-            get;
-            private set;
-        } = default(Func<string, string, string>)!;
-        public static Func<string, string> escapeXml
+            string @base = Utils_text.ensureTrailingSlash(baseURL);
+            if (@base == "")
+            {
+                return relPermalink;
+            }
+            if (relPermalink == "/")
+            {
+                return @base;
+            }
+            string rel = Tsonic.CSharp.Js.String.startsWith(relPermalink, "/") ? Utils_strings.substringFrom(relPermalink, 1) : relPermalink;
+            return @base + rel;
+        }
+        internal static string escapeXml(string value)
         {
-            get;
-            private set;
-        } = default(Func<string, string>)!;
-        public static Func<string, string> wrapCdata
+            return Utils_html.escapeHtml(value);
+        }
+        internal static string wrapCdata(string raw)
         {
-            get;
-            private set;
-        } = default(Func<string, string>)!;
-        public static Func<string, Tsonic.CSharp.Js.Date, Tsonic.CSharp.Js.Date> parsePageDate
+            return "<![CDATA[" + Utils_strings.replaceText(raw, "]]>", "]]]]><![CDATA[>") + "]]>";
+        }
+        internal static Tsonic.CSharp.Js.Date parsePageDate(string value, Tsonic.CSharp.Js.Date fallback)
         {
-            get;
-            private set;
-        } = default(Func<string, Tsonic.CSharp.Js.Date, Tsonic.CSharp.Js.Date>)!;
+            double milliseconds = Tsonic.CSharp.Js.Date.parse(value);
+            return Tsonic.CSharp.Js.Number.isNaN(milliseconds) ? fallback : new Tsonic.CSharp.Js.Date(milliseconds);
+        }
         public static Func<SiteConfig, Tsonic.CSharp.Js.JSArray<PageContext>, Tsonic.CSharp.Js.Date, string> renderRss
         {
             get;
@@ -46,31 +53,10 @@ namespace Tsumo.Engine
             Utils_html.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
             Utils_text.__tsonic_module_init();
-            toAbsoluteUrl = (string baseURL, string relPermalink) =>
-            {
-                string @base = Utils_text.ensureTrailingSlash(baseURL);
-                if (@base == "")
-                {
-                    return relPermalink;
-                }
-                if (relPermalink == "/")
-                {
-                    return @base;
-                }
-                string rel = Tsonic.CSharp.Js.String.startsWith(relPermalink, "/") ? Utils_strings.substringFrom(relPermalink, 1) : relPermalink;
-                return @base + rel;
-            };
-            escapeXml = (string value) => Utils_html.escapeHtml(value);
-            wrapCdata = (string raw) => "<![CDATA[" + Utils_strings.replaceText(raw, "]]>", "]]]]><![CDATA[>") + "]]>";
-            parsePageDate = (string value, Tsonic.CSharp.Js.Date fallback) =>
-            {
-                double milliseconds = Tsonic.CSharp.Js.Date.parse(value);
-                return Tsonic.CSharp.Js.Number.isNaN(milliseconds) ? fallback : new Tsonic.CSharp.Js.Date(milliseconds);
-            };
             renderRss = (SiteConfig config, Tsonic.CSharp.Js.JSArray<PageContext> pages, Tsonic.CSharp.Js.Date buildTime) =>
             {
-                Tsonic.CSharp.Js.JSArray<string> @out = new Tsonic.CSharp.Js.JSArray<string>(new string[] { "<?xml version=\"1.0\" encoding=\"utf-8\"?>", "<rss version=\"2.0\" xmlns:content=\"http://purl.org/rss/1.0/modules/content/\">", "<channel>", $"<title>{escapeXml(config.title)}</title>", $"<link>{escapeXml(toAbsoluteUrl(config.baseURL, "/"))}</link>", $"<description>{escapeXml(config.title)}</description>", $"<language>{escapeXml(config.languageCode)}</language>", $"<lastBuildDate>{buildTime.toISOString()}</lastBuildDate>", "<generator>tsumo</generator>" });
-                for (int i = 0; i < pages.length; i++)
+                Tsonic.CSharp.Js.JSArray<string> @out = Tsonic.CSharp.Js.JSArray<string>.of(["<?xml version=\"1.0\" encoding=\"utf-8\"?>", "<rss version=\"2.0\" xmlns:content=\"http://purl.org/rss/1.0/modules/content/\">", "<channel>", $"<title>{escapeXml(config.title)}</title>", $"<link>{escapeXml(toAbsoluteUrl(config.baseURL, "/"))}</link>", $"<description>{escapeXml(config.title)}</description>", $"<language>{escapeXml(config.languageCode)}</language>", $"<lastBuildDate>{buildTime.toISOString()}</lastBuildDate>", "<generator>tsumo</generator>"]);
+                for (double i = 0; i < pages.length; i++)
                 {
                     PageContext page = pages[i];
                     string link = toAbsoluteUrl(config.baseURL, page.relPermalink);
@@ -91,8 +77,8 @@ namespace Tsumo.Engine
             renderSitemap = (SiteConfig config, Tsonic.CSharp.Js.JSArray<string> relPermalinks, Tsonic.CSharp.Js.Date buildTime) =>
             {
                 string buildTimestamp = buildTime.toISOString();
-                Tsonic.CSharp.Js.JSArray<string> @out = new Tsonic.CSharp.Js.JSArray<string>(new string[] { "<?xml version=\"1.0\" encoding=\"utf-8\"?>", "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">" });
-                for (int i = 0; i < relPermalinks.length; i++)
+                Tsonic.CSharp.Js.JSArray<string> @out = Tsonic.CSharp.Js.JSArray<string>.of(["<?xml version=\"1.0\" encoding=\"utf-8\"?>", "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">"]);
+                for (double i = 0; i < relPermalinks.length; i++)
                 {
                     string rel = relPermalinks[i];
                     string loc = toAbsoluteUrl(config.baseURL, rel);

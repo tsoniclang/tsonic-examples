@@ -28,18 +28,18 @@ impl MarkdownResult {
         summary_html: String,
         plain_text: String,
         table_of_contents: String,
-    ) -> MarkdownResult {
+    ) -> Result<MarkdownResult, rt::TsonicError> {
         let field_html: String = html;
         let field_summary_html: String = summary_html;
         let field_plain_text: String = plain_text;
         let field_table_of_contents: String = table_of_contents;
-        MarkdownResult {
+        Ok(MarkdownResult {
             state: rt::ObjectRef::new(MarkdownResultState {
                 html: field_html,
                 summary_html: field_summary_html,
                 plain_text: field_plain_text,
                 table_of_contents: field_table_of_contents,
             }),
-        }
+        })
     }
 }

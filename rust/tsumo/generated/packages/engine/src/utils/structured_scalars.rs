@@ -15,12 +15,12 @@ pub fn hex_value(character: &str) -> Result<i32, rt::TsonicError> {
 }
 
 pub fn decode_hex_escape(
-    source: String,
+    source: &str,
     start: i32,
     count: i32,
     invalid: rt::Callable<(String,), rt::TsonicResult<crate::diagnostics::TsumoError>>,
 ) -> Result<String, rt::TsonicError> {
-    if start + count > rt::conversions::usize_to_i32(js_string::js_len(&source))? {
+    if start + count > rt::conversions::usize_to_i32(js_string::js_len(source))? {
         return Err(rt::TsonicError::TsumoError(invalid.call((format!(
             "{}{}{}",
             String::from("String escape requires "),
@@ -31,7 +31,7 @@ pub fn decode_hex_escape(
     let mut value: i32 = 0;
     for offset in 0..count {
         let digit: i32 = hex_value(&js_string::char_at(
-            &source,
+            source,
             rt::conversions::i32_to_f64(start + offset),
         )?)?;
         if digit < 0 {
@@ -50,27 +50,27 @@ pub fn decode_hex_escape(
 }
 
 pub fn decode_single_quoted(
-    inner: String,
+    inner: &str,
     format: StructuredScalarFormat,
     invalid: rt::Callable<(String,), rt::TsonicResult<crate::diagnostics::TsumoError>>,
 ) -> Result<String, rt::TsonicError> {
     let mut result: String = String::from("");
     {
         let mut index: i32 = 0;
-        'loop_value: while index < rt::conversions::usize_to_i32(js_string::js_len(&inner))? {
-            let current: String = crate::utils::strings::code_point_at_text(&inner, index)?;
+        'loop_value: while index < rt::conversions::usize_to_i32(js_string::js_len(inner))? {
+            let current: String = crate::utils::strings::code_point_at_text(inner, index)?;
             if current != "'" {
                 result.push_str(&current);
-                index = crate::utils::strings::next_code_point_index(inner.clone(), index)?;
+                index = crate::utils::strings::next_code_point_index(inner, index)?;
                 continue 'loop_value;
             }
             if format == StructuredScalarFormat::Yaml
-                && index + 1 < rt::conversions::usize_to_i32(js_string::js_len(&inner))?
-                && js_string::char_at(&inner, rt::conversions::i32_to_f64(index + 1))? == "'"
+                && index + 1 < rt::conversions::usize_to_i32(js_string::js_len(inner))?
+                && js_string::char_at(inner, rt::conversions::i32_to_f64(index + 1))? == "'"
             {
                 result.push('\'');
                 index += 1;
-                index = crate::utils::strings::next_code_point_index(inner.clone(), index)?;
+                index = crate::utils::strings::next_code_point_index(inner, index)?;
                 continue 'loop_value;
             }
             return Err(rt::TsonicError::TsumoError(invalid.call((
@@ -82,14 +82,14 @@ pub fn decode_single_quoted(
 }
 
 pub fn decode_double_quoted(
-    inner: String,
+    inner: &str,
     invalid: rt::Callable<(String,), rt::TsonicResult<crate::diagnostics::TsumoError>>,
 ) -> Result<String, rt::TsonicError> {
     let mut result: String = String::from("");
     {
         let mut index: i32 = 0;
-        'loop_value: while index < rt::conversions::usize_to_i32(js_string::js_len(&inner))? {
-            let current: String = crate::utils::strings::code_point_at_text(&inner, index)?;
+        'loop_value: while index < rt::conversions::usize_to_i32(js_string::js_len(inner))? {
+            let current: String = crate::utils::strings::code_point_at_text(inner, index)?;
             if current == "\"" {
                 return Err(rt::TsonicError::TsumoError(invalid.call((
                     String::from("Double-quoted string contains an unescaped quote"),
@@ -97,16 +97,16 @@ pub fn decode_double_quoted(
             }
             if current != "\\" {
                 result.push_str(&current);
-                index = crate::utils::strings::next_code_point_index(inner.clone(), index)?;
+                index = crate::utils::strings::next_code_point_index(inner, index)?;
                 continue 'loop_value;
             }
-            if index + 1 >= rt::conversions::usize_to_i32(js_string::js_len(&inner))? {
+            if index + 1 >= rt::conversions::usize_to_i32(js_string::js_len(inner))? {
                 return Err(rt::TsonicError::TsumoError(
                     invalid.call((String::from("String ends with an incomplete escape"),))?,
                 ));
             }
-            index = crate::utils::strings::next_code_point_index(inner.clone(), index)?;
-            let escaped: String = crate::utils::strings::code_point_at_text(&inner, index)?;
+            index = crate::utils::strings::next_code_point_index(inner, index)?;
+            let escaped: String = crate::utils::strings::code_point_at_text(inner, index)?;
             if escaped == "\"" || escaped == "\\" || escaped == "/" {
                 result.push_str(&escaped);
             } else if escaped == "b" {
@@ -120,20 +120,10 @@ pub fn decode_double_quoted(
             } else if escaped == "r" {
                 result.push('\r');
             } else if escaped == "u" {
-                result.push_str(&decode_hex_escape(
-                    inner.clone(),
-                    index + 1,
-                    4,
-                    invalid.clone(),
-                )?);
+                result.push_str(&decode_hex_escape(inner, index + 1, 4, invalid.clone())?);
                 index += 4;
             } else if escaped == "U" {
-                result.push_str(&decode_hex_escape(
-                    inner.clone(),
-                    index + 1,
-                    8,
-                    invalid.clone(),
-                )?);
+                result.push_str(&decode_hex_escape(inner, index + 1, 8, invalid.clone())?);
                 index += 8;
             } else {
                 return Err(rt::TsonicError::TsumoError(invalid.call((format!(
@@ -143,21 +133,21 @@ pub fn decode_double_quoted(
                     String::from("'")
                 ),))?));
             }
-            index = crate::utils::strings::next_code_point_index(inner.clone(), index)?;
+            index = crate::utils::strings::next_code_point_index(inner, index)?;
         }
     }
     Ok(result)
 }
 
 pub fn decode_quoted(
-    value: String,
+    value: &str,
     format: StructuredScalarFormat,
     invalid: rt::Callable<(String,), rt::TsonicResult<crate::diagnostics::TsumoError>>,
 ) -> Result<Option<String>, rt::TsonicError> {
-    let starts_double_quoted: bool = js_string::starts_with_from_start(&value, "\"");
-    let starts_single_quoted: bool = js_string::starts_with_from_start(&value, "'");
-    let ends_double_quoted: bool = js_string::ends_with_at_end(&value, "\"");
-    let ends_single_quoted: bool = js_string::ends_with_at_end(&value, "'");
+    let starts_double_quoted: bool = js_string::starts_with_from_start(value, "\"");
+    let starts_single_quoted: bool = js_string::starts_with_from_start(value, "'");
+    let ends_double_quoted: bool = js_string::ends_with_at_end(value, "\"");
+    let ends_single_quoted: bool = js_string::ends_with_at_end(value, "'");
     let starts_quoted: bool = starts_double_quoted || starts_single_quoted;
     let ends_quoted: bool = ends_double_quoted || ends_single_quoted;
     if !starts_quoted && !ends_quoted {
@@ -173,25 +163,21 @@ pub fn decode_quoted(
     }
     if starts_double_quoted && !ends_double_quoted
         || starts_single_quoted && !ends_single_quoted
-        || rt::conversions::usize_to_i32(js_string::js_len(&value))? < 2
+        || rt::conversions::usize_to_i32(js_string::js_len(value))? < 2
     {
         return Err(rt::TsonicError::TsumoError(
             invalid.call((String::from("String has mismatched quotes"),))?,
         ));
     }
     let inner: String = crate::utils::strings::substring_count(
-        value.clone(),
+        value,
         1,
-        rt::conversions::usize_to_i32(js_string::js_len(&value))? - 2,
+        rt::conversions::usize_to_i32(js_string::js_len(value))? - 2,
     )?;
     Ok(if starts_single_quoted {
-        Some(decode_single_quoted(
-            inner.clone(),
-            format,
-            invalid.clone(),
-        )?)
+        Some(decode_single_quoted(&inner, format, invalid.clone())?)
     } else {
-        Some(decode_double_quoted(inner.clone(), invalid.clone())?)
+        Some(decode_double_quoted(&inner, invalid.clone())?)
     })
 }
 
@@ -227,7 +213,7 @@ pub fn parse_integer(
             Some(flow_value) => *flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
         },
-    )))
+    )?))
 }
 
 pub fn parse_structured_scalar(
@@ -236,34 +222,34 @@ pub fn parse_structured_scalar(
     invalid: rt::Callable<(String,), rt::TsonicResult<crate::diagnostics::TsumoError>>,
 ) -> Result<crate::params::ParamValue, rt::TsonicError> {
     let trimmed: String = js_string::trim(value);
-    let quoted: Option<String> = decode_quoted(trimmed.clone(), format, invalid.clone())?;
+    let quoted: Option<String> = decode_quoted(&trimmed, format, invalid.clone())?;
     if quoted.is_some() {
-        return Ok(crate::params::ParamValue::string(match quoted.as_ref() {
+        return crate::params::ParamValue::string(match quoted.as_ref() {
             Some(flow_value) => flow_value.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
-        }));
+        });
     }
     if format == StructuredScalarFormat::Toml {
         if trimmed == "true" {
-            return Ok(crate::params::ParamValue::bool(true));
+            return crate::params::ParamValue::bool(true);
         }
         if trimmed == "false" {
-            return Ok(crate::params::ParamValue::bool(false));
+            return crate::params::ParamValue::bool(false);
         }
     } else {
         let normalized: String = js_string::to_lower_case(&trimmed);
         if normalized == "true" {
-            return Ok(crate::params::ParamValue::bool(true));
+            return crate::params::ParamValue::bool(true);
         }
         if normalized == "false" {
-            return Ok(crate::params::ParamValue::bool(false));
+            return crate::params::ParamValue::bool(false);
         }
     }
     let integer: Option<crate::params::ParamValue> =
         parse_integer(trimmed.clone(), invalid.clone())?;
     if integer.is_some() {
-        return Ok(match integer.as_ref() {
-            Some(flow_value_2) => flow_value_2.clone(),
+        return Ok(match integer {
+            Some(flow_value_2) => flow_value_2,
             None => unreachable!("checked flow selected a missing optional value"),
         });
     }
@@ -272,7 +258,7 @@ pub fn parse_structured_scalar(
             invalid.call((String::from("TOML string values must be quoted"),))?,
         ));
     }
-    Ok(crate::params::ParamValue::string(trimmed.clone()))
+    crate::params::ParamValue::string(trimmed)
 }
 
 pub fn strip_structured_comment(
@@ -290,13 +276,13 @@ pub fn strip_structured_comment(
                 escaped = false;
                 previous_was_whitespace =
                     js_abi::regexp_test_native(&js_abi::regexp_new_native("\\s", "")?, &current)?;
-                index = crate::utils::strings::next_code_point_index(line.clone(), index)?;
+                index = crate::utils::strings::next_code_point_index(&line, index)?;
                 continue 'loop_value;
             }
             if quote == "\"" && current == "\\" {
                 escaped = true;
                 previous_was_whitespace = false;
-                index = crate::utils::strings::next_code_point_index(line.clone(), index)?;
+                index = crate::utils::strings::next_code_point_index(&line, index)?;
                 continue 'loop_value;
             }
             if current == "\"" || current == "'" {
@@ -314,7 +300,7 @@ pub fn strip_structured_comment(
                     }
                 }
                 previous_was_whitespace = false;
-                index = crate::utils::strings::next_code_point_index(line.clone(), index)?;
+                index = crate::utils::strings::next_code_point_index(&line, index)?;
                 continue 'loop_value;
             }
             let yaml_comment: bool = format == StructuredScalarFormat::Yaml
@@ -324,12 +310,12 @@ pub fn strip_structured_comment(
                 || yaml_comment && quote.is_empty()
             {
                 return Ok(js_string::trim_end(
-                    &crate::utils::strings::substring_count(line.clone(), 0, index)?,
+                    &crate::utils::strings::substring_count(&line, 0, index)?,
                 ));
             }
             previous_was_whitespace =
                 js_abi::regexp_test_native(&js_abi::regexp_new_native("\\s", "")?, &current)?;
-            index = crate::utils::strings::next_code_point_index(line.clone(), index)?;
+            index = crate::utils::strings::next_code_point_index(&line, index)?;
         }
     }
     Ok(line)

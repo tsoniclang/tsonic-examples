@@ -8,7 +8,11 @@ pub enum TsonicError {
     Runtime(tsonic_rust_runtime::TsonicError),
     TsumoError(crate::diagnostics::TsumoError),
     TemplateReturnSignal(crate::template::evaluation::return_signal::TemplateReturnSignal),
-    Suppressed(Box<TsonicError>, Box<TsonicError>),
+    Suppressed(
+        Box<TsonicError>,
+        Box<TsonicError>,
+        tsonic_rust_runtime::JsError,
+    ),
 }
 
 pub type TsonicResult<T> = Result<T, TsonicError>;
@@ -51,7 +55,7 @@ impl core::fmt::Display for TsonicError {
             Self::Runtime(value) => core::fmt::Display::fmt(value, formatter),
             Self::TsumoError(value) => core::fmt::Display::fmt(value, formatter),
             Self::TemplateReturnSignal(value) => core::fmt::Display::fmt(value, formatter),
-            Self::Suppressed(error, suppressed) => write!(
+            Self::Suppressed(error, suppressed, _) => write!(
                 formatter,
                 "SuppressedError: {}; suppressed: {}",
                 error, suppressed
@@ -74,6 +78,30 @@ impl tsonic_rust_runtime::ToSourceString for TsonicError {
     }
 }
 
+impl TsonicError {
+    pub fn suppressed(error: TsonicError, suppressed: TsonicError) -> TsonicError {
+        Self::Suppressed(
+            Box::new(error),
+            Box::new(suppressed),
+            tsonic_rust_runtime::JsError::new(
+                tsonic_rust_runtime::JsErrorKind::SuppressedError,
+                "An error was suppressed during disposal.",
+            ),
+        )
+    }
+}
+
+impl TsonicError {
+    pub fn source_error(&self) -> Option<&tsonic_rust_runtime::JsError> {
+        match self {
+            Self::Runtime(error) => Some(error.source_error()),
+            Self::Suppressed(_, _, source) => Some(source),
+            Self::TsumoError(_) => None,
+            Self::TemplateReturnSignal(_) => None,
+        }
+    }
+}
+
 #[doc(hidden)]
 pub fn finish_resource<T>(
     body: TsonicResult<Completion<T>>,
@@ -83,10 +111,7 @@ pub fn finish_resource<T>(
         (Ok(completion), Ok(())) => Ok(completion),
         (Ok(_), Err(error)) => Err(error),
         (Err(error), Ok(())) => Err(error),
-        (Err(suppressed), Err(error)) => Err(TsonicError::Suppressed(
-            Box::new(error),
-            Box::new(suppressed),
-        )),
+        (Err(suppressed), Err(error)) => Err(TsonicError::suppressed(error, suppressed)),
     }
 }
 

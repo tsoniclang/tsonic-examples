@@ -12,46 +12,55 @@ pub trait StandardPageGraphDispatch {
         None
     }
     fn read_standard_page_graph_site(&self) -> crate::models::site_context::SiteContext;
-    fn write_standard_page_graph_site(&self, value: crate::models::site_context::SiteContext);
+    fn write_standard_page_graph_site(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError>;
     fn read_standard_page_graph_page_sources(
         &self,
     ) -> js_abi::JsArray<crate::build::content_model::ContentPageSource>;
     fn write_standard_page_graph_page_sources(
         &self,
         value: js_abi::JsArray<crate::build::content_model::ContentPageSource>,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_standard_page_graph_content_pages(
         &self,
     ) -> js_abi::JsArray<crate::models::page_context::PageContext>;
     fn write_standard_page_graph_content_pages(
         &self,
         value: js_abi::JsArray<crate::models::page_context::PageContext>,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_standard_page_graph_list_pages_by_route(
         &self,
     ) -> js_abi::JsMap<String, crate::models::page_context::PageContext>;
     fn write_standard_page_graph_list_pages_by_route(
         &self,
         value: js_abi::JsMap<String, crate::models::page_context::PageContext>,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_standard_page_graph_list_routes(&self) -> js_abi::JsArray<String>;
-    fn write_standard_page_graph_list_routes(&self, value: js_abi::JsArray<String>);
+    fn write_standard_page_graph_list_routes(
+        &self,
+        value: js_abi::JsArray<String>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_standard_page_graph_raw_body_by_page(
         &self,
     ) -> js_abi::JsMap<crate::models::page_context::PageContext, String>;
     fn write_standard_page_graph_raw_body_by_page(
         &self,
         value: js_abi::JsMap<crate::models::page_context::PageContext, String>,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_standard_page_graph_bundle_source_by_page(
         &self,
     ) -> js_abi::JsMap<crate::models::page_context::PageContext, String>;
     fn write_standard_page_graph_bundle_source_by_page(
         &self,
         value: js_abi::JsMap<crate::models::page_context::PageContext, String>,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_standard_page_graph_home(&self) -> crate::models::page_context::PageContext;
-    fn write_standard_page_graph_home(&self, value: crate::models::page_context::PageContext);
+    fn write_standard_page_graph_home(
+        &self,
+        value: crate::models::page_context::PageContext,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -95,9 +104,8 @@ impl rt::ObjectIdentityCarrier for StandardPageGraph {
 }
 
 pub(crate) struct StandardPageGraphRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<StandardPageGraphState>,
+    state: rt::ObjectState<StandardPageGraphState>,
 }
 
 impl StandardPageGraph {
@@ -112,7 +120,7 @@ impl StandardPageGraph {
         raw_body_by_page: js_abi::JsMap<crate::models::page_context::PageContext, String>,
         bundle_source_by_page: js_abi::JsMap<crate::models::page_context::PageContext, String>,
         home: crate::models::page_context::PageContext,
-    ) -> StandardPageGraphState {
+    ) -> Result<StandardPageGraphState, rt::TsonicError> {
         let field_site: crate::models::site_context::SiteContext = site;
         let field_page_sources: js_abi::JsArray<crate::build::content_model::ContentPageSource> =
             page_sources;
@@ -132,7 +140,7 @@ impl StandardPageGraph {
             String,
         > = bundle_source_by_page;
         let field_home: crate::models::page_context::PageContext = home;
-        StandardPageGraphState {
+        Ok(StandardPageGraphState {
             site: field_site,
             page_sources: field_page_sources,
             content_pages: field_content_pages,
@@ -141,7 +149,7 @@ impl StandardPageGraph {
             raw_body_by_page: field_raw_body_by_page,
             bundle_source_by_page: field_bundle_source_by_page,
             home: field_home,
-        }
+        })
     }
 
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
@@ -154,7 +162,7 @@ impl StandardPageGraph {
         raw_body_by_page: js_abi::JsMap<crate::models::page_context::PageContext, String>,
         bundle_source_by_page: js_abi::JsMap<crate::models::page_context::PageContext, String>,
         home: crate::models::page_context::PageContext,
-    ) -> StandardPageGraph {
+    ) -> Result<StandardPageGraph, rt::TsonicError> {
         let state = StandardPageGraph::initialize_state(
             site,
             page_sources,
@@ -164,16 +172,16 @@ impl StandardPageGraph {
             raw_body_by_page,
             bundle_source_by_page,
             home,
-        );
+        )?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(StandardPageGraphRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        StandardPageGraph {
+        Ok(StandardPageGraph {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -188,8 +196,17 @@ impl StandardPageGraphDispatch for StandardPageGraphRoot {
         self.state.with(|state| state.site.clone())
     }
 
-    fn write_standard_page_graph_site(&self, value: crate::models::site_context::SiteContext) {
-        self.state.with_mut(|state| state.site = value);
+    fn write_standard_page_graph_site(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.site = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_standard_page_graph_page_sources(
@@ -201,8 +218,14 @@ impl StandardPageGraphDispatch for StandardPageGraphRoot {
     fn write_standard_page_graph_page_sources(
         &self,
         value: js_abi::JsArray<crate::build::content_model::ContentPageSource>,
-    ) {
-        self.state.with_mut(|state| state.page_sources = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.page_sources = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_standard_page_graph_content_pages(
@@ -214,8 +237,14 @@ impl StandardPageGraphDispatch for StandardPageGraphRoot {
     fn write_standard_page_graph_content_pages(
         &self,
         value: js_abi::JsArray<crate::models::page_context::PageContext>,
-    ) {
-        self.state.with_mut(|state| state.content_pages = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.content_pages = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_standard_page_graph_list_pages_by_route(
@@ -227,17 +256,32 @@ impl StandardPageGraphDispatch for StandardPageGraphRoot {
     fn write_standard_page_graph_list_pages_by_route(
         &self,
         value: js_abi::JsMap<String, crate::models::page_context::PageContext>,
-    ) {
-        self.state
-            .with_mut(|state| state.list_pages_by_route = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state
+                    .with_mut(|state| state.list_pages_by_route = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_standard_page_graph_list_routes(&self) -> js_abi::JsArray<String> {
         self.state.with(|state| state.list_routes.clone())
     }
 
-    fn write_standard_page_graph_list_routes(&self, value: js_abi::JsArray<String>) {
-        self.state.with_mut(|state| state.list_routes = value);
+    fn write_standard_page_graph_list_routes(
+        &self,
+        value: js_abi::JsArray<String>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.list_routes = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_standard_page_graph_raw_body_by_page(
@@ -249,8 +293,14 @@ impl StandardPageGraphDispatch for StandardPageGraphRoot {
     fn write_standard_page_graph_raw_body_by_page(
         &self,
         value: js_abi::JsMap<crate::models::page_context::PageContext, String>,
-    ) {
-        self.state.with_mut(|state| state.raw_body_by_page = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.raw_body_by_page = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_standard_page_graph_bundle_source_by_page(
@@ -262,17 +312,32 @@ impl StandardPageGraphDispatch for StandardPageGraphRoot {
     fn write_standard_page_graph_bundle_source_by_page(
         &self,
         value: js_abi::JsMap<crate::models::page_context::PageContext, String>,
-    ) {
-        self.state
-            .with_mut(|state| state.bundle_source_by_page = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state
+                    .with_mut(|state| state.bundle_source_by_page = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_standard_page_graph_home(&self) -> crate::models::page_context::PageContext {
         self.state.with(|state| state.home.clone())
     }
 
-    fn write_standard_page_graph_home(&self, value: crate::models::page_context::PageContext) {
-        self.state.with_mut(|state| state.home = value);
+    fn write_standard_page_graph_home(
+        &self,
+        value: crate::models::page_context::PageContext,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.home = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -297,9 +362,8 @@ pub fn create_site(
                 dispatch_receiver_2.dispatch.read_site_config_languages()
             }
             .get_number(index)
-            .as_ref()
             {
-                Some(flow_value) => flow_value.clone(),
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             {
@@ -311,7 +375,7 @@ pub fn create_site(
                         language
                             .state
                             .with(|state| state.language_direction.clone()),
-                    ),
+                    )?,
                 ])
             };
             index += 1.0;
@@ -326,18 +390,11 @@ pub fn create_site(
             .len(),
         )? > 0;
         if conditional_test {
-            Some(
-                match {
-                    let dispatch_receiver_4 = &config;
-                    dispatch_receiver_4.dispatch.read_site_config_languages()
-                }
-                .get_number(0.0)
-                .as_ref()
-                {
-                    Some(flow_value_2) => flow_value_2.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                },
-            )
+            {
+                let dispatch_receiver_4 = &config;
+                dispatch_receiver_4.dispatch.read_site_config_languages()
+            }
+            .get_number(0.0)
         } else {
             Option::<crate::models::language::LanguageConfig>::None
         }
@@ -360,7 +417,9 @@ pub fn create_site(
         let value = js_abi::JsArray::from_dense(vec![site.clone()]);
         {
             let dispatch_receiver_5 = receiver;
-            dispatch_receiver_5.dispatch.write_site_context_sites(value)
+            dispatch_receiver_5
+                .dispatch
+                .write_site_context_sites(value)?
         }
     };
     Ok(site)
@@ -377,8 +436,8 @@ pub fn create_content_pages(
         let mut index: f64 = 0.0;
         while index < (rt::conversions::usize_to_i32(sources.len())? as f64) {
             let source: crate::build::content_model::ContentPageSource =
-                match sources.get_number(index).as_ref() {
-                    Some(flow_value) => flow_value.clone(),
+                match sources.get_number(index) {
+                    Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
             let empty_pages: js_abi::JsArray<crate::models::page_context::PageContext> =
@@ -386,7 +445,7 @@ pub fn create_content_pages(
             #[expect(unused_variables, reason = "authored binding drop scope")]
             let empty_strings: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
             let empty_html: crate::utils::html::HtmlString =
-                crate::utils::html::HtmlString::new(String::from(""));
+                crate::utils::html::HtmlString::new(String::from(""))?;
             let page: crate::models::page_context::PageContext =
                 crate::models::page_context::PageContext::new(
                     {
@@ -482,7 +541,7 @@ pub fn create_content_pages(
                             .dispatch
                             .read_content_page_source_layout()
                     },
-                );
+                )?;
             {
                 let receiver = &page;
                 let value = crate::shortcode::collect_shortcode_names(
@@ -503,7 +562,7 @@ pub fn create_content_pages(
                     let dispatch_receiver_18 = receiver;
                     dispatch_receiver_18
                         .dispatch
-                        .write_page_context_shortcode_names(value)
+                        .write_page_context_shortcode_names(value)?
                 }
             };
             pages.push_many_discard([page.clone()]);
@@ -533,19 +592,17 @@ pub fn add_route_with_parents(
             return Ok(());
         }
         let segments: js_abi::JsArray<String> =
-            crate::build::site_routes::split_site_path(current.clone())?;
+            crate::build::site_routes::split_site_path(&current)?;
         let parent_segments: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
         {
             let mut index: f64 = 0.0;
             while index < ((rt::conversions::usize_to_i32(segments.len())? - 1) as f64) {
                 {
                     let operation_input_0 = parent_segments.clone();
-                    operation_input_0.push_many_discard([
-                        match segments.get_number(index).as_ref() {
-                            Some(flow_value) => flow_value.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },
-                    ])
+                    operation_input_0.push_many_discard([match segments.get_number(index) {
+                        Some(flow_value) => flow_value,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }])
                 };
                 index += 1.0;
             }
@@ -571,9 +628,8 @@ pub fn collect_list_routes(
                     .state
                     .with(|state| state.pages.clone())
                     .get_number(index)
-                    .as_ref()
                 {
-                    Some(flow_value) => flow_value.clone(),
+                    Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 dispatch_receiver
@@ -594,16 +650,16 @@ pub fn collect_list_routes(
         add_route_with_parents(route.clone(), route_set.clone())?;
     }
     let routes: js_abi::JsArray<String> = js_abi::array_from_vec(&route_set.keys());
-    routes.try_sort(|left, right| {
-        let depth: i32 = rt::conversions::usize_to_i32(
-            crate::build::site_routes::split_site_path(left.clone())?.len(),
-        )? - rt::conversions::usize_to_i32(
-            crate::build::site_routes::split_site_path(right.clone())?.len(),
-        )?;
+    routes.try_sort_borrowed(|left, right| {
+        let depth: i32 =
+            rt::conversions::usize_to_i32(crate::build::site_routes::split_site_path(left)?.len())?
+                - rt::conversions::usize_to_i32(
+                    crate::build::site_routes::split_site_path(right)?.len(),
+                )?;
         Ok::<_, rt::TsonicError>(if depth != 0 {
             rt::conversions::i32_to_f64(depth)
         } else {
-            crate::build::site_routes::compare_site_paths(left.clone(), right.clone())?
+            crate::build::site_routes::compare_site_paths(left, right)?
         })
     })?;
     Ok(routes)
@@ -622,11 +678,10 @@ pub fn select_pages_for_list(
     {
         let mut index: f64 = 0.0;
         while index < (rt::conversions::usize_to_i32(pages.len())? as f64) {
-            let page: crate::models::page_context::PageContext =
-                match pages.get_number(index).as_ref() {
-                    Some(flow_value) => flow_value.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                };
+            let page: crate::models::page_context::PageContext = match pages.get_number(index) {
+                Some(flow_value) => flow_value,
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
             if js_string::starts_with_from_start(
                 &{
                     let dispatch_receiver = &page;
@@ -651,26 +706,25 @@ pub fn create_list_page(
     let route_segments: js_abi::JsArray<String> = if route.is_empty() {
         js_abi::JsArray::from_dense(vec![])
     } else {
-        crate::build::site_routes::split_site_path(route.clone())?
+        crate::build::site_routes::split_site_path(&route)?
     };
     let section: String = if rt::conversions::usize_to_i32(route_segments.len())? > 0 {
-        match route_segments.get_number(0.0).as_ref() {
-            Some(flow_value) => flow_value.clone(),
+        match route_segments.get_number(0.0) {
+            Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
         }
     } else {
         String::from("")
     };
     let slug: String = if rt::conversions::usize_to_i32(route_segments.len())? > 0 {
-        match {
+        let flow_input = {
             let operation_input_0 = route_segments.clone();
             operation_input_0.get_number(rt::conversions::i32_to_f64(
                 rt::conversions::usize_to_i32(route_segments.len())? - 1,
             ))
-        }
-        .as_ref()
-        {
-            Some(flow_value_2) => flow_value_2.clone(),
+        };
+        match flow_input {
+            Some(flow_value_2) => flow_value_2,
             None => unreachable!("checked flow selected a missing optional value"),
         }
     } else {
@@ -683,12 +737,10 @@ pub fn create_list_page(
     };
     let default_type: String = if route.is_empty() {
         String::from("home")
+    } else if !section.is_empty() {
+        section.clone()
     } else {
-        if !section.is_empty() {
-            section.clone()
-        } else {
-            String::from("section")
-        }
+        String::from("section")
     };
     let configured_type: Option<String> = source
         .as_ref()
@@ -713,7 +765,7 @@ pub fn create_list_page(
         let dispatch_receiver = &site;
         dispatch_receiver.dispatch.read_site_context_title()
     } else {
-        crate::utils::text::humanize_slug(slug.clone())?
+        crate::utils::text::humanize_slug(&slug)?
     };
     let title: String = rt::option_coalesce(
         source.as_ref().and_then(|optional_receiver_2| {
@@ -726,7 +778,7 @@ pub fn create_list_page(
     let empty_pages: js_abi::JsArray<crate::models::page_context::PageContext> =
         js_abi::JsArray::from_dense(vec![]);
     let empty_html: crate::utils::html::HtmlString =
-        crate::utils::html::HtmlString::new(String::from(""));
+        crate::utils::html::HtmlString::new(String::from(""))?;
     let parameters: js_abi::JsMap<String, crate::params::ParamValue> = rt::option_coalesce(
         source.as_ref().map(|optional_receiver_3| {
             optional_receiver_3
@@ -736,15 +788,15 @@ pub fn create_list_page(
         core::convert::identity,
         js_abi::JsMap::new,
     );
-    Ok(crate::models::page_context::PageContext::new(
+    crate::models::page_context::PageContext::new(
         title,
         String::from(""),
         String::from(""),
         false,
         kind,
-        section.clone(),
+        section,
         page_type,
-        slug.clone(),
+        slug,
         if route.is_empty() {
             String::from("/")
         } else {
@@ -776,17 +828,17 @@ pub fn create_list_page(
         empty_pages.clone(),
         Option::<crate::template::values::scratch::ScratchStore>::None,
         site.clone(),
-        select_pages_for_list(route.clone(), content_pages)?,
+        select_pages_for_list(route, content_pages)?,
         Option::<crate::models::page_context::PageContext>::None,
         empty_pages.clone(),
         source.as_ref().and_then(|optional_receiver_6| {
             optional_receiver_6.state.with(|state| state.layout.clone())
         }),
-    ))
+    )
 }
 
 pub fn find_list_parent(
-    route: String,
+    route: &str,
     list_pages_by_route: js_abi::JsMap<String, crate::models::page_context::PageContext>,
     home: crate::models::page_context::PageContext,
 ) -> Result<crate::models::page_context::PageContext, rt::TsonicError> {
@@ -798,12 +850,10 @@ pub fn find_list_parent(
             while index < ((rt::conversions::usize_to_i32(segments.len())? - 1) as f64) {
                 {
                     let operation_input_0 = parent_segments.clone();
-                    operation_input_0.push_many_discard([
-                        match segments.get_number(index).as_ref() {
-                            Some(flow_value) => flow_value.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },
-                    ])
+                    operation_input_0.push_many_discard([match segments.get_number(index) {
+                        Some(flow_value) => flow_value,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }])
                 };
                 index += 1.0;
             }
@@ -834,11 +884,8 @@ pub fn find_content_parent(
     {
         let mut index: i32 = rt::conversions::usize_to_i32(list_routes.len())? - 1;
         'loop_value: while index >= 0 {
-            let route: String = match list_routes
-                .get_number(rt::conversions::i32_to_f64(index))
-                .as_ref()
-            {
-                Some(flow_value) => flow_value.clone(),
+            let route: String = match list_routes.get_number(rt::conversions::i32_to_f64(index)) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if route.is_empty() {
@@ -898,11 +945,8 @@ pub fn create_ancestors(
             {
                 let operation_input_0 = ancestors.clone();
                 operation_input_0.push_many_discard([
-                    match reversed
-                        .get_number(rt::conversions::i32_to_f64(index))
-                        .as_ref()
-                    {
-                        Some(flow_value_3) => flow_value_3.clone(),
+                    match reversed.get_number(rt::conversions::i32_to_f64(index)) {
+                        Some(flow_value_3) => flow_value_3,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                 ])
@@ -924,7 +968,9 @@ pub fn assign_page_relationships(
         let value = Option::<crate::models::page_context::PageContext>::None;
         {
             let dispatch_receiver = receiver;
-            dispatch_receiver.dispatch.write_page_context_parent(value)
+            dispatch_receiver
+                .dispatch
+                .write_page_context_parent(value)?
         }
     };
     {
@@ -934,14 +980,14 @@ pub fn assign_page_relationships(
             let dispatch_receiver_2 = receiver_2;
             dispatch_receiver_2
                 .dispatch
-                .write_page_context_ancestors(value_2)
+                .write_page_context_ancestors(value_2)?
         }
     };
     {
         let mut index: f64 = 0.0;
         'loop_value: while index < (rt::conversions::usize_to_i32(list_routes.len())? as f64) {
-            let route: String = match list_routes.get_number(index).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let route: String = match list_routes.get_number(index) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if route.is_empty() {
@@ -955,7 +1001,7 @@ pub fn assign_page_relationships(
                 continue 'loop_value;
             }
             let parent: crate::models::page_context::PageContext =
-                find_list_parent(route.clone(), list_pages_by_route.clone(), home.clone())?;
+                find_list_parent(&route, list_pages_by_route.clone(), home.clone())?;
             {
                 let receiver_3 = &match page.as_ref() {
                     Some(flow_value_2) => flow_value_2.clone(),
@@ -966,7 +1012,7 @@ pub fn assign_page_relationships(
                     let dispatch_receiver_3 = receiver_3;
                     dispatch_receiver_3
                         .dispatch
-                        .write_page_context_parent(value_3)
+                        .write_page_context_parent(value_3)?
                 }
             };
             {
@@ -979,7 +1025,7 @@ pub fn assign_page_relationships(
                     let dispatch_receiver_4 = receiver_4;
                     dispatch_receiver_4
                         .dispatch
-                        .write_page_context_ancestors(value_4)
+                        .write_page_context_ancestors(value_4)?
                 }
             };
             index += 1.0;
@@ -989,8 +1035,8 @@ pub fn assign_page_relationships(
         let mut index: f64 = 0.0;
         while index < (rt::conversions::usize_to_i32(content_pages.len())? as f64) {
             let page: crate::models::page_context::PageContext =
-                match content_pages.get_number(index).as_ref() {
-                    Some(flow_value_4) => flow_value_4.clone(),
+                match content_pages.get_number(index) {
+                    Some(flow_value_4) => flow_value_4,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
             let parent: crate::models::page_context::PageContext = find_content_parent(
@@ -1006,7 +1052,7 @@ pub fn assign_page_relationships(
                     let dispatch_receiver_5 = receiver_5;
                     dispatch_receiver_5
                         .dispatch
-                        .write_page_context_parent(value_5)
+                        .write_page_context_parent(value_5)?
                 }
             };
             {
@@ -1016,7 +1062,7 @@ pub fn assign_page_relationships(
                     let dispatch_receiver_6 = receiver_6;
                     dispatch_receiver_6
                         .dispatch
-                        .write_page_context_ancestors(value_6)
+                        .write_page_context_ancestors(value_6)?
                 }
             };
             index += 1.0;
@@ -1045,7 +1091,7 @@ pub fn create_standard_page_graph(
         let value = content_pages.clone();
         {
             let dispatch_receiver = receiver;
-            dispatch_receiver.dispatch.write_site_context_pages(value)
+            dispatch_receiver.dispatch.write_site_context_pages(value)?
         }
     };
     let list_routes: js_abi::JsArray<String> = collect_list_routes(inventory.clone())?;
@@ -1054,8 +1100,8 @@ pub fn create_standard_page_graph(
     {
         let mut index: f64 = 0.0;
         while index < (rt::conversions::usize_to_i32(list_routes.len())? as f64) {
-            let route: String = match list_routes.get_number(index).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let route: String = match list_routes.get_number(index) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let source: Option<crate::build::content_model::ListPageSource> = inventory
@@ -1095,7 +1141,7 @@ pub fn create_standard_page_graph(
                         let dispatch_receiver_3 = receiver_2;
                         dispatch_receiver_3
                             .dispatch
-                            .write_page_context_shortcode_names(value_2)
+                            .write_page_context_shortcode_names(value_2)?
                     }
                 };
                 {
@@ -1136,7 +1182,7 @@ pub fn create_standard_page_graph(
                         let dispatch_receiver_4 = receiver_3;
                         dispatch_receiver_4
                             .dispatch
-                            .write_page_context_resource_source_dir(value_3)
+                            .write_page_context_resource_source_dir(value_3)?
                     }
                 };
             }
@@ -1152,7 +1198,7 @@ pub fn create_standard_page_graph(
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     assign_page_relationships(
@@ -1174,7 +1220,7 @@ pub fn create_standard_page_graph(
             let dispatch_receiver_5 = receiver_4;
             dispatch_receiver_5
                 .dispatch
-                .write_site_context_home(value_4)
+                .write_site_context_home(value_4)?
         }
     };
     let all_pages: js_abi::JsArray<crate::models::page_context::PageContext> =
@@ -1185,8 +1231,8 @@ pub fn create_standard_page_graph(
     {
         let mut index: f64 = 0.0;
         'loop_value_2: while index < (rt::conversions::usize_to_i32(list_routes.len())? as f64) {
-            let route: String = match list_routes.get_number(index).as_ref() {
-                Some(flow_value_10) => flow_value_10.clone(),
+            let route: String = match list_routes.get_number(index) {
+                Some(flow_value_10) => flow_value_10,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if route.is_empty() {
@@ -1209,12 +1255,10 @@ pub fn create_standard_page_graph(
         while index < (rt::conversions::usize_to_i32(content_pages.len())? as f64) {
             {
                 let operation_input_0_3 = all_pages.clone();
-                operation_input_0_3.push_many_discard([
-                    match content_pages.get_number(index).as_ref() {
-                        Some(flow_value_12) => flow_value_12.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                ])
+                operation_input_0_3.push_many_discard([match content_pages.get_number(index) {
+                    Some(flow_value_12) => flow_value_12,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }])
             };
             index += 1.0;
         }
@@ -1226,7 +1270,7 @@ pub fn create_standard_page_graph(
             let dispatch_receiver_6 = receiver_5;
             dispatch_receiver_6
                 .dispatch
-                .write_site_context_all_pages(value_5)
+                .write_site_context_all_pages(value_5)?
         }
     };
     {
@@ -1240,9 +1284,8 @@ pub fn create_standard_page_graph(
                 .state
                 .with(|state| state.pages.clone())
                 .get_number(index)
-                .as_ref()
             {
-                Some(flow_value_13) => flow_value_13.clone(),
+                Some(flow_value_13) => flow_value_13,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if !{
@@ -1264,16 +1307,16 @@ pub fn create_standard_page_graph(
                 {
                     let operation_input_0_4 = bundle_source_by_page.clone();
                     operation_input_0_4.set_eq_discard(
-                        match content_pages.get_number(index).as_ref() {
-                            Some(flow_value_14) => flow_value_14.clone(),
+                        match content_pages.get_number(index) {
+                            Some(flow_value_14) => flow_value_14,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                         source_directory.clone(),
                     )
                 };
                 {
-                    let receiver_6 = &match content_pages.get_number(index).as_ref() {
-                        Some(flow_value_15) => flow_value_15.clone(),
+                    let receiver_6 = &match content_pages.get_number(index) {
+                        Some(flow_value_15) => flow_value_15,
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     let value_6 = Some(source_directory.clone());
@@ -1281,7 +1324,7 @@ pub fn create_standard_page_graph(
                         let dispatch_receiver_9 = receiver_6;
                         dispatch_receiver_9
                             .dispatch
-                            .write_page_context_resource_source_dir(value_6)
+                            .write_page_context_resource_source_dir(value_6)?
                     }
                 };
             }
@@ -1293,7 +1336,7 @@ pub fn create_standard_page_graph(
         content_pages.clone(),
         site.clone(),
     )?;
-    Ok(StandardPageGraph::new(
+    StandardPageGraph::new(
         site.clone(),
         inventory.state.with(|state| state.pages.clone()),
         content_pages.clone(),
@@ -1305,5 +1348,5 @@ pub fn create_standard_page_graph(
             Some(flow_value_16) => flow_value_16.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         },
-    ))
+    )
 }

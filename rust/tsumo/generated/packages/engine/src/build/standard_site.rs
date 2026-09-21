@@ -36,7 +36,7 @@ pub fn build_standard_site(
                 let dispatch_receiver_2 = receiver;
                 dispatch_receiver_2
                     .dispatch
-                    .write_site_config_base_url(value)
+                    .write_site_config_base_url(value)?
             }
         };
     }
@@ -61,7 +61,7 @@ pub fn build_standard_site(
         }),
     )?;
     let output_plan: crate::build::output_plan::SiteOutputPlan =
-        crate::build::output_plan::SiteOutputPlan::new();
+        crate::build::output_plan::SiteOutputPlan::new()?;
     if theme_dir.is_some() {
         {
             let dispatch_receiver_6 = output_plan.clone();
@@ -77,7 +77,7 @@ pub fn build_standard_site(
                         .as_str(),
                         "static",
                     ]),
-                    String::from(""),
+                    "",
                     String::from("theme static files"),
                     crate::build::output_plan::AssetLayer::ThemeStatic,
                 )
@@ -90,7 +90,7 @@ pub fn build_standard_site(
             .clone()
             .dispatch_site_output_plan_add_directory(
                 tsonic_rust_node::path::join(&[site_dir.as_str(), "static"]),
-                String::from(""),
+                "",
                 String::from("site static files"),
                 crate::build::output_plan::AssetLayer::SiteStatic,
             )
@@ -98,7 +98,7 @@ pub fn build_standard_site(
     let inventory: crate::build::content_model::ContentInventory =
         crate::build::discover_content::discover_content(
             {
-                let operation_input_0 = site_dir.clone();
+                let operation_input_0 = site_dir;
                 tsonic_rust_node::path::join(&[
                     operation_input_0.as_str(),
                     {
@@ -156,7 +156,7 @@ pub fn build_standard_site(
     )?;
     let ordered_sitemap_urls: js_abi::JsArray<String> =
         js_abi::array_from_vec(&sitemap_urls.keys());
-    ordered_sitemap_urls.try_sort(crate::build::site_routes::compare_site_paths)?;
+    ordered_sitemap_urls.try_sort_borrowed(crate::build::site_routes::compare_site_paths)?;
     {
         let dispatch_receiver_11 = output_plan.clone();
         dispatch_receiver_11
@@ -227,7 +227,7 @@ pub fn build_standard_site(
         dispatch_receiver_18
             .dispatch
             .clone()
-            .dispatch_site_output_plan_render(out_dir.clone())
+            .dispatch_site_output_plan_render(out_dir)
     }?;
     Ok({
         let dispatch_receiver_19 = output_plan.clone();

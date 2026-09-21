@@ -42,7 +42,7 @@ namespace Tsumo.Engine
                 identity.append("concat:");
                 identity.append(target);
                 TextBuilder text = new TextBuilder();
-                for (int index = 0; index < resources.length; index++)
+                for (double index = 0; index < resources.length; index++)
                 {
                     Resource resource = resources[index];
                     identity.append("|" + resource.id);
@@ -71,7 +71,7 @@ namespace Tsumo.Engine
                 string resourceText = Resources_text.readResourceText(resource, "resources.Minify");
                 Tsonic.CSharp.Js.JSArray<string> lines = Tsonic.CSharp.Js.String.split(Utils_strings.replaceLineEndings(resourceText, "\n"), "\n");
                 TextBuilder output = new TextBuilder();
-                for (int index = 0; index < lines.length; index++)
+                for (double index = 0; index < lines.length; index++)
                 {
                     string line = Tsonic.CSharp.Js.String.trim(lines[index]);
                     if (line == "")

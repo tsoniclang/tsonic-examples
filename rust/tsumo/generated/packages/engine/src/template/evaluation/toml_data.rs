@@ -23,116 +23,117 @@ impl rt::ObjectIdentityCarrier for TomlStatement {
 }
 
 impl TomlStatement {
-    pub fn new(text: String, line: i32) -> TomlStatement {
+    pub fn new(text: String, line: i32) -> Result<TomlStatement, rt::TsonicError> {
         let field_text: String = text;
         let field_line: i32 = line;
-        TomlStatement {
+        Ok(TomlStatement {
             state: rt::ObjectRef::new(TomlStatementState {
                 text: field_text,
                 line: field_line,
             }),
-        }
+        })
     }
 }
 
-pub fn toml_error(
-    message: String,
-    source_path: Option<String>,
-    line: i32,
-) -> crate::diagnostics::TsumoError {
-    crate::diagnostics::create_tsumo_error(
-        String::from("TSUMO_TEMPLATE_DATA_TOML_INVALID"),
-        message,
-        source_path,
-        Some(rt::conversions::i32_to_f64(line)),
-        Some(1.0),
-    )
+pub type TomlErrorCallable =
+    rt::Callable<(String, Option<String>, i32), rt::TsonicResult<crate::diagnostics::TsumoError>>;
+
+std::thread_local! {
+    pub static TOML_ERROR: rt::ModuleCell<TomlErrorCallable> = const { rt::ModuleCell::new() };
 }
 
 pub fn scalar_to_template_value(
     value: crate::params::ParamValue,
-) -> crate::template::values::base::TemplateValue {
+) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
     if ({
         let dispatch_receiver = &value;
         dispatch_receiver.dispatch.read_param_value_kind()
     }) == crate::params::PARAM_KIND_BOOL.with(|module_binding| module_binding.load())
     {
-        return {
+        return Ok({
             let upcast_value = crate::template::values::primitives::BoolValue::new({
                 let dispatch_receiver_2 = &value;
                 dispatch_receiver_2.dispatch.read_param_value_bool_value()
-            });
+            })?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value.identity.clone(),
                 dispatch: upcast_value.dispatch.clone(),
             }
-        };
+        });
     }
     if ({
         let dispatch_receiver_3 = &value;
         dispatch_receiver_3.dispatch.read_param_value_kind()
     }) == crate::params::PARAM_KIND_NUMBER.with(|module_binding| module_binding.load())
     {
-        return {
+        return Ok({
             let upcast_value_2 = crate::template::values::primitives::NumberValue::new({
                 let dispatch_receiver_4 = &value;
                 dispatch_receiver_4.dispatch.read_param_value_number_value()
-            });
+            })?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_2.identity.clone(),
                 dispatch: upcast_value_2.dispatch.clone(),
             }
-        };
+        });
     }
-    {
+    Ok({
         let upcast_value_3 = crate::template::values::primitives::StringValue::new({
             let dispatch_receiver_5 = &value;
             dispatch_receiver_5.dispatch.read_param_value_string_value()
-        });
+        })?;
         crate::template::values::base::TemplateValue {
             identity: upcast_value_3.identity.clone(),
             dispatch: upcast_value_3.dispatch.clone(),
         }
-    }
+    })
 }
 
-pub fn statement_is_complete(text: String) -> Result<bool, rt::TsonicError> {
+pub fn statement_is_complete(text: &str) -> Result<bool, rt::TsonicError> {
     let mut square_depth: i32 = 0;
     let mut object_depth: i32 = 0;
     let mut quote: String = String::from("");
     let mut escaped: bool = false;
-    'loop_value: for index in 0..rt::conversions::usize_to_i32(js_string::js_len(&text))? {
-        let character: String = js_string::char_at(&text, rt::conversions::i32_to_f64(index))?;
-        if escaped {
-            escaped = false;
-            continue 'loop_value;
-        }
-        if quote == "\"" && character == "\\" {
-            escaped = true;
-            continue 'loop_value;
-        }
-        if character == "\"" || character == "'" {
-            if quote.is_empty() {
-                quote = character.clone();
-            } else if quote == character {
-                quote = String::from("");
+    {
+        let mut index: i32 = 0;
+        'loop_value: while index < rt::conversions::usize_to_i32(js_string::js_len(text))? {
+            let character: String = js_string::char_at(text, rt::conversions::i32_to_f64(index))?;
+            if escaped {
+                escaped = false;
+                index = crate::utils::strings::next_code_point_index(text, index)?;
+                continue 'loop_value;
             }
-            continue 'loop_value;
-        }
-        if !quote.is_empty() {
-            continue 'loop_value;
-        }
-        if character == "[" {
-            square_depth += 1;
-        } else if character == "]" {
-            square_depth -= 1;
-        } else if character == "{" {
-            object_depth += 1;
-        } else if character == "}" {
-            object_depth -= 1;
-        }
-        if square_depth < 0 || object_depth < 0 {
-            return Ok(true);
+            if quote == "\"" && character == "\\" {
+                escaped = true;
+                index = crate::utils::strings::next_code_point_index(text, index)?;
+                continue 'loop_value;
+            }
+            if character == "\"" || character == "'" {
+                if quote.is_empty() {
+                    quote = character.clone();
+                } else if quote == character {
+                    quote = String::from("");
+                }
+                index = crate::utils::strings::next_code_point_index(text, index)?;
+                continue 'loop_value;
+            }
+            if !quote.is_empty() {
+                index = crate::utils::strings::next_code_point_index(text, index)?;
+                continue 'loop_value;
+            }
+            if character == "[" {
+                square_depth += 1;
+            } else if character == "]" {
+                square_depth -= 1;
+            } else if character == "{" {
+                object_depth += 1;
+            } else if character == "}" {
+                object_depth -= 1;
+            }
+            if square_depth < 0 || object_depth < 0 {
+                return Ok(true);
+            }
+            index = crate::utils::strings::next_code_point_index(text, index)?;
         }
     }
     Ok(quote.is_empty() && square_depth == 0 && object_depth == 0)
@@ -153,11 +154,8 @@ pub fn collect_toml_statements(
         'loop_value: while index < rt::conversions::usize_to_i32(lines.len())? {
             let line: String =
                 js_string::trim(&crate::utils::structured_scalars::strip_structured_comment(
-                    match lines
-                        .get_number(rt::conversions::i32_to_f64(index))
-                        .as_ref()
-                    {
-                        Some(flow_value) => flow_value.clone(),
+                    match lines.get_number(rt::conversions::i32_to_f64(index)) {
+                        Some(flow_value) => flow_value,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                     crate::utils::structured_scalars::StructuredScalarFormat::Toml,
@@ -173,14 +171,14 @@ pub fn collect_toml_statements(
                 pending.push(' ');
                 pending.push_str(&line);
             }
-            if !statement_is_complete(pending.clone())? {
+            if !statement_is_complete(&pending)? {
                 index += 1;
                 continue 'loop_value;
             }
             {
                 let operation_input_0 = statements.clone();
                 operation_input_0
-                    .push_many_discard([TomlStatement::new(pending.clone(), pending_line)])
+                    .push_many_discard([TomlStatement::new(pending.clone(), pending_line)?])
             };
             pending = String::from("");
             pending_line = 0;
@@ -188,11 +186,15 @@ pub fn collect_toml_statements(
         }
     }
     if !pending.is_empty() {
-        return Err(rt::TsonicError::TsumoError(toml_error(
-            String::from("TOML statement is incomplete"),
-            source_path,
-            pending_line,
-        )));
+        return Err(rt::TsonicError::TsumoError(
+            TOML_ERROR
+                .with(|module_binding| module_binding.load())
+                .call((
+                    String::from("TOML statement is incomplete"),
+                    source_path,
+                    pending_line,
+                ))?,
+        ));
     }
     Ok(statements)
 }
@@ -217,12 +219,20 @@ pub fn split_toml_key(
                 };
             if escaped {
                 escaped = false;
-                index += 1;
+                index = if index == rt::conversions::usize_to_i32(js_string::js_len(text))? {
+                    index + 1
+                } else {
+                    crate::utils::strings::next_code_point_index(text, index)?
+                };
                 continue 'loop_value;
             }
             if quote == "\"" && character == "\\" {
                 escaped = true;
-                index += 1;
+                index = if index == rt::conversions::usize_to_i32(js_string::js_len(text))? {
+                    index + 1
+                } else {
+                    crate::utils::strings::next_code_point_index(text, index)?
+                };
                 continue 'loop_value;
             }
             if character == "\"" || character == "'" {
@@ -231,11 +241,19 @@ pub fn split_toml_key(
                 } else if quote == character {
                     quote = String::from("");
                 }
-                index += 1;
+                index = if index == rt::conversions::usize_to_i32(js_string::js_len(text))? {
+                    index + 1
+                } else {
+                    crate::utils::strings::next_code_point_index(text, index)?
+                };
                 continue 'loop_value;
             }
             if character != "." || !quote.is_empty() {
-                index += 1;
+                index = if index == rt::conversions::usize_to_i32(js_string::js_len(text))? {
+                    index + 1
+                } else {
+                    crate::utils::strings::next_code_point_index(text, index)?
+                };
                 continue 'loop_value;
             }
             let raw: String = js_string::trim(&js_string::slice_to(
@@ -244,11 +262,15 @@ pub fn split_toml_key(
                 rt::conversions::i32_to_f64(index),
             )?);
             if raw.is_empty() {
-                return Err(rt::TsonicError::TsumoError(toml_error(
-                    String::from("TOML key segment cannot be empty"),
-                    source_path.clone(),
-                    line,
-                )));
+                return Err(rt::TsonicError::TsumoError(
+                    TOML_ERROR
+                        .with(|module_binding| module_binding.load())
+                        .call((
+                            String::from("TOML key segment cannot be empty"),
+                            source_path.clone(),
+                            line,
+                        ))?,
+                ));
             }
             if js_string::starts_with_from_start(&raw, "\"")
                 || js_string::starts_with_from_start(&raw, "'")
@@ -265,11 +287,9 @@ pub fn split_toml_key(
                                 rt::TsonicResult<crate::diagnostics::TsumoError>,
                             >::new(move |callable_arguments| {
                                 let message = callable_arguments.0;
-                                Ok::<_, rt::TsonicError>(toml_error(
-                                    message,
-                                    capture_source_path.clone(),
-                                    capture_line,
-                                ))
+                                TOML_ERROR
+                                    .with(|module_binding| module_binding.load())
+                                    .call((message, capture_source_path.clone(), capture_line))
                             })
                         },
                     )?;
@@ -279,11 +299,15 @@ pub fn split_toml_key(
                 }) != crate::params::PARAM_KIND_STRING
                     .with(|module_binding| module_binding.load())
                 {
-                    return Err(rt::TsonicError::TsumoError(toml_error(
-                        String::from("Quoted TOML key must be a string"),
-                        source_path.clone(),
-                        line,
-                    )));
+                    return Err(rt::TsonicError::TsumoError(
+                        TOML_ERROR
+                            .with(|module_binding| module_binding.load())
+                            .call((
+                                String::from("Quoted TOML key must be a string"),
+                                source_path.clone(),
+                                line,
+                            ))?,
+                    ));
                 }
                 {
                     let operation_input_0 = segments.clone();
@@ -297,35 +321,47 @@ pub fn split_toml_key(
                     &js_abi::regexp_new_native("^[A-Za-z0-9_-]+$", "")?,
                     &raw,
                 )? {
-                    return Err(rt::TsonicError::TsumoError(toml_error(
-                        format!(
-                            "{}{}{}",
-                            String::from("TOML key segment '"),
-                            raw,
-                            String::from("' is invalid")
-                        ),
-                        source_path.clone(),
-                        line,
-                    )));
+                    return Err(rt::TsonicError::TsumoError(
+                        TOML_ERROR
+                            .with(|module_binding| module_binding.load())
+                            .call((
+                                format!(
+                                    "{}{}{}",
+                                    String::from("TOML key segment '"),
+                                    raw,
+                                    String::from("' is invalid")
+                                ),
+                                source_path.clone(),
+                                line,
+                            ))?,
+                    ));
                 }
                 segments.push_many_discard([raw.clone()]);
             }
             start = index + 1;
-            index += 1;
+            index = if index == rt::conversions::usize_to_i32(js_string::js_len(text))? {
+                index + 1
+            } else {
+                crate::utils::strings::next_code_point_index(text, index)?
+            };
         }
     }
     if !quote.is_empty() {
-        return Err(rt::TsonicError::TsumoError(toml_error(
-            String::from("TOML key contains an unterminated quote"),
-            source_path.clone(),
-            line,
-        )));
+        return Err(rt::TsonicError::TsumoError(
+            TOML_ERROR
+                .with(|module_binding| module_binding.load())
+                .call((
+                    String::from("TOML key contains an unterminated quote"),
+                    source_path.clone(),
+                    line,
+                ))?,
+        ));
     }
     Ok(segments)
 }
 
 pub fn assignment_separator(
-    text: String,
+    text: &str,
     source_path: Option<String>,
     line: i32,
 ) -> Result<i32, rt::TsonicError> {
@@ -333,44 +369,56 @@ pub fn assignment_separator(
     let mut object_depth: i32 = 0;
     let mut quote: String = String::from("");
     let mut escaped: bool = false;
-    'loop_value: for index in 0..rt::conversions::usize_to_i32(js_string::js_len(&text))? {
-        let character: String = js_string::char_at(&text, rt::conversions::i32_to_f64(index))?;
-        if escaped {
-            escaped = false;
-            continue 'loop_value;
-        }
-        if quote == "\"" && character == "\\" {
-            escaped = true;
-            continue 'loop_value;
-        }
-        if character == "\"" || character == "'" {
-            if quote.is_empty() {
-                quote = character.clone();
-            } else if quote == character {
-                quote = String::from("");
+    {
+        let mut index: i32 = 0;
+        'loop_value: while index < rt::conversions::usize_to_i32(js_string::js_len(text))? {
+            let character: String = js_string::char_at(text, rt::conversions::i32_to_f64(index))?;
+            if escaped {
+                escaped = false;
+                index = crate::utils::strings::next_code_point_index(text, index)?;
+                continue 'loop_value;
             }
-            continue 'loop_value;
-        }
-        if !quote.is_empty() {
-            continue 'loop_value;
-        }
-        if character == "[" {
-            square_depth += 1;
-        } else if character == "]" {
-            square_depth -= 1;
-        } else if character == "{" {
-            object_depth += 1;
-        } else if character == "}" {
-            object_depth -= 1;
-        } else if character == "=" && square_depth == 0 && object_depth == 0 {
-            return Ok(index);
+            if quote == "\"" && character == "\\" {
+                escaped = true;
+                index = crate::utils::strings::next_code_point_index(text, index)?;
+                continue 'loop_value;
+            }
+            if character == "\"" || character == "'" {
+                if quote.is_empty() {
+                    quote = character.clone();
+                } else if quote == character {
+                    quote = String::from("");
+                }
+                index = crate::utils::strings::next_code_point_index(text, index)?;
+                continue 'loop_value;
+            }
+            if !quote.is_empty() {
+                index = crate::utils::strings::next_code_point_index(text, index)?;
+                continue 'loop_value;
+            }
+            if character == "[" {
+                square_depth += 1;
+            } else if character == "]" {
+                square_depth -= 1;
+            } else if character == "{" {
+                object_depth += 1;
+            } else if character == "}" {
+                object_depth -= 1;
+            } else if character == "=" && square_depth == 0 && object_depth == 0 {
+                return Ok(index);
+            }
+            index = crate::utils::strings::next_code_point_index(text, index)?;
         }
     }
-    Err(rt::TsonicError::TsumoError(toml_error(
-        String::from("TOML assignment requires an '=' separator"),
-        source_path,
-        line,
-    )))
+    Err(rt::TsonicError::TsumoError(
+        TOML_ERROR
+            .with(|module_binding| module_binding.load())
+            .call((
+                String::from("TOML assignment requires an '=' separator"),
+                source_path,
+                line,
+            ))?,
+    ))
 }
 
 pub fn require_dictionary(
@@ -397,15 +445,19 @@ pub fn require_dictionary(
             }
         });
     }
-    Err(rt::TsonicError::TsumoError(toml_error(
-        format!(
-            "{}{}",
-            context,
-            String::from(" conflicts with a non-table value")
-        ),
-        source_path,
-        line,
-    )))
+    Err(rt::TsonicError::TsumoError(
+        TOML_ERROR
+            .with(|module_binding| module_binding.load())
+            .call((
+                format!(
+                    "{}{}",
+                    context,
+                    String::from(" conflicts with a non-table value")
+                ),
+                source_path,
+                line,
+            ))?,
+    ))
 }
 
 pub fn ensure_dictionary_path(
@@ -418,11 +470,8 @@ pub fn ensure_dictionary_path(
     {
         let mut index: i32 = 0;
         'loop_value: while index < rt::conversions::usize_to_i32(segments.len())? {
-            let segment: String = match segments
-                .get_number(rt::conversions::i32_to_f64(index))
-                .as_ref()
-            {
-                Some(flow_value) => flow_value.clone(),
+            let segment: String = match segments.get_number(rt::conversions::i32_to_f64(index)) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let existing: Option<crate::template::values::base::TemplateValue> = {
@@ -432,7 +481,7 @@ pub fn ensure_dictionary_path(
             .get(&segment);
             if existing.is_none() {
                 let created: crate::template::values::dict::DictValue =
-                    crate::template::values::dict::DictValue::new(js_abi::JsMap::new());
+                    crate::template::values::dict::DictValue::new(js_abi::JsMap::new())?;
                 {
                     let dispatch_receiver_2 = &current;
                     dispatch_receiver_2.dispatch.read_dict_value_value()
@@ -482,8 +531,8 @@ pub fn set_toml_value(
             {
                 let operation_input_0 = parent_segments.clone();
                 operation_input_0.push_many_discard([
-                    match key.get_number(rt::conversions::i32_to_f64(index)).as_ref() {
-                        Some(flow_value) => flow_value.clone(),
+                    match key.get_number(rt::conversions::i32_to_f64(index)) {
+                        Some(flow_value) => flow_value,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                 ])
@@ -493,16 +542,17 @@ pub fn set_toml_value(
     }
     let parent: crate::template::values::dict::DictValue =
         ensure_dictionary_path(table, parent_segments.clone(), source_path.clone(), line)?;
-    let name: String = match {
-        let operation_input_0_2 = key.clone();
-        operation_input_0_2.get_number(rt::conversions::i32_to_f64(
-            rt::conversions::usize_to_i32(key.len())? - 1,
-        ))
-    }
-    .as_ref()
-    {
-        Some(flow_value_2) => flow_value_2.clone(),
-        None => unreachable!("checked flow selected a missing optional value"),
+    let name: String = {
+        let flow_input = {
+            let operation_input_0_2 = key.clone();
+            operation_input_0_2.get_number(rt::conversions::i32_to_f64(
+                rt::conversions::usize_to_i32(key.len())? - 1,
+            ))
+        };
+        match flow_input {
+            Some(flow_value_2) => flow_value_2,
+            None => unreachable!("checked flow selected a missing optional value"),
+        }
     };
     if {
         let dispatch_receiver = &parent;
@@ -510,26 +560,30 @@ pub fn set_toml_value(
     }
     .has(&name)
     {
-        return Err(rt::TsonicError::TsumoError(toml_error(
-            format!(
-                "{}{}{}",
-                String::from("TOML key '"),
-                key.join("."),
-                String::from("' is declared more than once")
-            ),
-            source_path.clone(),
-            line,
-        )));
+        return Err(rt::TsonicError::TsumoError(
+            TOML_ERROR
+                .with(|module_binding| module_binding.load())
+                .call((
+                    format!(
+                        "{}{}{}",
+                        String::from("TOML key '"),
+                        key.join("."),
+                        String::from("' is declared more than once")
+                    ),
+                    source_path.clone(),
+                    line,
+                ))?,
+        ));
     }
     {
         let dispatch_receiver_2 = &parent;
         dispatch_receiver_2.dispatch.read_dict_value_value()
     }
-    .set_discard(name.clone(), value);
+    .set_discard(name, value);
     Ok(())
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone)]
 pub struct TomlValueReader {
     pub text: String,
     pub index: i32,
@@ -558,7 +612,7 @@ impl TomlValueReader {
         self.skip_whitespace()?;
         if self.index != rt::conversions::usize_to_i32(js_string::js_len(&self.text))? {
             return Err(rt::TsonicError::TsumoError(
-                self.error(String::from("Unexpected trailing TOML value content")),
+                self.error(String::from("Unexpected trailing TOML value content"))?,
             ));
         }
         Ok(value)
@@ -598,7 +652,7 @@ impl TomlValueReader {
         {
             return Err(rt::TsonicError::TsumoError(self.error(String::from(
                 "Multiline TOML strings are not supported by the data contract",
-            ))));
+            ))?));
         }
         let mut escaped: bool = false;
         'loop_value: while self.index
@@ -626,7 +680,7 @@ impl TomlValueReader {
             }?;
             let source_path: Option<String> = self.source_path.clone();
             let line: i32 = self.line;
-            return Ok(scalar_to_template_value(
+            return scalar_to_template_value(
                 crate::utils::structured_scalars::parse_structured_scalar(
                     &raw,
                     crate::utils::structured_scalars::StructuredScalarFormat::Toml,
@@ -635,14 +689,14 @@ impl TomlValueReader {
                         let capture_line = line;
                         rt::Callable::<(String,), rt::TsonicResult<crate::diagnostics::TsumoError>>::new(move |callable_arguments| {
     let message = callable_arguments.0;
-    Ok::<_, rt::TsonicError>(toml_error(message, capture_source_path.clone(), capture_line))
+    TOML_ERROR.with(|module_binding| module_binding.load()).call((message, capture_source_path.clone(), capture_line))
 })
                     },
                 )?,
-            ));
+            );
         }
         Err(rt::TsonicError::TsumoError(
-            self.error(String::from("TOML string is unterminated")),
+            self.error(String::from("TOML string is unterminated"))?,
         ))
     }
 
@@ -655,20 +709,16 @@ impl TomlValueReader {
         self.skip_whitespace()?;
         if self.peek()? == "]" {
             {
-                let update_receiver = &mut *self;
+                let update_previous = self.index;
+                let update_next = update_previous + 1;
                 {
-                    let update_location = &mut update_receiver.index;
-                    let update_previous = *update_location;
-                    let update_next = update_previous + 1;
-                    {
-                        *update_location = update_next;
-                        update_next
-                    }
+                    self.index = update_next;
+                    update_next
                 }
             };
             return Ok({
                 let upcast_value =
-                    crate::template::values::arrays::AnyArrayValue::new(items.clone());
+                    crate::template::values::arrays::AnyArrayValue::new(items.clone())?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value.identity.clone(),
                     dispatch: upcast_value.dispatch.clone(),
@@ -684,20 +734,16 @@ impl TomlValueReader {
             let separator: String = self.peek()?;
             if separator == "]" {
                 {
-                    let update_receiver_2 = &mut *self;
+                    let update_previous_2 = self.index;
+                    let update_next_2 = update_previous_2 + 1;
                     {
-                        let update_location_2 = &mut update_receiver_2.index;
-                        let update_previous_2 = *update_location_2;
-                        let update_next_2 = update_previous_2 + 1;
-                        {
-                            *update_location_2 = update_next_2;
-                            update_next_2
-                        }
+                        self.index = update_next_2;
+                        update_next_2
                     }
                 };
                 return Ok({
                     let upcast_value_2 =
-                        crate::template::values::arrays::AnyArrayValue::new(items.clone());
+                        crate::template::values::arrays::AnyArrayValue::new(items.clone())?;
                     crate::template::values::base::TemplateValue {
                         identity: upcast_value_2.identity.clone(),
                         dispatch: upcast_value_2.dispatch.clone(),
@@ -707,37 +753,29 @@ impl TomlValueReader {
             if separator != "," {
                 return Err(rt::TsonicError::TsumoError(self.error(String::from(
                     "TOML array entries must be separated by commas",
-                ))));
+                ))?));
             }
             {
-                let update_receiver_3 = &mut *self;
+                let update_previous_3 = self.index;
+                let update_next_3 = update_previous_3 + 1;
                 {
-                    let update_location_3 = &mut update_receiver_3.index;
-                    let update_previous_3 = *update_location_3;
-                    let update_next_3 = update_previous_3 + 1;
-                    {
-                        *update_location_3 = update_next_3;
-                        update_next_3
-                    }
+                    self.index = update_next_3;
+                    update_next_3
                 }
             };
             self.skip_whitespace()?;
             if self.peek()? == "]" {
                 {
-                    let update_receiver_4 = &mut *self;
+                    let update_previous_4 = self.index;
+                    let update_next_4 = update_previous_4 + 1;
                     {
-                        let update_location_4 = &mut update_receiver_4.index;
-                        let update_previous_4 = *update_location_4;
-                        let update_next_4 = update_previous_4 + 1;
-                        {
-                            *update_location_4 = update_next_4;
-                            update_next_4
-                        }
+                        self.index = update_next_4;
+                        update_next_4
                     }
                 };
                 return Ok({
                     let upcast_value_3 =
-                        crate::template::values::arrays::AnyArrayValue::new(items.clone());
+                        crate::template::values::arrays::AnyArrayValue::new(items.clone())?;
                     crate::template::values::base::TemplateValue {
                         identity: upcast_value_3.identity.clone(),
                         dispatch: upcast_value_3.dispatch.clone(),
@@ -752,19 +790,15 @@ impl TomlValueReader {
     ) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
         self.expect(String::from("{"))?;
         let fields: crate::template::values::dict::DictValue =
-            crate::template::values::dict::DictValue::new(js_abi::JsMap::new());
+            crate::template::values::dict::DictValue::new(js_abi::JsMap::new())?;
         self.skip_whitespace()?;
         if self.peek()? == "}" {
             {
-                let update_receiver = &mut *self;
+                let update_previous = self.index;
+                let update_next = update_previous + 1;
                 {
-                    let update_location = &mut update_receiver.index;
-                    let update_previous = *update_location;
-                    let update_next = update_previous + 1;
-                    {
-                        *update_location = update_next;
-                        update_next
-                    }
+                    self.index = update_next;
+                    update_next
                 }
             };
             return Ok({
@@ -786,31 +820,20 @@ impl TomlValueReader {
                 if escaped {
                     escaped = false;
                     {
-                        let update_receiver_2 = &mut *self;
-                        {
-                            let update_location_2 = &mut update_receiver_2.index;
-                            let update_previous_2 = *update_location_2;
-                            let update_next_2 = update_previous_2 + 1;
-                            {
-                                *update_location_2 = update_next_2;
-                                update_next_2
-                            }
-                        }
+                        let field_value =
+                            crate::utils::strings::next_code_point_index(&self.text, self.index)?;
+                        self.index = field_value
                     };
                     continue 'loop_value_2;
                 }
                 if quote == "\"" && character == "\\" {
                     escaped = true;
                     {
-                        let update_receiver_3 = &mut *self;
+                        let update_previous_2 = self.index;
+                        let update_next_2 = update_previous_2 + 1;
                         {
-                            let update_location_3 = &mut update_receiver_3.index;
-                            let update_previous_3 = *update_location_3;
-                            let update_next_3 = update_previous_3 + 1;
-                            {
-                                *update_location_3 = update_next_3;
-                                update_next_3
-                            }
+                            self.index = update_next_2;
+                            update_next_2
                         }
                     };
                     continue 'loop_value_2;
@@ -822,15 +845,11 @@ impl TomlValueReader {
                         quote = String::from("");
                     }
                     {
-                        let update_receiver_4 = &mut *self;
+                        let update_previous_3 = self.index;
+                        let update_next_3 = update_previous_3 + 1;
                         {
-                            let update_location_4 = &mut update_receiver_4.index;
-                            let update_previous_4 = *update_location_4;
-                            let update_next_4 = update_previous_4 + 1;
-                            {
-                                *update_location_4 = update_next_4;
-                                update_next_4
-                            }
+                            self.index = update_next_3;
+                            update_next_3
                         }
                     };
                     continue 'loop_value_2;
@@ -839,21 +858,14 @@ impl TomlValueReader {
                     break 'loop_value_2;
                 }
                 {
-                    let update_receiver_5 = &mut *self;
-                    {
-                        let update_location_5 = &mut update_receiver_5.index;
-                        let update_previous_5 = *update_location_5;
-                        let update_next_5 = update_previous_5 + 1;
-                        {
-                            *update_location_5 = update_next_5;
-                            update_next_5
-                        }
-                    }
+                    let field_value_2 =
+                        crate::utils::strings::next_code_point_index(&self.text, self.index)?;
+                    self.index = field_value_2
                 };
             }
             if self.peek()? != "=" {
                 return Err(rt::TsonicError::TsumoError(
-                    self.error(String::from("TOML inline table entry requires '='")),
+                    self.error(String::from("TOML inline table entry requires '='"))?,
                 ));
             }
             let key: js_abi::JsArray<String> = split_toml_key(
@@ -869,15 +881,11 @@ impl TomlValueReader {
                 self.line,
             )?;
             {
-                let update_receiver_6 = &mut *self;
+                let update_previous_4 = self.index;
+                let update_next_4 = update_previous_4 + 1;
                 {
-                    let update_location_6 = &mut update_receiver_6.index;
-                    let update_previous_6 = *update_location_6;
-                    let update_next_6 = update_previous_6 + 1;
-                    {
-                        *update_location_6 = update_next_6;
-                        update_next_6
-                    }
+                    self.index = update_next_4;
+                    update_next_4
                 }
             };
             set_toml_value(
@@ -891,15 +899,11 @@ impl TomlValueReader {
             let separator: String = self.peek()?;
             if separator == "}" {
                 {
-                    let update_receiver_7 = &mut *self;
+                    let update_previous_5 = self.index;
+                    let update_next_5 = update_previous_5 + 1;
                     {
-                        let update_location_7 = &mut update_receiver_7.index;
-                        let update_previous_7 = *update_location_7;
-                        let update_next_7 = update_previous_7 + 1;
-                        {
-                            *update_location_7 = update_next_7;
-                            update_next_7
-                        }
+                        self.index = update_next_5;
+                        update_next_5
                     }
                 };
                 return Ok({
@@ -913,25 +917,21 @@ impl TomlValueReader {
             if separator != "," {
                 return Err(rt::TsonicError::TsumoError(self.error(String::from(
                     "TOML inline table entries must be separated by commas",
-                ))));
+                ))?));
             }
             {
-                let update_receiver_8 = &mut *self;
+                let update_previous_6 = self.index;
+                let update_next_6 = update_previous_6 + 1;
                 {
-                    let update_location_8 = &mut update_receiver_8.index;
-                    let update_previous_8 = *update_location_8;
-                    let update_next_8 = update_previous_8 + 1;
-                    {
-                        *update_location_8 = update_next_8;
-                        update_next_8
-                    }
+                    self.index = update_next_6;
+                    update_next_6
                 }
             };
             self.skip_whitespace()?;
             if self.peek()? == "}" {
                 return Err(rt::TsonicError::TsumoError(self.error(String::from(
                     "TOML inline tables do not allow a trailing comma",
-                ))));
+                ))?));
             }
         }
     }
@@ -952,16 +952,9 @@ impl TomlValueReader {
                 break 'loop_value;
             }
             {
-                let update_receiver = &mut *self;
-                {
-                    let update_location = &mut update_receiver.index;
-                    let update_previous = *update_location;
-                    let update_next = update_previous + 1;
-                    {
-                        *update_location = update_next;
-                        update_next
-                    }
-                }
+                let field_value =
+                    crate::utils::strings::next_code_point_index(&self.text, self.index)?;
+                self.index = field_value
             };
         }
         let raw: String = js_string::trim(&{
@@ -974,7 +967,7 @@ impl TomlValueReader {
         }?);
         if raw.is_empty() {
             return Err(rt::TsonicError::TsumoError(
-                self.error(String::from("TOML value cannot be empty")),
+                self.error(String::from("TOML value cannot be empty"))?,
             ));
         }
         let source_path: Option<String> = self.source_path.clone();
@@ -991,11 +984,11 @@ impl TomlValueReader {
                         let capture_line = line;
                         rt::Callable::<(String,), rt::TsonicResult<crate::diagnostics::TsumoError>>::new(move |callable_arguments| {
     let message = callable_arguments.0;
-    Ok::<_, rt::TsonicError>(toml_error(message, capture_source_path.clone(), capture_line))
+    TOML_ERROR.with(|module_binding| module_binding.load()).call((message, capture_source_path.clone(), capture_line))
 })
                     },
                 )?,
-            )))
+            )?))
         });
         let try_flow: rt::TsonicResult<
             rt::Completion<crate::template::values::base::TemplateValue>,
@@ -1014,7 +1007,7 @@ impl TomlValueReader {
                 )? {
                     return Ok(rt::Completion::Return({
                         let upcast_value =
-                            crate::template::values::primitives::StringValue::new(raw.clone());
+                            crate::template::values::primitives::StringValue::new(raw.clone())?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value.identity.clone(),
                             dispatch: upcast_value.dispatch.clone(),
@@ -1048,16 +1041,9 @@ impl TomlValueReader {
             }?)
         }? {
             {
-                let update_receiver = &mut *self;
-                {
-                    let update_location = &mut update_receiver.index;
-                    let update_previous = *update_location;
-                    let update_next = update_previous + 1;
-                    {
-                        *update_location = update_next;
-                        update_next
-                    }
-                }
+                let field_value =
+                    crate::utils::strings::next_code_point_index(&self.text, self.index)?;
+                self.index = field_value
             };
         }
         Ok(())
@@ -1080,28 +1066,18 @@ impl TomlValueReader {
     pub fn next(&mut self) -> Result<String, rt::TsonicError> {
         if self.index >= rt::conversions::usize_to_i32(js_string::js_len(&self.text))? {
             return Err(rt::TsonicError::TsumoError(
-                self.error(String::from("Unexpected end of TOML value")),
+                self.error(String::from("Unexpected end of TOML value"))?,
             ));
         }
-        {
+        let character: String = {
             let operation_input_0 = self.text.clone();
-            js_string::char_at(
-                &operation_input_0,
-                rt::conversions::i32_to_f64({
-                    let update_receiver = &mut *self;
-                    {
-                        let update_location = &mut update_receiver.index;
-                        let update_previous = *update_location;
-                        let update_next = update_previous + 1;
-                        {
-                            *update_location = update_next;
-                            update_previous
-                        }
-                    }
-                }),
-            )
-        }
-        .map_err(rt::TsonicError::from)
+            js_string::char_at(&operation_input_0, rt::conversions::i32_to_f64(self.index))
+        }?;
+        {
+            let field_value = crate::utils::strings::next_code_point_index(&self.text, self.index)?;
+            self.index = field_value
+        };
+        Ok(character)
     }
 
     pub fn expect(&mut self, character: String) -> Result<(), rt::TsonicError> {
@@ -1111,36 +1087,39 @@ impl TomlValueReader {
                 String::from("Expected '"),
                 character,
                 String::from("'")
-            ))));
+            ))?));
         }
         Ok(())
     }
 
-    pub fn error(&self, message: String) -> crate::diagnostics::TsumoError {
-        toml_error(message, self.source_path.clone(), self.line)
+    pub fn error(
+        &self,
+        message: String,
+    ) -> Result<crate::diagnostics::TsumoError, rt::TsonicError> {
+        TOML_ERROR
+            .with(|module_binding| module_binding.load())
+            .call((message, self.source_path.clone(), self.line))
     }
 }
 
 pub fn parse_toml_template_data(
-    text: String,
+    text: &str,
     source_path: Option<String>,
 ) -> Result<crate::template::values::dict::DictValue, rt::TsonicError> {
     let root: crate::template::values::dict::DictValue =
-        crate::template::values::dict::DictValue::new(js_abi::JsMap::new());
+        crate::template::values::dict::DictValue::new(js_abi::JsMap::new())?;
     let mut current_table: crate::template::values::dict::DictValue = root.clone();
     let declared_tables: js_abi::JsSet<String> = js_abi::JsSet::new();
     let statements: js_abi::JsArray<TomlStatement> =
-        collect_toml_statements(&text, source_path.clone())?;
+        collect_toml_statements(text, source_path.clone())?;
     {
         let mut index: i32 = 0;
         'loop_value: while index < rt::conversions::usize_to_i32(statements.len())? {
-            let statement: TomlStatement = match statements
-                .get_number(rt::conversions::i32_to_f64(index))
-                .as_ref()
-            {
-                Some(flow_value) => flow_value.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            };
+            let statement: TomlStatement =
+                match statements.get_number(rt::conversions::i32_to_f64(index)) {
+                    Some(flow_value) => flow_value,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                };
             let raw: String = js_string::trim(&statement.state.with(|state| state.text.clone()));
             if js_string::starts_with_from_start(&raw, "[[")
                 && js_string::ends_with_at_end(&raw, "]]")
@@ -1160,11 +1139,15 @@ pub fn parse_toml_template_data(
                     statement.state.with(|state| state.line),
                 )?;
                 if rt::conversions::usize_to_i32(path.len())? == 0 {
-                    return Err(rt::TsonicError::TsumoError(toml_error(
-                        String::from("TOML array table name cannot be empty"),
-                        source_path.clone(),
-                        statement.state.with(|state| state.line),
-                    )));
+                    return Err(rt::TsonicError::TsumoError(
+                        TOML_ERROR
+                            .with(|module_binding| module_binding.load())
+                            .call((
+                                String::from("TOML array table name cannot be empty"),
+                                source_path.clone(),
+                                statement.state.with(|state| state.line),
+                            ))?,
+                    ));
                 }
                 let parent_segments: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
                 {
@@ -1173,11 +1156,8 @@ pub fn parse_toml_template_data(
                         {
                             let operation_input_0_2 = parent_segments.clone();
                             operation_input_0_2.push_many_discard([
-                                match path
-                                    .get_number(rt::conversions::i32_to_f64(path_index))
-                                    .as_ref()
-                                {
-                                    Some(flow_value_2) => flow_value_2.clone(),
+                                match path.get_number(rt::conversions::i32_to_f64(path_index)) {
+                                    Some(flow_value_2) => flow_value_2,
                                     None => unreachable!(
                                         "checked flow selected a missing optional value"
                                     ),
@@ -1193,16 +1173,17 @@ pub fn parse_toml_template_data(
                     source_path.clone(),
                     statement.state.with(|state| state.line),
                 )?;
-                let name: String = match {
-                    let operation_input_0_3 = path.clone();
-                    operation_input_0_3.get_number(rt::conversions::i32_to_f64(
-                        rt::conversions::usize_to_i32(path.len())? - 1,
-                    ))
-                }
-                .as_ref()
-                {
-                    Some(flow_value_3) => flow_value_3.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
+                let name: String = {
+                    let flow_input = {
+                        let operation_input_0_3 = path.clone();
+                        operation_input_0_3.get_number(rt::conversions::i32_to_f64(
+                            rt::conversions::usize_to_i32(path.len())? - 1,
+                        ))
+                    };
+                    match flow_input {
+                        Some(flow_value_3) => flow_value_3,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }
                 };
                 let existing: Option<crate::template::values::base::TemplateValue> = {
                     let dispatch_receiver = &parent;
@@ -1213,7 +1194,7 @@ pub fn parse_toml_template_data(
                 if existing.is_none() {
                     entries = crate::template::values::arrays::AnyArrayValue::new(
                         js_abi::JsArray::from_dense(vec![]),
-                    );
+                    )?;
                     {
                         let dispatch_receiver_2 = &parent;
                         dispatch_receiver_2.dispatch.read_dict_value_value()
@@ -1248,18 +1229,23 @@ pub fn parse_toml_template_data(
                         }
                     };
                 } else {
-                    return Err(rt::TsonicError::TsumoError(toml_error(
-                        format!(
-                            "{}{}{}",
-                            String::from("TOML array table '"),
-                            path.join("."),
-                            String::from("' conflicts with another value")
-                        ),
-                        source_path.clone(),
-                        statement.state.with(|state| state.line),
-                    )));
+                    return Err(rt::TsonicError::TsumoError(
+                        TOML_ERROR
+                            .with(|module_binding| module_binding.load())
+                            .call((
+                                format!(
+                                    "{}{}{}",
+                                    String::from("TOML array table '"),
+                                    path.join("."),
+                                    String::from("' conflicts with another value")
+                                ),
+                                source_path.clone(),
+                                statement.state.with(|state| state.line),
+                            ))?,
+                    ));
                 }
-                current_table = crate::template::values::dict::DictValue::new(js_abi::JsMap::new());
+                current_table =
+                    crate::template::values::dict::DictValue::new(js_abi::JsMap::new())?;
                 {
                     let dispatch_receiver_3 = &entries;
                     dispatch_receiver_3.dispatch.read_any_array_value_value()
@@ -1293,16 +1279,20 @@ pub fn parse_toml_template_data(
                 )?;
                 let identity: String = path.join(".");
                 if declared_tables.has(&identity) {
-                    return Err(rt::TsonicError::TsumoError(toml_error(
-                        format!(
-                            "{}{}{}",
-                            String::from("TOML table '"),
-                            identity,
-                            String::from("' is declared more than once")
-                        ),
-                        source_path.clone(),
-                        statement.state.with(|state| state.line),
-                    )));
+                    return Err(rt::TsonicError::TsumoError(
+                        TOML_ERROR
+                            .with(|module_binding| module_binding.load())
+                            .call((
+                                format!(
+                                    "{}{}{}",
+                                    String::from("TOML table '"),
+                                    identity,
+                                    String::from("' is declared more than once")
+                                ),
+                                source_path.clone(),
+                                statement.state.with(|state| state.line),
+                            ))?,
+                    ));
                 }
                 declared_tables.add_discard(identity.clone());
                 current_table = ensure_dictionary_path(
@@ -1315,7 +1305,7 @@ pub fn parse_toml_template_data(
                 continue 'loop_value;
             }
             let separator: i32 = assignment_separator(
-                raw.clone(),
+                &raw,
                 source_path.clone(),
                 statement.state.with(|state| state.line),
             )?;
@@ -1350,4 +1340,26 @@ pub fn parse_toml_template_data(
         }
     }
     Ok(root)
+}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = rt::Callable::<
+            (String, Option<String>, i32),
+            rt::TsonicResult<crate::diagnostics::TsumoError>,
+        >::new(move |callable_arguments| {
+            let message = callable_arguments.0;
+            let source_path = callable_arguments.1;
+            let line = callable_arguments.2;
+            crate::diagnostics::create_tsumo_error(
+                String::from("TSUMO_TEMPLATE_DATA_TOML_INVALID"),
+                message,
+                source_path,
+                Some(rt::conversions::i32_to_f64(line)),
+                Some(1.0),
+            )
+        });
+        TOML_ERROR.with(|module_binding| module_binding.initialize(module_value))
+    };
 }

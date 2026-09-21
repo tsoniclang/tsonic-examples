@@ -25,19 +25,24 @@ impl rt::ObjectIdentityCarrier for TemplateSegment {
 }
 
 impl TemplateSegment {
-    pub fn new(is_action: bool, text: String, line: i32, column: i32) -> TemplateSegment {
+    pub fn new(
+        is_action: bool,
+        text: String,
+        line: i32,
+        column: i32,
+    ) -> Result<TemplateSegment, rt::TsonicError> {
         let field_is_action: bool = is_action;
         let field_text: String = text;
         let field_line: i32 = line;
         let field_column: i32 = column;
-        TemplateSegment {
+        Ok(TemplateSegment {
             state: rt::ObjectRef::new(TemplateSegmentState {
                 is_action: field_is_action,
                 text: field_text,
                 line: field_line,
                 column: field_column,
             }),
-        }
+        })
     }
 }
 
@@ -60,15 +65,15 @@ impl rt::ObjectIdentityCarrier for TemplatePosition {
 }
 
 impl TemplatePosition {
-    pub fn new(line: i32, column: i32) -> TemplatePosition {
+    pub fn new(line: i32, column: i32) -> Result<TemplatePosition, rt::TsonicError> {
         let field_line: i32 = line;
         let field_column: i32 = column;
-        TemplatePosition {
+        Ok(TemplatePosition {
             state: rt::ObjectRef::new(TemplatePositionState {
                 line: field_line,
                 column: field_column,
             }),
-        }
+        })
     }
 }
 
@@ -83,11 +88,8 @@ pub fn position_at(
         let middle: i32 = rt::conversions::f64_to_i32(
             low as f64 + rt::conversions::i32_to_f64((high - low) / 2).floor(),
         )?;
-        if (match line_starts
-            .get_number(rt::conversions::i32_to_f64(middle))
-            .as_ref()
-        {
-            Some(flow_value) => *flow_value,
+        if (match line_starts.get_number(rt::conversions::i32_to_f64(middle)) {
+            Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
         }) <= offset
         {
@@ -97,26 +99,23 @@ pub fn position_at(
         }
     }
     let line_index: i32 = low - 1;
-    Ok(TemplatePosition::new(
+    TemplatePosition::new(
         line_index + 1,
         source.utf16_offset_at(offset)
             - source.utf16_offset_at(
-                match line_starts
-                    .get_number(rt::conversions::i32_to_f64(line_index))
-                    .as_ref()
-                {
-                    Some(flow_value_2) => *flow_value_2,
+                match line_starts.get_number(rt::conversions::i32_to_f64(line_index)) {
+                    Some(flow_value_2) => flow_value_2,
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
             )
             + 1,
-    ))
+    )
 }
 
 pub fn find_delimiter(
     source: crate::utils::indexed_source_text::IndexedSourceText,
-    first: String,
-    second: String,
+    first: &str,
+    second: &str,
     start: i32,
 ) -> i32 {
     {
@@ -131,8 +130,8 @@ pub fn find_delimiter(
     -1
 }
 
-pub fn parse_string_literal(token: String) -> Result<Option<String>, rt::TsonicError> {
-    crate::template::parser::string_literals::decode_template_string_literal(&token)
+pub fn parse_string_literal(token: &str) -> Result<Option<String>, rt::TsonicError> {
+    crate::template::parser::string_literals::decode_template_string_literal(token)
 }
 
 pub fn slice_tokens(
@@ -146,11 +145,8 @@ pub fn slice_tokens(
             {
                 let operation_input_0 = result.clone();
                 operation_input_0.push_many_discard([
-                    match tokens
-                        .get_number(rt::conversions::i32_to_f64(index))
-                        .as_ref()
-                    {
-                        Some(flow_value) => flow_value.clone(),
+                    match tokens.get_number(rt::conversions::i32_to_f64(index)) {
+                        Some(flow_value) => flow_value,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                 ])
@@ -183,8 +179,7 @@ pub fn scan_template_segments(
     let mut offset: i32 = 0;
     let mut last_segment: Option<TemplateSegment> = Option::<TemplateSegment>::None;
     'loop_value_2: while offset < source.state.with(|state| state.length) {
-        let start: i32 =
-            find_delimiter(source.clone(), String::from("{"), String::from("{"), offset);
+        let start: i32 = find_delimiter(source.clone(), "{", "{", offset);
         if start < 0 {
             let position: TemplatePosition =
                 position_at(source.clone(), line_starts.clone(), offset)?;
@@ -193,7 +188,7 @@ pub fn scan_template_segments(
                 source.slice(offset, source.state.with(|state| state.length)),
                 position.state.with(|state| state.line),
                 position.state.with(|state| state.column),
-            );
+            )?;
             segments.push_many_discard([segment.clone()]);
             break 'loop_value_2;
         }
@@ -205,17 +200,12 @@ pub fn scan_template_segments(
                 source.slice(offset, start),
                 position.state.with(|state| state.line),
                 position.state.with(|state| state.column),
-            );
+            )?;
             segments.push_many_discard([segment.clone()]);
             last_segment = Some(segment.clone());
         }
         let position: TemplatePosition = position_at(source.clone(), line_starts.clone(), start)?;
-        let end: i32 = find_delimiter(
-            source.clone(),
-            String::from("}"),
-            String::from("}"),
-            start + 2,
-        );
+        let end: i32 = find_delimiter(source.clone(), "}", "}", start + 2);
         if end < 0 {
             return Err(rt::TsonicError::TsumoError(
                 crate::diagnostics::create_tsumo_error(
@@ -228,7 +218,7 @@ pub fn scan_template_segments(
                     Some(rt::conversions::i32_to_f64(
                         position.state.with(|state| state.column),
                     )),
-                ),
+                )?,
             ));
         }
         let mut action: String = source.slice(start + 2, end);
@@ -284,7 +274,7 @@ pub fn scan_template_segments(
                 }
                 .state
                 .with(|state| state.column),
-            );
+            )?;
             segments.push_many_discard([trimmed.clone()]);
             {
                 #![expect(unused_assignments, reason = "checked source evaluation order")]
@@ -296,7 +286,7 @@ pub fn scan_template_segments(
             action.clone(),
             position.state.with(|state| state.line),
             position.state.with(|state| state.column),
-        );
+        )?;
         segments.push_many_discard([action_segment.clone()]);
         last_segment = Some(action_segment.clone());
         offset = end + 2;
@@ -410,7 +400,7 @@ pub fn tokenize_template_action(
                         source_path.clone(),
                         line.map(rt::conversions::i32_to_f64),
                         column.map(rt::conversions::i32_to_f64),
-                    ),
+                    )?,
                 ));
             }
             offset += 1;

@@ -23,15 +23,15 @@ impl rt::ObjectIdentityCarrier for ProtectedShortcode {
 }
 
 impl ProtectedShortcode {
-    pub fn new(marker: String, output: String) -> ProtectedShortcode {
+    pub fn new(marker: String, output: String) -> Result<ProtectedShortcode, rt::TsonicError> {
         let field_marker: String = marker;
         let field_output: String = output;
-        ProtectedShortcode {
+        Ok(ProtectedShortcode {
             state: rt::ObjectRef::new(ProtectedShortcodeState {
                 marker: field_marker,
                 output: field_output,
             }),
-        }
+        })
     }
 }
 
@@ -57,15 +57,15 @@ impl ProtectedShortcodeSource {
     pub fn new(
         source: String,
         replacements: js_abi::JsArray<ProtectedShortcode>,
-    ) -> ProtectedShortcodeSource {
+    ) -> Result<ProtectedShortcodeSource, rt::TsonicError> {
         let field_source: String = source;
         let field_replacements: js_abi::JsArray<ProtectedShortcode> = replacements;
-        ProtectedShortcodeSource {
+        Ok(ProtectedShortcodeSource {
             state: rt::ObjectRef::new(ProtectedShortcodeSourceState {
                 source: field_source,
                 replacements: field_replacements,
             }),
-        }
+        })
     }
 }
 
@@ -86,8 +86,8 @@ pub fn protect_standard_shortcodes(
                 let operation_input_0 = outputs.clone();
                 operation_input_0.push_many_discard([
                     crate::markdown::shortcodes::render_shortcode(
-                        match calls.get_number(i).as_ref() {
-                            Some(flow_value) => flow_value.clone(),
+                        match calls.get_number(i) {
+                            Some(flow_value) => flow_value,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                         page.clone(),
@@ -122,8 +122,8 @@ pub fn protect_standard_shortcodes(
             while i < (rt::conversions::usize_to_i32(outputs.len())? as f64) && !marker_prefix_taken
             {
                 marker_prefix_taken = {
-                    let operation_input_0_3 = match outputs.get_number(i).as_ref() {
-                        Some(flow_value_2) => flow_value_2.clone(),
+                    let operation_input_0_3 = match outputs.get_number(i) {
+                        Some(flow_value_2) => flow_value_2,
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     js_string::includes_from_start(
@@ -158,36 +158,33 @@ pub fn protect_standard_shortcodes(
                         rt::source_string(&i),
                         String::from("-->")
                     ),
-                    match outputs.get_number(i).as_ref() {
-                        Some(flow_value_3) => flow_value_3.clone(),
+                    match outputs.get_number(i) {
+                        Some(flow_value_3) => flow_value_3,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
-                )])
+                )?])
             };
             i += 1.0;
         }
     }
-    let mut source: String = text.clone();
+    let mut source: String = text;
     {
         let mut i: i32 = rt::conversions::usize_to_i32(calls.len())? - 1;
         while i >= 0 {
             let call: crate::shortcode::ShortcodeCall =
-                match calls.get_number(rt::conversions::i32_to_f64(i)).as_ref() {
-                    Some(flow_value_4) => flow_value_4.clone(),
+                match calls.get_number(rt::conversions::i32_to_f64(i)) {
+                    Some(flow_value_4) => flow_value_4,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
             source = format!(
                 "{}{}{}",
                 crate::utils::strings::substring_count(
-                    source.clone(),
+                    &source,
                     0,
                     call.state.with(|state| state.start_index)
                 )?,
-                match replacements
-                    .get_number(rt::conversions::i32_to_f64(i))
-                    .as_ref()
-                {
-                    Some(flow_value_5) => flow_value_5.clone(),
+                match replacements.get_number(rt::conversions::i32_to_f64(i)) {
+                    Some(flow_value_5) => flow_value_5,
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
                 .state
@@ -200,10 +197,7 @@ pub fn protect_standard_shortcodes(
             i -= 1;
         }
     }
-    Ok(ProtectedShortcodeSource::new(
-        source.clone(),
-        replacements.clone(),
-    ))
+    ProtectedShortcodeSource::new(source, replacements.clone())
 }
 
 pub fn restore_standard_shortcodes(
@@ -214,8 +208,8 @@ pub fn restore_standard_shortcodes(
     {
         let mut i: f64 = 0.0;
         while i < (rt::conversions::usize_to_i32(replacements.len())? as f64) {
-            let replacement: ProtectedShortcode = match replacements.get_number(i).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let replacement: ProtectedShortcode = match replacements.get_number(i) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             result = {
@@ -234,15 +228,15 @@ pub fn restore_standard_shortcodes(
 }
 
 pub fn render_markdown_with_shortcodes(
-    markdown_raw: String,
+    markdown_raw: &str,
     page: crate::models::page_context::PageContext,
     site: crate::models::site_context::SiteContext,
     env: crate::template::environment::TemplateEnvironment,
 ) -> Result<crate::markdown::result::MarkdownResult, rt::TsonicError> {
     let markdown: String =
-        crate::utils::strings::replace_line_endings(&markdown_raw, String::from("\n"))?;
+        crate::utils::strings::replace_line_endings(markdown_raw, String::from("\n"))?;
     let ordinal_tracker: crate::markdown::shortcodes::ShortcodeOrdinalTracker =
-        crate::markdown::shortcodes::create_ordinal_tracker();
+        crate::markdown::shortcodes::create_ordinal_tracker()?;
     let recursion_guard: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
     let calls: js_abi::JsArray<crate::shortcode::ShortcodeCall> =
         crate::shortcode::parse_shortcodes(
@@ -263,8 +257,8 @@ pub fn render_markdown_with_shortcodes(
     {
         let mut i: f64 = 0.0;
         while i < (rt::conversions::usize_to_i32(calls.len())? as f64) {
-            let call: crate::shortcode::ShortcodeCall = match calls.get_number(i).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let call: crate::shortcode::ShortcodeCall = match calls.get_number(i) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if call.state.with(|state| state.is_markdown) {
@@ -274,18 +268,16 @@ pub fn render_markdown_with_shortcodes(
         }
     }
     if rt::conversions::usize_to_i32(md_calls.len())? > 0 {
-        text_after_markdown_shortcodes = crate::markdown::shortcodes::PROCESS_SHORTCODE_CALLS
-            .with(|module_binding| module_binding.load())
-            .call((
-                markdown.clone(),
-                md_calls.clone(),
-                page.clone(),
-                site.clone(),
-                env.clone(),
-                ordinal_tracker.clone(),
-                Option::<crate::template::contexts::ShortcodeContext>::None,
-                recursion_guard.clone(),
-            ))?;
+        text_after_markdown_shortcodes = crate::markdown::shortcodes::process_shortcode_calls(
+            markdown.clone(),
+            md_calls.clone(),
+            page.clone(),
+            site.clone(),
+            env.clone(),
+            ordinal_tracker.clone(),
+            Option::<crate::template::contexts::ShortcodeContext>::None,
+            recursion_guard.clone(),
+        )?;
     }
     let parsed_standard_calls: js_abi::JsArray<crate::shortcode::ShortcodeCall> =
         if rt::conversions::usize_to_i32(md_calls.len())? == 0 {
@@ -309,11 +301,10 @@ pub fn render_markdown_with_shortcodes(
     {
         let mut i: f64 = 0.0;
         while i < (rt::conversions::usize_to_i32(parsed_standard_calls.len())? as f64) {
-            let call: crate::shortcode::ShortcodeCall =
-                match parsed_standard_calls.get_number(i).as_ref() {
-                    Some(flow_value_2) => flow_value_2.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                };
+            let call: crate::shortcode::ShortcodeCall = match parsed_standard_calls.get_number(i) {
+                Some(flow_value_2) => flow_value_2,
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
             if !call.state.with(|state| state.is_markdown) {
                 standard_calls.push_many_discard([call.clone()]);
             }
@@ -321,7 +312,7 @@ pub fn render_markdown_with_shortcodes(
         }
     }
     let protected_standard: ProtectedShortcodeSource = protect_standard_shortcodes(
-        text_after_markdown_shortcodes.clone(),
+        text_after_markdown_shortcodes,
         standard_calls.clone(),
         page.clone(),
         site.clone(),
@@ -366,30 +357,29 @@ pub fn render_markdown_with_shortcodes(
         full_document.render()
     };
     let plain_text: String = full_document.plain_text();
-    let mut summary_html: String;
-    if source_plan
+    let mut summary_html: String = if source_plan
         .state
         .with(|state| state.summary_source.clone())
         .is_empty()
     {
-        summary_html = String::from("");
+        String::from("")
     } else if source_plan.state.with(|state| state.summary_source.clone())
         == source_plan.state.with(|state| state.full_source.clone())
     {
-        summary_html = js_string::trim(&html);
+        js_string::trim(&html)
     } else if has_hooks {
-        summary_html = js_string::trim(&crate::markdown::render_hooks::render_markdown_with_hooks(
+        js_string::trim(&crate::markdown::render_hooks::render_markdown_with_hooks(
             source_plan.state.with(|state| state.summary_source.clone()),
             hook_ctx.clone(),
-        )?);
+        )?)
     } else {
-        summary_html = js_string::trim(
+        js_string::trim(
             &crate::markdown::platform::create_markdown_document(
                 source_plan.state.with(|state| state.summary_source.clone()),
             )
             .render(),
-        );
-    }
+        )
+    };
     html = restore_standard_shortcodes(
         html.clone(),
         protected_standard
@@ -402,10 +392,5 @@ pub fn render_markdown_with_shortcodes(
             .state
             .with(|state| state.replacements.clone()),
     )?;
-    Ok(crate::markdown::result::MarkdownResult::new(
-        html.clone(),
-        summary_html.clone(),
-        plain_text,
-        toc,
-    ))
+    crate::markdown::result::MarkdownResult::new(html, summary_html, plain_text, toc)
 }

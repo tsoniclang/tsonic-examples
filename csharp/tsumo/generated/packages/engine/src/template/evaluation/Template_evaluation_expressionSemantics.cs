@@ -66,8 +66,8 @@ namespace Tsumo.Engine
                     TemplateValue value = scope.getVar(name) ?? Template_runtimeHelpers.nil;
                     if (segs_2.length > 1)
                     {
-                        Tsonic.CSharp.Js.JSArray<string> rem = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
-                        for (int i = 1; i < segs_2.length; i++)
+                        Tsonic.CSharp.Js.JSArray<string> rem = Tsonic.CSharp.Js.JSArray<string>.of([]);
+                        for (double i = 1; i < segs_2.length; i++)
                         {
                             rem.push(segs_2[i]);
                         }
@@ -152,7 +152,7 @@ namespace Tsumo.Engine
             callMethod = (TemplateValue receiver, string methodName, Tsonic.CSharp.Js.JSArray<TemplateValue> args, RenderScope scope, TemplateEnvironment env, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> overrides, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> defines) =>
             {
                 string method = Tsonic.CSharp.Js.String.toLowerCase(methodName);
-                if (receiver is ResourceNamespaceValue)
+                if ((object?)receiver is ResourceNamespaceValue)
                 {
                     TemplateValue? result = Template_functions_resourceFunctions.callResourceFunction($"resources.{method}", args, new TemplateFunctionContext(scope, env, overrides, defines));
                     if (result is not null)
@@ -160,7 +160,7 @@ namespace Tsumo.Engine
                         return result;
                     }
                 }
-                if (receiver is ScratchValue)
+                if ((object?)receiver is ScratchValue)
                 {
                     ScratchStore store = ((ScratchValue)receiver).value;
                     if (method == "get" && args.length >= 1)
@@ -198,7 +198,7 @@ namespace Tsumo.Engine
                 {
                     return dateResult;
                 }
-                if (receiver is PageResourcesValue)
+                if ((object?)receiver is PageResourcesValue)
                 {
                     PageResourcesValue pageResources = (PageResourcesValue)receiver;
                     TemplateValue? result_1 = Template_evaluation_pageResourceSemantics.callPageResourcesMethod(pageResources, method, args);
@@ -207,7 +207,7 @@ namespace Tsumo.Engine
                         return result_1;
                     }
                 }
-                if (receiver is PageResourceCollectionValue)
+                if ((object?)receiver is PageResourceCollectionValue)
                 {
                     PageResourceCollectionValue pageResources_1 = (PageResourceCollectionValue)receiver;
                     TemplateValue? result_2 = Template_evaluation_pageResourceSemantics.callPageResourceCollectionMethod(pageResources_1, method, args);
@@ -216,17 +216,17 @@ namespace Tsumo.Engine
                         return result_2;
                     }
                 }
-                if (receiver is AnyArrayValue)
+                if ((object?)receiver is AnyArrayValue)
                 {
                     Tsonic.CSharp.Js.JSArray<TemplateValue> arr = ((AnyArrayValue)receiver).value;
                     if (method == "getmatch" && args.length >= 1)
                     {
                         string pattern = Template_runtimeHelpers.toPlainString(args[0]);
                         Tsonic.CSharp.Js.JSArray<TemplateValue> items = arr;
-                        for (int i = 0; i < items.length; i++)
+                        for (double i = 0; i < items.length; i++)
                         {
                             TemplateValue item = items[i];
-                            if (item is ResourceValue)
+                            if ((object?)item is ResourceValue)
                             {
                                 Resource res = ((ResourceValue)item).value;
                                 string name = res.outputRelPath ?? res.id;
@@ -241,12 +241,12 @@ namespace Tsumo.Engine
                     if (method == "match" && args.length >= 1)
                     {
                         string pattern_1 = Template_runtimeHelpers.toPlainString(args[0]);
-                        Tsonic.CSharp.Js.JSArray<TemplateValue> matchResult = new Tsonic.CSharp.Js.JSArray<TemplateValue>(new TemplateValue[] { });
+                        Tsonic.CSharp.Js.JSArray<TemplateValue> matchResult = Tsonic.CSharp.Js.JSArray<TemplateValue>.of([]);
                         Tsonic.CSharp.Js.JSArray<TemplateValue> items_1 = arr;
-                        for (int i_1 = 0; i_1 < items_1.length; i_1++)
+                        for (double i_1 = 0; i_1 < items_1.length; i_1++)
                         {
                             TemplateValue item_1 = items_1[i_1];
-                            if (item_1 is ResourceValue)
+                            if ((object?)item_1 is ResourceValue)
                             {
                                 Resource res_1 = ((ResourceValue)item_1).value;
                                 string name_1 = res_1.outputRelPath ?? res_1.id;
@@ -261,12 +261,12 @@ namespace Tsumo.Engine
                     if (method == "bytype" && args.length >= 1)
                     {
                         string targetType = Tsonic.CSharp.Js.String.toLowerCase(Template_runtimeHelpers.toPlainString(args[0]));
-                        Tsonic.CSharp.Js.JSArray<TemplateValue> byTypeResult = new Tsonic.CSharp.Js.JSArray<TemplateValue>(new TemplateValue[] { });
+                        Tsonic.CSharp.Js.JSArray<TemplateValue> byTypeResult = Tsonic.CSharp.Js.JSArray<TemplateValue>.of([]);
                         Tsonic.CSharp.Js.JSArray<TemplateValue> byTypeItems = arr;
-                        for (int i_2 = 0; i_2 < byTypeItems.length; i_2++)
+                        for (double i_2 = 0; i_2 < byTypeItems.length; i_2++)
                         {
                             TemplateValue item_2 = byTypeItems[i_2];
-                            if (item_2 is ResourceValue)
+                            if ((object?)item_2 is ResourceValue)
                             {
                                 Resource res_2 = ((ResourceValue)item_2).value;
                                 int separator = Tsonic.CSharp.Js.String.indexOf(res_2.mediaType, "/");
@@ -282,14 +282,14 @@ namespace Tsumo.Engine
                     if ((method == "next" || method == "prev") && args.length >= 1)
                     {
                         TemplateValue target = args[0];
-                        if (target is PageValue)
+                        if ((object?)target is PageValue)
                         {
                             PageContext targetPage = ((PageValue)target).value;
                             int selectedIndex = -1;
                             for (int index = 0; index < arr.length; index++)
                             {
                                 TemplateValue current = arr[index];
-                                if (current is PageValue && object.ReferenceEquals(((PageValue)current).value, targetPage))
+                                if ((object?)current is PageValue && object.ReferenceEquals(((PageValue)current).value, targetPage))
                                 {
                                     selectedIndex = index;
                                     break;
@@ -308,7 +308,7 @@ namespace Tsumo.Engine
                         }
                     }
                 }
-                if (receiver is PageArrayValue)
+                if ((object?)receiver is PageArrayValue)
                 {
                     TemplateValue? result_3 = Template_evaluation_pageSemantics.callPageCollectionMethod((PageArrayValue)receiver, method, args);
                     if (result_3 is not null)
@@ -316,7 +316,7 @@ namespace Tsumo.Engine
                         return result_3;
                     }
                 }
-                if (receiver is SiteValue)
+                if ((object?)receiver is SiteValue)
                 {
                     SiteContext site = ((SiteValue)receiver).value;
                     if (method == "param" && args.length >= 1)
@@ -330,7 +330,7 @@ namespace Tsumo.Engine
                         return page is not null ? new PageValue(page) : Template_runtimeHelpers.nil;
                     }
                 }
-                if (receiver is PageValue)
+                if ((object?)receiver is PageValue)
                 {
                     PageContext page_1 = ((PageValue)receiver).value;
                     if (method == "getterms" && args.length >= 1)
@@ -376,12 +376,12 @@ namespace Tsumo.Engine
                     if (method == "isancestor" && args.length >= 1)
                     {
                         TemplateValue otherValue = args[0];
-                        if (!(otherValue is PageValue))
+                        if (!((object?)otherValue is PageValue))
                         {
                             return new BoolValue(false);
                         }
                         PageContext other = ((PageValue)otherValue).value;
-                        for (int index_1 = 0; index_1 < other.ancestors.length; index_1++)
+                        for (double index_1 = 0; index_1 < other.ancestors.length; index_1++)
                         {
                             if (object.ReferenceEquals(other.ancestors[index_1], page_1))
                             {
@@ -395,7 +395,7 @@ namespace Tsumo.Engine
                     if ((method == "ismenucurrent" || method == "hasmenucurrent") && args.length >= 2)
                     {
                         TemplateValue entryValue = args[1];
-                        if (!(entryValue is MenuEntryValue))
+                        if (!((object?)entryValue is MenuEntryValue))
                         {
                             return new BoolValue(false);
                         }
@@ -407,13 +407,13 @@ namespace Tsumo.Engine
                         return new BoolValue(method == "ismenucurrent" ? Template_evaluation_menuSemantics.isMenuCurrent(page_1, menuName, ((MenuEntryValue)entryValue).value) : Template_evaluation_menuSemantics.hasMenuCurrent(page_1, menuName, ((MenuEntryValue)entryValue).value));
                     }
                 }
-                if (receiver is OutputFormatsValue)
+                if ((object?)receiver is OutputFormatsValue)
                 {
                     if (method == "get" && args.length >= 1)
                     {
                         string formatName = Tsonic.CSharp.Js.String.toLowerCase(Template_runtimeHelpers.toPlainString(args[0]));
                         Tsonic.CSharp.Js.JSArray<OutputFormat> formats = ((OutputFormatsValue)receiver).site.getOutputFormats();
-                        for (int index_2 = 0; index_2 < formats.length; index_2++)
+                        for (double index_2 = 0; index_2 < formats.length; index_2++)
                         {
                             OutputFormat format = formats[index_2];
                             if (Tsonic.CSharp.Js.String.toLowerCase(format.Rel) == formatName || formatName == "rss")
@@ -424,7 +424,7 @@ namespace Tsumo.Engine
                         return Template_runtimeHelpers.nil;
                     }
                 }
-                if (receiver is ShortcodeValue)
+                if ((object?)receiver is ShortcodeValue)
                 {
                     if (method == "get" && args.length >= 1)
                     {
@@ -444,7 +444,7 @@ namespace Tsumo.Engine
                         return new StringValue(parameter.stringValue);
                     }
                 }
-                if (receiver is UrlQueryValue)
+                if ((object?)receiver is UrlQueryValue)
                 {
                     if (method == "get" && args.length >= 1)
                     {
@@ -452,7 +452,7 @@ namespace Tsumo.Engine
                         return selected_2 is null ? Template_runtimeHelpers.nil : new StringValue(selected_2);
                     }
                 }
-                if (receiver is ResourceValue)
+                if ((object?)receiver is ResourceValue)
                 {
                     if (method == "resize" && args.length >= 1)
                     {

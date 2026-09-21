@@ -4,13 +4,22 @@ use crate::program as rt;
 
 #[doc(hidden)]
 pub trait MediaTypeValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_media_type_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_media_type_value_to_media_type_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn MediaTypeValueDispatch + 'static>> {
         None
     }
     fn read_media_type_value_value(&self) -> crate::models::media_type::MediaType;
-    fn write_media_type_value_value(&self, value: crate::models::media_type::MediaType);
+    fn write_media_type_value_value(
+        &self,
+        value: crate::models::media_type::MediaType,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -49,33 +58,36 @@ impl rt::ObjectIdentityCarrier for MediaTypeValue {
 }
 
 pub(crate) struct MediaTypeValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<MediaTypeValueState>,
+    state: rt::ObjectState<MediaTypeValueState>,
 }
 
 impl MediaTypeValue {
     #[doc(hidden)]
-    pub fn initialize_state(value: crate::models::media_type::MediaType) -> MediaTypeValueState {
+    pub fn initialize_state(
+        value: crate::models::media_type::MediaType,
+    ) -> Result<MediaTypeValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: crate::models::media_type::MediaType = value;
-        MediaTypeValueState {
+        Ok(MediaTypeValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: crate::models::media_type::MediaType) -> MediaTypeValue {
-        let state = MediaTypeValue::initialize_state(value);
+    pub fn new(
+        value: crate::models::media_type::MediaType,
+    ) -> Result<MediaTypeValue, rt::TsonicError> {
+        let state = MediaTypeValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(MediaTypeValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        MediaTypeValue {
+        Ok(MediaTypeValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -95,6 +107,13 @@ impl crate::template::values::base::TemplateValueDispatch for MediaTypeValueRoot
 }
 
 impl MediaTypeValueDispatch for MediaTypeValueRoot {
+    fn downcast_media_type_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_media_type_value_to_media_type_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn MediaTypeValueDispatch + 'static>> {
@@ -105,7 +124,16 @@ impl MediaTypeValueDispatch for MediaTypeValueRoot {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_media_type_value_value(&self, value: crate::models::media_type::MediaType) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_media_type_value_value(
+        &self,
+        value: crate::models::media_type::MediaType,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

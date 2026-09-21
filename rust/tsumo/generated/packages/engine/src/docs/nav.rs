@@ -33,8 +33,8 @@ pub fn normalize_relative_path(
         {
             let mut i: f64 = 0.0;
             while i < (rt::conversions::usize_to_i32(base_parts.len())? as f64) {
-                let seg: String = js_string::trim(&match base_parts.get_number(i).as_ref() {
-                    Some(flow_value) => flow_value.clone(),
+                let seg: String = js_string::trim(&match base_parts.get_number(i) {
+                    Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 });
                 if !seg.is_empty() {
@@ -49,8 +49,8 @@ pub fn normalize_relative_path(
     {
         let mut i: f64 = 0.0;
         'loop_value_2: while i < (rt::conversions::usize_to_i32(parts.len())? as f64) {
-            let raw: String = match parts.get_number(i).as_ref() {
-                Some(flow_value_2) => flow_value_2.clone(),
+            let raw: String = match parts.get_number(i) {
+                Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let seg: String = js_string::trim(&raw);
@@ -74,8 +74,8 @@ pub fn normalize_relative_path(
     if rt::conversions::usize_to_i32(arr.len())? == 0 {
         return Ok(Some(String::from("")));
     }
-    let mut out: String = match arr.get_number(0.0).as_ref() {
-        Some(flow_value_3) => flow_value_3.clone(),
+    let mut out: String = match arr.get_number(0.0) {
+        Some(flow_value_3) => flow_value_3,
         None => unreachable!("checked flow selected a missing optional value"),
     };
     for i_range in 1..rt::conversions::usize_to_i32(arr.len())? {
@@ -83,8 +83,8 @@ pub fn normalize_relative_path(
         out.push_str(&format!(
             "{}{}",
             String::from("/"),
-            match arr.get_number(i).as_ref() {
-                Some(flow_value_4) => flow_value_4.clone(),
+            match arr.get_number(i) {
+                Some(flow_value_4) => flow_value_4,
                 None => unreachable!("checked flow selected a missing optional value"),
             }
         ));
@@ -134,7 +134,7 @@ pub fn compute_git_hub_blob_url(
         }
     };
     let rel: String =
-        crate::utils::strings::trim_start_char(&js_string::trim(repo_rel_path), slash.clone())?;
+        crate::utils::strings::trim_start_char(js_string::trim(repo_rel_path), slash)?;
     if rel.is_empty() {
         return Ok(Option::<String>::None);
     }
@@ -195,7 +195,7 @@ pub fn resolve_markdown_nav_link(
     {
         repo_path = crate::utils::strings::trim_end_char(
             crate::utils::strings::trim_start_char(
-                &js_string::trim(&match repo_path_raw.as_ref() {
+                js_string::trim(&match repo_path_raw.as_ref() {
                     Some(flow_value_2) => flow_value_2.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 }),
@@ -209,7 +209,7 @@ pub fn resolve_markdown_nav_link(
     let mut resolved_rel: Option<String> = Option::<String>::None;
     if js_string::starts_with_from_start(&path_part, "/") {
         resolved_rel = Some(crate::utils::strings::trim_start_char(
-            &path_part,
+            path_part.clone(),
             slash.clone(),
         )?);
     } else {
@@ -322,26 +322,26 @@ impl rt::ObjectIdentityCarrier for InlineLink {
 }
 
 impl InlineLink {
-    pub fn new(title: String, target: String) -> InlineLink {
+    pub fn new(title: String, target: String) -> Result<InlineLink, rt::TsonicError> {
         let field_title: String = title;
         let field_target: String = target;
-        InlineLink {
+        Ok(InlineLink {
             state: rt::ObjectRef::new(InlineLinkState {
                 title: field_title,
                 target: field_target,
             }),
-        }
+        })
     }
 }
 
-pub fn parse_inline_markdown_link(line: String) -> Result<Option<InlineLink>, rt::TsonicError> {
-    let open: i32 = rt::conversions::isize_to_i32(js_string::index_of_from_start(&line, "["))?;
-    let mid: i32 = rt::conversions::isize_to_i32(js_string::index_of_from_start(&line, "]("))?;
+pub fn parse_inline_markdown_link(line: &str) -> Result<Option<InlineLink>, rt::TsonicError> {
+    let open: i32 = rt::conversions::isize_to_i32(js_string::index_of_from_start(line, "["))?;
+    let mid: i32 = rt::conversions::isize_to_i32(js_string::index_of_from_start(line, "]("))?;
     if open < 0 || mid < 0 || mid <= open {
         return Ok(Option::<InlineLink>::None);
     }
     let close: i32 = rt::conversions::isize_to_i32(js_string::index_of(
-        &line,
+        line,
         ")",
         rt::conversions::i32_to_f64(mid + 2),
     ))?;
@@ -349,19 +349,19 @@ pub fn parse_inline_markdown_link(line: String) -> Result<Option<InlineLink>, rt
         return Ok(Option::<InlineLink>::None);
     }
     let title: String = js_string::trim(&crate::utils::strings::substring_count(
-        line.clone(),
+        line,
         open + 1,
         mid - (open + 1),
     )?);
     let target: String = js_string::trim(&crate::utils::strings::substring_count(
-        line.clone(),
+        line,
         mid + 2,
         close - (mid + 2),
     )?);
     if title.is_empty() || target.is_empty() {
         return Ok(Option::<InlineLink>::None);
     }
-    Ok(Some(InlineLink::new(title.clone(), target.clone())))
+    Ok(Some(InlineLink::new(title, target)?))
 }
 
 #[doc(hidden)]
@@ -384,30 +384,30 @@ impl rt::ObjectIdentityCarrier for NavGroupBuild {
 }
 
 impl NavGroupBuild {
-    pub fn new(title: String, order: i32) -> NavGroupBuild {
+    pub fn new(title: String, order: i32) -> Result<NavGroupBuild, rt::TsonicError> {
         let field_title: String = title;
         let field_order: i32 = order;
         let empty: js_abi::JsArray<crate::docs::models::NavItem> =
             js_abi::JsArray::from_dense(vec![]);
         let field_children: js_abi::JsArray<crate::docs::models::NavItem> = empty;
-        NavGroupBuild {
+        Ok(NavGroupBuild {
             state: rt::ObjectRef::new(NavGroupBuildState {
                 title: field_title,
                 order: field_order,
                 children: field_children,
             }),
-        }
+        })
     }
 }
 
 pub fn parse_toc_markdown(
     mount: crate::docs::models::DocsMountConfig,
-    markdown: String,
+    markdown: &str,
     nav_dir_key: String,
     routes_by_rel_path_lower: js_abi::JsMap<String, String>,
 ) -> Result<js_abi::JsArray<crate::docs::models::NavItem>, rt::TsonicError> {
     let lines: js_abi::JsArray<String> = js_string::split_all(
-        &crate::utils::strings::replace_line_endings(&markdown, String::from("\n"))?,
+        &crate::utils::strings::replace_line_endings(markdown, String::from("\n"))?,
         "\n",
     )?;
     let mut in_toc: bool = false;
@@ -419,8 +419,8 @@ pub fn parse_toc_markdown(
     {
         let mut i: f64 = 0.0;
         'loop_value: while i < (rt::conversions::usize_to_i32(lines.len())? as f64) {
-            let raw: String = match lines.get_number(i).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let raw: String = match lines.get_number(i) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let line: String = js_string::trim(&raw);
@@ -443,7 +443,7 @@ pub fn parse_toc_markdown(
                 let title: String =
                     js_string::trim(&crate::utils::strings::substring_from(&line, 4)?);
                 if !title.is_empty() {
-                    current_group = Some(NavGroupBuild::new(title.clone(), order));
+                    current_group = Some(NavGroupBuild::new(title.clone(), order)?);
                     groups.push_many_discard([match current_group.as_ref() {
                         Some(flow_value_2) => flow_value_2.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
@@ -453,7 +453,7 @@ pub fn parse_toc_markdown(
                 i += 1.0;
                 continue 'loop_value;
             }
-            let parsed: Option<InlineLink> = parse_inline_markdown_link(line.clone())?;
+            let parsed: Option<InlineLink> = parse_inline_markdown_link(&line)?;
             if parsed.is_none() {
                 i += 1.0;
                 continue 'loop_value;
@@ -490,7 +490,7 @@ pub fn parse_toc_markdown(
                 false,
                 false,
                 order,
-            );
+            )?;
             order += 1;
             if current_group.is_some() {
                 match current_group.as_ref() {
@@ -511,8 +511,8 @@ pub fn parse_toc_markdown(
     {
         let mut i: f64 = 0.0;
         while i < (rt::conversions::usize_to_i32(group_arr.len())? as f64) {
-            let g: NavGroupBuild = match group_arr.get_number(i).as_ref() {
-                Some(flow_value_7) => flow_value_7.clone(),
+            let g: NavGroupBuild = match group_arr.get_number(i) {
+                Some(flow_value_7) => flow_value_7,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let group_item: crate::docs::models::NavItem = crate::docs::models::NavItem::new(
@@ -522,7 +522,7 @@ pub fn parse_toc_markdown(
                 true,
                 false,
                 g.state.with(|state| state.order),
-            );
+            )?;
             out.push_many_discard([group_item.clone()]);
             i += 1.0;
         }
@@ -533,8 +533,8 @@ pub fn parse_toc_markdown(
         while i < (rt::conversions::usize_to_i32(root_arr.len())? as f64) {
             {
                 let operation_input_0 = out.clone();
-                operation_input_0.push_many_discard([match root_arr.get_number(i).as_ref() {
-                    Some(flow_value_8) => flow_value_8.clone(),
+                operation_input_0.push_many_discard([match root_arr.get_number(i) {
+                    Some(flow_value_8) => flow_value_8,
                     None => unreachable!("checked flow selected a missing optional value"),
                 }])
             };
@@ -646,9 +646,8 @@ pub fn parse_nav_json_items(
                 dispatch_receiver_2.dispatch.read_json_array_items()
             }
             .get_number(item_index)
-            .as_ref()
             {
-                Some(flow_value) => flow_value.clone(),
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if current
@@ -855,7 +854,7 @@ pub fn parse_nav_json_items(
                     rt::conversions::usize_to_i32(children.len())? > 0,
                     false,
                     order,
-                )])
+                )?])
             };
             order += 1;
             item_index += 1.0;
@@ -868,8 +867,8 @@ pub fn join_url_path(parts: js_abi::JsArray<String>) -> Result<String, rt::Tsoni
     if rt::conversions::usize_to_i32(parts.len())? == 0 {
         return Ok(String::from(""));
     }
-    let mut out: String = match parts.get_number(0.0).as_ref() {
-        Some(flow_value) => flow_value.clone(),
+    let mut out: String = match parts.get_number(0.0) {
+        Some(flow_value) => flow_value,
         None => unreachable!("checked flow selected a missing optional value"),
     };
     for i_range in 1..rt::conversions::usize_to_i32(parts.len())? {
@@ -877,8 +876,8 @@ pub fn join_url_path(parts: js_abi::JsArray<String>) -> Result<String, rt::Tsoni
         out.push_str(&format!(
             "{}{}",
             String::from("/"),
-            match parts.get_number(i).as_ref() {
-                Some(flow_value_2) => flow_value_2.clone(),
+            match parts.get_number(i) {
+                Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             }
         ));
@@ -950,7 +949,7 @@ pub fn load_mount_nav(
                 Some(nav_file.clone()),
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     let parts: js_abi::JsArray<String> = js_string::split_all(&rel, "/")?;
@@ -960,8 +959,8 @@ pub fn load_mount_nav(
         while i < ((rt::conversions::usize_to_i32(parts.len())? - 1) as f64) {
             {
                 let operation_input_0 = dir_parts.clone();
-                operation_input_0.push_many_discard([match parts.get_number(i).as_ref() {
-                    Some(flow_value_3) => flow_value_3.clone(),
+                operation_input_0.push_many_discard([match parts.get_number(i) {
+                    Some(flow_value_3) => flow_value_3,
                     None => unreachable!("checked flow selected a missing optional value"),
                 }])
             };
@@ -980,8 +979,8 @@ pub fn load_mount_nav(
     }
     parse_toc_markdown(
         mount.clone(),
-        text.clone(),
-        nav_dir_key.clone(),
+        &text,
+        nav_dir_key,
         routes_by_rel_path_lower.clone(),
     )
 }

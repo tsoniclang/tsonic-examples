@@ -34,7 +34,7 @@ pub fn new_content(
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     let with_ext: String = if js_string::ends_with_at_end(&js_string::to_lower_case(&rel), ".md") {
@@ -57,7 +57,7 @@ pub fn new_content(
                 Some(dest.clone()),
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     if crate::fs::file_exists(dest.clone())? {
@@ -68,7 +68,7 @@ pub fn new_content(
                 Some(dest.clone()),
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     let archetype_path: String =
@@ -89,20 +89,20 @@ pub fn new_content(
         ".md",
     ) {
         crate::utils::strings::substring_count(
-            file_name.clone(),
+            &file_name,
             0,
             rt::conversions::usize_to_i32(js_string::js_len(&file_name))? - 3,
         )?
     } else {
         file_name.clone()
     })?;
-    let title: String = crate::utils::text::humanize_slug(slug)?;
+    let title: String = crate::utils::text::humanize_slug(&slug)?;
     let date: String =
         rt::option_coalesce(creation_time, core::convert::identity, js_abi::JsDate::new)
             .to_iso_string()?;
     let mut content: String = template;
     content = crate::utils::strings::replace_text(&content, String::from("{{ .Title }}"), title)?;
     content = crate::utils::strings::replace_text(&content, String::from("{{ .Date }}"), date)?;
-    crate::fs::write_text_file(dest.clone(), content.clone())?;
+    crate::fs::write_text_file(dest.clone(), content)?;
     Ok(dest)
 }

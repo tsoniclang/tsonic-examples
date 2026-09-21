@@ -24,14 +24,14 @@ impl LoadedConfig {
     pub fn new(
         path: Option<String>,
         config: crate::models::site_config::SiteConfig,
-    ) -> LoadedConfig {
+    ) -> Result<LoadedConfig, rt::TsonicError> {
         let field_path: Option<String> = path;
         let field_config: crate::models::site_config::SiteConfig = config;
-        LoadedConfig {
+        Ok(LoadedConfig {
             state: rt::ObjectRef::new(LoadedConfigState {
                 path: field_path,
                 config: field_config,
             }),
-        }
+        })
     }
 }

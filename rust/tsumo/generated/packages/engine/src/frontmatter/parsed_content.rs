@@ -21,14 +21,17 @@ impl rt::ObjectIdentityCarrier for ParsedContent {
 }
 
 impl ParsedContent {
-    pub fn new(front_matter: crate::frontmatter::data::FrontMatter, body: String) -> ParsedContent {
+    pub fn new(
+        front_matter: crate::frontmatter::data::FrontMatter,
+        body: String,
+    ) -> Result<ParsedContent, rt::TsonicError> {
         let field_front_matter: crate::frontmatter::data::FrontMatter = front_matter;
         let field_body: String = body;
-        ParsedContent {
+        Ok(ParsedContent {
             state: rt::ObjectRef::new(ParsedContentState {
                 front_matter: field_front_matter,
                 body: field_body,
             }),
-        }
+        })
     }
 }

@@ -11,31 +11,40 @@ pub trait MenuEntryDispatch {
         None
     }
     fn read_menu_entry_name(&self) -> String;
-    fn write_menu_entry_name(&self, value: String);
+    fn write_menu_entry_name(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_menu_entry_url(&self) -> String;
-    fn write_menu_entry_url(&self, value: String);
+    fn write_menu_entry_url(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_menu_entry_page_ref(&self) -> String;
-    fn write_menu_entry_page_ref(&self, value: String);
+    fn write_menu_entry_page_ref(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_menu_entry_title(&self) -> String;
-    fn write_menu_entry_title(&self, value: String);
+    fn write_menu_entry_title(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_menu_entry_weight(&self) -> i32;
-    fn write_menu_entry_weight(&self, value: i32);
+    fn write_menu_entry_weight(&self, value: i32) -> Result<(), rt::TsonicError>;
     fn read_menu_entry_parent(&self) -> String;
-    fn write_menu_entry_parent(&self, value: String);
+    fn write_menu_entry_parent(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_menu_entry_identifier(&self) -> String;
-    fn write_menu_entry_identifier(&self, value: String);
+    fn write_menu_entry_identifier(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_menu_entry_pre(&self) -> String;
-    fn write_menu_entry_pre(&self, value: String);
+    fn write_menu_entry_pre(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_menu_entry_post(&self) -> String;
-    fn write_menu_entry_post(&self, value: String);
+    fn write_menu_entry_post(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_menu_entry_menu(&self) -> String;
-    fn write_menu_entry_menu(&self, value: String);
+    fn write_menu_entry_menu(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_menu_entry_params(&self) -> js_abi::JsMap<String, crate::params::ParamValue>;
-    fn write_menu_entry_params(&self, value: js_abi::JsMap<String, crate::params::ParamValue>);
+    fn write_menu_entry_params(
+        &self,
+        value: js_abi::JsMap<String, crate::params::ParamValue>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_menu_entry_page(&self) -> Option<crate::models::page_context::PageContext>;
-    fn write_menu_entry_page(&self, value: Option<crate::models::page_context::PageContext>);
+    fn write_menu_entry_page(
+        &self,
+        value: Option<crate::models::page_context::PageContext>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_menu_entry_children(&self) -> js_abi::JsArray<MenuEntry>;
-    fn write_menu_entry_children(&self, value: js_abi::JsArray<MenuEntry>);
+    fn write_menu_entry_children(
+        &self,
+        value: js_abi::JsArray<MenuEntry>,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -84,9 +93,8 @@ impl rt::ObjectIdentityCarrier for MenuEntry {
 }
 
 pub(crate) struct MenuEntryRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<MenuEntryState>,
+    state: rt::ObjectState<MenuEntryState>,
 }
 
 impl MenuEntry {
@@ -104,7 +112,7 @@ impl MenuEntry {
         post: String,
         menu: String,
         params: Option<js_abi::JsMap<String, crate::params::ParamValue>>,
-    ) -> MenuEntryState {
+    ) -> Result<MenuEntryState, rt::TsonicError> {
         let field_name: String = name;
         let field_url: String = url;
         let field_page_ref: String = page_ref;
@@ -121,7 +129,7 @@ impl MenuEntry {
             Option::<crate::models::page_context::PageContext>::None;
         let empty: js_abi::JsArray<MenuEntry> = js_abi::JsArray::from_dense(vec![]);
         let field_children: js_abi::JsArray<MenuEntry> = empty;
-        MenuEntryState {
+        Ok(MenuEntryState {
             name: field_name,
             url: field_url,
             page_ref: field_page_ref,
@@ -135,7 +143,7 @@ impl MenuEntry {
             params: field_params,
             page: field_page,
             children: field_children,
-        }
+        })
     }
 
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
@@ -151,19 +159,19 @@ impl MenuEntry {
         post: String,
         menu: String,
         params: Option<js_abi::JsMap<String, crate::params::ParamValue>>,
-    ) -> MenuEntry {
+    ) -> Result<MenuEntry, rt::TsonicError> {
         let state = MenuEntry::initialize_state(
             name, url, page_ref, title, weight, parent, identifier, pre, post, menu, params,
-        );
+        )?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(MenuEntryRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        MenuEntry {
+        Ok(MenuEntry {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -178,103 +186,190 @@ impl MenuEntryDispatch for MenuEntryRoot {
         self.state.with(|state| state.name.clone())
     }
 
-    fn write_menu_entry_name(&self, value: String) {
-        self.state.with_mut(|state| state.name = value);
+    fn write_menu_entry_name(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.name = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_menu_entry_url(&self) -> String {
         self.state.with(|state| state.url.clone())
     }
 
-    fn write_menu_entry_url(&self, value: String) {
-        self.state.with_mut(|state| state.url = value);
+    fn write_menu_entry_url(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.url = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_menu_entry_page_ref(&self) -> String {
         self.state.with(|state| state.page_ref.clone())
     }
 
-    fn write_menu_entry_page_ref(&self, value: String) {
-        self.state.with_mut(|state| state.page_ref = value);
+    fn write_menu_entry_page_ref(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.page_ref = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_menu_entry_title(&self) -> String {
         self.state.with(|state| state.title.clone())
     }
 
-    fn write_menu_entry_title(&self, value: String) {
-        self.state.with_mut(|state| state.title = value);
+    fn write_menu_entry_title(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.title = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_menu_entry_weight(&self) -> i32 {
         self.state.with(|state| state.weight)
     }
 
-    fn write_menu_entry_weight(&self, value: i32) {
-        self.state.with_mut(|state| state.weight = value);
+    fn write_menu_entry_weight(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.weight = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_menu_entry_parent(&self) -> String {
         self.state.with(|state| state.parent.clone())
     }
 
-    fn write_menu_entry_parent(&self, value: String) {
-        self.state.with_mut(|state| state.parent = value);
+    fn write_menu_entry_parent(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.parent = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_menu_entry_identifier(&self) -> String {
         self.state.with(|state| state.identifier.clone())
     }
 
-    fn write_menu_entry_identifier(&self, value: String) {
-        self.state.with_mut(|state| state.identifier = value);
+    fn write_menu_entry_identifier(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.identifier = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_menu_entry_pre(&self) -> String {
         self.state.with(|state| state.pre.clone())
     }
 
-    fn write_menu_entry_pre(&self, value: String) {
-        self.state.with_mut(|state| state.pre = value);
+    fn write_menu_entry_pre(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.pre = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_menu_entry_post(&self) -> String {
         self.state.with(|state| state.post.clone())
     }
 
-    fn write_menu_entry_post(&self, value: String) {
-        self.state.with_mut(|state| state.post = value);
+    fn write_menu_entry_post(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.post = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_menu_entry_menu(&self) -> String {
         self.state.with(|state| state.menu.clone())
     }
 
-    fn write_menu_entry_menu(&self, value: String) {
-        self.state.with_mut(|state| state.menu = value);
+    fn write_menu_entry_menu(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.menu = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_menu_entry_params(&self) -> js_abi::JsMap<String, crate::params::ParamValue> {
         self.state.with(|state| state.params.clone())
     }
 
-    fn write_menu_entry_params(&self, value: js_abi::JsMap<String, crate::params::ParamValue>) {
-        self.state.with_mut(|state| state.params = value);
+    fn write_menu_entry_params(
+        &self,
+        value: js_abi::JsMap<String, crate::params::ParamValue>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.params = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_menu_entry_page(&self) -> Option<crate::models::page_context::PageContext> {
         self.state.with(|state| state.page.clone())
     }
 
-    fn write_menu_entry_page(&self, value: Option<crate::models::page_context::PageContext>) {
-        self.state.with_mut(|state| state.page = value);
+    fn write_menu_entry_page(
+        &self,
+        value: Option<crate::models::page_context::PageContext>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.page = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_menu_entry_children(&self) -> js_abi::JsArray<MenuEntry> {
         self.state.with(|state| state.children.clone())
     }
 
-    fn write_menu_entry_children(&self, value: js_abi::JsArray<MenuEntry>) {
-        self.state.with_mut(|state| state.children = value);
+    fn write_menu_entry_children(
+        &self,
+        value: js_abi::JsArray<MenuEntry>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.children = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

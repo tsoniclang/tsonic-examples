@@ -4,36 +4,197 @@ namespace Tsumo.Engine
 {
     public static class Config_toml
     {
-        public static Func<string, string?, int, Tsonic.CSharp.Js.JSArray<string>> splitAssignment
+        internal static Tsonic.CSharp.Js.JSArray<string> splitAssignment(string line, string? sourcePath, int lineNumber)
         {
-            get;
-            private set;
-        } = default(Func<string, string?, int, Tsonic.CSharp.Js.JSArray<string>>)!;
-        public static Action<Tsonic.CSharp.Js.Set<string>, string, string, string?, int> recordField
+            int separator = Tsonic.CSharp.Js.String.indexOf(line, "=");
+            if (separator <= 0)
+            {
+                throw Diagnostics.createTsumoError("TSUMO_CONFIG_SYNTAX_INVALID", "TOML configuration entries require 'key = value' syntax", sourcePath, lineNumber, 1);
+            }
+            string key = Tsonic.CSharp.Js.String.trim(Utils_strings.substringCount(line, 0, separator));
+            string value = Tsonic.CSharp.Js.String.trim(Utils_strings.substringFrom(line, separator + 1));
+            if (value == "")
+            {
+                throw Diagnostics.createTsumoError("TSUMO_CONFIG_INVALID_FIELD", $"Configuration field '{key}' requires a value", sourcePath, lineNumber, 1);
+            }
+            return Tsonic.CSharp.Js.JSArray<string>.of([key, value]);
+        }
+        internal static void recordField(Tsonic.CSharp.Js.Set<string> fields, string field, string context, string? sourcePath, int line)
         {
-            get;
-            private set;
-        } = default(Action<Tsonic.CSharp.Js.Set<string>, string, string, string?, int>)!;
-        public static Action<MenuEntryBuilder, string, string, string?, int> applyMenuField
+            string normalized = Tsonic.CSharp.Js.String.toLowerCase(field);
+            if (fields.has(normalized))
+            {
+                throw Diagnostics.createTsumoError("TSUMO_CONFIG_DUPLICATE_FIELD", $"{context} field '{field}' is declared more than once", sourcePath, line, 1);
+            }
+            fields.add(normalized);
+        }
+        internal static void applyMenuField(MenuEntryBuilder builder, string keyRaw, string value, string? sourcePath, int line)
         {
-            get;
-            private set;
-        } = default(Action<MenuEntryBuilder, string, string, string?, int>)!;
-        public static Action<LanguageConfigBuilder, string, string, string?, int> applyLanguageField
+            string key = Tsonic.CSharp.Js.String.toLowerCase(keyRaw);
+            if (key == "name")
+            {
+                builder.name = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
+            }
+            else
+            {
+                if (key == "url")
+                {
+                    builder.url = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
+                }
+                else
+                {
+                    if (key == "pageref")
+                    {
+                        builder.pageRef = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
+                    }
+                    else
+                    {
+                        if (key == "title")
+                        {
+                            builder.title = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
+                        }
+                        else
+                        {
+                            if (key == "parent")
+                            {
+                                builder.parent = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
+                            }
+                            else
+                            {
+                                if (key == "identifier")
+                                {
+                                    builder.identifier = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
+                                }
+                                else
+                                {
+                                    if (key == "pre")
+                                    {
+                                        builder.pre = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
+                                    }
+                                    else
+                                    {
+                                        if (key == "post")
+                                        {
+                                            builder.post = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
+                                        }
+                                        else
+                                        {
+                                            if (key == "weight")
+                                            {
+                                                builder.weight = Config_scalars.parseConfigInt(keyRaw, value, "toml", sourcePath, line);
+                                            }
+                                            else
+                                            {
+                                                throw Diagnostics.createTsumoError("TSUMO_CONFIG_UNKNOWN_FIELD", $"Unknown menu configuration field '{keyRaw}'", sourcePath, line, 1);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        internal static void applyLanguageField(LanguageConfigBuilder builder, string keyRaw, string value, string? sourcePath, int line)
         {
-            get;
-            private set;
-        } = default(Action<LanguageConfigBuilder, string, string, string?, int>)!;
-        public static Action<SiteConfig, string, string, string?, int> applyRootField
+            string key = Tsonic.CSharp.Js.String.toLowerCase(keyRaw);
+            if (key == "languagename")
+            {
+                builder.languageName = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
+            }
+            else
+            {
+                if (key == "languagedirection")
+                {
+                    builder.languageDirection = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
+                }
+                else
+                {
+                    if (key == "contentdir")
+                    {
+                        builder.contentDir = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
+                    }
+                    else
+                    {
+                        if (key == "weight")
+                        {
+                            builder.weight = Config_scalars.parseConfigInt(keyRaw, value, "toml", sourcePath, line);
+                        }
+                        else
+                        {
+                            throw Diagnostics.createTsumoError("TSUMO_CONFIG_UNKNOWN_FIELD", $"Unknown language configuration field '{keyRaw}'", sourcePath, line, 1);
+                        }
+                    }
+                }
+            }
+        }
+        internal static void applyRootField(SiteConfig config, string keyRaw, string value, string? sourcePath, int line)
         {
-            get;
-            private set;
-        } = default(Action<SiteConfig, string, string, string?, int>)!;
-        public static Func<Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>>, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>> menuBuildersToEntries
+            string key = Tsonic.CSharp.Js.String.toLowerCase(keyRaw);
+            if (key == "title")
+            {
+                config.title = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
+            }
+            else
+            {
+                if (key == "baseurl")
+                {
+                    config.baseURL = Utils_text.ensureTrailingSlash(Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line));
+                }
+                else
+                {
+                    if (key == "languagecode")
+                    {
+                        config.languageCode = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
+                    }
+                    else
+                    {
+                        if (key == "contentdir")
+                        {
+                            config.contentDir = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
+                        }
+                        else
+                        {
+                            if (key == "theme")
+                            {
+                                config.theme = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
+                            }
+                            else
+                            {
+                                if (key == "copyright")
+                                {
+                                    config.copyright = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
+                                }
+                                else
+                                {
+                                    throw Diagnostics.createTsumoError("TSUMO_CONFIG_UNKNOWN_FIELD", $"Unknown configuration field '{keyRaw}'", sourcePath, line, 1);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        internal static Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntry>> menuBuildersToEntries(Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>> builders)
         {
-            get;
-            private set;
-        } = default(Func<Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>>, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>>)!;
+            Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntry>> menus = new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>();
+            foreach (string menuName in builders.keys())
+            {
+                Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>? source = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>>(builders, menuName);
+                if (source is null)
+                {
+                    throw Diagnostics.createTsumoError("TSUMO_CONFIG_MODEL_INCONSISTENT", $"Menu '{menuName}' disappeared during configuration finalization");
+                }
+                Tsonic.CSharp.Js.JSArray<MenuEntry> entries = Tsonic.CSharp.Js.JSArray<MenuEntry>.of([]);
+                for (double index = 0; index < source.length; index++)
+                {
+                    entries.push(source[index].toEntry());
+                }
+                menus.set(menuName, Menus.buildMenuHierarchy(entries));
+            }
+            return menus;
+        }
         public static Func<string, string?, Tsonic.CSharp.Js.JSArray<ModuleMount>> parseModuleToml
         {
             get;
@@ -60,200 +221,9 @@ namespace Tsumo.Engine
             Config_builders.__tsonic_module_init();
             Config_helpers.__tsonic_module_init();
             Config_scalars.__tsonic_module_init();
-            splitAssignment = (string line, string? sourcePath, int lineNumber) =>
-            {
-                int separator = Tsonic.CSharp.Js.String.indexOf(line, "=");
-                if (separator <= 0)
-                {
-                    throw Diagnostics.createTsumoError("TSUMO_CONFIG_SYNTAX_INVALID", "TOML configuration entries require 'key = value' syntax", sourcePath, lineNumber, 1);
-                }
-                string key = Tsonic.CSharp.Js.String.trim(Utils_strings.substringCount(line, 0, separator));
-                string value = Tsonic.CSharp.Js.String.trim(Utils_strings.substringFrom(line, separator + 1));
-                if (value == "")
-                {
-                    throw Diagnostics.createTsumoError("TSUMO_CONFIG_INVALID_FIELD", $"Configuration field '{key}' requires a value", sourcePath, lineNumber, 1);
-                }
-                return new Tsonic.CSharp.Js.JSArray<string>(new string[] { key, value });
-            };
-            recordField = (Tsonic.CSharp.Js.Set<string> fields, string field, string context, string? sourcePath, int line) =>
-            {
-                string normalized = Tsonic.CSharp.Js.String.toLowerCase(field);
-                if (fields.has(normalized))
-                {
-                    throw Diagnostics.createTsumoError("TSUMO_CONFIG_DUPLICATE_FIELD", $"{context} field '{field}' is declared more than once", sourcePath, line, 1);
-                }
-                fields.add(normalized);
-            };
-            applyMenuField = (MenuEntryBuilder builder, string keyRaw, string value, string? sourcePath, int line) =>
-            {
-                string key = Tsonic.CSharp.Js.String.toLowerCase(keyRaw);
-                if (key == "name")
-                {
-                    builder.name = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
-                }
-                else
-                {
-                    if (key == "url")
-                    {
-                        builder.url = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
-                    }
-                    else
-                    {
-                        if (key == "pageref")
-                        {
-                            builder.pageRef = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
-                        }
-                        else
-                        {
-                            if (key == "title")
-                            {
-                                builder.title = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
-                            }
-                            else
-                            {
-                                if (key == "parent")
-                                {
-                                    builder.parent = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
-                                }
-                                else
-                                {
-                                    if (key == "identifier")
-                                    {
-                                        builder.identifier = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
-                                    }
-                                    else
-                                    {
-                                        if (key == "pre")
-                                        {
-                                            builder.pre = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
-                                        }
-                                        else
-                                        {
-                                            if (key == "post")
-                                            {
-                                                builder.post = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
-                                            }
-                                            else
-                                            {
-                                                if (key == "weight")
-                                                {
-                                                    builder.weight = Config_scalars.parseConfigInt(keyRaw, value, "toml", sourcePath, line);
-                                                }
-                                                else
-                                                {
-                                                    throw Diagnostics.createTsumoError("TSUMO_CONFIG_UNKNOWN_FIELD", $"Unknown menu configuration field '{keyRaw}'", sourcePath, line, 1);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            };
-            applyLanguageField = (LanguageConfigBuilder builder, string keyRaw, string value, string? sourcePath, int line) =>
-            {
-                string key = Tsonic.CSharp.Js.String.toLowerCase(keyRaw);
-                if (key == "languagename")
-                {
-                    builder.languageName = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
-                }
-                else
-                {
-                    if (key == "languagedirection")
-                    {
-                        builder.languageDirection = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
-                    }
-                    else
-                    {
-                        if (key == "contentdir")
-                        {
-                            builder.contentDir = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
-                        }
-                        else
-                        {
-                            if (key == "weight")
-                            {
-                                builder.weight = Config_scalars.parseConfigInt(keyRaw, value, "toml", sourcePath, line);
-                            }
-                            else
-                            {
-                                throw Diagnostics.createTsumoError("TSUMO_CONFIG_UNKNOWN_FIELD", $"Unknown language configuration field '{keyRaw}'", sourcePath, line, 1);
-                            }
-                        }
-                    }
-                }
-            };
-            applyRootField = (SiteConfig config, string keyRaw, string value, string? sourcePath, int line) =>
-            {
-                string key = Tsonic.CSharp.Js.String.toLowerCase(keyRaw);
-                if (key == "title")
-                {
-                    config.title = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
-                }
-                else
-                {
-                    if (key == "baseurl")
-                    {
-                        config.baseURL = Utils_text.ensureTrailingSlash(Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line));
-                    }
-                    else
-                    {
-                        if (key == "languagecode")
-                        {
-                            config.languageCode = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
-                        }
-                        else
-                        {
-                            if (key == "contentdir")
-                            {
-                                config.contentDir = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
-                            }
-                            else
-                            {
-                                if (key == "theme")
-                                {
-                                    config.theme = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
-                                }
-                                else
-                                {
-                                    if (key == "copyright")
-                                    {
-                                        config.copyright = Config_scalars.parseConfigString(keyRaw, value, "toml", sourcePath, line);
-                                    }
-                                    else
-                                    {
-                                        throw Diagnostics.createTsumoError("TSUMO_CONFIG_UNKNOWN_FIELD", $"Unknown configuration field '{keyRaw}'", sourcePath, line, 1);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            };
-            menuBuildersToEntries = (Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>> builders) =>
-            {
-                Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntry>> menus = new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>();
-                foreach (string menuName in builders.keys())
-                {
-                    Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>? source = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>>(builders, menuName);
-                    if (source is null)
-                    {
-                        throw Diagnostics.createTsumoError("TSUMO_CONFIG_MODEL_INCONSISTENT", $"Menu '{menuName}' disappeared during configuration finalization");
-                    }
-                    Tsonic.CSharp.Js.JSArray<MenuEntry> entries = new Tsonic.CSharp.Js.JSArray<MenuEntry>(new MenuEntry[] { });
-                    for (int index = 0; index < source.length; index++)
-                    {
-                        entries.push(source[index].toEntry());
-                    }
-                    menus.set(menuName, Menus.buildMenuHierarchy(entries));
-                }
-                return menus;
-            };
             parseModuleToml = (string text, string? sourcePath) =>
             {
-                Tsonic.CSharp.Js.JSArray<ModuleMount> mounts = new Tsonic.CSharp.Js.JSArray<ModuleMount>(new ModuleMount[] { });
+                Tsonic.CSharp.Js.JSArray<ModuleMount> mounts = Tsonic.CSharp.Js.JSArray<ModuleMount>.of([]);
                 Tsonic.CSharp.Js.JSArray<string> lines = Tsonic.CSharp.Js.String.split(Utils_strings.replaceLineEndings(text, "\n"), "\n");
                 string source = "";
                 string target = "";
@@ -349,7 +319,7 @@ namespace Tsumo.Engine
                         string menuName = Utils_strings.substringFrom(table, "menu.".Length);
                         currentMenu = new MenuEntryBuilder(menuName);
                         menuFields = new Tsonic.CSharp.Js.Set<string>();
-                        Tsonic.CSharp.Js.JSArray<MenuEntryBuilder> entries = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>>(menuBuilders, menuName) ?? new Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>(new MenuEntryBuilder[] { });
+                        Tsonic.CSharp.Js.JSArray<MenuEntryBuilder> entries = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>>(menuBuilders, menuName) ?? Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>.of([]);
                         entries.push(currentMenu);
                         menuBuilders.set(menuName, entries);
                         continue;
@@ -495,7 +465,7 @@ namespace Tsumo.Engine
                 {
                     bool aggregate = lower == "languages.toml";
                     Tsonic.CSharp.Js.Map<string, LanguageConfig> existing = new Tsonic.CSharp.Js.Map<string, LanguageConfig>();
-                    for (int index_1 = 0; index_1 < config.languages.length; index_1++)
+                    for (double index_1 = 0; index_1 < config.languages.length; index_1++)
                     {
                         existing.set(Tsonic.CSharp.Js.String.toLowerCase(config.languages[index_1].lang), config.languages[index_1]);
                     }
@@ -577,7 +547,7 @@ namespace Tsumo.Engine
                     {
                         throw Diagnostics.createTsumoError("TSUMO_CONFIG_FILE_UNSUPPORTED", $"Unsupported split configuration file '{fileName}'", sourcePath);
                     }
-                    Tsonic.CSharp.Js.JSArray<MenuEntryBuilder> builders_1 = new Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>(new MenuEntryBuilder[] { });
+                    Tsonic.CSharp.Js.JSArray<MenuEntryBuilder> builders_1 = Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>.of([]);
                     MenuEntryBuilder? current_1 = null;
                     Tsonic.CSharp.Js.Set<string> fields_2 = new Tsonic.CSharp.Js.Set<string>();
                     for (int index_3 = 0; index_3 < lines.length; index_3++)
@@ -608,8 +578,8 @@ namespace Tsumo.Engine
                         recordField(fields_2, assignment_2[0], $"Menu '{menuName}' entry", sourcePath, lineNumber_2);
                         applyMenuField(current_1, assignment_2[0], assignment_2[1], sourcePath, lineNumber_2);
                     }
-                    Tsonic.CSharp.Js.JSArray<MenuEntry> entries = new Tsonic.CSharp.Js.JSArray<MenuEntry>(new MenuEntry[] { });
-                    for (int index_4 = 0; index_4 < builders_1.length; index_4++)
+                    Tsonic.CSharp.Js.JSArray<MenuEntry> entries = Tsonic.CSharp.Js.JSArray<MenuEntry>.of([]);
+                    for (double index_4 = 0; index_4 < builders_1.length; index_4++)
                     {
                         entries.push(builders_1[index_4].toEntry());
                     }

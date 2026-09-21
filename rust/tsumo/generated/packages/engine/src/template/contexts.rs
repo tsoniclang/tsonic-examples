@@ -100,13 +100,11 @@ impl ShortcodeContext {
                     .get_number(rt::conversions::i32_to_f64(match idx.as_ref() {
                         Some(flow_value_3) => *flow_value_3,
                         None => unreachable!("checked flow selected a missing optional value"),
-                    }))
-                    .as_ref()
-                {
-                    Some(flow_value_4) => flow_value_4.clone(),
+                    })) {
+                    Some(flow_value_4) => flow_value_4,
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
-            )));
+            )?));
         }
         Ok(Option::<crate::params::ParamValue>::None)
     }
@@ -119,8 +117,14 @@ pub trait ShortcodeValueDispatch: crate::template::values::base::TemplateValueDi
     ) -> Option<alloc::rc::Rc<dyn ShortcodeValueDispatch + 'static>> {
         None
     }
+    fn downcast_shortcode_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn read_shortcode_value_value(&self) -> ShortcodeContext;
-    fn write_shortcode_value_value(&self, value: ShortcodeContext);
+    fn write_shortcode_value_value(&self, value: ShortcodeContext) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -159,33 +163,34 @@ impl rt::ObjectIdentityCarrier for ShortcodeValue {
 }
 
 pub(crate) struct ShortcodeValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<ShortcodeValueState>,
+    state: rt::ObjectState<ShortcodeValueState>,
 }
 
 impl ShortcodeValue {
     #[doc(hidden)]
-    pub fn initialize_state(value: ShortcodeContext) -> ShortcodeValueState {
+    pub fn initialize_state(
+        value: ShortcodeContext,
+    ) -> Result<ShortcodeValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: ShortcodeContext = value;
-        ShortcodeValueState {
+        Ok(ShortcodeValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: ShortcodeContext) -> ShortcodeValue {
-        let state = ShortcodeValue::initialize_state(value);
+    pub fn new(value: ShortcodeContext) -> Result<ShortcodeValue, rt::TsonicError> {
+        let state = ShortcodeValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(ShortcodeValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        ShortcodeValue {
+        Ok(ShortcodeValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -211,12 +216,25 @@ impl ShortcodeValueDispatch for ShortcodeValueRoot {
         Some(self)
     }
 
+    fn downcast_shortcode_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn read_shortcode_value_value(&self) -> ShortcodeContext {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_shortcode_value_value(&self, value: ShortcodeContext) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_shortcode_value_value(&self, value: ShortcodeContext) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -251,7 +269,7 @@ impl LinkHookContext {
         plain_text: String,
         page_inner: crate::models::page_context::PageContext,
         page_outer: crate::models::page_context::PageContext,
-    ) -> LinkHookContext {
+    ) -> Result<LinkHookContext, rt::TsonicError> {
         let field_destination: String = destination;
         let field_text: String = text;
         let field_title: String = title;
@@ -259,7 +277,7 @@ impl LinkHookContext {
         let field_page: crate::models::page_context::PageContext = page_inner.clone();
         let field_page_inner: crate::models::page_context::PageContext = page_inner.clone();
         let field_page_outer: crate::models::page_context::PageContext = page_outer;
-        LinkHookContext {
+        Ok(LinkHookContext {
             state: rt::ObjectRef::new(LinkHookContextState {
                 destination: field_destination,
                 text: field_text,
@@ -269,7 +287,7 @@ impl LinkHookContext {
                 page_inner: field_page_inner,
                 page_outer: field_page_outer,
             }),
-        }
+        })
     }
 }
 
@@ -280,8 +298,14 @@ pub trait LinkHookValueDispatch: crate::template::values::base::TemplateValueDis
     ) -> Option<alloc::rc::Rc<dyn LinkHookValueDispatch + 'static>> {
         None
     }
+    fn downcast_link_hook_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn read_link_hook_value_value(&self) -> LinkHookContext;
-    fn write_link_hook_value_value(&self, value: LinkHookContext);
+    fn write_link_hook_value_value(&self, value: LinkHookContext) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -320,33 +344,32 @@ impl rt::ObjectIdentityCarrier for LinkHookValue {
 }
 
 pub(crate) struct LinkHookValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<LinkHookValueState>,
+    state: rt::ObjectState<LinkHookValueState>,
 }
 
 impl LinkHookValue {
     #[doc(hidden)]
-    pub fn initialize_state(value: LinkHookContext) -> LinkHookValueState {
+    pub fn initialize_state(value: LinkHookContext) -> Result<LinkHookValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: LinkHookContext = value;
-        LinkHookValueState {
+        Ok(LinkHookValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: LinkHookContext) -> LinkHookValue {
-        let state = LinkHookValue::initialize_state(value);
+    pub fn new(value: LinkHookContext) -> Result<LinkHookValue, rt::TsonicError> {
+        let state = LinkHookValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(LinkHookValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        LinkHookValue {
+        Ok(LinkHookValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -372,12 +395,25 @@ impl LinkHookValueDispatch for LinkHookValueRoot {
         Some(self)
     }
 
+    fn downcast_link_hook_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn read_link_hook_value_value(&self) -> LinkHookContext {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_link_hook_value_value(&self, value: LinkHookContext) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_link_hook_value_value(&self, value: LinkHookContext) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -412,7 +448,7 @@ impl ImageHookContext {
         plain_text: String,
         page_inner: crate::models::page_context::PageContext,
         page_outer: crate::models::page_context::PageContext,
-    ) -> ImageHookContext {
+    ) -> Result<ImageHookContext, rt::TsonicError> {
         let field_destination: String = destination;
         let field_text: String = text;
         let field_title: String = title;
@@ -420,7 +456,7 @@ impl ImageHookContext {
         let field_page: crate::models::page_context::PageContext = page_inner.clone();
         let field_page_inner: crate::models::page_context::PageContext = page_inner.clone();
         let field_page_outer: crate::models::page_context::PageContext = page_outer;
-        ImageHookContext {
+        Ok(ImageHookContext {
             state: rt::ObjectRef::new(ImageHookContextState {
                 destination: field_destination,
                 text: field_text,
@@ -430,7 +466,7 @@ impl ImageHookContext {
                 page_inner: field_page_inner,
                 page_outer: field_page_outer,
             }),
-        }
+        })
     }
 }
 
@@ -441,8 +477,14 @@ pub trait ImageHookValueDispatch: crate::template::values::base::TemplateValueDi
     ) -> Option<alloc::rc::Rc<dyn ImageHookValueDispatch + 'static>> {
         None
     }
+    fn downcast_image_hook_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn read_image_hook_value_value(&self) -> ImageHookContext;
-    fn write_image_hook_value_value(&self, value: ImageHookContext);
+    fn write_image_hook_value_value(&self, value: ImageHookContext) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -481,33 +523,34 @@ impl rt::ObjectIdentityCarrier for ImageHookValue {
 }
 
 pub(crate) struct ImageHookValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<ImageHookValueState>,
+    state: rt::ObjectState<ImageHookValueState>,
 }
 
 impl ImageHookValue {
     #[doc(hidden)]
-    pub fn initialize_state(value: ImageHookContext) -> ImageHookValueState {
+    pub fn initialize_state(
+        value: ImageHookContext,
+    ) -> Result<ImageHookValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: ImageHookContext = value;
-        ImageHookValueState {
+        Ok(ImageHookValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: ImageHookContext) -> ImageHookValue {
-        let state = ImageHookValue::initialize_state(value);
+    pub fn new(value: ImageHookContext) -> Result<ImageHookValue, rt::TsonicError> {
+        let state = ImageHookValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(ImageHookValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        ImageHookValue {
+        Ok(ImageHookValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -533,12 +576,25 @@ impl ImageHookValueDispatch for ImageHookValueRoot {
         Some(self)
     }
 
+    fn downcast_image_hook_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn read_image_hook_value_value(&self) -> ImageHookContext {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_image_hook_value_value(&self, value: ImageHookContext) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_image_hook_value_value(&self, value: ImageHookContext) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }
 
@@ -573,7 +629,7 @@ impl HeadingHookContext {
         anchor: String,
         page_inner: crate::models::page_context::PageContext,
         page_outer: crate::models::page_context::PageContext,
-    ) -> HeadingHookContext {
+    ) -> Result<HeadingHookContext, rt::TsonicError> {
         let field_level: i32 = level;
         let field_text: String = text;
         let field_plain_text: String = plain_text;
@@ -581,7 +637,7 @@ impl HeadingHookContext {
         let field_page: crate::models::page_context::PageContext = page_inner.clone();
         let field_page_inner: crate::models::page_context::PageContext = page_inner.clone();
         let field_page_outer: crate::models::page_context::PageContext = page_outer;
-        HeadingHookContext {
+        Ok(HeadingHookContext {
             state: rt::ObjectRef::new(HeadingHookContextState {
                 level: field_level,
                 text: field_text,
@@ -591,7 +647,7 @@ impl HeadingHookContext {
                 page_inner: field_page_inner,
                 page_outer: field_page_outer,
             }),
-        }
+        })
     }
 }
 
@@ -602,8 +658,17 @@ pub trait HeadingHookValueDispatch: crate::template::values::base::TemplateValue
     ) -> Option<alloc::rc::Rc<dyn HeadingHookValueDispatch + 'static>> {
         None
     }
+    fn downcast_heading_hook_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn read_heading_hook_value_value(&self) -> HeadingHookContext;
-    fn write_heading_hook_value_value(&self, value: HeadingHookContext);
+    fn write_heading_hook_value_value(
+        &self,
+        value: HeadingHookContext,
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -642,33 +707,34 @@ impl rt::ObjectIdentityCarrier for HeadingHookValue {
 }
 
 pub(crate) struct HeadingHookValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<HeadingHookValueState>,
+    state: rt::ObjectState<HeadingHookValueState>,
 }
 
 impl HeadingHookValue {
     #[doc(hidden)]
-    pub fn initialize_state(value: HeadingHookContext) -> HeadingHookValueState {
+    pub fn initialize_state(
+        value: HeadingHookContext,
+    ) -> Result<HeadingHookValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: HeadingHookContext = value;
-        HeadingHookValueState {
+        Ok(HeadingHookValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
-    pub fn new(value: HeadingHookContext) -> HeadingHookValue {
-        let state = HeadingHookValue::initialize_state(value);
+    pub fn new(value: HeadingHookContext) -> Result<HeadingHookValue, rt::TsonicError> {
+        let state = HeadingHookValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(HeadingHookValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        HeadingHookValue {
+        Ok(HeadingHookValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -694,11 +760,27 @@ impl HeadingHookValueDispatch for HeadingHookValueRoot {
         Some(self)
     }
 
+    fn downcast_heading_hook_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn read_heading_hook_value_value(&self) -> HeadingHookContext {
         self.state.with(|state| state.value.clone())
     }
 
-    fn write_heading_hook_value_value(&self, value: HeadingHookContext) {
-        self.state.with_mut(|state| state.value = value);
+    fn write_heading_hook_value_value(
+        &self,
+        value: HeadingHookContext,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

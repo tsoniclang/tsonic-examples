@@ -47,12 +47,12 @@ impl TsumoMarkdownBatch {
             .state
             .with(|state| state.batch.clone())
             .take_result(index)?;
-        Ok(crate::markdown::result::MarkdownResult::new(
+        crate::markdown::result::MarkdownResult::new(
             result.html.clone(),
             result.summary_html.clone(),
             result.plain_text.clone(),
             result.table_of_contents.clone(),
-        ))
+        )
     }
 }
 
@@ -90,17 +90,17 @@ impl TsumoMarkdownSourcePlan {
         full_source: String,
         summary_source: String,
         table_of_contents_source: String,
-    ) -> TsumoMarkdownSourcePlan {
+    ) -> Result<TsumoMarkdownSourcePlan, rt::TsonicError> {
         let field_full_source: String = full_source;
         let field_summary_source: String = summary_source;
         let field_table_of_contents_source: String = table_of_contents_source;
-        TsumoMarkdownSourcePlan {
+        Ok(TsumoMarkdownSourcePlan {
             state: rt::ObjectRef::new(TsumoMarkdownSourcePlanState {
                 full_source: field_full_source,
                 summary_source: field_summary_source,
                 table_of_contents_source: field_table_of_contents_source,
             }),
-        }
+        })
     }
 }
 
@@ -134,14 +134,14 @@ impl TsumoMarkdownOccurrence {
         title: String,
         level: i32,
         anchor: String,
-    ) -> TsumoMarkdownOccurrence {
+    ) -> Result<TsumoMarkdownOccurrence, rt::TsonicError> {
         let field_kind: String = kind;
         let field_destination: String = destination;
         let field_plain_text: String = plain_text;
         let field_title: String = title;
         let field_level: i32 = level;
         let field_anchor: String = anchor;
-        TsumoMarkdownOccurrence {
+        Ok(TsumoMarkdownOccurrence {
             state: rt::ObjectRef::new(TsumoMarkdownOccurrenceState {
                 kind: field_kind,
                 destination: field_destination,
@@ -150,7 +150,7 @@ impl TsumoMarkdownOccurrence {
                 level: field_level,
                 anchor: field_anchor,
             }),
-        }
+        })
     }
 }
 
@@ -193,14 +193,14 @@ impl TsumoMarkdownDocument {
             .state
             .with(|state| state.document.clone())
             .occurrence(index)?;
-        Ok(TsumoMarkdownOccurrence::new(
+        TsumoMarkdownOccurrence::new(
             occurrence.kind.clone(),
             occurrence.destination.clone(),
             occurrence.plain_text.clone(),
             occurrence.title.clone(),
             occurrence.level,
             occurrence.anchor.clone(),
-        ))
+        )
     }
 
     pub fn replace_url(&self, index: i32, value: String) -> Result<(), rt::TsonicError> {
@@ -244,11 +244,11 @@ pub fn create_markdown_source_plan(
 ) -> Result<TsumoMarkdownSourcePlan, rt::TsonicError> {
     let plan: tsumo_platform::MarkdownSourcePlan =
         tsumo_platform::create_markdown_source_plan(&source)?;
-    Ok(TsumoMarkdownSourcePlan::new(
+    TsumoMarkdownSourcePlan::new(
         plan.full_source.clone(),
         plan.summary_source.clone(),
         plan.toc_source.clone(),
-    ))
+    )
 }
 
 pub fn create_markdown_document(source: String) -> TsumoMarkdownDocument {

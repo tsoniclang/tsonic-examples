@@ -16,10 +16,10 @@ namespace Tsumo.Engine
             Build_layout.__tsonic_module_init();
             selectStandardTemplates = (BuildEnvironment environment) =>
             {
-                Tsonic.CSharp.Js.JSArray<string> baseCandidates = new Tsonic.CSharp.Js.JSArray<string>(new string[] { "_default/baseof.html", "baseof.html" });
-                Tsonic.CSharp.Js.JSArray<string> homeCandidates = new Tsonic.CSharp.Js.JSArray<string>(new string[] { "index.html", "home.html", "_default/home.html", "_default/list.html", "list.html" });
-                Tsonic.CSharp.Js.JSArray<string> listCandidates = new Tsonic.CSharp.Js.JSArray<string>(new string[] { "list.html", "_default/list.html" });
-                Tsonic.CSharp.Js.JSArray<string> singleCandidates = new Tsonic.CSharp.Js.JSArray<string>(new string[] { "single.html", "_default/single.html" });
+                Tsonic.CSharp.Js.JSArray<string> baseCandidates = Tsonic.CSharp.Js.JSArray<string>.of(["_default/baseof.html", "baseof.html"]);
+                Tsonic.CSharp.Js.JSArray<string> homeCandidates = Tsonic.CSharp.Js.JSArray<string>.of(["index.html", "home.html", "_default/home.html", "_default/list.html", "list.html"]);
+                Tsonic.CSharp.Js.JSArray<string> listCandidates = Tsonic.CSharp.Js.JSArray<string>.of(["list.html", "_default/list.html"]);
+                Tsonic.CSharp.Js.JSArray<string> singleCandidates = Tsonic.CSharp.Js.JSArray<string>.of(["single.html", "_default/single.html"]);
                 string list = Build_layout.selectTemplate(environment, listCandidates) ?? listCandidates[0];
                 return new StandardTemplates(Build_layout.selectTemplate(environment, baseCandidates), Build_layout.selectTemplate(environment, homeCandidates) ?? list, list, Build_layout.selectTemplate(environment, singleCandidates) ?? singleCandidates[0]);
             };

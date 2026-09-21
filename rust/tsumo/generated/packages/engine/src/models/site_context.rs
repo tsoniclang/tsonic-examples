@@ -12,35 +12,41 @@ pub trait SiteContextDispatch {
         None
     }
     fn read_site_context_title(&self) -> String;
-    fn write_site_context_title(&self, value: String);
+    fn write_site_context_title(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_site_context_base_url(&self) -> String;
-    fn write_site_context_base_url(&self, value: String);
+    fn write_site_context_base_url(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_site_context_language_code(&self) -> String;
-    fn write_site_context_language_code(&self, value: String);
+    fn write_site_context_language_code(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_site_context_copyright(&self) -> String;
-    fn write_site_context_copyright(&self, value: String);
+    fn write_site_context_copyright(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_site_context_language(&self) -> crate::models::language::LanguageContext;
-    fn write_site_context_language(&self, value: crate::models::language::LanguageContext);
+    fn write_site_context_language(
+        &self,
+        value: crate::models::language::LanguageContext,
+    ) -> Result<(), rt::TsonicError>;
     fn read_site_context_languages(
         &self,
     ) -> js_abi::JsArray<crate::models::language::LanguageContext>;
     fn write_site_context_languages(
         &self,
         value: js_abi::JsArray<crate::models::language::LanguageContext>,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_site_context_is_multi_lingual(&self) -> bool;
-    fn write_site_context_is_multi_lingual(&self, value: bool);
+    fn write_site_context_is_multi_lingual(&self, value: bool) -> Result<(), rt::TsonicError>;
     fn read_site_context_language_prefix(&self) -> String;
-    fn write_site_context_language_prefix(&self, value: String);
+    fn write_site_context_language_prefix(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_site_context_params(&self) -> js_abi::JsMap<String, crate::params::ParamValue>;
-    fn write_site_context_params(&self, value: js_abi::JsMap<String, crate::params::ParamValue>);
+    fn write_site_context_params(
+        &self,
+        value: js_abi::JsMap<String, crate::params::ParamValue>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_site_context_menus(
         &self,
     ) -> js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>>;
     fn write_site_context_menus(
         &self,
         value: js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>>,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_site_context_taxonomies(
         &self,
     ) -> js_abi::JsMap<
@@ -53,7 +59,7 @@ pub trait SiteContextDispatch {
             String,
             js_abi::JsMap<String, js_abi::JsArray<crate::models::page_context::PageContext>>,
         >,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_site_context_taxonomy_term_pages(
         &self,
     ) -> js_abi::JsMap<String, js_abi::JsMap<String, crate::models::page_context::PageContext>>;
@@ -63,43 +69,49 @@ pub trait SiteContextDispatch {
             String,
             js_abi::JsMap<String, crate::models::page_context::PageContext>,
         >,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_site_context_store(&self) -> Option<crate::template::values::scratch::ScratchStore>;
     fn write_site_context_store(
         &self,
         value: Option<crate::template::values::scratch::ScratchStore>,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_site_context_pages(&self) -> js_abi::JsArray<crate::models::page_context::PageContext>;
     fn write_site_context_pages(
         &self,
         value: js_abi::JsArray<crate::models::page_context::PageContext>,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_site_context_all_pages(
         &self,
     ) -> js_abi::JsArray<crate::models::page_context::PageContext>;
     fn write_site_context_all_pages(
         &self,
         value: js_abi::JsArray<crate::models::page_context::PageContext>,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_site_context_home(&self) -> Option<crate::models::page_context::PageContext>;
-    fn write_site_context_home(&self, value: Option<crate::models::page_context::PageContext>);
+    fn write_site_context_home(
+        &self,
+        value: Option<crate::models::page_context::PageContext>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_site_context_docs_mounts(
         &self,
     ) -> js_abi::JsArray<crate::docs::models::DocsMountContext>;
     fn write_site_context_docs_mounts(
         &self,
         value: js_abi::JsArray<crate::docs::models::DocsMountContext>,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_site_context_sites(&self) -> js_abi::JsArray<SiteContext>;
-    fn write_site_context_sites(&self, value: js_abi::JsArray<SiteContext>);
+    fn write_site_context_sites(
+        &self,
+        value: js_abi::JsArray<SiteContext>,
+    ) -> Result<(), rt::TsonicError>;
     fn read_site_context_pagination_size(&self) -> i32;
-    fn write_site_context_pagination_size(&self, value: i32);
+    fn write_site_context_pagination_size(&self, value: i32) -> Result<(), rt::TsonicError>;
     fn dispatch_site_context_get_output_formats(
         self: alloc::rc::Rc<Self>,
-    ) -> js_abi::JsArray<crate::models::output_format::OutputFormat>;
+    ) -> Result<js_abi::JsArray<crate::models::output_format::OutputFormat>, rt::TsonicError>;
     fn exact_site_context_get_output_formats(
         self: alloc::rc::Rc<Self>,
-    ) -> js_abi::JsArray<crate::models::output_format::OutputFormat>;
+    ) -> Result<js_abi::JsArray<crate::models::output_format::OutputFormat>, rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -159,7 +171,7 @@ impl rt::ObjectIdentityCarrier for SiteContext {
 
 pub(crate) struct SiteContextRoot {
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<SiteContextState>,
+    state: rt::ObjectState<SiteContextState>,
 }
 
 impl SiteContext {
@@ -170,7 +182,6 @@ impl SiteContext {
         language_raw: Option<crate::models::language::LanguageConfig>,
         all_languages_raw: Option<js_abi::JsArray<crate::models::language::LanguageContext>>,
     ) -> Result<SiteContextState, rt::TsonicError> {
-        let field_language_code: String;
         let field_language: crate::models::language::LanguageContext;
         let field_title: String = {
             let dispatch_receiver = &config;
@@ -189,7 +200,7 @@ impl SiteContext {
             || String::from(""),
         );
         let language: Option<crate::models::language::LanguageConfig> = language_raw;
-        if language.is_some() {
+        let field_language_code: String = if language.is_some() {
             field_language = crate::models::language::LanguageContext::new(
                 match language.as_ref() {
                     Some(flow_value) => flow_value.clone(),
@@ -209,13 +220,13 @@ impl SiteContext {
                 }
                 .state
                 .with(|state| state.language_direction.clone()),
-            );
-            field_language_code = match language.as_ref() {
+            )?;
+            match language.as_ref() {
                 Some(flow_value_4) => flow_value_4.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             }
             .state
-            .with(|state| state.lang.clone());
+            .with(|state| state.lang.clone())
         } else {
             let lang: String = {
                 let conditional_test_2 = rt::conversions::usize_to_i32(
@@ -231,9 +242,8 @@ impl SiteContext {
                         dispatch_receiver_5.dispatch.read_site_config_languages()
                     }
                     .get_number(0.0)
-                    .as_ref()
                     {
-                        Some(flow_value_5) => flow_value_5.clone(),
+                        Some(flow_value_5) => flow_value_5,
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                     .state
@@ -270,9 +280,8 @@ impl SiteContext {
                         dispatch_receiver_9.dispatch.read_site_config_languages()
                     }
                     .get_number(0.0)
-                    .as_ref()
                     {
-                        Some(flow_value_6) => flow_value_6.clone(),
+                        Some(flow_value_6) => flow_value_6,
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                     .state
@@ -295,9 +304,8 @@ impl SiteContext {
                         dispatch_receiver_11.dispatch.read_site_config_languages()
                     }
                     .get_number(0.0)
-                    .as_ref()
                     {
-                        Some(flow_value_7) => flow_value_7.clone(),
+                        Some(flow_value_7) => flow_value_7,
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                     .state
@@ -306,9 +314,10 @@ impl SiteContext {
                     String::from("ltr")
                 }
             };
-            field_language = crate::models::language::LanguageContext::new(lang.clone(), name, dir);
-            field_language_code = lang.clone();
-        }
+            field_language =
+                crate::models::language::LanguageContext::new(lang.clone(), name, dir)?;
+            lang.clone()
+        };
         let all_languages: Option<js_abi::JsArray<crate::models::language::LanguageContext>> =
             all_languages_raw;
         let field_languages: js_abi::JsArray<crate::models::language::LanguageContext> =
@@ -397,7 +406,7 @@ impl SiteContext {
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(SiteContextRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
         Ok(SiteContext {
             identity,
@@ -409,7 +418,7 @@ impl SiteContext {
 impl SiteContextRoot {
     fn exact_site_context_get_output_formats(
         self: alloc::rc::Rc<Self>,
-    ) -> js_abi::JsArray<crate::models::output_format::OutputFormat> {
+    ) -> Result<js_abi::JsArray<crate::models::output_format::OutputFormat>, rt::TsonicError> {
         let project_this = SiteContext {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -426,10 +435,10 @@ impl SiteContextRoot {
                     },
                     String::from("index.xml")
                 ),
-            );
+            )?;
         let formats: js_abi::JsArray<crate::models::output_format::OutputFormat> =
             js_abi::JsArray::from_dense(vec![rss]);
-        formats
+        Ok(formats)
     }
 }
 
@@ -444,40 +453,73 @@ impl SiteContextDispatch for SiteContextRoot {
         self.state.with(|state| state.title.clone())
     }
 
-    fn write_site_context_title(&self, value: String) {
-        self.state.with_mut(|state| state.title = value);
+    fn write_site_context_title(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.title = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_context_base_url(&self) -> String {
         self.state.with(|state| state.base_url.clone())
     }
 
-    fn write_site_context_base_url(&self, value: String) {
-        self.state.with_mut(|state| state.base_url = value);
+    fn write_site_context_base_url(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.base_url = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_context_language_code(&self) -> String {
         self.state.with(|state| state.language_code.clone())
     }
 
-    fn write_site_context_language_code(&self, value: String) {
-        self.state.with_mut(|state| state.language_code = value);
+    fn write_site_context_language_code(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.language_code = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_context_copyright(&self) -> String {
         self.state.with(|state| state.copyright.clone())
     }
 
-    fn write_site_context_copyright(&self, value: String) {
-        self.state.with_mut(|state| state.copyright = value);
+    fn write_site_context_copyright(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.copyright = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_context_language(&self) -> crate::models::language::LanguageContext {
         self.state.with(|state| state.language.clone())
     }
 
-    fn write_site_context_language(&self, value: crate::models::language::LanguageContext) {
-        self.state.with_mut(|state| state.language = value);
+    fn write_site_context_language(
+        &self,
+        value: crate::models::language::LanguageContext,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.language = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_context_languages(
@@ -489,32 +531,59 @@ impl SiteContextDispatch for SiteContextRoot {
     fn write_site_context_languages(
         &self,
         value: js_abi::JsArray<crate::models::language::LanguageContext>,
-    ) {
-        self.state.with_mut(|state| state.languages = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.languages = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_context_is_multi_lingual(&self) -> bool {
         self.state.with(|state| state.is_multi_lingual)
     }
 
-    fn write_site_context_is_multi_lingual(&self, value: bool) {
-        self.state.with_mut(|state| state.is_multi_lingual = value);
+    fn write_site_context_is_multi_lingual(&self, value: bool) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.is_multi_lingual = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_context_language_prefix(&self) -> String {
         self.state.with(|state| state.language_prefix.clone())
     }
 
-    fn write_site_context_language_prefix(&self, value: String) {
-        self.state.with_mut(|state| state.language_prefix = value);
+    fn write_site_context_language_prefix(&self, value: String) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.language_prefix = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_context_params(&self) -> js_abi::JsMap<String, crate::params::ParamValue> {
         self.state.with(|state| state.params.clone())
     }
 
-    fn write_site_context_params(&self, value: js_abi::JsMap<String, crate::params::ParamValue>) {
-        self.state.with_mut(|state| state.params = value);
+    fn write_site_context_params(
+        &self,
+        value: js_abi::JsMap<String, crate::params::ParamValue>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.params = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_context_menus(
@@ -526,8 +595,14 @@ impl SiteContextDispatch for SiteContextRoot {
     fn write_site_context_menus(
         &self,
         value: js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>>,
-    ) {
-        self.state.with_mut(|state| state.menus = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.menus = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_context_taxonomies(
@@ -545,8 +620,14 @@ impl SiteContextDispatch for SiteContextRoot {
             String,
             js_abi::JsMap<String, js_abi::JsArray<crate::models::page_context::PageContext>>,
         >,
-    ) {
-        self.state.with_mut(|state| state.taxonomies = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.taxonomies = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_context_taxonomy_term_pages(
@@ -562,9 +643,15 @@ impl SiteContextDispatch for SiteContextRoot {
             String,
             js_abi::JsMap<String, crate::models::page_context::PageContext>,
         >,
-    ) {
-        self.state
-            .with_mut(|state| state.taxonomy_term_pages = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state
+                    .with_mut(|state| state.taxonomy_term_pages = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_context_store(&self) -> Option<crate::template::values::scratch::ScratchStore> {
@@ -574,8 +661,14 @@ impl SiteContextDispatch for SiteContextRoot {
     fn write_site_context_store(
         &self,
         value: Option<crate::template::values::scratch::ScratchStore>,
-    ) {
-        self.state.with_mut(|state| state.store = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.store = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_context_pages(&self) -> js_abi::JsArray<crate::models::page_context::PageContext> {
@@ -585,8 +678,14 @@ impl SiteContextDispatch for SiteContextRoot {
     fn write_site_context_pages(
         &self,
         value: js_abi::JsArray<crate::models::page_context::PageContext>,
-    ) {
-        self.state.with_mut(|state| state.pages = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.pages = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_context_all_pages(
@@ -598,16 +697,31 @@ impl SiteContextDispatch for SiteContextRoot {
     fn write_site_context_all_pages(
         &self,
         value: js_abi::JsArray<crate::models::page_context::PageContext>,
-    ) {
-        self.state.with_mut(|state| state.all_pages = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.all_pages = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_context_home(&self) -> Option<crate::models::page_context::PageContext> {
         self.state.with(|state| state.home.clone())
     }
 
-    fn write_site_context_home(&self, value: Option<crate::models::page_context::PageContext>) {
-        self.state.with_mut(|state| state.home = value);
+    fn write_site_context_home(
+        &self,
+        value: Option<crate::models::page_context::PageContext>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.home = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_context_docs_mounts(
@@ -619,35 +733,56 @@ impl SiteContextDispatch for SiteContextRoot {
     fn write_site_context_docs_mounts(
         &self,
         value: js_abi::JsArray<crate::docs::models::DocsMountContext>,
-    ) {
-        self.state.with_mut(|state| state.docs_mounts = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.docs_mounts = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_context_sites(&self) -> js_abi::JsArray<SiteContext> {
         self.state.with(|state| state.sites.clone())
     }
 
-    fn write_site_context_sites(&self, value: js_abi::JsArray<SiteContext>) {
-        self.state.with_mut(|state| state.sites = value);
+    fn write_site_context_sites(
+        &self,
+        value: js_abi::JsArray<SiteContext>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.sites = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_site_context_pagination_size(&self) -> i32 {
         self.state.with(|state| state.pagination_size)
     }
 
-    fn write_site_context_pagination_size(&self, value: i32) {
-        self.state.with_mut(|state| state.pagination_size = value);
+    fn write_site_context_pagination_size(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.pagination_size = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn dispatch_site_context_get_output_formats(
         self: alloc::rc::Rc<Self>,
-    ) -> js_abi::JsArray<crate::models::output_format::OutputFormat> {
+    ) -> Result<js_abi::JsArray<crate::models::output_format::OutputFormat>, rt::TsonicError> {
         SiteContextRoot::exact_site_context_get_output_formats(self)
     }
 
     fn exact_site_context_get_output_formats(
         self: alloc::rc::Rc<Self>,
-    ) -> js_abi::JsArray<crate::models::output_format::OutputFormat> {
+    ) -> Result<js_abi::JsArray<crate::models::output_format::OutputFormat>, rt::TsonicError> {
         SiteContextRoot::exact_site_context_get_output_formats(self)
     }
 }

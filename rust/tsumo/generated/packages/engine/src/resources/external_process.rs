@@ -23,15 +23,18 @@ impl rt::ObjectIdentityCarrier for ExternalProcessResult {
 }
 
 impl ExternalProcessResult {
-    pub fn new(exit_code: i32, standard_error: String) -> ExternalProcessResult {
+    pub fn new(
+        exit_code: i32,
+        standard_error: String,
+    ) -> Result<ExternalProcessResult, rt::TsonicError> {
         let field_exit_code: i32 = exit_code;
         let field_standard_error: String = standard_error;
-        ExternalProcessResult {
+        Ok(ExternalProcessResult {
             state: rt::ObjectRef::new(ExternalProcessResultState {
                 exit_code: field_exit_code,
                 standard_error: field_standard_error,
             }),
-        }
+        })
     }
 }
 
@@ -43,12 +46,35 @@ pub fn run_external_process(
 ) -> Result<ExternalProcessResult, rt::TsonicError> {
     let result: tsonic_rust_node::child_process::SpawnSyncResult =
         tsonic_rust_node::child_process::spawn_sync_result(&executable, &arguments_list)?;
-    let standard_error: String = js_string::trim(&result.stderr.to_string_enc("utf8")?);
-    if result.status.is_none() {
+    let stderr: Option<tsonic_rust_node::buffer::Buffer> = result.stderr.clone();
+    let standard_error: String = if stderr.is_none() {
+        String::from("")
+    } else {
+        js_string::trim(
+            &match stderr.as_ref() {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            }
+            .to_string_enc("utf8")?,
+        )
+    };
+    let error: Option<tsonic_rust_node::NodeError> = result.error.clone();
+    if error.is_some() || result.status.is_none() {
+        let detail: String = if error.is_none() {
+            standard_error.clone()
+        } else {
+            String::from(
+                match error.as_ref() {
+                    Some(flow_value_2) => flow_value_2.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }
+                .message(),
+            )
+        };
         return Err(rt::TsonicError::TsumoError(
             crate::diagnostics::create_tsumo_error(
                 start_diagnostic_code,
-                if standard_error.is_empty() {
+                if detail.is_empty() {
                     format!(
                         "{}{}{}{}{}",
                         String::from("Failed to start "),
@@ -65,20 +91,20 @@ pub fn run_external_process(
                         String::from(" '"),
                         executable,
                         String::from("': "),
-                        standard_error
+                        detail
                     )
                 },
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
-    Ok(ExternalProcessResult::new(
+    ExternalProcessResult::new(
         match result.status.as_ref() {
-            Some(flow_value) => *flow_value,
+            Some(flow_value_3) => *flow_value_3,
             None => unreachable!("checked flow selected a missing optional value"),
         },
-        standard_error.clone(),
-    ))
+        standard_error,
+    )
 }

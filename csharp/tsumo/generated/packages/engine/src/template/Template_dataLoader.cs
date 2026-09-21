@@ -4,26 +4,90 @@ namespace Tsumo.Engine
 {
     public static class Template_dataLoader
     {
-        public static Func<string, string?> dataFormat
+        internal static string? dataFormat(string path)
         {
-            get;
-            private set;
-        } = default(Func<string, string?>)!;
-        public static Func<string, string> normalizeDataPath
+            string extension = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Node.path.extname(path));
+            if (extension == ".json")
+            {
+                return "json";
+            }
+            if (extension == ".yaml" || extension == ".yml")
+            {
+                return "yaml";
+            }
+            if (extension == ".toml")
+            {
+                return "toml";
+            }
+            if (extension == ".xml")
+            {
+                return "xml";
+            }
+            return null;
+        }
+        internal static string normalizeDataPath(string path)
         {
-            get;
-            private set;
-        } = default(Func<string, string>)!;
-        public static Action<string, Tsonic.CSharp.Js.Map<string, SelectedDataFile>> collectDataLayer
+            return Utils_strings.replaceText(path, "\\", "/");
+        }
+        internal static void collectDataLayer(string root, Tsonic.CSharp.Js.Map<string, SelectedDataFile> selected)
         {
-            get;
-            private set;
-        } = default(Action<string, Tsonic.CSharp.Js.Map<string, SelectedDataFile>>)!;
-        public static Action<DictValue, string, TemplateValue, string> setDataPath
+            if (!Fs.dirExists(root))
+            {
+                return;
+            }
+            Tsonic.CSharp.Js.JSArray<string> files = Fs.listFilesRecursive(root, "*");
+            Tsonic.CSharp.Js.Map<string, SelectedDataFile> layer = new Tsonic.CSharp.Js.Map<string, SelectedDataFile>();
+            for (int index = 0; index < files.length; index++)
+            {
+                string sourcePath = files[index];
+                string? format = dataFormat(sourcePath);
+                if (format is null)
+                {
+                    continue;
+                }
+                string relativePath = normalizeDataPath(Tsonic.CSharp.Node.path.relative(root, sourcePath));
+                string extension = Tsonic.CSharp.Node.path.extname(relativePath);
+                string semanticPath = Tsonic.CSharp.Js.String.slice(relativePath, 0, relativePath.Length - extension.Length);
+                SelectedDataFile? existing = Tsonic.CSharp.Js.Map.getReference<string, SelectedDataFile>(layer, semanticPath);
+                if (existing is not null)
+                {
+                    throw Diagnostics.createTsumoError("TSUMO_DATA_IDENTITY_CONFLICT", $"Data files '{existing.sourcePath}' and '{sourcePath}' define the same data identity '{semanticPath}'", sourcePath);
+                }
+                layer.set(semanticPath, new SelectedDataFile(semanticPath, sourcePath, format));
+            }
+            foreach (SelectedDataFile file in layer.values())
+            {
+                selected.set(file.semanticPath, file);
+            }
+        }
+        internal static void setDataPath(DictValue root, string semanticPath, TemplateValue value, string sourcePath)
         {
-            get;
-            private set;
-        } = default(Action<DictValue, string, TemplateValue, string>)!;
+            Tsonic.CSharp.Js.JSArray<string> segments = Tsonic.CSharp.Js.String.split(semanticPath, "/");
+            DictValue current = root;
+            for (int index = 0; index < segments.length - 1; index++)
+            {
+                string segment = segments[index];
+                TemplateValue? existing = Tsonic.CSharp.Js.Map.getReference<string, TemplateValue>(current.value, segment);
+                if (existing is null)
+                {
+                    DictValue created = new DictValue(new Tsonic.CSharp.Js.Map<string, TemplateValue>());
+                    current.value.set(segment, created);
+                    current = created;
+                    continue;
+                }
+                if (!((object?)existing is DictValue))
+                {
+                    throw Diagnostics.createTsumoError("TSUMO_DATA_TREE_CONFLICT", $"Data identity '{semanticPath}' conflicts with a data file at '{Tsonic.CSharp.Js.Array.join(Tsonic.CSharp.Js.Array.slice(segments, 0, index + 1), "/")}'", sourcePath);
+                }
+                current = (DictValue)existing;
+            }
+            string name = segments[segments.length - 1];
+            if (current.value.has(name))
+            {
+                throw Diagnostics.createTsumoError("TSUMO_DATA_TREE_CONFLICT", $"Data identity '{semanticPath}' is declared more than once", sourcePath);
+            }
+            current.value.set(name, value);
+        }
         public static Func<string, string?, Tsonic.CSharp.Js.JSArray<ModuleMount>?, DictValue> loadSiteData
         {
             get;
@@ -36,87 +100,6 @@ namespace Tsumo.Engine
             Utils_strings.__tsonic_module_init();
             Template_evaluation_structuredData.__tsonic_module_init();
             Template_values.__tsonic_module_init();
-            dataFormat = (string path) =>
-            {
-                string extension = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Node.path.extname(path));
-                if (extension == ".json")
-                {
-                    return "json";
-                }
-                if (extension == ".yaml" || extension == ".yml")
-                {
-                    return "yaml";
-                }
-                if (extension == ".toml")
-                {
-                    return "toml";
-                }
-                if (extension == ".xml")
-                {
-                    return "xml";
-                }
-                return null;
-            };
-            normalizeDataPath = (string path) => Utils_strings.replaceText(path, "\\", "/");
-            collectDataLayer = (string root, Tsonic.CSharp.Js.Map<string, SelectedDataFile> selected) =>
-            {
-                if (!Fs.dirExists(root))
-                {
-                    return;
-                }
-                Tsonic.CSharp.Js.JSArray<string> files = Fs.listFilesRecursive(root, "*");
-                Tsonic.CSharp.Js.Map<string, SelectedDataFile> layer = new Tsonic.CSharp.Js.Map<string, SelectedDataFile>();
-                for (int index = 0; index < files.length; index++)
-                {
-                    string sourcePath = files[index];
-                    string? format = dataFormat(sourcePath);
-                    if (format is null)
-                    {
-                        continue;
-                    }
-                    string relativePath = normalizeDataPath(Tsonic.CSharp.Node.path.relative(root, sourcePath));
-                    string extension = Tsonic.CSharp.Node.path.extname(relativePath);
-                    string semanticPath = Tsonic.CSharp.Js.String.slice(relativePath, 0, relativePath.Length - extension.Length);
-                    SelectedDataFile? existing = Tsonic.CSharp.Js.Map.getReference<string, SelectedDataFile>(layer, semanticPath);
-                    if (existing is not null)
-                    {
-                        throw Diagnostics.createTsumoError("TSUMO_DATA_IDENTITY_CONFLICT", $"Data files '{existing.sourcePath}' and '{sourcePath}' define the same data identity '{semanticPath}'", sourcePath);
-                    }
-                    layer.set(semanticPath, new SelectedDataFile(semanticPath, sourcePath, format));
-                }
-                foreach (SelectedDataFile file in layer.values())
-                {
-                    selected.set(file.semanticPath, file);
-                }
-            };
-            setDataPath = (DictValue root, string semanticPath, TemplateValue value, string sourcePath) =>
-            {
-                Tsonic.CSharp.Js.JSArray<string> segments = Tsonic.CSharp.Js.String.split(semanticPath, "/");
-                DictValue current = root;
-                for (int index = 0; index < segments.length - 1; index++)
-                {
-                    string segment = segments[index];
-                    TemplateValue? existing = Tsonic.CSharp.Js.Map.getReference<string, TemplateValue>(current.value, segment);
-                    if (existing is null)
-                    {
-                        DictValue created = new DictValue(new Tsonic.CSharp.Js.Map<string, TemplateValue>());
-                        current.value.set(segment, created);
-                        current = created;
-                        continue;
-                    }
-                    if (!(existing is DictValue))
-                    {
-                        throw Diagnostics.createTsumoError("TSUMO_DATA_TREE_CONFLICT", $"Data identity '{semanticPath}' conflicts with a data file at '{Tsonic.CSharp.Js.Array.join(Tsonic.CSharp.Js.Array.slice(segments, 0, index + 1), "/")}'", sourcePath);
-                    }
-                    current = (DictValue)existing;
-                }
-                string name = segments[segments.length - 1];
-                if (current.value.has(name))
-                {
-                    throw Diagnostics.createTsumoError("TSUMO_DATA_TREE_CONFLICT", $"Data identity '{semanticPath}' is declared more than once", sourcePath);
-                }
-                current.value.set(name, value);
-            };
             loadSiteData = (string siteDir, string? themeDir, Tsonic.CSharp.Js.JSArray<ModuleMount>? mounts) =>
             {
                 Tsonic.CSharp.Js.Map<string, SelectedDataFile> selected = new Tsonic.CSharp.Js.Map<string, SelectedDataFile>();

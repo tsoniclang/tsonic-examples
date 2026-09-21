@@ -52,7 +52,7 @@ pub fn build_site(
                     .state
                     .with(|state| state.destination_dir.clone()),
                 rt::conversions::f64_to_i32(pages_built)?,
-            )))
+            )?))
         });
     let try_flow: rt::TsonicResult<rt::Completion<crate::build::BuildResult>> = match try_body {
         Ok(completion) => Ok(completion),

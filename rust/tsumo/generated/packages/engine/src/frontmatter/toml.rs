@@ -7,7 +7,7 @@ use tsonic_rust_js::string as js_string;
 pub fn apply_menu_property(
     entry: crate::frontmatter::menu::FrontMatterMenu,
     key_raw: String,
-    value_raw: String,
+    value_raw: &str,
     source_path: Option<String>,
     line: i32,
 ) -> Result<(), rt::TsonicError> {
@@ -16,7 +16,7 @@ pub fn apply_menu_property(
         {
             let receiver = &entry;
             let value = crate::frontmatter::scalars::parse_front_matter_int(
-                value_raw.clone(),
+                value_raw,
                 key_raw.clone(),
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
@@ -26,14 +26,14 @@ pub fn apply_menu_property(
                 let dispatch_receiver = receiver;
                 dispatch_receiver
                     .dispatch
-                    .write_front_matter_menu_weight(value)
+                    .write_front_matter_menu_weight(value)?
             }
         };
     } else if key == "name" {
         {
             let receiver_2 = &entry;
             let value_2 = crate::frontmatter::scalars::parse_front_matter_string(
-                value_raw.clone(),
+                value_raw,
                 key_raw.clone(),
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
@@ -43,14 +43,14 @@ pub fn apply_menu_property(
                 let dispatch_receiver_2 = receiver_2;
                 dispatch_receiver_2
                     .dispatch
-                    .write_front_matter_menu_name(value_2)
+                    .write_front_matter_menu_name(value_2)?
             }
         };
     } else if key == "parent" {
         {
             let receiver_3 = &entry;
             let value_3 = crate::frontmatter::scalars::parse_front_matter_string(
-                value_raw.clone(),
+                value_raw,
                 key_raw.clone(),
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
@@ -60,14 +60,14 @@ pub fn apply_menu_property(
                 let dispatch_receiver_3 = receiver_3;
                 dispatch_receiver_3
                     .dispatch
-                    .write_front_matter_menu_parent(value_3)
+                    .write_front_matter_menu_parent(value_3)?
             }
         };
     } else if key == "identifier" {
         {
             let receiver_4 = &entry;
             let value_4 = crate::frontmatter::scalars::parse_front_matter_string(
-                value_raw.clone(),
+                value_raw,
                 key_raw.clone(),
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
@@ -77,14 +77,14 @@ pub fn apply_menu_property(
                 let dispatch_receiver_4 = receiver_4;
                 dispatch_receiver_4
                     .dispatch
-                    .write_front_matter_menu_identifier(value_4)
+                    .write_front_matter_menu_identifier(value_4)?
             }
         };
     } else if key == "pre" {
         {
             let receiver_5 = &entry;
             let value_5 = crate::frontmatter::scalars::parse_front_matter_string(
-                value_raw.clone(),
+                value_raw,
                 key_raw.clone(),
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
@@ -94,14 +94,14 @@ pub fn apply_menu_property(
                 let dispatch_receiver_5 = receiver_5;
                 dispatch_receiver_5
                     .dispatch
-                    .write_front_matter_menu_pre(value_5)
+                    .write_front_matter_menu_pre(value_5)?
             }
         };
     } else if key == "post" {
         {
             let receiver_6 = &entry;
             let value_6 = crate::frontmatter::scalars::parse_front_matter_string(
-                value_raw.clone(),
+                value_raw,
                 key_raw.clone(),
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
@@ -111,14 +111,14 @@ pub fn apply_menu_property(
                 let dispatch_receiver_6 = receiver_6;
                 dispatch_receiver_6
                     .dispatch
-                    .write_front_matter_menu_post(value_6)
+                    .write_front_matter_menu_post(value_6)?
             }
         };
     } else if key == "title" {
         {
             let receiver_7 = &entry;
             let value_7 = crate::frontmatter::scalars::parse_front_matter_string(
-                value_raw.clone(),
+                value_raw,
                 key_raw.clone(),
                 crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                 source_path.clone(),
@@ -128,7 +128,7 @@ pub fn apply_menu_property(
                 let dispatch_receiver_7 = receiver_7;
                 dispatch_receiver_7
                     .dispatch
-                    .write_front_matter_menu_title(value_7)
+                    .write_front_matter_menu_title(value_7)?
             }
         };
     } else {
@@ -144,7 +144,7 @@ pub fn apply_menu_property(
                 source_path.clone(),
                 Some(rt::conversions::i32_to_f64(line)),
                 Some(1.0),
-            ),
+            )?,
         ));
     }
     Ok(())
@@ -155,7 +155,7 @@ pub fn parse_toml_front_matter(
     source_path: Option<String>,
 ) -> Result<crate::frontmatter::data::FrontMatter, rt::TsonicError> {
     let front_matter: crate::frontmatter::data::FrontMatter =
-        crate::frontmatter::data::FrontMatter::new();
+        crate::frontmatter::data::FrontMatter::new()?;
     let mut table: String = String::from("");
     let mut menu_entry: Option<crate::frontmatter::menu::FrontMatterMenu> = None;
     let root_fields: js_abi::JsSet<String> = js_abi::JsSet::new();
@@ -169,11 +169,8 @@ pub fn parse_toml_front_matter(
             let line_number: i32 = index + 2;
             let line: String =
                 js_string::trim(&crate::utils::structured_scalars::strip_structured_comment(
-                    match lines
-                        .get_number(rt::conversions::i32_to_f64(index))
-                        .as_ref()
-                    {
-                        Some(flow_value) => flow_value.clone(),
+                    match lines.get_number(rt::conversions::i32_to_f64(index)) {
+                        Some(flow_value) => flow_value,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                     crate::utils::structured_scalars::StructuredScalarFormat::Toml,
@@ -191,12 +188,12 @@ pub fn parse_toml_front_matter(
                             source_path.clone(),
                             Some(rt::conversions::i32_to_f64(line_number)),
                             Some(1.0),
-                        ),
+                        )?,
                     ));
                 }
                 table = js_string::to_lower_case(&js_string::trim(
                     &crate::utils::strings::substring_count(
-                        line.clone(),
+                        &line,
                         2,
                         rt::conversions::usize_to_i32(js_string::js_len(&line))? - 4,
                     )?,
@@ -217,7 +214,7 @@ pub fn parse_toml_front_matter(
                             source_path.clone(),
                             Some(rt::conversions::i32_to_f64(line_number)),
                             Some(1.0),
-                        ),
+                        )?,
                     ));
                 }
                 crate::frontmatter::scalars::record_front_matter_field(
@@ -235,7 +232,7 @@ pub fn parse_toml_front_matter(
                         &table,
                         rt::conversions::usize_to_i32(js_string::js_len("menu."))?,
                     )?,
-                ));
+                )?);
                 menu_fields = js_abi::JsSet::new();
                 front_matter
                     .state
@@ -256,12 +253,12 @@ pub fn parse_toml_front_matter(
                             source_path.clone(),
                             Some(rt::conversions::i32_to_f64(line_number)),
                             Some(1.0),
-                        ),
+                        )?,
                     ));
                 }
                 table = js_string::to_lower_case(&js_string::trim(
                     &crate::utils::strings::substring_count(
-                        line.clone(),
+                        &line,
                         1,
                         rt::conversions::usize_to_i32(js_string::js_len(&line))? - 2,
                     )?,
@@ -279,7 +276,7 @@ pub fn parse_toml_front_matter(
                             source_path.clone(),
                             Some(rt::conversions::i32_to_f64(line_number)),
                             Some(1.0),
-                        ),
+                        )?,
                     ));
                 }
                 if declared_tables.has(&table) {
@@ -295,7 +292,7 @@ pub fn parse_toml_front_matter(
                             source_path.clone(),
                             Some(rt::conversions::i32_to_f64(line_number)),
                             Some(1.0),
-                        ),
+                        )?,
                     ));
                 }
                 declared_tables.add_discard(table.clone());
@@ -314,13 +311,11 @@ pub fn parse_toml_front_matter(
                         source_path.clone(),
                         Some(rt::conversions::i32_to_f64(line_number)),
                         Some(1.0),
-                    ),
+                    )?,
                 ));
             }
             let key: String = js_string::trim(&crate::utils::strings::substring_count(
-                line.clone(),
-                0,
-                separator,
+                &line, 0, separator,
             )?);
             let value: String = js_string::trim(&crate::utils::strings::substring_from(
                 &line,
@@ -339,7 +334,7 @@ pub fn parse_toml_front_matter(
                         source_path.clone(),
                         Some(rt::conversions::i32_to_f64(line_number)),
                         Some(1.0),
-                    ),
+                    )?,
                 ));
             }
             if menu_entry.is_some() && js_string::starts_with_from_start(&table, "menu.") {
@@ -369,7 +364,7 @@ pub fn parse_toml_front_matter(
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                     key.clone(),
-                    value.clone(),
+                    &value,
                     source_path.clone(),
                     line_number,
                 )?;
@@ -386,7 +381,7 @@ pub fn parse_toml_front_matter(
                     operation_input_0.set_discard(
                         key.clone(),
                         crate::frontmatter::scalars::parse_front_matter_param(
-                            value.clone(),
+                            &value,
                             crate::utils::structured_scalars::StructuredScalarFormat::Toml,
                             source_path.clone(),
                             Some(line_number),
@@ -422,7 +417,7 @@ pub fn parse_toml_front_matter(
                         source_path.clone(),
                         Some(rt::conversions::i32_to_f64(line_number)),
                         Some(1.0),
-                    ),
+                    )?,
                 ));
             }
             index += 1;

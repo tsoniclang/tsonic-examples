@@ -28,17 +28,17 @@ impl DocsContentRoute {
         route: crate::docs::routes::DocsMarkdownRoute,
         parsed: crate::frontmatter::parsed_content::ParsedContent,
         modified_at: js_abi::JsDate,
-    ) -> DocsContentRoute {
+    ) -> Result<DocsContentRoute, rt::TsonicError> {
         let field_route: crate::docs::routes::DocsMarkdownRoute = route;
         let field_parsed: crate::frontmatter::parsed_content::ParsedContent = parsed;
         let field_modified_at: js_abi::JsDate = modified_at;
-        DocsContentRoute {
+        Ok(DocsContentRoute {
             state: rt::ObjectRef::new(DocsContentRouteState {
                 route: field_route,
                 parsed: field_parsed,
                 modified_at: field_modified_at,
             }),
-        }
+        })
     }
 }
 
@@ -66,18 +66,18 @@ impl DocsContentInventory {
         index_by_directory: js_abi::JsMap<String, DocsContentRoute>,
         leaves: js_abi::JsArray<DocsContentRoute>,
         permalink_by_relative_path: js_abi::JsMap<String, String>,
-    ) -> DocsContentInventory {
+    ) -> Result<DocsContentInventory, rt::TsonicError> {
         let field_index_by_directory: js_abi::JsMap<String, DocsContentRoute> = index_by_directory;
         let field_leaves: js_abi::JsArray<DocsContentRoute> = leaves;
         let field_permalink_by_relative_path: js_abi::JsMap<String, String> =
             permalink_by_relative_path;
-        DocsContentInventory {
+        Ok(DocsContentInventory {
             state: rt::ObjectRef::new(DocsContentInventoryState {
                 index_by_directory: field_index_by_directory,
                 leaves: field_leaves,
                 permalink_by_relative_path: field_permalink_by_relative_path,
             }),
-        }
+        })
     }
 }
 
@@ -91,11 +91,10 @@ pub fn load_docs_content(
     {
         let mut index: f64 = 0.0;
         'loop_value: while index < (rt::conversions::usize_to_i32(routes.len())? as f64) {
-            let route: crate::docs::routes::DocsMarkdownRoute =
-                match routes.get_number(index).as_ref() {
-                    Some(flow_value) => flow_value.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                };
+            let route: crate::docs::routes::DocsMarkdownRoute = match routes.get_number(index) {
+                Some(flow_value) => flow_value,
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
             let parsed: crate::frontmatter::parsed_content::ParsedContent =
                 crate::frontmatter::parse::parse_content(
                     crate::fs::read_text_file(route.state.with(|state| state.source_path.clone()))?,
@@ -106,11 +105,11 @@ pub fn load_docs_content(
                 parsed.clone(),
                 js_abi::JsDate::from_millis(
                     tsonic_rust_node::fs::stat_sync(
-                        &route.state.with(|state| state.source_path.clone()),
+                        route.state.with(|state| state.source_path.clone()).as_str(),
                     )?
                     .mtime_ms(),
                 ),
-            );
+            )?;
             if route.state.with(|state| state.is_index) {
                 {
                     let operation_input_0 = index_by_directory.clone();
@@ -150,9 +149,9 @@ pub fn load_docs_content(
             index += 1.0;
         }
     }
-    Ok(DocsContentInventory::new(
+    DocsContentInventory::new(
         index_by_directory.clone(),
         leaves.clone(),
         permalink_by_relative_path.clone(),
-    ))
+    )
 }

@@ -9,11 +9,41 @@ namespace Tsumo.Engine
             get;
             private set;
         } = default(Func<string, string, bool, OutputPublication>)!;
-        public static Action<string, string, string, string> recoverOutputPublication
+        internal static void recoverOutputPublication(string destinationDir, string backupDir, string parentDir, string stageNamePrefix)
         {
-            get;
-            private set;
-        } = default(Action<string, string, string, string>)!;
+            if (Fs.fileExists(backupDir))
+            {
+                throw Diagnostics.createTsumoError("TSUMO_OUTPUT_BACKUP_IS_FILE", $"Output publication backup path names an existing file: {backupDir}");
+            }
+            if (Fs.dirExists(backupDir))
+            {
+                if (Fs.dirExists(destinationDir))
+                {
+                    Tsonic.CSharp.Node.fs.rmSync(backupDir, new Tsonic.CSharp.Node.RmOptions
+                    {
+                        recursive = true,
+                        force = true,
+                    });
+                }
+                else
+                {
+                    Tsonic.CSharp.Node.fs.renameSync(backupDir, destinationDir);
+                }
+            }
+            string[] entries = Tsonic.CSharp.Node.fs.readdirSync(parentDir);
+            for (int index = 0; index < entries.Length; index++)
+            {
+                string entry = entries[index];
+                if (Tsonic.CSharp.Js.String.startsWith(entry, stageNamePrefix))
+                {
+                    Tsonic.CSharp.Node.fs.rmSync(Tsonic.CSharp.Node.path.resolve(parentDir, entry), new Tsonic.CSharp.Node.RmOptions
+                    {
+                        recursive = true,
+                        force = true,
+                    });
+                }
+            }
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
@@ -52,41 +82,6 @@ namespace Tsumo.Engine
                     Fs.copyDirRecursive(destinationDir, stagingDir);
                 }
                 return new OutputPublication(destinationDir, stagingDir, backupDir);
-            };
-            recoverOutputPublication = (string destinationDir, string backupDir, string parentDir, string stageNamePrefix) =>
-            {
-                if (Fs.fileExists(backupDir))
-                {
-                    throw Diagnostics.createTsumoError("TSUMO_OUTPUT_BACKUP_IS_FILE", $"Output publication backup path names an existing file: {backupDir}");
-                }
-                if (Fs.dirExists(backupDir))
-                {
-                    if (Fs.dirExists(destinationDir))
-                    {
-                        Tsonic.CSharp.Node.fs.rmSync(backupDir, new Tsonic.CSharp.Node.RmOptions
-                        {
-                            recursive = true,
-                            force = true,
-                        });
-                    }
-                    else
-                    {
-                        Tsonic.CSharp.Node.fs.renameSync(backupDir, destinationDir);
-                    }
-                }
-                string[] entries = Tsonic.CSharp.Node.fs.readdirSync(parentDir);
-                for (int index = 0; index < entries.Length; index++)
-                {
-                    string entry = entries[index];
-                    if (Tsonic.CSharp.Js.String.startsWith(entry, stageNamePrefix))
-                    {
-                        Tsonic.CSharp.Node.fs.rmSync(Tsonic.CSharp.Node.path.resolve(parentDir, entry), new Tsonic.CSharp.Node.RmOptions
-                        {
-                            recursive = true,
-                            force = true,
-                        });
-                    }
-                }
             };
             return null;
         }

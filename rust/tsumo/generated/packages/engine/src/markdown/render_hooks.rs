@@ -39,25 +39,21 @@ impl RenderHookContext {
             dispatch_receiver
                 .dispatch
                 .clone()
-                .dispatch_template_environment_get_render_hook_template(String::from("render-link"))
+                .dispatch_template_environment_get_render_hook_template("render-link")
         }?;
         let field_image_hook: Option<crate::template::template_2::Template> = {
             let dispatch_receiver_2 = env.clone();
             dispatch_receiver_2
                 .dispatch
                 .clone()
-                .dispatch_template_environment_get_render_hook_template(String::from(
-                    "render-image",
-                ))
+                .dispatch_template_environment_get_render_hook_template("render-image")
         }?;
         let field_heading_hook: Option<crate::template::template_2::Template> = {
             let dispatch_receiver_3 = env.clone();
             dispatch_receiver_3
                 .dispatch
                 .clone()
-                .dispatch_template_environment_get_render_hook_template(String::from(
-                    "render-heading",
-                ))
+                .dispatch_template_environment_get_render_hook_template("render-heading")
         }?;
         Ok(RenderHookContext {
             state: rt::ObjectRef::new(RenderHookContextState {
@@ -83,7 +79,11 @@ impl RenderHookContext {
 
 pub fn render_hook_template(
     template: crate::template::template_2::Template,
-    value: crate::template::values::base::TemplateValue,
+    value: crate::shapes::Union3<
+        crate::template::contexts::LinkHookValue,
+        crate::template::contexts::ImageHookValue,
+        crate::template::contexts::HeadingHookValue,
+    >,
     context: RenderHookContext,
 ) -> Result<String, rt::TsonicError> {
     let empty_overrides: js_abi::JsMap<
@@ -97,7 +97,29 @@ pub fn render_hook_template(
             .clone()
             .dispatch_template_environment_render_template(
                 template,
-                value,
+                match &value {
+                    crate::shapes::Union3::Variant0(upcast_variant) => {
+                        let upcast_value = upcast_variant;
+                        crate::template::values::base::TemplateValue {
+                            identity: upcast_value.identity.clone(),
+                            dispatch: upcast_value.dispatch.clone(),
+                        }
+                    }
+                    crate::shapes::Union3::Variant1(upcast_variant_2) => {
+                        let upcast_value_2 = upcast_variant_2;
+                        crate::template::values::base::TemplateValue {
+                            identity: upcast_value_2.identity.clone(),
+                            dispatch: upcast_value_2.dispatch.clone(),
+                        }
+                    }
+                    crate::shapes::Union3::Variant2(upcast_variant_3) => {
+                        let upcast_value_3 = upcast_variant_3;
+                        crate::template::values::base::TemplateValue {
+                            identity: upcast_value_3.identity.clone(),
+                            dispatch: upcast_value_3.dispatch.clone(),
+                        }
+                    }
+                },
                 context.state.with(|state| state.site.clone()),
                 empty_overrides,
                 None,
@@ -136,8 +158,8 @@ pub fn render_markdown_with_hooks(
                             occurrence.state.with(|state| state.plain_text.clone()),
                             context.state.with(|state| state.page.clone()),
                             context.state.with(|state| state.page.clone()),
-                        ),
-                    );
+                        )?,
+                    )?;
                 document.replace_html(
                     index,
                     render_hook_template(
@@ -145,13 +167,7 @@ pub fn render_markdown_with_hooks(
                             Some(flow_value) => flow_value.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
-                        {
-                            let upcast_value = value.clone();
-                            crate::template::values::base::TemplateValue {
-                                identity: upcast_value.identity.clone(),
-                                dispatch: upcast_value.dispatch.clone(),
-                            }
-                        },
+                        crate::shapes::Union3::Variant1(value.clone()),
                         context.clone(),
                     )?,
                 )?;
@@ -174,8 +190,8 @@ pub fn render_markdown_with_hooks(
                             occurrence.state.with(|state| state.plain_text.clone()),
                             context.state.with(|state| state.page.clone()),
                             context.state.with(|state| state.page.clone()),
-                        ),
-                    );
+                        )?,
+                    )?;
                 document.replace_html(
                     index,
                     render_hook_template(
@@ -183,13 +199,7 @@ pub fn render_markdown_with_hooks(
                             Some(flow_value_2) => flow_value_2.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
-                        {
-                            let upcast_value_2 = value.clone();
-                            crate::template::values::base::TemplateValue {
-                                identity: upcast_value_2.identity.clone(),
-                                dispatch: upcast_value_2.dispatch.clone(),
-                            }
-                        },
+                        crate::shapes::Union3::Variant0(value.clone()),
                         context.clone(),
                     )?,
                 )?;
@@ -212,8 +222,8 @@ pub fn render_markdown_with_hooks(
                             occurrence.state.with(|state| state.anchor.clone()),
                             context.state.with(|state| state.page.clone()),
                             context.state.with(|state| state.page.clone()),
-                        ),
-                    );
+                        )?,
+                    )?;
                 document.replace_html(
                     index,
                     render_hook_template(
@@ -221,13 +231,7 @@ pub fn render_markdown_with_hooks(
                             Some(flow_value_3) => flow_value_3.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
-                        {
-                            let upcast_value_3 = value.clone();
-                            crate::template::values::base::TemplateValue {
-                                identity: upcast_value_3.identity.clone(),
-                                dispatch: upcast_value_3.dispatch.clone(),
-                            }
-                        },
+                        crate::shapes::Union3::Variant2(value.clone()),
                         context.clone(),
                     )?,
                 )?;

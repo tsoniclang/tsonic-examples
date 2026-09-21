@@ -23,15 +23,18 @@ impl rt::ObjectIdentityCarrier for DocsAssetRoute {
 }
 
 impl DocsAssetRoute {
-    pub fn new(source_path: String, output_rel_path: String) -> DocsAssetRoute {
+    pub fn new(
+        source_path: String,
+        output_rel_path: String,
+    ) -> Result<DocsAssetRoute, rt::TsonicError> {
         let field_source_path: String = source_path;
         let field_output_rel_path: String = output_rel_path;
-        DocsAssetRoute {
+        Ok(DocsAssetRoute {
             state: rt::ObjectRef::new(DocsAssetRouteState {
                 source_path: field_source_path,
                 output_rel_path: field_output_rel_path,
             }),
-        }
+        })
     }
 }
 
@@ -70,7 +73,7 @@ impl DocsMarkdownRoute {
         is_index: bool,
         rel_permalink: String,
         output_rel_path: String,
-    ) -> DocsMarkdownRoute {
+    ) -> Result<DocsMarkdownRoute, rt::TsonicError> {
         let field_mount: crate::docs::models::DocsMountConfig = mount;
         let field_source_path: String = source_path;
         let field_rel_path: String = rel_path;
@@ -79,7 +82,7 @@ impl DocsMarkdownRoute {
         let field_is_index: bool = is_index;
         let field_rel_permalink: String = rel_permalink;
         let field_output_rel_path: String = output_rel_path;
-        DocsMarkdownRoute {
+        Ok(DocsMarkdownRoute {
             state: rt::ObjectRef::new(DocsMarkdownRouteState {
                 mount: field_mount,
                 source_path: field_source_path,
@@ -90,7 +93,7 @@ impl DocsMarkdownRoute {
                 rel_permalink: field_rel_permalink,
                 output_rel_path: field_output_rel_path,
             }),
-        }
+        })
     }
 }
 
@@ -116,15 +119,15 @@ impl DocsMountRoutes {
     pub fn new(
         markdown: js_abi::JsArray<DocsMarkdownRoute>,
         assets: js_abi::JsArray<DocsAssetRoute>,
-    ) -> DocsMountRoutes {
+    ) -> Result<DocsMountRoutes, rt::TsonicError> {
         let field_markdown: js_abi::JsArray<DocsMarkdownRoute> = markdown;
         let field_assets: js_abi::JsArray<DocsAssetRoute> = assets;
-        DocsMountRoutes {
+        Ok(DocsMountRoutes {
             state: rt::ObjectRef::new(DocsMountRoutesState {
                 markdown: field_markdown,
                 assets: field_assets,
             }),
-        }
+        })
     }
 }
 
@@ -132,7 +135,7 @@ pub fn docs_mount_prefix_segments(
     url_prefix: String,
 ) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
     let trimmed: String = crate::utils::strings::trim_end_char(
-        crate::utils::strings::trim_start_char(&js_string::trim(&url_prefix), String::from("/"))?,
+        crate::utils::strings::trim_start_char(js_string::trim(&url_prefix), String::from("/"))?,
         String::from("/"),
     )?;
     if trimmed.is_empty() {
@@ -142,8 +145,8 @@ pub fn docs_mount_prefix_segments(
     {
         let mut index: f64 = 0.0;
         while index < (rt::conversions::usize_to_i32(segments.len())? as f64) {
-            let segment: String = match segments.get_number(index).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let segment: String = match segments.get_number(index) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if segment.is_empty()
@@ -165,7 +168,7 @@ pub fn docs_mount_prefix_segments(
                         None,
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
             index += 1.0;
@@ -174,16 +177,22 @@ pub fn docs_mount_prefix_segments(
     Ok(segments)
 }
 
-pub fn normalize_slashes(path: &str) -> Result<String, rt::TsonicError> {
-    js_string::replace_all(path, "\\", "/").map_err(rt::TsonicError::from)
+pub type NormalizeSlashesCallable = rt::Callable<(String,), rt::TsonicResult<String>>;
+
+std::thread_local! {
+    pub static NORMALIZE_SLASHES: rt::ModuleCell<NormalizeSlashesCallable> = const { rt::ModuleCell::new() };
 }
 
 pub fn sort_paths(paths: js_abi::JsArray<String>) -> Result<(), rt::TsonicError> {
     paths.try_sort(|left, right| {
         Ok::<_, rt::TsonicError>(rt::conversions::i32_to_f64(
             crate::utils::strings::compare_text(
-                normalize_slashes(&left)?,
-                normalize_slashes(&right)?,
+                NORMALIZE_SLASHES
+                    .with(|module_binding| module_binding.load())
+                    .call((left,))?,
+                NORMALIZE_SLASHES
+                    .with(|module_binding| module_binding.load())
+                    .call((right,))?,
             ),
         ))
     })?;
@@ -194,12 +203,12 @@ pub fn without_markdown_extension(file_name: String) -> Result<String, rt::Tsoni
     Ok(
         if js_string::ends_with_at_end(&js_string::to_lower_case(&file_name), ".md") {
             crate::utils::strings::substring_count(
-                file_name.clone(),
+                &file_name,
                 0,
                 rt::conversions::usize_to_i32(js_string::js_len(&file_name))? - 3,
             )?
         } else {
-            file_name.clone()
+            file_name
         },
     )
 }
@@ -254,10 +263,10 @@ pub fn assert_unique_output(
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
-    outputs.set_discard(key.clone(), source_path.clone());
+    outputs.set_discard(key, source_path);
     Ok(())
 }
 
@@ -282,7 +291,7 @@ pub fn discover_docs_mount_routes(
                 None,
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     let prefix_segments: js_abi::JsArray<String> = docs_mount_prefix_segments({
@@ -307,19 +316,21 @@ pub fn discover_docs_mount_routes(
     {
         let mut file_index: f64 = 0.0;
         'loop_value: while file_index < (rt::conversions::usize_to_i32(files.len())? as f64) {
-            let source_path: String = match files.get_number(file_index).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let source_path: String = match files.get_number(file_index) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let rel_path: String = normalize_slashes(&tsonic_rust_node::path::relative(
-                &{
-                    let dispatch_receiver_5 = &mount;
-                    dispatch_receiver_5
-                        .dispatch
-                        .read_docs_mount_config_source_dir()
-                },
-                &source_path,
-            ))?;
+            let rel_path: String = NORMALIZE_SLASHES
+                .with(|module_binding| module_binding.load())
+                .call((tsonic_rust_node::path::relative(
+                    &{
+                        let dispatch_receiver_5 = &mount;
+                        dispatch_receiver_5
+                            .dispatch
+                            .read_docs_mount_config_source_dir()
+                    },
+                    &source_path,
+                ),))?;
             if rel_path.is_empty()
                 || rel_path == ".."
                 || js_string::starts_with_from_start(&rel_path, "../")
@@ -335,7 +346,7 @@ pub fn discover_docs_mount_routes(
                         None,
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
             let relative_segments: js_abi::JsArray<String> = js_string::split_all(&rel_path, "/")?;
@@ -344,9 +355,8 @@ pub fn discover_docs_mount_routes(
                 while segment_index
                     < (rt::conversions::usize_to_i32(relative_segments.len())? as f64)
                 {
-                    let segment: String = match relative_segments.get_number(segment_index).as_ref()
-                    {
-                        Some(flow_value_2) => flow_value_2.clone(),
+                    let segment: String = match relative_segments.get_number(segment_index) {
+                        Some(flow_value_2) => flow_value_2,
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     if segment.is_empty() || segment == "." || segment == ".." {
@@ -361,7 +371,7 @@ pub fn discover_docs_mount_routes(
                                 None,
                                 None,
                                 None,
-                            ),
+                            )?,
                         ));
                     }
                     segment_index += 1.0;
@@ -374,8 +384,8 @@ pub fn discover_docs_mount_routes(
                     {
                         let operation_input_0 = output_segments.clone();
                         operation_input_0.push_many_discard([
-                            match prefix_segments.get_number(index).as_ref() {
-                                Some(flow_value_3) => flow_value_3.clone(),
+                            match prefix_segments.get_number(index) {
+                                Some(flow_value_3) => flow_value_3,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
@@ -392,8 +402,8 @@ pub fn discover_docs_mount_routes(
                         {
                             let operation_input_0_2 = output_segments.clone();
                             operation_input_0_2.push_many_discard([
-                                match relative_segments.get_number(index).as_ref() {
-                                    Some(flow_value_4) => flow_value_4.clone(),
+                                match relative_segments.get_number(index) {
+                                    Some(flow_value_4) => flow_value_4,
                                     None => unreachable!(
                                         "checked flow selected a missing optional value"
                                     ),
@@ -414,21 +424,22 @@ pub fn discover_docs_mount_routes(
                     operation_input_0_3.push_many_discard([DocsAssetRoute::new(
                         source_path.clone(),
                         output_rel_path.clone(),
-                    )])
+                    )?])
                 };
                 file_index += 1.0;
                 continue 'loop_value;
             }
-            let file_name: String = match {
-                let operation_input_0_4 = relative_segments.clone();
-                operation_input_0_4.get_number(rt::conversions::i32_to_f64(
-                    rt::conversions::usize_to_i32(relative_segments.len())? - 1,
-                ))
-            }
-            .as_ref()
-            {
-                Some(flow_value_5) => flow_value_5.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
+            let file_name: String = {
+                let flow_input = {
+                    let operation_input_0_4 = relative_segments.clone();
+                    operation_input_0_4.get_number(rt::conversions::i32_to_f64(
+                        rt::conversions::usize_to_i32(relative_segments.len())? - 1,
+                    ))
+                };
+                match flow_input {
+                    Some(flow_value_5) => flow_value_5,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }
             };
             let directory_segments: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
             {
@@ -438,8 +449,8 @@ pub fn discover_docs_mount_routes(
                     {
                         let operation_input_0_5 = directory_segments.clone();
                         operation_input_0_5.push_many_discard([
-                            match relative_segments.get_number(index).as_ref() {
-                                Some(flow_value_6) => flow_value_6.clone(),
+                            match relative_segments.get_number(index) {
+                                Some(flow_value_6) => flow_value_6,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
@@ -457,8 +468,8 @@ pub fn discover_docs_mount_routes(
                     {
                         let operation_input_0_6 = url_segments.clone();
                         operation_input_0_6.push_many_discard([
-                            match directory_segments.get_number(index).as_ref() {
-                                Some(flow_value_7) => flow_value_7.clone(),
+                            match directory_segments.get_number(index) {
+                                Some(flow_value_7) => flow_value_7,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
@@ -481,8 +492,8 @@ pub fn discover_docs_mount_routes(
                     {
                         let operation_input_0_8 = output_segments.clone();
                         operation_input_0_8.push_many_discard([
-                            match url_segments.get_number(index).as_ref() {
-                                Some(flow_value_8) => flow_value_8.clone(),
+                            match url_segments.get_number(index) {
+                                Some(flow_value_8) => flow_value_8,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
@@ -504,8 +515,8 @@ pub fn discover_docs_mount_routes(
                     {
                         let operation_input_0_9 = url_parts.clone();
                         operation_input_0_9.push_many_discard([
-                            match url_segments.get_number(index).as_ref() {
-                                Some(flow_value_9) => flow_value_9.clone(),
+                            match url_segments.get_number(index) {
+                                Some(flow_value_9) => flow_value_9,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
@@ -532,10 +543,22 @@ pub fn discover_docs_mount_routes(
                     is_index,
                     crate::utils::url_path::combine_url_path(url_parts.clone())?,
                     output_rel_path.clone(),
-                )])
+                )?])
             };
             file_index += 1.0;
         }
     }
-    Ok(DocsMountRoutes::new(markdown.clone(), assets.clone()))
+    DocsMountRoutes::new(markdown.clone(), assets.clone())
+}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value =
+            rt::Callable::<(String,), rt::TsonicResult<String>>::new(move |callable_arguments| {
+                let path = callable_arguments.0;
+                js_string::replace_all(&path, "\\", "/").map_err(rt::TsonicError::from)
+            });
+        NORMALIZE_SLASHES.with(|module_binding| module_binding.initialize(module_value))
+    };
 }

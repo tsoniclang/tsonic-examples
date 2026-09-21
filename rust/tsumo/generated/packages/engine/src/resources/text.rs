@@ -107,8 +107,8 @@ pub fn read_resource_text(
         dispatch_receiver.dispatch.read_resource_text()
     };
     if text.is_some() {
-        return Ok(match text.as_ref() {
-            Some(flow_value) => flow_value.clone(),
+        return Ok(match text {
+            Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
         });
     }
@@ -130,7 +130,7 @@ pub fn read_resource_text(
                 },
                 None,
                 None,
-            ),
+            )?,
         ));
     }
     {

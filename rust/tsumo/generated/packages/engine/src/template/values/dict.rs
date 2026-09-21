@@ -5,6 +5,12 @@ use tsonic_rust_js::abi as js_abi;
 
 #[doc(hidden)]
 pub trait DictValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn downcast_dict_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        None
+    }
     fn downcast_dict_value_to_dict_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn DictValueDispatch + 'static>> {
@@ -16,7 +22,7 @@ pub trait DictValueDispatch: crate::template::values::base::TemplateValueDispatc
     fn write_dict_value_value(
         &self,
         value: js_abi::JsMap<String, crate::template::values::base::TemplateValue>,
-    );
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -55,38 +61,37 @@ impl rt::ObjectIdentityCarrier for DictValue {
 }
 
 pub(crate) struct DictValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<DictValueState>,
+    state: rt::ObjectState<DictValueState>,
 }
 
 impl DictValue {
     #[doc(hidden)]
     pub fn initialize_state(
         value: js_abi::JsMap<String, crate::template::values::base::TemplateValue>,
-    ) -> DictValueState {
+    ) -> Result<DictValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_value: js_abi::JsMap<String, crate::template::values::base::TemplateValue> =
             value;
-        DictValueState {
+        Ok(DictValueState {
             base: base_state,
             value: field_value,
-        }
+        })
     }
 
     pub fn new(
         value: js_abi::JsMap<String, crate::template::values::base::TemplateValue>,
-    ) -> DictValue {
-        let state = DictValue::initialize_state(value);
+    ) -> Result<DictValue, rt::TsonicError> {
+        let state = DictValue::initialize_state(value)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(DictValueRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        DictValue {
+        Ok(DictValue {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -106,6 +111,13 @@ impl crate::template::values::base::TemplateValueDispatch for DictValueRoot {
 }
 
 impl DictValueDispatch for DictValueRoot {
+    fn downcast_dict_value_to_template_value(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
+    {
+        Some(self)
+    }
+
     fn downcast_dict_value_to_dict_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn DictValueDispatch + 'static>> {
@@ -121,7 +133,13 @@ impl DictValueDispatch for DictValueRoot {
     fn write_dict_value_value(
         &self,
         value: js_abi::JsMap<String, crate::template::values::base::TemplateValue>,
-    ) {
-        self.state.with_mut(|state| state.value = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.value = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

@@ -3,51 +3,25 @@
 use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
-pub(crate) fn require_template(
-    template: Option<tsumo_engine::testing::Template>,
-) -> Result<tsumo_engine::testing::Template, rt::TsonicError> {
-    if template.is_none() {
-        return Err(rt::TsonicError::from(rt::JsError::error(
-            "Expected template to exist",
-        )));
-    }
-    Ok(match template.as_ref() {
-        Some(flow_value) => flow_value.clone(),
-        None => unreachable!("checked flow selected a missing optional value"),
-    })
+type RequireTemplateCallable = rt::Callable<
+    (Option<tsumo_engine::testing::Template>,),
+    rt::TsonicResult<tsumo_engine::testing::Template>,
+>;
+
+std::thread_local! {
+    pub(crate) static REQUIRE_TEMPLATE: rt::ModuleCell<RequireTemplateCallable> = const { rt::ModuleCell::new() };
 }
 
-pub(crate) fn render(
-    environment: tsumo_engine::testing::LayoutEnvironment,
-    template: tsumo_engine::testing::Template,
-) -> Result<String, rt::TsonicError> {
-    let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
-    let page: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
-        site.clone(),
-        String::from("Cache"),
-        String::from(""),
-        String::from("page"),
-    );
-    {
-        let dispatch_receiver = environment;
-        dispatch_receiver
-            .dispatch
-            .clone()
-            .dispatch_layout_environment_render_template(
-                template,
-                {
-                    let upcast_value = tsumo_engine::testing::PageValue::new(page);
-                    tsumo_engine::testing::TemplateValue {
-                        identity: upcast_value.identity.clone(),
-                        dispatch: upcast_value.dispatch.clone(),
-                    }
-                },
-                site.clone(),
-                js_abi::JsMap::new(),
-                None,
-            )
-    }
-    .map_err(rt::TsonicError::from)
+type RenderCallable = rt::Callable<
+    (
+        tsumo_engine::testing::LayoutEnvironment,
+        tsumo_engine::testing::Template,
+    ),
+    rt::TsonicResult<String>,
+>;
+
+std::thread_local! {
+    pub(crate) static RENDER: rt::ModuleCell<RenderCallable> = const { rt::ModuleCell::new() };
 }
 
 pub(crate) struct LayoutCacheTestsState {}
@@ -90,16 +64,22 @@ impl LayoutCacheTests {
                     None,
                     None,
                 )?;
-            let first_template: tsumo_engine::testing::Template = require_template({
-                let dispatch_receiver = first_build.clone();
-                dispatch_receiver
-                    .dispatch
-                    .clone()
-                    .dispatch_layout_environment_get_template(String::from("single.html"))
-            }?)?;
+            let first_template: tsumo_engine::testing::Template = REQUIRE_TEMPLATE
+                .with(|module_binding| module_binding.load())
+                .call(({
+                    let dispatch_receiver = first_build.clone();
+                    dispatch_receiver
+                        .dispatch
+                        .clone()
+                        .dispatch_layout_environment_get_template(String::from("single.html"))
+                }?,))?;
             crate::test_root::Assert::string_equal(
                 String::from("first"),
-                Some(render(first_build.clone(), first_template.clone())?),
+                Some(
+                    RENDER
+                        .with(|module_binding| module_binding.load())
+                        .call((first_build.clone(), first_template.clone()))?,
+                ),
             )?;
             crate::test_root::Assert::r#true(
                 {
@@ -130,16 +110,22 @@ impl LayoutCacheTests {
             )?;
             crate::test_root::Assert::string_equal(
                 String::from("first"),
-                Some(render(
-                    first_build.clone(),
-                    require_template({
-                        let dispatch_receiver_4 = first_build.clone();
-                        dispatch_receiver_4
-                            .dispatch
-                            .clone()
-                            .dispatch_layout_environment_get_template(String::from("single.html"))
-                    }?)?,
-                )?),
+                Some(
+                    RENDER.with(|module_binding| module_binding.load()).call((
+                        first_build.clone(),
+                        REQUIRE_TEMPLATE
+                            .with(|module_binding| module_binding.load())
+                            .call(({
+                                let dispatch_receiver_4 = first_build.clone();
+                                dispatch_receiver_4
+                                    .dispatch
+                                    .clone()
+                                    .dispatch_layout_environment_get_template(String::from(
+                                        "single.html",
+                                    ))
+                            }?,))?,
+                    ))?,
+                ),
             )?;
             crate::test_root::Assert::r#true(
                 {
@@ -161,29 +147,41 @@ impl LayoutCacheTests {
                 )?;
             crate::test_root::Assert::string_equal(
                 String::from("second"),
-                Some(render(
-                    second_build.clone(),
-                    require_template({
-                        let dispatch_receiver_6 = second_build.clone();
-                        dispatch_receiver_6
-                            .dispatch
-                            .clone()
-                            .dispatch_layout_environment_get_template(String::from("single.html"))
-                    }?)?,
-                )?),
+                Some(
+                    RENDER.with(|module_binding| module_binding.load()).call((
+                        second_build.clone(),
+                        REQUIRE_TEMPLATE
+                            .with(|module_binding| module_binding.load())
+                            .call(({
+                                let dispatch_receiver_6 = second_build.clone();
+                                dispatch_receiver_6
+                                    .dispatch
+                                    .clone()
+                                    .dispatch_layout_environment_get_template(String::from(
+                                        "single.html",
+                                    ))
+                            }?,))?,
+                    ))?,
+                ),
             )?;
             crate::test_root::Assert::string_equal(
                 String::from("late"),
-                Some(render(
-                    second_build.clone(),
-                    require_template({
-                        let dispatch_receiver_7 = second_build.clone();
-                        dispatch_receiver_7
-                            .dispatch
-                            .clone()
-                            .dispatch_layout_environment_get_template(String::from("late.html"))
-                    }?)?,
-                )?),
+                Some(
+                    RENDER.with(|module_binding| module_binding.load()).call((
+                        second_build.clone(),
+                        REQUIRE_TEMPLATE
+                            .with(|module_binding| module_binding.load())
+                            .call(({
+                                let dispatch_receiver_7 = second_build.clone();
+                                dispatch_receiver_7
+                                    .dispatch
+                                    .clone()
+                                    .dispatch_layout_environment_get_template(String::from(
+                                        "late.html",
+                                    ))
+                            }?,))?,
+                    ))?,
+                ),
             )?;
             Ok(rt::Completion::Normal)
         });
@@ -225,4 +223,67 @@ pub fn run_layout_cache_tests() -> Result<(), rt::TsonicError> {
         },
     )?;
     Ok(())
+}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = rt::Callable::<
+            (Option<tsumo_engine::testing::Template>,),
+            rt::TsonicResult<tsumo_engine::testing::Template>,
+        >::new(move |callable_arguments| {
+            let template = callable_arguments.0;
+            if template.is_none() {
+                return Err(rt::TsonicError::from(rt::JsError::error(
+                    "Expected template to exist",
+                )));
+            }
+            Ok::<_, rt::TsonicError>(match template {
+                Some(flow_value) => flow_value,
+                None => unreachable!("checked flow selected a missing optional value"),
+            })
+        });
+        REQUIRE_TEMPLATE.with(|module_binding| module_binding.initialize(module_value))
+    };
+    {
+        let module_value_2 = rt::Callable::<
+            (
+                tsumo_engine::testing::LayoutEnvironment,
+                tsumo_engine::testing::Template,
+            ),
+            rt::TsonicResult<String>,
+        >::new(move |callable_arguments_2| {
+            let environment = callable_arguments_2.0;
+            let template = callable_arguments_2.1;
+            let site: tsumo_engine::testing::SiteContext =
+                crate::template_test_harness::create_site()?;
+            let page: tsumo_engine::testing::PageContext =
+                crate::template_test_harness::create_page(
+                    site.clone(),
+                    String::from("Cache"),
+                    String::from(""),
+                    String::from("page"),
+                )?;
+            {
+                let dispatch_receiver = environment;
+                dispatch_receiver
+                    .dispatch
+                    .clone()
+                    .dispatch_layout_environment_render_template(
+                        template,
+                        {
+                            let upcast_value = tsumo_engine::testing::PageValue::new(page)?;
+                            tsumo_engine::testing::TemplateValue {
+                                identity: upcast_value.identity.clone(),
+                                dispatch: upcast_value.dispatch.clone(),
+                            }
+                        },
+                        site.clone(),
+                        js_abi::JsMap::new(),
+                        None,
+                    )
+            }
+        });
+        RENDER.with(|module_binding_2| module_binding_2.initialize(module_value_2))
+    };
 }

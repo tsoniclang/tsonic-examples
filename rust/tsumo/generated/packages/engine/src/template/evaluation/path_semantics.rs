@@ -4,16 +4,16 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn normalize_rel_path(raw: String) -> Result<String, rt::TsonicError> {
+pub fn normalize_rel_path(raw: &str) -> Result<String, rt::TsonicError> {
     let normalized: String =
-        crate::utils::strings::replace_text(&raw, String::from("\\"), String::from("/"))?;
+        crate::utils::strings::replace_text(raw, String::from("\\"), String::from("/"))?;
     let parts: js_abi::JsArray<String> = js_string::split_all(&normalized, "/")?;
     let out_parts: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     {
         let mut i: f64 = 0.0;
         'loop_value: while i < (rt::conversions::usize_to_i32(parts.len())? as f64) {
-            let p: String = js_string::trim(&match parts.get_number(i).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let p: String = js_string::trim(&match parts.get_number(i) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             });
             if p.is_empty() || p == "." {
@@ -36,8 +36,8 @@ pub fn normalize_rel_path(raw: String) -> Result<String, rt::TsonicError> {
     for i_range in 0..rt::conversions::usize_to_i32(arr.len())? {
         let i = i_range as f64;
         out = if out.is_empty() {
-            match arr.get_number(i).as_ref() {
-                Some(flow_value_2) => flow_value_2.clone(),
+            match arr.get_number(i) {
+                Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             }
         } else {
@@ -45,8 +45,8 @@ pub fn normalize_rel_path(raw: String) -> Result<String, rt::TsonicError> {
                 "{}{}{}",
                 out,
                 String::from("/"),
-                match arr.get_number(i).as_ref() {
-                    Some(flow_value_3) => flow_value_3.clone(),
+                match arr.get_number(i) {
+                    Some(flow_value_3) => flow_value_3,
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
             )
@@ -55,32 +55,32 @@ pub fn normalize_rel_path(raw: String) -> Result<String, rt::TsonicError> {
     Ok(out)
 }
 
-pub fn segment_match(pattern: String, segment: String) -> Result<bool, rt::TsonicError> {
+pub fn segment_match(pattern: &str, segment: &str) -> Result<bool, rt::TsonicError> {
     if pattern == "*" {
         return Ok(true);
     }
-    let star: i32 = rt::conversions::isize_to_i32(js_string::index_of_from_start(&pattern, "*"))?;
+    let star: i32 = rt::conversions::isize_to_i32(js_string::index_of_from_start(pattern, "*"))?;
     if star < 0 {
         return Ok(pattern == segment);
     }
-    let parts: js_abi::JsArray<String> = js_string::split_all(&pattern, "*")?;
+    let parts: js_abi::JsArray<String> = js_string::split_all(pattern, "*")?;
     let mut pos: f64 = 0.0;
     {
         let mut i: f64 = 0.0;
         'loop_value: while i < (rt::conversions::usize_to_i32(parts.len())? as f64) {
-            let p: String = match parts.get_number(i).as_ref() {
-                Some(flow_value) => flow_value.clone(),
+            let p: String = match parts.get_number(i) {
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if p.is_empty() {
                 i += 1.0;
                 continue 'loop_value;
             }
-            let idx: i32 = rt::conversions::isize_to_i32(js_string::index_of(&segment, &p, pos))?;
+            let idx: i32 = rt::conversions::isize_to_i32(js_string::index_of(segment, &p, pos))?;
             if idx < 0 {
                 return Ok(false);
             }
-            if i == 0.0 && !js_string::starts_with_from_start(&pattern, "*") && idx != 0 {
+            if i == 0.0 && !js_string::starts_with_from_start(pattern, "*") && idx != 0 {
                 return Ok(false);
             }
             pos = rt::conversions::i32_to_f64(
@@ -89,8 +89,8 @@ pub fn segment_match(pattern: String, segment: String) -> Result<bool, rt::Tsoni
             i += 1.0;
         }
     }
-    if !js_string::ends_with_at_end(&pattern, "*")
-        && pos != rt::conversions::usize_to_i32(js_string::js_len(&segment))? as f64
+    if !js_string::ends_with_at_end(pattern, "*")
+        && pos != rt::conversions::usize_to_i32(js_string::js_len(segment))? as f64
     {
         return Ok(false);
     }
@@ -123,11 +123,8 @@ pub fn glob_match_at(
     if pi >= rt::conversions::usize_to_i32(pat_segs.len())? {
         return Ok(si >= rt::conversions::usize_to_i32(path_segs.len())?);
     }
-    let p: String = match pat_segs
-        .get_number(rt::conversions::i32_to_f64(pi))
-        .as_ref()
-    {
-        Some(flow_value) => flow_value.clone(),
+    let p: String = match pat_segs.get_number(rt::conversions::i32_to_f64(pi)) {
+        Some(flow_value) => flow_value,
         None => unreachable!("checked flow selected a missing optional value"),
     };
     if p == "**" {
@@ -146,12 +143,9 @@ pub fn glob_match_at(
         return Ok(false);
     }
     if !segment_match(
-        p.clone(),
-        match path_segs
-            .get_number(rt::conversions::i32_to_f64(si))
-            .as_ref()
-        {
-            Some(flow_value_2) => flow_value_2.clone(),
+        &p,
+        &match path_segs.get_number(rt::conversions::i32_to_f64(si)) {
+            Some(flow_value_2) => flow_value_2,
             None => unreachable!("checked flow selected a missing optional value"),
         },
     )? {
@@ -160,9 +154,9 @@ pub fn glob_match_at(
     glob_match_at(pat_segs.clone(), path_segs.clone(), pi + 1, si + 1)
 }
 
-pub fn glob_match(pattern_raw: String, path_raw: String) -> Result<bool, rt::TsonicError> {
-    let pat_segs: js_abi::JsArray<String> = split_glob_segments(&pattern_raw)?;
-    let path_segs: js_abi::JsArray<String> = split_glob_segments(&path_raw)?;
+pub fn glob_match(pattern_raw: &str, path_raw: &str) -> Result<bool, rt::TsonicError> {
+    let pat_segs: js_abi::JsArray<String> = split_glob_segments(pattern_raw)?;
+    let path_segs: js_abi::JsArray<String> = split_glob_segments(path_raw)?;
     glob_match_at(pat_segs, path_segs, 0, 0)
 }
 
@@ -211,7 +205,7 @@ pub fn resolve_page_ref(
             )?
         )
     };
-    normalize_rel_path(combined)
+    normalize_rel_path(&combined)
 }
 
 pub fn try_get_page(
@@ -225,7 +219,7 @@ pub fn try_get_page(
             dispatch_receiver.dispatch.read_site_context_home()
         });
     }
-    let needle: String = crate::template::evaluation::serialization::trim_slashes(trimmed.clone())?;
+    let needle: String = crate::template::evaluation::serialization::trim_slashes(trimmed)?;
     if needle.is_empty() {
         return Ok({
             let dispatch_receiver_2 = &site;
@@ -252,11 +246,10 @@ pub fn try_get_page(
     {
         let mut i: f64 = 0.0;
         while i < (rt::conversions::usize_to_i32(candidates.len())? as f64) {
-            let p: crate::models::page_context::PageContext =
-                match candidates.get_number(i).as_ref() {
-                    Some(flow_value) => flow_value.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                };
+            let p: crate::models::page_context::PageContext = match candidates.get_number(i) {
+                Some(flow_value) => flow_value,
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
             if crate::template::evaluation::serialization::trim_slashes({
                 let dispatch_receiver_6 = &p;
                 dispatch_receiver_6

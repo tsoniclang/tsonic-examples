@@ -1,19 +1,41 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Resources_manager
     {
-        public static Action<Tsonic.CSharp.Js.JSArray<string>> sortResourcePaths
+        internal static void sortResourcePaths(Tsonic.CSharp.Js.JSArray<string> paths)
         {
-            get;
-            private set;
-        } = default(Action<Tsonic.CSharp.Js.JSArray<string>>)!;
-        public static Action<Tsonic.CSharp.Js.JSArray<Resource>> sortResourcesByIdentity
+            for (double leftIndex = 0; leftIndex < paths.length; leftIndex++)
+            {
+                for (double rightIndex = leftIndex + 1; rightIndex < paths.length; rightIndex++)
+                {
+                    string left = paths[leftIndex];
+                    string right = paths[rightIndex];
+                    if (Utils_strings.compareText(Resources_paths.normalizeResourceSlashes(left), Resources_paths.normalizeResourceSlashes(right)) <= 0)
+                    {
+                        continue;
+                    }
+                    paths[leftIndex] = right;
+                    paths[rightIndex] = left;
+                }
+            }
+        }
+        internal static void sortResourcesByIdentity(Tsonic.CSharp.Js.JSArray<Resource> resources)
         {
-            get;
-            private set;
-        } = default(Action<Tsonic.CSharp.Js.JSArray<Resource>>)!;
+            for (double leftIndex = 0; leftIndex < resources.length; leftIndex++)
+            {
+                for (double rightIndex = leftIndex + 1; rightIndex < resources.length; rightIndex++)
+                {
+                    Resource left = resources[leftIndex];
+                    Resource right = resources[rightIndex];
+                    if (Utils_strings.compareText(left.id, right.id) <= 0)
+                    {
+                        continue;
+                    }
+                    resources[leftIndex] = right;
+                    resources[rightIndex] = left;
+                }
+            }
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
@@ -27,40 +49,6 @@ namespace Tsumo.Engine
             Resources_sassProvider.__tsonic_module_init();
             Resources_javascriptProvider.__tsonic_module_init();
             Resources_transforms.__tsonic_module_init();
-            sortResourcePaths = (Tsonic.CSharp.Js.JSArray<string> paths) =>
-            {
-                for (int leftIndex = 0; leftIndex < paths.length; leftIndex++)
-                {
-                    for (int rightIndex = leftIndex + 1; rightIndex < paths.length; rightIndex++)
-                    {
-                        string left = paths[leftIndex];
-                        string right = paths[rightIndex];
-                        if (Utils_strings.compareText(Resources_paths.normalizeResourceSlashes(left), Resources_paths.normalizeResourceSlashes(right)) <= 0)
-                        {
-                            continue;
-                        }
-                        paths[leftIndex] = right;
-                        paths[rightIndex] = left;
-                    }
-                }
-            };
-            sortResourcesByIdentity = (Tsonic.CSharp.Js.JSArray<Resource> resources) =>
-            {
-                for (int leftIndex = 0; leftIndex < resources.length; leftIndex++)
-                {
-                    for (int rightIndex = leftIndex + 1; rightIndex < resources.length; rightIndex++)
-                    {
-                        Resource left = resources[leftIndex];
-                        Resource right = resources[rightIndex];
-                        if (Utils_strings.compareText(left.id, right.id) <= 0)
-                        {
-                            continue;
-                        }
-                        resources[leftIndex] = right;
-                        resources[rightIndex] = left;
-                    }
-                }
-            };
             return null;
         }
         public static void __tsonic_module_init()
@@ -89,7 +77,7 @@ namespace Tsumo.Engine
             this.siteAssetFiles = Fs.listFilesRecursive(this.siteAssetsDir, "*");
             Resources_manager.sortResourcePaths(this.siteAssetFiles);
             string? themeAssetsDir = this.themeAssetsDir;
-            this.themeAssetFiles = themeAssetsDir is null ? new Tsonic.CSharp.Js.JSArray<string>(new string[] { }) : Fs.listFilesRecursive(themeAssetsDir, "*");
+            this.themeAssetFiles = themeAssetsDir is null ? Tsonic.CSharp.Js.JSArray<string>.of([]) : Fs.listFilesRecursive(themeAssetsDir, "*");
             Resources_manager.sortResourcePaths(this.themeAssetFiles);
         }
         public string? resolveAssetFullPath(string relativePath)
@@ -167,7 +155,7 @@ namespace Tsumo.Engine
             {
                 return this.get(normalized);
             }
-            for (int index = 0; index < this.siteAssetFiles.length; index++)
+            for (double index = 0; index < this.siteAssetFiles.length; index++)
             {
                 string fullPath = this.siteAssetFiles[index];
                 string relativePath = Resources_paths.normalizeResourceSlashes(Tsonic.CSharp.Node.path.relative(this.siteAssetsDir, fullPath));
@@ -179,7 +167,7 @@ namespace Tsumo.Engine
             string? themeAssetsDir = this.themeAssetsDir;
             if (themeAssetsDir is not null)
             {
-                for (int index_1 = 0; index_1 < this.themeAssetFiles.length; index_1++)
+                for (double index_1 = 0; index_1 < this.themeAssetFiles.length; index_1++)
                 {
                     string fullPath_1 = this.themeAssetFiles[index_1];
                     string relativePath_1 = Resources_paths.normalizeResourceSlashes(Tsonic.CSharp.Node.path.relative(themeAssetsDir, fullPath_1));
@@ -194,13 +182,13 @@ namespace Tsumo.Engine
         public Tsonic.CSharp.Js.JSArray<Resource> match(string pattern)
         {
             string normalized = Resources_paths.normalizeResourceRelativePath(pattern);
-            Tsonic.CSharp.Js.JSArray<Resource> result = new Tsonic.CSharp.Js.JSArray<Resource>(new Resource[] { });
+            Tsonic.CSharp.Js.JSArray<Resource> result = Tsonic.CSharp.Js.JSArray<Resource>.of([]);
             if (normalized == "")
             {
                 return result;
             }
             Tsonic.CSharp.Js.Map<string, bool> selected = new Tsonic.CSharp.Js.Map<string, bool>();
-            for (int index = 0; index < this.siteAssetFiles.length; index++)
+            for (double index = 0; index < this.siteAssetFiles.length; index++)
             {
                 string fullPath = this.siteAssetFiles[index];
                 string relativePath = Resources_paths.normalizeResourceSlashes(Tsonic.CSharp.Node.path.relative(this.siteAssetsDir, fullPath));
@@ -219,7 +207,7 @@ namespace Tsumo.Engine
             string? themeAssetsDir = this.themeAssetsDir;
             if (themeAssetsDir is not null)
             {
-                for (int index_1 = 0; index_1 < this.themeAssetFiles.length; index_1++)
+                for (double index_1 = 0; index_1 < this.themeAssetFiles.length; index_1++)
                 {
                     string fullPath_1 = this.themeAssetFiles[index_1];
                     string relativePath_1 = Resources_paths.normalizeResourceSlashes(Tsonic.CSharp.Node.path.relative(themeAssetsDir, fullPath_1));
@@ -239,9 +227,9 @@ namespace Tsumo.Engine
         }
         public Tsonic.CSharp.Js.JSArray<Resource> byType(string mediaType)
         {
-            Tsonic.CSharp.Js.JSArray<Resource> result = new Tsonic.CSharp.Js.JSArray<Resource>(new Resource[] { });
+            Tsonic.CSharp.Js.JSArray<Resource> result = Tsonic.CSharp.Js.JSArray<Resource>.of([]);
             Tsonic.CSharp.Js.Map<string, bool> selected = new Tsonic.CSharp.Js.Map<string, bool>();
-            for (int index = 0; index < this.siteAssetFiles.length; index++)
+            for (double index = 0; index < this.siteAssetFiles.length; index++)
             {
                 string fullPath = this.siteAssetFiles[index];
                 string relativePath = Resources_paths.normalizeResourceSlashes(Tsonic.CSharp.Node.path.relative(this.siteAssetsDir, fullPath));
@@ -256,7 +244,7 @@ namespace Tsumo.Engine
             string? themeAssetsDir = this.themeAssetsDir;
             if (themeAssetsDir is not null)
             {
-                for (int index_1 = 0; index_1 < this.themeAssetFiles.length; index_1++)
+                for (double index_1 = 0; index_1 < this.themeAssetFiles.length; index_1++)
                 {
                     string fullPath_1 = this.themeAssetFiles[index_1];
                     string relativePath_1 = Resources_paths.normalizeResourceSlashes(Tsonic.CSharp.Node.path.relative(themeAssetsDir, fullPath_1));
@@ -302,7 +290,7 @@ namespace Tsumo.Engine
             {
                 return cached;
             }
-            Tsonic.CSharp.Js.JSArray<string> loadPaths = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+            Tsonic.CSharp.Js.JSArray<string> loadPaths = Tsonic.CSharp.Js.JSArray<string>.of([]);
             string? sourcePath = resource.sourcePath;
             if (sourcePath is not null)
             {

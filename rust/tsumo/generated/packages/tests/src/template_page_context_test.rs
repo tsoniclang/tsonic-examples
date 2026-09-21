@@ -31,8 +31,9 @@ impl TemplatePageContextTests {
             Some(crate::template_test_harness::render_with_root(
                 String::from("{{ .Format \"2006-01-02\" }}"),
                 {
-                    let upcast_value =
-                        tsumo_engine::testing::DateValue::new(String::from("2024-01-02T03:04:05Z"));
+                    let upcast_value = tsumo_engine::testing::DateValue::new(String::from(
+                        "2024-01-02T03:04:05Z",
+                    ))?;
                     tsumo_engine::testing::TemplateValue {
                         identity: upcast_value.identity.clone(),
                         dispatch: upcast_value.dispatch.clone(),
@@ -46,13 +47,13 @@ impl TemplatePageContextTests {
             String::from("Older"),
             String::from("2022-04-01T00:00:00Z"),
             String::from("page"),
-        );
+        )?;
         let newer: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
             site.clone(),
             String::from("Newer"),
             String::from("2024-06-01T00:00:00Z"),
             String::from("page"),
-        );
+        )?;
         {
             let operation_input_0 = {
                 let dispatch_receiver = &older;
@@ -60,7 +61,7 @@ impl TemplatePageContextTests {
             };
             operation_input_0.set_discard(
                 String::from("weight"),
-                tsumo_engine::testing::ParamValue::number(20),
+                tsumo_engine::testing::ParamValue::number(20)?,
             )
         };
         {
@@ -70,7 +71,7 @@ impl TemplatePageContextTests {
             };
             operation_input_0_2.set_discard(
                 String::from("weight"),
-                tsumo_engine::testing::ParamValue::number(10),
+                tsumo_engine::testing::ParamValue::number(10)?,
             )
         };
         let root: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
@@ -78,21 +79,24 @@ impl TemplatePageContextTests {
             String::from("Home"),
             String::from(""),
             String::from("home"),
-        );
+        )?;
         {
             let receiver = &root;
             let value = js_abi::JsArray::from_dense(vec![older.clone(), newer.clone()]);
             {
                 let dispatch_receiver_3 = receiver;
-                dispatch_receiver_3.dispatch.write_page_context_pages(value)
+                dispatch_receiver_3
+                    .dispatch
+                    .write_page_context_pages(value)?
             }
         };
-        let section: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
-            site.clone(),
-            String::from("Section"),
-            String::from(""),
-            String::from("section"),
-        );
+        let section: tsumo_engine::testing::PageContext =
+            crate::template_test_harness::create_page(
+                site.clone(),
+                String::from("Section"),
+                String::from(""),
+                String::from("section"),
+            )?;
         {
             let dispatch_receiver_4 = &root;
             dispatch_receiver_4.dispatch.read_page_context_pages()
@@ -108,7 +112,7 @@ impl TemplatePageContextTests {
                 let dispatch_receiver_6 = receiver_2;
                 dispatch_receiver_6
                     .dispatch
-                    .write_site_context_pages(value_2)
+                    .write_site_context_pages(value_2)?
             }
         };
         {
@@ -121,7 +125,7 @@ impl TemplatePageContextTests {
                 let dispatch_receiver_8 = receiver_3;
                 dispatch_receiver_8
                     .dispatch
-                    .write_site_context_all_pages(value_3)
+                    .write_site_context_all_pages(value_3)?
             }
         };
         crate::test_root::Assert::string_equal(
@@ -129,7 +133,7 @@ impl TemplatePageContextTests {
             Some(crate::template_test_harness::render_with_root(
                 String::from("{{ .Scratch.Set \"key\" \"value\" }}{{ .Scratch.Get \"key\" }}"),
                 {
-                    let upcast_value_2 = tsumo_engine::testing::PageValue::new(root.clone());
+                    let upcast_value_2 = tsumo_engine::testing::PageValue::new(root.clone())?;
                     tsumo_engine::testing::TemplateValue {
                         identity: upcast_value_2.identity.clone(),
                         dispatch: upcast_value_2.dispatch.clone(),
@@ -144,7 +148,7 @@ impl TemplatePageContextTests {
                     "{{ range .Data.Pages.GroupByDate \"2006\" }}{{ .Key }}:{{ range .Pages }}{{ .Title }}{{ end }};{{ end }}",
                 ),
                 {
-                    let upcast_value_3 = tsumo_engine::testing::PageValue::new(root.clone());
+                    let upcast_value_3 = tsumo_engine::testing::PageValue::new(root.clone())?;
                     tsumo_engine::testing::TemplateValue {
                         identity: upcast_value_3.identity.clone(),
                         dispatch: upcast_value_3.dispatch.clone(),
@@ -161,7 +165,7 @@ impl TemplatePageContextTests {
                     "{{ range .Data.Pages.GroupBy \"Weight\" }}{{ .Key }}:{{ range .ByTitle }}{{ .Title }}{{ end }};{{ end }}|{{ range .Data.Pages.GroupBy \"Weight\" \"desc\" }}{{ .Key }}:{{ range .Pages }}{{ .Title }}{{ end }};{{ end }}|{{ range .Data.Pages.ByWeight }}{{ .Title }}{{ end }}",
                 ),
                 {
-                    let upcast_value_4 = tsumo_engine::testing::PageValue::new(root.clone());
+                    let upcast_value_4 = tsumo_engine::testing::PageValue::new(root.clone())?;
                     tsumo_engine::testing::TemplateValue {
                         identity: upcast_value_4.identity.clone(),
                         dispatch: upcast_value_4.dispatch.clone(),
@@ -174,7 +178,7 @@ impl TemplatePageContextTests {
             Some(crate::template_test_harness::render_with_root(
                 String::from("{{ len (union .RegularPages .Sections) }}"),
                 {
-                    let upcast_value_5 = tsumo_engine::testing::PageValue::new(root.clone());
+                    let upcast_value_5 = tsumo_engine::testing::PageValue::new(root.clone())?;
                     tsumo_engine::testing::TemplateValue {
                         identity: upcast_value_5.identity.clone(),
                         dispatch: upcast_value_5.dispatch.clone(),
@@ -183,7 +187,7 @@ impl TemplatePageContextTests {
             )?),
         )?;
         let environment: crate::template_test_harness::TestTemplateEnvironment =
-            crate::template_test_harness::TestTemplateEnvironment::new(None);
+            crate::template_test_harness::TestTemplateEnvironment::new(None)?;
         crate::test_root::Assert::string_equal(
             String::from("2024"),
             Some({
@@ -198,7 +202,7 @@ impl TemplatePageContextTests {
                         )?,
                         {
                             let upcast_value_6 =
-                                tsumo_engine::testing::PageValue::new(root.clone());
+                                tsumo_engine::testing::PageValue::new(root.clone())?;
                             tsumo_engine::testing::TemplateValue {
                                 identity: upcast_value_6.identity.clone(),
                                 dispatch: upcast_value_6.dispatch.clone(),
@@ -232,14 +236,14 @@ impl TemplatePageContextTests {
         let parent_scope: tsumo_engine::testing::RenderScope =
             tsumo_engine::testing::RenderScope::new(
                 {
-                    let upcast_value_7 = tsumo_engine::testing::PageValue::new(root.clone());
+                    let upcast_value_7 = tsumo_engine::testing::PageValue::new(root.clone())?;
                     tsumo_engine::testing::TemplateValue {
                         identity: upcast_value_7.identity.clone(),
                         dispatch: upcast_value_7.dispatch.clone(),
                     }
                 },
                 {
-                    let upcast_value_8 = tsumo_engine::testing::PageValue::new(root.clone());
+                    let upcast_value_8 = tsumo_engine::testing::PageValue::new(root.clone())?;
                     tsumo_engine::testing::TemplateValue {
                         identity: upcast_value_8.identity.clone(),
                         dispatch: upcast_value_8.dispatch.clone(),
@@ -259,7 +263,7 @@ impl TemplatePageContextTests {
                     let dispatch_receiver_11 = &parent;
                     dispatch_receiver_11.dispatch.read_template_source_path()
                 },
-            );
+            )?;
         let output: tsumo_engine::testing::TextBuilder = tsumo_engine::testing::TextBuilder::new();
         {
             let dispatch_receiver_12 = parent.clone();
@@ -296,14 +300,14 @@ impl TemplatePageContextTests {
         let page_scope: tsumo_engine::testing::RenderScope =
             tsumo_engine::testing::RenderScope::new(
                 {
-                    let upcast_value_11 = tsumo_engine::testing::PageValue::new(newer.clone());
+                    let upcast_value_11 = tsumo_engine::testing::PageValue::new(newer.clone())?;
                     tsumo_engine::testing::TemplateValue {
                         identity: upcast_value_11.identity.clone(),
                         dispatch: upcast_value_11.dispatch.clone(),
                     }
                 },
                 {
-                    let upcast_value_12 = tsumo_engine::testing::PageValue::new(newer.clone());
+                    let upcast_value_12 = tsumo_engine::testing::PageValue::new(newer.clone())?;
                     tsumo_engine::testing::TemplateValue {
                         identity: upcast_value_12.identity.clone(),
                         dispatch: upcast_value_12.dispatch.clone(),
@@ -320,7 +324,7 @@ impl TemplatePageContextTests {
                 Option::<tsumo_engine::testing::RenderScope>::None,
                 None,
                 None,
-            );
+            )?;
         {
             let dispatch_receiver_14 = page_template;
             dispatch_receiver_14
@@ -361,13 +365,13 @@ impl TemplatePageContextTests {
             String::from("Article"),
             String::from("2024-01-01T00:00:00Z"),
             String::from("page"),
-        );
+        )?;
         let term: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
             site.clone(),
             String::from("TypeScript"),
             String::from(""),
             String::from("term"),
-        );
+        )?;
         let memberships: js_abi::JsMap<
             String,
             js_abi::JsArray<tsumo_engine::testing::PageContext>,
@@ -396,7 +400,7 @@ impl TemplatePageContextTests {
             Some(crate::template_test_harness::render_with_root(
                 String::from("{{ range .GetTerms \"tags\" }}{{ .Title }};{{ end }}"),
                 {
-                    let upcast_value = tsumo_engine::testing::PageValue::new(page.clone());
+                    let upcast_value = tsumo_engine::testing::PageValue::new(page.clone())?;
                     tsumo_engine::testing::TemplateValue {
                         identity: upcast_value.identity.clone(),
                         dispatch: upcast_value.dispatch.clone(),
@@ -409,18 +413,20 @@ impl TemplatePageContextTests {
 
     pub fn page_menu_methods_use_the_exact_menu_hierarchy(&self) -> Result<(), rt::TsonicError> {
         let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
-        let section: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
-            site.clone(),
-            String::from("Section"),
-            String::from(""),
-            String::from("section"),
-        );
-        let article: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
-            site.clone(),
-            String::from("Article"),
-            String::from(""),
-            String::from("page"),
-        );
+        let section: tsumo_engine::testing::PageContext =
+            crate::template_test_harness::create_page(
+                site.clone(),
+                String::from("Section"),
+                String::from(""),
+                String::from("section"),
+            )?;
+        let article: tsumo_engine::testing::PageContext =
+            crate::template_test_harness::create_page(
+                site.clone(),
+                String::from("Article"),
+                String::from(""),
+                String::from("page"),
+            )?;
         let parent: tsumo_engine::testing::MenuEntry = tsumo_engine::testing::MenuEntry::new(
             String::from("Section"),
             String::from(""),
@@ -433,7 +439,7 @@ impl TemplatePageContextTests {
             String::from(""),
             String::from("main"),
             None,
-        );
+        )?;
         let child: tsumo_engine::testing::MenuEntry = tsumo_engine::testing::MenuEntry::new(
             String::from("Article"),
             String::from(""),
@@ -446,13 +452,13 @@ impl TemplatePageContextTests {
             String::from(""),
             String::from("main"),
             None,
-        );
+        )?;
         {
             let receiver = &parent;
             let value = Some(section);
             {
                 let dispatch_receiver = receiver;
-                dispatch_receiver.dispatch.write_menu_entry_page(value)
+                dispatch_receiver.dispatch.write_menu_entry_page(value)?
             }
         };
         {
@@ -460,7 +466,9 @@ impl TemplatePageContextTests {
             let value_2 = Some(article.clone());
             {
                 let dispatch_receiver_2 = receiver_2;
-                dispatch_receiver_2.dispatch.write_menu_entry_page(value_2)
+                dispatch_receiver_2
+                    .dispatch
+                    .write_menu_entry_page(value_2)?
             }
         };
         {
@@ -470,7 +478,7 @@ impl TemplatePageContextTests {
                 let dispatch_receiver_3 = receiver_3;
                 dispatch_receiver_3
                     .dispatch
-                    .write_menu_entry_children(value_3)
+                    .write_menu_entry_children(value_3)?
             }
         };
         {
@@ -488,7 +496,7 @@ impl TemplatePageContextTests {
                     "{{ range .Site.Menus.main }}{{ $.HasMenuCurrent \"main\" . }}|{{ $.IsMenuCurrent \"main\" . }}|{{ range .Children }}{{ $.HasMenuCurrent \"main\" . }}|{{ $.IsMenuCurrent \"main\" . }}|{{ $.IsMenuCurrent \"other\" . }}{{ end }}{{ end }}",
                 ),
                 {
-                    let upcast_value = tsumo_engine::testing::PageValue::new(article.clone());
+                    let upcast_value = tsumo_engine::testing::PageValue::new(article.clone())?;
                     tsumo_engine::testing::TemplateValue {
                         identity: upcast_value.identity.clone(),
                         dispatch: upcast_value.dispatch.clone(),
@@ -508,9 +516,9 @@ impl TemplatePageContextTests {
             String::from("Home"),
             String::from(""),
             String::from("home"),
-        );
+        )?;
         let environment: crate::template_test_harness::TestTemplateEnvironment =
-            crate::template_test_harness::TestTemplateEnvironment::new(None);
+            crate::template_test_harness::TestTemplateEnvironment::new(None)?;
         {
             let operation_input_0 = {
                 let dispatch_receiver = &environment;
@@ -542,7 +550,7 @@ impl TemplatePageContextTests {
                     .dispatch_test_template_environment_render_template(
                         parent,
                         {
-                            let upcast_value = tsumo_engine::testing::PageValue::new(root.clone());
+                            let upcast_value = tsumo_engine::testing::PageValue::new(root.clone())?;
                             tsumo_engine::testing::TemplateValue {
                                 identity: upcast_value.identity.clone(),
                                 dispatch: upcast_value.dispatch.clone(),
@@ -571,7 +579,7 @@ impl TemplatePageContextTests {
                         inline,
                         {
                             let upcast_value_2 =
-                                tsumo_engine::testing::PageValue::new(root.clone());
+                                tsumo_engine::testing::PageValue::new(root.clone())?;
                             tsumo_engine::testing::TemplateValue {
                                 identity: upcast_value_2.identity.clone(),
                                 dispatch: upcast_value_2.dispatch.clone(),
@@ -607,7 +615,7 @@ impl TemplatePageContextTests {
                         contextual,
                         {
                             let upcast_value_3 =
-                                tsumo_engine::testing::PageValue::new(root.clone());
+                                tsumo_engine::testing::PageValue::new(root.clone())?;
                             tsumo_engine::testing::TemplateValue {
                                 identity: upcast_value_3.identity.clone(),
                                 dispatch: upcast_value_3.dispatch.clone(),
@@ -646,7 +654,7 @@ impl TemplatePageContextTests {
                     output_directory,
                 )?;
             let environment: crate::template_test_harness::TestTemplateEnvironment =
-                crate::template_test_harness::TestTemplateEnvironment::new(Some(manager));
+                crate::template_test_harness::TestTemplateEnvironment::new(Some(manager))?;
             let site: tsumo_engine::testing::SiteContext =
                 crate::template_test_harness::create_site()?;
             let page: tsumo_engine::testing::PageContext =
@@ -655,7 +663,7 @@ impl TemplatePageContextTests {
                     String::from("Article"),
                     String::from(""),
                     String::from("page"),
-                );
+                )?;
             {
                 let receiver = &page;
                 let value = String::from("/article/");
@@ -663,7 +671,7 @@ impl TemplatePageContextTests {
                     let dispatch_receiver = receiver;
                     dispatch_receiver
                         .dispatch
-                        .write_page_context_rel_permalink(value)
+                        .write_page_context_rel_permalink(value)?
                 }
             };
             {
@@ -673,7 +681,7 @@ impl TemplatePageContextTests {
                     let dispatch_receiver_2 = receiver_2;
                     dispatch_receiver_2
                         .dispatch
-                        .write_page_context_resource_source_dir(value_2)
+                        .write_page_context_resource_source_dir(value_2)?
                 }
             };
             let template: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
@@ -693,7 +701,7 @@ impl TemplatePageContextTests {
                             template,
                             {
                                 let upcast_value =
-                                    tsumo_engine::testing::PageValue::new(page.clone());
+                                    tsumo_engine::testing::PageValue::new(page.clone())?;
                                 tsumo_engine::testing::TemplateValue {
                                     identity: upcast_value.identity.clone(),
                                     dispatch: upcast_value.dispatch.clone(),

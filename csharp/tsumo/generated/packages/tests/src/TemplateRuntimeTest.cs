@@ -59,7 +59,7 @@ namespace Tsumo.Tests
             SiteContext site = TemplateTestHarness.createSite();
             PageContext root = TemplateTestHarness.createPage(site, "Home", "", "home");
             site.home = root;
-            site.Sites = new Tsonic.CSharp.Js.JSArray<SiteContext>(new SiteContext[] { site });
+            site.Sites = Tsonic.CSharp.Js.JSArray<SiteContext>.of([site]);
             Template template = Node_modules_Tsumo_engine_src_template_parser_parseTemplate.parseTemplate("{{ range hugo.Sites }}{{ .Title }};{{ end }}|{{ hugo.Sites.Default.Home.RelPermalink }}", null);
             Xunit.Assert.Equal("Test Site;|/home/", environment.renderTemplate(template, new PageValue(root), site, new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>()));
         }
@@ -72,11 +72,11 @@ namespace Tsumo.Tests
             PageContext older = TemplateTestHarness.createPage(site, "Older", "2025-08-15T00:00:00Z", "page");
             PageContext newer = TemplateTestHarness.createPage(site, "Newer", "2027-08-15T00:00:00Z", "page");
             PageContext unrelated = TemplateTestHarness.createPage(site, "Unrelated", "2024-08-15T00:00:00Z", "page");
-            current.tags = new Tsonic.CSharp.Js.JSArray<string>(new string[] { "shared" });
-            older.tags = new Tsonic.CSharp.Js.JSArray<string>(new string[] { "shared" });
-            newer.tags = new Tsonic.CSharp.Js.JSArray<string>(new string[] { "shared" });
-            unrelated.tags = new Tsonic.CSharp.Js.JSArray<string>(new string[] { "other" });
-            site.allPages = new Tsonic.CSharp.Js.JSArray<PageContext>(new PageContext[] { current, older, newer, unrelated });
+            current.tags = Tsonic.CSharp.Js.JSArray<string>.of(["shared"]);
+            older.tags = Tsonic.CSharp.Js.JSArray<string>.of(["shared"]);
+            newer.tags = Tsonic.CSharp.Js.JSArray<string>.of(["shared"]);
+            unrelated.tags = Tsonic.CSharp.Js.JSArray<string>.of(["other"]);
+            site.allPages = Tsonic.CSharp.Js.JSArray<PageContext>.of([current, older, newer, unrelated]);
             Template template = Node_modules_Tsumo_engine_src_template_parser_parseTemplate.parseTemplate("{{ range site.RegularPages.Related page }}{{ .Title }}{{ end }}", null);
             Xunit.Assert.Equal("Older", environment.renderTemplate(template, new PageValue(current), site, new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>()));
         }
@@ -256,7 +256,7 @@ namespace Tsumo.Tests
             Xunit.Assert.Equal("TSUMO_TEMPLATE_ACTION_UNCLOSED", located.code);
             Xunit.Assert.Equal<double?>(1, located.line);
             Xunit.Assert.Equal<double?>(3, located.column);
-            Tsonic.CSharp.Js.JSArray<string> largeTemplateLines = new Tsonic.CSharp.Js.JSArray<string>(new string[] { });
+            Tsonic.CSharp.Js.JSArray<string> largeTemplateLines = Tsonic.CSharp.Js.JSArray<string>.of([]);
             for (double index = 0; index < 2000; index++)
             {
                 largeTemplateLines.push($"line {index}: {{{{ print \"{index}\" }}}}");

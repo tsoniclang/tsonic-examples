@@ -11,26 +11,41 @@ pub trait RenderScopeDispatch {
         None
     }
     fn read_render_scope_root(&self) -> crate::template::values::base::TemplateValue;
-    fn write_render_scope_root(&self, value: crate::template::values::base::TemplateValue);
+    fn write_render_scope_root(
+        &self,
+        value: crate::template::values::base::TemplateValue,
+    ) -> Result<(), rt::TsonicError>;
     fn read_render_scope_dot(&self) -> crate::template::values::base::TemplateValue;
-    fn write_render_scope_dot(&self, value: crate::template::values::base::TemplateValue);
+    fn write_render_scope_dot(
+        &self,
+        value: crate::template::values::base::TemplateValue,
+    ) -> Result<(), rt::TsonicError>;
     fn read_render_scope_site(&self) -> crate::models::site_context::SiteContext;
-    fn write_render_scope_site(&self, value: crate::models::site_context::SiteContext);
+    fn write_render_scope_site(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError>;
     fn read_render_scope_env(&self) -> crate::template::environment::TemplateEnvironment;
-    fn write_render_scope_env(&self, value: crate::template::environment::TemplateEnvironment);
+    fn write_render_scope_env(
+        &self,
+        value: crate::template::environment::TemplateEnvironment,
+    ) -> Result<(), rt::TsonicError>;
     fn read_render_scope_parent(&self) -> Option<RenderScope>;
-    fn write_render_scope_parent(&self, value: Option<RenderScope>);
+    fn write_render_scope_parent(&self, value: Option<RenderScope>) -> Result<(), rt::TsonicError>;
     fn read_render_scope_vars(
         &self,
     ) -> js_abi::JsMap<String, crate::template::values::base::TemplateValue>;
     fn write_render_scope_vars(
         &self,
         value: js_abi::JsMap<String, crate::template::values::base::TemplateValue>,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_render_scope_state(&self) -> RenderState;
-    fn write_render_scope_state(&self, value: RenderState);
+    fn write_render_scope_state(&self, value: RenderState) -> Result<(), rt::TsonicError>;
     fn read_render_scope_template_source_path(&self) -> Option<String>;
-    fn write_render_scope_template_source_path(&self, value: Option<String>);
+    fn write_render_scope_template_source_path(
+        &self,
+        value: Option<String>,
+    ) -> Result<(), rt::TsonicError>;
     fn dispatch_render_scope_get_var(
         self: alloc::rc::Rc<Self>,
         name: String,
@@ -117,7 +132,7 @@ impl rt::ObjectIdentityCarrier for RenderScope {
 
 pub(crate) struct RenderScopeRoot {
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<RenderScopeState>,
+    state: rt::ObjectState<RenderScopeState>,
 }
 
 impl RenderScope {
@@ -130,7 +145,7 @@ impl RenderScope {
         parent: Option<RenderScope>,
         state: Option<RenderState>,
         template_source_path: Option<String>,
-    ) -> RenderScopeState {
+    ) -> Result<RenderScopeState, rt::TsonicError> {
         let field_root: crate::template::values::base::TemplateValue = root.clone();
         let field_dot: crate::template::values::base::TemplateValue = dot;
         let field_site: crate::models::site_context::SiteContext = site;
@@ -138,18 +153,19 @@ impl RenderScope {
         let field_parent: Option<RenderScope> = parent.clone();
         let field_vars: js_abi::JsMap<String, crate::template::values::base::TemplateValue> =
             js_abi::JsMap::new();
-        let field_state: RenderState = rt::option_coalesce(
-            rt::option_coalesce(
-                parent.as_ref().map(|optional_receiver| {
-                    let dispatch_receiver = optional_receiver;
-                    dispatch_receiver.dispatch.read_render_scope_state()
-                }),
-                Some,
-                || state,
-            ),
-            core::convert::identity,
-            || RenderState::new(1),
-        );
+        let field_state: RenderState =
+            rt::option_coalesce::<_, core::result::Result<RenderState, rt::TsonicError>>(
+                rt::option_coalesce(
+                    parent.as_ref().map(|optional_receiver| {
+                        let dispatch_receiver = optional_receiver;
+                        dispatch_receiver.dispatch.read_render_scope_state()
+                    }),
+                    Some,
+                    || state,
+                ),
+                Ok,
+                || RenderState::new(1),
+            )?;
         if {
             let dispatch_receiver_2 = &field_state;
             dispatch_receiver_2
@@ -183,7 +199,7 @@ impl RenderScope {
                     let dispatch_receiver_4 = receiver;
                     dispatch_receiver_4
                         .dispatch
-                        .write_render_state_current_page(value_2)
+                        .write_render_state_current_page(value_2)?
                 }
             };
         }
@@ -196,7 +212,7 @@ impl RenderScope {
                         .read_render_scope_template_source_path()
                 })
             });
-        RenderScopeState {
+        Ok(RenderScopeState {
             root: field_root,
             dot: field_dot,
             site: field_site,
@@ -205,7 +221,7 @@ impl RenderScope {
             vars: field_vars,
             state: field_state,
             template_source_path: field_template_source_path,
-        }
+        })
     }
 
     pub fn new(
@@ -216,7 +232,7 @@ impl RenderScope {
         parent: Option<RenderScope>,
         state: Option<RenderState>,
         template_source_path: Option<String>,
-    ) -> RenderScope {
+    ) -> Result<RenderScope, rt::TsonicError> {
         let state_2 = RenderScope::initialize_state(
             root,
             dot,
@@ -225,16 +241,16 @@ impl RenderScope {
             parent,
             state,
             template_source_path,
-        );
+        )?;
         let identity = rt::ObjectIdentity::new();
         let root_2 = alloc::rc::Rc::new(RenderScopeRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state_2),
+            state: rt::ObjectState::new(state_2),
         });
-        RenderScope {
+        Ok(RenderScope {
             identity,
             dispatch: root_2,
-        }
+        })
     }
 }
 
@@ -282,7 +298,7 @@ impl RenderScopeRoot {
             dispatch_receiver_4
                 .dispatch
                 .clone()
-                .dispatch_render_scope_declare_var(name.clone(), value.clone())
+                .dispatch_render_scope_declare_var(name, value.clone())
         };
     }
 
@@ -392,11 +408,11 @@ impl RenderScopeRoot {
                         None,
                         None,
                         None,
-                    ),
+                    )?,
                 ));
             }
-            return Ok(match existing.as_ref() {
-                Some(flow_value_2) => flow_value_2.clone(),
+            return Ok(match existing {
+                Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             });
         }
@@ -410,7 +426,7 @@ impl RenderScopeRoot {
                 let dispatch_receiver_5 = receiver;
                 dispatch_receiver_5
                     .dispatch
-                    .write_render_state_selected_paginator(value)
+                    .write_render_state_selected_paginator(value)?
             }
         };
         Ok(paginator)
@@ -428,40 +444,82 @@ impl RenderScopeDispatch for RenderScopeRoot {
         self.state.with(|state| state.root.clone())
     }
 
-    fn write_render_scope_root(&self, value: crate::template::values::base::TemplateValue) {
-        self.state.with_mut(|state| state.root = value);
+    fn write_render_scope_root(
+        &self,
+        value: crate::template::values::base::TemplateValue,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.root = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_render_scope_dot(&self) -> crate::template::values::base::TemplateValue {
         self.state.with(|state| state.dot.clone())
     }
 
-    fn write_render_scope_dot(&self, value: crate::template::values::base::TemplateValue) {
-        self.state.with_mut(|state| state.dot = value);
+    fn write_render_scope_dot(
+        &self,
+        value: crate::template::values::base::TemplateValue,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.dot = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_render_scope_site(&self) -> crate::models::site_context::SiteContext {
         self.state.with(|state| state.site.clone())
     }
 
-    fn write_render_scope_site(&self, value: crate::models::site_context::SiteContext) {
-        self.state.with_mut(|state| state.site = value);
+    fn write_render_scope_site(
+        &self,
+        value: crate::models::site_context::SiteContext,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.site = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_render_scope_env(&self) -> crate::template::environment::TemplateEnvironment {
         self.state.with(|state| state.env.clone())
     }
 
-    fn write_render_scope_env(&self, value: crate::template::environment::TemplateEnvironment) {
-        self.state.with_mut(|state| state.env = value);
+    fn write_render_scope_env(
+        &self,
+        value: crate::template::environment::TemplateEnvironment,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.env = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_render_scope_parent(&self) -> Option<RenderScope> {
         self.state.with(|state| state.parent.clone())
     }
 
-    fn write_render_scope_parent(&self, value: Option<RenderScope>) {
-        self.state.with_mut(|state| state.parent = value);
+    fn write_render_scope_parent(&self, value: Option<RenderScope>) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.parent = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_render_scope_vars(
@@ -473,25 +531,46 @@ impl RenderScopeDispatch for RenderScopeRoot {
     fn write_render_scope_vars(
         &self,
         value: js_abi::JsMap<String, crate::template::values::base::TemplateValue>,
-    ) {
-        self.state.with_mut(|state| state.vars = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.vars = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_render_scope_state(&self) -> RenderState {
         self.state.with(|state| state.state.clone())
     }
 
-    fn write_render_scope_state(&self, value: RenderState) {
-        self.state.with_mut(|state| state.state = value);
+    fn write_render_scope_state(&self, value: RenderState) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.state = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_render_scope_template_source_path(&self) -> Option<String> {
         self.state.with(|state| state.template_source_path.clone())
     }
 
-    fn write_render_scope_template_source_path(&self, value: Option<String>) {
-        self.state
-            .with_mut(|state| state.template_source_path = value);
+    fn write_render_scope_template_source_path(
+        &self,
+        value: Option<String>,
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state
+                    .with_mut(|state| state.template_source_path = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn dispatch_render_scope_get_var(
@@ -575,19 +654,19 @@ pub trait RenderStateDispatch {
         None
     }
     fn read_render_state_pagination_page_number(&self) -> i32;
-    fn write_render_state_pagination_page_number(&self, value: i32);
+    fn write_render_state_pagination_page_number(&self, value: i32) -> Result<(), rt::TsonicError>;
     fn read_render_state_selected_paginator(
         &self,
     ) -> Option<crate::template::values::pagination::PaginatorValue>;
     fn write_render_state_selected_paginator(
         &self,
         value: Option<crate::template::values::pagination::PaginatorValue>,
-    );
+    ) -> Result<(), rt::TsonicError>;
     fn read_render_state_current_page(&self) -> Option<crate::models::page_context::PageContext>;
     fn write_render_state_current_page(
         &self,
         value: Option<crate::models::page_context::PageContext>,
-    );
+    ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
@@ -626,14 +705,15 @@ impl rt::ObjectIdentityCarrier for RenderState {
 }
 
 pub(crate) struct RenderStateRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
-    state: rt::ObjectHandle<RenderStateState>,
+    state: rt::ObjectState<RenderStateState>,
 }
 
 impl RenderState {
     #[doc(hidden)]
-    pub fn initialize_state(pagination_page_number: i32) -> RenderStateState {
+    pub fn initialize_state(
+        pagination_page_number: i32,
+    ) -> Result<RenderStateState, rt::TsonicError> {
         let field_pagination_page_number: i32 = if pagination_page_number > 0 {
             pagination_page_number
         } else {
@@ -643,24 +723,24 @@ impl RenderState {
             Option::<crate::template::values::pagination::PaginatorValue>::None;
         let field_current_page: Option<crate::models::page_context::PageContext> =
             Option::<crate::models::page_context::PageContext>::None;
-        RenderStateState {
+        Ok(RenderStateState {
             pagination_page_number: field_pagination_page_number,
             selected_paginator: field_selected_paginator,
             current_page: field_current_page,
-        }
+        })
     }
 
-    pub fn new(pagination_page_number: i32) -> RenderState {
-        let state = RenderState::initialize_state(pagination_page_number);
+    pub fn new(pagination_page_number: i32) -> Result<RenderState, rt::TsonicError> {
+        let state = RenderState::initialize_state(pagination_page_number)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(RenderStateRoot {
             identity: identity.clone(),
-            state: rt::ObjectHandle::new(state),
+            state: rt::ObjectState::new(state),
         });
-        RenderState {
+        Ok(RenderState {
             identity,
             dispatch: root,
-        }
+        })
     }
 }
 
@@ -675,9 +755,15 @@ impl RenderStateDispatch for RenderStateRoot {
         self.state.with(|state| state.pagination_page_number)
     }
 
-    fn write_render_state_pagination_page_number(&self, value: i32) {
-        self.state
-            .with_mut(|state| state.pagination_page_number = value);
+    fn write_render_state_pagination_page_number(&self, value: i32) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state
+                    .with_mut(|state| state.pagination_page_number = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_render_state_selected_paginator(
@@ -689,9 +775,15 @@ impl RenderStateDispatch for RenderStateRoot {
     fn write_render_state_selected_paginator(
         &self,
         value: Option<crate::template::values::pagination::PaginatorValue>,
-    ) {
-        self.state
-            .with_mut(|state| state.selected_paginator = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state
+                    .with_mut(|state| state.selected_paginator = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 
     fn read_render_state_current_page(&self) -> Option<crate::models::page_context::PageContext> {
@@ -701,7 +793,13 @@ impl RenderStateDispatch for RenderStateRoot {
     fn write_render_state_current_page(
         &self,
         value: Option<crate::models::page_context::PageContext>,
-    ) {
-        self.state.with_mut(|state| state.current_page = value);
+    ) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.current_page = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
     }
 }

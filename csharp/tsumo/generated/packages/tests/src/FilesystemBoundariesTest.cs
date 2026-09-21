@@ -55,9 +55,9 @@ namespace Tsumo.Tests
                 TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(nested, "b.txt"), "b");
                 TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(nested, "a.txt"), "a");
                 TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(outside, "outside.txt"), "outside");
-                Xunit.Assert.Equal<Tsonic.CSharp.Js.JSArray<string>>(new Tsonic.CSharp.Js.JSArray<string>(new string[] { Tsonic.CSharp.Node.path.join(nested, "a.txt"), Tsonic.CSharp.Node.path.join(nested, "b.txt"), Tsonic.CSharp.Node.path.join(source, "z.txt") }), Node_modules_Tsumo_engine_src_fs.listFilesRecursive(source, "*.txt"));
-                Xunit.Assert.Equal<Tsonic.CSharp.Js.JSArray<string>>(new Tsonic.CSharp.Js.JSArray<string>(new string[] { Tsonic.CSharp.Node.path.join(source, "z.txt") }), Node_modules_Tsumo_engine_src_fs.listFilesTopDirectory(source, "*.txt"));
-                Xunit.Assert.Equal<Tsonic.CSharp.Js.JSArray<string>>(new Tsonic.CSharp.Js.JSArray<string>(new string[] { nested }), Node_modules_Tsumo_engine_src_fs.listDirectoriesTopDirectory(source));
+                Xunit.Assert.Equal<Tsonic.CSharp.Js.JSArray<string>>(Tsonic.CSharp.Js.JSArray<string>.of([Tsonic.CSharp.Node.path.join(nested, "a.txt"), Tsonic.CSharp.Node.path.join(nested, "b.txt"), Tsonic.CSharp.Node.path.join(source, "z.txt")]), Node_modules_Tsumo_engine_src_fs.listFilesRecursive(source, "*.txt"));
+                Xunit.Assert.Equal<Tsonic.CSharp.Js.JSArray<string>>(Tsonic.CSharp.Js.JSArray<string>.of([Tsonic.CSharp.Node.path.join(source, "z.txt")]), Node_modules_Tsumo_engine_src_fs.listFilesTopDirectory(source, "*.txt"));
+                Xunit.Assert.Equal<Tsonic.CSharp.Js.JSArray<string>>(Tsonic.CSharp.Js.JSArray<string>.of([nested]), Node_modules_Tsumo_engine_src_fs.listDirectoriesTopDirectory(source));
                 string link = Tsonic.CSharp.Node.path.join(source, "linked-directory");
                 TestRoot.createSymbolicLink(outside, link);
                 TsumoError error = FilesystemBoundariesTest.captureTsumoError(() =>
@@ -82,15 +82,15 @@ namespace Tsumo.Tests
                 TestRoot.createDirectory(watched);
                 string file = Tsonic.CSharp.Node.path.join(watched, "page.md");
                 TestRoot.writeTextFile(file, "before");
-                Tsonic.CSharp.Js.Map<string, WatchEntryState> initial = Node_modules_Tsumo_engine_src_watchSnapshot.createWatchSnapshot(new Tsonic.CSharp.Js.JSArray<string>(new string[] { watched }));
-                Xunit.Assert.True(Node_modules_Tsumo_engine_src_watchSnapshot.watchSnapshotsEqual(initial, Node_modules_Tsumo_engine_src_watchSnapshot.createWatchSnapshot(new Tsonic.CSharp.Js.JSArray<string>(new string[] { watched }))));
+                Tsonic.CSharp.Js.Map<string, WatchEntryState> initial = Node_modules_Tsumo_engine_src_watchSnapshot.createWatchSnapshot(Tsonic.CSharp.Js.JSArray<string>.of([watched]));
+                Xunit.Assert.True(Node_modules_Tsumo_engine_src_watchSnapshot.watchSnapshotsEqual(initial, Node_modules_Tsumo_engine_src_watchSnapshot.createWatchSnapshot(Tsonic.CSharp.Js.JSArray<string>.of([watched]))));
                 TestRoot.writeTextFile(file, "after with a different size");
-                Xunit.Assert.False(Node_modules_Tsumo_engine_src_watchSnapshot.watchSnapshotsEqual(initial, Node_modules_Tsumo_engine_src_watchSnapshot.createWatchSnapshot(new Tsonic.CSharp.Js.JSArray<string>(new string[] { watched }))));
+                Xunit.Assert.False(Node_modules_Tsumo_engine_src_watchSnapshot.watchSnapshotsEqual(initial, Node_modules_Tsumo_engine_src_watchSnapshot.createWatchSnapshot(Tsonic.CSharp.Js.JSArray<string>.of([watched]))));
                 string link = Tsonic.CSharp.Node.path.join(watched, "linked-file.md");
                 TestRoot.createSymbolicLink(file, link);
                 Xunit.Assert.Equal("TSUMO_FILESYSTEM_LINK_UNSUPPORTED", FilesystemBoundariesTest.captureTsumoError(() =>
                 {
-                    Node_modules_Tsumo_engine_src_watchSnapshot.createWatchSnapshot(new Tsonic.CSharp.Js.JSArray<string>(new string[] { watched }));
+                    Node_modules_Tsumo_engine_src_watchSnapshot.createWatchSnapshot(Tsonic.CSharp.Js.JSArray<string>.of([watched]));
                 }).diagnostic.code);
             }
             finally
