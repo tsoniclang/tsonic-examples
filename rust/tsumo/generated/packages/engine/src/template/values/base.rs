@@ -4,6 +4,9 @@ use crate::program as rt;
 
 #[doc(hidden)]
 pub trait TemplateValueDispatch {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_template_value_to_heading_hook_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::contexts::HeadingHookValueDispatch + 'static>>
@@ -307,6 +310,703 @@ pub struct TemplateValue {
     pub dispatch: alloc::rc::Rc<dyn TemplateValueDispatch + 'static>,
 }
 
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::page::PageValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_value_to_page_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::arrays::AnyArrayValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_value_to_any_array_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::dict::DictValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_value_to_dict_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::primitives::StringValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_value_to_string_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::date::DateValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_value_to_date_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::scratch::ScratchValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_value_to_scratch_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::page::PageResourcesValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source
+            .dispatch
+            .downcast_template_value_to_page_resources_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue>
+    for crate::template::evaluation::page_resource_semantics::PageResourceCollectionValue
+{
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source
+            .dispatch
+            .downcast_template_value_to_page_resource_collection_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::resources::ResourceValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_value_to_resource_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::page::PageArrayValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source
+            .dispatch
+            .downcast_template_value_to_page_array_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::site::SiteValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_value_to_site_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::menus::MenuEntryValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source
+            .dispatch
+            .downcast_template_value_to_menu_entry_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::output::OutputFormatsValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source
+            .dispatch
+            .downcast_template_value_to_output_formats_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::contexts::ShortcodeValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_value_to_shortcode_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::url::UrlQueryValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_value_to_url_query_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::primitives::NumberValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_value_to_number_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::arrays::StringArrayValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source
+            .dispatch
+            .downcast_template_value_to_string_array_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::page::PageDataValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_value_to_page_data_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::site::LanguageValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_value_to_language_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::page::FileValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_value_to_file_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::site::SitesValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_value_to_sites_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::menus::MenusValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_value_to_menus_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::output::OutputFormatValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source
+            .dispatch
+            .downcast_template_value_to_output_format_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::media::MediaTypeValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source
+            .dispatch
+            .downcast_template_value_to_media_type_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::contexts::LinkHookValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_value_to_link_hook_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::contexts::ImageHookValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source
+            .dispatch
+            .downcast_template_value_to_image_hook_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::contexts::HeadingHookValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source
+            .dispatch
+            .downcast_template_value_to_heading_hook_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue>
+    for crate::template::values::taxonomies::TaxonomiesValue
+{
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source
+            .dispatch
+            .downcast_template_value_to_taxonomies_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue>
+    for crate::template::values::taxonomies::TaxonomyTermsValue
+{
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source
+            .dispatch
+            .downcast_template_value_to_taxonomy_terms_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::url::UrlValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_value_to_url_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue>
+    for crate::template::values::resources::ResourceDataValue
+{
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source
+            .dispatch
+            .downcast_template_value_to_resource_data_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::docs::DocsMountValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source
+            .dispatch
+            .downcast_template_value_to_docs_mount_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::docs::NavItemValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_value_to_nav_item_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::pagination::PaginatorValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_value_to_paginator_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::page::PageGroupValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source
+            .dispatch
+            .downcast_template_value_to_page_group_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::docs::DocsMountArrayValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source
+            .dispatch
+            .downcast_template_value_to_docs_mount_array_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::docs::NavArrayValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_value_to_nav_array_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::site::SitesArrayValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source
+            .dispatch
+            .downcast_template_value_to_sites_array_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::menus::MenuArrayValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source
+            .dispatch
+            .downcast_template_value_to_menu_array_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue>
+    for crate::template::values::deferred::DeferredTemplateValue
+{
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source
+            .dispatch
+            .downcast_template_value_to_deferred_template_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::primitives::BoolValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_value_to_bool_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue> for crate::template::values::primitives::HtmlValue {
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_value_to_html_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateValue>
+    for crate::template::values::version::VersionStringValue
+{
+    type Error = ();
+
+    fn try_from(source: TemplateValue) -> Result<Self, ()> {
+        let selected_dispatch = source
+            .dispatch
+            .downcast_template_value_to_version_string_value();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
 impl core::fmt::Debug for TemplateValue {
     fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("TemplateValue")
@@ -328,7 +1028,6 @@ impl rt::ObjectIdentityCarrier for TemplateValue {
 }
 
 pub(crate) struct TemplateValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     #[expect(dead_code, reason = "retains unused generated storage")]
     state: rt::ObjectState<TemplateValueState>,
@@ -360,12 +1059,33 @@ impl Default for TemplateValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for TemplateValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl TemplateValueDispatch for TemplateValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn TemplateValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn TemplateValueDispatch + 'static>> {
         Some(self)
     }
+}
+
+std::thread_local! {
+    pub static NIL_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<NilValueClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -417,7 +1137,6 @@ impl rt::ObjectIdentityCarrier for NilValue {
 }
 
 pub(crate) struct NilValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     #[expect(dead_code, reason = "retains unused generated storage")]
     state: rt::ObjectState<NilValueState>,
@@ -450,7 +1169,30 @@ impl Default for NilValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for NilValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl TemplateValueDispatch for NilValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn TemplateValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn NilValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_nil_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn NilValueDispatch + 'static>> {
@@ -476,4 +1218,38 @@ impl NilValueDispatch for NilValueRoot {
     ) -> Option<alloc::rc::Rc<dyn TemplateValueDispatch + 'static>> {
         Some(self)
     }
+}
+
+pub struct NilValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for NilValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for NilValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for NilValueClass {}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = {
+            alloc::rc::Rc::new(NilValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        NIL_VALUE_CLASS_ENVIRONMENT.with(|module_binding| module_binding.initialize(module_value))
+    };
 }

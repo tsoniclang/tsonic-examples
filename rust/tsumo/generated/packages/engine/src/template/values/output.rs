@@ -2,6 +2,10 @@
 
 use crate::program as rt;
 
+std::thread_local! {
+    pub static OUTPUT_FORMATS_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<OutputFormatsValueClass>> = const { rt::ModuleCell::new() };
+}
+
 #[doc(hidden)]
 pub trait OutputFormatsValueDispatch: crate::template::values::base::TemplateValueDispatch {
     fn downcast_output_formats_value_to_template_value(
@@ -91,7 +95,30 @@ impl OutputFormatsValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for OutputFormatsValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for OutputFormatsValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn OutputFormatsValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -136,6 +163,10 @@ impl OutputFormatsValueDispatch for OutputFormatsValueRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+std::thread_local! {
+    pub static OUTPUT_FORMAT_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<OutputFormatValueClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -227,7 +258,30 @@ impl OutputFormatValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for OutputFormatValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for OutputFormatValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn OutputFormatValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -272,6 +326,10 @@ impl OutputFormatValueDispatch for OutputFormatValueRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+std::thread_local! {
+    pub static OUTPUT_FORMATS_GET_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<OutputFormatsGetValueClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -365,7 +423,30 @@ impl OutputFormatsGetValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for OutputFormatsGetValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for OutputFormatsGetValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) = output
+            .downcast_mut::<Option<alloc::rc::Rc<dyn OutputFormatsGetValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -410,4 +491,101 @@ impl OutputFormatsGetValueDispatch for OutputFormatsGetValueRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+pub struct OutputFormatsValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for OutputFormatsValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for OutputFormatsValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for OutputFormatsValueClass {}
+
+pub struct OutputFormatValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for OutputFormatValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for OutputFormatValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for OutputFormatValueClass {}
+
+pub struct OutputFormatsGetValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for OutputFormatsGetValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for OutputFormatsGetValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for OutputFormatsGetValueClass {}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = {
+            alloc::rc::Rc::new(OutputFormatsValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        OUTPUT_FORMATS_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding| module_binding.initialize(module_value))
+    };
+    {
+        let module_value_2 = {
+            alloc::rc::Rc::new(OutputFormatValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        OUTPUT_FORMAT_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding_2| module_binding_2.initialize(module_value_2))
+    };
+    {
+        let module_value_3 = {
+            alloc::rc::Rc::new(OutputFormatsGetValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        OUTPUT_FORMATS_GET_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding_3| module_binding_3.initialize(module_value_3))
+    };
 }

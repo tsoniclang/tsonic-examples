@@ -4,14 +4,15 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn combine_url_path(parts: js_abi::JsArray<String>) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn combineUrlPath(parts: js_abi::JsArray<String>) -> Result<String, rt::TsonicError> {
     let slash: String = String::from("/");
     let cleaned: js_abi::JsArray<String> = parts
         .try_map({
-            let capture_slash = slash.clone();
+            let capture_slash = slash;
             move |part| {
-                crate::utils::strings::trim_end_char(
-                    crate::utils::strings::trim_start_char(
+                crate::utils::strings::trimEndChar(
+                    crate::utils::strings::trimStartChar(
                         js_string::trim(&part),
                         capture_slash.clone(),
                     )?,
@@ -20,7 +21,7 @@ pub fn combine_url_path(parts: js_abi::JsArray<String>) -> Result<String, rt::Ts
             }
         })?
         .filter(|part| !part.is_empty());
-    Ok(if rt::conversions::usize_to_i32(cleaned.len())? == 0 {
+    Ok(if cleaned.is_empty() {
         String::from("/")
     } else {
         format!(

@@ -8,7 +8,8 @@ type CaptureResourceDiagnosticCallable =
     rt::Callable<(rt::Callable<(), rt::TsonicResult<()>>,), rt::TsonicResult<String>>;
 
 std::thread_local! {
-    pub(crate) static CAPTURE_RESOURCE_DIAGNOSTIC: rt::ModuleCell<CaptureResourceDiagnosticCallable> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub(crate) static captureResourceDiagnostic: rt::ModuleCell<CaptureResourceDiagnosticCallable> = const { rt::ModuleCell::new() };
 }
 
 pub(crate) struct ResourcePipelineTestsState {}
@@ -34,14 +35,14 @@ impl ResourcePipelineTests {
     pub fn missing_external_tool_preserves_the_requested_diagnostic(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_TEST_TOOL_START_FAILED"),
             Some(
-                CAPTURE_RESOURCE_DIAGNOSTIC
+                captureResourceDiagnostic
                     .with(|module_binding| module_binding.load())
                     .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
                         move |_callable_arguments| {
-                            tsumo_engine::testing::run_external_process(
+                            tsumo_engine::testing::runExternalProcess(
                                 String::from("__tsumo_missing_external_tool__"),
                                 js_abi::JsArray::from_dense(vec![]),
                                 String::from("test tool"),
@@ -56,14 +57,14 @@ impl ResourcePipelineTests {
     }
 
     pub fn relative_path_policy_rejects_every_escape_form(&self) -> Result<(), rt::TsonicError> {
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_RESOURCE_PATH_ESCAPES_ROOT"),
             Some(
-                CAPTURE_RESOURCE_DIAGNOSTIC
+                captureResourceDiagnostic
                     .with(|module_binding| module_binding.load())
                     .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
                         move |_callable_arguments| {
-                            tsumo_engine::testing::normalize_resource_relative_path(String::from(
+                            tsumo_engine::testing::normalizeResourceRelativePath(String::from(
                                 "../secret.txt",
                             ))?;
                             Ok::<_, rt::TsonicError>(())
@@ -71,14 +72,14 @@ impl ResourcePipelineTests {
                     ),))?,
             ),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_RESOURCE_PATH_ESCAPES_ROOT"),
             Some(
-                CAPTURE_RESOURCE_DIAGNOSTIC
+                captureResourceDiagnostic
                     .with(|module_binding| module_binding.load())
                     .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
                         move |_callable_arguments_2| {
-                            tsumo_engine::testing::normalize_resource_relative_path(String::from(
+                            tsumo_engine::testing::normalizeResourceRelativePath(String::from(
                                 "assets/../../secret.txt",
                             ))?;
                             Ok::<_, rt::TsonicError>(())
@@ -86,14 +87,14 @@ impl ResourcePipelineTests {
                     ),))?,
             ),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_RESOURCE_PATH_ABSOLUTE"),
             Some(
-                CAPTURE_RESOURCE_DIAGNOSTIC
+                captureResourceDiagnostic
                     .with(|module_binding| module_binding.load())
                     .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
                         move |_callable_arguments_3| {
-                            tsumo_engine::testing::normalize_resource_relative_path(String::from(
+                            tsumo_engine::testing::normalizeResourceRelativePath(String::from(
                                 "C:\\secret.txt",
                             ))?;
                             Ok::<_, rt::TsonicError>(())
@@ -101,9 +102,9 @@ impl ResourcePipelineTests {
                     ),))?,
             ),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("images/logo.png"),
-            Some(tsumo_engine::testing::normalize_resource_relative_path(
+            Some(tsumo_engine::testing::normalizeResourceRelativePath(
                 String::from("/images/./logo.png"),
             )?),
         )?;
@@ -111,31 +112,31 @@ impl ResourcePipelineTests {
     }
 
     pub fn glob_matching_is_segment_exact(&self) -> Result<(), rt::TsonicError> {
-        crate::test_root::Assert::r#true(tsumo_engine::testing::resource_glob_matches(
+        crate::test_root::Assert::True(tsumo_engine::testing::resourceGlobMatches(
             String::from("images/**/*.png"),
             String::from("images/icons/logo.png"),
         )?)?;
-        crate::test_root::Assert::r#true(tsumo_engine::testing::resource_glob_matches(
+        crate::test_root::Assert::True(tsumo_engine::testing::resourceGlobMatches(
             String::from("*.css"),
             String::from("site.css"),
         )?)?;
-        crate::test_root::Assert::r#true(tsumo_engine::testing::resource_glob_matches(
+        crate::test_root::Assert::True(tsumo_engine::testing::resourceGlobMatches(
             String::from("{*cover*,*thumbnail*}"),
             String::from("article-cover.png"),
         )?)?;
-        crate::test_root::Assert::r#true(tsumo_engine::testing::resource_glob_matches(
+        crate::test_root::Assert::True(tsumo_engine::testing::resourceGlobMatches(
             String::from("{*cover*,*thumbnail*}"),
             String::from("article-thumbnail.png"),
         )?)?;
-        crate::test_root::Assert::r#true(!tsumo_engine::testing::resource_glob_matches(
+        crate::test_root::Assert::True(!tsumo_engine::testing::resourceGlobMatches(
             String::from("{*cover*,*thumbnail*}"),
             String::from("article-logo.png"),
         )?)?;
-        crate::test_root::Assert::r#true(!tsumo_engine::testing::resource_glob_matches(
+        crate::test_root::Assert::True(!tsumo_engine::testing::resourceGlobMatches(
             String::from("*.css"),
             String::from("nested/site.css"),
         )?)?;
-        crate::test_root::Assert::r#true(!tsumo_engine::testing::resource_glob_matches(
+        crate::test_root::Assert::True(!tsumo_engine::testing::resourceGlobMatches(
             String::from("images/*.png"),
             String::from("images/icons/logo.png"),
         )?)?;
@@ -153,8 +154,8 @@ impl ResourcePipelineTests {
                 ],
             ));
         let dimensions: Option<tsumo_engine::resources::models::ImageDimensions> =
-            tsumo_engine::testing::parse_image_dimensions(png)?;
-        crate::test_root::Assert::r#true(
+            tsumo_engine::testing::parseImageDimensions(png)?;
+        crate::test_root::Assert::True(
             dimensions.is_some()
                 && match dimensions.as_ref() {
                     Some(flow_value) => flow_value.clone(),
@@ -171,13 +172,74 @@ impl ResourcePipelineTests {
                 .with(|state| state.height)
                     == 3,
         )?;
-        crate::test_root::Assert::r#true(
-            tsumo_engine::testing::parse_image_dimensions(
+        crate::test_root::Assert::True(
+            tsumo_engine::testing::parseImageDimensions(
                 tsonic_rust_node::buffer::Buffer::from_number_array(&js_abi::JsArray::from_dense(
                     vec![1.0, 2.0, 3.0],
                 )),
             )?
             .is_none(),
+        )?;
+        let images: js_abi::JsArray<tsonic_rust_node::buffer::Buffer> =
+            js_abi::JsArray::from_dense(vec![
+                tsonic_rust_node::buffer::Buffer::from_number_array(&js_abi::JsArray::from_dense(
+                    vec![
+                        137.0, 80.0, 78.0, 71.0, 13.0, 10.0, 26.0, 10.0, 0.0, 0.0, 0.0, 13.0, 73.0,
+                        72.0, 68.0, 82.0, 0.0, 0.0, 1.0, 44.0, 0.0, 0.0, 3.0, 232.0,
+                    ],
+                )),
+                tsonic_rust_node::buffer::Buffer::from_number_array(&js_abi::JsArray::from_dense(
+                    vec![71.0, 73.0, 70.0, 56.0, 57.0, 97.0, 44.0, 1.0, 232.0, 3.0],
+                )),
+                tsonic_rust_node::buffer::Buffer::from_number_array(&js_abi::JsArray::from_dense(
+                    vec![
+                        255.0, 216.0, 255.0, 192.0, 0.0, 8.0, 8.0, 3.0, 232.0, 1.0, 44.0, 3.0,
+                    ],
+                )),
+                tsonic_rust_node::buffer::Buffer::from_number_array(&js_abi::JsArray::from_dense(
+                    vec![
+                        82.0, 73.0, 70.0, 70.0, 0.0, 0.0, 0.0, 0.0, 87.0, 69.0, 66.0, 80.0, 86.0,
+                        80.0, 56.0, 32.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 44.0,
+                        1.0, 232.0, 3.0,
+                    ],
+                )),
+                tsonic_rust_node::buffer::Buffer::from_number_array(&js_abi::JsArray::from_dense(
+                    vec![
+                        82.0, 73.0, 70.0, 70.0, 0.0, 0.0, 0.0, 0.0, 87.0, 69.0, 66.0, 80.0, 86.0,
+                        80.0, 56.0, 76.0, 0.0, 0.0, 0.0, 0.0, 47.0, 43.0, 193.0, 249.0, 0.0,
+                    ],
+                )),
+            ]);
+        for image in images.iter_values() {
+            let measured: Option<tsumo_engine::resources::models::ImageDimensions> =
+                tsumo_engine::testing::parseImageDimensions(image.clone())?;
+            crate::test_root::Assert::True(
+                measured.is_some()
+                    && match measured.as_ref() {
+                        Some(flow_value_3) => flow_value_3.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }
+                    .state
+                    .with(|state| state.width)
+                        == 300
+                    && match measured.as_ref() {
+                        Some(flow_value_4) => flow_value_4.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }
+                    .state
+                    .with(|state| state.height)
+                        == 1000,
+            )?;
+        }
+        let oversized: tsonic_rust_node::buffer::Buffer =
+            tsonic_rust_node::buffer::Buffer::from_number_array(&js_abi::JsArray::from_dense(
+                vec![
+                    137.0, 80.0, 78.0, 71.0, 13.0, 10.0, 26.0, 10.0, 0.0, 0.0, 0.0, 13.0, 73.0,
+                    72.0, 68.0, 82.0, 128.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
+                ],
+            ));
+        crate::test_root::Assert::True(
+            tsumo_engine::testing::parseImageDimensions(oversized)?.is_none(),
         )?;
         Ok(())
     }
@@ -185,7 +247,7 @@ impl ResourcePipelineTests {
     pub fn utf8_validation_accepts_scalars_and_rejects_malformed_sequences(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        crate::test_root::Assert::r#true(tsumo_engine::testing::is_valid_utf8(
+        crate::test_root::Assert::True(tsumo_engine::testing::isValidUtf8(
             tsonic_rust_node::buffer::Buffer::from_number_array(&js_abi::JsArray::from_dense(
                 vec![
                     65.0, 194.0, 162.0, 226.0, 130.0, 172.0, 240.0, 159.0, 152.0, 128.0,
@@ -214,42 +276,43 @@ impl ResourcePipelineTests {
                 )),
             ]);
         {
-            let mut index: f64 = 0.0;
-            while index < (rt::conversions::usize_to_i32(malformed.len())? as f64) {
-                crate::test_root::Assert::r#true(!tsumo_engine::testing::is_valid_utf8(
+            let mut index: usize = 0;
+            while index < malformed.len() {
+                crate::test_root::Assert::True(!tsumo_engine::testing::isValidUtf8(
                     match malformed.get_number(index) {
                         Some(flow_value) => flow_value,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                 )?)?;
-                index += 1.0;
+                index += 1;
             }
         }
         Ok(())
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn file_resources_publish_raw_bytes_and_decode_only_for_text_operations(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        let root: String = crate::test_root::create_test_directory(String::from("resource-bytes"))?;
-        let site_dir: String = tsonic_rust_node::path::join(&[root.as_str(), "site"]);
-        let output_dir: String = tsonic_rust_node::path::join(&[root.as_str(), "output"]);
+        let root: String = crate::test_root::createTestDirectory(String::from("resource-bytes"))?;
+        let siteDir: String = tsonic_rust_node::path::join(&[root.as_str(), "site"]);
+        let outputDir: String = tsonic_rust_node::path::join(&[root.as_str(), "output"]);
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            let assets_dir: String = tsonic_rust_node::path::join(&[site_dir.as_str(), "assets"]);
-            crate::test_root::create_directory(assets_dir.clone())?;
-            let source_bytes: tsonic_rust_node::buffer::Buffer =
+            let assetsDir: String = tsonic_rust_node::path::join(&[siteDir.as_str(), "assets"]);
+            crate::test_root::createDirectory(&assetsDir)?;
+            let sourceBytes: tsonic_rust_node::buffer::Buffer =
                 tsonic_rust_node::buffer::Buffer::from_number_array(&js_abi::JsArray::from_dense(
                     vec![97.0, 160.0, 98.0],
                 ));
             tsonic_rust_node::fs::write_file_sync_buffer(
-                tsonic_rust_node::path::join(&[assets_dir.as_str(), "legacy.js"]).as_str(),
-                &source_bytes,
+                tsonic_rust_node::path::join(&[assetsDir.as_str(), "legacy.js"]).as_str(),
+                &sourceBytes,
             )?;
             let manager: tsumo_engine::testing::ResourceManager =
                 tsumo_engine::testing::ResourceManager::new(
-                    site_dir.clone(),
+                    siteDir.clone(),
                     Option::<String>::None,
-                    output_dir.clone(),
+                    outputDir.clone(),
                 )?;
             let resource: Option<tsumo_engine::testing::Resource> = {
                 let dispatch_receiver = manager.clone();
@@ -258,7 +321,7 @@ impl ResourcePipelineTests {
                     .clone()
                     .dispatch_resource_manager_get(String::from("legacy.js"))
             }?;
-            crate::test_root::Assert::r#true(
+            crate::test_root::Assert::True(
                 resource.is_some() && {
                     let dispatch_receiver_2 = &match resource.as_ref() {
                         Some(flow_value) => flow_value.clone(),
@@ -285,30 +348,23 @@ impl ResourcePipelineTests {
             }?;
             let published: tsonic_rust_node::buffer::Buffer =
                 tsonic_rust_node::fs::read_file_sync_buffer(
-                    tsonic_rust_node::path::join(&[output_dir.as_str(), "legacy.js"]).as_str(),
+                    tsonic_rust_node::path::join(&[outputDir.as_str(), "legacy.js"]).as_str(),
                 )?;
-            crate::test_root::Assert::number_equal(
-                3.0,
-                Some(rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
-                    published.len(),
-                )?)),
-            )?;
-            crate::test_root::Assert::number_equal(
+            crate::test_root::Assert::NumberEqual(3.0, Some(published.len() as f64))?;
+            crate::test_root::Assert::NumberEqual(
                 160.0,
-                Some(tsonic_rust_node::buffer::read_uint8_number(
-                    &published, 1.0,
-                )?),
+                Some(tsonic_rust_node::buffer::read_uint8_number(&published, 1.0)? as f64),
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("TSUMO_RESOURCE_TEXT_ENCODING_INVALID"),
                 Some(
-                    CAPTURE_RESOURCE_DIAGNOSTIC
+                    captureResourceDiagnostic
                         .with(|module_binding| module_binding.load())
                         .call(({
                             let capture_resource = resource.clone();
                             rt::Callable::<(), rt::TsonicResult<()>>::new(
                                 move |_callable_arguments| {
-                                    tsumo_engine::testing::read_resource_text(
+                                    tsumo_engine::testing::readResourceText(
                                         match capture_resource.as_ref() {
                                             Some(flow_value_3) => flow_value_3.clone(),
                                             None => unreachable!(
@@ -327,7 +383,7 @@ impl ResourcePipelineTests {
         });
         let try_flow = try_body;
         let finally_flow: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::delete_test_directory(root.clone())?;
+            crate::test_root::deleteTestDirectory(&root)?;
             Ok(rt::Completion::Normal)
         });
         let try_flow: rt::TsonicResult<rt::Completion<()>> =
@@ -342,17 +398,17 @@ impl ResourcePipelineTests {
         Ok(())
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn transform_identity_and_metadata_are_content_exact(&self) -> Result<(), rt::TsonicError> {
-        let first: tsumo_engine::testing::Resource = tsumo_engine::testing::create_string_resource(
+        let first: tsumo_engine::testing::Resource = tsumo_engine::testing::createStringResource(
             String::from("style.css"),
             String::from("a {}"),
         )?;
-        let second: tsumo_engine::testing::Resource =
-            tsumo_engine::testing::create_string_resource(
-                String::from("style.css"),
-                String::from("b {}"),
-            )?;
-        crate::test_root::Assert::r#true(
+        let second: tsumo_engine::testing::Resource = tsumo_engine::testing::createStringResource(
+            String::from("style.css"),
+            String::from("b {}"),
+        )?;
+        crate::test_root::Assert::True(
             ({
                 let dispatch_receiver = &first;
                 dispatch_receiver.dispatch.read_resource_id()
@@ -361,15 +417,15 @@ impl ResourcePipelineTests {
                 dispatch_receiver_2.dispatch.read_resource_id()
             },
         )?;
-        crate::test_root::Assert::r#true({
+        crate::test_root::Assert::True({
             let dispatch_receiver_3 = &first;
             dispatch_receiver_3.dispatch.read_resource_publishable()
         })?;
-        crate::test_root::Assert::string_equal(String::from("style.css"), {
+        crate::test_root::Assert::StringEqual(String::from("style.css"), {
             let dispatch_receiver_4 = &first;
             dispatch_receiver_4.dispatch.read_resource_output_rel_path()
         })?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("text/css"),
             Some({
                 let dispatch_receiver_5 = &first;
@@ -389,29 +445,29 @@ impl ResourcePipelineTests {
             Some(20),
         )?;
         let fingerprinted: tsumo_engine::testing::Resource =
-            tsumo_engine::testing::fingerprint_resource(source.clone())?;
-        crate::test_root::Assert::string_equal(
+            tsumo_engine::testing::fingerprintResource(source.clone())?;
+        crate::test_root::Assert::StringEqual(
             String::from("text/css"),
             Some({
                 let dispatch_receiver_6 = &fingerprinted;
                 dispatch_receiver_6.dispatch.read_resource_media_type()
             }),
         )?;
-        crate::test_root::Assert::number_equal(
+        crate::test_root::Assert::NumberEqual(
             10.0,
             Some(rt::conversions::i32_to_f64({
                 let dispatch_receiver_7 = &fingerprinted;
                 dispatch_receiver_7.dispatch.read_resource_width()
             })),
         )?;
-        crate::test_root::Assert::number_equal(
+        crate::test_root::Assert::NumberEqual(
             20.0,
             Some(rt::conversions::i32_to_f64({
                 let dispatch_receiver_8 = &fingerprinted;
                 dispatch_receiver_8.dispatch.read_resource_height()
             })),
         )?;
-        let expected_hash: String = js_string::slice_to(
+        let expectedHash: String = js_string::slice_to(
             &{
                 let mut operation_input_0 = tsonic_rust_node::crypto::create_hash("sha256")?;
                 operation_input_0.update_buffer_owned(&{
@@ -423,7 +479,7 @@ impl ResourcePipelineTests {
             0.0,
             16.0,
         )?;
-        crate::test_root::Assert::r#true(
+        crate::test_root::Assert::True(
             ({
                 let dispatch_receiver_10 = &fingerprinted;
                 dispatch_receiver_10
@@ -432,11 +488,11 @@ impl ResourcePipelineTests {
             }) == Some(format!(
                 "{}{}{}",
                 String::from("css/site."),
-                expected_hash,
+                expectedHash,
                 String::from(".css")
             )),
         )?;
-        crate::test_root::Assert::r#true(js_string::starts_with_from_start(
+        crate::test_root::Assert::True(js_string::starts_with_from_start(
             &{
                 let dispatch_receiver_12 = &{
                     let dispatch_receiver_11 = &fingerprinted;
@@ -449,47 +505,48 @@ impl ResourcePipelineTests {
         Ok(())
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn resource_lookup_is_sorted_and_site_assets_override_theme_assets(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        let root: String = crate::test_root::create_test_directory(String::from("resources"))?;
-        let site_dir: String = tsonic_rust_node::path::join(&[root.as_str(), "site"]);
-        let theme_dir: String = tsonic_rust_node::path::join(&[root.as_str(), "theme"]);
-        let output_dir: String = tsonic_rust_node::path::join(&[root.as_str(), "output"]);
+        let root: String = crate::test_root::createTestDirectory(String::from("resources"))?;
+        let siteDir: String = tsonic_rust_node::path::join(&[root.as_str(), "site"]);
+        let themeDir: String = tsonic_rust_node::path::join(&[root.as_str(), "theme"]);
+        let outputDir: String = tsonic_rust_node::path::join(&[root.as_str(), "output"]);
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::create_directory(tsonic_rust_node::path::join(&[
-                site_dir.as_str(),
+            crate::test_root::createDirectory(&tsonic_rust_node::path::join(&[
+                siteDir.as_str(),
                 "assets",
             ]))?;
-            crate::test_root::create_directory(tsonic_rust_node::path::join(&[
-                theme_dir.as_str(),
+            crate::test_root::createDirectory(&tsonic_rust_node::path::join(&[
+                themeDir.as_str(),
                 "assets",
             ]))?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[site_dir.as_str(), "assets", "z.txt"]),
-                String::from("site-z"),
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[siteDir.as_str(), "assets", "z.txt"]),
+                "site-z",
             )?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[site_dir.as_str(), "assets", "a.txt"]),
-                String::from("site-a"),
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[siteDir.as_str(), "assets", "a.txt"]),
+                "site-a",
             )?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[site_dir.as_str(), "assets", "main.ts"]),
-                String::from("export const value = 1;"),
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[siteDir.as_str(), "assets", "main.ts"]),
+                "export const value = 1;",
             )?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[theme_dir.as_str(), "assets", "a.txt"]),
-                String::from("theme-a"),
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[themeDir.as_str(), "assets", "a.txt"]),
+                "theme-a",
             )?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[theme_dir.as_str(), "assets", "m.txt"]),
-                String::from("theme-m"),
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[themeDir.as_str(), "assets", "m.txt"]),
+                "theme-m",
             )?;
             let manager: tsumo_engine::testing::ResourceManager =
                 tsumo_engine::testing::ResourceManager::new(
-                    site_dir.clone(),
-                    Some(theme_dir.clone()),
-                    output_dir,
+                    siteDir.clone(),
+                    Some(themeDir.clone()),
+                    outputDir,
                 )?;
             let matched: js_abi::JsArray<tsumo_engine::testing::Resource> = {
                 let dispatch_receiver = manager.clone();
@@ -498,13 +555,8 @@ impl ResourcePipelineTests {
                     .clone()
                     .dispatch_resource_manager_match(String::from("*.txt"))
             }?;
-            crate::test_root::Assert::number_equal(
-                3.0,
-                Some(rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
-                    matched.len(),
-                )?)),
-            )?;
-            crate::test_root::Assert::r#true(
+            crate::test_root::Assert::NumberEqual(3.0, Some(matched.len() as f64))?;
+            crate::test_root::Assert::True(
                 ({
                     let dispatch_receiver_2 = &match matched.get_number(0.0) {
                         Some(flow_value) => flow_value,
@@ -513,7 +565,7 @@ impl ResourcePipelineTests {
                     dispatch_receiver_2.dispatch.read_resource_output_rel_path()
                 }) == Some(String::from("a.txt")),
             )?;
-            crate::test_root::Assert::r#true(
+            crate::test_root::Assert::True(
                 ({
                     let dispatch_receiver_3 = &match matched.get_number(1.0) {
                         Some(flow_value_2) => flow_value_2,
@@ -522,7 +574,7 @@ impl ResourcePipelineTests {
                     dispatch_receiver_3.dispatch.read_resource_output_rel_path()
                 }) == Some(String::from("m.txt")),
             )?;
-            crate::test_root::Assert::r#true(
+            crate::test_root::Assert::True(
                 ({
                     let dispatch_receiver_4 = &match matched.get_number(2.0) {
                         Some(flow_value_3) => flow_value_3,
@@ -531,7 +583,7 @@ impl ResourcePipelineTests {
                     dispatch_receiver_4.dispatch.read_resource_output_rel_path()
                 }) == Some(String::from("z.txt")),
             )?;
-            crate::test_root::Assert::r#true(
+            crate::test_root::Assert::True(
                 {
                     let dispatch_receiver_5 = &match matched.get_number(0.0) {
                         Some(flow_value_4) => flow_value_4,
@@ -541,9 +593,9 @@ impl ResourcePipelineTests {
                 }
                 .is_none(),
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("site-a"),
-                Some(tsumo_engine::testing::read_resource_text(
+                Some(tsumo_engine::testing::readResourceText(
                     match matched.get_number(0.0) {
                         Some(flow_value_5) => flow_value_5,
                         None => unreachable!("checked flow selected a missing optional value"),
@@ -551,9 +603,9 @@ impl ResourcePipelineTests {
                     String::from("test"),
                 )?),
             )?;
-            crate::test_root::Assert::number_equal(
+            crate::test_root::Assert::NumberEqual(
                 4.0,
-                Some(rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
+                Some(
                     {
                         let dispatch_receiver_6 = manager.clone();
                         dispatch_receiver_6
@@ -561,8 +613,8 @@ impl ResourcePipelineTests {
                             .clone()
                             .dispatch_resource_manager_by_type("text")
                     }?
-                    .len(),
-                )?)),
+                    .len() as f64,
+                ),
             )?;
             let typescript: Option<tsumo_engine::testing::Resource> = {
                 let dispatch_receiver_7 = manager.clone();
@@ -571,7 +623,7 @@ impl ResourcePipelineTests {
                     .clone()
                     .dispatch_resource_manager_get(String::from("main.ts"))
             }?;
-            crate::test_root::Assert::r#true(
+            crate::test_root::Assert::True(
                 typescript.is_some() && {
                     let dispatch_receiver_8 = &match typescript.as_ref() {
                         Some(flow_value_6) => flow_value_6.clone(),
@@ -581,9 +633,9 @@ impl ResourcePipelineTests {
                 }
                 .is_none(),
             )?;
-            crate::test_root::Assert::r#true(
+            crate::test_root::Assert::True(
                 typescript.is_some()
-                    && tsumo_engine::testing::read_resource_text(
+                    && tsumo_engine::testing::readResourceText(
                         match typescript.as_ref() {
                             Some(flow_value_7) => flow_value_7.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
@@ -591,7 +643,7 @@ impl ResourcePipelineTests {
                         String::from("test"),
                     )? == "export const value = 1;",
             )?;
-            crate::test_root::Assert::r#true(
+            crate::test_root::Assert::True(
                 typescript.is_some()
                     && ({
                         let dispatch_receiver_9 = &match typescript.as_ref() {
@@ -605,7 +657,7 @@ impl ResourcePipelineTests {
         });
         let try_flow = try_body;
         let finally_flow: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::delete_test_directory(root.clone())?;
+            crate::test_root::deleteTestDirectory(&root)?;
             Ok(rt::Completion::Normal)
         });
         let try_flow: rt::TsonicResult<rt::Completion<()>> =
@@ -627,9 +679,10 @@ impl Default for ResourcePipelineTests {
     }
 }
 
-pub fn run_resource_pipeline_tests() -> Result<(), rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn runResourcePipelineTests() -> Result<(), rt::TsonicError> {
     let tests: ResourcePipelineTests = ResourcePipelineTests::new();
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("missing external tool preserves the requested diagnostic"),
         {
             let capture_tests = tests.clone();
@@ -639,7 +692,7 @@ pub fn run_resource_pipeline_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("relative path policy rejects every escape form"),
         {
             let capture_tests_2 = tests.clone();
@@ -649,14 +702,14 @@ pub fn run_resource_pipeline_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(String::from("glob matching is segment exact"), {
+    crate::test_root::runTest(String::from("glob matching is segment exact"), {
         let capture_tests_3 = tests.clone();
         rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_3| {
             capture_tests_3.glob_matching_is_segment_exact()?;
             Ok::<_, rt::TsonicError>(())
         })
     })?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("image dimensions are read from exact file signatures"),
         {
             let capture_tests_4 = tests.clone();
@@ -666,7 +719,7 @@ pub fn run_resource_pipeline_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("UTF-8 validation accepts scalars and rejects malformed sequences"),
         {
             let capture_tests_5 = tests.clone();
@@ -677,7 +730,7 @@ pub fn run_resource_pipeline_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("file resources publish raw bytes and decode only for text operations"),
         {
             let capture_tests_6 = tests.clone();
@@ -688,7 +741,7 @@ pub fn run_resource_pipeline_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("transform identity and metadata are content exact"),
         {
             let capture_tests_7 = tests.clone();
@@ -698,7 +751,7 @@ pub fn run_resource_pipeline_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("resource lookup is sorted and site assets override theme assets"),
         {
             let capture_tests_8 = tests.clone();
@@ -758,6 +811,6 @@ pub fn module_init() {
                 "Expected a resource diagnostic",
             )))
         });
-        CAPTURE_RESOURCE_DIAGNOSTIC.with(|module_binding| module_binding.initialize(module_value))
+        captureResourceDiagnostic.with(|module_binding| module_binding.initialize(module_value))
     };
 }

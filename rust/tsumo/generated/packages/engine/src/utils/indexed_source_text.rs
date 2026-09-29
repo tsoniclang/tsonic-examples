@@ -5,9 +5,10 @@ use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct IndexedSourceTextState {
     pub characters: js_abi::JsArray<String>,
-    pub utf16_offsets: js_abi::JsArray<i32>,
+    pub utf16Offsets: js_abi::JsArray<i32>,
     pub length: i32,
 }
 
@@ -24,44 +25,46 @@ impl rt::ObjectIdentityCarrier for IndexedSourceText {
 }
 
 impl IndexedSourceText {
-    pub fn new(source: String) -> Result<IndexedSourceText, rt::TsonicError> {
-        let field_characters: js_abi::JsArray<String> = js_abi::array_from_string(&source);
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn new(source: &str) -> Result<IndexedSourceText, rt::TsonicError> {
+        let field_characters: js_abi::JsArray<String> = js_abi::array_from_string(source);
+        let field_length: i32 = rt::conversions::usize_to_i32(field_characters.len())?;
         let field_utf16_offsets: js_abi::JsArray<i32> = js_abi::JsArray::from_dense(vec![0]);
-        let mut utf16_offset: i32 = 0;
+        let mut utf16Offset: i32 = 0;
         {
             let mut index: i32 = 0;
-            while index < rt::conversions::usize_to_i32(field_characters.len())? {
-                let code_point: f64 = js_string::code_point_at(
-                    &match field_characters.get_number(rt::conversions::i32_to_f64(index)) {
+            while index < field_length {
+                let codePoint: u32 = js_string::code_point_at(
+                    &match field_characters.get_number(index) {
                         Some(flow_value) => flow_value,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                     0.0,
                 )
                 .unwrap();
-                utf16_offset += if code_point > 65535.0 { 2 } else { 1 };
-                field_utf16_offsets.push_many_discard([utf16_offset]);
+                utf16Offset += if codePoint > 65535 { 2 } else { 1 };
+                field_utf16_offsets.push_many_discard([utf16Offset]);
                 index += 1;
             }
         }
-        let field_length: i32 = rt::conversions::usize_to_i32(field_characters.len())?;
         Ok(IndexedSourceText {
             state: rt::ObjectRef::new(IndexedSourceTextState {
                 characters: field_characters,
-                utf16_offsets: field_utf16_offsets,
+                utf16Offsets: field_utf16_offsets,
                 length: field_length,
             }),
         })
     }
 
-    pub fn character_at(&self, index: i32) -> String {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn characterAt(&self, index: i32) -> String {
         if index < 0 || index >= self.state.with(|state| state.length) {
             return String::from("");
         }
         match self
             .state
             .with(|state| state.characters.clone())
-            .get_number(rt::conversions::i32_to_f64(index))
+            .get_number(index)
         {
             Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
@@ -71,18 +74,16 @@ impl IndexedSourceText {
     pub fn slice(&self, start: i32, end: i32) -> String {
         self.state
             .with(|state| state.characters.clone())
-            .slice_to(
-                rt::conversions::i32_to_f64(start),
-                rt::conversions::i32_to_f64(end),
-            )
+            .slice_to(start, end)
             .join("")
     }
 
-    pub fn utf16_offset_at(&self, index: i32) -> i32 {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn utf16OffsetAt(&self, index: i32) -> i32 {
         match self
             .state
-            .with(|state| state.utf16_offsets.clone())
-            .get_number(rt::conversions::i32_to_f64(index))
+            .with(|state| state.utf16Offsets.clone())
+            .get_number(index)
         {
             Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),

@@ -2,7 +2,8 @@
 
 use tsonic_rust_js::string as js_string;
 
-pub fn resource_media_type_for_extension(extension: &str) -> String {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn resourceMediaTypeForExtension(extension: &str) -> String {
     let value: String = js_string::to_lower_case(extension);
     if value == ".png" {
         return String::from("image/png");
@@ -85,7 +86,8 @@ pub fn resource_media_type_for_extension(extension: &str) -> String {
     String::from("application/octet-stream")
 }
 
-pub fn is_image_resource_extension(extension: &str) -> bool {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isImageResourceExtension(extension: &str) -> bool {
     let value: String = js_string::to_lower_case(extension);
     value == ".png"
         || value == ".jpg"
@@ -95,15 +97,16 @@ pub fn is_image_resource_extension(extension: &str) -> bool {
         || value == ".bmp"
 }
 
-pub fn resource_matches_media_type(actual: &str, requested: &str) -> bool {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn resourceMatchesMediaType(actual: &str, requested: &str) -> bool {
     let target: String = js_string::to_lower_case(&js_string::trim(requested));
     if target.is_empty() {
         return false;
     }
-    let media_type: String = js_string::to_lower_case(actual);
+    let mediaType: String = js_string::to_lower_case(actual);
     if js_string::includes_from_start(&target, "/") {
-        media_type == target
+        mediaType == target
     } else {
-        js_string::starts_with_from_start(&media_type, &format!("{}{}", target, String::from("/")))
+        js_string::starts_with_from_start(&mediaType, &format!("{}{}", target, String::from("/")))
     }
 }

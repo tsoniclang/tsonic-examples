@@ -34,7 +34,8 @@ impl UrlSuffixSplit {
     }
 }
 
-pub fn split_url_suffix(url: String) -> Result<UrlSuffixSplit, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn splitUrlSuffix(url: String) -> Result<UrlSuffixSplit, rt::TsonicError> {
     let q: i32 = rt::conversions::isize_to_i32(js_string::index_of_from_start(&url, "?"))?;
     let h: i32 = rt::conversions::isize_to_i32(js_string::index_of_from_start(&url, "#"))?;
     let mut cut: i32 = -1;
@@ -49,7 +50,7 @@ pub fn split_url_suffix(url: String) -> Result<UrlSuffixSplit, rt::TsonicError> 
         return UrlSuffixSplit::new(url.clone(), String::from(""));
     }
     UrlSuffixSplit::new(
-        crate::utils::strings::substring_count(&url, 0, cut)?,
-        crate::utils::strings::substring_from(&url, cut)?,
+        crate::utils::strings::substringCount(&url, 0, cut)?,
+        crate::utils::strings::substringFrom(&url, cut)?,
     )
 }

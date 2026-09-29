@@ -4,47 +4,42 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn output_directory(relative_path: &str) -> Result<String, rt::TsonicError> {
-    let segments: js_abi::JsArray<String> =
-        crate::build::site_routes::split_site_path(relative_path)?;
-    let directory_segments: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn outputDirectory(relativePath: &str) -> Result<String, rt::TsonicError> {
+    let segments: js_abi::JsArray<String> = crate::build::site_routes::splitSitePath(relativePath)?;
+    let directorySegments: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     {
-        let mut index: f64 = 0.0;
-        while index < ((rt::conversions::usize_to_i32(segments.len())? - 1) as f64) {
-            {
-                let operation_input_0 = directory_segments.clone();
-                operation_input_0.push_many_discard([match segments.get_number(index) {
-                    Some(flow_value) => flow_value,
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }])
-            };
-            index += 1.0;
+        let mut index: usize = 0;
+        while index < segments.len() - 1 {
+            directorySegments.push_many_discard([match segments.get_number(index) {
+                Some(flow_value) => flow_value,
+                None => unreachable!("checked flow selected a missing optional value"),
+            }]);
+            index += 1;
         }
     }
-    Ok(crate::build::site_routes::join_site_path(
-        directory_segments.clone(),
+    Ok(crate::build::site_routes::joinSitePath(
+        directorySegments.clone(),
     ))
 }
 
-pub fn plan_content_outputs(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn planContentOutputs(
     graph: crate::build::standard_page_graph::StandardPageGraph,
     environment: crate::env::BuildEnvironment,
     templates: crate::build::standard_templates::StandardTemplates,
-    output_plan: crate::build::output_plan::SiteOutputPlan,
-    sitemap_urls: js_abi::JsMap<String, bool>,
+    outputPlan: crate::build::output_plan::SiteOutputPlan,
+    sitemapUrls: js_abi::JsMap<String, bool>,
 ) -> Result<(), rt::TsonicError> {
     {
-        let mut index: f64 = 0.0;
-        while index
-            < (rt::conversions::usize_to_i32(
-                {
-                    let dispatch_receiver = &graph;
-                    dispatch_receiver
-                        .dispatch
-                        .read_standard_page_graph_page_sources()
-                }
-                .len(),
-            )? as f64)
+        let mut index: usize = 0;
+        while index < {
+            let dispatch_receiver = &graph;
+            dispatch_receiver
+                .dispatch
+                .read_standard_page_graph_page_sources()
+        }
+        .len()
         {
             let source: crate::build::content_model::ContentPageSource = match {
                 let dispatch_receiver_2 = &graph;
@@ -68,7 +63,7 @@ pub fn plan_content_outputs(
                 Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let template_type: String = {
+            let templateType: String = {
                 let conditional_test = !{
                     let dispatch_receiver_4 = &source;
                     dispatch_receiver_4.dispatch.read_content_page_source_type()
@@ -101,7 +96,7 @@ pub fn plan_content_outputs(
                     js_abi::JsArray::from_dense(vec![
                         format!(
                             "{}{}{}{}",
-                            template_type,
+                            templateType,
                             String::from("/"),
                             match layout.as_ref() {
                                 Some(flow_value_4) => flow_value_4.clone(),
@@ -145,7 +140,7 @@ pub fn plan_content_outputs(
                             },
                             String::from(".html")
                         ),
-                        format!("{}{}", template_type, String::from("/single.html")),
+                        format!("{}{}", templateType, String::from("/single.html")),
                         format!(
                             "{}{}",
                             {
@@ -160,7 +155,7 @@ pub fn plan_content_outputs(
                     ])
                 } else {
                     js_abi::JsArray::from_dense(vec![
-                        format!("{}{}", template_type, String::from("/single.html")),
+                        format!("{}{}", templateType, String::from("/single.html")),
                         {
                             let conditional_test_2 = !{
                                 let dispatch_receiver_10 = &source;
@@ -189,7 +184,7 @@ pub fn plan_content_outputs(
                 }
             };
             let main: String = rt::option_coalesce(
-                crate::build::layout::select_template(
+                crate::build::layout::selectTemplate(
                     {
                         let upcast_value = environment.clone();
                         crate::layouts::LayoutEnvironment {
@@ -197,13 +192,13 @@ pub fn plan_content_outputs(
                             dispatch: upcast_value.dispatch.clone(),
                         }
                     },
-                    candidates.clone(),
+                    candidates,
                 )?,
                 core::convert::identity,
                 || templates.state.with(|state| state.single.clone()),
             );
             let base: Option<String> = rt::option_coalesce(
-                crate::build::layout::select_template(
+                crate::build::layout::selectTemplate(
                     {
                         let upcast_value_2 = environment.clone();
                         crate::layouts::LayoutEnvironment {
@@ -211,9 +206,9 @@ pub fn plan_content_outputs(
                             dispatch: upcast_value_2.dispatch.clone(),
                         }
                     },
-                    if !template_type.is_empty() {
+                    if !templateType.is_empty() {
                         js_abi::JsArray::from_dense(vec![
-                            format!("{}{}", template_type, String::from("/baseof.html")),
+                            format!("{}{}", templateType, String::from("/baseof.html")),
                             format!(
                                 "{}{}",
                                 {
@@ -238,7 +233,7 @@ pub fn plan_content_outputs(
                 || templates.state.with(|state| state.base.clone()),
             );
             {
-                let dispatch_receiver_15 = output_plan.clone();
+                let dispatch_receiver_15 = outputPlan.clone();
                 dispatch_receiver_15
                     .dispatch
                     .clone()
@@ -249,7 +244,7 @@ pub fn plan_content_outputs(
                                 .dispatch
                                 .read_content_page_source_output_rel_path()
                         },
-                        crate::build::layout::render_with_base(
+                        crate::build::layout::renderWithBase(
                             {
                                 let upcast_value_3 = environment.clone();
                                 crate::layouts::LayoutEnvironment {
@@ -257,8 +252,8 @@ pub fn plan_content_outputs(
                                     dispatch: upcast_value_3.dispatch.clone(),
                                 }
                             },
-                            base.clone(),
-                            main.clone(),
+                            base,
+                            main,
                             page.clone(),
                         )?,
                         format!(
@@ -275,7 +270,7 @@ pub fn plan_content_outputs(
                     )
             }?;
             {
-                let operation_input_0 = sitemap_urls.clone();
+                let operation_input_0 = sitemapUrls.clone();
                 operation_input_0.set_discard(
                     {
                         let dispatch_receiver_16 = &page;
@@ -286,20 +281,20 @@ pub fn plan_content_outputs(
                     true,
                 )
             };
-            let bundle_source: Option<String> = {
+            let bundleSource: Option<String> = {
                 let dispatch_receiver_17 = &graph;
                 dispatch_receiver_17
                     .dispatch
                     .read_standard_page_graph_bundle_source_by_page()
             }
             .get_eq(&page);
-            if bundle_source.is_some() {
-                crate::build::bundle_resources::add_bundle_resources(
-                    match bundle_source.as_ref() {
+            if bundleSource.is_some() {
+                crate::build::bundle_resources::addBundleResources(
+                    match bundleSource.as_ref() {
                         Some(flow_value_8) => flow_value_8.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
-                    output_directory(&{
+                    outputDirectory(&{
                         let dispatch_receiver_18 = &source;
                         dispatch_receiver_18
                             .dispatch
@@ -316,10 +311,10 @@ pub fn plan_content_outputs(
                         },
                         String::from("'")
                     ),
-                    output_plan.clone(),
+                    outputPlan.clone(),
                 )?;
             }
-            index += 1.0;
+            index += 1;
         }
     }
     Ok(())

@@ -3,8 +3,9 @@
 use crate::program as rt;
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct ParsedContentState {
-    pub front_matter: crate::frontmatter::data::FrontMatter,
+    pub frontMatter: crate::frontmatter::data::FrontMatter,
     pub body: String,
 }
 
@@ -21,15 +22,16 @@ impl rt::ObjectIdentityCarrier for ParsedContent {
 }
 
 impl ParsedContent {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
-        front_matter: crate::frontmatter::data::FrontMatter,
+        frontMatter: crate::frontmatter::data::FrontMatter,
         body: String,
     ) -> Result<ParsedContent, rt::TsonicError> {
-        let field_front_matter: crate::frontmatter::data::FrontMatter = front_matter;
+        let field_front_matter: crate::frontmatter::data::FrontMatter = frontMatter;
         let field_body: String = body;
         Ok(ParsedContent {
             state: rt::ObjectRef::new(ParsedContentState {
-                front_matter: field_front_matter,
+                frontMatter: field_front_matter,
                 body: field_body,
             }),
         })

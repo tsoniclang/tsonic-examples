@@ -5,30 +5,32 @@ use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
 #[derive(Clone)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct PipelineParser {
     pub tokens: js_abi::JsArray<String>,
-    pub index: i32,
-    pub source_path: Option<String>,
+    pub index: usize,
+    pub sourcePath: Option<String>,
     pub line: Option<i32>,
     pub column: Option<i32>,
 }
 
 impl PipelineParser {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         tokens: js_abi::JsArray<String>,
-        source_path: Option<String>,
+        sourcePath: Option<String>,
         line: Option<i32>,
         column: Option<i32>,
     ) -> PipelineParser {
         let field_tokens: js_abi::JsArray<String> = tokens;
-        let field_index: i32 = 0;
-        let field_source_path: Option<String> = source_path;
+        let field_index: usize = 0;
+        let field_source_path: Option<String> = sourcePath;
         let field_line: Option<i32> = line;
         let field_column: Option<i32> = column;
         PipelineParser {
             tokens: field_tokens,
             index: field_index,
-            source_path: field_source_path,
+            sourcePath: field_source_path,
             line: field_line,
             column: field_column,
         }
@@ -39,33 +41,34 @@ impl PipelineParser {
         code: String,
         message: String,
     ) -> Result<crate::diagnostics::TsumoError, rt::TsonicError> {
-        crate::diagnostics::create_tsumo_error(
+        crate::diagnostics::createTsumoError(
             code,
             message,
-            self.source_path.clone(),
-            self.line.map(rt::conversions::i32_to_f64),
-            self.column.map(rt::conversions::i32_to_f64),
+            self.sourcePath.clone(),
+            self.line,
+            self.column,
         )
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn parse(
         &mut self,
-        stop_on_right_paren: bool,
+        stopOnRightParen: bool,
     ) -> Result<crate::template::syntax::expressions::Pipeline, rt::TsonicError> {
         let stages: js_abi::JsArray<crate::template::syntax::expressions::Command> =
             js_abi::JsArray::from_dense(vec![]);
-        'loop_value: while self.index < rt::conversions::usize_to_i32(self.tokens.len())? {
+        'loop_value: while self.index < self.tokens.len() {
             let token: String = {
                 let flow_input = {
                     let operation_input_0 = self.tokens.clone();
-                    operation_input_0.get_number(rt::conversions::i32_to_f64(self.index))
+                    operation_input_0.get_number(self.index)
                 };
                 match flow_input {
                     Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
             };
-            if stop_on_right_paren && is_right_paren_token(&token) {
+            if stopOnRightParen && isRightParenToken(&token) {
                 break 'loop_value;
             }
             if token == "|" {
@@ -74,14 +77,11 @@ impl PipelineParser {
                     String::from("Template pipeline contains an empty stage"),
                 )?));
             }
-            {
-                let operation_input_0_2 = stages.clone();
-                operation_input_0_2.push_many_discard([self.parse_command()?])
-            };
-            if self.index < rt::conversions::usize_to_i32(self.tokens.len())?
+            stages.push_many_discard([self.parseCommand()?]);
+            if self.index < self.tokens.len()
                 && ({
-                    let operation_input_0_3 = self.tokens.clone();
-                    operation_input_0_3.get_number(rt::conversions::i32_to_f64(self.index))
+                    let operation_input_0_2 = self.tokens.clone();
+                    operation_input_0_2.get_number(self.index)
                 }) == Some(String::from("|"))
             {
                 {
@@ -92,7 +92,7 @@ impl PipelineParser {
                         update_next
                     }
                 };
-                if self.index >= rt::conversions::usize_to_i32(self.tokens.len())? {
+                if self.index >= self.tokens.len() {
                     return Err(rt::TsonicError::TsumoError(self.error(
                         String::from("TSUMO_TEMPLATE_PIPELINE_EMPTY_STAGE"),
                         String::from("Template pipeline ends with an empty stage"),
@@ -103,10 +103,11 @@ impl PipelineParser {
         crate::template::syntax::expressions::Pipeline::new(stages.clone())
     }
 
-    pub fn parse_command(
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn parseCommand(
         &mut self,
     ) -> Result<crate::template::syntax::expressions::Command, rt::TsonicError> {
-        let head: crate::template::syntax::expressions::Expr = self.parse_expression()?;
+        let head: crate::template::syntax::expressions::Expr = self.parseExpression()?;
         if head
             .dispatch
             .clone()
@@ -127,14 +128,14 @@ impl PipelineParser {
                 dispatch_receiver.dispatch.read_token_expr_token()
             })) == "return"
         {
-            if self.index >= rt::conversions::usize_to_i32(self.tokens.len())?
+            if self.index >= self.tokens.len()
                 || ({
                     let operation_input_0 = self.tokens.clone();
-                    operation_input_0.get_number(rt::conversions::i32_to_f64(self.index))
+                    operation_input_0.get_number(self.index)
                 }) == Some(String::from("|"))
                 || ({
                     let operation_input_0_2 = self.tokens.clone();
-                    operation_input_0_2.get_number(rt::conversions::i32_to_f64(self.index))
+                    operation_input_0_2.get_number(self.index)
                 }) == Some(String::from(")"))
             {
                 return crate::template::syntax::expressions::Command::new(
@@ -146,7 +147,7 @@ impl PipelineParser {
                 head.clone(),
                 js_abi::JsArray::from_dense(vec![{
                     let upcast_value = crate::template::syntax::expressions::CommandExpr::new(
-                        self.parse_command()?,
+                        self.parseCommand()?,
                     )?;
                     crate::template::syntax::expressions::Expr {
                         identity: upcast_value.identity.clone(),
@@ -157,32 +158,30 @@ impl PipelineParser {
         }
         let args: js_abi::JsArray<crate::template::syntax::expressions::Expr> =
             js_abi::JsArray::from_dense(vec![]);
-        'loop_value: while self.index < rt::conversions::usize_to_i32(self.tokens.len())? {
+        'loop_value: while self.index < self.tokens.len() {
             let token: String = {
                 let flow_input = {
                     let operation_input_0_3 = self.tokens.clone();
-                    operation_input_0_3.get_number(rt::conversions::i32_to_f64(self.index))
+                    operation_input_0_3.get_number(self.index)
                 };
                 match flow_input {
                     Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
             };
-            if token == "|" || is_right_paren_token(&token) {
+            if token == "|" || isRightParenToken(&token) {
                 break 'loop_value;
             }
-            {
-                let operation_input_0_4 = args.clone();
-                operation_input_0_4.push_many_discard([self.parse_expression()?])
-            };
+            args.push_many_discard([self.parseExpression()?]);
         }
         crate::template::syntax::expressions::Command::new(head.clone(), args.clone())
     }
 
-    pub fn parse_expression(
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn parseExpression(
         &mut self,
     ) -> Result<crate::template::syntax::expressions::Expr, rt::TsonicError> {
-        if self.index >= rt::conversions::usize_to_i32(self.tokens.len())? {
+        if self.index >= self.tokens.len() {
             return Err(rt::TsonicError::TsumoError(self.error(
                 String::from("TSUMO_TEMPLATE_EXPRESSION_MISSING"),
                 String::from("Template command is missing an expression"),
@@ -191,14 +190,14 @@ impl PipelineParser {
         let token: String = {
             let flow_input = {
                 let operation_input_0 = self.tokens.clone();
-                operation_input_0.get_number(rt::conversions::i32_to_f64(self.index))
+                operation_input_0.get_number(self.index)
             };
             match flow_input {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             }
         };
-        if is_right_paren_token(&token) {
+        if isRightParenToken(&token) {
             return Err(rt::TsonicError::TsumoError(self.error(
                 String::from("TSUMO_TEMPLATE_PAREN_UNEXPECTED"),
                 String::from("Template expression contains an unexpected ')'"),
@@ -214,11 +213,11 @@ impl PipelineParser {
                 }
             };
             let inner: crate::template::syntax::expressions::Pipeline = self.parse(true)?;
-            if self.index >= rt::conversions::usize_to_i32(self.tokens.len())?
-                || !is_right_paren_token(&{
+            if self.index >= self.tokens.len()
+                || !isRightParenToken(&{
                     let flow_input_2 = {
                         let operation_input_0_2 = self.tokens.clone();
-                        operation_input_0_2.get_number(rt::conversions::i32_to_f64(self.index))
+                        operation_input_0_2.get_number(self.index)
                     };
                     match flow_input_2 {
                         Some(flow_value_2) => flow_value_2,
@@ -231,10 +230,10 @@ impl PipelineParser {
                     String::from("Template expression opened with '(' but has no closing ')'"),
                 )?));
             }
-            let closing_token: String = {
+            let closingToken: String = {
                 let flow_input_3 = {
                     let operation_input_0_3 = self.tokens.clone();
-                    operation_input_0_3.get_number(rt::conversions::i32_to_f64(self.index))
+                    operation_input_0_3.get_number(self.index)
                 };
                 match flow_input_3 {
                     Some(flow_value_3) => flow_value_3,
@@ -256,8 +255,8 @@ impl PipelineParser {
                     dispatch: upcast_value.dispatch.clone(),
                 }
             };
-            if rt::conversions::usize_to_i32(js_string::js_len(&closing_token))? > 1 {
-                let selector: String = crate::utils::strings::substring_from(&closing_token, 2)?;
+            if js_string::js_len(&closingToken) > 1 {
+                let selector: String = crate::utils::strings::substringFrom(&closingToken, 2)?;
                 if selector.is_empty() {
                     return Err(rt::TsonicError::TsumoError(self.error(
                         String::from("TSUMO_TEMPLATE_SELECTOR_MISSING"),
@@ -295,41 +294,41 @@ impl PipelineParser {
     }
 }
 
-pub fn is_right_paren_token(token: &str) -> bool {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isRightParenToken(token: &str) -> bool {
     token == ")" || js_string::starts_with_from_start(token, ").")
 }
 
-pub fn parse_pipeline(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parsePipeline(
     tokens: js_abi::JsArray<String>,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
     line: Option<i32>,
     column: Option<i32>,
 ) -> Result<crate::template::syntax::expressions::Pipeline, rt::TsonicError> {
-    if rt::conversions::usize_to_i32(tokens.len())? == 0 {
+    if tokens.is_empty() {
         return crate::template::syntax::expressions::Pipeline::new(js_abi::JsArray::from_dense(
             vec![],
         ));
     }
     let mut parser: PipelineParser =
-        PipelineParser::new(tokens.clone(), source_path.clone(), line, column);
+        PipelineParser::new(tokens.clone(), sourcePath.clone(), line, column);
     let pipeline: crate::template::syntax::expressions::Pipeline = parser.parse(false)?;
-    if parser.index != rt::conversions::usize_to_i32(tokens.len())? {
+    if parser.index != tokens.len() {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_TEMPLATE_TOKEN_UNEXPECTED"),
-                format!("{}{}", String::from("Unexpected template token: "), {
-                    let flow_input = {
-                        let operation_input_0 = tokens.clone();
-                        operation_input_0.get_number(rt::conversions::i32_to_f64(parser.index))
-                    };
-                    match flow_input {
+                format!(
+                    "{}{}",
+                    String::from("Unexpected template token: "),
+                    match tokens.get_number(parser.index) {
                         Some(flow_value) => flow_value,
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
-                }),
-                source_path.clone(),
-                line.map(rt::conversions::i32_to_f64),
-                column.map(rt::conversions::i32_to_f64),
+                ),
+                sourcePath.clone(),
+                line,
+                column,
             )?,
         ));
     }

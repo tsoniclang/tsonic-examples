@@ -3,11 +3,12 @@
 use crate::program as rt;
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct LanguageConfigState {
     pub lang: String,
-    pub language_name: String,
-    pub language_direction: String,
-    pub content_dir: String,
+    pub languageName: String,
+    pub languageDirection: String,
+    pub contentDir: String,
     pub weight: i32,
 }
 
@@ -24,24 +25,25 @@ impl rt::ObjectIdentityCarrier for LanguageConfig {
 }
 
 impl LanguageConfig {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         lang: String,
-        language_name: String,
-        language_direction: String,
-        content_dir: String,
+        languageName: String,
+        languageDirection: String,
+        contentDir: String,
         weight: i32,
     ) -> Result<LanguageConfig, rt::TsonicError> {
         let field_lang: String = lang;
-        let field_language_name: String = language_name;
-        let field_language_direction: String = language_direction;
-        let field_content_dir: String = content_dir;
+        let field_language_name: String = languageName;
+        let field_language_direction: String = languageDirection;
+        let field_content_dir: String = contentDir;
         let field_weight: i32 = weight;
         Ok(LanguageConfig {
             state: rt::ObjectRef::new(LanguageConfigState {
                 lang: field_lang,
-                language_name: field_language_name,
-                language_direction: field_language_direction,
-                content_dir: field_content_dir,
+                languageName: field_language_name,
+                languageDirection: field_language_direction,
+                contentDir: field_content_dir,
                 weight: field_weight,
             }),
         })
@@ -50,6 +52,9 @@ impl LanguageConfig {
 
 #[doc(hidden)]
 pub trait LanguageContextDispatch {
+    fn project_language_context(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_language_context_to_language_context(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn LanguageContextDispatch + 'static>> {
@@ -67,10 +72,11 @@ pub trait LanguageContextDispatch {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct LanguageContextState {
-    pub lang: String,
-    pub language_name: String,
-    pub language_direction: String,
+    pub Lang: String,
+    pub LanguageName: String,
+    pub LanguageDirection: String,
 }
 
 #[derive(Clone)]
@@ -108,27 +114,29 @@ pub(crate) struct LanguageContextRoot {
 
 impl LanguageContext {
     #[doc(hidden)]
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn initialize_state(
         lang: String,
-        language_name: String,
-        language_direction: String,
+        languageName: String,
+        languageDirection: String,
     ) -> Result<LanguageContextState, rt::TsonicError> {
         let field_lang: String = lang;
-        let field_language_name: String = language_name;
-        let field_language_direction: String = language_direction;
+        let field_language_name: String = languageName;
+        let field_language_direction: String = languageDirection;
         Ok(LanguageContextState {
-            lang: field_lang,
-            language_name: field_language_name,
-            language_direction: field_language_direction,
+            Lang: field_lang,
+            LanguageName: field_language_name,
+            LanguageDirection: field_language_direction,
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         lang: String,
-        language_name: String,
-        language_direction: String,
+        languageName: String,
+        languageDirection: String,
     ) -> Result<LanguageContext, rt::TsonicError> {
-        let state = LanguageContext::initialize_state(lang, language_name, language_direction)?;
+        let state = LanguageContext::initialize_state(lang, languageName, languageDirection)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(LanguageContextRoot {
             identity: identity.clone(),
@@ -141,7 +149,24 @@ impl LanguageContext {
     }
 }
 
+impl rt::ObjectIdentityCarrier for LanguageContextRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl LanguageContextDispatch for LanguageContextRoot {
+    fn project_language_context(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn LanguageContextDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_language_context_to_language_context(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn LanguageContextDispatch + 'static>> {
@@ -149,35 +174,35 @@ impl LanguageContextDispatch for LanguageContextRoot {
     }
 
     fn read_language_context_lang(&self) -> String {
-        self.state.with(|state| state.lang.clone())
+        self.state.with(|state| state.Lang.clone())
     }
 
     fn write_language_context_lang(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.lang = value)
+                self.state.with_mut(|state| state.Lang = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_language_context_language_name(&self) -> String {
-        self.state.with(|state| state.language_name.clone())
+        self.state.with(|state| state.LanguageName.clone())
     }
 
     fn write_language_context_language_name(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.language_name = value)
+                self.state.with_mut(|state| state.LanguageName = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_language_context_language_direction(&self) -> String {
-        self.state.with(|state| state.language_direction.clone())
+        self.state.with(|state| state.LanguageDirection.clone())
     }
 
     fn write_language_context_language_direction(
@@ -187,8 +212,7 @@ impl LanguageContextDispatch for LanguageContextRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state
-                    .with_mut(|state| state.language_direction = value)
+                self.state.with_mut(|state| state.LanguageDirection = value)
             };
             Ok::<_, rt::TsonicError>(())
         }

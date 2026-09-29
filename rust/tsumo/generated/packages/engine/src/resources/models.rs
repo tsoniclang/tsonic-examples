@@ -4,6 +4,9 @@ use crate::program as rt;
 
 #[doc(hidden)]
 pub trait ResourceDataDispatch {
+    fn project_resource_data(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_resource_data_to_resource_data(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ResourceDataDispatch + 'static>> {
@@ -14,8 +17,9 @@ pub trait ResourceDataDispatch {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct ResourceDataState {
-    pub integrity: String,
+    pub Integrity: String,
 }
 
 #[derive(Clone)]
@@ -56,7 +60,7 @@ impl ResourceData {
     pub fn initialize_state(integrity: String) -> Result<ResourceDataState, rt::TsonicError> {
         let field_integrity: String = integrity;
         Ok(ResourceDataState {
-            integrity: field_integrity,
+            Integrity: field_integrity,
         })
     }
 
@@ -74,7 +78,24 @@ impl ResourceData {
     }
 }
 
+impl rt::ObjectIdentityCarrier for ResourceDataRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl ResourceDataDispatch for ResourceDataRoot {
+    fn project_resource_data(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn ResourceDataDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_resource_data_to_resource_data(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ResourceDataDispatch + 'static>> {
@@ -82,14 +103,14 @@ impl ResourceDataDispatch for ResourceDataRoot {
     }
 
     fn read_resource_data_integrity(&self) -> String {
-        self.state.with(|state| state.integrity.clone())
+        self.state.with(|state| state.Integrity.clone())
     }
 
     fn write_resource_data_integrity(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.integrity = value)
+                self.state.with_mut(|state| state.Integrity = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -129,6 +150,9 @@ impl ImageDimensions {
 
 #[doc(hidden)]
 pub trait ResourceDispatch {
+    fn project_resource(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_resource_to_resource(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ResourceDispatch + 'static>> {
@@ -160,15 +184,16 @@ pub trait ResourceDispatch {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct ResourceState {
     pub id: String,
-    pub source_path: Option<String>,
+    pub sourcePath: Option<String>,
     pub publishable: bool,
-    pub output_rel_path: Option<String>,
+    pub outputRelPath: Option<String>,
     pub bytes: tsonic_rust_node::buffer::Buffer,
     pub text: Option<String>,
-    pub data: ResourceData,
-    pub media_type: String,
+    pub Data: ResourceData,
+    pub mediaType: String,
     pub width: i32,
     pub height: i32,
 }
@@ -208,68 +233,70 @@ pub(crate) struct ResourceRoot {
 
 impl Resource {
     #[doc(hidden)]
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     pub fn initialize_state(
         id: String,
-        source_path: Option<String>,
+        sourcePath: Option<String>,
         publishable: bool,
-        output_rel_path: Option<String>,
+        outputRelPath: Option<String>,
         bytes: tsonic_rust_node::buffer::Buffer,
         text: Option<String>,
         data: ResourceData,
-        media_type: Option<String>,
+        mediaType: Option<String>,
         width: Option<i32>,
         height: Option<i32>,
     ) -> Result<ResourceState, rt::TsonicError> {
-        let media_type = media_type.unwrap_or_else(|| String::from(""));
+        let mediaType = mediaType.unwrap_or_else(|| String::from(""));
         let width = width.unwrap_or(0);
         let height = height.unwrap_or(0);
         let field_id: String = id;
-        let field_source_path: Option<String> = source_path;
+        let field_source_path: Option<String> = sourcePath;
         let field_publishable: bool = publishable;
-        let field_output_rel_path: Option<String> = output_rel_path;
+        let field_output_rel_path: Option<String> = outputRelPath;
         let field_bytes: tsonic_rust_node::buffer::Buffer = bytes;
         let field_text: Option<String> = text;
         let field_data: ResourceData = data;
-        let field_media_type: String = media_type;
+        let field_media_type: String = mediaType;
         let field_width: i32 = width;
         let field_height: i32 = height;
         Ok(ResourceState {
             id: field_id,
-            source_path: field_source_path,
+            sourcePath: field_source_path,
             publishable: field_publishable,
-            output_rel_path: field_output_rel_path,
+            outputRelPath: field_output_rel_path,
             bytes: field_bytes,
             text: field_text,
-            data: field_data,
-            media_type: field_media_type,
+            Data: field_data,
+            mediaType: field_media_type,
             width: field_width,
             height: field_height,
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     pub fn new(
         id: String,
-        source_path: Option<String>,
+        sourcePath: Option<String>,
         publishable: bool,
-        output_rel_path: Option<String>,
+        outputRelPath: Option<String>,
         bytes: tsonic_rust_node::buffer::Buffer,
         text: Option<String>,
         data: ResourceData,
-        media_type: Option<String>,
+        mediaType: Option<String>,
         width: Option<i32>,
         height: Option<i32>,
     ) -> Result<Resource, rt::TsonicError> {
         let state = Resource::initialize_state(
             id,
-            source_path,
+            sourcePath,
             publishable,
-            output_rel_path,
+            outputRelPath,
             bytes,
             text,
             data,
-            media_type,
+            mediaType,
             width,
             height,
         )?;
@@ -285,7 +312,24 @@ impl Resource {
     }
 }
 
+impl rt::ObjectIdentityCarrier for ResourceRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl ResourceDispatch for ResourceRoot {
+    fn project_resource(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn ResourceDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_resource_to_resource(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ResourceDispatch + 'static>> {
@@ -307,14 +351,14 @@ impl ResourceDispatch for ResourceRoot {
     }
 
     fn read_resource_source_path(&self) -> Option<String> {
-        self.state.with(|state| state.source_path.clone())
+        self.state.with(|state| state.sourcePath.clone())
     }
 
     fn write_resource_source_path(&self, value: Option<String>) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.source_path = value)
+                self.state.with_mut(|state| state.sourcePath = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -335,14 +379,14 @@ impl ResourceDispatch for ResourceRoot {
     }
 
     fn read_resource_output_rel_path(&self) -> Option<String> {
-        self.state.with(|state| state.output_rel_path.clone())
+        self.state.with(|state| state.outputRelPath.clone())
     }
 
     fn write_resource_output_rel_path(&self, value: Option<String>) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.output_rel_path = value)
+                self.state.with_mut(|state| state.outputRelPath = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -380,28 +424,28 @@ impl ResourceDispatch for ResourceRoot {
     }
 
     fn read_resource_data(&self) -> ResourceData {
-        self.state.with(|state| state.data.clone())
+        self.state.with(|state| state.Data.clone())
     }
 
     fn write_resource_data(&self, value: ResourceData) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.data = value)
+                self.state.with_mut(|state| state.Data = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_resource_media_type(&self) -> String {
-        self.state.with(|state| state.media_type.clone())
+        self.state.with(|state| state.mediaType.clone())
     }
 
     fn write_resource_media_type(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.media_type = value)
+                self.state.with_mut(|state| state.mediaType = value)
             };
             Ok::<_, rt::TsonicError>(())
         }

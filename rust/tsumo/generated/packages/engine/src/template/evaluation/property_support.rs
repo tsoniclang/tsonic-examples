@@ -4,95 +4,72 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
 std::thread_local! {
-    pub static PAGE_STORES: rt::ModuleCell<js_abi::JsMap<crate::models::page_context::PageContext, crate::template::values::scratch::ScratchStore>> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub static pageStores: rt::ModuleCell<js_abi::JsMap<crate::models::page_context::PageContext, crate::template::values::scratch::ScratchStore>> = const { rt::ModuleCell::new() };
 }
 
 std::thread_local! {
-    pub static SITE_STORES: rt::ModuleCell<js_abi::JsMap<crate::models::site_context::SiteContext, crate::template::values::scratch::ScratchStore>> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub static siteStores: rt::ModuleCell<js_abi::JsMap<crate::models::site_context::SiteContext, crate::template::values::scratch::ScratchStore>> = const { rt::ModuleCell::new() };
 }
 
-pub fn taxonomy_terms_by_count(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn taxonomyTermsByCount(
     terms: js_abi::JsMap<String, js_abi::JsArray<crate::models::page_context::PageContext>>,
 ) -> Result<crate::template::values::arrays::AnyArrayValue, rt::TsonicError> {
     let names: js_abi::JsArray<String> = js_abi::array_from_vec(&terms.keys());
-    {
-        let mut left: f64 = 0.0;
-        while left < (rt::conversions::usize_to_i32(names.len())? as f64) {
-            {
-                let mut right: f64 = left + 1.0;
-                'loop_value_2: while right < (rt::conversions::usize_to_i32(names.len())? as f64) {
-                    let left_name: String = match names.get_number(left) {
-                        Some(flow_value) => flow_value,
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    };
-                    let right_name: String = match names.get_number(right) {
-                        Some(flow_value_2) => flow_value_2,
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    };
-                    let left_count: i32 = rt::option_coalesce(
-                        terms
-                            .get(&left_name)
-                            .as_ref()
-                            .map(|optional_receiver| {
-                                rt::conversions::usize_to_i32(optional_receiver.len())
-                                    .map_err(rt::TsonicError::from)
-                            })
-                            .transpose()?,
-                        core::convert::identity,
-                        || 0,
-                    );
-                    let right_count: i32 = rt::option_coalesce(
-                        terms
-                            .get(&right_name)
-                            .as_ref()
-                            .map(|optional_receiver_2| {
-                                rt::conversions::usize_to_i32(optional_receiver_2.len())
-                                    .map_err(rt::TsonicError::from)
-                            })
-                            .transpose()?,
-                        core::convert::identity,
-                        || 0,
-                    );
-                    if left_count > right_count
-                        || left_count == right_count
-                            && crate::utils::strings::compare_text(
-                                left_name.clone(),
-                                right_name.clone(),
-                            ) <= 0
-                    {
-                        right += 1.0;
-                        continue 'loop_value_2;
-                    }
-                    names.set_number(left, right_name.clone());
-                    names.set_number(right, left_name.clone());
-                    right += 1.0;
-                }
+    names.sort({
+        let capture_terms = terms.clone();
+        move |left, right| {
+            let leftCount: usize = rt::option_coalesce(
+                capture_terms
+                    .get(&left)
+                    .as_ref()
+                    .map(|optional_receiver| optional_receiver.len()),
+                core::convert::identity,
+                || 0,
+            );
+            let rightCount: usize = rt::option_coalesce(
+                capture_terms
+                    .get(&right)
+                    .as_ref()
+                    .map(|optional_receiver_2| optional_receiver_2.len()),
+                core::convert::identity,
+                || 0,
+            );
+            if leftCount > rightCount {
+                -1.0
+            } else if leftCount < rightCount {
+                1.0
+            } else {
+                rt::conversions::i32_to_f64(crate::utils::strings::compareText(
+                    left.clone(),
+                    right.clone(),
+                ))
             }
-            left += 1.0;
         }
-    }
+    });
     let values: js_abi::JsArray<crate::template::values::base::TemplateValue> =
         js_abi::JsArray::from_dense(vec![]);
     {
-        let mut index: f64 = 0.0;
-        'loop_value_3: while index < (rt::conversions::usize_to_i32(names.len())? as f64) {
+        let mut index: usize = 0;
+        'loop_value: while index < names.len() {
             let name: String = match names.get_number(index) {
-                Some(flow_value_3) => flow_value_3,
+                Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let pages: Option<js_abi::JsArray<crate::models::page_context::PageContext>> =
                 terms.get(&name);
             if pages.is_none() {
-                index += 1.0;
-                continue 'loop_value_3;
+                index += 1;
+                continue 'loop_value;
             }
             let fields: js_abi::JsMap<String, crate::template::values::base::TemplateValue> =
                 js_abi::JsMap::new();
             {
                 let operation_input_0 = fields.clone();
                 operation_input_0.set_discard(String::from("Name"), {
-                    let upcast_value =
-                        crate::template::values::primitives::StringValue::new(name.clone())?;
+                    let upcast_value = crate::template::values::primitives::StringValue::new(name)?;
                     crate::template::values::base::TemplateValue {
                         identity: upcast_value.identity.clone(),
                         dispatch: upcast_value.dispatch.clone(),
@@ -105,7 +82,7 @@ pub fn taxonomy_terms_by_count(
                     let upcast_value_2 = crate::template::values::primitives::NumberValue::new(
                         rt::conversions::usize_to_i32(
                             match pages.as_ref() {
-                                Some(flow_value_4) => flow_value_4.clone(),
+                                Some(flow_value_2) => flow_value_2.clone(),
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
@@ -124,7 +101,7 @@ pub fn taxonomy_terms_by_count(
                 operation_input_0_3.set_discard(String::from("Pages"), {
                     let upcast_value_3 =
                         crate::template::values::page::PageArrayValue::new(match pages.as_ref() {
-                            Some(flow_value_5) => flow_value_5.clone(),
+                            Some(flow_value_3) => flow_value_3.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         })?;
                     crate::template::values::base::TemplateValue {
@@ -133,24 +110,21 @@ pub fn taxonomy_terms_by_count(
                     }
                 })
             };
-            {
-                let operation_input_0_4 = values.clone();
-                operation_input_0_4.push_many_discard([{
-                    let upcast_value_4 =
-                        crate::template::values::dict::DictValue::new(fields.clone())?;
-                    crate::template::values::base::TemplateValue {
-                        identity: upcast_value_4.identity.clone(),
-                        dispatch: upcast_value_4.dispatch.clone(),
-                    }
-                }])
-            };
-            index += 1.0;
+            values.push_many_discard([{
+                let upcast_value_4 = crate::template::values::dict::DictValue::new(fields.clone())?;
+                crate::template::values::base::TemplateValue {
+                    identity: upcast_value_4.identity.clone(),
+                    dispatch: upcast_value_4.dispatch.clone(),
+                }
+            }]);
+            index += 1;
         }
     }
     crate::template::values::arrays::AnyArrayValue::new(values.clone())
 }
 
-pub fn wrap_param_dict(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn wrapParamDict(
     dict: js_abi::JsMap<String, crate::params::ParamValue>,
 ) -> Result<crate::template::values::dict::DictValue, rt::TsonicError> {
     let mapped: js_abi::JsMap<String, crate::template::values::base::TemplateValue> =
@@ -222,45 +196,45 @@ pub fn wrap_param_dict(
     crate::template::values::dict::DictValue::new(mapped.clone())
 }
 
-pub fn wrap_languages(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn wrapLanguages(
     languages: js_abi::JsArray<crate::models::language::LanguageContext>,
 ) -> Result<crate::template::values::arrays::AnyArrayValue, rt::TsonicError> {
     let items: js_abi::JsArray<crate::template::values::base::TemplateValue> =
         js_abi::JsArray::from_dense(vec![]);
     {
-        let mut index: f64 = 0.0;
-        while index < (rt::conversions::usize_to_i32(languages.len())? as f64) {
-            {
-                let operation_input_0 = items.clone();
-                operation_input_0.push_many_discard([{
-                    let upcast_value = crate::template::values::site::LanguageValue::new(
-                        match languages.get_number(index) {
-                            Some(flow_value) => flow_value,
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },
-                    )?;
-                    crate::template::values::base::TemplateValue {
-                        identity: upcast_value.identity.clone(),
-                        dispatch: upcast_value.dispatch.clone(),
-                    }
-                }])
-            };
-            index += 1.0;
+        let mut index: usize = 0;
+        while index < languages.len() {
+            items.push_many_discard([{
+                let upcast_value = crate::template::values::site::LanguageValue::new(
+                    match languages.get_number(index) {
+                        Some(flow_value) => flow_value,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
+                )?;
+                crate::template::values::base::TemplateValue {
+                    identity: upcast_value.identity.clone(),
+                    dispatch: upcast_value.dispatch.clone(),
+                }
+            }]);
+            index += 1;
         }
     }
     crate::template::values::arrays::AnyArrayValue::new(items.clone())
 }
 
-pub fn wrap_media_type(
-    media_type: crate::models::media_type::MediaType,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn wrapMediaType(
+    mediaType: crate::models::media_type::MediaType,
 ) -> Result<crate::template::values::media::MediaTypeValue, rt::TsonicError> {
-    crate::template::values::media::MediaTypeValue::new(media_type)
+    crate::template::values::media::MediaTypeValue::new(mediaType)
 }
 
-pub fn get_page_store(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn getPageStore(
     page: crate::models::page_context::PageContext,
 ) -> Result<crate::template::values::scratch::ScratchStore, rt::TsonicError> {
-    let existing: Option<crate::template::values::scratch::ScratchStore> = PAGE_STORES
+    let existing: Option<crate::template::values::scratch::ScratchStore> = pageStores
         .with(|module_binding| module_binding.load())
         .get_eq(&page);
     if existing.is_some() {
@@ -271,16 +245,17 @@ pub fn get_page_store(
     }
     let store: crate::template::values::scratch::ScratchStore =
         crate::template::values::scratch::ScratchStore::new()?;
-    PAGE_STORES
+    pageStores
         .with(|module_binding| module_binding.load())
         .set_eq_discard(page.clone(), store.clone());
     Ok(store)
 }
 
-pub fn get_site_store(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn getSiteStore(
     site: crate::models::site_context::SiteContext,
 ) -> Result<crate::template::values::scratch::ScratchStore, rt::TsonicError> {
-    let existing: Option<crate::template::values::scratch::ScratchStore> = SITE_STORES
+    let existing: Option<crate::template::values::scratch::ScratchStore> = siteStores
         .with(|module_binding| module_binding.load())
         .get_eq(&site);
     if existing.is_some() {
@@ -291,7 +266,7 @@ pub fn get_site_store(
     }
     let store: crate::template::values::scratch::ScratchStore =
         crate::template::values::scratch::ScratchStore::new()?;
-    SITE_STORES
+    siteStores
         .with(|module_binding| module_binding.load())
         .set_eq_discard(site.clone(), store.clone());
     Ok(store)
@@ -301,10 +276,10 @@ pub fn get_site_store(
 pub fn module_init() {
     {
         let module_value = js_abi::JsMap::new();
-        PAGE_STORES.with(|module_binding| module_binding.initialize(module_value))
+        pageStores.with(|module_binding| module_binding.initialize(module_value))
     };
     {
         let module_value_2 = js_abi::JsMap::new();
-        SITE_STORES.with(|module_binding_2| module_binding_2.initialize(module_value_2))
+        siteStores.with(|module_binding_2| module_binding_2.initialize(module_value_2))
     };
 }

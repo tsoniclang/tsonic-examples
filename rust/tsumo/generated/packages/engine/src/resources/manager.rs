@@ -4,64 +4,60 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn sort_resource_paths(paths: js_abi::JsArray<String>) -> Result<(), rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn sortResourcePaths(paths: js_abi::JsArray<String>) -> Result<(), rt::TsonicError> {
     {
-        let mut left_index: f64 = 0.0;
-        while left_index < (rt::conversions::usize_to_i32(paths.len())? as f64) {
+        let mut leftIndex: f64 = 0.0;
+        while leftIndex < (paths.len() as f64) {
             {
-                let mut right_index: f64 = left_index + 1.0;
-                'loop_value_2: while right_index
-                    < (rt::conversions::usize_to_i32(paths.len())? as f64)
-                {
-                    let left: String = match paths.get_number(left_index) {
+                let mut rightIndex: f64 = leftIndex + 1.0;
+                'loop_value_2: while rightIndex < (paths.len() as f64) {
+                    let left: String = match paths.get_number(leftIndex) {
                         Some(flow_value) => flow_value,
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
-                    let right: String = match paths.get_number(right_index) {
+                    let right: String = match paths.get_number(rightIndex) {
                         Some(flow_value_2) => flow_value_2,
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
-                    if crate::utils::strings::compare_text(
-                        crate::resources::paths::normalize_resource_slashes(&left)?,
-                        crate::resources::paths::normalize_resource_slashes(&right)?,
+                    if crate::utils::strings::compareText(
+                        crate::resources::paths::normalizeResourceSlashes(&left)?,
+                        crate::resources::paths::normalizeResourceSlashes(&right)?,
                     ) <= 0
                     {
-                        right_index += 1.0;
+                        rightIndex += 1.0;
                         continue 'loop_value_2;
                     }
-                    paths.set_number(left_index, right.clone());
-                    paths.set_number(right_index, left.clone());
-                    right_index += 1.0;
+                    paths.set_number(leftIndex, right.clone());
+                    paths.set_number(rightIndex, left.clone());
+                    rightIndex += 1.0;
                 }
             }
-            left_index += 1.0;
+            leftIndex += 1.0;
         }
     }
     Ok(())
 }
 
-pub fn sort_resources_by_identity(
-    resources: js_abi::JsArray<crate::resources::models::Resource>,
-) -> Result<(), rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn sortResourcesByIdentity(resources: js_abi::JsArray<crate::resources::models::Resource>) {
     {
-        let mut left_index: f64 = 0.0;
-        while left_index < (rt::conversions::usize_to_i32(resources.len())? as f64) {
+        let mut leftIndex: f64 = 0.0;
+        while leftIndex < (resources.len() as f64) {
             {
-                let mut right_index: f64 = left_index + 1.0;
-                'loop_value_2: while right_index
-                    < (rt::conversions::usize_to_i32(resources.len())? as f64)
-                {
+                let mut rightIndex: f64 = leftIndex + 1.0;
+                'loop_value_2: while rightIndex < (resources.len() as f64) {
                     let left: crate::resources::models::Resource =
-                        match resources.get_number(left_index) {
+                        match resources.get_number(leftIndex) {
                             Some(flow_value) => flow_value,
                             None => unreachable!("checked flow selected a missing optional value"),
                         };
                     let right: crate::resources::models::Resource =
-                        match resources.get_number(right_index) {
+                        match resources.get_number(rightIndex) {
                             Some(flow_value_2) => flow_value_2,
                             None => unreachable!("checked flow selected a missing optional value"),
                         };
-                    if crate::utils::strings::compare_text(
+                    if crate::utils::strings::compareText(
                         {
                             let dispatch_receiver = &left;
                             dispatch_receiver.dispatch.read_resource_id()
@@ -72,22 +68,24 @@ pub fn sort_resources_by_identity(
                         },
                     ) <= 0
                     {
-                        right_index += 1.0;
+                        rightIndex += 1.0;
                         continue 'loop_value_2;
                     }
-                    resources.set_number(left_index, right.clone());
-                    resources.set_number(right_index, left.clone());
-                    right_index += 1.0;
+                    resources.set_number(leftIndex, right.clone());
+                    resources.set_number(rightIndex, left.clone());
+                    rightIndex += 1.0;
                 }
             }
-            left_index += 1.0;
+            leftIndex += 1.0;
         }
     }
-    Ok(())
 }
 
 #[doc(hidden)]
 pub trait ResourceManagerDispatch {
+    fn project_resource_manager(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_resource_manager_to_resource_manager(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ResourceManagerDispatch + 'static>> {
@@ -126,33 +124,39 @@ pub trait ResourceManagerDispatch {
         &self,
         value: js_abi::JsArray<String>,
     ) -> Result<(), rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_resource_manager_resolve_asset_full_path(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
     ) -> Result<Option<String>, rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_resource_manager_resolve_asset_full_path(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
     ) -> Result<Option<String>, rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_resource_manager_get(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
     ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_resource_manager_get(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
     ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_resource_manager_load_file(
         self: alloc::rc::Rc<Self>,
         identity: String,
-        full_path: String,
-        output_rel_path: String,
+        fullPath: String,
+        outputRelPath: String,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_resource_manager_load_file(
         self: alloc::rc::Rc<Self>,
         identity: String,
-        full_path: String,
-        output_rel_path: String,
+        fullPath: String,
+        outputRelPath: String,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
     fn dispatch_resource_manager_get_match(
         self: alloc::rc::Rc<Self>,
@@ -170,22 +174,26 @@ pub trait ResourceManagerDispatch {
         self: alloc::rc::Rc<Self>,
         pattern: String,
     ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_resource_manager_by_type(
         self: alloc::rc::Rc<Self>,
-        media_type: &str,
+        mediaType: &str,
     ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_resource_manager_by_type(
         self: alloc::rc::Rc<Self>,
-        media_type: &str,
+        mediaType: &str,
     ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_resource_manager_concat(
         self: alloc::rc::Rc<Self>,
-        target_path: String,
+        targetPath: String,
         resources: js_abi::JsArray<crate::resources::models::Resource>,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_resource_manager_concat(
         self: alloc::rc::Rc<Self>,
-        target_path: String,
+        targetPath: String,
         resources: js_abi::JsArray<crate::resources::models::Resource>,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
     fn dispatch_resource_manager_from_string(
@@ -214,14 +222,16 @@ pub trait ResourceManagerDispatch {
         self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_resource_manager_copy(
         self: alloc::rc::Rc<Self>,
-        target_path: String,
+        targetPath: String,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_resource_manager_copy(
         self: alloc::rc::Rc<Self>,
-        target_path: String,
+        targetPath: String,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError>;
     fn dispatch_resource_manager_sass_compile(
@@ -271,15 +281,16 @@ pub trait ResourceManagerDispatch {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct ResourceManagerState {
-    pub site_dir: String,
-    pub theme_dir: Option<String>,
-    pub output_dir: String,
-    pub site_assets_dir: String,
-    pub theme_assets_dir: Option<String>,
+    pub siteDir: String,
+    pub themeDir: Option<String>,
+    pub outputDir: String,
+    pub siteAssetsDir: String,
+    pub themeAssetsDir: Option<String>,
     pub cache: js_abi::JsMap<String, crate::resources::models::Resource>,
-    pub site_asset_files: js_abi::JsArray<String>,
-    pub theme_asset_files: js_abi::JsArray<String>,
+    pub siteAssetFiles: js_abi::JsArray<String>,
+    pub themeAssetFiles: js_abi::JsArray<String>,
 }
 
 #[derive(Clone)]
@@ -317,21 +328,22 @@ pub(crate) struct ResourceManagerRoot {
 
 impl ResourceManager {
     #[doc(hidden)]
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn initialize_state(
-        site_dir: String,
-        theme_dir: Option<String>,
-        output_dir: String,
+        siteDir: String,
+        themeDir: Option<String>,
+        outputDir: String,
     ) -> Result<ResourceManagerState, rt::TsonicError> {
-        let field_site_dir: String = site_dir.clone();
-        let field_theme_dir: Option<String> = theme_dir.clone();
-        let field_output_dir: String = output_dir;
+        let field_site_dir: String = siteDir.clone();
+        let field_theme_dir: Option<String> = themeDir.clone();
+        let field_output_dir: String = outputDir;
         let field_site_assets_dir: String =
-            tsonic_rust_node::path::join(&[site_dir.as_str(), "assets"]);
-        let field_theme_assets_dir: Option<String> = if theme_dir.is_none() {
+            tsonic_rust_node::path::join(&[siteDir.as_str(), "assets"]);
+        let field_theme_assets_dir: Option<String> = if themeDir.is_none() {
             Option::<String>::None
         } else {
             Some(tsonic_rust_node::path::join(&[
-                match theme_dir.as_ref() {
+                match themeDir.as_ref() {
                     Some(flow_value) => flow_value.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
@@ -342,39 +354,40 @@ impl ResourceManager {
         let field_cache: js_abi::JsMap<String, crate::resources::models::Resource> =
             js_abi::JsMap::new();
         let field_site_asset_files: js_abi::JsArray<String> =
-            crate::fs::list_files_recursive(field_site_assets_dir.clone(), String::from("*"))?;
-        sort_resource_paths(field_site_asset_files.clone())?;
-        let theme_assets_dir: Option<String> = field_theme_assets_dir.clone();
-        let field_theme_asset_files: js_abi::JsArray<String> = if theme_assets_dir.is_none() {
+            crate::fs::listFilesRecursive(field_site_assets_dir.clone(), String::from("*"))?;
+        sortResourcePaths(field_site_asset_files.clone())?;
+        let themeAssetsDir: Option<String> = field_theme_assets_dir.clone();
+        let field_theme_asset_files: js_abi::JsArray<String> = if themeAssetsDir.is_none() {
             js_abi::JsArray::from_dense(vec![])
         } else {
-            crate::fs::list_files_recursive(
-                match theme_assets_dir.as_ref() {
+            crate::fs::listFilesRecursive(
+                match themeAssetsDir.as_ref() {
                     Some(flow_value_2) => flow_value_2.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
                 String::from("*"),
             )?
         };
-        sort_resource_paths(field_theme_asset_files.clone())?;
+        sortResourcePaths(field_theme_asset_files.clone())?;
         Ok(ResourceManagerState {
-            site_dir: field_site_dir,
-            theme_dir: field_theme_dir,
-            output_dir: field_output_dir,
-            site_assets_dir: field_site_assets_dir,
-            theme_assets_dir: field_theme_assets_dir,
+            siteDir: field_site_dir,
+            themeDir: field_theme_dir,
+            outputDir: field_output_dir,
+            siteAssetsDir: field_site_assets_dir,
+            themeAssetsDir: field_theme_assets_dir,
             cache: field_cache,
-            site_asset_files: field_site_asset_files,
-            theme_asset_files: field_theme_asset_files,
+            siteAssetFiles: field_site_asset_files,
+            themeAssetFiles: field_theme_asset_files,
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
-        site_dir: String,
-        theme_dir: Option<String>,
-        output_dir: String,
+        siteDir: String,
+        themeDir: Option<String>,
+        outputDir: String,
     ) -> Result<ResourceManager, rt::TsonicError> {
-        let state = ResourceManager::initialize_state(site_dir, theme_dir, output_dir)?;
+        let state = ResourceManager::initialize_state(siteDir, themeDir, outputDir)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(ResourceManagerRoot {
             identity: identity.clone(),
@@ -388,9 +401,10 @@ impl ResourceManager {
 }
 
 impl ResourceManagerRoot {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_resource_manager_by_type(
         self: alloc::rc::Rc<Self>,
-        media_type: &str,
+        mediaType: &str,
     ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError> {
         let project_this = ResourceManager {
             identity: self.identity.clone(),
@@ -400,19 +414,16 @@ impl ResourceManagerRoot {
             js_abi::JsArray::from_dense(vec![]);
         let selected: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
         {
-            let mut index: f64 = 0.0;
-            'loop_value: while index
-                < (rt::conversions::usize_to_i32(
-                    {
-                        let dispatch_receiver = &project_this;
-                        dispatch_receiver
-                            .dispatch
-                            .read_resource_manager_site_asset_files()
-                    }
-                    .len(),
-                )? as f64)
+            let mut index: usize = 0;
+            'loop_value: while index < {
+                let dispatch_receiver = &project_this;
+                dispatch_receiver
+                    .dispatch
+                    .read_resource_manager_site_asset_files()
+            }
+            .len()
             {
-                let full_path: String = match {
+                let fullPath: String = match {
                     let dispatch_receiver_2 = &project_this;
                     dispatch_receiver_2
                         .dispatch
@@ -423,7 +434,7 @@ impl ResourceManagerRoot {
                     Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-                let relative_path: String = crate::resources::paths::normalize_resource_slashes(
+                let relativePath: String = crate::resources::paths::normalizeResourceSlashes(
                     &tsonic_rust_node::path::relative(
                         &{
                             let dispatch_receiver_3 = &project_this;
@@ -431,7 +442,7 @@ impl ResourceManagerRoot {
                                 .dispatch
                                 .read_resource_manager_site_assets_dir()
                         },
-                        &full_path,
+                        &fullPath,
                     ),
                 )?;
                 let resource: Option<crate::resources::models::Resource> = {
@@ -439,10 +450,10 @@ impl ResourceManagerRoot {
                     dispatch_receiver_4
                         .dispatch
                         .clone()
-                        .dispatch_resource_manager_get(relative_path.clone())
+                        .dispatch_resource_manager_get(relativePath.clone())
                 }?;
                 if resource.is_none()
-                    || !crate::resources::media_types::resource_matches_media_type(
+                    || !crate::resources::media_types::resourceMatchesMediaType(
                         &{
                             let dispatch_receiver_5 = &match resource.as_ref() {
                                 Some(flow_value_2) => flow_value_2.clone(),
@@ -452,41 +463,38 @@ impl ResourceManagerRoot {
                             };
                             dispatch_receiver_5.dispatch.read_resource_media_type()
                         },
-                        media_type,
+                        mediaType,
                     )
                 {
-                    index += 1.0;
+                    index += 1;
                     continue 'loop_value;
                 }
                 result.push_many_discard([match resource.as_ref() {
                     Some(flow_value_3) => flow_value_3.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 }]);
-                selected.set_discard(relative_path.clone(), true);
-                index += 1.0;
+                selected.set_discard(relativePath, true);
+                index += 1;
             }
         }
-        let theme_assets_dir: Option<String> = {
+        let themeAssetsDir: Option<String> = {
             let dispatch_receiver_6 = &project_this;
             dispatch_receiver_6
                 .dispatch
                 .read_resource_manager_theme_assets_dir()
         };
-        if theme_assets_dir.is_some() {
+        if themeAssetsDir.is_some() {
             {
-                let mut index: f64 = 0.0;
-                'loop_value_2: while index
-                    < (rt::conversions::usize_to_i32(
-                        {
-                            let dispatch_receiver_7 = &project_this;
-                            dispatch_receiver_7
-                                .dispatch
-                                .read_resource_manager_theme_asset_files()
-                        }
-                        .len(),
-                    )? as f64)
+                let mut index: usize = 0;
+                'loop_value_2: while index < {
+                    let dispatch_receiver_7 = &project_this;
+                    dispatch_receiver_7
+                        .dispatch
+                        .read_resource_manager_theme_asset_files()
+                }
+                .len()
                 {
-                    let full_path: String = match {
+                    let fullPath: String = match {
                         let dispatch_receiver_8 = &project_this;
                         dispatch_receiver_8
                             .dispatch
@@ -497,20 +505,19 @@ impl ResourceManagerRoot {
                         Some(flow_value_4) => flow_value_4,
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
-                    let relative_path: String =
-                        crate::resources::paths::normalize_resource_slashes(
-                            &tsonic_rust_node::path::relative(
-                                &match theme_assets_dir.as_ref() {
-                                    Some(flow_value_5) => flow_value_5.clone(),
-                                    None => unreachable!(
-                                        "checked flow selected a missing optional value"
-                                    ),
-                                },
-                                &full_path,
-                            ),
-                        )?;
-                    if selected.has(&relative_path) {
-                        index += 1.0;
+                    let relativePath: String = crate::resources::paths::normalizeResourceSlashes(
+                        &tsonic_rust_node::path::relative(
+                            &match themeAssetsDir.as_ref() {
+                                Some(flow_value_5) => flow_value_5.clone(),
+                                None => {
+                                    unreachable!("checked flow selected a missing optional value")
+                                }
+                            },
+                            &fullPath,
+                        ),
+                    )?;
+                    if selected.has(&relativePath) {
+                        index += 1;
                         continue 'loop_value_2;
                     }
                     let resource: Option<crate::resources::models::Resource> = {
@@ -518,10 +525,10 @@ impl ResourceManagerRoot {
                         dispatch_receiver_9
                             .dispatch
                             .clone()
-                            .dispatch_resource_manager_get(relative_path.clone())
+                            .dispatch_resource_manager_get(relativePath)
                     }?;
                     if resource.is_some()
-                        && crate::resources::media_types::resource_matches_media_type(
+                        && crate::resources::media_types::resourceMatchesMediaType(
                             &{
                                 let dispatch_receiver_10 = &match resource.as_ref() {
                                     Some(flow_value_6) => flow_value_6.clone(),
@@ -531,7 +538,7 @@ impl ResourceManagerRoot {
                                 };
                                 dispatch_receiver_10.dispatch.read_resource_media_type()
                             },
-                            media_type,
+                            mediaType,
                         )
                     {
                         result.push_many_discard([match resource.as_ref() {
@@ -539,11 +546,11 @@ impl ResourceManagerRoot {
                             None => unreachable!("checked flow selected a missing optional value"),
                         }]);
                     }
-                    index += 1.0;
+                    index += 1;
                 }
             }
         }
-        sort_resources_by_identity(result.clone())?;
+        sortResourcesByIdentity(result.clone());
         Ok(result)
     }
 
@@ -587,9 +594,10 @@ impl ResourceManagerRoot {
         resource
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_resource_manager_concat(
         self: alloc::rc::Rc<Self>,
-        target_path: String,
+        targetPath: String,
         resources: js_abi::JsArray<crate::resources::models::Resource>,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
         let project_this = ResourceManager {
@@ -602,14 +610,15 @@ impl ResourceManagerRoot {
                 .dispatch
                 .clone()
                 .dispatch_resource_manager_cache_resource(
-                    crate::resources::transforms::concatenate_resources(target_path, resources)?,
+                    crate::resources::transforms::concatenateResources(targetPath, resources)?,
                 )
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_resource_manager_copy(
         self: alloc::rc::Rc<Self>,
-        target_path: String,
+        targetPath: String,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
         let project_this = ResourceManager {
@@ -622,11 +631,12 @@ impl ResourceManagerRoot {
                 .dispatch
                 .clone()
                 .dispatch_resource_manager_cache_resource(
-                    crate::resources::transforms::copy_resource(target_path, resource)?,
+                    crate::resources::transforms::copyResource(targetPath, resource)?,
                 )
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_resource_manager_ensure_published(
         self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
@@ -641,13 +651,13 @@ impl ResourceManagerRoot {
         } {
             return Ok(());
         }
-        let output_rel_path: Option<String> = {
+        let outputRelPath: Option<String> = {
             let dispatch_receiver_2 = &resource;
             dispatch_receiver_2.dispatch.read_resource_output_rel_path()
         };
-        if output_rel_path.is_none() {
+        if outputRelPath.is_none() {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_RESOURCE_OUTPUT_PATH_MISSING"),
                     String::from("Publishable resource has no output path"),
                     None,
@@ -656,15 +666,14 @@ impl ResourceManagerRoot {
                 )?,
             ));
         }
-        let normalized: String = crate::resources::paths::normalize_resource_relative_path(
-            match output_rel_path.as_ref() {
+        let normalized: String =
+            crate::resources::paths::normalizeResourceRelativePath(match outputRelPath.as_ref() {
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
-            },
-        )?;
+            })?;
         if normalized.is_empty() {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_RESOURCE_OUTPUT_PATH_MISSING"),
                     String::from("Publishable resource has an empty output path"),
                     None,
@@ -673,7 +682,7 @@ impl ResourceManagerRoot {
                 )?,
             ));
         }
-        let destination: String = crate::resources::paths::resolve_contained_resource_path(
+        let destination: String = crate::resources::paths::resolveContainedResourcePath(
             {
                 let dispatch_receiver_3 = &project_this;
                 dispatch_receiver_3
@@ -684,7 +693,7 @@ impl ResourceManagerRoot {
         )?;
         let directory: String = tsonic_rust_node::path::dirname(&destination);
         if !directory.is_empty() {
-            crate::fs::ensure_dir(directory.clone())?;
+            crate::fs::ensureDir(&directory)?;
         }
         tsonic_rust_node::fs::write_file_sync_buffer(destination.as_str(), &{
             let dispatch_receiver_4 = &resource;
@@ -707,7 +716,7 @@ impl ResourceManagerRoot {
                 .dispatch
                 .clone()
                 .dispatch_resource_manager_cache_resource(
-                    crate::resources::transforms::fingerprint_resource(resource)?,
+                    crate::resources::transforms::fingerprintResource(resource)?,
                 )
         })
     }
@@ -727,33 +736,34 @@ impl ResourceManagerRoot {
                 .dispatch
                 .clone()
                 .dispatch_resource_manager_cache_resource(
-                    crate::resources::transforms::create_string_resource(name, content)?,
+                    crate::resources::transforms::createStringResource(name, content)?,
                 )
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_resource_manager_get(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
     ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError> {
         let project_this = ResourceManager {
             identity: self.identity.clone(),
             dispatch: self.clone(),
         };
         let normalized: String =
-            crate::resources::paths::normalize_resource_relative_path(relative_path)?;
+            crate::resources::paths::normalizeResourceRelativePath(relativePath)?;
         if normalized.is_empty() {
             return Ok(Option::<crate::resources::models::Resource>::None);
         }
         let identity: String = format!("{}{}", String::from("get:"), normalized);
-        let full_path: Option<String> = {
+        let fullPath: Option<String> = {
             let dispatch_receiver = project_this.clone();
             dispatch_receiver
                 .dispatch
                 .clone()
                 .dispatch_resource_manager_resolve_asset_full_path(normalized.clone())
         }?;
-        if full_path.is_none() {
+        if fullPath.is_none() {
             return Ok(Option::<crate::resources::models::Resource>::None);
         }
         Ok(Some({
@@ -763,7 +773,7 @@ impl ResourceManagerRoot {
                 .clone()
                 .dispatch_resource_manager_load_file(
                     identity,
-                    match full_path.as_ref() {
+                    match fullPath.as_ref() {
                         Some(flow_value) => flow_value.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
@@ -772,6 +782,7 @@ impl ResourceManagerRoot {
         }?))
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_resource_manager_get_match(
         self: alloc::rc::Rc<Self>,
         pattern: String,
@@ -780,8 +791,7 @@ impl ResourceManagerRoot {
             identity: self.identity.clone(),
             dispatch: self.clone(),
         };
-        let normalized: String =
-            crate::resources::paths::normalize_resource_relative_path(pattern)?;
+        let normalized: String = crate::resources::paths::normalizeResourceRelativePath(pattern)?;
         if normalized.is_empty() {
             return Ok(Option::<crate::resources::models::Resource>::None);
         }
@@ -795,19 +805,16 @@ impl ResourceManagerRoot {
             };
         }
         {
-            let mut index: f64 = 0.0;
-            while index
-                < (rt::conversions::usize_to_i32(
-                    {
-                        let dispatch_receiver_2 = &project_this;
-                        dispatch_receiver_2
-                            .dispatch
-                            .read_resource_manager_site_asset_files()
-                    }
-                    .len(),
-                )? as f64)
+            let mut index: usize = 0;
+            while index < {
+                let dispatch_receiver_2 = &project_this;
+                dispatch_receiver_2
+                    .dispatch
+                    .read_resource_manager_site_asset_files()
+            }
+            .len()
             {
-                let full_path: String = match {
+                let fullPath: String = match {
                     let dispatch_receiver_3 = &project_this;
                     dispatch_receiver_3
                         .dispatch
@@ -818,7 +825,7 @@ impl ResourceManagerRoot {
                     Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-                let relative_path: String = crate::resources::paths::normalize_resource_slashes(
+                let relativePath: String = crate::resources::paths::normalizeResourceSlashes(
                     &tsonic_rust_node::path::relative(
                         &{
                             let dispatch_receiver_4 = &project_this;
@@ -826,45 +833,42 @@ impl ResourceManagerRoot {
                                 .dispatch
                                 .read_resource_manager_site_assets_dir()
                         },
-                        &full_path,
+                        &fullPath,
                     ),
                 )?;
-                if crate::resources::glob::resource_glob_matches(
+                if crate::resources::glob::resourceGlobMatches(
                     normalized.clone(),
-                    relative_path.clone(),
+                    relativePath.clone(),
                 )? {
                     return {
                         let dispatch_receiver_5 = project_this.clone();
                         dispatch_receiver_5
                             .dispatch
                             .clone()
-                            .dispatch_resource_manager_get(relative_path.clone())
+                            .dispatch_resource_manager_get(relativePath)
                     };
                 }
-                index += 1.0;
+                index += 1;
             }
         }
-        let theme_assets_dir: Option<String> = {
+        let themeAssetsDir: Option<String> = {
             let dispatch_receiver_6 = &project_this;
             dispatch_receiver_6
                 .dispatch
                 .read_resource_manager_theme_assets_dir()
         };
-        if theme_assets_dir.is_some() {
+        if themeAssetsDir.is_some() {
             {
-                let mut index: f64 = 0.0;
-                while index
-                    < (rt::conversions::usize_to_i32(
-                        {
-                            let dispatch_receiver_7 = &project_this;
-                            dispatch_receiver_7
-                                .dispatch
-                                .read_resource_manager_theme_asset_files()
-                        }
-                        .len(),
-                    )? as f64)
+                let mut index: usize = 0;
+                while index < {
+                    let dispatch_receiver_7 = &project_this;
+                    dispatch_receiver_7
+                        .dispatch
+                        .read_resource_manager_theme_asset_files()
+                }
+                .len()
                 {
-                    let full_path: String = match {
+                    let fullPath: String = match {
                         let dispatch_receiver_8 = &project_this;
                         dispatch_receiver_8
                             .dispatch
@@ -875,31 +879,30 @@ impl ResourceManagerRoot {
                         Some(flow_value_2) => flow_value_2,
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
-                    let relative_path: String =
-                        crate::resources::paths::normalize_resource_slashes(
-                            &tsonic_rust_node::path::relative(
-                                &match theme_assets_dir.as_ref() {
-                                    Some(flow_value_3) => flow_value_3.clone(),
-                                    None => unreachable!(
-                                        "checked flow selected a missing optional value"
-                                    ),
-                                },
-                                &full_path,
-                            ),
-                        )?;
-                    if crate::resources::glob::resource_glob_matches(
+                    let relativePath: String = crate::resources::paths::normalizeResourceSlashes(
+                        &tsonic_rust_node::path::relative(
+                            &match themeAssetsDir.as_ref() {
+                                Some(flow_value_3) => flow_value_3.clone(),
+                                None => {
+                                    unreachable!("checked flow selected a missing optional value")
+                                }
+                            },
+                            &fullPath,
+                        ),
+                    )?;
+                    if crate::resources::glob::resourceGlobMatches(
                         normalized.clone(),
-                        relative_path.clone(),
+                        relativePath.clone(),
                     )? {
                         return {
                             let dispatch_receiver_9 = project_this.clone();
                             dispatch_receiver_9
                                 .dispatch
                                 .clone()
-                                .dispatch_resource_manager_get(relative_path.clone())
+                                .dispatch_resource_manager_get(relativePath)
                         };
                     }
-                    index += 1.0;
+                    index += 1;
                 }
             }
         }
@@ -922,7 +925,7 @@ impl ResourceManagerRoot {
                 dispatch_receiver.dispatch.read_resource_id()
             },
             String::from("|js-build:"),
-            options.cache_key()?
+            options.cacheKey()
         );
         let cached: Option<crate::resources::models::Resource> = {
             let dispatch_receiver_2 = &project_this;
@@ -941,7 +944,7 @@ impl ResourceManagerRoot {
                 .dispatch
                 .clone()
                 .dispatch_resource_manager_cache_resource(
-                    crate::resources::javascript_provider::build_java_script_resource(
+                    crate::resources::javascript_provider::buildJavaScriptResource(
                         resource.clone(),
                         options.clone(),
                     )?,
@@ -949,11 +952,12 @@ impl ResourceManagerRoot {
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_resource_manager_load_file(
         self: alloc::rc::Rc<Self>,
         identity: String,
-        full_path: String,
-        output_rel_path: String,
+        fullPath: String,
+        outputRelPath: String,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
         let project_this = ResourceManager {
             identity: self.identity.clone(),
@@ -970,14 +974,14 @@ impl ResourceManagerRoot {
                 None => unreachable!("checked flow selected a missing optional value"),
             });
         }
-        if !crate::fs::file_exists(full_path.clone())? {
+        if !crate::fs::fileExists(&fullPath)? {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_RESOURCE_SOURCE_MISSING"),
                     format!(
                         "{}{}",
                         String::from("Resource source file does not exist: "),
-                        full_path
+                        fullPath
                     ),
                     None,
                     None,
@@ -985,17 +989,16 @@ impl ResourceManagerRoot {
                 )?,
             ));
         }
-        let bytes: tsonic_rust_node::buffer::Buffer =
-            crate::fs::read_binary_file(full_path.clone())?;
+        let bytes: tsonic_rust_node::buffer::Buffer = crate::fs::readBinaryFile(fullPath.clone())?;
         let extension: String =
-            js_string::to_lower_case(&tsonic_rust_node::path::extname(&full_path));
-        let media_type: String =
-            crate::resources::media_types::resource_media_type_for_extension(&extension);
+            js_string::to_lower_case(&tsonic_rust_node::path::extname(&fullPath));
+        let mediaType: String =
+            crate::resources::media_types::resourceMediaTypeForExtension(&extension);
         let mut width: i32 = 0;
         let mut height: i32 = 0;
-        if crate::resources::media_types::is_image_resource_extension(&extension) {
+        if crate::resources::media_types::isImageResourceExtension(&extension) {
             let dimensions: Option<crate::resources::models::ImageDimensions> =
-                crate::resources::image_dimensions::parse_image_dimensions(bytes.clone())?;
+                crate::resources::image_dimensions::parseImageDimensions(bytes.clone())?;
             if dimensions.is_some() {
                 width = match dimensions.as_ref() {
                     Some(flow_value_2) => flow_value_2.clone(),
@@ -1013,13 +1016,13 @@ impl ResourceManagerRoot {
         }
         let resource: crate::resources::models::Resource = crate::resources::models::Resource::new(
             identity.clone(),
-            Some(full_path),
+            Some(fullPath),
             true,
-            Some(output_rel_path),
+            Some(outputRelPath),
             bytes.clone(),
             Option::<String>::None,
             crate::resources::models::ResourceData::new(String::from(""))?,
-            Some(media_type),
+            Some(mediaType),
             Some(width),
             Some(height),
         )?;
@@ -1031,6 +1034,7 @@ impl ResourceManagerRoot {
         Ok(resource)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_resource_manager_match(
         self: alloc::rc::Rc<Self>,
         pattern: String,
@@ -1039,8 +1043,7 @@ impl ResourceManagerRoot {
             identity: self.identity.clone(),
             dispatch: self.clone(),
         };
-        let normalized: String =
-            crate::resources::paths::normalize_resource_relative_path(pattern)?;
+        let normalized: String = crate::resources::paths::normalizeResourceRelativePath(pattern)?;
         let result: js_abi::JsArray<crate::resources::models::Resource> =
             js_abi::JsArray::from_dense(vec![]);
         if normalized.is_empty() {
@@ -1048,19 +1051,16 @@ impl ResourceManagerRoot {
         }
         let selected: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
         {
-            let mut index: f64 = 0.0;
-            'loop_value: while index
-                < (rt::conversions::usize_to_i32(
-                    {
-                        let dispatch_receiver = &project_this;
-                        dispatch_receiver
-                            .dispatch
-                            .read_resource_manager_site_asset_files()
-                    }
-                    .len(),
-                )? as f64)
+            let mut index: usize = 0;
+            'loop_value: while index < {
+                let dispatch_receiver = &project_this;
+                dispatch_receiver
+                    .dispatch
+                    .read_resource_manager_site_asset_files()
+            }
+            .len()
             {
-                let full_path: String = match {
+                let fullPath: String = match {
                     let dispatch_receiver_2 = &project_this;
                     dispatch_receiver_2
                         .dispatch
@@ -1071,7 +1071,7 @@ impl ResourceManagerRoot {
                     Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-                let relative_path: String = crate::resources::paths::normalize_resource_slashes(
+                let relativePath: String = crate::resources::paths::normalizeResourceSlashes(
                     &tsonic_rust_node::path::relative(
                         &{
                             let dispatch_receiver_3 = &project_this;
@@ -1079,14 +1079,14 @@ impl ResourceManagerRoot {
                                 .dispatch
                                 .read_resource_manager_site_assets_dir()
                         },
-                        &full_path,
+                        &fullPath,
                     ),
                 )?;
-                if !crate::resources::glob::resource_glob_matches(
+                if !crate::resources::glob::resourceGlobMatches(
                     normalized.clone(),
-                    relative_path.clone(),
+                    relativePath.clone(),
                 )? {
-                    index += 1.0;
+                    index += 1;
                     continue 'loop_value;
                 }
                 let resource: Option<crate::resources::models::Resource> = {
@@ -1094,41 +1094,38 @@ impl ResourceManagerRoot {
                     dispatch_receiver_4
                         .dispatch
                         .clone()
-                        .dispatch_resource_manager_get(relative_path.clone())
+                        .dispatch_resource_manager_get(relativePath.clone())
                 }?;
                 if resource.is_none() {
-                    index += 1.0;
+                    index += 1;
                     continue 'loop_value;
                 }
                 result.push_many_discard([match resource.as_ref() {
                     Some(flow_value_2) => flow_value_2.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 }]);
-                selected.set_discard(relative_path.clone(), true);
-                index += 1.0;
+                selected.set_discard(relativePath, true);
+                index += 1;
             }
         }
-        let theme_assets_dir: Option<String> = {
+        let themeAssetsDir: Option<String> = {
             let dispatch_receiver_5 = &project_this;
             dispatch_receiver_5
                 .dispatch
                 .read_resource_manager_theme_assets_dir()
         };
-        if theme_assets_dir.is_some() {
+        if themeAssetsDir.is_some() {
             {
-                let mut index: f64 = 0.0;
-                'loop_value_2: while index
-                    < (rt::conversions::usize_to_i32(
-                        {
-                            let dispatch_receiver_6 = &project_this;
-                            dispatch_receiver_6
-                                .dispatch
-                                .read_resource_manager_theme_asset_files()
-                        }
-                        .len(),
-                    )? as f64)
+                let mut index: usize = 0;
+                'loop_value_2: while index < {
+                    let dispatch_receiver_6 = &project_this;
+                    dispatch_receiver_6
+                        .dispatch
+                        .read_resource_manager_theme_asset_files()
+                }
+                .len()
                 {
-                    let full_path: String = match {
+                    let fullPath: String = match {
                         let dispatch_receiver_7 = &project_this;
                         dispatch_receiver_7
                             .dispatch
@@ -1139,25 +1136,24 @@ impl ResourceManagerRoot {
                         Some(flow_value_3) => flow_value_3,
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
-                    let relative_path: String =
-                        crate::resources::paths::normalize_resource_slashes(
-                            &tsonic_rust_node::path::relative(
-                                &match theme_assets_dir.as_ref() {
-                                    Some(flow_value_4) => flow_value_4.clone(),
-                                    None => unreachable!(
-                                        "checked flow selected a missing optional value"
-                                    ),
-                                },
-                                &full_path,
-                            ),
-                        )?;
-                    if selected.has(&relative_path)
-                        || !crate::resources::glob::resource_glob_matches(
+                    let relativePath: String = crate::resources::paths::normalizeResourceSlashes(
+                        &tsonic_rust_node::path::relative(
+                            &match themeAssetsDir.as_ref() {
+                                Some(flow_value_4) => flow_value_4.clone(),
+                                None => {
+                                    unreachable!("checked flow selected a missing optional value")
+                                }
+                            },
+                            &fullPath,
+                        ),
+                    )?;
+                    if selected.has(&relativePath)
+                        || !crate::resources::glob::resourceGlobMatches(
                             normalized.clone(),
-                            relative_path.clone(),
+                            relativePath.clone(),
                         )?
                     {
-                        index += 1.0;
+                        index += 1;
                         continue 'loop_value_2;
                     }
                     let resource: Option<crate::resources::models::Resource> = {
@@ -1165,7 +1161,7 @@ impl ResourceManagerRoot {
                         dispatch_receiver_8
                             .dispatch
                             .clone()
-                            .dispatch_resource_manager_get(relative_path.clone())
+                            .dispatch_resource_manager_get(relativePath)
                     }?;
                     if resource.is_some() {
                         result.push_many_discard([match resource.as_ref() {
@@ -1173,11 +1169,11 @@ impl ResourceManagerRoot {
                             None => unreachable!("checked flow selected a missing optional value"),
                         }]);
                     }
-                    index += 1.0;
+                    index += 1;
                 }
             }
         }
-        sort_resources_by_identity(result.clone())?;
+        sortResourcesByIdentity(result.clone());
         Ok(result)
     }
 
@@ -1195,7 +1191,7 @@ impl ResourceManagerRoot {
                 .dispatch
                 .clone()
                 .dispatch_resource_manager_cache_resource(
-                    crate::resources::transforms::minify_resource(resource)?,
+                    crate::resources::transforms::minifyResource(resource)?,
                 )
         })
     }
@@ -1235,7 +1231,7 @@ impl ResourceManagerRoot {
                 .dispatch
                 .clone()
                 .dispatch_resource_manager_cache_resource(
-                    crate::resources::image_provider::resize_image_resource(
+                    crate::resources::image_provider::resizeImageResource(
                         resource.clone(),
                         specification,
                     )?,
@@ -1243,20 +1239,21 @@ impl ResourceManagerRoot {
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_resource_manager_resolve_asset_full_path(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
     ) -> Result<Option<String>, rt::TsonicError> {
         let project_this = ResourceManager {
             identity: self.identity.clone(),
             dispatch: self.clone(),
         };
         let normalized: String =
-            crate::resources::paths::normalize_resource_relative_path(relative_path)?;
+            crate::resources::paths::normalizeResourceRelativePath(relativePath)?;
         if normalized.is_empty() {
             return Ok(Option::<String>::None);
         }
-        let site_path: String = crate::resources::paths::resolve_contained_resource_path(
+        let sitePath: String = crate::resources::paths::resolveContainedResourcePath(
             {
                 let dispatch_receiver = &project_this;
                 dispatch_receiver
@@ -1265,32 +1262,33 @@ impl ResourceManagerRoot {
             },
             normalized.clone(),
         )?;
-        if crate::fs::file_exists(site_path.clone())? {
-            return Ok(Some(site_path));
+        if crate::fs::fileExists(&sitePath)? {
+            return Ok(Some(sitePath));
         }
-        let theme_assets_dir: Option<String> = {
+        let themeAssetsDir: Option<String> = {
             let dispatch_receiver_2 = &project_this;
             dispatch_receiver_2
                 .dispatch
                 .read_resource_manager_theme_assets_dir()
         };
-        if theme_assets_dir.is_none() {
+        if themeAssetsDir.is_none() {
             return Ok(Option::<String>::None);
         }
-        let theme_path: String = crate::resources::paths::resolve_contained_resource_path(
-            match theme_assets_dir.as_ref() {
+        let themePath: String = crate::resources::paths::resolveContainedResourcePath(
+            match themeAssetsDir.as_ref() {
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             },
             normalized,
         )?;
-        Ok(if crate::fs::file_exists(theme_path.clone())? {
-            Some(theme_path)
+        Ok(if crate::fs::fileExists(&themePath)? {
+            Some(themePath)
         } else {
             Option::<String>::None
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_resource_manager_sass_compile(
         self: alloc::rc::Rc<Self>,
         resource: crate::resources::models::Resource,
@@ -1318,39 +1316,33 @@ impl ResourceManagerRoot {
                 None => unreachable!("checked flow selected a missing optional value"),
             });
         }
-        let load_paths: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-        let source_path: Option<String> = {
+        let loadPaths: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+        let sourcePath: Option<String> = {
             let dispatch_receiver_3 = &resource;
             dispatch_receiver_3.dispatch.read_resource_source_path()
         };
-        if source_path.is_some() {
-            {
-                let operation_input_0 = load_paths.clone();
-                operation_input_0.push_many_discard([tsonic_rust_node::path::dirname(
-                    &match source_path.as_ref() {
-                        Some(flow_value_2) => flow_value_2.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                )])
-            };
+        if sourcePath.is_some() {
+            loadPaths.push_many_discard([tsonic_rust_node::path::dirname(
+                &match sourcePath.as_ref() {
+                    Some(flow_value_2) => flow_value_2.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                },
+            )]);
         }
-        {
-            let operation_input_0_2 = load_paths.clone();
-            operation_input_0_2.push_many_discard([{
-                let dispatch_receiver_4 = &project_this;
-                dispatch_receiver_4
-                    .dispatch
-                    .read_resource_manager_site_assets_dir()
-            }])
-        };
-        let theme_assets_dir: Option<String> = {
+        loadPaths.push_many_discard([{
+            let dispatch_receiver_4 = &project_this;
+            dispatch_receiver_4
+                .dispatch
+                .read_resource_manager_site_assets_dir()
+        }]);
+        let themeAssetsDir: Option<String> = {
             let dispatch_receiver_5 = &project_this;
             dispatch_receiver_5
                 .dispatch
                 .read_resource_manager_theme_assets_dir()
         };
-        if theme_assets_dir.is_some() {
-            load_paths.push_many_discard([match theme_assets_dir.as_ref() {
+        if themeAssetsDir.is_some() {
+            loadPaths.push_many_discard([match themeAssetsDir.as_ref() {
                 Some(flow_value_3) => flow_value_3.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             }]);
@@ -1361,16 +1353,33 @@ impl ResourceManagerRoot {
                 .dispatch
                 .clone()
                 .dispatch_resource_manager_cache_resource(
-                    crate::resources::sass_provider::compile_sass_resource(
+                    crate::resources::sass_provider::compileSassResource(
                         resource.clone(),
-                        load_paths.clone(),
+                        loadPaths.clone(),
                     )?,
                 )
         })
     }
 }
 
+impl rt::ObjectIdentityCarrier for ResourceManagerRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl ResourceManagerDispatch for ResourceManagerRoot {
+    fn project_resource_manager(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn ResourceManagerDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_resource_manager_to_resource_manager(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ResourceManagerDispatch + 'static>> {
@@ -1378,21 +1387,21 @@ impl ResourceManagerDispatch for ResourceManagerRoot {
     }
 
     fn read_resource_manager_site_dir(&self) -> String {
-        self.state.with(|state| state.site_dir.clone())
+        self.state.with(|state| state.siteDir.clone())
     }
 
     fn write_resource_manager_site_dir(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.site_dir = value)
+                self.state.with_mut(|state| state.siteDir = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_resource_manager_theme_dir(&self) -> Option<String> {
-        self.state.with(|state| state.theme_dir.clone())
+        self.state.with(|state| state.themeDir.clone())
     }
 
     fn write_resource_manager_theme_dir(
@@ -1402,42 +1411,42 @@ impl ResourceManagerDispatch for ResourceManagerRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.theme_dir = value)
+                self.state.with_mut(|state| state.themeDir = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_resource_manager_output_dir(&self) -> String {
-        self.state.with(|state| state.output_dir.clone())
+        self.state.with(|state| state.outputDir.clone())
     }
 
     fn write_resource_manager_output_dir(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.output_dir = value)
+                self.state.with_mut(|state| state.outputDir = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_resource_manager_site_assets_dir(&self) -> String {
-        self.state.with(|state| state.site_assets_dir.clone())
+        self.state.with(|state| state.siteAssetsDir.clone())
     }
 
     fn write_resource_manager_site_assets_dir(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.site_assets_dir = value)
+                self.state.with_mut(|state| state.siteAssetsDir = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_resource_manager_theme_assets_dir(&self) -> Option<String> {
-        self.state.with(|state| state.theme_assets_dir.clone())
+        self.state.with(|state| state.themeAssetsDir.clone())
     }
 
     fn write_resource_manager_theme_assets_dir(
@@ -1447,7 +1456,7 @@ impl ResourceManagerDispatch for ResourceManagerRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.theme_assets_dir = value)
+                self.state.with_mut(|state| state.themeAssetsDir = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -1473,7 +1482,7 @@ impl ResourceManagerDispatch for ResourceManagerRoot {
     }
 
     fn read_resource_manager_site_asset_files(&self) -> js_abi::JsArray<String> {
-        self.state.with(|state| state.site_asset_files.clone())
+        self.state.with(|state| state.siteAssetFiles.clone())
     }
 
     fn write_resource_manager_site_asset_files(
@@ -1483,14 +1492,14 @@ impl ResourceManagerDispatch for ResourceManagerRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.site_asset_files = value)
+                self.state.with_mut(|state| state.siteAssetFiles = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_resource_manager_theme_asset_files(&self) -> js_abi::JsArray<String> {
-        self.state.with(|state| state.theme_asset_files.clone())
+        self.state.with(|state| state.themeAssetFiles.clone())
     }
 
     fn write_resource_manager_theme_asset_files(
@@ -1500,65 +1509,71 @@ impl ResourceManagerDispatch for ResourceManagerRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.theme_asset_files = value)
+                self.state.with_mut(|state| state.themeAssetFiles = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_resource_manager_resolve_asset_full_path(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
     ) -> Result<Option<String>, rt::TsonicError> {
-        ResourceManagerRoot::exact_resource_manager_resolve_asset_full_path(self, relative_path)
+        ResourceManagerRoot::exact_resource_manager_resolve_asset_full_path(self, relativePath)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_resource_manager_resolve_asset_full_path(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
     ) -> Result<Option<String>, rt::TsonicError> {
-        ResourceManagerRoot::exact_resource_manager_resolve_asset_full_path(self, relative_path)
+        ResourceManagerRoot::exact_resource_manager_resolve_asset_full_path(self, relativePath)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_resource_manager_get(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
     ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError> {
-        ResourceManagerRoot::exact_resource_manager_get(self, relative_path)
+        ResourceManagerRoot::exact_resource_manager_get(self, relativePath)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_resource_manager_get(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
     ) -> Result<Option<crate::resources::models::Resource>, rt::TsonicError> {
-        ResourceManagerRoot::exact_resource_manager_get(self, relative_path)
+        ResourceManagerRoot::exact_resource_manager_get(self, relativePath)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_resource_manager_load_file(
         self: alloc::rc::Rc<Self>,
         identity: String,
-        full_path: String,
-        output_rel_path: String,
+        fullPath: String,
+        outputRelPath: String,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
         ResourceManagerRoot::exact_resource_manager_load_file(
             self,
             identity,
-            full_path,
-            output_rel_path,
+            fullPath,
+            outputRelPath,
         )
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_resource_manager_load_file(
         self: alloc::rc::Rc<Self>,
         identity: String,
-        full_path: String,
-        output_rel_path: String,
+        fullPath: String,
+        outputRelPath: String,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
         ResourceManagerRoot::exact_resource_manager_load_file(
             self,
             identity,
-            full_path,
-            output_rel_path,
+            fullPath,
+            outputRelPath,
         )
     }
 
@@ -1590,34 +1605,38 @@ impl ResourceManagerDispatch for ResourceManagerRoot {
         ResourceManagerRoot::exact_resource_manager_match(self, pattern)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_resource_manager_by_type(
         self: alloc::rc::Rc<Self>,
-        media_type: &str,
+        mediaType: &str,
     ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError> {
-        ResourceManagerRoot::exact_resource_manager_by_type(self, media_type)
+        ResourceManagerRoot::exact_resource_manager_by_type(self, mediaType)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_resource_manager_by_type(
         self: alloc::rc::Rc<Self>,
-        media_type: &str,
+        mediaType: &str,
     ) -> Result<js_abi::JsArray<crate::resources::models::Resource>, rt::TsonicError> {
-        ResourceManagerRoot::exact_resource_manager_by_type(self, media_type)
+        ResourceManagerRoot::exact_resource_manager_by_type(self, mediaType)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_resource_manager_concat(
         self: alloc::rc::Rc<Self>,
-        target_path: String,
+        targetPath: String,
         resources: js_abi::JsArray<crate::resources::models::Resource>,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
-        ResourceManagerRoot::exact_resource_manager_concat(self, target_path, resources)
+        ResourceManagerRoot::exact_resource_manager_concat(self, targetPath, resources)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_resource_manager_concat(
         self: alloc::rc::Rc<Self>,
-        target_path: String,
+        targetPath: String,
         resources: js_abi::JsArray<crate::resources::models::Resource>,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
-        ResourceManagerRoot::exact_resource_manager_concat(self, target_path, resources)
+        ResourceManagerRoot::exact_resource_manager_concat(self, targetPath, resources)
     }
 
     fn dispatch_resource_manager_from_string(
@@ -1664,20 +1683,22 @@ impl ResourceManagerDispatch for ResourceManagerRoot {
         ResourceManagerRoot::exact_resource_manager_fingerprint(self, resource)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_resource_manager_copy(
         self: alloc::rc::Rc<Self>,
-        target_path: String,
+        targetPath: String,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
-        ResourceManagerRoot::exact_resource_manager_copy(self, target_path, resource)
+        ResourceManagerRoot::exact_resource_manager_copy(self, targetPath, resource)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_resource_manager_copy(
         self: alloc::rc::Rc<Self>,
-        target_path: String,
+        targetPath: String,
         resource: crate::resources::models::Resource,
     ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
-        ResourceManagerRoot::exact_resource_manager_copy(self, target_path, resource)
+        ResourceManagerRoot::exact_resource_manager_copy(self, targetPath, resource)
     }
 
     fn dispatch_resource_manager_sass_compile(

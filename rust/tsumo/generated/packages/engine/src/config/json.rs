@@ -4,13 +4,14 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn invalid_field(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn invalidField(
     field: String,
     expected: String,
     value: crate::utils::json::JsonValue,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
 ) -> Result<crate::diagnostics::TsumoError, rt::TsonicError> {
-    crate::diagnostics::create_tsumo_error(
+    crate::diagnostics::createTsumoError(
         String::from("TSUMO_CONFIG_INVALID_FIELD"),
         format!(
             "{}{}{}{}",
@@ -19,22 +20,23 @@ pub fn invalid_field(
             String::from("' requires "),
             expected
         ),
-        source_path,
-        Some(rt::conversions::i32_to_f64({
+        sourcePath,
+        Some({
             let dispatch_receiver = &value;
             dispatch_receiver.dispatch.read_json_value_line()
-        })),
-        Some(rt::conversions::i32_to_f64({
+        }),
+        Some({
             let dispatch_receiver_2 = &value;
             dispatch_receiver_2.dispatch.read_json_value_column()
-        })),
+        }),
     )
 }
 
-pub fn require_string(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn requireString(
     field: String,
     value: crate::utils::json::JsonValue,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
 ) -> Result<String, rt::TsonicError> {
     if let Some(selected_dispatch) = value.dispatch.clone().downcast_json_value_to_json_string() {
         let selected_value = crate::utils::json::JsonString {
@@ -46,25 +48,26 @@ pub fn require_string(
             dispatch_receiver.dispatch.read_json_string_value()
         });
     }
-    Err(rt::TsonicError::TsumoError(invalid_field(
+    Err(rt::TsonicError::TsumoError(invalidField(
         field,
         String::from("a string"),
         value.clone(),
-        source_path,
+        sourcePath,
     )?))
 }
 
-pub fn require_int(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn requireInt(
     field: String,
     value: crate::utils::json::JsonValue,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
 ) -> Result<i32, rt::TsonicError> {
     if let Some(selected_dispatch) = value.dispatch.clone().downcast_json_value_to_json_number() {
         let selected_value = crate::utils::json::JsonNumber {
             identity: value.identity.clone(),
             dispatch: selected_dispatch,
         };
-        let narrowed: Option<i32> = crate::utils::int32::to_int32({
+        let narrowed: Option<i32> = crate::utils::int32::toInt32({
             let dispatch_receiver = &selected_value;
             dispatch_receiver.dispatch.read_json_number_value()
         })?;
@@ -75,18 +78,19 @@ pub fn require_int(
             });
         }
     }
-    Err(rt::TsonicError::TsumoError(invalid_field(
+    Err(rt::TsonicError::TsumoError(invalidField(
         field,
         String::from("a 32-bit integer"),
         value.clone(),
-        source_path,
+        sourcePath,
     )?))
 }
 
-pub fn require_object(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn requireObject(
     field: String,
     value: crate::utils::json::JsonValue,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
 ) -> Result<crate::utils::json::JsonObject, rt::TsonicError> {
     if value
         .dispatch
@@ -106,18 +110,19 @@ pub fn require_object(
             }
         });
     }
-    Err(rt::TsonicError::TsumoError(invalid_field(
+    Err(rt::TsonicError::TsumoError(invalidField(
         field,
         String::from("an object"),
         value.clone(),
-        source_path,
+        sourcePath,
     )?))
 }
 
-pub fn require_array(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn requireArray(
     field: String,
     value: crate::utils::json::JsonValue,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
 ) -> Result<crate::utils::json::JsonArray, rt::TsonicError> {
     if value
         .dispatch
@@ -137,30 +142,28 @@ pub fn require_array(
             }
         });
     }
-    Err(rt::TsonicError::TsumoError(invalid_field(
+    Err(rt::TsonicError::TsumoError(invalidField(
         field,
         String::from("an array"),
         value.clone(),
-        source_path,
+        sourcePath,
     )?))
 }
 
-pub fn assert_unique_fields(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn assertUniqueFields(
     object: crate::utils::json::JsonObject,
     context: String,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
 ) -> Result<(), rt::TsonicError> {
     let names: js_abi::JsSet<String> = js_abi::JsSet::new();
     {
-        let mut index: f64 = 0.0;
-        while index
-            < (rt::conversions::usize_to_i32(
-                {
-                    let dispatch_receiver = &object;
-                    dispatch_receiver.dispatch.read_json_object_properties()
-                }
-                .len(),
-            )? as f64)
+        let mut index: usize = 0;
+        while index < {
+            let dispatch_receiver = &object;
+            dispatch_receiver.dispatch.read_json_object_properties()
+        }
+        .len()
         {
             let property: crate::utils::json::JsonProperty = match {
                 let dispatch_receiver_2 = &object;
@@ -175,7 +178,7 @@ pub fn assert_unique_fields(
                 js_string::to_lower_case(&property.state.with(|state| state.key.clone()));
             if names.has(&name) {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_CONFIG_DUPLICATE_FIELD"),
                         format!(
                             "{}{}{}{}",
@@ -184,27 +187,24 @@ pub fn assert_unique_fields(
                             property.state.with(|state| state.key.clone()),
                             String::from("' is declared more than once")
                         ),
-                        source_path.clone(),
-                        Some(rt::conversions::i32_to_f64(
-                            property.state.with(|state| state.line),
-                        )),
-                        Some(rt::conversions::i32_to_f64(
-                            property.state.with(|state| state.column),
-                        )),
+                        sourcePath.clone(),
+                        Some(property.state.with(|state| state.line)),
+                        Some(property.state.with(|state| state.column)),
                     )?,
                 ));
             }
-            names.add_discard(name.clone());
-            index += 1.0;
+            names.add_discard(name);
+            index += 1;
         }
     }
     Ok(())
 }
 
-pub fn to_param(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn toParam(
     field: String,
     value: crate::utils::json::JsonValue,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
 ) -> Result<crate::params::ParamValue, rt::TsonicError> {
     if let Some(selected_dispatch) = value.dispatch.clone().downcast_json_value_to_json_string() {
         let selected_value = crate::utils::json::JsonString {
@@ -232,78 +232,79 @@ pub fn to_param(
         .downcast_json_value_to_json_number()
         .is_some()
     {
-        return crate::params::ParamValue::number(require_int(
+        return crate::params::ParamValue::number(requireInt(
             field.clone(),
             value.clone(),
-            source_path.clone(),
+            sourcePath.clone(),
         )?);
     }
-    Err(rt::TsonicError::TsumoError(invalid_field(
+    Err(rt::TsonicError::TsumoError(invalidField(
         field.clone(),
         String::from("a string, boolean, or 32-bit integer"),
         value.clone(),
-        source_path.clone(),
+        sourcePath.clone(),
     )?))
 }
 
-pub fn apply_language_field(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn applyLanguageField(
     builder: crate::config::builders::LanguageConfigBuilder,
     field: String,
     value: crate::utils::json::JsonValue,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
 ) -> Result<(), rt::TsonicError> {
     let normalized: String = js_string::to_lower_case(&field);
     if normalized == "languagename" {
         {
             let receiver = &builder;
-            let value_2 = require_string(field.clone(), value.clone(), source_path.clone())?;
+            let value_2 = requireString(field.clone(), value.clone(), sourcePath.clone())?;
             {
-                let field_owner = receiver.clone();
+                let field_owner = receiver;
                 let field_value = value_2;
                 {
                     field_owner.state.validate_data_write()?;
                     field_owner
                         .state
-                        .with_mut(|state| state.language_name = field_value)
+                        .with_mut(|state| state.languageName = field_value)
                 }
             }
         };
     } else if normalized == "languagedirection" {
         {
             let receiver_2 = &builder;
-            let value_3 = require_string(field.clone(), value.clone(), source_path.clone())?;
+            let value_3 = requireString(field.clone(), value.clone(), sourcePath.clone())?;
             {
-                let field_owner_2 = receiver_2.clone();
+                let field_owner_2 = receiver_2;
                 let field_value_2 = value_3;
                 {
                     field_owner_2.state.validate_data_write()?;
                     field_owner_2
                         .state
-                        .with_mut(|state| state.language_direction = field_value_2)
+                        .with_mut(|state| state.languageDirection = field_value_2)
                 }
             }
         };
     } else if normalized == "contentdir" {
         {
             let receiver_3 = &builder;
-            let value_4 = require_string(field.clone(), value.clone(), source_path.clone())?;
+            let value_4 = requireString(field.clone(), value.clone(), sourcePath.clone())?;
             {
-                let field_owner_3 = receiver_3.clone();
+                let field_owner_3 = receiver_3;
                 let field_value_3 = value_4;
                 {
                     field_owner_3.state.validate_data_write()?;
                     field_owner_3
                         .state
-                        .with_mut(|state| state.content_dir = field_value_3)
+                        .with_mut(|state| state.contentDir = field_value_3)
                 }
             }
         };
     } else if normalized == "weight" {
         {
             let receiver_4 = &builder;
-            let value_5 = require_int(field.clone(), value.clone(), source_path.clone())?;
+            let value_5 = requireInt(field.clone(), value.clone(), sourcePath.clone())?;
             {
-                let field_owner_4 = receiver_4.clone();
+                let field_owner_4 = receiver_4;
                 let field_value_4 = value_5;
                 {
                     field_owner_4.state.validate_data_write()?;
@@ -315,7 +316,7 @@ pub fn apply_language_field(
         };
     } else {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_CONFIG_UNKNOWN_FIELD"),
                 format!(
                     "{}{}{}",
@@ -323,34 +324,35 @@ pub fn apply_language_field(
                     field,
                     String::from("'")
                 ),
-                source_path.clone(),
-                Some(rt::conversions::i32_to_f64({
+                sourcePath.clone(),
+                Some({
                     let dispatch_receiver = &value;
                     dispatch_receiver.dispatch.read_json_value_line()
-                })),
-                Some(rt::conversions::i32_to_f64({
+                }),
+                Some({
                     let dispatch_receiver_2 = &value;
                     dispatch_receiver_2.dispatch.read_json_value_column()
-                })),
+                }),
             )?,
         ));
     }
     Ok(())
 }
 
-pub fn apply_menu_field(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn applyMenuField(
     builder: crate::config::builders::MenuEntryBuilder,
     field: String,
     value: crate::utils::json::JsonValue,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
 ) -> Result<(), rt::TsonicError> {
     let normalized: String = js_string::to_lower_case(&field);
     if normalized == "name" {
         {
             let receiver = &builder;
-            let value_2 = require_string(field.clone(), value.clone(), source_path.clone())?;
+            let value_2 = requireString(field.clone(), value.clone(), sourcePath.clone())?;
             {
-                let field_owner = receiver.clone();
+                let field_owner = receiver;
                 let field_value = value_2;
                 {
                     field_owner.state.validate_data_write()?;
@@ -361,9 +363,9 @@ pub fn apply_menu_field(
     } else if normalized == "url" {
         {
             let receiver_2 = &builder;
-            let value_3 = require_string(field.clone(), value.clone(), source_path.clone())?;
+            let value_3 = requireString(field.clone(), value.clone(), sourcePath.clone())?;
             {
-                let field_owner_2 = receiver_2.clone();
+                let field_owner_2 = receiver_2;
                 let field_value_2 = value_3;
                 {
                     field_owner_2.state.validate_data_write()?;
@@ -376,24 +378,24 @@ pub fn apply_menu_field(
     } else if normalized == "pageref" {
         {
             let receiver_3 = &builder;
-            let value_4 = require_string(field.clone(), value.clone(), source_path.clone())?;
+            let value_4 = requireString(field.clone(), value.clone(), sourcePath.clone())?;
             {
-                let field_owner_3 = receiver_3.clone();
+                let field_owner_3 = receiver_3;
                 let field_value_3 = value_4;
                 {
                     field_owner_3.state.validate_data_write()?;
                     field_owner_3
                         .state
-                        .with_mut(|state| state.page_ref = field_value_3)
+                        .with_mut(|state| state.pageRef = field_value_3)
                 }
             }
         };
     } else if normalized == "title" {
         {
             let receiver_4 = &builder;
-            let value_5 = require_string(field.clone(), value.clone(), source_path.clone())?;
+            let value_5 = requireString(field.clone(), value.clone(), sourcePath.clone())?;
             {
-                let field_owner_4 = receiver_4.clone();
+                let field_owner_4 = receiver_4;
                 let field_value_4 = value_5;
                 {
                     field_owner_4.state.validate_data_write()?;
@@ -406,9 +408,9 @@ pub fn apply_menu_field(
     } else if normalized == "parent" {
         {
             let receiver_5 = &builder;
-            let value_6 = require_string(field.clone(), value.clone(), source_path.clone())?;
+            let value_6 = requireString(field.clone(), value.clone(), sourcePath.clone())?;
             {
-                let field_owner_5 = receiver_5.clone();
+                let field_owner_5 = receiver_5;
                 let field_value_5 = value_6;
                 {
                     field_owner_5.state.validate_data_write()?;
@@ -421,9 +423,9 @@ pub fn apply_menu_field(
     } else if normalized == "identifier" {
         {
             let receiver_6 = &builder;
-            let value_7 = require_string(field.clone(), value.clone(), source_path.clone())?;
+            let value_7 = requireString(field.clone(), value.clone(), sourcePath.clone())?;
             {
-                let field_owner_6 = receiver_6.clone();
+                let field_owner_6 = receiver_6;
                 let field_value_6 = value_7;
                 {
                     field_owner_6.state.validate_data_write()?;
@@ -436,9 +438,9 @@ pub fn apply_menu_field(
     } else if normalized == "pre" {
         {
             let receiver_7 = &builder;
-            let value_8 = require_string(field.clone(), value.clone(), source_path.clone())?;
+            let value_8 = requireString(field.clone(), value.clone(), sourcePath.clone())?;
             {
-                let field_owner_7 = receiver_7.clone();
+                let field_owner_7 = receiver_7;
                 let field_value_7 = value_8;
                 {
                     field_owner_7.state.validate_data_write()?;
@@ -451,9 +453,9 @@ pub fn apply_menu_field(
     } else if normalized == "post" {
         {
             let receiver_8 = &builder;
-            let value_9 = require_string(field.clone(), value.clone(), source_path.clone())?;
+            let value_9 = requireString(field.clone(), value.clone(), sourcePath.clone())?;
             {
-                let field_owner_8 = receiver_8.clone();
+                let field_owner_8 = receiver_8;
                 let field_value_8 = value_9;
                 {
                     field_owner_8.state.validate_data_write()?;
@@ -466,9 +468,9 @@ pub fn apply_menu_field(
     } else if normalized == "weight" {
         {
             let receiver_9 = &builder;
-            let value_10 = require_int(field.clone(), value.clone(), source_path.clone())?;
+            let value_10 = requireInt(field.clone(), value.clone(), sourcePath.clone())?;
             {
-                let field_owner_9 = receiver_9.clone();
+                let field_owner_9 = receiver_9;
                 let field_value_9 = value_10;
                 {
                     field_owner_9.state.validate_data_write()?;
@@ -480,7 +482,7 @@ pub fn apply_menu_field(
         };
     } else {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_CONFIG_UNKNOWN_FIELD"),
                 format!(
                     "{}{}{}",
@@ -488,56 +490,54 @@ pub fn apply_menu_field(
                     field,
                     String::from("'")
                 ),
-                source_path.clone(),
-                Some(rt::conversions::i32_to_f64({
+                sourcePath.clone(),
+                Some({
                     let dispatch_receiver = &value;
                     dispatch_receiver.dispatch.read_json_value_line()
-                })),
-                Some(rt::conversions::i32_to_f64({
+                }),
+                Some({
                     let dispatch_receiver_2 = &value;
                     dispatch_receiver_2.dispatch.read_json_value_column()
-                })),
+                }),
             )?,
         ));
     }
     Ok(())
 }
 
-pub fn parse_json_config(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseJsonConfig(
     text: String,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
 ) -> Result<crate::models::site_config::SiteConfig, rt::TsonicError> {
-    let root_value: crate::utils::json::JsonValue =
-        crate::utils::json::parse_json(text, source_path.clone())?;
+    let rootValue: crate::utils::json::JsonValue =
+        crate::utils::json::parseJson(text, sourcePath.clone())?;
     let root: crate::utils::json::JsonObject =
-        require_object(String::from("<root>"), root_value, source_path.clone())?;
-    assert_unique_fields(
+        requireObject(String::from("<root>"), rootValue, sourcePath.clone())?;
+    assertUniqueFields(
         root.clone(),
         String::from("Configuration"),
-        source_path.clone(),
+        sourcePath.clone(),
     )?;
     let mut title: String = String::from("Tsumo Site");
-    let mut base_url: String = String::from("");
-    let mut language_code: String = String::from("en-us");
-    let mut content_dir: String = String::from("content");
+    let mut baseURL: String = String::from("");
+    let mut languageCode: String = String::from("en-us");
+    let mut contentDir: String = String::from("content");
     let mut theme: Option<String> = None;
     let mut copyright: Option<String> = None;
-    let mut has_language_code: bool = false;
+    let mut hasLanguageCode: bool = false;
     let params: js_abi::JsMap<String, crate::params::ParamValue> = js_abi::JsMap::new();
     let languages: js_abi::JsArray<crate::models::language::LanguageConfig> =
         js_abi::JsArray::from_dense(vec![]);
     let menus: js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>> =
         js_abi::JsMap::new();
     {
-        let mut index: f64 = 0.0;
-        while index
-            < (rt::conversions::usize_to_i32(
-                {
-                    let dispatch_receiver = &root;
-                    dispatch_receiver.dispatch.read_json_object_properties()
-                }
-                .len(),
-            )? as f64)
+        let mut index: usize = 0;
+        while index < {
+            let dispatch_receiver = &root;
+            dispatch_receiver.dispatch.read_json_object_properties()
+        }
+        .len()
         {
             let property: crate::utils::json::JsonProperty = match {
                 let dispatch_receiver_2 = &root;
@@ -553,69 +553,66 @@ pub fn parse_json_config(
             let value: crate::utils::json::JsonValue =
                 property.state.with(|state| state.value.clone());
             if key == "title" {
-                title = require_string(
+                title = requireString(
                     property.state.with(|state| state.key.clone()),
                     value.clone(),
-                    source_path.clone(),
+                    sourcePath.clone(),
                 )?;
             } else if key == "baseurl" {
-                base_url = require_string(
+                baseURL = requireString(
                     property.state.with(|state| state.key.clone()),
                     value.clone(),
-                    source_path.clone(),
+                    sourcePath.clone(),
                 )?;
             } else if key == "languagecode" {
-                language_code = require_string(
+                languageCode = requireString(
                     property.state.with(|state| state.key.clone()),
                     value.clone(),
-                    source_path.clone(),
+                    sourcePath.clone(),
                 )?;
-                has_language_code = true;
+                hasLanguageCode = true;
             } else if key == "contentdir" {
-                content_dir = require_string(
+                contentDir = requireString(
                     property.state.with(|state| state.key.clone()),
                     value.clone(),
-                    source_path.clone(),
+                    sourcePath.clone(),
                 )?;
             } else if key == "theme" {
-                theme = Some(require_string(
+                theme = Some(requireString(
                     property.state.with(|state| state.key.clone()),
                     value.clone(),
-                    source_path.clone(),
+                    sourcePath.clone(),
                 )?);
             } else if key == "copyright" {
-                copyright = Some(require_string(
+                copyright = Some(requireString(
                     property.state.with(|state| state.key.clone()),
                     value.clone(),
-                    source_path.clone(),
+                    sourcePath.clone(),
                 )?);
             } else if key == "params" {
-                let object: crate::utils::json::JsonObject = require_object(
+                let object: crate::utils::json::JsonObject = requireObject(
                     property.state.with(|state| state.key.clone()),
                     value.clone(),
-                    source_path.clone(),
+                    sourcePath.clone(),
                 )?;
-                assert_unique_fields(
+                assertUniqueFields(
                     object.clone(),
                     String::from("Configuration params"),
-                    source_path.clone(),
+                    sourcePath.clone(),
                 )?;
                 {
-                    let mut param_index: f64 = 0.0;
-                    while param_index
-                        < (rt::conversions::usize_to_i32(
-                            {
-                                let dispatch_receiver_3 = &object;
-                                dispatch_receiver_3.dispatch.read_json_object_properties()
-                            }
-                            .len(),
-                        )? as f64)
+                    let mut paramIndex: usize = 0;
+                    while paramIndex < {
+                        let dispatch_receiver_3 = &object;
+                        dispatch_receiver_3.dispatch.read_json_object_properties()
+                    }
+                    .len()
                     {
                         let parameter: crate::utils::json::JsonProperty = match {
                             let dispatch_receiver_4 = &object;
                             dispatch_receiver_4.dispatch.read_json_object_properties()
                         }
-                        .get_number(param_index)
+                        .get_number(paramIndex)
                         {
                             Some(flow_value_2) => flow_value_2,
                             None => unreachable!("checked flow selected a missing optional value"),
@@ -624,53 +621,50 @@ pub fn parse_json_config(
                             let operation_input_0 = params.clone();
                             operation_input_0.set_discard(
                                 parameter.state.with(|state| state.key.clone()),
-                                to_param(
+                                toParam(
                                     parameter.state.with(|state| state.key.clone()),
                                     parameter.state.with(|state| state.value.clone()),
-                                    source_path.clone(),
+                                    sourcePath.clone(),
                                 )?,
                             )
                         };
-                        param_index += 1.0;
+                        paramIndex += 1;
                     }
                 }
             } else if key == "languages" {
-                let object: crate::utils::json::JsonObject = require_object(
+                let object: crate::utils::json::JsonObject = requireObject(
                     property.state.with(|state| state.key.clone()),
                     value.clone(),
-                    source_path.clone(),
+                    sourcePath.clone(),
                 )?;
-                assert_unique_fields(
+                assertUniqueFields(
                     object.clone(),
                     String::from("Configuration languages"),
-                    source_path.clone(),
+                    sourcePath.clone(),
                 )?;
                 {
-                    let mut language_index: f64 = 0.0;
-                    while language_index
-                        < (rt::conversions::usize_to_i32(
-                            {
-                                let dispatch_receiver_5 = &object;
-                                dispatch_receiver_5.dispatch.read_json_object_properties()
-                            }
-                            .len(),
-                        )? as f64)
+                    let mut languageIndex: usize = 0;
+                    while languageIndex < {
+                        let dispatch_receiver_5 = &object;
+                        dispatch_receiver_5.dispatch.read_json_object_properties()
+                    }
+                    .len()
                     {
                         let language: crate::utils::json::JsonProperty = match {
                             let dispatch_receiver_6 = &object;
                             dispatch_receiver_6.dispatch.read_json_object_properties()
                         }
-                        .get_number(language_index)
+                        .get_number(languageIndex)
                         {
                             Some(flow_value_3) => flow_value_3,
                             None => unreachable!("checked flow selected a missing optional value"),
                         };
-                        let fields: crate::utils::json::JsonObject = require_object(
+                        let fields: crate::utils::json::JsonObject = requireObject(
                             language.state.with(|state| state.key.clone()),
                             language.state.with(|state| state.value.clone()),
-                            source_path.clone(),
+                            sourcePath.clone(),
                         )?;
-                        assert_unique_fields(
+                        assertUniqueFields(
                             fields.clone(),
                             format!(
                                 "{}{}{}",
@@ -678,7 +672,7 @@ pub fn parse_json_config(
                                 language.state.with(|state| state.key.clone()),
                                 String::from("'")
                             ),
-                            source_path.clone(),
+                            sourcePath.clone(),
                         )?;
                         let builder: crate::config::builders::LanguageConfigBuilder =
                             crate::config::builders::LanguageConfigBuilder::new(
@@ -686,115 +680,104 @@ pub fn parse_json_config(
                                 None,
                             )?;
                         {
-                            let mut field_index: f64 = 0.0;
-                            while field_index
-                                < (rt::conversions::usize_to_i32(
-                                    {
-                                        let dispatch_receiver_7 = &fields;
-                                        dispatch_receiver_7.dispatch.read_json_object_properties()
-                                    }
-                                    .len(),
-                                )? as f64)
+                            let mut fieldIndex: usize = 0;
+                            while fieldIndex < {
+                                let dispatch_receiver_7 = &fields;
+                                dispatch_receiver_7.dispatch.read_json_object_properties()
+                            }
+                            .len()
                             {
                                 let field: crate::utils::json::JsonProperty = match {
                                     let dispatch_receiver_8 = &fields;
                                     dispatch_receiver_8.dispatch.read_json_object_properties()
                                 }
-                                .get_number(field_index)
+                                .get_number(fieldIndex)
                                 {
                                     Some(flow_value_4) => flow_value_4,
                                     None => unreachable!(
                                         "checked flow selected a missing optional value"
                                     ),
                                 };
-                                apply_language_field(
+                                applyLanguageField(
                                     builder.clone(),
                                     field.state.with(|state| state.key.clone()),
                                     field.state.with(|state| state.value.clone()),
-                                    source_path.clone(),
+                                    sourcePath.clone(),
                                 )?;
-                                field_index += 1.0;
+                                fieldIndex += 1;
                             }
                         }
-                        {
-                            let operation_input_0_2 = languages.clone();
-                            operation_input_0_2.push_many_discard([builder.to_config()?])
-                        };
-                        language_index += 1.0;
+                        languages.push_many_discard([builder.toConfig()?]);
+                        languageIndex += 1;
                     }
                 }
             } else if key == "menu" {
-                let object: crate::utils::json::JsonObject = require_object(
+                let object: crate::utils::json::JsonObject = requireObject(
                     property.state.with(|state| state.key.clone()),
                     value.clone(),
-                    source_path.clone(),
+                    sourcePath.clone(),
                 )?;
-                assert_unique_fields(
+                assertUniqueFields(
                     object.clone(),
                     String::from("Configuration menus"),
-                    source_path.clone(),
+                    sourcePath.clone(),
                 )?;
                 {
-                    let mut menu_index: f64 = 0.0;
-                    while menu_index
-                        < (rt::conversions::usize_to_i32(
-                            {
-                                let dispatch_receiver_9 = &object;
-                                dispatch_receiver_9.dispatch.read_json_object_properties()
-                            }
-                            .len(),
-                        )? as f64)
+                    let mut menuIndex: usize = 0;
+                    while menuIndex < {
+                        let dispatch_receiver_9 = &object;
+                        dispatch_receiver_9.dispatch.read_json_object_properties()
+                    }
+                    .len()
                     {
                         let menu: crate::utils::json::JsonProperty = match {
                             let dispatch_receiver_10 = &object;
                             dispatch_receiver_10.dispatch.read_json_object_properties()
                         }
-                        .get_number(menu_index)
+                        .get_number(menuIndex)
                         {
                             Some(flow_value_5) => flow_value_5,
                             None => unreachable!("checked flow selected a missing optional value"),
                         };
-                        let menu_items: crate::utils::json::JsonArray = require_array(
+                        let menuItems: crate::utils::json::JsonArray = requireArray(
                             menu.state.with(|state| state.key.clone()),
                             menu.state.with(|state| state.value.clone()),
-                            source_path.clone(),
+                            sourcePath.clone(),
                         )?;
                         let entries: js_abi::JsArray<crate::models::menu_entry::MenuEntry> =
                             js_abi::JsArray::from_dense(vec![]);
                         {
-                            let mut entry_index: f64 = 0.0;
-                            while entry_index
-                                < (rt::conversions::usize_to_i32(
-                                    {
-                                        let dispatch_receiver_11 = &menu_items;
-                                        dispatch_receiver_11.dispatch.read_json_array_items()
-                                    }
-                                    .len(),
-                                )? as f64)
+                            let mut entryIndex: f64 = 0.0;
+                            while entryIndex
+                                < ({
+                                    let dispatch_receiver_11 = &menuItems;
+                                    dispatch_receiver_11.dispatch.read_json_array_items()
+                                }
+                                .len() as f64)
                             {
-                                let entry_value: crate::utils::json::JsonValue = match {
-                                    let dispatch_receiver_12 = &menu_items;
+                                let entryValue: crate::utils::json::JsonValue = match {
+                                    let dispatch_receiver_12 = &menuItems;
                                     dispatch_receiver_12.dispatch.read_json_array_items()
                                 }
-                                .get_number(entry_index)
+                                .get_number(entryIndex)
                                 {
                                     Some(flow_value_6) => flow_value_6,
                                     None => unreachable!(
                                         "checked flow selected a missing optional value"
                                     ),
                                 };
-                                let fields: crate::utils::json::JsonObject = require_object(
+                                let fields: crate::utils::json::JsonObject = requireObject(
                                     format!(
                                         "{}{}{}{}",
                                         menu.state.with(|state| state.key.clone()),
                                         String::from("["),
-                                        rt::source_string(&entry_index),
+                                        rt::source_string(&entryIndex),
                                         String::from("]")
                                     ),
-                                    entry_value.clone(),
-                                    source_path.clone(),
+                                    entryValue,
+                                    sourcePath.clone(),
                                 )?;
-                                assert_unique_fields(
+                                assertUniqueFields(
                                     fields.clone(),
                                     format!(
                                         "{}{}{}",
@@ -802,24 +785,19 @@ pub fn parse_json_config(
                                         menu.state.with(|state| state.key.clone()),
                                         String::from("' entry")
                                     ),
-                                    source_path.clone(),
+                                    sourcePath.clone(),
                                 )?;
                                 let builder: crate::config::builders::MenuEntryBuilder =
                                     crate::config::builders::MenuEntryBuilder::new(
                                         menu.state.with(|state| state.key.clone()),
                                     )?;
                                 {
-                                    let mut field_index: f64 = 0.0;
-                                    while field_index
-                                        < (rt::conversions::usize_to_i32(
-                                            {
-                                                let dispatch_receiver_13 = &fields;
-                                                dispatch_receiver_13
-                                                    .dispatch
-                                                    .read_json_object_properties()
-                                            }
-                                            .len(),
-                                        )? as f64)
+                                    let mut fieldIndex: usize = 0;
+                                    while fieldIndex < {
+                                        let dispatch_receiver_13 = &fields;
+                                        dispatch_receiver_13.dispatch.read_json_object_properties()
+                                    }
+                                    .len()
                                     {
                                         let field: crate::utils::json::JsonProperty = match {
                                             let dispatch_receiver_14 = &fields;
@@ -827,42 +805,39 @@ pub fn parse_json_config(
                                                 .dispatch
                                                 .read_json_object_properties()
                                         }
-                                        .get_number(field_index)
+                                        .get_number(fieldIndex)
                                         {
                                             Some(flow_value_7) => flow_value_7,
                                             None => unreachable!(
                                                 "checked flow selected a missing optional value"
                                             ),
                                         };
-                                        apply_menu_field(
+                                        applyMenuField(
                                             builder.clone(),
                                             field.state.with(|state| state.key.clone()),
                                             field.state.with(|state| state.value.clone()),
-                                            source_path.clone(),
+                                            sourcePath.clone(),
                                         )?;
-                                        field_index += 1.0;
+                                        fieldIndex += 1;
                                     }
                                 }
-                                {
-                                    let operation_input_0_3 = entries.clone();
-                                    operation_input_0_3.push_many_discard([builder.to_entry()?])
-                                };
-                                entry_index += 1.0;
+                                entries.push_many_discard([builder.toEntry()?]);
+                                entryIndex += 1.0;
                             }
                         }
                         {
-                            let operation_input_0_4 = menus.clone();
-                            operation_input_0_4.set_discard(
+                            let operation_input_0_2 = menus.clone();
+                            operation_input_0_2.set_discard(
                                 menu.state.with(|state| state.key.clone()),
-                                crate::menus::build_menu_hierarchy(entries.clone())?,
+                                crate::menus::buildMenuHierarchy(entries.clone())?,
                             )
                         };
-                        menu_index += 1.0;
+                        menuIndex += 1;
                     }
                 }
             } else {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_CONFIG_UNKNOWN_FIELD"),
                         format!(
                             "{}{}{}",
@@ -870,30 +845,26 @@ pub fn parse_json_config(
                             property.state.with(|state| state.key.clone()),
                             String::from("'")
                         ),
-                        source_path.clone(),
-                        Some(rt::conversions::i32_to_f64(
-                            property.state.with(|state| state.line),
-                        )),
-                        Some(rt::conversions::i32_to_f64(
-                            property.state.with(|state| state.column),
-                        )),
+                        sourcePath.clone(),
+                        Some(property.state.with(|state| state.line)),
+                        Some(property.state.with(|state| state.column)),
                     )?,
                 ));
             }
-            index += 1.0;
+            index += 1;
         }
     }
     let config: crate::models::site_config::SiteConfig =
         crate::models::site_config::SiteConfig::new(
             title,
-            crate::utils::text::ensure_trailing_slash(base_url),
-            language_code,
+            crate::utils::text::ensureTrailingSlash(baseURL),
+            languageCode,
             theme.clone(),
             copyright.clone(),
         )?;
     {
         let receiver = &config;
-        let value_2 = content_dir.clone();
+        let value_2 = contentDir.clone();
         {
             let dispatch_receiver_15 = receiver;
             dispatch_receiver_15
@@ -921,10 +892,10 @@ pub fn parse_json_config(
                 .write_site_config_menus(value_4)?
         }
     };
-    if rt::conversions::usize_to_i32(languages.len())? > 0 {
+    if !languages.is_empty() {
         {
             let receiver_4 = &config;
-            let value_5 = crate::config::helpers::sort_languages(languages.clone())?;
+            let value_5 = crate::config::helpers::sortLanguages(languages.clone());
             {
                 let dispatch_receiver_18 = receiver_4;
                 dispatch_receiver_18
@@ -943,7 +914,7 @@ pub fn parse_json_config(
         };
         {
             let receiver_5 = &config;
-            let value_6 = selected.state.with(|state| state.content_dir.clone());
+            let value_6 = selected.state.with(|state| state.contentDir.clone());
             {
                 let dispatch_receiver_20 = receiver_5;
                 dispatch_receiver_20
@@ -951,7 +922,7 @@ pub fn parse_json_config(
                     .write_site_config_content_dir(value_6)?
             }
         };
-        if !has_language_code {
+        if !hasLanguageCode {
             {
                 let receiver_6 = &config;
                 let value_7 = selected.state.with(|state| state.lang.clone());

@@ -3,8 +3,15 @@
 use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
+std::thread_local! {
+    pub static PAGE_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<PageValueClass>> = const { rt::ModuleCell::new() };
+}
+
 #[doc(hidden)]
 pub trait PageValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn project_page_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_page_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -92,7 +99,30 @@ impl PageValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for PageValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for PageValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn PageValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -108,6 +138,23 @@ impl crate::template::values::base::TemplateValueDispatch for PageValueRoot {
 }
 
 impl PageValueDispatch for PageValueRoot {
+    fn project_page_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn PageValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_page_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -137,6 +184,10 @@ impl PageValueDispatch for PageValueRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+std::thread_local! {
+    pub static FILE_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<FileValueClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -226,7 +277,30 @@ impl FileValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for FileValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for FileValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn FileValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -273,8 +347,15 @@ impl FileValueDispatch for FileValueRoot {
     }
 }
 
+std::thread_local! {
+    pub static PAGE_ARRAY_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<PageArrayValueClass>> = const { rt::ModuleCell::new() };
+}
+
 #[doc(hidden)]
 pub trait PageArrayValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn project_page_array_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_page_array_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -364,7 +445,30 @@ impl PageArrayValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for PageArrayValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for PageArrayValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn PageArrayValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -380,6 +484,23 @@ impl crate::template::values::base::TemplateValueDispatch for PageArrayValueRoot
 }
 
 impl PageArrayValueDispatch for PageArrayValueRoot {
+    fn project_page_array_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn PageArrayValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_page_array_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -413,8 +534,15 @@ impl PageArrayValueDispatch for PageArrayValueRoot {
     }
 }
 
+std::thread_local! {
+    pub static PAGE_GROUP_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<PageGroupValueClass>> = const { rt::ModuleCell::new() };
+}
+
 #[doc(hidden)]
 pub trait PageGroupValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn project_page_group_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_page_group_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -514,7 +642,30 @@ impl PageGroupValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for PageGroupValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for PageGroupValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn PageGroupValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -530,6 +681,23 @@ impl crate::template::values::base::TemplateValueDispatch for PageGroupValueRoot
 }
 
 impl PageGroupValueDispatch for PageGroupValueRoot {
+    fn project_page_group_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn PageGroupValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_page_group_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -580,8 +748,15 @@ impl PageGroupValueDispatch for PageGroupValueRoot {
     }
 }
 
+std::thread_local! {
+    pub static PAGE_DATA_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<PageDataValueClass>> = const { rt::ModuleCell::new() };
+}
+
 #[doc(hidden)]
 pub trait PageDataValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn project_page_data_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_page_data_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -669,7 +844,30 @@ impl PageDataValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for PageDataValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for PageDataValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn PageDataValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -685,6 +883,23 @@ impl crate::template::values::base::TemplateValueDispatch for PageDataValueRoot 
 }
 
 impl PageDataValueDispatch for PageDataValueRoot {
+    fn project_page_data_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn PageDataValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_page_data_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -714,6 +929,10 @@ impl PageDataValueDispatch for PageDataValueRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+std::thread_local! {
+    pub static PAGE_RESOURCES_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<PageResourcesValueClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -815,7 +1034,30 @@ impl PageResourcesValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for PageResourcesValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for PageResourcesValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn PageResourcesValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -877,4 +1119,193 @@ impl PageResourcesValueDispatch for PageResourcesValueRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+pub struct PageValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for PageValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for PageValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for PageValueClass {}
+
+pub struct FileValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for FileValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for FileValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for FileValueClass {}
+
+pub struct PageArrayValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for PageArrayValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for PageArrayValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for PageArrayValueClass {}
+
+pub struct PageGroupValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for PageGroupValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for PageGroupValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for PageGroupValueClass {}
+
+pub struct PageDataValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for PageDataValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for PageDataValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for PageDataValueClass {}
+
+pub struct PageResourcesValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for PageResourcesValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for PageResourcesValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for PageResourcesValueClass {}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = {
+            alloc::rc::Rc::new(PageValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        PAGE_VALUE_CLASS_ENVIRONMENT.with(|module_binding| module_binding.initialize(module_value))
+    };
+    {
+        let module_value_2 = {
+            alloc::rc::Rc::new(FileValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        FILE_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding_2| module_binding_2.initialize(module_value_2))
+    };
+    {
+        let module_value_3 = {
+            alloc::rc::Rc::new(PageArrayValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        PAGE_ARRAY_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding_3| module_binding_3.initialize(module_value_3))
+    };
+    {
+        let module_value_4 = {
+            alloc::rc::Rc::new(PageGroupValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        PAGE_GROUP_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding_4| module_binding_4.initialize(module_value_4))
+    };
+    {
+        let module_value_5 = {
+            alloc::rc::Rc::new(PageDataValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        PAGE_DATA_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding_5| module_binding_5.initialize(module_value_5))
+    };
+    {
+        let module_value_6 = {
+            alloc::rc::Rc::new(PageResourcesValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        PAGE_RESOURCES_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding_6| module_binding_6.initialize(module_value_6))
+    };
 }

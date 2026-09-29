@@ -8,7 +8,8 @@ pub type MenuEntryIdentityCallable =
     rt::Callable<(crate::models::menu_entry::MenuEntry,), rt::TsonicResult<String>>;
 
 std::thread_local! {
-    pub static MENU_ENTRY_IDENTITY: rt::ModuleCell<MenuEntryIdentityCallable> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub static menuEntryIdentity: rt::ModuleCell<MenuEntryIdentityCallable> = const { rt::ModuleCell::new() };
 }
 
 pub type CompareMenuEntriesCallable = rt::Callable<
@@ -20,27 +21,29 @@ pub type CompareMenuEntriesCallable = rt::Callable<
 >;
 
 std::thread_local! {
-    pub static COMPARE_MENU_ENTRIES: rt::ModuleCell<CompareMenuEntriesCallable> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub static compareMenuEntries: rt::ModuleCell<CompareMenuEntriesCallable> = const { rt::ModuleCell::new() };
 }
 
-pub fn sort_hierarchy(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn sortHierarchy(
     entries: js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
 ) -> Result<js_abi::JsArray<crate::models::menu_entry::MenuEntry>, rt::TsonicError> {
     entries.try_sort(|left, right| {
-        COMPARE_MENU_ENTRIES
+        compareMenuEntries
             .with(|module_binding| module_binding.load())
             .call((left, right))
     })?;
     {
-        let mut index: f64 = 0.0;
-        while index < (rt::conversions::usize_to_i32(entries.len())? as f64) {
+        let mut index: usize = 0;
+        while index < entries.len() {
             let entry: crate::models::menu_entry::MenuEntry = match entries.get_number(index) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             {
                 let receiver = &entry;
-                let value = sort_hierarchy({
+                let value = sortHierarchy({
                     let dispatch_receiver = &entry;
                     dispatch_receiver.dispatch.read_menu_entry_children()
                 })?;
@@ -51,19 +54,20 @@ pub fn sort_hierarchy(
                         .write_menu_entry_children(value)?
                 }
             };
-            index += 1.0;
+            index += 1;
         }
     }
     Ok(entries)
 }
 
-pub fn assert_acyclic_parents(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn assertAcyclicParents(
     entries: js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
-    by_identity: js_abi::JsMap<String, crate::models::menu_entry::MenuEntry>,
+    byIdentity: js_abi::JsMap<String, crate::models::menu_entry::MenuEntry>,
 ) -> Result<(), rt::TsonicError> {
     {
-        let mut index: f64 = 0.0;
-        while index < (rt::conversions::usize_to_i32(entries.len())? as f64) {
+        let mut index: usize = 0;
+        while index < entries.len() {
             let visited: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
             let mut current: crate::models::menu_entry::MenuEntry = match entries.get_number(index)
             {
@@ -76,12 +80,12 @@ pub fn assert_acyclic_parents(
             })
             .is_empty()
             {
-                let identity: String = MENU_ENTRY_IDENTITY
+                let identity: String = menuEntryIdentity
                     .with(|module_binding| module_binding.load())
                     .call((current.clone(),))?;
                 if visited.has(&identity) {
                     return Err(rt::TsonicError::TsumoError(
-                        crate::diagnostics::create_tsumo_error(
+                        crate::diagnostics::createTsumoError(
                             String::from("TSUMO_MENU_PARENT_CYCLE"),
                             format!(
                                 "{}{}{}",
@@ -97,7 +101,7 @@ pub fn assert_acyclic_parents(
                 }
                 visited.set_discard(identity.clone(), true);
                 let parent: Option<crate::models::menu_entry::MenuEntry> = {
-                    let operation_input_0 = by_identity.clone();
+                    let operation_input_0 = byIdentity.clone();
                     operation_input_0.get(&js_string::trim(&{
                         let dispatch_receiver_2 = &current;
                         dispatch_receiver_2.dispatch.read_menu_entry_parent()
@@ -105,7 +109,7 @@ pub fn assert_acyclic_parents(
                 };
                 if parent.is_none() {
                     return Err(rt::TsonicError::TsumoError(
-                        crate::diagnostics::create_tsumo_error(
+                        crate::diagnostics::createTsumoError(
                             String::from("TSUMO_MENU_PARENT_NOT_FOUND"),
                             format!(
                                 "{}{}{}{}{}",
@@ -129,20 +133,21 @@ pub fn assert_acyclic_parents(
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
             }
-            index += 1.0;
+            index += 1;
         }
     }
     Ok(())
 }
 
-pub fn build_menu_hierarchy(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn buildMenuHierarchy(
     entries: js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
 ) -> Result<js_abi::JsArray<crate::models::menu_entry::MenuEntry>, rt::TsonicError> {
-    let by_identity: js_abi::JsMap<String, crate::models::menu_entry::MenuEntry> =
+    let byIdentity: js_abi::JsMap<String, crate::models::menu_entry::MenuEntry> =
         js_abi::JsMap::new();
     {
-        let mut index: f64 = 0.0;
-        while index < (rt::conversions::usize_to_i32(entries.len())? as f64) {
+        let mut index: usize = 0;
+        while index < entries.len() {
             let entry: crate::models::menu_entry::MenuEntry = match entries.get_number(index) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
@@ -157,12 +162,12 @@ pub fn build_menu_hierarchy(
                         .write_menu_entry_children(value)?
                 }
             };
-            let identity: String = MENU_ENTRY_IDENTITY
+            let identity: String = menuEntryIdentity
                 .with(|module_binding| module_binding.load())
                 .call((entry.clone(),))?;
             if identity.is_empty() {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_MENU_IDENTITY_REQUIRED"),
                         String::from("Every menu entry requires an identifier or name"),
                         None,
@@ -171,9 +176,9 @@ pub fn build_menu_hierarchy(
                     )?,
                 ));
             }
-            if by_identity.has(&identity) {
+            if byIdentity.has(&identity) {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_MENU_IDENTITY_DUPLICATE"),
                         format!(
                             "{}{}",
@@ -186,41 +191,41 @@ pub fn build_menu_hierarchy(
                     )?,
                 ));
             }
-            by_identity.set_discard(identity.clone(), entry.clone());
-            index += 1.0;
+            byIdentity.set_discard(identity, entry.clone());
+            index += 1;
         }
     }
-    assert_acyclic_parents(entries.clone(), by_identity.clone())?;
-    let top_level: js_abi::JsArray<crate::models::menu_entry::MenuEntry> =
+    assertAcyclicParents(entries.clone(), byIdentity.clone())?;
+    let topLevel: js_abi::JsArray<crate::models::menu_entry::MenuEntry> =
         js_abi::JsArray::from_dense(vec![]);
     {
-        let mut index: f64 = 0.0;
-        while index < (rt::conversions::usize_to_i32(entries.len())? as f64) {
+        let mut index: usize = 0;
+        while index < entries.len() {
             let entry: crate::models::menu_entry::MenuEntry = match entries.get_number(index) {
                 Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let parent_name: String = js_string::trim(&{
+            let parentName: String = js_string::trim(&{
                 let dispatch_receiver_2 = &entry;
                 dispatch_receiver_2.dispatch.read_menu_entry_parent()
             });
-            if parent_name.is_empty() {
-                top_level.push_many_discard([entry.clone()]);
+            if parentName.is_empty() {
+                topLevel.push_many_discard([entry.clone()]);
             } else {
                 let parent: Option<crate::models::menu_entry::MenuEntry> =
-                    by_identity.get(&parent_name);
+                    byIdentity.get(&parentName);
                 if parent.is_none() {
                     return Err(rt::TsonicError::TsumoError(
-                        crate::diagnostics::create_tsumo_error(
+                        crate::diagnostics::createTsumoError(
                             String::from("TSUMO_MENU_PARENT_NOT_FOUND"),
                             format!(
                                 "{}{}{}{}{}",
                                 String::from("Menu entry '"),
-                                MENU_ENTRY_IDENTITY
+                                menuEntryIdentity
                                     .with(|module_binding| module_binding.load())
                                     .call((entry.clone(),))?,
                                 String::from("' names missing parent '"),
-                                parent_name,
+                                parentName,
                                 String::from("'")
                             ),
                             None,
@@ -238,19 +243,20 @@ pub fn build_menu_hierarchy(
                 }
                 .push_many_discard([entry.clone()]);
             }
-            index += 1.0;
+            index += 1;
         }
     }
-    sort_hierarchy(top_level.clone())
+    sortHierarchy(topLevel.clone())
 }
 
-pub fn append_flat_menu_entries(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn appendFlatMenuEntries(
     entries: js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
     result: js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
 ) -> Result<(), rt::TsonicError> {
     {
-        let mut index: f64 = 0.0;
-        while index < (rt::conversions::usize_to_i32(entries.len())? as f64) {
+        let mut index: usize = 0;
+        while index < entries.len() {
             let entry: crate::models::menu_entry::MenuEntry = match entries.get_number(index) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
@@ -314,25 +320,26 @@ pub fn append_flat_menu_entries(
                 }
             };
             result.push_many_discard([clone.clone()]);
-            append_flat_menu_entries(
+            appendFlatMenuEntries(
                 {
                     let dispatch_receiver_14 = &entry;
                     dispatch_receiver_14.dispatch.read_menu_entry_children()
                 },
                 result.clone(),
             )?;
-            index += 1.0;
+            index += 1;
         }
     }
     Ok(())
 }
 
-pub fn flatten_menu_entries(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn flattenMenuEntries(
     entries: js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
 ) -> Result<js_abi::JsArray<crate::models::menu_entry::MenuEntry>, rt::TsonicError> {
     let result: js_abi::JsArray<crate::models::menu_entry::MenuEntry> =
         js_abi::JsArray::from_dense(vec![]);
-    append_flat_menu_entries(entries, result.clone())?;
+    appendFlatMenuEntries(entries, result.clone())?;
     Ok(result)
 }
 
@@ -363,7 +370,7 @@ pub fn module_init() {
                 }
             })
         });
-        MENU_ENTRY_IDENTITY.with(|module_binding| module_binding.initialize(module_value))
+        menuEntryIdentity.with(|module_binding| module_binding.initialize(module_value))
     };
     {
         let module_value_2 = rt::Callable::<
@@ -392,18 +399,18 @@ pub fn module_init() {
                     },
                 ));
             }
-            let identity: i32 = crate::utils::strings::compare_text(
-                MENU_ENTRY_IDENTITY
+            let identity: i32 = crate::utils::strings::compareText(
+                menuEntryIdentity
                     .with(|module_binding| module_binding.load())
                     .call((left.clone(),))?,
-                MENU_ENTRY_IDENTITY
+                menuEntryIdentity
                     .with(|module_binding| module_binding.load())
                     .call((right.clone(),))?,
             );
             if identity != 0 {
                 return Ok::<_, rt::TsonicError>(rt::conversions::i32_to_f64(identity));
             }
-            let name: i32 = crate::utils::strings::compare_text(
+            let name: i32 = crate::utils::strings::compareText(
                 {
                     let dispatch_receiver_8 = &left;
                     dispatch_receiver_8.dispatch.read_menu_entry_name()
@@ -416,7 +423,7 @@ pub fn module_init() {
             Ok::<_, rt::TsonicError>(if name != 0 {
                 rt::conversions::i32_to_f64(name)
             } else {
-                rt::conversions::i32_to_f64(crate::utils::strings::compare_text(
+                rt::conversions::i32_to_f64(crate::utils::strings::compareText(
                     {
                         let dispatch_receiver_10 = &left;
                         dispatch_receiver_10.dispatch.read_menu_entry_url()
@@ -428,6 +435,6 @@ pub fn module_init() {
                 ))
             })
         });
-        COMPARE_MENU_ENTRIES.with(|module_binding_2| module_binding_2.initialize(module_value_2))
+        compareMenuEntries.with(|module_binding_2| module_binding_2.initialize(module_value_2))
     };
 }

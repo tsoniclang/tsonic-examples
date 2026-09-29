@@ -18,7 +18,7 @@ pub enum TemplateControlFlow {
 
 #[doc(hidden)]
 pub struct TemplateRangeValuesState {
-    pub keys: js_abi::JsArray<crate::template::values::base::TemplateValue>,
+    pub keys: Option<js_abi::JsArray<String>>,
     pub values: js_abi::JsArray<crate::template::values::base::TemplateValue>,
 }
 
@@ -36,10 +36,10 @@ impl rt::ObjectIdentityCarrier for TemplateRangeValues {
 
 impl TemplateRangeValues {
     pub fn new(
-        keys: js_abi::JsArray<crate::template::values::base::TemplateValue>,
         values: js_abi::JsArray<crate::template::values::base::TemplateValue>,
+        keys: Option<js_abi::JsArray<String>>,
     ) -> Result<TemplateRangeValues, rt::TsonicError> {
-        let field_keys: js_abi::JsArray<crate::template::values::base::TemplateValue> = keys;
+        let field_keys: Option<js_abi::JsArray<String>> = keys;
         let field_values: js_abi::JsArray<crate::template::values::base::TemplateValue> = values;
         Ok(TemplateRangeValues {
             state: rt::ObjectRef::new(TemplateRangeValuesState {
@@ -50,34 +50,10 @@ impl TemplateRangeValues {
     }
 }
 
-pub fn array_keys(
-    length: f64,
-) -> Result<js_abi::JsArray<crate::template::values::base::TemplateValue>, rt::TsonicError> {
-    let keys: js_abi::JsArray<crate::template::values::base::TemplateValue> =
-        js_abi::JsArray::from_dense(vec![]);
-    {
-        let mut index: f64 = 0.0;
-        while index < length {
-            {
-                let operation_input_0 = keys.clone();
-                operation_input_0.push_many_discard([{
-                    let upcast_value = crate::template::values::primitives::NumberValue::new(
-                        rt::conversions::f64_to_i32(index)?,
-                    )?;
-                    crate::template::values::base::TemplateValue {
-                        identity: upcast_value.identity.clone(),
-                        dispatch: upcast_value.dispatch.clone(),
-                    }
-                }])
-            };
-            index += 1.0;
-        }
-    }
-    Ok(keys)
-}
-
-pub fn to_range_values(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn toRangeValues(
     value: crate::template::values::base::TemplateValue,
+    needsKeys: bool,
 ) -> Result<Option<TemplateRangeValues>, rt::TsonicError> {
     let values: js_abi::JsArray<crate::template::values::base::TemplateValue> =
         js_abi::JsArray::from_dense(vec![]);
@@ -91,48 +67,34 @@ pub fn to_range_values(
             dispatch: selected_dispatch,
         };
         {
-            let mut index: f64 = 0.0;
-            while index
-                < (rt::conversions::usize_to_i32(
-                    {
-                        let dispatch_receiver = &selected_value;
-                        dispatch_receiver.dispatch.read_page_array_value_value()
-                    }
-                    .len(),
-                )? as f64)
+            let mut index: usize = 0;
+            while index < {
+                let dispatch_receiver = &selected_value;
+                dispatch_receiver.dispatch.read_page_array_value_value()
+            }
+            .len()
             {
-                {
-                    let operation_input_0 = values.clone();
-                    operation_input_0.push_many_discard([{
-                        let upcast_value =
-                            crate::template::values::page::PageValue::new(
-                                match {
-                                    let dispatch_receiver_2 = &selected_value;
-                                    dispatch_receiver_2.dispatch.read_page_array_value_value()
-                                }
-                                .get_number(index)
-                                {
-                                    Some(flow_value) => flow_value,
-                                    None => unreachable!(
-                                        "checked flow selected a missing optional value"
-                                    ),
-                                },
-                            )?;
-                        crate::template::values::base::TemplateValue {
-                            identity: upcast_value.identity.clone(),
-                            dispatch: upcast_value.dispatch.clone(),
+                values.push_many_discard([{
+                    let upcast_value = crate::template::values::page::PageValue::new(
+                        match {
+                            let dispatch_receiver_2 = &selected_value;
+                            dispatch_receiver_2.dispatch.read_page_array_value_value()
                         }
-                    }])
-                };
-                index += 1.0;
+                        .get_number(index)
+                        {
+                            Some(flow_value) => flow_value,
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        },
+                    )?;
+                    crate::template::values::base::TemplateValue {
+                        identity: upcast_value.identity.clone(),
+                        dispatch: upcast_value.dispatch.clone(),
+                    }
+                }]);
+                index += 1;
             }
         }
-        return Ok(Some(TemplateRangeValues::new(
-            array_keys(rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
-                values.len(),
-            )?))?,
-            values.clone(),
-        )?));
+        return Ok(Some(TemplateRangeValues::new(values.clone(), None)?));
     }
     if let Some(selected_dispatch_2) = value
         .dispatch
@@ -144,47 +106,34 @@ pub fn to_range_values(
             dispatch: selected_dispatch_2,
         };
         {
-            let mut index: f64 = 0.0;
-            while index
-                < (rt::conversions::usize_to_i32(
-                    {
-                        let dispatch_receiver_3 = &selected_value_2;
-                        dispatch_receiver_3.dispatch.read_string_array_value_value()
-                    }
-                    .len(),
-                )? as f64)
+            let mut index: usize = 0;
+            while index < {
+                let dispatch_receiver_3 = &selected_value_2;
+                dispatch_receiver_3.dispatch.read_string_array_value_value()
+            }
+            .len()
             {
-                {
-                    let operation_input_0_2 = values.clone();
-                    operation_input_0_2.push_many_discard([{
-                        let upcast_value_2 = crate::template::values::primitives::StringValue::new(
-                            match {
-                                let dispatch_receiver_4 = &selected_value_2;
-                                dispatch_receiver_4.dispatch.read_string_array_value_value()
-                            }
-                            .get_number(index)
-                            {
-                                Some(flow_value_2) => flow_value_2,
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                        )?;
-                        crate::template::values::base::TemplateValue {
-                            identity: upcast_value_2.identity.clone(),
-                            dispatch: upcast_value_2.dispatch.clone(),
+                values.push_many_discard([{
+                    let upcast_value_2 = crate::template::values::primitives::StringValue::new(
+                        match {
+                            let dispatch_receiver_4 = &selected_value_2;
+                            dispatch_receiver_4.dispatch.read_string_array_value_value()
                         }
-                    }])
-                };
-                index += 1.0;
+                        .get_number(index)
+                        {
+                            Some(flow_value_2) => flow_value_2,
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        },
+                    )?;
+                    crate::template::values::base::TemplateValue {
+                        identity: upcast_value_2.identity.clone(),
+                        dispatch: upcast_value_2.dispatch.clone(),
+                    }
+                }]);
+                index += 1;
             }
         }
-        return Ok(Some(TemplateRangeValues::new(
-            array_keys(rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
-                values.len(),
-            )?))?,
-            values.clone(),
-        )?));
+        return Ok(Some(TemplateRangeValues::new(values.clone(), None)?));
     }
     if let Some(selected_dispatch_3) = value
         .dispatch
@@ -196,51 +145,38 @@ pub fn to_range_values(
             dispatch: selected_dispatch_3,
         };
         {
-            let mut index: f64 = 0.0;
-            while index
-                < (rt::conversions::usize_to_i32(
-                    {
-                        let dispatch_receiver_5 = &selected_value_3;
-                        dispatch_receiver_5
-                            .dispatch
-                            .read_docs_mount_array_value_value()
-                    }
-                    .len(),
-                )? as f64)
+            let mut index: usize = 0;
+            while index < {
+                let dispatch_receiver_5 = &selected_value_3;
+                dispatch_receiver_5
+                    .dispatch
+                    .read_docs_mount_array_value_value()
+            }
+            .len()
             {
-                {
-                    let operation_input_0_3 = values.clone();
-                    operation_input_0_3.push_many_discard([{
-                        let upcast_value_3 = crate::template::values::docs::DocsMountValue::new(
-                            match {
-                                let dispatch_receiver_6 = &selected_value_3;
-                                dispatch_receiver_6
-                                    .dispatch
-                                    .read_docs_mount_array_value_value()
-                            }
-                            .get_number(index)
-                            {
-                                Some(flow_value_3) => flow_value_3,
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                        )?;
-                        crate::template::values::base::TemplateValue {
-                            identity: upcast_value_3.identity.clone(),
-                            dispatch: upcast_value_3.dispatch.clone(),
+                values.push_many_discard([{
+                    let upcast_value_3 = crate::template::values::docs::DocsMountValue::new(
+                        match {
+                            let dispatch_receiver_6 = &selected_value_3;
+                            dispatch_receiver_6
+                                .dispatch
+                                .read_docs_mount_array_value_value()
                         }
-                    }])
-                };
-                index += 1.0;
+                        .get_number(index)
+                        {
+                            Some(flow_value_3) => flow_value_3,
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        },
+                    )?;
+                    crate::template::values::base::TemplateValue {
+                        identity: upcast_value_3.identity.clone(),
+                        dispatch: upcast_value_3.dispatch.clone(),
+                    }
+                }]);
+                index += 1;
             }
         }
-        return Ok(Some(TemplateRangeValues::new(
-            array_keys(rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
-                values.len(),
-            )?))?,
-            values.clone(),
-        )?));
+        return Ok(Some(TemplateRangeValues::new(values.clone(), None)?));
     }
     if let Some(selected_dispatch_4) = value
         .dispatch
@@ -252,20 +188,16 @@ pub fn to_range_values(
             dispatch: selected_dispatch_4,
         };
         {
-            let mut index: f64 = 0.0;
-            while index
-                < (rt::conversions::usize_to_i32(
-                    {
-                        let dispatch_receiver_7 = &selected_value_4;
-                        dispatch_receiver_7.dispatch.read_nav_array_value_value()
-                    }
-                    .len(),
-                )? as f64)
+            let mut index: usize = 0;
+            while index < {
+                let dispatch_receiver_7 = &selected_value_4;
+                dispatch_receiver_7.dispatch.read_nav_array_value_value()
+            }
+            .len()
             {
-                {
-                    let operation_input_0_4 = values.clone();
-                    operation_input_0_4.push_many_discard([{
-                        let upcast_value_4 = crate::template::values::docs::NavItemValue::new(
+                values.push_many_discard([{
+                    let upcast_value_4 =
+                        crate::template::values::docs::NavItemValue::new(
                             match {
                                 let dispatch_receiver_8 = &selected_value_4;
                                 dispatch_receiver_8.dispatch.read_nav_array_value_value()
@@ -278,21 +210,15 @@ pub fn to_range_values(
                                 }
                             },
                         )?;
-                        crate::template::values::base::TemplateValue {
-                            identity: upcast_value_4.identity.clone(),
-                            dispatch: upcast_value_4.dispatch.clone(),
-                        }
-                    }])
-                };
-                index += 1.0;
+                    crate::template::values::base::TemplateValue {
+                        identity: upcast_value_4.identity.clone(),
+                        dispatch: upcast_value_4.dispatch.clone(),
+                    }
+                }]);
+                index += 1;
             }
         }
-        return Ok(Some(TemplateRangeValues::new(
-            array_keys(rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
-                values.len(),
-            )?))?,
-            values.clone(),
-        )?));
+        return Ok(Some(TemplateRangeValues::new(values.clone(), None)?));
     }
     if let Some(selected_dispatch_5) = value
         .dispatch
@@ -304,47 +230,34 @@ pub fn to_range_values(
             dispatch: selected_dispatch_5,
         };
         {
-            let mut index: f64 = 0.0;
-            while index
-                < (rt::conversions::usize_to_i32(
-                    {
-                        let dispatch_receiver_9 = &selected_value_5;
-                        dispatch_receiver_9.dispatch.read_sites_array_value_value()
-                    }
-                    .len(),
-                )? as f64)
+            let mut index: usize = 0;
+            while index < {
+                let dispatch_receiver_9 = &selected_value_5;
+                dispatch_receiver_9.dispatch.read_sites_array_value_value()
+            }
+            .len()
             {
-                {
-                    let operation_input_0_5 = values.clone();
-                    operation_input_0_5.push_many_discard([{
-                        let upcast_value_5 = crate::template::values::site::SiteValue::new(
-                            match {
-                                let dispatch_receiver_10 = &selected_value_5;
-                                dispatch_receiver_10.dispatch.read_sites_array_value_value()
-                            }
-                            .get_number(index)
-                            {
-                                Some(flow_value_5) => flow_value_5,
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                        )?;
-                        crate::template::values::base::TemplateValue {
-                            identity: upcast_value_5.identity.clone(),
-                            dispatch: upcast_value_5.dispatch.clone(),
+                values.push_many_discard([{
+                    let upcast_value_5 = crate::template::values::site::SiteValue::new(
+                        match {
+                            let dispatch_receiver_10 = &selected_value_5;
+                            dispatch_receiver_10.dispatch.read_sites_array_value_value()
                         }
-                    }])
-                };
-                index += 1.0;
+                        .get_number(index)
+                        {
+                            Some(flow_value_5) => flow_value_5,
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        },
+                    )?;
+                    crate::template::values::base::TemplateValue {
+                        identity: upcast_value_5.identity.clone(),
+                        dispatch: upcast_value_5.dispatch.clone(),
+                    }
+                }]);
+                index += 1;
             }
         }
-        return Ok(Some(TemplateRangeValues::new(
-            array_keys(rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
-                values.len(),
-            )?))?,
-            values.clone(),
-        )?));
+        return Ok(Some(TemplateRangeValues::new(values.clone(), None)?));
     }
     if let Some(selected_dispatch_6) = value
         .dispatch
@@ -356,51 +269,38 @@ pub fn to_range_values(
             dispatch: selected_dispatch_6,
         };
         {
-            let mut index: f64 = 0.0;
-            while index
-                < (rt::conversions::usize_to_i32(
-                    {
-                        let dispatch_receiver_11 = &selected_value_6;
-                        dispatch_receiver_11.dispatch.read_menu_array_value_value()
-                    }
-                    .len(),
-                )? as f64)
+            let mut index: usize = 0;
+            while index < {
+                let dispatch_receiver_11 = &selected_value_6;
+                dispatch_receiver_11.dispatch.read_menu_array_value_value()
+            }
+            .len()
             {
-                {
-                    let operation_input_0_6 = values.clone();
-                    operation_input_0_6.push_many_discard([{
-                        let upcast_value_6 = crate::template::values::menus::MenuEntryValue::new(
-                            match {
-                                let dispatch_receiver_12 = &selected_value_6;
-                                dispatch_receiver_12.dispatch.read_menu_array_value_value()
-                            }
-                            .get_number(index)
-                            {
-                                Some(flow_value_6) => flow_value_6,
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                            {
-                                let dispatch_receiver_13 = &selected_value_6;
-                                dispatch_receiver_13.dispatch.read_menu_array_value_site()
-                            },
-                        )?;
-                        crate::template::values::base::TemplateValue {
-                            identity: upcast_value_6.identity.clone(),
-                            dispatch: upcast_value_6.dispatch.clone(),
+                values.push_many_discard([{
+                    let upcast_value_6 = crate::template::values::menus::MenuEntryValue::new(
+                        match {
+                            let dispatch_receiver_12 = &selected_value_6;
+                            dispatch_receiver_12.dispatch.read_menu_array_value_value()
                         }
-                    }])
-                };
-                index += 1.0;
+                        .get_number(index)
+                        {
+                            Some(flow_value_6) => flow_value_6,
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        },
+                        {
+                            let dispatch_receiver_13 = &selected_value_6;
+                            dispatch_receiver_13.dispatch.read_menu_array_value_site()
+                        },
+                    )?;
+                    crate::template::values::base::TemplateValue {
+                        identity: upcast_value_6.identity.clone(),
+                        dispatch: upcast_value_6.dispatch.clone(),
+                    }
+                }]);
+                index += 1;
             }
         }
-        return Ok(Some(TemplateRangeValues::new(
-            array_keys(rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
-                values.len(),
-            )?))?,
-            values.clone(),
-        )?));
+        return Ok(Some(TemplateRangeValues::new(values.clone(), None)?));
     }
     if let Some(selected_dispatch_7) = value
         .dispatch
@@ -412,39 +312,28 @@ pub fn to_range_values(
             dispatch: selected_dispatch_7,
         };
         {
-            let mut index: f64 = 0.0;
-            while index
-                < (rt::conversions::usize_to_i32(
-                    {
-                        let dispatch_receiver_14 = &selected_value_7;
-                        dispatch_receiver_14.dispatch.read_any_array_value_value()
-                    }
-                    .len(),
-                )? as f64)
+            let mut index: usize = 0;
+            while index < {
+                let dispatch_receiver_14 = &selected_value_7;
+                dispatch_receiver_14.dispatch.read_any_array_value_value()
+            }
+            .len()
             {
-                {
-                    let operation_input_0_7 = values.clone();
-                    operation_input_0_7.push_many_discard([
-                        match {
-                            let dispatch_receiver_15 = &selected_value_7;
-                            dispatch_receiver_15.dispatch.read_any_array_value_value()
-                        }
-                        .get_number(index)
-                        {
-                            Some(flow_value_7) => flow_value_7,
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },
-                    ])
-                };
-                index += 1.0;
+                values.push_many_discard([
+                    match {
+                        let dispatch_receiver_15 = &selected_value_7;
+                        dispatch_receiver_15.dispatch.read_any_array_value_value()
+                    }
+                    .get_number(index)
+                    {
+                        Some(flow_value_7) => flow_value_7,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
+                ]);
+                index += 1;
             }
         }
-        return Ok(Some(TemplateRangeValues::new(
-            array_keys(rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
-                values.len(),
-            )?))?,
-            values.clone(),
-        )?));
+        return Ok(Some(TemplateRangeValues::new(values.clone(), None)?));
     }
     if let Some(selected_dispatch_8) = value
         .dispatch
@@ -465,13 +354,16 @@ pub fn to_range_values(
             names.push_many_discard([name.clone()]);
         }
         names.sort(|left, right| {
-            rt::conversions::i32_to_f64(crate::utils::strings::compare_text(left, right))
+            rt::conversions::i32_to_f64(crate::utils::strings::compareText(left, right))
         });
-        let keys: js_abi::JsArray<crate::template::values::base::TemplateValue> =
-            js_abi::JsArray::from_dense(vec![]);
+        let keys: Option<js_abi::JsArray<String>> = if needsKeys {
+            Some(js_abi::JsArray::from_dense(vec![]))
+        } else {
+            Option::<js_abi::JsArray<String>>::None
+        };
         {
-            let mut index: f64 = 0.0;
-            'loop_value_9: while index < (rt::conversions::usize_to_i32(names.len())? as f64) {
+            let mut index: usize = 0;
+            'loop_value_9: while index < names.len() {
                 let name: String = match names.get_number(index) {
                     Some(flow_value_8) => flow_value_8,
                     None => unreachable!("checked flow selected a missing optional value"),
@@ -482,36 +374,33 @@ pub fn to_range_values(
                 }
                 .get(&name);
                 if item.is_none() {
-                    index += 1.0;
+                    index += 1;
                     continue 'loop_value_9;
                 }
-                {
-                    let operation_input_0_8 = keys.clone();
-                    operation_input_0_8.push_many_discard([{
-                        let upcast_value_7 =
-                            crate::template::values::primitives::StringValue::new(name.clone())?;
-                        crate::template::values::base::TemplateValue {
-                            identity: upcast_value_7.identity.clone(),
-                            dispatch: upcast_value_7.dispatch.clone(),
-                        }
-                    }])
-                };
+                if keys.is_some() {
+                    match keys.as_ref() {
+                        Some(flow_value_9) => flow_value_9.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }
+                    .push_many_discard([name]);
+                }
                 values.push_many_discard([match item.as_ref() {
-                    Some(flow_value_9) => flow_value_9.clone(),
+                    Some(flow_value_10) => flow_value_10.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 }]);
-                index += 1.0;
+                index += 1;
             }
         }
         return Ok(Some(TemplateRangeValues::new(
-            keys.clone(),
             values.clone(),
+            keys.clone(),
         )?));
     }
     Ok(Option::<TemplateRangeValues>::None)
 }
 
-pub fn create_control_scope(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn createControlScope(
     parent: crate::template::scope::RenderScope,
     dot: crate::template::values::base::TemplateValue,
     binding: Option<crate::template::nodes::TemplateVariableBinding>,
@@ -579,19 +468,20 @@ pub fn create_control_scope(
     Ok(scope)
 }
 
-pub fn render_template_nodes(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn renderTemplateNodes(
     nodes: js_abi::JsArray<crate::template::nodes::TemplateNode>,
     output: crate::utils::text_builder::TextBuilder,
     scope: crate::template::scope::RenderScope,
     environment: crate::template::environment::TemplateEnvironment,
     overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
     defines: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    output_mode: TemplateOutputMode,
+    outputMode: TemplateOutputMode,
 ) -> Result<TemplateControlFlow, rt::TsonicError> {
     {
-        let mut index: f64 = 0.0;
-        while index < (rt::conversions::usize_to_i32(nodes.len())? as f64) {
-            let control: TemplateControlFlow = render_template_node(
+        let mut index: usize = 0;
+        while index < nodes.len() {
+            let control: TemplateControlFlow = renderTemplateNode(
                 match nodes.get_number(index) {
                     Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
@@ -601,25 +491,26 @@ pub fn render_template_nodes(
                 environment.clone(),
                 overrides.clone(),
                 defines.clone(),
-                output_mode,
+                outputMode,
             )?;
             if control != TemplateControlFlow::Normal {
                 return Ok(control);
             }
-            index += 1.0;
+            index += 1;
         }
     }
     Ok(TemplateControlFlow::Normal)
 }
 
-pub fn render_template_node(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn renderTemplateNode(
     node: crate::template::nodes::TemplateNode,
     output: crate::utils::text_builder::TextBuilder,
     scope: crate::template::scope::RenderScope,
     environment: crate::template::environment::TemplateEnvironment,
     overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
     defines: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    output_mode: TemplateOutputMode,
+    outputMode: TemplateOutputMode,
 ) -> Result<TemplateControlFlow, rt::TsonicError> {
     if let Some(selected_dispatch) = node.dispatch.clone().downcast_template_node_to_text_node() {
         let selected_value = crate::template::nodes::TextNode {
@@ -635,7 +526,7 @@ pub fn render_template_node(
                     let dispatch_receiver = &selected_value;
                     dispatch_receiver.dispatch.read_text_node_text()
                 })
-        }?;
+        };
         return Ok(TemplateControlFlow::Normal);
     }
     if let Some(selected_dispatch_2) = node
@@ -653,7 +544,7 @@ pub fn render_template_node(
                 .dispatch
                 .clone()
                 .dispatch_text_builder_append(crate::template::runtime_helpers::stringify(
-                    crate::template::evaluation::evaluate::evaluate_pipeline(
+                    crate::template::evaluation::evaluate::evaluatePipeline(
                         {
                             let dispatch_receiver_3 = &selected_value_2;
                             dispatch_receiver_3.dispatch.read_output_node_pipeline()
@@ -663,12 +554,12 @@ pub fn render_template_node(
                         overrides.clone(),
                         defines.clone(),
                     )?,
-                    output_mode == TemplateOutputMode::Html && {
+                    outputMode == TemplateOutputMode::Html && {
                         let dispatch_receiver_4 = &selected_value_2;
                         dispatch_receiver_4.dispatch.read_output_node_escape()
                     },
                 )?)
-        }?;
+        };
         return Ok(TemplateControlFlow::Normal);
     }
     if let Some(selected_dispatch_3) = node
@@ -681,7 +572,7 @@ pub fn render_template_node(
             dispatch: selected_dispatch_3,
         };
         let value: crate::template::values::base::TemplateValue =
-            crate::template::evaluation::evaluate::evaluate_pipeline(
+            crate::template::evaluation::evaluate::evaluatePipeline(
                 {
                     let dispatch_receiver_6 = &selected_value_3;
                     dispatch_receiver_6.dispatch.read_assignment_node_pipeline()
@@ -752,7 +643,7 @@ pub fn render_template_node(
             dispatch: selected_dispatch_4,
         };
         let context: crate::template::values::base::TemplateValue =
-            crate::template::evaluation::evaluate::evaluate_pipeline(
+            crate::template::evaluation::evaluate::evaluatePipeline(
                 {
                     let dispatch_receiver_12 = &selected_value_4;
                     dispatch_receiver_12
@@ -775,7 +666,7 @@ pub fn render_template_node(
         } else {
             context.clone()
         };
-        let invoked_nodes: Option<js_abi::JsArray<crate::template::nodes::TemplateNode>> =
+        let invokedNodes: Option<js_abi::JsArray<crate::template::nodes::TemplateNode>> =
             rt::option_coalesce(
                 {
                     let operation_input_0 = overrides.clone();
@@ -797,8 +688,8 @@ pub fn render_template_node(
                     })
                 },
             );
-        if invoked_nodes.is_none() {
-            let invoked_template: Option<crate::template::template_2::Template> = {
+        if invokedNodes.is_none() {
+            let invokedTemplate: Option<crate::template::template_2::Template> = {
                 let dispatch_receiver_17 = environment.clone();
                 dispatch_receiver_17
                     .dispatch
@@ -810,9 +701,9 @@ pub fn render_template_node(
                             .read_template_invoke_node_name()
                     })
             }?;
-            if invoked_template.is_none() {
+            if invokedTemplate.is_none() {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_TEMPLATE_DEFINITION_MISSING"),
                         format!(
                             "{}{}{}",
@@ -837,7 +728,7 @@ pub fn render_template_node(
                 ));
             }
             let selected: crate::template::template_2::Template = {
-                let dispatch_receiver_20 = match invoked_template.as_ref() {
+                let dispatch_receiver_20 = match invokedTemplate.as_ref() {
                     Some(flow_value) => flow_value.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
@@ -851,7 +742,7 @@ pub fn render_template_node(
                 dispatch_receiver_27
                     .dispatch
                     .clone()
-                    .dispatch_text_builder_append(if output_mode == TemplateOutputMode::Html {
+                    .dispatch_text_builder_append(if outputMode == TemplateOutputMode::Html {
                         {
                             let dispatch_receiver_23 = environment.clone();
                             dispatch_receiver_23
@@ -892,10 +783,10 @@ pub fn render_template_node(
                                 )
                         }?
                     })
-            }?;
+            };
             return Ok(TemplateControlFlow::Normal);
         }
-        let invoked_scope: crate::template::scope::RenderScope =
+        let invokedScope: crate::template::scope::RenderScope =
             crate::template::scope::RenderScope::new(
                 dot.clone(),
                 dot.clone(),
@@ -919,21 +810,21 @@ pub fn render_template_node(
                         .read_render_scope_template_source_path()
                 },
             )?;
-        let control: TemplateControlFlow = render_template_nodes(
-            match invoked_nodes.as_ref() {
+        let control: TemplateControlFlow = renderTemplateNodes(
+            match invokedNodes.as_ref() {
                 Some(flow_value_2) => flow_value_2.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             },
             output.clone(),
-            invoked_scope,
+            invokedScope,
             environment.clone(),
             overrides.clone(),
             defines.clone(),
-            output_mode,
+            outputMode,
         )?;
         if control != TemplateControlFlow::Normal {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_TEMPLATE_CONTROL_FLOW_INVALID"),
                     String::from("Template invocation cannot transfer loop control to its caller"),
                     None,
@@ -950,7 +841,7 @@ pub fn render_template_node(
             dispatch: selected_dispatch_5,
         };
         let condition: crate::template::values::base::TemplateValue =
-            crate::template::evaluation::evaluate::evaluate_pipeline(
+            crate::template::evaluation::evaluate::evaluatePipeline(
                 {
                     let dispatch_receiver_32 = &selected_value_5;
                     dispatch_receiver_32.dispatch.read_if_node_condition()
@@ -960,7 +851,7 @@ pub fn render_template_node(
                 overrides.clone(),
                 defines.clone(),
             )?;
-        let block_scope: crate::template::scope::RenderScope = create_control_scope(
+        let blockScope: crate::template::scope::RenderScope = createControlScope(
             scope.clone(),
             {
                 let dispatch_receiver_33 = &scope;
@@ -972,8 +863,8 @@ pub fn render_template_node(
             },
             condition.clone(),
         )?;
-        return render_template_nodes(
-            if crate::template::runtime_helpers::is_truthy(condition.clone())? {
+        return renderTemplateNodes(
+            if crate::template::runtime_helpers::isTruthy(condition.clone()) {
                 let dispatch_receiver_35 = &selected_value_5;
                 dispatch_receiver_35.dispatch.read_if_node_then_nodes()
             } else {
@@ -981,11 +872,11 @@ pub fn render_template_node(
                 dispatch_receiver_36.dispatch.read_if_node_else_nodes()
             },
             output.clone(),
-            block_scope,
+            blockScope,
             environment.clone(),
             overrides.clone(),
             defines.clone(),
-            output_mode,
+            outputMode,
         );
     }
     if let Some(selected_dispatch_6) = node.dispatch.clone().downcast_template_node_to_range_node()
@@ -994,53 +885,59 @@ pub fn render_template_node(
             identity: node.identity.clone(),
             dispatch: selected_dispatch_6,
         };
-        let range: Option<TemplateRangeValues> =
-            to_range_values(crate::template::evaluation::evaluate::evaluate_pipeline(
+        let valueVariable: Option<String> = {
+            let dispatch_receiver_37 = &selected_value_6;
+            dispatch_receiver_37.dispatch.read_range_node_value_var()
+        };
+        let keyVariable: Option<String> = {
+            let dispatch_receiver_38 = &selected_value_6;
+            dispatch_receiver_38.dispatch.read_range_node_key_var()
+        };
+        let range: Option<TemplateRangeValues> = toRangeValues(
+            crate::template::evaluation::evaluate::evaluatePipeline(
                 {
-                    let dispatch_receiver_37 = &selected_value_6;
-                    dispatch_receiver_37.dispatch.read_range_node_expr()
+                    let dispatch_receiver_39 = &selected_value_6;
+                    dispatch_receiver_39.dispatch.read_range_node_expr()
                 },
                 scope.clone(),
                 environment.clone(),
                 overrides.clone(),
                 defines.clone(),
-            )?)?;
+            )?,
+            keyVariable.is_some() && valueVariable.is_some(),
+        )?;
         if range.is_none()
-            || rt::conversions::usize_to_i32(
-                match range.as_ref() {
-                    Some(flow_value_3) => flow_value_3.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }
-                .state
-                .with(|state| state.values.clone())
-                .len(),
-            )? == 0
+            || match range.as_ref() {
+                Some(flow_value_3) => flow_value_3.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            }
+            .state
+            .with(|state| state.values.clone())
+            .is_empty()
         {
-            return render_template_nodes(
+            return renderTemplateNodes(
                 {
-                    let dispatch_receiver_38 = &selected_value_6;
-                    dispatch_receiver_38.dispatch.read_range_node_else_body()
+                    let dispatch_receiver_40 = &selected_value_6;
+                    dispatch_receiver_40.dispatch.read_range_node_else_body()
                 },
                 output.clone(),
                 scope.clone(),
                 environment.clone(),
                 overrides.clone(),
                 defines.clone(),
-                output_mode,
+                outputMode,
             );
         }
         {
             let mut index: f64 = 0.0;
             'loop_value: while index
-                < (rt::conversions::usize_to_i32(
-                    match range.as_ref() {
-                        Some(flow_value_4) => flow_value_4.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }
-                    .state
-                    .with(|state| state.values.clone())
-                    .len(),
-                )? as f64)
+                < (match range.as_ref() {
+                    Some(flow_value_4) => flow_value_4.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }
+                .state
+                .with(|state| state.values.clone())
+                .len() as f64)
             {
                 let value: crate::template::values::base::TemplateValue = match match range.as_ref()
                 {
@@ -1054,41 +951,33 @@ pub fn render_template_node(
                     Some(flow_value_6) => flow_value_6,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-                let item_scope: crate::template::scope::RenderScope =
+                let itemScope: crate::template::scope::RenderScope =
                     crate::template::scope::RenderScope::new(
                         {
-                            let dispatch_receiver_39 = &scope;
-                            dispatch_receiver_39.dispatch.read_render_scope_root()
+                            let dispatch_receiver_41 = &scope;
+                            dispatch_receiver_41.dispatch.read_render_scope_root()
                         },
                         value.clone(),
                         {
-                            let dispatch_receiver_40 = &scope;
-                            dispatch_receiver_40.dispatch.read_render_scope_site()
+                            let dispatch_receiver_42 = &scope;
+                            dispatch_receiver_42.dispatch.read_render_scope_site()
                         },
                         {
-                            let dispatch_receiver_41 = &scope;
-                            dispatch_receiver_41.dispatch.read_render_scope_env()
+                            let dispatch_receiver_43 = &scope;
+                            dispatch_receiver_43.dispatch.read_render_scope_env()
                         },
                         Some(scope.clone()),
                         None,
                         None,
                     )?;
-                let value_variable: Option<String> = {
-                    let dispatch_receiver_42 = &selected_value_6;
-                    dispatch_receiver_42.dispatch.read_range_node_value_var()
-                };
-                let key_variable: Option<String> = {
-                    let dispatch_receiver_43 = &selected_value_6;
-                    dispatch_receiver_43.dispatch.read_range_node_key_var()
-                };
-                if value_variable.is_some() {
+                if valueVariable.is_some() {
                     {
-                        let dispatch_receiver_44 = item_scope.clone();
+                        let dispatch_receiver_44 = itemScope.clone();
                         dispatch_receiver_44
                             .dispatch
                             .clone()
                             .dispatch_render_scope_declare_var(
-                                match value_variable.as_ref() {
+                                match valueVariable.as_ref() {
                                     Some(flow_value_7) => flow_value_7.clone(),
                                     None => unreachable!(
                                         "checked flow selected a missing optional value"
@@ -1098,48 +987,70 @@ pub fn render_template_node(
                             )
                     };
                 }
-                if key_variable.is_some() && value_variable.is_some() {
+                if keyVariable.is_some() && valueVariable.is_some() {
+                    let keys: Option<js_abi::JsArray<String>> = match range.as_ref() {
+                        Some(flow_value_8) => flow_value_8.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }
+                    .state
+                    .with(|state| state.keys.clone());
                     {
-                        let dispatch_receiver_45 = item_scope.clone();
+                        let dispatch_receiver_45 = itemScope.clone();
                         dispatch_receiver_45
                             .dispatch
                             .clone()
                             .dispatch_render_scope_declare_var(
-                                match key_variable.as_ref() {
-                                    Some(flow_value_8) => flow_value_8.clone(),
-                                    None => unreachable!(
-                                        "checked flow selected a missing optional value"
-                                    ),
-                                },
-                                match match range.as_ref() {
+                                match keyVariable.as_ref() {
                                     Some(flow_value_9) => flow_value_9.clone(),
                                     None => unreachable!(
                                         "checked flow selected a missing optional value"
                                     ),
-                                }
-                                .state
-                                .with(|state| state.keys.clone())
-                                .get_number(index)
-                                {
-                                    Some(flow_value_10) => flow_value_10,
-                                    None => unreachable!(
-                                        "checked flow selected a missing optional value"
-                                    ),
+                                },
+                                if keys.is_none() {
+                                    let upcast_value =
+                                        crate::template::values::primitives::NumberValue::new(
+                                            rt::conversions::f64_to_i32(index)?,
+                                        )?;
+                                    crate::template::values::base::TemplateValue {
+                                        identity: upcast_value.identity.clone(),
+                                        dispatch: upcast_value.dispatch.clone(),
+                                    }
+                                } else {
+                                    let upcast_value_2 =
+                                        crate::template::values::primitives::StringValue::new(
+                                            match match keys.as_ref() {
+                                                Some(flow_value_10) => flow_value_10.clone(),
+                                                None => unreachable!(
+                                                    "checked flow selected a missing optional value"
+                                                ),
+                                            }
+                                            .get_number(index)
+                                            {
+                                                Some(flow_value_11) => flow_value_11,
+                                                None => unreachable!(
+                                                    "checked flow selected a missing optional value"
+                                                ),
+                                            },
+                                        )?;
+                                    crate::template::values::base::TemplateValue {
+                                        identity: upcast_value_2.identity.clone(),
+                                        dispatch: upcast_value_2.dispatch.clone(),
+                                    }
                                 },
                             )
                     };
                 }
-                let control: TemplateControlFlow = render_template_nodes(
+                let control: TemplateControlFlow = renderTemplateNodes(
                     {
                         let dispatch_receiver_46 = &selected_value_6;
                         dispatch_receiver_46.dispatch.read_range_node_body()
                     },
                     output.clone(),
-                    item_scope.clone(),
+                    itemScope.clone(),
                     environment.clone(),
                     overrides.clone(),
                     defines.clone(),
-                    output_mode,
+                    outputMode,
                 )?;
                 if control == TemplateControlFlow::Break {
                     return Ok(TemplateControlFlow::Normal);
@@ -1159,7 +1070,7 @@ pub fn render_template_node(
             dispatch: selected_dispatch_7,
         };
         let value: crate::template::values::base::TemplateValue =
-            crate::template::evaluation::evaluate::evaluate_pipeline(
+            crate::template::evaluation::evaluate::evaluatePipeline(
                 {
                     let dispatch_receiver_47 = &selected_value_7;
                     dispatch_receiver_47.dispatch.read_with_node_expr()
@@ -1230,12 +1141,12 @@ pub fn render_template_node(
                                 },
                             )
                     }?)
-            }?;
+            };
             return Ok(TemplateControlFlow::Normal);
         }
-        let nested_scope: crate::template::scope::RenderScope = create_control_scope(
+        let nestedScope: crate::template::scope::RenderScope = createControlScope(
             scope.clone(),
-            if crate::template::runtime_helpers::is_truthy(value.clone())? {
+            if crate::template::runtime_helpers::isTruthy(value.clone()) {
                 value.clone()
             } else {
                 let dispatch_receiver_56 = &scope;
@@ -1247,31 +1158,31 @@ pub fn render_template_node(
             },
             value.clone(),
         )?;
-        if !crate::template::runtime_helpers::is_truthy(value.clone())? {
-            return render_template_nodes(
+        if !crate::template::runtime_helpers::isTruthy(value.clone()) {
+            return renderTemplateNodes(
                 {
                     let dispatch_receiver_58 = &selected_value_7;
                     dispatch_receiver_58.dispatch.read_with_node_else_body()
                 },
                 output.clone(),
-                nested_scope.clone(),
+                nestedScope.clone(),
                 environment.clone(),
                 overrides.clone(),
                 defines.clone(),
-                output_mode,
+                outputMode,
             );
         }
-        return render_template_nodes(
+        return renderTemplateNodes(
             {
                 let dispatch_receiver_59 = &selected_value_7;
                 dispatch_receiver_59.dispatch.read_with_node_body()
             },
             output.clone(),
-            nested_scope.clone(),
+            nestedScope.clone(),
             environment.clone(),
             overrides.clone(),
             defines.clone(),
-            output_mode,
+            outputMode,
         );
     }
     if let Some(selected_dispatch_8) = node.dispatch.clone().downcast_template_node_to_block_node()
@@ -1281,7 +1192,7 @@ pub fn render_template_node(
             dispatch: selected_dispatch_8,
         };
         let context: crate::template::values::base::TemplateValue =
-            crate::template::evaluation::evaluate::evaluate_pipeline(
+            crate::template::evaluation::evaluate::evaluatePipeline(
                 {
                     let dispatch_receiver_60 = &selected_value_8;
                     dispatch_receiver_60.dispatch.read_block_node_context()
@@ -1302,7 +1213,7 @@ pub fn render_template_node(
         } else {
             context.clone()
         };
-        let nested_scope: crate::template::scope::RenderScope =
+        let nestedScope: crate::template::scope::RenderScope =
             crate::template::scope::RenderScope::new(
                 {
                     let dispatch_receiver_62 = &scope;
@@ -1321,7 +1232,7 @@ pub fn render_template_node(
                 None,
                 None,
             )?;
-        let control: TemplateControlFlow = render_template_nodes(
+        let control: TemplateControlFlow = renderTemplateNodes(
             rt::option_coalesce(
                 {
                     let operation_input_0_3 = overrides.clone();
@@ -1337,15 +1248,15 @@ pub fn render_template_node(
                 },
             ),
             output.clone(),
-            nested_scope,
+            nestedScope,
             environment.clone(),
             overrides.clone(),
             defines.clone(),
-            output_mode,
+            outputMode,
         )?;
         if control != TemplateControlFlow::Normal {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_TEMPLATE_CONTROL_FLOW_INVALID"),
                     String::from("Template block cannot transfer loop control to its caller"),
                     None,
@@ -1357,7 +1268,7 @@ pub fn render_template_node(
         return Ok(TemplateControlFlow::Normal);
     }
     Err(rt::TsonicError::TsumoError(
-        crate::diagnostics::create_tsumo_error(
+        crate::diagnostics::createTsumoError(
             String::from("TSUMO_TEMPLATE_NODE_INVALID"),
             String::from("The parsed template contains an unsupported node kind"),
             None,

@@ -10,17 +10,20 @@ pub enum StructuredScalarFormat {
     Yaml,
 }
 
-pub fn hex_value(character: &str) -> Result<i32, rt::TsonicError> {
-    crate::utils::strings::index_of_text("0123456789abcdef", js_string::to_lower_case(character))
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn hexValue(character: &str) -> Result<i32, rt::TsonicError> {
+    crate::utils::strings::indexOfText("0123456789abcdef", js_string::to_lower_case(character))
 }
 
-pub fn decode_hex_escape(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn decodeHexEscape(
     source: &str,
     start: i32,
     count: i32,
     invalid: rt::Callable<(String,), rt::TsonicResult<crate::diagnostics::TsumoError>>,
 ) -> Result<String, rt::TsonicError> {
-    if start + count > rt::conversions::usize_to_i32(js_string::js_len(source))? {
+    let sourceLength: i32 = rt::conversions::usize_to_i32(js_string::js_len(source))?;
+    if start < 0 || count < 0 || start > sourceLength || count > sourceLength - start {
         return Err(rt::TsonicError::TsumoError(invalid.call((format!(
             "{}{}{}",
             String::from("String escape requires "),
@@ -30,10 +33,7 @@ pub fn decode_hex_escape(
     }
     let mut value: i32 = 0;
     for offset in 0..count {
-        let digit: i32 = hex_value(&js_string::char_at(
-            source,
-            rt::conversions::i32_to_f64(start + offset),
-        )?)?;
+        let digit: i32 = hexValue(&js_string::char_at(source, start + offset)?)?;
         if digit < 0 {
             return Err(rt::TsonicError::TsumoError(invalid.call((
                 String::from("String escape contains a non-hexadecimal digit"),
@@ -46,31 +46,33 @@ pub fn decode_hex_escape(
             String::from("String escape does not name a Unicode scalar value"),
         ))?));
     }
-    js_string::from_code_point(&[rt::conversions::i32_to_f64(value)]).map_err(rt::TsonicError::from)
+    js_string::from_code_point::<i32>(&[value]).map_err(rt::TsonicError::from)
 }
 
-pub fn decode_single_quoted(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn decodeSingleQuoted(
     inner: &str,
     format: StructuredScalarFormat,
     invalid: rt::Callable<(String,), rt::TsonicResult<crate::diagnostics::TsumoError>>,
 ) -> Result<String, rt::TsonicError> {
+    let innerLength: i32 = rt::conversions::usize_to_i32(js_string::js_len(inner))?;
     let mut result: String = String::from("");
     {
         let mut index: i32 = 0;
-        'loop_value: while index < rt::conversions::usize_to_i32(js_string::js_len(inner))? {
-            let current: String = crate::utils::strings::code_point_at_text(inner, index)?;
+        'loop_value: while index < innerLength {
+            let current: String = crate::utils::strings::codePointAtText(inner, index)?;
             if current != "'" {
                 result.push_str(&current);
-                index = crate::utils::strings::next_code_point_index(inner, index)?;
+                index = crate::utils::strings::nextCodePointIndex(inner, index)?;
                 continue 'loop_value;
             }
             if format == StructuredScalarFormat::Yaml
-                && index + 1 < rt::conversions::usize_to_i32(js_string::js_len(inner))?
-                && js_string::char_at(inner, rt::conversions::i32_to_f64(index + 1))? == "'"
+                && index + 1 < innerLength
+                && js_string::char_at(inner, index + 1)? == "'"
             {
                 result.push('\'');
                 index += 1;
-                index = crate::utils::strings::next_code_point_index(inner, index)?;
+                index = crate::utils::strings::nextCodePointIndex(inner, index)?;
                 continue 'loop_value;
             }
             return Err(rt::TsonicError::TsumoError(invalid.call((
@@ -81,15 +83,17 @@ pub fn decode_single_quoted(
     Ok(result)
 }
 
-pub fn decode_double_quoted(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn decodeDoubleQuoted(
     inner: &str,
     invalid: rt::Callable<(String,), rt::TsonicResult<crate::diagnostics::TsumoError>>,
 ) -> Result<String, rt::TsonicError> {
+    let innerLength: i32 = rt::conversions::usize_to_i32(js_string::js_len(inner))?;
     let mut result: String = String::from("");
     {
         let mut index: i32 = 0;
-        'loop_value: while index < rt::conversions::usize_to_i32(js_string::js_len(inner))? {
-            let current: String = crate::utils::strings::code_point_at_text(inner, index)?;
+        'loop_value: while index < innerLength {
+            let current: String = crate::utils::strings::codePointAtText(inner, index)?;
             if current == "\"" {
                 return Err(rt::TsonicError::TsumoError(invalid.call((
                     String::from("Double-quoted string contains an unescaped quote"),
@@ -97,16 +101,16 @@ pub fn decode_double_quoted(
             }
             if current != "\\" {
                 result.push_str(&current);
-                index = crate::utils::strings::next_code_point_index(inner, index)?;
+                index = crate::utils::strings::nextCodePointIndex(inner, index)?;
                 continue 'loop_value;
             }
-            if index + 1 >= rt::conversions::usize_to_i32(js_string::js_len(inner))? {
+            if index + 1 >= innerLength {
                 return Err(rt::TsonicError::TsumoError(
                     invalid.call((String::from("String ends with an incomplete escape"),))?,
                 ));
             }
-            index = crate::utils::strings::next_code_point_index(inner, index)?;
-            let escaped: String = crate::utils::strings::code_point_at_text(inner, index)?;
+            index = crate::utils::strings::nextCodePointIndex(inner, index)?;
+            let escaped: String = crate::utils::strings::codePointAtText(inner, index)?;
             if escaped == "\"" || escaped == "\\" || escaped == "/" {
                 result.push_str(&escaped);
             } else if escaped == "b" {
@@ -120,10 +124,10 @@ pub fn decode_double_quoted(
             } else if escaped == "r" {
                 result.push('\r');
             } else if escaped == "u" {
-                result.push_str(&decode_hex_escape(inner, index + 1, 4, invalid.clone())?);
+                result.push_str(&decodeHexEscape(inner, index + 1, 4, invalid.clone())?);
                 index += 4;
             } else if escaped == "U" {
-                result.push_str(&decode_hex_escape(inner, index + 1, 8, invalid.clone())?);
+                result.push_str(&decodeHexEscape(inner, index + 1, 8, invalid.clone())?);
                 index += 8;
             } else {
                 return Err(rt::TsonicError::TsumoError(invalid.call((format!(
@@ -133,27 +137,28 @@ pub fn decode_double_quoted(
                     String::from("'")
                 ),))?));
             }
-            index = crate::utils::strings::next_code_point_index(inner, index)?;
+            index = crate::utils::strings::nextCodePointIndex(inner, index)?;
         }
     }
     Ok(result)
 }
 
-pub fn decode_quoted(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn decodeQuoted(
     value: &str,
     format: StructuredScalarFormat,
     invalid: rt::Callable<(String,), rt::TsonicResult<crate::diagnostics::TsumoError>>,
 ) -> Result<Option<String>, rt::TsonicError> {
-    let starts_double_quoted: bool = js_string::starts_with_from_start(value, "\"");
-    let starts_single_quoted: bool = js_string::starts_with_from_start(value, "'");
-    let ends_double_quoted: bool = js_string::ends_with_at_end(value, "\"");
-    let ends_single_quoted: bool = js_string::ends_with_at_end(value, "'");
-    let starts_quoted: bool = starts_double_quoted || starts_single_quoted;
-    let ends_quoted: bool = ends_double_quoted || ends_single_quoted;
-    if !starts_quoted && !ends_quoted {
+    let startsDoubleQuoted: bool = js_string::starts_with_from_start(value, "\"");
+    let startsSingleQuoted: bool = js_string::starts_with_from_start(value, "'");
+    let endsDoubleQuoted: bool = js_string::ends_with_at_end(value, "\"");
+    let endsSingleQuoted: bool = js_string::ends_with_at_end(value, "'");
+    let startsQuoted: bool = startsDoubleQuoted || startsSingleQuoted;
+    let endsQuoted: bool = endsDoubleQuoted || endsSingleQuoted;
+    if !startsQuoted && !endsQuoted {
         return Ok(Option::<String>::None);
     }
-    if !starts_quoted {
+    if !startsQuoted {
         if format == StructuredScalarFormat::Yaml {
             return Ok(Option::<String>::None);
         }
@@ -161,33 +166,34 @@ pub fn decode_quoted(
             invalid.call((String::from("String has mismatched quotes"),))?,
         ));
     }
-    if starts_double_quoted && !ends_double_quoted
-        || starts_single_quoted && !ends_single_quoted
-        || rt::conversions::usize_to_i32(js_string::js_len(value))? < 2
+    if startsDoubleQuoted && !endsDoubleQuoted
+        || startsSingleQuoted && !endsSingleQuoted
+        || js_string::js_len(value) < 2
     {
         return Err(rt::TsonicError::TsumoError(
             invalid.call((String::from("String has mismatched quotes"),))?,
         ));
     }
-    let inner: String = crate::utils::strings::substring_count(
+    let inner: String = crate::utils::strings::substringCount(
         value,
         1,
-        rt::conversions::usize_to_i32(js_string::js_len(value))? - 2,
+        rt::conversions::usize_to_i32(js_string::js_len(value) - 2)?,
     )?;
-    Ok(if starts_single_quoted {
-        Some(decode_single_quoted(&inner, format, invalid.clone())?)
+    Ok(if startsSingleQuoted {
+        Some(decodeSingleQuoted(&inner, format, invalid.clone())?)
     } else {
-        Some(decode_double_quoted(&inner, invalid.clone())?)
+        Some(decodeDoubleQuoted(&inner, invalid.clone())?)
     })
 }
 
-pub fn parse_integer(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseInteger(
     value: String,
     invalid: rt::Callable<(String,), rt::TsonicResult<crate::diagnostics::TsumoError>>,
 ) -> Result<Option<crate::params::ParamValue>, rt::TsonicError> {
-    let integer_like: bool =
+    let integerLike: bool =
         js_abi::regexp_test_native(&js_abi::regexp_new_native("^[+-]?[0-9_]+$", "")?, &value)?;
-    if !integer_like {
+    if !integerLike {
         return Ok(Option::<crate::params::ParamValue>::None);
     }
     if !js_abi::regexp_test_native(
@@ -200,9 +206,9 @@ pub fn parse_integer(
     }
     let mut normalized: String = js_string::replace_all(&value, "_", "")?;
     if js_string::starts_with_from_start(&normalized, "+") {
-        normalized = crate::utils::strings::substring_from(&normalized, 1)?;
+        normalized = crate::utils::strings::substringFrom(&normalized, 1)?;
     }
-    let parsed: Option<i32> = crate::utils::int32::parse_int32(&normalized)?;
+    let parsed: Option<i32> = crate::utils::int32::parseInt32(&normalized)?;
     if parsed.is_none() {
         return Err(rt::TsonicError::TsumoError(invalid.call((
             String::from("Integer is outside the supported 32-bit range"),
@@ -216,13 +222,14 @@ pub fn parse_integer(
     )?))
 }
 
-pub fn parse_structured_scalar(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseStructuredScalar(
     value: &str,
     format: StructuredScalarFormat,
     invalid: rt::Callable<(String,), rt::TsonicResult<crate::diagnostics::TsumoError>>,
 ) -> Result<crate::params::ParamValue, rt::TsonicError> {
     let trimmed: String = js_string::trim(value);
-    let quoted: Option<String> = decode_quoted(&trimmed, format, invalid.clone())?;
+    let quoted: Option<String> = decodeQuoted(&trimmed, format, invalid.clone())?;
     if quoted.is_some() {
         return crate::params::ParamValue::string(match quoted.as_ref() {
             Some(flow_value) => flow_value.clone(),
@@ -246,7 +253,7 @@ pub fn parse_structured_scalar(
         }
     }
     let integer: Option<crate::params::ParamValue> =
-        parse_integer(trimmed.clone(), invalid.clone())?;
+        parseInteger(trimmed.clone(), invalid.clone())?;
     if integer.is_some() {
         return Ok(match integer {
             Some(flow_value_2) => flow_value_2,
@@ -261,28 +268,30 @@ pub fn parse_structured_scalar(
     crate::params::ParamValue::string(trimmed)
 }
 
-pub fn strip_structured_comment(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn stripStructuredComment(
     line: String,
     format: StructuredScalarFormat,
 ) -> Result<String, rt::TsonicError> {
     let mut quote: String = String::from("");
     let mut escaped: bool = false;
-    let mut previous_was_whitespace: bool = false;
+    let lineLength: i32 = rt::conversions::usize_to_i32(js_string::js_len(&line))?;
+    let mut previousWasWhitespace: bool = false;
     {
         let mut index: i32 = 0;
-        'loop_value: while index < rt::conversions::usize_to_i32(js_string::js_len(&line))? {
-            let current: String = crate::utils::strings::code_point_at_text(&line, index)?;
+        'loop_value: while index < lineLength {
+            let current: String = crate::utils::strings::codePointAtText(&line, index)?;
             if escaped {
                 escaped = false;
-                previous_was_whitespace =
+                previousWasWhitespace =
                     js_abi::regexp_test_native(&js_abi::regexp_new_native("\\s", "")?, &current)?;
-                index = crate::utils::strings::next_code_point_index(&line, index)?;
+                index = crate::utils::strings::nextCodePointIndex(&line, index)?;
                 continue 'loop_value;
             }
             if quote == "\"" && current == "\\" {
                 escaped = true;
-                previous_was_whitespace = false;
-                index = crate::utils::strings::next_code_point_index(&line, index)?;
+                previousWasWhitespace = false;
+                index = crate::utils::strings::nextCodePointIndex(&line, index)?;
                 continue 'loop_value;
             }
             if current == "\"" || current == "'" {
@@ -291,31 +300,31 @@ pub fn strip_structured_comment(
                 } else if quote == current {
                     if quote == "'"
                         && format == StructuredScalarFormat::Yaml
-                        && index + 1 < rt::conversions::usize_to_i32(js_string::js_len(&line))?
-                        && js_string::char_at(&line, rt::conversions::i32_to_f64(index + 1))? == "'"
+                        && index + 1 < lineLength
+                        && js_string::char_at(&line, index + 1)? == "'"
                     {
                         index += 1;
                     } else {
                         quote = String::from("");
                     }
                 }
-                previous_was_whitespace = false;
-                index = crate::utils::strings::next_code_point_index(&line, index)?;
+                previousWasWhitespace = false;
+                index = crate::utils::strings::nextCodePointIndex(&line, index)?;
                 continue 'loop_value;
             }
-            let yaml_comment: bool = format == StructuredScalarFormat::Yaml
+            let yamlComment: bool = format == StructuredScalarFormat::Yaml
                 && current == "#"
-                && (index == 0 || previous_was_whitespace);
+                && (index == 0 || previousWasWhitespace);
             if format == StructuredScalarFormat::Toml && current == "#" && quote.is_empty()
-                || yaml_comment && quote.is_empty()
+                || yamlComment && quote.is_empty()
             {
-                return Ok(js_string::trim_end(
-                    &crate::utils::strings::substring_count(&line, 0, index)?,
-                ));
+                return Ok(js_string::trim_end(&crate::utils::strings::substringCount(
+                    &line, 0, index,
+                )?));
             }
-            previous_was_whitespace =
+            previousWasWhitespace =
                 js_abi::regexp_test_native(&js_abi::regexp_new_native("\\s", "")?, &current)?;
-            index = crate::utils::strings::next_code_point_index(&line, index)?;
+            index = crate::utils::strings::nextCodePointIndex(&line, index)?;
         }
     }
     Ok(line)

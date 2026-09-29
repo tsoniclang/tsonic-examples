@@ -3,18 +3,17 @@
 use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
-pub fn handle_new(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError> {
-    if rt::conversions::usize_to_i32(args.len())? >= 2
-        && args.get_number(1.0) == Some(String::from("site"))
-    {
-        if rt::conversions::usize_to_i32(args.len())? < 3 {
-            crate::report_usage_error::report_usage_error(String::from(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn handleNew(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError> {
+    if args.len() >= 2 && args.get_number(1.0) == Some(String::from("site")) {
+        if args.len() < 3 {
+            crate::report_usage_error::reportUsageError(String::from(
                 "Missing <dir> for `tsumo new site`",
             ));
             return Ok(());
         }
-        if rt::conversions::usize_to_i32(args.len())? > 3 {
-            crate::report_usage_error::report_usage_error(format!(
+        if args.len() > 3 {
+            crate::report_usage_error::reportUsageError(format!(
                 "{}{}",
                 String::from("Unknown new site option: "),
                 match args.get_number(3.0) {
@@ -28,43 +27,43 @@ pub fn handle_new(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError> 
             Some(flow_value_2) => flow_value_2,
             None => unreachable!("checked flow selected a missing optional value"),
         };
-        tsumo_engine::init_site(
+        tsumo_engine::initSite(
             dir.clone(),
-            crate::source_date_epoch::read_source_date_epoch()?,
+            crate::source_date_epoch::readSourceDateEpoch()?,
         )?;
-        crate::log_line::log_line(format!("{}{}", String::from("Created site: "), dir));
+        crate::log_line::logLine(format!("{}{}", String::from("Created site: "), dir));
         return Ok(());
     }
-    if rt::conversions::usize_to_i32(args.len())? < 2 {
-        crate::report_usage_error::report_usage_error(String::from(
+    if args.len() < 2 {
+        crate::report_usage_error::reportUsageError(String::from(
             "Missing <path.md> for `tsumo new`",
         ));
         return Ok(());
     }
-    let mut content_source_dir: String = tsonic_rust_node::process::cwd()?;
+    let mut contentSourceDir: String = tsonic_rust_node::process::cwd()?;
     {
         let mut i: f64 = 2.0;
-        while i < (rt::conversions::usize_to_i32(args.len())? as f64) {
+        while i < (args.len() as f64) {
             let a: String = match args.get_number(i) {
                 Some(flow_value_3) => flow_value_3,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if a == "--source" || a == "-s" {
-                if i + 1.0 >= (rt::conversions::usize_to_i32(args.len())? as f64) {
-                    crate::report_usage_error::report_usage_error(format!(
+                if i + 1.0 >= (args.len() as f64) {
+                    crate::report_usage_error::reportUsageError(format!(
                         "{}{}",
                         String::from("Missing value for "),
                         a
                     ));
                     return Ok(());
                 }
-                content_source_dir = match args.get_number(i + 1.0) {
+                contentSourceDir = match args.get_number(i + 1.0) {
                     Some(flow_value_4) => flow_value_4,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 i += 1.0;
             } else {
-                crate::report_usage_error::report_usage_error(format!(
+                crate::report_usage_error::reportUsageError(format!(
                     "{}{}",
                     String::from("Unknown new option: "),
                     a
@@ -74,14 +73,14 @@ pub fn handle_new(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError> 
             i += 1.0;
         }
     }
-    let created: String = tsumo_engine::new_content(
-        content_source_dir,
+    let created: String = tsumo_engine::newContent(
+        contentSourceDir,
         match args.get_number(1.0) {
             Some(flow_value_5) => flow_value_5,
             None => unreachable!("checked flow selected a missing optional value"),
         },
-        crate::source_date_epoch::read_source_date_epoch()?,
+        crate::source_date_epoch::readSourceDateEpoch()?,
     )?;
-    crate::log_line::log_line(format!("{}{}", String::from("Created content: "), created));
+    crate::log_line::logLine(format!("{}{}", String::from("Created content: "), created));
     Ok(())
 }

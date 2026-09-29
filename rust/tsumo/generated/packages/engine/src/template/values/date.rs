@@ -2,8 +2,15 @@
 
 use crate::program as rt;
 
+std::thread_local! {
+    pub static DATE_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<DateValueClass>> = const { rt::ModuleCell::new() };
+}
+
 #[doc(hidden)]
 pub trait DateValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn project_date_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_date_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -84,7 +91,30 @@ impl DateValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for DateValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for DateValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn DateValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -100,6 +130,23 @@ impl crate::template::values::base::TemplateValueDispatch for DateValueRoot {
 }
 
 impl DateValueDispatch for DateValueRoot {
+    fn project_date_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn DateValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_date_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -126,4 +173,38 @@ impl DateValueDispatch for DateValueRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+pub struct DateValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for DateValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for DateValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for DateValueClass {}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = {
+            alloc::rc::Rc::new(DateValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        DATE_VALUE_CLASS_ENVIRONMENT.with(|module_binding| module_binding.initialize(module_value))
+    };
 }

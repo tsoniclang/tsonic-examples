@@ -4,132 +4,246 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
 #[doc(hidden)]
-pub struct WatchEntryStateState {
-    pub modified_at: f64,
-    pub size: f64,
+pub trait WatchEntryStateDispatch {
+    fn project_watch_entry_state(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
+    fn downcast_watch_entry_state_to_watch_entry_state(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn WatchEntryStateDispatch + 'static>> {
+        None
+    }
+    fn read_watch_entry_state_modified_at(&self) -> f64;
+    fn write_watch_entry_state_modified_at(&self, value: f64) -> Result<(), rt::TsonicError>;
+    fn read_watch_entry_state_size(&self) -> u64;
+    fn write_watch_entry_state_size(&self, value: u64) -> Result<(), rt::TsonicError>;
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub struct WatchEntryStateState {
+    pub modifiedAt: f64,
+    pub size: u64,
+}
+
+#[derive(Clone)]
 pub struct WatchEntryState {
     #[doc(hidden)]
-    pub state: rt::ObjectRef<WatchEntryStateState>,
+    pub identity: rt::ObjectIdentity,
+    #[doc(hidden)]
+    pub dispatch: alloc::rc::Rc<dyn WatchEntryStateDispatch + 'static>,
 }
 
-impl rt::ObjectIdentityCarrier for WatchEntryState {
-    fn object_identity(&self) -> &rt::ObjectIdentity {
-        self.state.object_identity()
+impl core::fmt::Debug for WatchEntryState {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter.write_str("WatchEntryState")
     }
 }
 
+impl PartialEq for WatchEntryState {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+    }
+}
+
+impl Eq for WatchEntryState {}
+
+impl rt::ObjectIdentityCarrier for WatchEntryState {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
+pub(crate) struct WatchEntryStateRoot {
+    identity: rt::ObjectIdentity,
+    state: rt::ObjectState<WatchEntryStateState>,
+}
+
 impl WatchEntryState {
-    pub fn new(modified_at: f64, size: f64) -> Result<WatchEntryState, rt::TsonicError> {
-        let field_modified_at: f64 = modified_at;
-        let field_size: f64 = size;
+    #[doc(hidden)]
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn initialize_state(
+        modifiedAt: f64,
+        size: u64,
+    ) -> Result<WatchEntryStateState, rt::TsonicError> {
+        let field_modified_at: f64 = modifiedAt;
+        let field_size: u64 = size;
+        Ok(WatchEntryStateState {
+            modifiedAt: field_modified_at,
+            size: field_size,
+        })
+    }
+
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn new(modifiedAt: f64, size: u64) -> Result<WatchEntryState, rt::TsonicError> {
+        let state = WatchEntryState::initialize_state(modifiedAt, size)?;
+        let identity = rt::ObjectIdentity::new();
+        let root = alloc::rc::Rc::new(WatchEntryStateRoot {
+            identity: identity.clone(),
+            state: rt::ObjectState::new(state),
+        });
         Ok(WatchEntryState {
-            state: rt::ObjectRef::new(WatchEntryStateState {
-                modified_at: field_modified_at,
-                size: field_size,
-            }),
+            identity,
+            dispatch: root,
         })
     }
 }
 
-pub fn add_file_state(
+impl rt::ObjectIdentityCarrier for WatchEntryStateRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
+impl WatchEntryStateDispatch for WatchEntryStateRoot {
+    fn project_watch_entry_state(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn WatchEntryStateDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
+    fn downcast_watch_entry_state_to_watch_entry_state(
+        self: alloc::rc::Rc<Self>,
+    ) -> Option<alloc::rc::Rc<dyn WatchEntryStateDispatch + 'static>> {
+        Some(self)
+    }
+
+    fn read_watch_entry_state_modified_at(&self) -> f64 {
+        self.state.with(|state| state.modifiedAt)
+    }
+
+    fn write_watch_entry_state_modified_at(&self, value: f64) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.modifiedAt = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
+    }
+
+    fn read_watch_entry_state_size(&self) -> u64 {
+        self.state.with(|state| state.size)
+    }
+
+    fn write_watch_entry_state_size(&self, value: u64) -> Result<(), rt::TsonicError> {
+        {
+            {
+                self.identity.validate_data_write()?;
+                self.state.with_mut(|state| state.size = value)
+            };
+            Ok::<_, rt::TsonicError>(())
+        }
+    }
+}
+
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn addFileState(
     snapshot: js_abi::JsMap<String, WatchEntryState>,
     path: String,
 ) -> Result<(), rt::TsonicError> {
-    crate::fs::reject_filesystem_link(path.clone())?;
+    crate::fs::rejectFilesystemLink(path.clone())?;
     let stats: tsonic_rust_node::fs::Stats = tsonic_rust_node::fs::stat_sync(path.as_str())?;
     {
         let operation_input_0 = snapshot;
-        operation_input_0.set_discard(
-            path,
-            WatchEntryState::new(stats.mtime_ms(), rt::conversions::u64_to_f64(stats.size))?,
-        )
+        operation_input_0.set_discard(path, WatchEntryState::new(stats.mtime_ms(), stats.size)?)
     };
     Ok(())
 }
 
-pub fn create_watch_snapshot(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn createWatchSnapshot(
     targets: js_abi::JsArray<String>,
 ) -> Result<js_abi::JsMap<String, WatchEntryState>, rt::TsonicError> {
     let snapshot: js_abi::JsMap<String, WatchEntryState> = js_abi::JsMap::new();
     {
-        let mut i: f64 = 0.0;
-        'loop_value: while i < (rt::conversions::usize_to_i32(targets.len())? as f64) {
+        let mut i: usize = 0;
+        'loop_value: while i < targets.len() {
             let target: String = match targets.get_number(i) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            if crate::fs::file_exists(target.clone())? {
-                add_file_state(snapshot.clone(), target.clone())?;
-                i += 1.0;
+            if crate::fs::fileExists(&target)? {
+                addFileState(snapshot.clone(), target)?;
+                i += 1;
                 continue 'loop_value;
             }
-            if !crate::fs::dir_exists(target.clone())? {
-                i += 1.0;
+            if !crate::fs::dirExists(&target)? {
+                i += 1;
                 continue 'loop_value;
             }
             let files: js_abi::JsArray<String> =
-                crate::fs::list_files_recursive(target.clone(), String::from("*"))?;
+                crate::fs::listFilesRecursive(target, String::from("*"))?;
             {
-                let mut j: f64 = 0.0;
-                while j < (rt::conversions::usize_to_i32(files.len())? as f64) {
-                    add_file_state(
+                let mut j: usize = 0;
+                while j < files.len() {
+                    addFileState(
                         snapshot.clone(),
                         match files.get_number(j) {
                             Some(flow_value_2) => flow_value_2,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     )?;
-                    j += 1.0;
+                    j += 1;
                 }
             }
-            i += 1.0;
+            i += 1;
         }
     }
     Ok(snapshot)
 }
 
-pub fn watch_snapshots_equal(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn watchSnapshotsEqual(
     left: js_abi::JsMap<String, WatchEntryState>,
     right: js_abi::JsMap<String, WatchEntryState>,
-) -> Result<bool, rt::TsonicError> {
-    if rt::conversions::usize_to_i32(left.len())? != rt::conversions::usize_to_i32(right.len())? {
-        return Ok(false);
+) -> bool {
+    if left.len() != right.len() {
+        return false;
     }
-    for file_path in left.keys() {
-        let state: Option<WatchEntryState> = left.get(&file_path);
-        let other: Option<WatchEntryState> = right.get(&file_path);
+    for filePath in left.keys() {
+        let state: Option<WatchEntryState> = left.get(&filePath);
+        let other: Option<WatchEntryState> = right.get(&filePath);
         if state.is_none()
             || other.is_none()
-            || match state.as_ref() {
-                Some(flow_value) => flow_value.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
-            }
-            .state
-            .with(|state| state.modified_at)
-                != match other.as_ref() {
+            || ({
+                let dispatch_receiver = &match state.as_ref() {
+                    Some(flow_value) => flow_value.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                };
+                dispatch_receiver
+                    .dispatch
+                    .read_watch_entry_state_modified_at()
+            }) != {
+                let dispatch_receiver_2 = &match other.as_ref() {
                     Some(flow_value_2) => flow_value_2.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
-                }
-                .state
-                .with(|state| state.modified_at)
-            || match state.as_ref() {
-                Some(flow_value_3) => flow_value_3.clone(),
-                None => unreachable!("checked flow selected a missing optional value"),
+                };
+                dispatch_receiver_2
+                    .dispatch
+                    .read_watch_entry_state_modified_at()
             }
-            .state
-            .with(|state| state.size)
-                != match other.as_ref() {
+            || ({
+                let dispatch_receiver_3 = &match state.as_ref() {
+                    Some(flow_value_3) => flow_value_3.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                };
+                dispatch_receiver_3.dispatch.read_watch_entry_state_size()
+            }) != {
+                let dispatch_receiver_4 = &match other.as_ref() {
                     Some(flow_value_4) => flow_value_4.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
-                }
-                .state
-                .with(|state| state.size)
+                };
+                dispatch_receiver_4.dispatch.read_watch_entry_state_size()
+            }
         {
-            return Ok(false);
+            return false;
         }
     }
-    Ok(true)
+    true
 }

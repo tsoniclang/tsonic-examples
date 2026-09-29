@@ -12,12 +12,13 @@ pub enum TemplateTerminator {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct ParseNodesResultState {
     pub nodes: js_abi::JsArray<crate::template::nodes::TemplateNode>,
     pub terminator: TemplateTerminator,
-    pub else_tokens: js_abi::JsArray<String>,
-    pub terminator_segment: Option<crate::template::parser::tokens::TemplateSegment>,
-    pub terminator_segment_index: i32,
+    pub elseTokens: js_abi::JsArray<String>,
+    pub terminatorSegment: Option<crate::template::parser::tokens::TemplateSegment>,
+    pub terminatorSegmentIndex: i32,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -33,26 +34,27 @@ impl rt::ObjectIdentityCarrier for ParseNodesResult {
 }
 
 impl ParseNodesResult {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         nodes: js_abi::JsArray<crate::template::nodes::TemplateNode>,
         terminator: TemplateTerminator,
-        else_tokens: js_abi::JsArray<String>,
-        terminator_segment: Option<crate::template::parser::tokens::TemplateSegment>,
-        terminator_segment_index: i32,
+        elseTokens: js_abi::JsArray<String>,
+        terminatorSegment: Option<crate::template::parser::tokens::TemplateSegment>,
+        terminatorSegmentIndex: i32,
     ) -> Result<ParseNodesResult, rt::TsonicError> {
         let field_nodes: js_abi::JsArray<crate::template::nodes::TemplateNode> = nodes;
         let field_terminator: TemplateTerminator = terminator;
-        let field_else_tokens: js_abi::JsArray<String> = else_tokens;
+        let field_else_tokens: js_abi::JsArray<String> = elseTokens;
         let field_terminator_segment: Option<crate::template::parser::tokens::TemplateSegment> =
-            terminator_segment;
-        let field_terminator_segment_index: i32 = terminator_segment_index;
+            terminatorSegment;
+        let field_terminator_segment_index: i32 = terminatorSegmentIndex;
         Ok(ParseNodesResult {
             state: rt::ObjectRef::new(ParseNodesResultState {
                 nodes: field_nodes,
                 terminator: field_terminator,
-                else_tokens: field_else_tokens,
-                terminator_segment: field_terminator_segment,
-                terminator_segment_index: field_terminator_segment_index,
+                elseTokens: field_else_tokens,
+                terminatorSegment: field_terminator_segment,
+                terminatorSegmentIndex: field_terminator_segment_index,
             }),
         })
     }
@@ -92,13 +94,14 @@ impl ParsedControlPipeline {
     }
 }
 
-pub fn parse_control_pipeline(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseControlPipeline(
     tokens: js_abi::JsArray<String>,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
     line: i32,
     column: i32,
 ) -> Result<ParsedControlPipeline, rt::TsonicError> {
-    let first: String = if rt::conversions::usize_to_i32(tokens.len())? > 0 {
+    let first: String = if !tokens.is_empty() {
         match tokens.get_number(0.0) {
             Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
@@ -106,7 +109,7 @@ pub fn parse_control_pipeline(
     } else {
         String::from("")
     };
-    let operation: String = if rt::conversions::usize_to_i32(tokens.len())? > 1 {
+    let operation: String = if tokens.len() > 1 {
         match tokens.get_number(1.0) {
             Some(flow_value_2) => flow_value_2,
             None => unreachable!("checked flow selected a missing optional value"),
@@ -114,85 +117,91 @@ pub fn parse_control_pipeline(
     } else {
         String::from("")
     };
-    let has_binding: bool = js_string::starts_with_from_start(&first, "$")
+    let hasBinding: bool = js_string::starts_with_from_start(&first, "$")
         && first != "$"
         && !js_string::starts_with_from_start(&first, "$.")
-        && rt::conversions::isize_to_i32(js_string::index_of_from_start(&first, "."))? < 0
+        && js_string::index_of_from_start(&first, ".") < 0
         && (operation == ":=" || operation == "=");
-    if !has_binding {
+    if !hasBinding {
         return ParsedControlPipeline::new(
-            crate::template::parser::parse_pipeline::parse_pipeline(
+            crate::template::parser::parse_pipeline::parsePipeline(
                 tokens.clone(),
-                source_path.clone(),
+                sourcePath.clone(),
                 Some(line),
                 Some(column),
             )?,
             Option::<crate::template::nodes::TemplateVariableBinding>::None,
         );
     }
-    if rt::conversions::usize_to_i32(tokens.len())? < 3 {
+    if tokens.len() < 3 {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_TEMPLATE_CONTROL_PIPELINE_MISSING"),
                 String::from("Template control variable binding requires a value pipeline"),
-                source_path.clone(),
-                Some(rt::conversions::i32_to_f64(line)),
-                Some(rt::conversions::i32_to_f64(column)),
+                sourcePath.clone(),
+                Some(line),
+                Some(column),
             )?,
         ));
     }
     ParsedControlPipeline::new(
-        crate::template::parser::parse_pipeline::parse_pipeline(
-            crate::template::parser::tokens::slice_tokens(tokens.clone(), 2)?,
-            source_path.clone(),
+        crate::template::parser::parse_pipeline::parsePipeline(
+            crate::template::parser::tokens::sliceTokens(tokens.clone(), 2)?,
+            sourcePath.clone(),
             Some(line),
             Some(column),
         )?,
         Some(crate::template::nodes::TemplateVariableBinding::new(
-            crate::utils::strings::substring_from(&first, 1)?,
+            crate::utils::strings::substringFrom(&first, 1)?,
             operation == ":=",
         )?),
     )
 }
 
 #[derive(Clone)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct TemplateParser {
     pub segments: js_abi::JsArray<crate::template::parser::tokens::TemplateSegment>,
+    pub segmentCount: i32,
     pub index: i32,
     pub defines: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    pub source_path: Option<String>,
-    pub source_text: String,
-    pub range_depth: i32,
+    pub sourcePath: Option<String>,
+    pub sourceText: String,
+    pub rangeDepth: i32,
 }
 
 impl TemplateParser {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         segments: js_abi::JsArray<crate::template::parser::tokens::TemplateSegment>,
-        source_text: String,
-        source_path: Option<String>,
-    ) -> TemplateParser {
+        sourceText: String,
+        sourcePath: Option<String>,
+    ) -> Result<TemplateParser, rt::TsonicError> {
         let field_segments: js_abi::JsArray<crate::template::parser::tokens::TemplateSegment> =
-            segments;
+            segments.clone();
+        let field_segment_count: i32 = rt::conversions::usize_to_i32(segments.len())?;
         let field_index: i32 = 0;
         let field_defines: js_abi::JsMap<
             String,
             js_abi::JsArray<crate::template::nodes::TemplateNode>,
         > = js_abi::JsMap::new();
-        let field_source_path: Option<String> = source_path;
-        let field_source_text: String = source_text;
+        let field_source_path: Option<String> = sourcePath;
+        let field_source_text: String = sourceText;
         let field_range_depth: i32 = 0;
-        TemplateParser {
+        Ok(TemplateParser {
             segments: field_segments,
+            segmentCount: field_segment_count,
             index: field_index,
             defines: field_defines,
-            source_path: field_source_path,
-            source_text: field_source_text,
-            range_depth: field_range_depth,
-        }
+            sourcePath: field_source_path,
+            sourceText: field_source_text,
+            rangeDepth: field_range_depth,
+        })
     }
 
-    pub fn parse_root(&mut self) -> Result<crate::template::template_2::Template, rt::TsonicError> {
-        let result: ParseNodesResult = self.parse_nodes(
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn parseRoot(&mut self) -> Result<crate::template::template_2::Template, rt::TsonicError> {
+        let result: ParseNodesResult = self.parseNodes(
             false,
             false,
             Option::<crate::template::parser::tokens::TemplateSegment>::None,
@@ -200,74 +209,73 @@ impl TemplateParser {
         crate::template::template_2::Template::new(
             result.state.with(|state| state.nodes.clone()),
             self.defines.clone(),
-            self.source_path.clone(),
+            self.sourcePath.clone(),
         )
     }
 
-    pub fn parse_independent_nodes(
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn parseIndependentNodes(
         &mut self,
         opening: crate::template::parser::tokens::TemplateSegment,
     ) -> Result<ParseNodesResult, rt::TsonicError> {
-        let previous_range_depth: i32 = self.range_depth;
+        let previousRangeDepth: i32 = self.rangeDepth;
         {
             let field_value = 0;
-            self.range_depth = field_value
+            self.rangeDepth = field_value
         };
-        let result: ParseNodesResult = self.parse_nodes(false, true, Some(opening))?;
+        let result: ParseNodesResult = self.parseNodes(false, true, Some(opening))?;
         {
-            let field_value_2 = previous_range_depth;
-            self.range_depth = field_value_2
+            let field_value_2 = previousRangeDepth;
+            self.rangeDepth = field_value_2
         };
         Ok(result)
     }
 
-    pub fn parse_if(
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn parseIf(
         &mut self,
         control: ParsedControlPipeline,
         opening: crate::template::parser::tokens::TemplateSegment,
     ) -> Result<crate::template::nodes::IfNode, rt::TsonicError> {
-        let then_result: ParseNodesResult = self.parse_nodes(true, true, Some(opening.clone()))?;
-        if then_result.state.with(|state| state.terminator) == TemplateTerminator::End {
+        let thenResult: ParseNodesResult = self.parseNodes(true, true, Some(opening.clone()))?;
+        if thenResult.state.with(|state| state.terminator) == TemplateTerminator::End {
             return crate::template::nodes::IfNode::new(
                 control.state.with(|state| state.pipeline.clone()),
                 control.state.with(|state| state.binding.clone()),
-                then_result.state.with(|state| state.nodes.clone()),
+                thenResult.state.with(|state| state.nodes.clone()),
                 js_abi::JsArray::from_dense(vec![]),
             );
         }
-        if then_result.state.with(|state| state.terminator) != TemplateTerminator::Else {
+        if thenResult.state.with(|state| state.terminator) != TemplateTerminator::Else {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_TEMPLATE_BLOCK_UNCLOSED"),
                     String::from("Template if block has no closing '{{ end }}'"),
-                    self.source_path.clone(),
-                    Some(rt::conversions::i32_to_f64(
-                        opening.state.with(|state| state.line),
-                    )),
-                    Some(rt::conversions::i32_to_f64(
-                        opening.state.with(|state| state.column),
-                    )),
+                    self.sourcePath.clone(),
+                    Some(opening.state.with(|state| state.line)),
+                    Some(opening.state.with(|state| state.column)),
                 )?,
             ));
         }
         crate::template::nodes::IfNode::new(
             control.state.with(|state| state.pipeline.clone()),
             control.state.with(|state| state.binding.clone()),
-            then_result.state.with(|state| state.nodes.clone()),
-            self.parse_alternative(then_result.clone(), opening.clone())?,
+            thenResult.state.with(|state| state.nodes.clone()),
+            self.parseAlternative(thenResult.clone(), opening.clone())?,
         )
     }
 
-    pub fn parse_with(
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn parseWith(
         &mut self,
         control: ParsedControlPipeline,
         opening: crate::template::parser::tokens::TemplateSegment,
-        source_segment_index: i32,
+        sourceSegmentIndex: i32,
     ) -> Result<crate::template::nodes::WithNode, rt::TsonicError> {
-        let body: ParseNodesResult = self.parse_nodes(true, true, Some(opening.clone()))?;
-        let else_nodes: js_abi::JsArray<crate::template::nodes::TemplateNode> =
+        let body: ParseNodesResult = self.parseNodes(true, true, Some(opening.clone()))?;
+        let elseNodes: js_abi::JsArray<crate::template::nodes::TemplateNode> =
             if body.state.with(|state| state.terminator) == TemplateTerminator::Else {
-                self.parse_alternative(body.clone(), opening.clone())?
+                self.parseAlternative(body.clone(), opening.clone())?
             } else {
                 js_abi::JsArray::from_dense(vec![])
             };
@@ -275,60 +283,57 @@ impl TemplateParser {
             control.state.with(|state| state.pipeline.clone()),
             control.state.with(|state| state.binding.clone()),
             body.state.with(|state| state.nodes.clone()),
-            else_nodes,
-            self.source_text.clone(),
-            source_segment_index,
+            elseNodes,
+            self.sourceText.clone(),
+            sourceSegmentIndex,
         )
     }
 
-    pub fn parse_alternative(
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn parseAlternative(
         &mut self,
         result: ParseNodesResult,
         opening: crate::template::parser::tokens::TemplateSegment,
     ) -> Result<js_abi::JsArray<crate::template::nodes::TemplateNode>, rt::TsonicError> {
-        let tokens: js_abi::JsArray<String> = result.state.with(|state| state.else_tokens.clone());
-        if rt::conversions::usize_to_i32(tokens.len())? == 1 {
+        let tokens: js_abi::JsArray<String> = result.state.with(|state| state.elseTokens.clone());
+        if tokens.len() == 1 {
             return Ok(self
-                .parse_nodes(false, true, Some(opening.clone()))?
+                .parseNodes(false, true, Some(opening.clone()))?
                 .state
                 .with(|state| state.nodes.clone()));
         }
-        let else_segment: crate::template::parser::tokens::TemplateSegment = rt::option_coalesce(
-            result.state.with(|state| state.terminator_segment.clone()),
+        let elseSegment: crate::template::parser::tokens::TemplateSegment = rt::option_coalesce(
+            result.state.with(|state| state.terminatorSegment.clone()),
             core::convert::identity,
             || opening.clone(),
         );
-        if rt::conversions::usize_to_i32(tokens.len())? >= 2
-            && tokens.get_number(1.0) == Some(String::from("if"))
-        {
-            let control: ParsedControlPipeline = parse_control_pipeline(
-                crate::template::parser::tokens::slice_tokens(tokens.clone(), 2)?,
-                self.source_path.clone(),
-                else_segment.state.with(|state| state.line),
-                else_segment.state.with(|state| state.column),
+        if tokens.len() >= 2 && tokens.get_number(1.0) == Some(String::from("if")) {
+            let control: ParsedControlPipeline = parseControlPipeline(
+                crate::template::parser::tokens::sliceTokens(tokens.clone(), 2)?,
+                self.sourcePath.clone(),
+                elseSegment.state.with(|state| state.line),
+                elseSegment.state.with(|state| state.column),
             )?;
             return Ok(js_abi::JsArray::from_dense(vec![{
-                let upcast_value = self.parse_if(control, else_segment.clone())?;
+                let upcast_value = self.parseIf(control, elseSegment.clone())?;
                 crate::template::nodes::TemplateNode {
                     identity: upcast_value.identity.clone(),
                     dispatch: upcast_value.dispatch.clone(),
                 }
             }]));
         }
-        if rt::conversions::usize_to_i32(tokens.len())? >= 2
-            && tokens.get_number(1.0) == Some(String::from("with"))
-        {
-            let control: ParsedControlPipeline = parse_control_pipeline(
-                crate::template::parser::tokens::slice_tokens(tokens.clone(), 2)?,
-                self.source_path.clone(),
-                else_segment.state.with(|state| state.line),
-                else_segment.state.with(|state| state.column),
+        if tokens.len() >= 2 && tokens.get_number(1.0) == Some(String::from("with")) {
+            let control: ParsedControlPipeline = parseControlPipeline(
+                crate::template::parser::tokens::sliceTokens(tokens.clone(), 2)?,
+                self.sourcePath.clone(),
+                elseSegment.state.with(|state| state.line),
+                elseSegment.state.with(|state| state.column),
             )?;
             return Ok(js_abi::JsArray::from_dense(vec![{
-                let upcast_value_2 = self.parse_with(
+                let upcast_value_2 = self.parseWith(
                     control,
-                    else_segment.clone(),
-                    result.state.with(|state| state.terminator_segment_index),
+                    elseSegment.clone(),
+                    result.state.with(|state| state.terminatorSegmentIndex),
                 )?;
                 crate::template::nodes::TemplateNode {
                     identity: upcast_value_2.identity.clone(),
@@ -337,34 +342,31 @@ impl TemplateParser {
             }]));
         }
         Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_TEMPLATE_ELSE_ACTION_INVALID"),
                 String::from("Template else action supports only 'if' or 'with' continuations"),
-                self.source_path.clone(),
-                Some(rt::conversions::i32_to_f64(
-                    else_segment.state.with(|state| state.line),
-                )),
-                Some(rt::conversions::i32_to_f64(
-                    else_segment.state.with(|state| state.column),
-                )),
+                self.sourcePath.clone(),
+                Some(elseSegment.state.with(|state| state.line)),
+                Some(elseSegment.state.with(|state| state.column)),
             )?,
         ))
     }
 
-    pub fn parse_nodes(
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn parseNodes(
         &mut self,
-        allow_else: bool,
-        require_end: bool,
+        allowElse: bool,
+        requireEnd: bool,
         opening: Option<crate::template::parser::tokens::TemplateSegment>,
     ) -> Result<ParseNodesResult, rt::TsonicError> {
         let nodes: js_abi::JsArray<crate::template::nodes::TemplateNode> =
             js_abi::JsArray::from_dense(vec![]);
-        'loop_value: while self.index < rt::conversions::usize_to_i32(self.segments.len())? {
-            let source_segment_index: i32 = self.index;
+        'loop_value: while self.index < self.segmentCount {
+            let sourceSegmentIndex: i32 = self.index;
             let segment: crate::template::parser::tokens::TemplateSegment = {
                 let flow_input = {
                     let operation_input_0 = self.segments.clone();
-                    operation_input_0.get_number(rt::conversions::i32_to_f64(self.index))
+                    operation_input_0.get_number(self.index)
                 };
                 match flow_input {
                     Some(flow_value) => flow_value,
@@ -379,19 +381,16 @@ impl TemplateParser {
                     update_next
                 }
             };
-            if !segment.state.with(|state| state.is_action) {
-                {
-                    let operation_input_0_2 = nodes.clone();
-                    operation_input_0_2.push_many_discard([{
-                        let upcast_value = crate::template::nodes::TextNode::new(
-                            segment.state.with(|state| state.text.clone()),
-                        )?;
-                        crate::template::nodes::TemplateNode {
-                            identity: upcast_value.identity.clone(),
-                            dispatch: upcast_value.dispatch.clone(),
-                        }
-                    }])
-                };
+            if !segment.state.with(|state| state.isAction) {
+                nodes.push_many_discard([{
+                    let upcast_value = crate::template::nodes::TextNode::new(
+                        segment.state.with(|state| state.text.clone()),
+                    )?;
+                    crate::template::nodes::TemplateNode {
+                        identity: upcast_value.identity.clone(),
+                        dispatch: upcast_value.dispatch.clone(),
+                    }
+                }]);
                 continue 'loop_value;
             }
             if js_string::starts_with_from_start(
@@ -404,13 +403,13 @@ impl TemplateParser {
                 continue 'loop_value;
             }
             let tokens: js_abi::JsArray<String> =
-                crate::template::parser::tokens::tokenize_template_action(
+                crate::template::parser::tokens::tokenizeTemplateAction(
                     segment.state.with(|state| state.text.clone()),
                     Some(segment.state.with(|state| state.line)),
                     Some(segment.state.with(|state| state.column)),
-                    self.source_path.clone(),
+                    self.sourcePath.clone(),
                 )?;
-            if rt::conversions::usize_to_i32(tokens.len())? == 0 {
+            if tokens.is_empty() {
                 continue 'loop_value;
             }
             let head: String = match tokens.get_number(0.0) {
@@ -418,18 +417,14 @@ impl TemplateParser {
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if head == "end" {
-                if !require_end {
+                if !requireEnd {
                     return Err(rt::TsonicError::TsumoError(
-                        crate::diagnostics::create_tsumo_error(
+                        crate::diagnostics::createTsumoError(
                             String::from("TSUMO_TEMPLATE_END_UNEXPECTED"),
                             String::from("Template contains '{{ end }}' without an open block"),
-                            self.source_path.clone(),
-                            Some(rt::conversions::i32_to_f64(
-                                segment.state.with(|state| state.line),
-                            )),
-                            Some(rt::conversions::i32_to_f64(
-                                segment.state.with(|state| state.column),
-                            )),
+                            self.sourcePath.clone(),
+                            Some(segment.state.with(|state| state.line)),
+                            Some(segment.state.with(|state| state.column)),
                         )?,
                     ));
                 }
@@ -438,24 +433,20 @@ impl TemplateParser {
                     TemplateTerminator::End,
                     js_abi::JsArray::from_dense(vec![]),
                     Some(segment.clone()),
-                    source_segment_index,
+                    sourceSegmentIndex,
                 );
             }
             if head == "else" {
-                if !allow_else {
+                if !allowElse {
                     return Err(rt::TsonicError::TsumoError(
-                        crate::diagnostics::create_tsumo_error(
+                        crate::diagnostics::createTsumoError(
                             String::from("TSUMO_TEMPLATE_ELSE_UNEXPECTED"),
                             String::from(
                                 "Template contains '{{ else }}' outside an if, with, or range block",
                             ),
-                            self.source_path.clone(),
-                            Some(rt::conversions::i32_to_f64(
-                                segment.state.with(|state| state.line),
-                            )),
-                            Some(rt::conversions::i32_to_f64(
-                                segment.state.with(|state| state.column),
-                            )),
+                            self.sourcePath.clone(),
+                            Some(segment.state.with(|state| state.line)),
+                            Some(segment.state.with(|state| state.column)),
                         )?,
                     ));
                 }
@@ -464,13 +455,13 @@ impl TemplateParser {
                     TemplateTerminator::Else,
                     tokens.clone(),
                     Some(segment.clone()),
-                    source_segment_index,
+                    sourceSegmentIndex,
                 );
             }
             if head == "break" || head == "continue" {
-                if rt::conversions::usize_to_i32(tokens.len())? != 1 {
+                if tokens.len() != 1 {
                     return Err(rt::TsonicError::TsumoError(
-                        crate::diagnostics::create_tsumo_error(
+                        crate::diagnostics::createTsumoError(
                             String::from("TSUMO_TEMPLATE_LOOP_CONTROL_INVALID"),
                             format!(
                                 "{}{}{}",
@@ -478,19 +469,15 @@ impl TemplateParser {
                                 head,
                                 String::from(" action cannot have arguments")
                             ),
-                            self.source_path.clone(),
-                            Some(rt::conversions::i32_to_f64(
-                                segment.state.with(|state| state.line),
-                            )),
-                            Some(rt::conversions::i32_to_f64(
-                                segment.state.with(|state| state.column),
-                            )),
+                            self.sourcePath.clone(),
+                            Some(segment.state.with(|state| state.line)),
+                            Some(segment.state.with(|state| state.column)),
                         )?,
                     ));
                 }
-                if self.range_depth == 0 {
+                if self.rangeDepth == 0 {
                     return Err(rt::TsonicError::TsumoError(
-                        crate::diagnostics::create_tsumo_error(
+                        crate::diagnostics::createTsumoError(
                             if head == "break" {
                                 String::from("TSUMO_TEMPLATE_BREAK_OUTSIDE_RANGE")
                             } else {
@@ -502,52 +489,41 @@ impl TemplateParser {
                                 head,
                                 String::from(" action is only valid inside a range body")
                             ),
-                            self.source_path.clone(),
-                            Some(rt::conversions::i32_to_f64(
-                                segment.state.with(|state| state.line),
-                            )),
-                            Some(rt::conversions::i32_to_f64(
-                                segment.state.with(|state| state.column),
-                            )),
+                            self.sourcePath.clone(),
+                            Some(segment.state.with(|state| state.line)),
+                            Some(segment.state.with(|state| state.column)),
                         )?,
                     ));
                 }
-                {
-                    let operation_input_0_3 = nodes.clone();
-                    operation_input_0_3.push_many_discard([if head == "break" {
-                        let upcast_value_2 = crate::template::nodes::BreakNode::new();
-                        crate::template::nodes::TemplateNode {
-                            identity: upcast_value_2.identity.clone(),
-                            dispatch: upcast_value_2.dispatch.clone(),
-                        }
-                    } else {
-                        let upcast_value_3 = crate::template::nodes::ContinueNode::new();
-                        crate::template::nodes::TemplateNode {
-                            identity: upcast_value_3.identity.clone(),
-                            dispatch: upcast_value_3.dispatch.clone(),
-                        }
-                    }])
-                };
+                nodes.push_many_discard([if head == "break" {
+                    let upcast_value_2 = crate::template::nodes::BreakNode::new();
+                    crate::template::nodes::TemplateNode {
+                        identity: upcast_value_2.identity.clone(),
+                        dispatch: upcast_value_2.dispatch.clone(),
+                    }
+                } else {
+                    let upcast_value_3 = crate::template::nodes::ContinueNode::new();
+                    crate::template::nodes::TemplateNode {
+                        identity: upcast_value_3.identity.clone(),
+                        dispatch: upcast_value_3.dispatch.clone(),
+                    }
+                }]);
                 continue 'loop_value;
             }
             if head == "define" {
-                if rt::conversions::usize_to_i32(tokens.len())? < 2 {
+                if tokens.len() < 2 {
                     return Err(rt::TsonicError::TsumoError(
-                        crate::diagnostics::create_tsumo_error(
+                        crate::diagnostics::createTsumoError(
                             String::from("TSUMO_TEMPLATE_DEFINE_NAME_MISSING"),
                             String::from("Template define action requires a name"),
-                            self.source_path.clone(),
-                            Some(rt::conversions::i32_to_f64(
-                                segment.state.with(|state| state.line),
-                            )),
-                            Some(rt::conversions::i32_to_f64(
-                                segment.state.with(|state| state.column),
-                            )),
+                            self.sourcePath.clone(),
+                            Some(segment.state.with(|state| state.line)),
+                            Some(segment.state.with(|state| state.column)),
                         )?,
                     ));
                 }
                 let name: String = rt::option_coalesce(
-                    crate::template::parser::tokens::parse_string_literal(&match tokens
+                    crate::template::parser::tokens::parseStringLiteral(&match tokens
                         .get_number(1.0)
                     {
                         Some(flow_value_3) => flow_value_3,
@@ -561,7 +537,7 @@ impl TemplateParser {
                 );
                 if self.defines.has(&name) {
                     return Err(rt::TsonicError::TsumoError(
-                        crate::diagnostics::create_tsumo_error(
+                        crate::diagnostics::createTsumoError(
                             String::from("TSUMO_TEMPLATE_DEFINE_DUPLICATE"),
                             format!(
                                 "{}{}{}",
@@ -569,42 +545,34 @@ impl TemplateParser {
                                 name,
                                 String::from("' is declared more than once")
                             ),
-                            self.source_path.clone(),
-                            Some(rt::conversions::i32_to_f64(
-                                segment.state.with(|state| state.line),
-                            )),
-                            Some(rt::conversions::i32_to_f64(
-                                segment.state.with(|state| state.column),
-                            )),
+                            self.sourcePath.clone(),
+                            Some(segment.state.with(|state| state.line)),
+                            Some(segment.state.with(|state| state.column)),
                         )?,
                     ));
                 }
-                let body: ParseNodesResult = self.parse_independent_nodes(segment.clone())?;
+                let body: ParseNodesResult = self.parseIndependentNodes(segment.clone())?;
                 {
-                    let operation_input_0_4 = self.defines.clone();
-                    operation_input_0_4
-                        .set_discard(name.clone(), body.state.with(|state| state.nodes.clone()))
+                    let operation_input_0_2 = self.defines.clone();
+                    operation_input_0_2
+                        .set_discard(name, body.state.with(|state| state.nodes.clone()))
                 };
                 continue 'loop_value;
             }
             if head == "block" {
-                if rt::conversions::usize_to_i32(tokens.len())? < 2 {
+                if tokens.len() < 2 {
                     return Err(rt::TsonicError::TsumoError(
-                        crate::diagnostics::create_tsumo_error(
+                        crate::diagnostics::createTsumoError(
                             String::from("TSUMO_TEMPLATE_BLOCK_NAME_MISSING"),
                             String::from("Template block action requires a name"),
-                            self.source_path.clone(),
-                            Some(rt::conversions::i32_to_f64(
-                                segment.state.with(|state| state.line),
-                            )),
-                            Some(rt::conversions::i32_to_f64(
-                                segment.state.with(|state| state.column),
-                            )),
+                            self.sourcePath.clone(),
+                            Some(segment.state.with(|state| state.line)),
+                            Some(segment.state.with(|state| state.column)),
                         )?,
                     ));
                 }
                 let name: String = rt::option_coalesce(
-                    crate::template::parser::tokens::parse_string_literal(&match tokens
+                    crate::template::parser::tokens::parseStringLiteral(&match tokens
                         .get_number(1.0)
                     {
                         Some(flow_value_5) => flow_value_5,
@@ -616,213 +584,187 @@ impl TemplateParser {
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                 );
-                let context_tokens: js_abi::JsArray<String> =
-                    if rt::conversions::usize_to_i32(tokens.len())? >= 3 {
-                        crate::template::parser::tokens::slice_tokens(tokens.clone(), 2)?
-                    } else {
-                        js_abi::JsArray::from_dense(vec![String::from(".")])
-                    };
-                let body: ParseNodesResult = self.parse_independent_nodes(segment.clone())?;
-                {
-                    let operation_input_0_5 = nodes.clone();
-                    operation_input_0_5.push_many_discard([{
-                        let upcast_value_4 = crate::template::nodes::BlockNode::new(
-                            name.clone(),
-                            crate::template::parser::parse_pipeline::parse_pipeline(
-                                context_tokens.clone(),
-                                self.source_path.clone(),
-                                Some(segment.state.with(|state| state.line)),
-                                Some(segment.state.with(|state| state.column)),
-                            )?,
-                            body.state.with(|state| state.nodes.clone()),
-                        )?;
-                        crate::template::nodes::TemplateNode {
-                            identity: upcast_value_4.identity.clone(),
-                            dispatch: upcast_value_4.dispatch.clone(),
-                        }
-                    }])
+                let contextTokens: js_abi::JsArray<String> = if tokens.len() >= 3 {
+                    crate::template::parser::tokens::sliceTokens(tokens.clone(), 2)?
+                } else {
+                    js_abi::JsArray::from_dense(vec![String::from(".")])
                 };
+                let body: ParseNodesResult = self.parseIndependentNodes(segment.clone())?;
+                nodes.push_many_discard([{
+                    let upcast_value_4 = crate::template::nodes::BlockNode::new(
+                        name,
+                        crate::template::parser::parse_pipeline::parsePipeline(
+                            contextTokens,
+                            self.sourcePath.clone(),
+                            Some(segment.state.with(|state| state.line)),
+                            Some(segment.state.with(|state| state.column)),
+                        )?,
+                        body.state.with(|state| state.nodes.clone()),
+                    )?;
+                    crate::template::nodes::TemplateNode {
+                        identity: upcast_value_4.identity.clone(),
+                        dispatch: upcast_value_4.dispatch.clone(),
+                    }
+                }]);
                 continue 'loop_value;
             }
             if head == "if" {
-                let control: ParsedControlPipeline = parse_control_pipeline(
-                    crate::template::parser::tokens::slice_tokens(tokens.clone(), 1)?,
-                    self.source_path.clone(),
+                let control: ParsedControlPipeline = parseControlPipeline(
+                    crate::template::parser::tokens::sliceTokens(tokens.clone(), 1)?,
+                    self.sourcePath.clone(),
                     segment.state.with(|state| state.line),
                     segment.state.with(|state| state.column),
                 )?;
-                {
-                    let operation_input_0_6 = nodes.clone();
-                    operation_input_0_6.push_many_discard([{
-                        let upcast_value_5 = self.parse_if(control.clone(), segment.clone())?;
-                        crate::template::nodes::TemplateNode {
-                            identity: upcast_value_5.identity.clone(),
-                            dispatch: upcast_value_5.dispatch.clone(),
-                        }
-                    }])
-                };
+                nodes.push_many_discard([{
+                    let upcast_value_5 = self.parseIf(control, segment.clone())?;
+                    crate::template::nodes::TemplateNode {
+                        identity: upcast_value_5.identity.clone(),
+                        dispatch: upcast_value_5.dispatch.clone(),
+                    }
+                }]);
                 continue 'loop_value;
             }
             if head == "with" {
-                let control: ParsedControlPipeline = parse_control_pipeline(
-                    crate::template::parser::tokens::slice_tokens(tokens.clone(), 1)?,
-                    self.source_path.clone(),
+                let control: ParsedControlPipeline = parseControlPipeline(
+                    crate::template::parser::tokens::sliceTokens(tokens.clone(), 1)?,
+                    self.sourcePath.clone(),
                     segment.state.with(|state| state.line),
                     segment.state.with(|state| state.column),
                 )?;
-                {
-                    let operation_input_0_7 = nodes.clone();
-                    operation_input_0_7.push_many_discard([{
-                        let upcast_value_6 = self.parse_with(
-                            control.clone(),
-                            segment.clone(),
-                            source_segment_index,
-                        )?;
-                        crate::template::nodes::TemplateNode {
-                            identity: upcast_value_6.identity.clone(),
-                            dispatch: upcast_value_6.dispatch.clone(),
-                        }
-                    }])
-                };
+                nodes.push_many_discard([{
+                    let upcast_value_6 =
+                        self.parseWith(control, segment.clone(), sourceSegmentIndex)?;
+                    crate::template::nodes::TemplateNode {
+                        identity: upcast_value_6.identity.clone(),
+                        dispatch: upcast_value_6.dispatch.clone(),
+                    }
+                }]);
                 continue 'loop_value;
             }
             if head == "range" {
-                let mut token_index: i32 = 1;
-                let mut key_variable: Option<String> = Option::<String>::None;
-                let mut value_variable: Option<String> = Option::<String>::None;
-                let first: String = if token_index < rt::conversions::usize_to_i32(tokens.len())? {
-                    match tokens.get_number(rt::conversions::i32_to_f64(token_index)) {
+                let tokenCount: i32 = rt::conversions::usize_to_i32(tokens.len())?;
+                let mut tokenIndex: i32 = 1;
+                let mut keyVariable: Option<String> = Option::<String>::None;
+                let mut valueVariable: Option<String> = Option::<String>::None;
+                let first: String = if tokenIndex < tokenCount {
+                    match tokens.get_number(tokenIndex) {
                         Some(flow_value_7) => flow_value_7,
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                 } else {
                     String::from("")
                 };
-                let is_variable: bool = js_string::starts_with_from_start(&first, "$")
+                let isVariable: bool = js_string::starts_with_from_start(&first, "$")
                     && first != "$"
                     && !js_string::starts_with_from_start(&first, "$.");
-                let has_value_declaration: bool = token_index + 1
-                    < rt::conversions::usize_to_i32(tokens.len())?
-                    && (tokens.get_number(rt::conversions::i32_to_f64(token_index + 1))
-                        == Some(String::from(":="))
-                        || tokens.get_number(rt::conversions::i32_to_f64(token_index + 1))
-                            == Some(String::from("=")));
-                let has_key_value_declaration: bool = token_index + 3
-                    < rt::conversions::usize_to_i32(tokens.len())?
+                let hasValueDeclaration: bool = tokenIndex + 1 < tokenCount
+                    && (tokens.get_number(tokenIndex + 1) == Some(String::from(":="))
+                        || tokens.get_number(tokenIndex + 1) == Some(String::from("=")));
+                let hasKeyValueDeclaration: bool = tokenIndex + 3 < tokenCount
                     && js_string::starts_with_from_start(
-                        &match tokens.get_number(rt::conversions::i32_to_f64(token_index)) {
+                        &match tokens.get_number(tokenIndex) {
                             Some(flow_value_8) => flow_value_8,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                         "$",
                     )
-                    && tokens.get_number(rt::conversions::i32_to_f64(token_index + 1))
-                        == Some(String::from(","))
+                    && tokens.get_number(tokenIndex + 1) == Some(String::from(","))
                     && js_string::starts_with_from_start(
-                        &match tokens.get_number(rt::conversions::i32_to_f64(token_index + 2)) {
+                        &match tokens.get_number(tokenIndex + 2) {
                             Some(flow_value_9) => flow_value_9,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                         "$",
                     )
-                    && (tokens.get_number(rt::conversions::i32_to_f64(token_index + 3))
-                        == Some(String::from(":="))
-                        || tokens.get_number(rt::conversions::i32_to_f64(token_index + 3))
-                            == Some(String::from("=")));
-                let expression_tokens: js_abi::JsArray<String> = if has_key_value_declaration {
-                    key_variable = Some(crate::utils::strings::substring_from(
-                        &match tokens.get_number(rt::conversions::i32_to_f64(token_index)) {
+                    && (tokens.get_number(tokenIndex + 3) == Some(String::from(":="))
+                        || tokens.get_number(tokenIndex + 3) == Some(String::from("=")));
+                let expressionTokens: js_abi::JsArray<String> = if hasKeyValueDeclaration {
+                    keyVariable = Some(crate::utils::strings::substringFrom(
+                        &match tokens.get_number(tokenIndex) {
                             Some(flow_value_10) => flow_value_10,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                         1,
                     )?);
-                    value_variable = Some(crate::utils::strings::substring_from(
-                        &match tokens.get_number(rt::conversions::i32_to_f64(token_index + 2)) {
+                    valueVariable = Some(crate::utils::strings::substringFrom(
+                        &match tokens.get_number(tokenIndex + 2) {
                             Some(flow_value_11) => flow_value_11,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                         1,
                     )?);
-                    token_index += 4;
-                    crate::template::parser::tokens::slice_tokens(tokens.clone(), token_index)?
-                } else if is_variable && has_value_declaration {
-                    value_variable = Some(crate::utils::strings::substring_from(
-                        &match tokens.get_number(rt::conversions::i32_to_f64(token_index)) {
+                    tokenIndex += 4;
+                    crate::template::parser::tokens::sliceTokens(tokens.clone(), tokenIndex)?
+                } else if isVariable && hasValueDeclaration {
+                    valueVariable = Some(crate::utils::strings::substringFrom(
+                        &match tokens.get_number(tokenIndex) {
                             Some(flow_value_12) => flow_value_12,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                         1,
                     )?);
-                    token_index += 2;
-                    crate::template::parser::tokens::slice_tokens(tokens.clone(), token_index)?
+                    tokenIndex += 2;
+                    crate::template::parser::tokens::sliceTokens(tokens.clone(), tokenIndex)?
                 } else {
-                    crate::template::parser::tokens::slice_tokens(tokens.clone(), 1)?
+                    crate::template::parser::tokens::sliceTokens(tokens.clone(), 1)?
                 };
                 {
-                    let update_previous_2 = self.range_depth;
+                    let update_previous_2 = self.rangeDepth;
                     let update_next_2 = update_previous_2 + 1;
                     {
-                        self.range_depth = update_next_2;
+                        self.rangeDepth = update_next_2;
                         update_next_2
                     }
                 };
-                let body: ParseNodesResult = self.parse_nodes(true, true, Some(segment.clone()))?;
+                let body: ParseNodesResult = self.parseNodes(true, true, Some(segment.clone()))?;
                 {
-                    let update_previous_3 = self.range_depth;
+                    let update_previous_3 = self.rangeDepth;
                     let update_next_3 = update_previous_3 - 1;
                     {
-                        self.range_depth = update_next_3;
+                        self.rangeDepth = update_next_3;
                         update_next_3
                     }
                 };
-                let else_nodes: js_abi::JsArray<crate::template::nodes::TemplateNode> =
+                let elseNodes: js_abi::JsArray<crate::template::nodes::TemplateNode> =
                     if body.state.with(|state| state.terminator) == TemplateTerminator::Else {
-                        self.parse_alternative(body.clone(), segment.clone())?
+                        self.parseAlternative(body.clone(), segment.clone())?
                     } else {
                         js_abi::JsArray::from_dense(vec![])
                     };
-                {
-                    let operation_input_0_8 = nodes.clone();
-                    operation_input_0_8.push_many_discard([{
-                        let upcast_value_7 = crate::template::nodes::RangeNode::new(
-                            crate::template::parser::parse_pipeline::parse_pipeline(
-                                expression_tokens.clone(),
-                                self.source_path.clone(),
-                                Some(segment.state.with(|state| state.line)),
-                                Some(segment.state.with(|state| state.column)),
-                            )?,
-                            key_variable.clone(),
-                            value_variable.clone(),
-                            body.state.with(|state| state.nodes.clone()),
-                            else_nodes.clone(),
-                        )?;
-                        crate::template::nodes::TemplateNode {
-                            identity: upcast_value_7.identity.clone(),
-                            dispatch: upcast_value_7.dispatch.clone(),
-                        }
-                    }])
-                };
+                nodes.push_many_discard([{
+                    let upcast_value_7 = crate::template::nodes::RangeNode::new(
+                        crate::template::parser::parse_pipeline::parsePipeline(
+                            expressionTokens.clone(),
+                            self.sourcePath.clone(),
+                            Some(segment.state.with(|state| state.line)),
+                            Some(segment.state.with(|state| state.column)),
+                        )?,
+                        keyVariable.clone(),
+                        valueVariable.clone(),
+                        body.state.with(|state| state.nodes.clone()),
+                        elseNodes,
+                    )?;
+                    crate::template::nodes::TemplateNode {
+                        identity: upcast_value_7.identity.clone(),
+                        dispatch: upcast_value_7.dispatch.clone(),
+                    }
+                }]);
                 continue 'loop_value;
             }
             if head == "template" {
-                if rt::conversions::usize_to_i32(tokens.len())? < 2 {
+                if tokens.len() < 2 {
                     return Err(rt::TsonicError::TsumoError(
-                        crate::diagnostics::create_tsumo_error(
+                        crate::diagnostics::createTsumoError(
                             String::from("TSUMO_TEMPLATE_INVOKE_NAME_MISSING"),
                             String::from("Template action requires a definition name"),
-                            self.source_path.clone(),
-                            Some(rt::conversions::i32_to_f64(
-                                segment.state.with(|state| state.line),
-                            )),
-                            Some(rt::conversions::i32_to_f64(
-                                segment.state.with(|state| state.column),
-                            )),
+                            self.sourcePath.clone(),
+                            Some(segment.state.with(|state| state.line)),
+                            Some(segment.state.with(|state| state.column)),
                         )?,
                     ));
                 }
                 let name: String = rt::option_coalesce(
-                    crate::template::parser::tokens::parse_string_literal(&match tokens
+                    crate::template::parser::tokens::parseStringLiteral(&match tokens
                         .get_number(1.0)
                     {
                         Some(flow_value_13) => flow_value_13,
@@ -834,33 +776,29 @@ impl TemplateParser {
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                 );
-                let context_tokens: js_abi::JsArray<String> =
-                    if rt::conversions::usize_to_i32(tokens.len())? >= 3 {
-                        crate::template::parser::tokens::slice_tokens(tokens.clone(), 2)?
-                    } else {
-                        js_abi::JsArray::from_dense(vec![String::from(".")])
-                    };
-                {
-                    let operation_input_0_9 = nodes.clone();
-                    operation_input_0_9.push_many_discard([{
-                        let upcast_value_8 = crate::template::nodes::TemplateInvokeNode::new(
-                            name.clone(),
-                            crate::template::parser::parse_pipeline::parse_pipeline(
-                                context_tokens.clone(),
-                                self.source_path.clone(),
-                                Some(segment.state.with(|state| state.line)),
-                                Some(segment.state.with(|state| state.column)),
-                            )?,
-                        )?;
-                        crate::template::nodes::TemplateNode {
-                            identity: upcast_value_8.identity.clone(),
-                            dispatch: upcast_value_8.dispatch.clone(),
-                        }
-                    }])
+                let contextTokens: js_abi::JsArray<String> = if tokens.len() >= 3 {
+                    crate::template::parser::tokens::sliceTokens(tokens.clone(), 2)?
+                } else {
+                    js_abi::JsArray::from_dense(vec![String::from(".")])
                 };
+                nodes.push_many_discard([{
+                    let upcast_value_8 = crate::template::nodes::TemplateInvokeNode::new(
+                        name,
+                        crate::template::parser::parse_pipeline::parsePipeline(
+                            contextTokens,
+                            self.sourcePath.clone(),
+                            Some(segment.state.with(|state| state.line)),
+                            Some(segment.state.with(|state| state.column)),
+                        )?,
+                    )?;
+                    crate::template::nodes::TemplateNode {
+                        identity: upcast_value_8.identity.clone(),
+                        dispatch: upcast_value_8.dispatch.clone(),
+                    }
+                }]);
                 continue 'loop_value;
             }
-            if rt::conversions::usize_to_i32(tokens.len())? >= 3
+            if tokens.len() >= 3
                 && js_string::starts_with_from_start(&head, "$")
                 && head != "$"
                 && !js_string::starts_with_from_start(&head, "$.")
@@ -870,66 +808,53 @@ impl TemplateParser {
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 if operation == ":=" || operation == "=" {
-                    {
-                        let operation_input_0_10 = nodes.clone();
-                        operation_input_0_10.push_many_discard([{
-                            let upcast_value_9 = crate::template::nodes::AssignmentNode::new(
-                                crate::utils::strings::substring_from(&head, 1)?,
-                                crate::template::parser::parse_pipeline::parse_pipeline(
-                                    crate::template::parser::tokens::slice_tokens(
-                                        tokens.clone(),
-                                        2,
-                                    )?,
-                                    self.source_path.clone(),
-                                    Some(segment.state.with(|state| state.line)),
-                                    Some(segment.state.with(|state| state.column)),
-                                )?,
-                                operation == ":=",
-                            )?;
-                            crate::template::nodes::TemplateNode {
-                                identity: upcast_value_9.identity.clone(),
-                                dispatch: upcast_value_9.dispatch.clone(),
-                            }
-                        }])
-                    };
+                    nodes.push_many_discard([{
+                        let upcast_value_9 = crate::template::nodes::AssignmentNode::new(
+                            crate::utils::strings::substringFrom(&head, 1)?,
+                            crate::template::parser::parse_pipeline::parsePipeline(
+                                crate::template::parser::tokens::sliceTokens(tokens.clone(), 2)?,
+                                self.sourcePath.clone(),
+                                Some(segment.state.with(|state| state.line)),
+                                Some(segment.state.with(|state| state.column)),
+                            )?,
+                            operation == ":=",
+                        )?;
+                        crate::template::nodes::TemplateNode {
+                            identity: upcast_value_9.identity.clone(),
+                            dispatch: upcast_value_9.dispatch.clone(),
+                        }
+                    }]);
                     continue 'loop_value;
                 }
             }
-            {
-                let operation_input_0_11 = nodes.clone();
-                operation_input_0_11.push_many_discard([{
-                    let upcast_value_10 = crate::template::nodes::OutputNode::new(
-                        crate::template::parser::parse_pipeline::parse_pipeline(
-                            tokens.clone(),
-                            self.source_path.clone(),
-                            Some(segment.state.with(|state| state.line)),
-                            Some(segment.state.with(|state| state.column)),
-                        )?,
-                        true,
-                    )?;
-                    crate::template::nodes::TemplateNode {
-                        identity: upcast_value_10.identity.clone(),
-                        dispatch: upcast_value_10.dispatch.clone(),
-                    }
-                }])
-            };
+            nodes.push_many_discard([{
+                let upcast_value_10 = crate::template::nodes::OutputNode::new(
+                    crate::template::parser::parse_pipeline::parsePipeline(
+                        tokens.clone(),
+                        self.sourcePath.clone(),
+                        Some(segment.state.with(|state| state.line)),
+                        Some(segment.state.with(|state| state.column)),
+                    )?,
+                    true,
+                )?;
+                crate::template::nodes::TemplateNode {
+                    identity: upcast_value_10.identity.clone(),
+                    dispatch: upcast_value_10.dispatch.clone(),
+                }
+            }]);
         }
-        if require_end {
+        if requireEnd {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_TEMPLATE_BLOCK_UNCLOSED"),
                     String::from("Template block has no closing '{{ end }}'"),
-                    self.source_path.clone(),
+                    self.sourcePath.clone(),
                     opening
                         .as_ref()
-                        .map(|optional_receiver| optional_receiver.state.with(|state| state.line))
-                        .map(rt::conversions::i32_to_f64),
-                    opening
-                        .as_ref()
-                        .map(|optional_receiver_2| {
-                            optional_receiver_2.state.with(|state| state.column)
-                        })
-                        .map(rt::conversions::i32_to_f64),
+                        .map(|optional_receiver| optional_receiver.state.with(|state| state.line)),
+                    opening.as_ref().map(|optional_receiver_2| {
+                        optional_receiver_2.state.with(|state| state.column)
+                    }),
                 )?,
             ));
         }
@@ -943,17 +868,18 @@ impl TemplateParser {
     }
 }
 
-pub fn parse_template(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseTemplate(
     template: String,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
 ) -> Result<crate::template::template_2::Template, rt::TsonicError> {
     TemplateParser::new(
-        crate::template::parser::tokens::scan_template_segments(
+        crate::template::parser::tokens::scanTemplateSegments(
             template.clone(),
-            source_path.clone(),
+            sourcePath.clone(),
         )?,
         template.clone(),
-        source_path.clone(),
-    )
-    .parse_root()
+        sourcePath.clone(),
+    )?
+    .parseRoot()
 }

@@ -4,25 +4,27 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn cache_key_part(value: String) -> Result<String, rt::TsonicError> {
-    Ok(format!(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn cacheKeyPart(value: String) -> String {
+    format!(
         "{}{}{}",
-        rt::source_string(&rt::conversions::usize_to_i32(js_string::js_len(&value))?),
+        rt::source_string(&js_string::js_len(&value)),
         String::from(":"),
         value
-    ))
+    )
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct JavaScriptBuildOptionsState {
-    pub target_path: Option<String>,
+    pub targetPath: Option<String>,
     pub minify: bool,
     pub format: String,
     pub target: String,
     pub platform: String,
-    pub source_map: String,
-    pub params_json: Option<String>,
-    pub jsx_factory: Option<String>,
+    pub sourceMap: String,
+    pub paramsJson: Option<String>,
+    pub jsxFactory: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -49,22 +51,23 @@ impl JavaScriptBuildOptions {
         let field_jsx_factory: Option<String> = Option::<String>::None;
         Ok(JavaScriptBuildOptions {
             state: rt::ObjectHandle::new(JavaScriptBuildOptionsState {
-                target_path: field_target_path,
+                targetPath: field_target_path,
                 minify: field_minify,
                 format: field_format,
                 target: field_target,
                 platform: field_platform,
-                source_map: field_source_map,
-                params_json: field_params_json,
-                jsx_factory: field_jsx_factory,
+                sourceMap: field_source_map,
+                paramsJson: field_params_json,
+                jsxFactory: field_jsx_factory,
             }),
         })
     }
 
-    pub fn cache_key(&self) -> Result<String, rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn cacheKey(&self) -> String {
         let values: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
             rt::option_coalesce(
-                self.state.with(|state| state.target_path.clone()),
+                self.state.with(|state| state.targetPath.clone()),
                 core::convert::identity,
                 || String::from(""),
             ),
@@ -76,34 +79,35 @@ impl JavaScriptBuildOptions {
             self.state.with(|state| state.format.clone()),
             self.state.with(|state| state.target.clone()),
             self.state.with(|state| state.platform.clone()),
-            self.state.with(|state| state.source_map.clone()),
+            self.state.with(|state| state.sourceMap.clone()),
             rt::option_coalesce(
-                self.state.with(|state| state.params_json.clone()),
+                self.state.with(|state| state.paramsJson.clone()),
                 core::convert::identity,
                 || String::from(""),
             ),
             rt::option_coalesce(
-                self.state.with(|state| state.jsx_factory.clone()),
+                self.state.with(|state| state.jsxFactory.clone()),
                 core::convert::identity,
                 || String::from(""),
             ),
         ]);
         let mut result: String = String::from("");
         {
-            let mut index: f64 = 0.0;
-            while index < (rt::conversions::usize_to_i32(values.len())? as f64) {
-                result.push_str(&cache_key_part(match values.get_number(index) {
+            let mut index: usize = 0;
+            while index < values.len() {
+                result.push_str(&cacheKeyPart(match values.get_number(index) {
                     Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
-                })?);
-                index += 1.0;
+                }));
+                index += 1;
             }
         }
-        Ok(result)
+        result
     }
 }
 
-pub fn source_extension(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn sourceExtension(
     resource: crate::resources::models::Resource,
 ) -> Result<String, rt::TsonicError> {
     let raw: String = rt::option_coalesce(
@@ -122,10 +126,10 @@ pub fn source_extension(
         || String::from("input.js"),
     );
     let extension: String = js_string::to_lower_case(
-        &crate::resources::paths::split_resource_file_name(
-            crate::resources::paths::split_resource_path(raw)?
+        &crate::resources::paths::splitResourceFileName(
+            crate::resources::paths::splitResourcePath(raw)?
                 .state
-                .with(|state| state.file_name.clone()),
+                .with(|state| state.fileName.clone()),
         )?
         .state
         .with(|state| state.extension.clone()),
@@ -136,13 +140,14 @@ pub fn source_extension(
     Ok(String::from(".js"))
 }
 
-pub fn output_relative_path(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn outputRelativePath(
     resource: crate::resources::models::Resource,
     options: JavaScriptBuildOptions,
 ) -> Result<String, rt::TsonicError> {
     let raw: String = rt::option_coalesce(
         rt::option_coalesce(
-            options.state.with(|state| state.target_path.clone()),
+            options.state.with(|state| state.targetPath.clone()),
             Some,
             || {
                 let dispatch_receiver = &resource;
@@ -153,28 +158,29 @@ pub fn output_relative_path(
         || String::from("script.js"),
     );
     let path: crate::resources::paths::ResourcePathParts =
-        crate::resources::paths::split_resource_path(raw)?;
+        crate::resources::paths::splitResourcePath(raw)?;
     let file: crate::resources::paths::ResourceFileNameParts =
-        crate::resources::paths::split_resource_file_name(
-            path.state.with(|state| state.file_name.clone()),
+        crate::resources::paths::splitResourceFileName(
+            path.state.with(|state| state.fileName.clone()),
         )?;
     Ok(format!(
         "{}{}{}",
         path.state.with(|state| state.directory.clone()),
-        file.state.with(|state| state.base_name.clone()),
+        file.state.with(|state| state.baseName.clone()),
         String::from(".js")
     ))
 }
 
-pub fn build_java_script_resource(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn buildJavaScriptResource(
     resource: crate::resources::models::Resource,
     options: JavaScriptBuildOptions,
 ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
-    let source_text: String =
-        crate::resources::text::read_resource_text(resource.clone(), String::from("js.Build"))?;
-    if options.state.with(|state| state.source_map.clone()) != "none" {
+    let sourceText: String =
+        crate::resources::text::readResourceText(resource.clone(), String::from("js.Build"))?;
+    if options.state.with(|state| state.sourceMap.clone()) != "none" {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_JAVASCRIPT_SOURCE_MAP_UNSUPPORTED"),
                 String::from("js.Build currently supports only sourceMap 'none'"),
                 None,
@@ -183,17 +189,17 @@ pub fn build_java_script_resource(
             )?,
         ));
     }
-    let configured_executable: Option<String> =
+    let configuredExecutable: Option<String> =
         tsonic_rust_node::process::environment().get("TSUMO_ESBUILD");
     let executable: String = {
-        let conditional_test = configured_executable.is_some()
-            && !js_string::trim(&match configured_executable.as_ref() {
+        let conditional_test = configuredExecutable.is_some()
+            && !js_string::trim(&match configuredExecutable.as_ref() {
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             })
             .is_empty();
         if conditional_test {
-            js_string::trim(&match configured_executable.as_ref() {
+            js_string::trim(&match configuredExecutable.as_ref() {
                 Some(flow_value_2) => flow_value_2.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             })
@@ -201,55 +207,55 @@ pub fn build_java_script_resource(
             String::from("esbuild")
         }
     };
-    let work_directory: String = tsonic_rust_node::fs::mkdtemp_sync(
+    let workDirectory: String = tsonic_rust_node::fs::mkdtemp_sync(
         tsonic_rust_node::path::join(&[tsonic_rust_node::os::tmpdir()?.as_str(), "tsumo-esbuild-"])
             .as_str(),
     )?;
     let try_body: rt::TsonicResult<rt::Completion<crate::resources::models::Resource>> =
         rt::completion_region(|| {
-            let mut input_path: String = {
-                let operation_input_0 = work_directory.clone();
+            let mut inputPath: String = {
+                let operation_input_0 = workDirectory.clone();
                 tsonic_rust_node::path::join(&[
                     operation_input_0.as_str(),
                     format!(
                         "{}{}",
                         String::from("input"),
-                        source_extension(resource.clone())?
+                        sourceExtension(resource.clone())?
                     )
                     .as_str(),
                 ])
             };
-            let source_path: Option<String> = {
+            let sourcePath: Option<String> = {
                 let dispatch_receiver = &resource;
                 dispatch_receiver.dispatch.read_resource_source_path()
             };
-            if source_path.is_some()
-                && crate::fs::file_exists(match source_path.as_ref() {
+            if sourcePath.is_some()
+                && crate::fs::fileExists(&match sourcePath.as_ref() {
                     Some(flow_value_3) => flow_value_3.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 })?
-                && crate::fs::read_text_file(match source_path.as_ref() {
+                && crate::fs::readTextFile(match sourcePath.as_ref() {
                     Some(flow_value_4) => flow_value_4.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
-                })? == source_text
+                })? == sourceText
             {
-                input_path = match source_path.as_ref() {
+                inputPath = match sourcePath.as_ref() {
                     Some(flow_value_5) => flow_value_5.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
             } else {
                 tsonic_rust_node::fs::write_file_sync_string(
-                    input_path.as_str(),
-                    source_text.as_str(),
+                    inputPath.as_str(),
+                    sourceText.as_str(),
                     "utf8",
                 )?;
             }
-            let output_path: String =
-                tsonic_rust_node::path::join(&[work_directory.as_str(), "output.js"]);
-            let arguments_list: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
-                input_path.clone(),
+            let outputPath: String =
+                tsonic_rust_node::path::join(&[workDirectory.as_str(), "output.js"]);
+            let argumentsList: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
+                inputPath.clone(),
                 String::from("--bundle"),
-                format!("{}{}", String::from("--outfile="), output_path),
+                format!("{}{}", String::from("--outfile="), outputPath),
                 format!(
                     "{}{}",
                     String::from("--format="),
@@ -269,67 +275,61 @@ pub fn build_java_script_resource(
                 String::from("--log-level=warning"),
             ]);
             if options.state.with(|state| state.minify) {
-                arguments_list.push_many_discard([String::from("--minify")]);
+                argumentsList.push_many_discard([String::from("--minify")]);
             }
-            let jsx_factory: Option<String> = options.state.with(|state| state.jsx_factory.clone());
-            if jsx_factory.is_some() {
-                {
-                    let operation_input_0_2 = arguments_list.clone();
-                    operation_input_0_2.push_many_discard([format!(
-                        "{}{}",
-                        String::from("--jsx-factory="),
-                        match jsx_factory.as_ref() {
-                            Some(flow_value_6) => flow_value_6.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        }
-                    )])
-                };
+            let jsxFactory: Option<String> = options.state.with(|state| state.jsxFactory.clone());
+            if jsxFactory.is_some() {
+                argumentsList.push_many_discard([format!(
+                    "{}{}",
+                    String::from("--jsx-factory="),
+                    match jsxFactory.as_ref() {
+                        Some(flow_value_6) => flow_value_6.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }
+                )]);
             }
-            let params_json: Option<String> = options.state.with(|state| state.params_json.clone());
-            if params_json.is_some() {
-                let params_path: String =
-                    tsonic_rust_node::path::join(&[work_directory.as_str(), "params.json"]);
+            let paramsJson: Option<String> = options.state.with(|state| state.paramsJson.clone());
+            if paramsJson.is_some() {
+                let paramsPath: String =
+                    tsonic_rust_node::path::join(&[workDirectory.as_str(), "params.json"]);
                 tsonic_rust_node::fs::write_file_sync_string(
-                    params_path.as_str(),
-                    match params_json.as_ref() {
+                    paramsPath.as_str(),
+                    match paramsJson.as_ref() {
                         Some(flow_value_7) => flow_value_7.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                     .as_str(),
                     "utf8",
                 )?;
-                {
-                    let operation_input_0_3 = arguments_list.clone();
-                    operation_input_0_3.push_many_discard([format!(
-                        "{}{}",
-                        String::from("--alias:@params="),
-                        params_path
-                    )])
-                };
+                argumentsList.push_many_discard([format!(
+                    "{}{}",
+                    String::from("--alias:@params="),
+                    paramsPath
+                )]);
             }
             let process: crate::resources::external_process::ExternalProcessResult =
-                crate::resources::external_process::run_external_process(
+                crate::resources::external_process::runExternalProcess(
                     executable,
-                    arguments_list.clone(),
+                    argumentsList.clone(),
                     String::from("esbuild"),
                     String::from("TSUMO_ESBUILD_START_FAILED"),
                 )?;
-            if process.state.with(|state| state.exit_code) != 0 {
+            if process.state.with(|state| state.exitCode) != 0 {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_ESBUILD_FAILED"),
                         if process
                             .state
-                            .with(|state| state.standard_error.clone())
+                            .with(|state| state.standardError.clone())
                             .is_empty()
                         {
                             format!(
                                 "{}{}",
                                 String::from("esbuild failed with exit code "),
-                                rt::source_string(&process.state.with(|state| state.exit_code))
+                                rt::source_string(&process.state.with(|state| state.exitCode))
                             )
                         } else {
-                            process.state.with(|state| state.standard_error.clone())
+                            process.state.with(|state| state.standardError.clone())
                         },
                         None,
                         None,
@@ -337,9 +337,9 @@ pub fn build_java_script_resource(
                     )?,
                 ));
             }
-            if !tsonic_rust_node::fs::exists_sync(output_path.as_str()) {
+            if !tsonic_rust_node::fs::exists_sync(outputPath.as_str()) {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_ESBUILD_OUTPUT_MISSING"),
                         String::from("esbuild completed without producing JavaScript"),
                         None,
@@ -349,7 +349,7 @@ pub fn build_java_script_resource(
                 ));
             }
             let text: String =
-                tsonic_rust_node::fs::read_file_sync_string(output_path.as_str(), "utf8")?;
+                tsonic_rust_node::fs::read_file_sync_string(outputPath.as_str(), "utf8")?;
             Ok(rt::Completion::Return(
                 crate::resources::models::Resource::new(
                     format!(
@@ -359,16 +359,16 @@ pub fn build_java_script_resource(
                             dispatch_receiver_2.dispatch.read_resource_id()
                         },
                         String::from("|js-build:"),
-                        options.cache_key()?
+                        options.cacheKey()
                     ),
                     {
                         let dispatch_receiver_3 = &resource;
                         dispatch_receiver_3.dispatch.read_resource_source_path()
                     },
                     true,
-                    Some(output_relative_path(resource.clone(), options.clone())?),
+                    Some(outputRelativePath(resource.clone(), options.clone())?),
                     tsonic_rust_node::buffer::Buffer::from_string_enc(&text, "utf8")?,
-                    Some(text.clone()),
+                    Some(text),
                     {
                         let dispatch_receiver_4 = &resource;
                         dispatch_receiver_4.dispatch.read_resource_data()
@@ -383,7 +383,7 @@ pub fn build_java_script_resource(
     let finally_flow: rt::TsonicResult<rt::Completion<crate::resources::models::Resource>> =
         rt::completion_region(|| {
             tsonic_rust_node::fs::rm_sync_with_options(
-                work_directory.as_str(),
+                workDirectory.as_str(),
                 tsonic_rust_node::fs::RmOptions {
                     recursive: Some(true),
                     force: Some(true),

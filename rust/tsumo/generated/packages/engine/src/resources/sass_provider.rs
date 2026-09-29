@@ -4,23 +4,24 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn compile_sass_resource(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn compileSassResource(
     resource: crate::resources::models::Resource,
-    load_paths: js_abi::JsArray<String>,
+    loadPaths: js_abi::JsArray<String>,
 ) -> Result<crate::resources::models::Resource, rt::TsonicError> {
-    let source_text: String =
-        crate::resources::text::read_resource_text(resource.clone(), String::from("css.Sass"))?;
-    let configured_executable: Option<String> =
+    let sourceText: String =
+        crate::resources::text::readResourceText(resource.clone(), String::from("css.Sass"))?;
+    let configuredExecutable: Option<String> =
         tsonic_rust_node::process::environment().get("TSUMO_SASS");
     let executable: String = {
-        let conditional_test = configured_executable.is_some()
-            && !js_string::trim(&match configured_executable.as_ref() {
+        let conditional_test = configuredExecutable.is_some()
+            && !js_string::trim(&match configuredExecutable.as_ref() {
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             })
             .is_empty();
         if conditional_test {
-            js_string::trim(&match configured_executable.as_ref() {
+            js_string::trim(&match configuredExecutable.as_ref() {
                 Some(flow_value_2) => flow_value_2.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             })
@@ -28,11 +29,11 @@ pub fn compile_sass_resource(
             String::from("sass")
         }
     };
-    let configured_implementation: Option<String> =
+    let configuredImplementation: Option<String> =
         tsonic_rust_node::process::environment().get("TSUMO_SASS_IMPLEMENTATION");
     let implementation: String = {
-        let conditional_test_2 = configured_implementation.is_none()
-            || js_string::trim(&match configured_implementation.as_ref() {
+        let conditional_test_2 = configuredImplementation.is_none()
+            || js_string::trim(&match configuredImplementation.as_ref() {
                 Some(flow_value_3) => flow_value_3.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             })
@@ -40,17 +41,15 @@ pub fn compile_sass_resource(
         if conditional_test_2 {
             String::from("dart-sass")
         } else {
-            js_string::to_lower_case(&js_string::trim(
-                &match configured_implementation.as_ref() {
-                    Some(flow_value_4) => flow_value_4.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                },
-            ))
+            js_string::to_lower_case(&js_string::trim(&match configuredImplementation.as_ref() {
+                Some(flow_value_4) => flow_value_4.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            }))
         }
     };
     if implementation != "dart-sass" && implementation != "libsass" {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_SASS_IMPLEMENTATION_INVALID"),
                 format!(
                     "{}{}{}",
@@ -64,22 +63,22 @@ pub fn compile_sass_resource(
             )?,
         ));
     }
-    let work_directory: String = tsonic_rust_node::fs::mkdtemp_sync(
+    let workDirectory: String = tsonic_rust_node::fs::mkdtemp_sync(
         tsonic_rust_node::path::join(&[tsonic_rust_node::os::tmpdir()?.as_str(), "tsumo-sass-"])
             .as_str(),
     )?;
     let try_body: rt::TsonicResult<rt::Completion<crate::resources::models::Resource>> =
         rt::completion_region(|| {
-            let input_path: String =
-                tsonic_rust_node::path::join(&[work_directory.as_str(), "input.scss"]);
-            let output_path: String =
-                tsonic_rust_node::path::join(&[work_directory.as_str(), "output.css"]);
+            let inputPath: String =
+                tsonic_rust_node::path::join(&[workDirectory.as_str(), "input.scss"]);
+            let outputPath: String =
+                tsonic_rust_node::path::join(&[workDirectory.as_str(), "output.css"]);
             tsonic_rust_node::fs::write_file_sync_string(
-                input_path.as_str(),
-                source_text.as_str(),
+                inputPath.as_str(),
+                sourceText.as_str(),
                 "utf8",
             )?;
-            let arguments_list: js_abi::JsArray<String> = if implementation == "dart-sass" {
+            let argumentsList: js_abi::JsArray<String> = if implementation == "dart-sass" {
                 js_abi::JsArray::from_dense(vec![
                     String::from("--no-source-map"),
                     String::from("--style"),
@@ -89,45 +88,44 @@ pub fn compile_sass_resource(
                 js_abi::JsArray::from_dense(vec![String::from("-t"), String::from("expanded")])
             };
             {
-                let mut index: f64 = 0.0;
-                'loop_value: while index < (rt::conversions::usize_to_i32(load_paths.len())? as f64)
-                {
-                    let load_path: String = match load_paths.get_number(index) {
+                let mut index: usize = 0;
+                'loop_value: while index < loadPaths.len() {
+                    let loadPath: String = match loadPaths.get_number(index) {
                         Some(flow_value_5) => flow_value_5,
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
-                    if !crate::fs::dir_exists(load_path.clone())? {
-                        index += 1.0;
+                    if !crate::fs::dirExists(&loadPath)? {
+                        index += 1;
                         continue 'loop_value;
                     }
-                    arguments_list.push_many_discard([if implementation == "dart-sass" {
+                    argumentsList.push_many_discard([if implementation == "dart-sass" {
                         String::from("--load-path")
                     } else {
                         String::from("-I")
                     }]);
-                    arguments_list.push_many_discard([load_path.clone()]);
-                    index += 1.0;
+                    argumentsList.push_many_discard([loadPath]);
+                    index += 1;
                 }
             }
-            arguments_list.push_many_discard([input_path.clone()]);
-            arguments_list.push_many_discard([output_path.clone()]);
+            argumentsList.push_many_discard([inputPath]);
+            argumentsList.push_many_discard([outputPath.clone()]);
             let process: crate::resources::external_process::ExternalProcessResult =
-                crate::resources::external_process::run_external_process(
+                crate::resources::external_process::runExternalProcess(
                     executable,
-                    arguments_list.clone(),
+                    argumentsList.clone(),
                     String::from("Sass compiler"),
                     String::from("TSUMO_SASS_START_FAILED"),
                 )?;
-            if process.state.with(|state| state.exit_code) != 0 {
-                let stderr: String = process.state.with(|state| state.standard_error.clone());
+            if process.state.with(|state| state.exitCode) != 0 {
+                let stderr: String = process.state.with(|state| state.standardError.clone());
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_SASS_FAILED"),
                         if stderr.is_empty() {
                             format!(
                                 "{}{}",
                                 String::from("Sass compiler failed with exit code "),
-                                rt::source_string(&process.state.with(|state| state.exit_code))
+                                rt::source_string(&process.state.with(|state| state.exitCode))
                             )
                         } else {
                             stderr.clone()
@@ -138,9 +136,9 @@ pub fn compile_sass_resource(
                     )?,
                 ));
             }
-            if !tsonic_rust_node::fs::exists_sync(output_path.as_str()) {
+            if !tsonic_rust_node::fs::exists_sync(outputPath.as_str()) {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_SASS_OUTPUT_MISSING"),
                         String::from("Sass compiler completed without producing CSS"),
                         None,
@@ -150,8 +148,8 @@ pub fn compile_sass_resource(
                 ));
             }
             let text: String =
-                tsonic_rust_node::fs::read_file_sync_string(output_path.as_str(), "utf8")?;
-            let output_path_raw: String = rt::option_coalesce(
+                tsonic_rust_node::fs::read_file_sync_string(outputPath.as_str(), "utf8")?;
+            let outputPathRaw: String = rt::option_coalesce(
                 {
                     let dispatch_receiver = &resource;
                     dispatch_receiver.dispatch.read_resource_output_rel_path()
@@ -160,10 +158,10 @@ pub fn compile_sass_resource(
                 || String::from("style.scss"),
             );
             let path: crate::resources::paths::ResourcePathParts =
-                crate::resources::paths::split_resource_path(output_path_raw)?;
+                crate::resources::paths::splitResourcePath(outputPathRaw)?;
             let file: crate::resources::paths::ResourceFileNameParts =
-                crate::resources::paths::split_resource_file_name(
-                    path.state.with(|state| state.file_name.clone()),
+                crate::resources::paths::splitResourceFileName(
+                    path.state.with(|state| state.fileName.clone()),
                 )?;
             Ok(rt::Completion::Return(
                 crate::resources::models::Resource::new(
@@ -183,11 +181,11 @@ pub fn compile_sass_resource(
                     Some(format!(
                         "{}{}{}",
                         path.state.with(|state| state.directory.clone()),
-                        file.state.with(|state| state.base_name.clone()),
+                        file.state.with(|state| state.baseName.clone()),
                         String::from(".css")
                     )),
                     tsonic_rust_node::buffer::Buffer::from_string_enc(&text, "utf8")?,
-                    Some(text.clone()),
+                    Some(text),
                     {
                         let dispatch_receiver_4 = &resource;
                         dispatch_receiver_4.dispatch.read_resource_data()
@@ -202,7 +200,7 @@ pub fn compile_sass_resource(
     let finally_flow: rt::TsonicResult<rt::Completion<crate::resources::models::Resource>> =
         rt::completion_region(|| {
             tsonic_rust_node::fs::rm_sync_with_options(
-                work_directory.as_str(),
+                workDirectory.as_str(),
                 tsonic_rust_node::fs::RmOptions {
                     recursive: Some(true),
                     force: Some(true),

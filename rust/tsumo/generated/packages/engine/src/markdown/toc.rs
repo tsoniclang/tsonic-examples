@@ -3,7 +3,8 @@
 use crate::program as rt;
 use tsonic_rust_js::string as js_string;
 
-pub fn escape_html_text(text: String) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn escapeHtmlText(text: String) -> Result<String, rt::TsonicError> {
     let mut result: String = text;
     result = js_string::replace_all(&result, "&", "&amp;")?;
     result = js_string::replace_all(&result, "<", "&lt;")?;
@@ -12,6 +13,7 @@ pub fn escape_html_text(text: String) -> Result<String, rt::TsonicError> {
     Ok(result)
 }
 
-pub fn generate_table_of_contents(markdown: String) -> String {
-    crate::markdown::platform::render_markdown_table_of_contents(markdown)
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn generateTableOfContents(markdown: String) -> String {
+    crate::markdown::platform::renderMarkdownTableOfContents(markdown)
 }

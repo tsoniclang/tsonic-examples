@@ -3,7 +3,8 @@
 use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
-pub fn apply_markdown_result(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn applyMarkdownResult(
     page: crate::models::page_context::PageContext,
     rendered: crate::markdown::result::MarkdownResult,
 ) -> Result<(), rt::TsonicError> {
@@ -21,7 +22,7 @@ pub fn apply_markdown_result(
     {
         let receiver_2 = &page;
         let value_2 = crate::utils::html::HtmlString::new(
-            rendered.state.with(|state| state.summary_html.clone()),
+            rendered.state.with(|state| state.summaryHtml.clone()),
         )?;
         {
             let dispatch_receiver_2 = receiver_2;
@@ -33,7 +34,7 @@ pub fn apply_markdown_result(
     {
         let receiver_3 = &page;
         let value_3 = crate::utils::html::HtmlString::new(
-            rendered.state.with(|state| state.table_of_contents.clone()),
+            rendered.state.with(|state| state.tableOfContents.clone()),
         )?;
         {
             let dispatch_receiver_3 = receiver_3;
@@ -44,7 +45,7 @@ pub fn apply_markdown_result(
     };
     {
         let receiver_4 = &page;
-        let value_4 = rendered.state.with(|state| state.plain_text.clone());
+        let value_4 = rendered.state.with(|state| state.plainText.clone());
         {
             let dispatch_receiver_4 = receiver_4;
             dispatch_receiver_4
@@ -55,11 +56,12 @@ pub fn apply_markdown_result(
     Ok(())
 }
 
-pub fn render_standard_page_content(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn renderStandardPageContent(
     graph: crate::build::standard_page_graph::StandardPageGraph,
     environment: crate::env::BuildEnvironment,
 ) -> Result<(), rt::TsonicError> {
-    let has_render_hooks: bool = {
+    let hasRenderHooks: bool = {
         let dispatch_receiver = environment.clone();
         dispatch_receiver
             .dispatch
@@ -86,10 +88,10 @@ pub fn render_standard_page_content(
         }?
         .is_some();
     let batch: crate::markdown::platform::TsumoMarkdownBatch =
-        crate::markdown::platform::create_markdown_batch();
-    let batched_pages: js_abi::JsArray<crate::models::page_context::PageContext> =
+        crate::markdown::platform::createMarkdownBatch();
+    let batchedPages: js_abi::JsArray<crate::models::page_context::PageContext> =
         js_abi::JsArray::from_dense(vec![]);
-    let batched_indexes: js_abi::JsArray<i32> = js_abi::JsArray::from_dense(vec![]);
+    let batchedIndexes: js_abi::JsArray<i32> = js_abi::JsArray::from_dense(vec![]);
     'loop_value: for entry in {
         let dispatch_receiver_4 = &graph;
         dispatch_receiver_4
@@ -98,32 +100,26 @@ pub fn render_standard_page_content(
     }
     .entries()
     {
-        let page: crate::models::page_context::PageContext = entry.clone().0;
-        let raw_body: String = entry.clone().1;
-        if raw_body.is_empty() {
+        let page: crate::models::page_context::PageContext = entry.0.clone();
+        let rawBody: String = entry.1.clone();
+        if rawBody.is_empty() {
             continue 'loop_value;
         }
-        if !has_render_hooks
-            && rt::conversions::usize_to_i32(
-                {
-                    let dispatch_receiver_5 = &page;
-                    dispatch_receiver_5
-                        .dispatch
-                        .read_page_context_shortcode_names()
-                }
-                .len(),
-            )? == 0
+        if !hasRenderHooks && {
+            let dispatch_receiver_5 = &page;
+            dispatch_receiver_5
+                .dispatch
+                .read_page_context_shortcode_names()
+        }
+        .is_empty()
         {
-            batched_pages.push_many_discard([page.clone()]);
-            {
-                let operation_input_0 = batched_indexes.clone();
-                operation_input_0.push_many_discard([batch.add_source(raw_body.clone())?])
-            };
+            batchedPages.push_many_discard([page.clone()]);
+            batchedIndexes.push_many_discard([batch.addSource(rawBody)?]);
             continue 'loop_value;
         }
         let rendered: crate::markdown::result::MarkdownResult =
-            crate::markdown::render_with_shortcodes::render_markdown_with_shortcodes(
-                &raw_body,
+            crate::markdown::render_with_shortcodes::renderMarkdownWithShortcodes(
+                &rawBody,
                 page.clone(),
                 {
                     let dispatch_receiver_6 = &graph;
@@ -137,26 +133,26 @@ pub fn render_standard_page_content(
                     }
                 },
             )?;
-        apply_markdown_result(page.clone(), rendered.clone())?;
+        applyMarkdownResult(page.clone(), rendered)?;
     }
-    if rt::conversions::usize_to_i32(batched_pages.len())? == 0 {
+    if batchedPages.is_empty() {
         return Ok(());
     }
     batch.render()?;
     {
-        let mut index: f64 = 0.0;
-        while index < (rt::conversions::usize_to_i32(batched_pages.len())? as f64) {
-            apply_markdown_result(
-                match batched_pages.get_number(index) {
+        let mut index: usize = 0;
+        while index < batchedPages.len() {
+            applyMarkdownResult(
+                match batchedPages.get_number(index) {
                     Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
-                batch.take_result(match batched_indexes.get_number(index) {
+                batch.takeResult(match batchedIndexes.get_number(index) {
                     Some(flow_value_2) => flow_value_2,
                     None => unreachable!("checked flow selected a missing optional value"),
                 })?,
             )?;
-            index += 1.0;
+            index += 1;
         }
     }
     Ok(())

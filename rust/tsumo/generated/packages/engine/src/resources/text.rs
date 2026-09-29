@@ -2,43 +2,41 @@
 
 use crate::program as rt;
 
-pub fn byte_in_range(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn byteInRange(
     bytes: tsonic_rust_node::buffer::Buffer,
-    index: i32,
+    index: usize,
     minimum: i32,
     maximum: i32,
 ) -> Result<bool, rt::TsonicError> {
-    if index >= rt::conversions::usize_to_i32(bytes.len())? {
+    if index >= bytes.len() {
         return Ok(false);
     }
-    let byte: i32 = rt::conversions::f64_to_i32(tsonic_rust_node::buffer::read_uint8_number(
-        &bytes,
-        rt::conversions::i32_to_f64(index),
-    )?)?;
+    let byte: i32 =
+        rt::conversions::u8_to_i32(tsonic_rust_node::buffer::read_uint8_number(&bytes, index)?);
     Ok(byte >= minimum && byte <= maximum)
 }
 
-pub fn is_valid_utf8(bytes: tsonic_rust_node::buffer::Buffer) -> Result<bool, rt::TsonicError> {
-    let mut index: i32 = 0;
-    'loop_value: while index < rt::conversions::usize_to_i32(bytes.len())? {
-        let first: i32 = rt::conversions::f64_to_i32(tsonic_rust_node::buffer::read_uint8_number(
-            &bytes,
-            rt::conversions::i32_to_f64(index),
-        )?)?;
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isValidUtf8(bytes: tsonic_rust_node::buffer::Buffer) -> Result<bool, rt::TsonicError> {
+    let mut index: usize = 0;
+    'loop_value: while index < bytes.len() {
+        let first: i32 =
+            rt::conversions::u8_to_i32(tsonic_rust_node::buffer::read_uint8_number(&bytes, index)?);
         if first <= 127 {
             index += 1;
             continue 'loop_value;
         }
         if (194..=223).contains(&first) {
-            if !byte_in_range(bytes.clone(), index + 1, 128, 191)? {
+            if !byteInRange(bytes.clone(), index + 1, 128, 191)? {
                 return Ok(false);
             }
             index += 2;
             continue 'loop_value;
         }
         if first == 224 {
-            if !byte_in_range(bytes.clone(), index + 1, 160, 191)?
-                || !byte_in_range(bytes.clone(), index + 2, 128, 191)?
+            if !byteInRange(bytes.clone(), index + 1, 160, 191)?
+                || !byteInRange(bytes.clone(), index + 2, 128, 191)?
             {
                 return Ok(false);
             }
@@ -46,8 +44,8 @@ pub fn is_valid_utf8(bytes: tsonic_rust_node::buffer::Buffer) -> Result<bool, rt
             continue 'loop_value;
         }
         if (225..=236).contains(&first) || (238..=239).contains(&first) {
-            if !byte_in_range(bytes.clone(), index + 1, 128, 191)?
-                || !byte_in_range(bytes.clone(), index + 2, 128, 191)?
+            if !byteInRange(bytes.clone(), index + 1, 128, 191)?
+                || !byteInRange(bytes.clone(), index + 2, 128, 191)?
             {
                 return Ok(false);
             }
@@ -55,8 +53,8 @@ pub fn is_valid_utf8(bytes: tsonic_rust_node::buffer::Buffer) -> Result<bool, rt
             continue 'loop_value;
         }
         if first == 237 {
-            if !byte_in_range(bytes.clone(), index + 1, 128, 159)?
-                || !byte_in_range(bytes.clone(), index + 2, 128, 191)?
+            if !byteInRange(bytes.clone(), index + 1, 128, 159)?
+                || !byteInRange(bytes.clone(), index + 2, 128, 191)?
             {
                 return Ok(false);
             }
@@ -64,9 +62,9 @@ pub fn is_valid_utf8(bytes: tsonic_rust_node::buffer::Buffer) -> Result<bool, rt
             continue 'loop_value;
         }
         if first == 240 {
-            if !byte_in_range(bytes.clone(), index + 1, 144, 191)?
-                || !byte_in_range(bytes.clone(), index + 2, 128, 191)?
-                || !byte_in_range(bytes.clone(), index + 3, 128, 191)?
+            if !byteInRange(bytes.clone(), index + 1, 144, 191)?
+                || !byteInRange(bytes.clone(), index + 2, 128, 191)?
+                || !byteInRange(bytes.clone(), index + 3, 128, 191)?
             {
                 return Ok(false);
             }
@@ -74,9 +72,9 @@ pub fn is_valid_utf8(bytes: tsonic_rust_node::buffer::Buffer) -> Result<bool, rt
             continue 'loop_value;
         }
         if (241..=243).contains(&first) {
-            if !byte_in_range(bytes.clone(), index + 1, 128, 191)?
-                || !byte_in_range(bytes.clone(), index + 2, 128, 191)?
-                || !byte_in_range(bytes.clone(), index + 3, 128, 191)?
+            if !byteInRange(bytes.clone(), index + 1, 128, 191)?
+                || !byteInRange(bytes.clone(), index + 2, 128, 191)?
+                || !byteInRange(bytes.clone(), index + 3, 128, 191)?
             {
                 return Ok(false);
             }
@@ -84,9 +82,9 @@ pub fn is_valid_utf8(bytes: tsonic_rust_node::buffer::Buffer) -> Result<bool, rt
             continue 'loop_value;
         }
         if first == 244 {
-            if !byte_in_range(bytes.clone(), index + 1, 128, 143)?
-                || !byte_in_range(bytes.clone(), index + 2, 128, 191)?
-                || !byte_in_range(bytes.clone(), index + 3, 128, 191)?
+            if !byteInRange(bytes.clone(), index + 1, 128, 143)?
+                || !byteInRange(bytes.clone(), index + 2, 128, 191)?
+                || !byteInRange(bytes.clone(), index + 3, 128, 191)?
             {
                 return Ok(false);
             }
@@ -98,7 +96,8 @@ pub fn is_valid_utf8(bytes: tsonic_rust_node::buffer::Buffer) -> Result<bool, rt
     Ok(true)
 }
 
-pub fn read_resource_text(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn readResourceText(
     resource: crate::resources::models::Resource,
     operation: String,
 ) -> Result<String, rt::TsonicError> {
@@ -112,12 +111,12 @@ pub fn read_resource_text(
             None => unreachable!("checked flow selected a missing optional value"),
         });
     }
-    if !is_valid_utf8({
+    if !isValidUtf8({
         let dispatch_receiver_2 = &resource;
         dispatch_receiver_2.dispatch.read_resource_bytes()
     })? {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_RESOURCE_TEXT_ENCODING_INVALID"),
                 format!(
                     "{}{}",

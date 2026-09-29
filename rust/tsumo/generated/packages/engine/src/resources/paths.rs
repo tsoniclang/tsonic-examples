@@ -5,9 +5,10 @@ use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct ResourcePathPartsState {
     pub directory: String,
-    pub file_name: String,
+    pub fileName: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -23,21 +24,23 @@ impl rt::ObjectIdentityCarrier for ResourcePathParts {
 }
 
 impl ResourcePathParts {
-    pub fn new(directory: String, file_name: String) -> Result<ResourcePathParts, rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn new(directory: String, fileName: String) -> Result<ResourcePathParts, rt::TsonicError> {
         let field_directory: String = directory;
-        let field_file_name: String = file_name;
+        let field_file_name: String = fileName;
         Ok(ResourcePathParts {
             state: rt::ObjectRef::new(ResourcePathPartsState {
                 directory: field_directory,
-                file_name: field_file_name,
+                fileName: field_file_name,
             }),
         })
     }
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct ResourceFileNamePartsState {
-    pub base_name: String,
+    pub baseName: String,
     pub extension: String,
 }
 
@@ -54,34 +57,37 @@ impl rt::ObjectIdentityCarrier for ResourceFileNameParts {
 }
 
 impl ResourceFileNameParts {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
-        base_name: String,
+        baseName: String,
         extension: String,
     ) -> Result<ResourceFileNameParts, rt::TsonicError> {
-        let field_base_name: String = base_name;
+        let field_base_name: String = baseName;
         let field_extension: String = extension;
         Ok(ResourceFileNameParts {
             state: rt::ObjectRef::new(ResourceFileNamePartsState {
-                base_name: field_base_name,
+                baseName: field_base_name,
                 extension: field_extension,
             }),
         })
     }
 }
 
-pub fn normalize_resource_slashes(path: &str) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn normalizeResourceSlashes(path: &str) -> Result<String, rt::TsonicError> {
     js_string::replace_all(path, "\\", "/").map_err(rt::TsonicError::from)
 }
 
-pub fn normalize_resource_relative_path(path: String) -> Result<String, rt::TsonicError> {
-    let mut normalized: String = normalize_resource_slashes(&js_string::trim(&path))?;
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn normalizeResourceRelativePath(path: String) -> Result<String, rt::TsonicError> {
+    let mut normalized: String = normalizeResourceSlashes(&js_string::trim(&path))?;
     while js_string::starts_with_from_start(&normalized, "/") {
-        normalized = crate::utils::strings::substring_from(&normalized, 1)?;
+        normalized = crate::utils::strings::substringFrom(&normalized, 1)?;
     }
-    let drive_qualified: bool = js_string::code_point_at(&normalized, 1.0) == Some(58.0);
-    if tsonic_rust_node::path::is_absolute(&normalized) || drive_qualified {
+    let driveQualified: bool = js_string::code_point_at(&normalized, 1.0) == Some(58);
+    if tsonic_rust_node::path::is_absolute(&normalized) || driveQualified {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_RESOURCE_PATH_ABSOLUTE"),
                 format!(
                     "{}{}",
@@ -97,19 +103,19 @@ pub fn normalize_resource_relative_path(path: String) -> Result<String, rt::Tson
     let segments: js_abi::JsArray<String> = js_string::split_all(&normalized, "/")?;
     let accepted: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     {
-        let mut index: f64 = 0.0;
-        'loop_value_2: while index < (rt::conversions::usize_to_i32(segments.len())? as f64) {
+        let mut index: usize = 0;
+        'loop_value_2: while index < segments.len() {
             let segment: String = match segments.get_number(index) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if segment.is_empty() || segment == "." {
-                index += 1.0;
+                index += 1;
                 continue 'loop_value_2;
             }
             if segment == ".." {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_RESOURCE_PATH_ESCAPES_ROOT"),
                         format!(
                             "{}{}",
@@ -124,7 +130,7 @@ pub fn normalize_resource_relative_path(path: String) -> Result<String, rt::Tson
             }
             if js_string::includes_from_start(&segment, "\0") {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_RESOURCE_PATH_INVALID"),
                         String::from("Resource path contains a null character"),
                         None,
@@ -133,42 +139,41 @@ pub fn normalize_resource_relative_path(path: String) -> Result<String, rt::Tson
                     )?,
                 ));
             }
-            accepted.push_many_discard([segment.clone()]);
-            index += 1.0;
+            accepted.push_many_discard([segment]);
+            index += 1;
         }
     }
     Ok(accepted.join("/"))
 }
 
-pub fn resource_path_to_os_path(relative_path: &str) -> Result<String, rt::TsonicError> {
-    crate::utils::strings::replace_text(
-        relative_path,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn resourcePathToOsPath(relativePath: &str) -> Result<String, rt::TsonicError> {
+    crate::utils::strings::replaceText(
+        relativePath,
         String::from("/"),
         String::from(tsonic_rust_node::path::sep()),
     )
 }
 
-pub fn resolve_contained_resource_path(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn resolveContainedResourcePath(
     root: String,
-    relative_path: String,
+    relativePath: String,
 ) -> Result<String, rt::TsonicError> {
-    let normalized: String = normalize_resource_relative_path(relative_path.clone())?;
-    let root_path: String = tsonic_rust_node::path::resolve(&[root.as_str()])?;
-    let candidate: String = {
-        let operation_input_0 = root_path.clone();
-        tsonic_rust_node::path::resolve(&[
-            operation_input_0.as_str(),
-            resource_path_to_os_path(&normalized)?.as_str(),
-        ])
-    }?;
-    if !crate::utils::paths::path_contains_or_equals(root_path.clone(), candidate.clone()) {
+    let normalized: String = normalizeResourceRelativePath(relativePath.clone())?;
+    let rootPath: String = tsonic_rust_node::path::resolve(&[root.as_str()])?;
+    let candidate: String = tsonic_rust_node::path::resolve(&[
+        rootPath.as_str(),
+        resourcePathToOsPath(&normalized)?.as_str(),
+    ])?;
+    if !crate::utils::paths::pathContainsOrEquals(&rootPath, &candidate) {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_RESOURCE_PATH_ESCAPES_ROOT"),
                 format!(
                     "{}{}",
                     String::from("Resource path escapes its root: "),
-                    relative_path
+                    relativePath
                 ),
                 None,
                 None,
@@ -179,29 +184,34 @@ pub fn resolve_contained_resource_path(
     Ok(candidate)
 }
 
-pub fn split_resource_path(relative_path: String) -> Result<ResourcePathParts, rt::TsonicError> {
-    let normalized: String = normalize_resource_relative_path(relative_path)?;
-    let index: i32 =
-        rt::conversions::isize_to_i32(js_string::last_index_of_from_end(&normalized, "/"))?;
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn splitResourcePath(relativePath: String) -> Result<ResourcePathParts, rt::TsonicError> {
+    let normalized: String = normalizeResourceRelativePath(relativePath)?;
+    let index: isize = js_string::last_index_of_from_end(&normalized, "/");
     if index < 0 {
         return ResourcePathParts::new(String::from(""), normalized.clone());
     }
     ResourcePathParts::new(
-        crate::utils::strings::substring_count(&normalized, 0, index + 1)?,
-        crate::utils::strings::substring_from(&normalized, index + 1)?,
+        crate::utils::strings::substringCount(
+            &normalized,
+            0,
+            rt::conversions::isize_to_i32(index + 1)?,
+        )?,
+        crate::utils::strings::substringFrom(
+            &normalized,
+            rt::conversions::isize_to_i32(index + 1)?,
+        )?,
     )
 }
 
-pub fn split_resource_file_name(
-    file_name: String,
-) -> Result<ResourceFileNameParts, rt::TsonicError> {
-    let index: i32 =
-        rt::conversions::isize_to_i32(js_string::last_index_of_from_end(&file_name, "."))?;
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn splitResourceFileName(fileName: String) -> Result<ResourceFileNameParts, rt::TsonicError> {
+    let index: isize = js_string::last_index_of_from_end(&fileName, ".");
     if index < 0 {
-        return ResourceFileNameParts::new(file_name.clone(), String::from(""));
+        return ResourceFileNameParts::new(fileName.clone(), String::from(""));
     }
     ResourceFileNameParts::new(
-        crate::utils::strings::substring_count(&file_name, 0, index)?,
-        crate::utils::strings::substring_from(&file_name, index)?,
+        crate::utils::strings::substringCount(&fileName, 0, rt::conversions::isize_to_i32(index)?)?,
+        crate::utils::strings::substringFrom(&fileName, rt::conversions::isize_to_i32(index)?)?,
     )
 }

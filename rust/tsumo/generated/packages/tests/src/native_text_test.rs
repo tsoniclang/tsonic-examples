@@ -4,17 +4,18 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn run_native_text_tests() -> Result<(), rt::TsonicError> {
-    crate::test_root::run_test(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn runNativeTextTests() -> Result<(), rt::TsonicError> {
+    crate::test_root::runTest(
         String::from("native text slicing preserves scalars and combining marks"),
         rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("😀é|é,😀,e,́,x|éx|x😀|value"),
                 Some(crate::template_test_harness::render(String::from(
                     "{{ substr \"é😀éx\" 1 3 }}|{{ delimit (split \"é😀éx\" \"\") \",\" }}|{{ strings.TrimLeft \"😀\" \"😀éx\" }}|{{ strings.TrimRight \"é\" \"x😀é\" }}|{{ strings.TrimSpace \" value　\" }}",
                 ))?),
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("ascii|"),
                 Some(crate::template_test_harness::render(String::from(
                     "{{ substr \"ascii\" 0 5 }}|{{ substr \"\" 0 0 }}",
@@ -23,16 +24,16 @@ pub fn run_native_text_tests() -> Result<(), rt::TsonicError> {
             Ok::<_, rt::TsonicError>(())
         }),
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("native text casing and formatting never slice a partial scalar"),
         rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("École 😀ab|École 😀|café-😀|é😀:value:中%|2024年😀"),
                 Some(crate::template_test_harness::render(String::from(
                     "{{ title \"éCOLE 😀AB\" }}|{{ humanize \"école-😀\" }}|{{ anchorize \"Café 😀\" }}|{{ printf \"é😀:%s:中%%\" \"value\" }}|{{ dateFormat \"2006年😀\" \"2024-01-02T00:00:00Z\" }}",
                 ))?),
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("&quot;é😀\\n中&quot;"),
                 Some(crate::template_test_harness::render(String::from(
                     "{{ jsonify \"é😀\\n中\" }}",
@@ -41,12 +42,12 @@ pub fn run_native_text_tests() -> Result<(), rt::TsonicError> {
             Ok::<_, rt::TsonicError>(())
         }),
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from(
             "limited regex replacements preserve native offsets and Unicode replacement text",
         ),
         rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_3| {
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("ééx😀中x|éx😀$-x|éx😀x|é中x"),
                 Some(crate::template_test_harness::render(String::from(
                     "{{ replaceRE `(x)` `é$1😀` `éx中x` 1 }}|{{ replaceRE `(?<word>x)` `é$<word>😀$$` `x-x` 1 }}|{{ replaceRE `(?=x)` `é` `x😀x` 1 }}|{{ replaceRE `😀` `中` `é😀x` 1 }}",
@@ -55,7 +56,7 @@ pub fn run_native_text_tests() -> Result<(), rt::TsonicError> {
             Ok::<_, rt::TsonicError>(())
         }),
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("front matter readers retain Unicode values and array elements"),
         rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_4| {
             let sources: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
@@ -65,27 +66,27 @@ pub fn run_native_text_tests() -> Result<(), rt::TsonicError> {
             ]);
             for source in sources.iter_values() {
                 let parsed: tsumo_engine::frontmatter::parsed_content::ParsedContent =
-                    tsumo_engine::testing::parse_content(
+                    tsumo_engine::testing::parseContent(
                         source.clone(),
                         Some(String::from("content/é😀.md")),
                     )?;
-                crate::test_root::Assert::string_equal(
+                crate::test_root::Assert::StringEqual(
                     String::from("Café 😀"),
                     parsed
                         .state
-                        .with(|state| state.front_matter.clone())
+                        .with(|state| state.frontMatter.clone())
                         .state
                         .with(|state| state.title.clone()),
                 )?;
-                crate::test_root::Assert::string_array_equal(
+                crate::test_root::Assert::StringArrayEqual(
                     js_abi::JsArray::from_dense(vec![String::from("é"), String::from("中😀")]),
                     parsed
                         .state
-                        .with(|state| state.front_matter.clone())
+                        .with(|state| state.frontMatter.clone())
                         .state
                         .with(|state| state.tags.clone()),
                 )?;
-                crate::test_root::Assert::string_equal(
+                crate::test_root::Assert::StringEqual(
                     String::from("Body é😀"),
                     Some(parsed.state.with(|state| state.body.clone())),
                 )?;
@@ -93,10 +94,10 @@ pub fn run_native_text_tests() -> Result<(), rt::TsonicError> {
             Ok::<_, rt::TsonicError>(())
         }),
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("structured template readers keep Unicode keys and multiline values"),
         rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_5| {
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("😀,é|é😀|é 😀"),
                 Some(crate::template_test_harness::render(String::from(
                     "{{ $toml := transform.Unmarshal (dict \"format\" \"toml\") `\"café\" = { \"clé\" = [\"😀\", \"é\"] }` }}{{ delimit (index (index $toml \"café\") \"clé\") \",\" }}|{{ $yaml := transform.Unmarshal (dict \"format\" \"yaml\") `café: \"é😀\"` }}{{ index $yaml \"café\" }}|{{ $lines := transform.Unmarshal (dict \"format\" \"yaml\") `key: 'é\n  😀'` }}{{ $lines.key }}",
@@ -105,22 +106,17 @@ pub fn run_native_text_tests() -> Result<(), rt::TsonicError> {
             Ok::<_, rt::TsonicError>(())
         }),
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("shortcodes preserve Unicode parameters bodies and native source spans"),
         rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_6| {
             let source: String = String::from("é😀 {{< figure caption='café 🚀' >}}");
             let calls: js_abi::JsArray<tsumo_engine::shortcode::ShortcodeCall> =
-                tsumo_engine::testing::parse_shortcodes(
+                tsumo_engine::testing::parseShortcodes(
                     source.clone(),
                     Some(String::from("content/é.md")),
                 )?;
-            crate::test_root::Assert::number_equal(
-                1.0,
-                Some(rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
-                    calls.len(),
-                )?)),
-            )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::NumberEqual(1.0, Some(calls.len() as f64))?;
+            crate::test_root::Assert::StringEqual(
                 String::from("café 🚀"),
                 match calls.get_number(0.0) {
                     Some(flow_value) => flow_value,
@@ -135,7 +131,7 @@ pub fn run_native_text_tests() -> Result<(), rt::TsonicError> {
                     dispatch_receiver.dispatch.read_param_value_string_value()
                 }),
             )?;
-            crate::test_root::Assert::number_equal(
+            crate::test_root::Assert::NumberEqual(
                 5.0,
                 Some(rt::conversions::i32_to_f64(
                     match calls.get_number(0.0) {
@@ -146,47 +142,34 @@ pub fn run_native_text_tests() -> Result<(), rt::TsonicError> {
                     .with(|state| state.column),
                 )),
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("{{< figure caption='café 🚀' >}}"),
                 Some({
                     let operation_input_0 = source.clone();
                     js_string::slice_to(
                         &operation_input_0,
-                        rt::conversions::i32_to_f64(
-                            match calls.get_number(0.0) {
-                                Some(flow_value_3) => flow_value_3,
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            }
-                            .state
-                            .with(|state| state.start_index),
-                        ),
-                        rt::conversions::i32_to_f64(
-                            match calls.get_number(0.0) {
-                                Some(flow_value_4) => flow_value_4,
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            }
-                            .state
-                            .with(|state| state.end_index),
-                        ),
+                        match calls.get_number(0.0) {
+                            Some(flow_value_3) => flow_value_3,
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        }
+                        .state
+                        .with(|state| state.startIndex),
+                        match calls.get_number(0.0) {
+                            Some(flow_value_4) => flow_value_4,
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        }
+                        .state
+                        .with(|state| state.endIndex),
                     )
                 }?),
             )?;
             let paired: js_abi::JsArray<tsumo_engine::shortcode::ShortcodeCall> =
-                tsumo_engine::testing::parse_shortcodes(
+                tsumo_engine::testing::parseShortcodes(
                     String::from("😀 {{< note >}}中é{{< /note >}}"),
                     None,
                 )?;
-            crate::test_root::Assert::number_equal(
-                1.0,
-                Some(rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
-                    paired.len(),
-                )?)),
-            )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::NumberEqual(1.0, Some(paired.len() as f64))?;
+            crate::test_root::Assert::StringEqual(
                 String::from("中é"),
                 Some(
                     match paired.get_number(0.0) {
@@ -198,11 +181,11 @@ pub fn run_native_text_tests() -> Result<(), rt::TsonicError> {
                 ),
             )?;
             let escaped: js_abi::JsArray<tsumo_engine::shortcode::ShortcodeCall> =
-                tsumo_engine::testing::parse_shortcodes(
+                tsumo_engine::testing::parseShortcodes(
                     String::from("{{< figure caption=\"é\\😀\" >}}"),
                     None,
                 )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("é😀"),
                 match escaped.get_number(0.0) {
                     Some(flow_value_6) => flow_value_6,
@@ -218,17 +201,12 @@ pub fn run_native_text_tests() -> Result<(), rt::TsonicError> {
                 }),
             )?;
             let fenced: js_abi::JsArray<tsumo_engine::shortcode::ShortcodeCall> =
-                tsumo_engine::testing::parse_shortcodes(
+                tsumo_engine::testing::parseShortcodes(
                     String::from("```é\n{{< ignored >}}\n```\né{{< shown >}}"),
                     None,
                 )?;
-            crate::test_root::Assert::number_equal(
-                1.0,
-                Some(rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
-                    fenced.len(),
-                )?)),
-            )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::NumberEqual(1.0, Some(fenced.len() as f64))?;
+            crate::test_root::Assert::StringEqual(
                 String::from("shown"),
                 Some(
                     match fenced.get_number(0.0) {
@@ -239,7 +217,7 @@ pub fn run_native_text_tests() -> Result<(), rt::TsonicError> {
                     .with(|state| state.name.clone()),
                 ),
             )?;
-            crate::test_root::Assert::number_equal(
+            crate::test_root::Assert::NumberEqual(
                 2.0,
                 Some(rt::conversions::i32_to_f64(
                     match fenced.get_number(0.0) {
@@ -253,111 +231,127 @@ pub fn run_native_text_tests() -> Result<(), rt::TsonicError> {
             Ok::<_, rt::TsonicError>(())
         }),
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from(
             "diagnostics retain explicit UTF-16 columns independently of native byte offsets",
         ),
         rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_7| {
             let template: tsumo_engine::TsumoDiagnostic =
-                crate::template_test_harness::capture_diagnostic(rt::Callable::<
+                crate::template_test_harness::captureDiagnostic(rt::Callable::<
                     (),
                     rt::TsonicResult<()>,
                 >::new(
                     move |_callable_arguments_8| {
-                        tsumo_engine::testing::parse_template(
+                        tsumo_engine::testing::parseTemplate(
                             String::from("é😀{{ if true"),
                             Some(String::from("layouts/é.html")),
                         )?;
                         Ok::<_, rt::TsonicError>(())
                     },
                 ))?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("TSUMO_TEMPLATE_ACTION_UNCLOSED"),
                 Some({
                     let dispatch_receiver_3 = &template;
                     dispatch_receiver_3.dispatch.read_tsumo_diagnostic_code()
                 }),
             )?;
-            crate::test_root::Assert::number_equal(4.0, {
-                let dispatch_receiver_4 = &template;
-                dispatch_receiver_4.dispatch.read_tsumo_diagnostic_column()
-            })?;
+            crate::test_root::Assert::NumberEqual(
+                4.0,
+                {
+                    let dispatch_receiver_4 = &template;
+                    dispatch_receiver_4.dispatch.read_tsumo_diagnostic_column()
+                }
+                .map(rt::conversions::i32_to_f64),
+            )?;
             let shortcode: tsumo_engine::TsumoDiagnostic =
-                crate::template_test_harness::capture_diagnostic(rt::Callable::<
+                crate::template_test_harness::captureDiagnostic(rt::Callable::<
                     (),
                     rt::TsonicResult<()>,
                 >::new(
                     move |_callable_arguments_9| {
-                        tsumo_engine::testing::parse_shortcodes(
+                        tsumo_engine::testing::parseShortcodes(
                             String::from("é😀\r\n中́{{< missing"),
                             Some(String::from("content/é.md")),
                         )?;
                         Ok::<_, rt::TsonicError>(())
                     },
                 ))?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("TSUMO_SHORTCODE_ACTION_UNCLOSED"),
                 Some({
                     let dispatch_receiver_5 = &shortcode;
                     dispatch_receiver_5.dispatch.read_tsumo_diagnostic_code()
                 }),
             )?;
-            crate::test_root::Assert::number_equal(2.0, {
-                let dispatch_receiver_6 = &shortcode;
-                dispatch_receiver_6.dispatch.read_tsumo_diagnostic_line()
-            })?;
-            crate::test_root::Assert::number_equal(3.0, {
-                let dispatch_receiver_7 = &shortcode;
-                dispatch_receiver_7.dispatch.read_tsumo_diagnostic_column()
-            })?;
+            crate::test_root::Assert::NumberEqual(
+                2.0,
+                {
+                    let dispatch_receiver_6 = &shortcode;
+                    dispatch_receiver_6.dispatch.read_tsumo_diagnostic_line()
+                }
+                .map(rt::conversions::i32_to_f64),
+            )?;
+            crate::test_root::Assert::NumberEqual(
+                3.0,
+                {
+                    let dispatch_receiver_7 = &shortcode;
+                    dispatch_receiver_7.dispatch.read_tsumo_diagnostic_column()
+                }
+                .map(rt::conversions::i32_to_f64),
+            )?;
             let json: tsumo_engine::TsumoDiagnostic =
-                crate::template_test_harness::capture_diagnostic(rt::Callable::<
+                crate::template_test_harness::captureDiagnostic(rt::Callable::<
                     (),
                     rt::TsonicResult<()>,
                 >::new(
                     move |_callable_arguments_10| {
-                        tsumo_engine::testing::parse_json(
+                        tsumo_engine::testing::parseJson(
                             String::from("{\"é😀\":}"),
                             Some(String::from("é.json")),
                         )?;
                         Ok::<_, rt::TsonicError>(())
                     },
                 ))?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("TSUMO_JSON_SYNTAX_INVALID"),
                 Some({
                     let dispatch_receiver_8 = &json;
                     dispatch_receiver_8.dispatch.read_tsumo_diagnostic_code()
                 }),
             )?;
-            crate::test_root::Assert::number_equal(8.0, {
-                let dispatch_receiver_9 = &json;
-                dispatch_receiver_9.dispatch.read_tsumo_diagnostic_column()
-            })?;
+            crate::test_root::Assert::NumberEqual(
+                8.0,
+                {
+                    let dispatch_receiver_9 = &json;
+                    dispatch_receiver_9.dispatch.read_tsumo_diagnostic_column()
+                }
+                .map(rt::conversions::i32_to_f64),
+            )?;
             Ok::<_, rt::TsonicError>(())
         }),
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("Unicode relative paths retain drive and containment rejection"),
         rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_11| {
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("é/😀.txt"),
-                Some(tsumo_engine::testing::normalize_resource_relative_path(
+                Some(tsumo_engine::testing::normalizeResourceRelativePath(
                     String::from("é/😀.txt"),
                 )?),
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("é/😀.html"),
-                Some(tsumo_engine::testing::normalize_template_relative_path(
+                Some(tsumo_engine::testing::normalizeTemplateRelativePath(
                     String::from("é/😀.html"),
                 )?),
             )?;
-            let output_root: String =
+            let outputRoot: String =
                 tsonic_rust_node::path::resolve(&[".temp/native-text-output"])?;
-            crate::test_root::Assert::string_equal(
-                tsonic_rust_node::path::join(&[output_root.as_str(), "é", "😀.html"]),
-                Some(tsumo_engine::testing::resolve_docs_output_path(
-                    output_root.clone(),
+            crate::test_root::Assert::StringEqual(
+                tsonic_rust_node::path::join(&[outputRoot.as_str(), "é", "😀.html"]),
+                Some(tsumo_engine::testing::resolveDocsOutputPath(
+                    outputRoot.clone(),
                     String::from("é/😀.html"),
                 )?),
             )?;
@@ -374,7 +368,7 @@ pub fn run_native_text_tests() -> Result<(), rt::TsonicError> {
                         String::from("unicode proof"),
                     )
             }?;
-            crate::test_root::Assert::number_equal(
+            crate::test_root::Assert::NumberEqual(
                 1.0,
                 Some(rt::conversions::i32_to_f64({
                     let dispatch_receiver_11 = output.clone();
@@ -384,34 +378,34 @@ pub fn run_native_text_tests() -> Result<(), rt::TsonicError> {
                         .dispatch_site_output_plan_generated_output_count()
                 })),
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("TSUMO_RESOURCE_PATH_ABSOLUTE"),
-                Some(crate::template_test_harness::capture_diagnostic_code(
+                Some(crate::template_test_harness::captureDiagnosticCode(
                     rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_12| {
-                        tsumo_engine::testing::normalize_resource_relative_path(String::from(
+                        tsumo_engine::testing::normalizeResourceRelativePath(String::from(
                             "C:/é.txt",
                         ))?;
                         Ok::<_, rt::TsonicError>(())
                     }),
                 )?),
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("TSUMO_TEMPLATE_PATH_ABSOLUTE"),
-                Some(crate::template_test_harness::capture_diagnostic_code(
+                Some(crate::template_test_harness::captureDiagnosticCode(
                     rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_13| {
-                        tsumo_engine::testing::normalize_template_relative_path(String::from(
+                        tsumo_engine::testing::normalizeTemplateRelativePath(String::from(
                             "C:/é.html",
                         ))?;
                         Ok::<_, rt::TsonicError>(())
                     }),
                 )?),
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("TSUMO_DOCS_OUTPUT_PATH_ESCAPES_ROOT"),
-                Some(crate::template_test_harness::capture_diagnostic_code({
-                    let capture_output_root = output_root.clone();
+                Some(crate::template_test_harness::captureDiagnosticCode({
+                    let capture_output_root = outputRoot.clone();
                     rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_14| {
-                        tsumo_engine::testing::resolve_docs_output_path(
+                        tsumo_engine::testing::resolveDocsOutputPath(
                             capture_output_root.clone(),
                             String::from("../é.html"),
                         )?;
@@ -419,9 +413,9 @@ pub fn run_native_text_tests() -> Result<(), rt::TsonicError> {
                     })
                 })?),
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("TSUMO_OUTPUT_PATH_ABSOLUTE"),
-                Some(crate::template_test_harness::capture_diagnostic_code({
+                Some(crate::template_test_harness::captureDiagnosticCode({
                     let capture_output = output.clone();
                     rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_15| {
                         {
@@ -442,18 +436,18 @@ pub fn run_native_text_tests() -> Result<(), rt::TsonicError> {
             Ok::<_, rt::TsonicError>(())
         }),
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("Unicode query values retain exact percent-escape validation"),
         rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_16| {
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("café😀|é"),
                 Some(crate::template_test_harness::render(String::from(
                     "{{ $url := urls.Parse \"/page?q=café😀&encoded=%C3%A9\" }}{{ $url.Query.Get \"q\" }}|{{ $url.Query.Get \"encoded\" }}",
                 ))?),
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("TSUMO_TEMPLATE_URL_QUERY_INVALID"),
-                Some(crate::template_test_harness::capture_diagnostic_code(
+                Some(crate::template_test_harness::captureDiagnosticCode(
                     rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_17| {
                         crate::template_test_harness::render(String::from(
                             "{{ $url := urls.Parse \"/page?q=%é\" }}{{ $url.Query.Get \"q\" }}",

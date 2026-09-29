@@ -4,21 +4,22 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn normalize_template_relative_path(raw_path: String) -> Result<String, rt::TsonicError> {
-    let normalized: String = crate::utils::strings::replace_text(
-        &js_string::trim(&raw_path),
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn normalizeTemplateRelativePath(rawPath: String) -> Result<String, rt::TsonicError> {
+    let normalized: String = crate::utils::strings::replaceText(
+        &js_string::trim(&rawPath),
         String::from("\\"),
         String::from("/"),
     )?;
-    let drive_qualified: bool = js_string::code_point_at(&normalized, 1.0) == Some(58.0);
-    if js_string::starts_with_from_start(&normalized, "/") || drive_qualified {
+    let driveQualified: bool = js_string::code_point_at(&normalized, 1.0) == Some(58);
+    if js_string::starts_with_from_start(&normalized, "/") || driveQualified {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_TEMPLATE_PATH_ABSOLUTE"),
                 format!(
                     "{}{}",
                     String::from("Template path must be layout-root relative: "),
-                    raw_path
+                    rawPath
                 ),
                 None,
                 None,
@@ -29,24 +30,24 @@ pub fn normalize_template_relative_path(raw_path: String) -> Result<String, rt::
     let segments: js_abi::JsArray<String> = js_string::split_all(&normalized, "/")?;
     let accepted: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     {
-        let mut index: f64 = 0.0;
-        'loop_value: while index < (rt::conversions::usize_to_i32(segments.len())? as f64) {
+        let mut index: usize = 0;
+        'loop_value: while index < segments.len() {
             let segment: String = match segments.get_number(index) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if segment.is_empty() || segment == "." {
-                index += 1.0;
+                index += 1;
                 continue 'loop_value;
             }
             if segment == ".." {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_TEMPLATE_PATH_ESCAPES_ROOT"),
                         format!(
                             "{}{}",
                             String::from("Template path escapes its layout root: "),
-                            raw_path
+                            rawPath
                         ),
                         None,
                         None,
@@ -56,7 +57,7 @@ pub fn normalize_template_relative_path(raw_path: String) -> Result<String, rt::
             }
             if js_string::includes_from_start(&segment, "\0") {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_TEMPLATE_PATH_INVALID"),
                         String::from("Template path contains a null character"),
                         None,
@@ -65,45 +66,50 @@ pub fn normalize_template_relative_path(raw_path: String) -> Result<String, rt::
                     )?,
                 ));
             }
-            accepted.push_many_discard([segment.clone()]);
-            index += 1.0;
+            accepted.push_many_discard([segment]);
+            index += 1;
         }
     }
     Ok(accepted.join("/"))
 }
 
-pub fn template_directory(relative_path: &str) -> Result<String, rt::TsonicError> {
-    let last_slash: i32 =
-        rt::conversions::isize_to_i32(js_string::last_index_of_from_end(relative_path, "/"))?;
-    Ok(if last_slash < 0 {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn templateDirectory(relativePath: &str) -> Result<String, rt::TsonicError> {
+    let lastSlash: isize = js_string::last_index_of_from_end(relativePath, "/");
+    Ok(if lastSlash < 0 {
         String::from("")
     } else {
-        crate::utils::strings::substring_count(relative_path, 0, last_slash)?
+        crate::utils::strings::substringCount(
+            relativePath,
+            0,
+            rt::conversions::isize_to_i32(lastSlash)?,
+        )?
     })
 }
 
-pub fn push_unique(values: js_abi::JsArray<String>, value: String) -> Result<(), rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn pushUnique(values: js_abi::JsArray<String>, value: String) {
     {
-        let mut index: f64 = 0.0;
-        while index < (rt::conversions::usize_to_i32(values.len())? as f64) {
+        let mut index: usize = 0;
+        while index < values.len() {
             if values.get_number(index) == Some(value.clone()) {
-                return Ok(());
+                return;
             }
-            index += 1.0;
+            index += 1;
         }
     }
     values.push_many_discard([value]);
-    Ok(())
 }
 
-pub fn partial_template_candidates(
-    name_raw: String,
-    caller_relative_path: Option<String>,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn partialTemplateCandidates(
+    nameRaw: String,
+    callerRelativePath: Option<String>,
 ) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
-    let name: String = normalize_template_relative_path(name_raw)?;
+    let name: String = normalizeTemplateRelativePath(nameRaw)?;
     if name.is_empty() {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_TEMPLATE_PARTIAL_NAME_EMPTY"),
                 String::from("Template partial name cannot be empty"),
                 None,
@@ -113,35 +119,35 @@ pub fn partial_template_candidates(
         ));
     }
     let candidates: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-    push_unique(
+    pushUnique(
         candidates.clone(),
         format!("{}{}", String::from("partials/"), name),
-    )?;
-    push_unique(
+    );
+    pushUnique(
         candidates.clone(),
         format!("{}{}", String::from("_partials/"), name),
-    )?;
-    if caller_relative_path.is_some() {
-        let selected_caller_path: String = match caller_relative_path.as_ref() {
+    );
+    if callerRelativePath.is_some() {
+        let selectedCallerPath: String = match callerRelativePath.as_ref() {
             Some(flow_value) => flow_value.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         };
-        let caller: String = normalize_template_relative_path(selected_caller_path)?;
-        let directory: String = template_directory(&caller)?;
+        let caller: String = normalizeTemplateRelativePath(selectedCallerPath)?;
+        let directory: String = templateDirectory(&caller)?;
         if directory == "partials"
             || js_string::starts_with_from_start(&directory, "partials/")
             || directory == "_partials"
             || js_string::starts_with_from_start(&directory, "_partials/")
         {
-            push_unique(
+            pushUnique(
                 candidates.clone(),
-                normalize_template_relative_path(format!(
+                normalizeTemplateRelativePath(format!(
                     "{}{}{}",
                     directory,
                     String::from("/"),
                     name
                 ))?,
-            )?;
+            );
         }
     }
     Ok(candidates)

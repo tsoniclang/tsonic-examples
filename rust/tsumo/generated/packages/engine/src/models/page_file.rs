@@ -4,6 +4,9 @@ use crate::program as rt;
 
 #[doc(hidden)]
 pub trait PageFileDispatch {
+    fn project_page_file(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_page_file_to_page_file(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn PageFileDispatch + 'static>> {
@@ -18,10 +21,11 @@ pub trait PageFileDispatch {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct PageFileState {
-    pub filename: String,
-    pub dir: String,
-    pub base_file_name: String,
+    pub Filename: String,
+    pub Dir: String,
+    pub BaseFileName: String,
 }
 
 #[derive(Clone)]
@@ -59,27 +63,29 @@ pub(crate) struct PageFileRoot {
 
 impl PageFile {
     #[doc(hidden)]
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn initialize_state(
         filename: String,
         dir: String,
-        base_file_name: String,
+        baseFileName: String,
     ) -> Result<PageFileState, rt::TsonicError> {
         let field_filename: String = filename;
         let field_dir: String = dir;
-        let field_base_file_name: String = base_file_name;
+        let field_base_file_name: String = baseFileName;
         Ok(PageFileState {
-            filename: field_filename,
-            dir: field_dir,
-            base_file_name: field_base_file_name,
+            Filename: field_filename,
+            Dir: field_dir,
+            BaseFileName: field_base_file_name,
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         filename: String,
         dir: String,
-        base_file_name: String,
+        baseFileName: String,
     ) -> Result<PageFile, rt::TsonicError> {
-        let state = PageFile::initialize_state(filename, dir, base_file_name)?;
+        let state = PageFile::initialize_state(filename, dir, baseFileName)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(PageFileRoot {
             identity: identity.clone(),
@@ -92,7 +98,24 @@ impl PageFile {
     }
 }
 
+impl rt::ObjectIdentityCarrier for PageFileRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl PageFileDispatch for PageFileRoot {
+    fn project_page_file(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn PageFileDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_page_file_to_page_file(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn PageFileDispatch + 'static>> {
@@ -100,42 +123,42 @@ impl PageFileDispatch for PageFileRoot {
     }
 
     fn read_page_file_filename(&self) -> String {
-        self.state.with(|state| state.filename.clone())
+        self.state.with(|state| state.Filename.clone())
     }
 
     fn write_page_file_filename(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.filename = value)
+                self.state.with_mut(|state| state.Filename = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_page_file_dir(&self) -> String {
-        self.state.with(|state| state.dir.clone())
+        self.state.with(|state| state.Dir.clone())
     }
 
     fn write_page_file_dir(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.dir = value)
+                self.state.with_mut(|state| state.Dir = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_page_file_base_file_name(&self) -> String {
-        self.state.with(|state| state.base_file_name.clone())
+        self.state.with(|state| state.BaseFileName.clone())
     }
 
     fn write_page_file_base_file_name(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.base_file_name = value)
+                self.state.with_mut(|state| state.BaseFileName = value)
             };
             Ok::<_, rt::TsonicError>(())
         }

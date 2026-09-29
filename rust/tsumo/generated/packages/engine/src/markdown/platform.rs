@@ -27,7 +27,8 @@ impl TsumoMarkdownBatch {
         }
     }
 
-    pub fn add_source(&self, source: String) -> Result<i32, rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn addSource(&self, source: String) -> Result<i32, rt::TsonicError> {
         self.state
             .with(|state| state.batch.clone())
             .add_source(&source)
@@ -39,7 +40,8 @@ impl TsumoMarkdownBatch {
         Ok(())
     }
 
-    pub fn take_result(
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn takeResult(
         &self,
         index: i32,
     ) -> Result<crate::markdown::result::MarkdownResult, rt::TsonicError> {
@@ -62,15 +64,17 @@ impl Default for TsumoMarkdownBatch {
     }
 }
 
-pub fn create_markdown_batch() -> TsumoMarkdownBatch {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn createMarkdownBatch() -> TsumoMarkdownBatch {
     TsumoMarkdownBatch::new()
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct TsumoMarkdownSourcePlanState {
-    pub full_source: String,
-    pub summary_source: String,
-    pub table_of_contents_source: String,
+    pub fullSource: String,
+    pub summarySource: String,
+    pub tableOfContentsSource: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -86,29 +90,31 @@ impl rt::ObjectIdentityCarrier for TsumoMarkdownSourcePlan {
 }
 
 impl TsumoMarkdownSourcePlan {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
-        full_source: String,
-        summary_source: String,
-        table_of_contents_source: String,
+        fullSource: String,
+        summarySource: String,
+        tableOfContentsSource: String,
     ) -> Result<TsumoMarkdownSourcePlan, rt::TsonicError> {
-        let field_full_source: String = full_source;
-        let field_summary_source: String = summary_source;
-        let field_table_of_contents_source: String = table_of_contents_source;
+        let field_full_source: String = fullSource;
+        let field_summary_source: String = summarySource;
+        let field_table_of_contents_source: String = tableOfContentsSource;
         Ok(TsumoMarkdownSourcePlan {
             state: rt::ObjectRef::new(TsumoMarkdownSourcePlanState {
-                full_source: field_full_source,
-                summary_source: field_summary_source,
-                table_of_contents_source: field_table_of_contents_source,
+                fullSource: field_full_source,
+                summarySource: field_summary_source,
+                tableOfContentsSource: field_table_of_contents_source,
             }),
         })
     }
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct TsumoMarkdownOccurrenceState {
     pub kind: String,
     pub destination: String,
-    pub plain_text: String,
+    pub plainText: String,
     pub title: String,
     pub level: i32,
     pub anchor: String,
@@ -127,17 +133,18 @@ impl rt::ObjectIdentityCarrier for TsumoMarkdownOccurrence {
 }
 
 impl TsumoMarkdownOccurrence {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         kind: String,
         destination: String,
-        plain_text: String,
+        plainText: String,
         title: String,
         level: i32,
         anchor: String,
     ) -> Result<TsumoMarkdownOccurrence, rt::TsonicError> {
         let field_kind: String = kind;
         let field_destination: String = destination;
-        let field_plain_text: String = plain_text;
+        let field_plain_text: String = plainText;
         let field_title: String = title;
         let field_level: i32 = level;
         let field_anchor: String = anchor;
@@ -145,7 +152,7 @@ impl TsumoMarkdownOccurrence {
             state: rt::ObjectRef::new(TsumoMarkdownOccurrenceState {
                 kind: field_kind,
                 destination: field_destination,
-                plain_text: field_plain_text,
+                plainText: field_plain_text,
                 title: field_title,
                 level: field_level,
                 anchor: field_anchor,
@@ -182,10 +189,12 @@ impl TsumoMarkdownDocument {
         }
     }
 
-    pub fn occurrence_count(&self) -> i32 {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn occurrenceCount(&self) -> Result<i32, rt::TsonicError> {
         self.state
             .with(|state| state.document.clone())
             .occurrence_count()
+            .map_err(rt::TsonicError::from)
     }
 
     pub fn occurrence(&self, index: i32) -> Result<TsumoMarkdownOccurrence, rt::TsonicError> {
@@ -203,21 +212,24 @@ impl TsumoMarkdownDocument {
         )
     }
 
-    pub fn replace_url(&self, index: i32, value: String) -> Result<(), rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn replaceUrl(&self, index: i32, value: String) -> Result<(), rt::TsonicError> {
         self.state
             .with(|state| state.document.clone())
             .replace_url(index, &value)?;
         Ok(())
     }
 
-    pub fn occurrence_html(&self, index: i32) -> Result<String, rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn occurrenceHtml(&self, index: i32) -> Result<String, rt::TsonicError> {
         self.state
             .with(|state| state.document.clone())
             .occurrence_html(index)
             .map_err(rt::TsonicError::from)
     }
 
-    pub fn replace_html(&self, index: i32, value: String) -> Result<(), rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn replaceHtml(&self, index: i32, value: String) -> Result<(), rt::TsonicError> {
         self.state
             .with(|state| state.document.clone())
             .replace_html(index, &value)?;
@@ -228,22 +240,23 @@ impl TsumoMarkdownDocument {
         self.state.with(|state| state.document.clone()).render()
     }
 
-    pub fn plain_text(&self) -> String {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn plainText(&self) -> String {
         self.state.with(|state| state.document.clone()).plain_text()
     }
 
-    pub fn table_of_contents(&self) -> String {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn tableOfContents(&self) -> String {
         self.state
             .with(|state| state.document.clone())
             .table_of_contents()
     }
 }
 
-pub fn create_markdown_source_plan(
-    source: String,
-) -> Result<TsumoMarkdownSourcePlan, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn createMarkdownSourcePlan(source: &str) -> Result<TsumoMarkdownSourcePlan, rt::TsonicError> {
     let plan: tsumo_platform::MarkdownSourcePlan =
-        tsumo_platform::create_markdown_source_plan(&source)?;
+        tsumo_platform::create_markdown_source_plan(source);
     TsumoMarkdownSourcePlan::new(
         plan.full_source.clone(),
         plan.summary_source.clone(),
@@ -251,18 +264,22 @@ pub fn create_markdown_source_plan(
     )
 }
 
-pub fn create_markdown_document(source: String) -> TsumoMarkdownDocument {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn createMarkdownDocument(source: String) -> TsumoMarkdownDocument {
     TsumoMarkdownDocument::new(source)
 }
 
-pub fn render_markdown_html(source: String) -> String {
-    create_markdown_document(source).render()
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn renderMarkdownHtml(source: String) -> String {
+    createMarkdownDocument(source).render()
 }
 
-pub fn render_markdown_plain_text(source: String) -> String {
-    create_markdown_document(source).plain_text()
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn renderMarkdownPlainText(source: String) -> String {
+    createMarkdownDocument(source).plainText()
 }
 
-pub fn render_markdown_table_of_contents(source: String) -> String {
-    create_markdown_document(source).table_of_contents()
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn renderMarkdownTableOfContents(source: String) -> String {
+    createMarkdownDocument(source).tableOfContents()
 }

@@ -4,62 +4,64 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn resolve_theme_dir(
-    site_dir: String,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn resolveThemeDir(
+    siteDir: String,
     config: crate::models::site_config::SiteConfig,
-    themes_dir_raw: Option<String>,
+    themesDirRaw: Option<String>,
 ) -> Result<Option<String>, rt::TsonicError> {
-    let config_theme: Option<String> = {
+    let configTheme: Option<String> = {
         let dispatch_receiver = &config;
         dispatch_receiver.dispatch.read_site_config_theme()
     };
-    if config_theme.is_none() {
+    if configTheme.is_none() {
         return Ok(Option::<String>::None);
     }
-    let theme_name: String = js_string::trim(&match config_theme.as_ref() {
+    let themeName: String = js_string::trim(&match configTheme.as_ref() {
         Some(flow_value) => flow_value.clone(),
         None => unreachable!("checked flow selected a missing optional value"),
     });
-    if theme_name.is_empty() {
+    if themeName.is_empty() {
         return Ok(Option::<String>::None);
     }
-    let themes_dir: Option<String> = themes_dir_raw;
-    let custom_themes_dir: String = if themes_dir.is_some() {
-        js_string::trim(&match themes_dir.as_ref() {
+    let themesDir: Option<String> = themesDirRaw;
+    let customThemesDir: String = if themesDir.is_some() {
+        js_string::trim(&match themesDir.as_ref() {
             Some(flow_value_2) => flow_value_2.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         })
     } else {
         String::from("")
     };
-    if !custom_themes_dir.is_empty() {
-        let themes_base: String = if tsonic_rust_node::path::is_absolute(&custom_themes_dir) {
-            custom_themes_dir.clone()
+    if !customThemesDir.is_empty() {
+        let themesBase: String = if tsonic_rust_node::path::is_absolute(&customThemesDir) {
+            customThemesDir.clone()
         } else {
-            tsonic_rust_node::path::join(&[site_dir.as_str(), custom_themes_dir.as_str()])
+            tsonic_rust_node::path::join(&[siteDir.as_str(), customThemesDir.as_str()])
         };
         let candidate: String =
-            tsonic_rust_node::path::join(&[themes_base.as_str(), theme_name.as_str()]);
-        if crate::fs::dir_exists(candidate.clone())? {
+            tsonic_rust_node::path::join(&[themesBase.as_str(), themeName.as_str()]);
+        if crate::fs::dirExists(&candidate)? {
             return Ok(Some(candidate));
         }
     }
-    let theme_dir: String =
-        tsonic_rust_node::path::join(&[site_dir.as_str(), "themes", theme_name.as_str()]);
-    Ok(if crate::fs::dir_exists(theme_dir.clone())? {
-        Some(theme_dir)
+    let themeDir: String =
+        tsonic_rust_node::path::join(&[siteDir.as_str(), "themes", themeName.as_str()]);
+    Ok(if crate::fs::dirExists(&themeDir)? {
+        Some(themeDir)
     } else {
         Option::<String>::None
     })
 }
 
-pub fn select_template(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn selectTemplate(
     env: crate::layouts::LayoutEnvironment,
     candidates: js_abi::JsArray<String>,
 ) -> Result<Option<String>, rt::TsonicError> {
     {
-        let mut i: f64 = 0.0;
-        while i < (rt::conversions::usize_to_i32(candidates.len())? as f64) {
+        let mut i: usize = 0;
+        while i < candidates.len() {
             let candidate: String = match candidates.get_number(i) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
@@ -73,18 +75,19 @@ pub fn select_template(
             }?
             .is_some()
             {
-                return Ok(Some(candidate.clone()));
+                return Ok(Some(candidate));
             }
-            i += 1.0;
+            i += 1;
         }
     }
     Ok(Option::<String>::None)
 }
 
-pub fn render_with_base(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn renderWithBase(
     env: crate::layouts::LayoutEnvironment,
-    base_path_raw: Option<String>,
-    main_path: String,
+    basePathRaw: Option<String>,
+    mainPath: String,
     ctx: crate::models::page_context::PageContext,
 ) -> Result<String, rt::TsonicError> {
     let main: Option<crate::template::template_2::Template> = {
@@ -92,19 +95,19 @@ pub fn render_with_base(
         dispatch_receiver
             .dispatch
             .clone()
-            .dispatch_layout_environment_get_template(main_path)
+            .dispatch_layout_environment_get_template(mainPath)
     }?;
     if main.is_none() {
         return Ok(String::from(""));
     }
-    let base_path: Option<String> = base_path_raw;
-    if base_path.is_some() {
+    let basePath: Option<String> = basePathRaw;
+    if basePath.is_some() {
         let base: Option<crate::template::template_2::Template> = {
             let dispatch_receiver_2 = env.clone();
             dispatch_receiver_2
                 .dispatch
                 .clone()
-                .dispatch_layout_environment_get_template(match base_path.as_ref() {
+                .dispatch_layout_environment_get_template(match basePath.as_ref() {
                     Some(flow_value) => flow_value.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 })

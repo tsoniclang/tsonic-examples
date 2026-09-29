@@ -3,8 +3,15 @@
 use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
+std::thread_local! {
+    pub static PAGINATOR_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<PaginatorValueClass>> = const { rt::ModuleCell::new() };
+}
+
 #[doc(hidden)]
 pub trait PaginatorValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn project_paginator_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_paginator_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -42,32 +49,35 @@ pub trait PaginatorValueDispatch: crate::template::values::base::TemplateValueDi
     ) -> Result<js_abi::JsArray<crate::models::page_context::PageContext>, rt::TsonicError>;
     fn dispatch_paginator_value_url(self: alloc::rc::Rc<Self>) -> Result<String, rt::TsonicError>;
     fn exact_paginator_value_url(self: alloc::rc::Rc<Self>) -> Result<String, rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_paginator_value_with_page_number(
         self: alloc::rc::Rc<Self>,
-        page_number: i32,
+        pageNumber: i32,
     ) -> Result<PaginatorValue, rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_paginator_value_with_page_number(
         self: alloc::rc::Rc<Self>,
-        page_number: i32,
+        pageNumber: i32,
     ) -> Result<PaginatorValue, rt::TsonicError>;
     fn dispatch_paginator_value_has_same_source(
         self: alloc::rc::Rc<Self>,
         other: PaginatorValue,
-    ) -> Result<bool, rt::TsonicError>;
+    ) -> bool;
     fn exact_paginator_value_has_same_source(
         self: alloc::rc::Rc<Self>,
         other: PaginatorValue,
-    ) -> Result<bool, rt::TsonicError>;
+    ) -> bool;
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct PaginatorValueState {
     #[doc(hidden)]
     pub base: crate::template::values::base::TemplateValueState,
-    pub source_pages: js_abi::JsArray<crate::models::page_context::PageContext>,
-    pub page_size: i32,
-    pub page_number: i32,
-    pub base_path: String,
+    pub sourcePages: js_abi::JsArray<crate::models::page_context::PageContext>,
+    pub pageSize: i32,
+    pub pageNumber: i32,
+    pub basePath: String,
 }
 
 #[derive(Clone)]
@@ -105,35 +115,36 @@ pub(crate) struct PaginatorValueRoot {
 
 impl PaginatorValue {
     #[doc(hidden)]
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn initialize_state(
-        source_pages: js_abi::JsArray<crate::models::page_context::PageContext>,
-        page_size: i32,
-        page_number: i32,
-        base_path: String,
+        sourcePages: js_abi::JsArray<crate::models::page_context::PageContext>,
+        pageSize: i32,
+        pageNumber: i32,
+        basePath: String,
     ) -> Result<PaginatorValueState, rt::TsonicError> {
         let base_state = crate::template::values::base::TemplateValue::initialize_state();
         let field_source_pages: js_abi::JsArray<crate::models::page_context::PageContext> =
-            source_pages;
-        let field_page_size: i32 = if page_size > 0 { page_size } else { 1 };
-        let field_page_number: i32 = if page_number > 0 { page_number } else { 1 };
-        let field_base_path: String = base_path;
+            sourcePages;
+        let field_page_size: i32 = if pageSize > 0 { pageSize } else { 1 };
+        let field_page_number: i32 = if pageNumber > 0 { pageNumber } else { 1 };
+        let field_base_path: String = basePath;
         Ok(PaginatorValueState {
             base: base_state,
-            source_pages: field_source_pages,
-            page_size: field_page_size,
-            page_number: field_page_number,
-            base_path: field_base_path,
+            sourcePages: field_source_pages,
+            pageSize: field_page_size,
+            pageNumber: field_page_number,
+            basePath: field_base_path,
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
-        source_pages: js_abi::JsArray<crate::models::page_context::PageContext>,
-        page_size: i32,
-        page_number: i32,
-        base_path: String,
+        sourcePages: js_abi::JsArray<crate::models::page_context::PageContext>,
+        pageSize: i32,
+        pageNumber: i32,
+        basePath: String,
     ) -> Result<PaginatorValue, rt::TsonicError> {
-        let state =
-            PaginatorValue::initialize_state(source_pages, page_size, page_number, base_path)?;
+        let state = PaginatorValue::initialize_state(sourcePages, pageSize, pageNumber, basePath)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(PaginatorValueRoot {
             identity: identity.clone(),
@@ -150,7 +161,7 @@ impl PaginatorValueRoot {
     fn exact_paginator_value_has_same_source(
         self: alloc::rc::Rc<Self>,
         other: PaginatorValue,
-    ) -> Result<bool, rt::TsonicError> {
+    ) -> bool {
         let project_this = PaginatorValue {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -173,37 +184,32 @@ impl PaginatorValueRoot {
             dispatch_receiver_4
                 .dispatch
                 .read_paginator_value_base_path()
-        } || rt::conversions::usize_to_i32(
-            {
-                let dispatch_receiver_5 = &project_this;
-                dispatch_receiver_5
-                    .dispatch
-                    .read_paginator_value_source_pages()
-            }
-            .len(),
-        )? != rt::conversions::usize_to_i32(
-            {
+        } || {
+            let dispatch_receiver_5 = &project_this;
+            dispatch_receiver_5
+                .dispatch
+                .read_paginator_value_source_pages()
+        }
+        .len()
+            != {
                 let dispatch_receiver_6 = &other;
                 dispatch_receiver_6
                     .dispatch
                     .read_paginator_value_source_pages()
             }
-            .len(),
-        )? {
-            return Ok(false);
+            .len()
+        {
+            return false;
         }
         {
-            let mut index: f64 = 0.0;
-            while index
-                < (rt::conversions::usize_to_i32(
-                    {
-                        let dispatch_receiver_7 = &project_this;
-                        dispatch_receiver_7
-                            .dispatch
-                            .read_paginator_value_source_pages()
-                    }
-                    .len(),
-                )? as f64)
+            let mut index: usize = 0;
+            while index < {
+                let dispatch_receiver_7 = &project_this;
+                dispatch_receiver_7
+                    .dispatch
+                    .read_paginator_value_source_pages()
+            }
+            .len()
             {
                 if {
                     let dispatch_receiver_8 = &project_this;
@@ -220,12 +226,12 @@ impl PaginatorValueRoot {
                     }
                     .get_number(index)
                 {
-                    return Ok(false);
+                    return false;
                 }
-                index += 1.0;
+                index += 1;
             }
         }
-        Ok(true)
+        true
     }
 
     fn exact_paginator_value_pages(
@@ -235,56 +241,75 @@ impl PaginatorValueRoot {
             identity: self.identity.clone(),
             dispatch: self.clone(),
         };
+        let count: i32 = rt::conversions::usize_to_i32(
+            {
+                let dispatch_receiver = &project_this;
+                dispatch_receiver
+                    .dispatch
+                    .read_paginator_value_source_pages()
+            }
+            .len(),
+        )?;
+        let pages: js_abi::JsArray<crate::models::page_context::PageContext> =
+            js_abi::JsArray::from_dense(vec![]);
+        if count == 0
+            || ({
+                let dispatch_receiver_2 = &project_this;
+                dispatch_receiver_2
+                    .dispatch
+                    .read_paginator_value_page_number()
+            }) > {
+                let dispatch_receiver_3 = project_this.clone();
+                dispatch_receiver_3
+                    .dispatch
+                    .clone()
+                    .dispatch_paginator_value_total_pages()
+            }?
+        {
+            return Ok(pages);
+        }
         let start: i32 = (({
-            let dispatch_receiver = &project_this;
-            dispatch_receiver
+            let dispatch_receiver_4 = &project_this;
+            dispatch_receiver_4
                 .dispatch
                 .read_paginator_value_page_number()
         }) - 1)
             * {
-                let dispatch_receiver_2 = &project_this;
-                dispatch_receiver_2
+                let dispatch_receiver_5 = &project_this;
+                dispatch_receiver_5
                     .dispatch
                     .read_paginator_value_page_size()
             };
-        let end: i32 = rt::conversions::f64_to_i32(js_abi::math_min(&[
-            rt::conversions::i32_to_f64(
-                start + {
-                    let dispatch_receiver_3 = &project_this;
-                    dispatch_receiver_3
-                        .dispatch
-                        .read_paginator_value_page_size()
-                },
-            ),
-            rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
-                {
-                    let dispatch_receiver_4 = &project_this;
-                    dispatch_receiver_4
+        let end: i32 = start + {
+            let conditional_test = ({
+                let dispatch_receiver_6 = &project_this;
+                dispatch_receiver_6
+                    .dispatch
+                    .read_paginator_value_page_size()
+            }) < count - start;
+            if conditional_test {
+                let dispatch_receiver_7 = &project_this;
+                dispatch_receiver_7
+                    .dispatch
+                    .read_paginator_value_page_size()
+            } else {
+                count - start
+            }
+        };
+        for index in start..end {
+            pages.push_many_discard([
+                match {
+                    let dispatch_receiver_8 = &project_this;
+                    dispatch_receiver_8
                         .dispatch
                         .read_paginator_value_source_pages()
                 }
-                .len(),
-            )?),
-        ]))?;
-        let pages: js_abi::JsArray<crate::models::page_context::PageContext> =
-            js_abi::JsArray::from_dense(vec![]);
-        for index in start..end {
-            {
-                let operation_input_0 = pages.clone();
-                operation_input_0.push_many_discard([
-                    match {
-                        let dispatch_receiver_5 = &project_this;
-                        dispatch_receiver_5
-                            .dispatch
-                            .read_paginator_value_source_pages()
-                    }
-                    .get_number(rt::conversions::i32_to_f64(index))
-                    {
-                        Some(flow_value) => flow_value,
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                ])
-            };
+                .get_number(index)
+                {
+                    Some(flow_value) => flow_value,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                },
+            ]);
         }
         Ok(pages)
     }
@@ -296,7 +321,7 @@ impl PaginatorValueRoot {
             identity: self.identity.clone(),
             dispatch: self.clone(),
         };
-        if rt::conversions::usize_to_i32(
+        let count: i32 = rt::conversions::usize_to_i32(
             {
                 let dispatch_receiver = &project_this;
                 dispatch_receiver
@@ -304,30 +329,17 @@ impl PaginatorValueRoot {
                     .read_paginator_value_source_pages()
             }
             .len(),
-        )? == 0
-        {
-            return Ok(1);
-        }
-        rt::conversions::f64_to_i32(
-            rt::conversions::i32_to_f64(
-                rt::conversions::usize_to_i32(
-                    {
-                        let dispatch_receiver_2 = &project_this;
-                        dispatch_receiver_2
-                            .dispatch
-                            .read_paginator_value_source_pages()
-                    }
-                    .len(),
-                )? / {
-                    let dispatch_receiver_3 = &project_this;
-                    dispatch_receiver_3
-                        .dispatch
-                        .read_paginator_value_page_size()
-                },
-            )
-            .ceil(),
-        )
-        .map_err(rt::TsonicError::from)
+        )?;
+        Ok(if count == 0 {
+            1
+        } else {
+            1 + (count - 1) / {
+                let dispatch_receiver_2 = &project_this;
+                dispatch_receiver_2
+                    .dispatch
+                    .read_paginator_value_page_size()
+            }
+        })
     }
 
     fn exact_paginator_value_url(self: alloc::rc::Rc<Self>) -> Result<String, rt::TsonicError> {
@@ -343,14 +355,14 @@ impl PaginatorValueRoot {
                     .read_paginator_value_page_number()
             }) <= 1;
             if conditional_test {
-                crate::utils::url_path::combine_url_path(js_abi::JsArray::from_dense(vec![{
+                crate::utils::url_path::combineUrlPath(js_abi::JsArray::from_dense(vec![{
                     let dispatch_receiver_2 = &project_this;
                     dispatch_receiver_2
                         .dispatch
                         .read_paginator_value_base_path()
                 }]))?
             } else {
-                crate::utils::url_path::combine_url_path(js_abi::JsArray::from_dense(vec![
+                crate::utils::url_path::combineUrlPath(js_abi::JsArray::from_dense(vec![
                     {
                         let dispatch_receiver_3 = &project_this;
                         dispatch_receiver_3
@@ -369,9 +381,10 @@ impl PaginatorValueRoot {
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_paginator_value_with_page_number(
         self: alloc::rc::Rc<Self>,
-        page_number: i32,
+        pageNumber: i32,
     ) -> Result<PaginatorValue, rt::TsonicError> {
         let project_this = PaginatorValue {
             identity: self.identity.clone(),
@@ -390,7 +403,7 @@ impl PaginatorValueRoot {
                     .dispatch
                     .read_paginator_value_page_size()
             },
-            page_number,
+            pageNumber,
             {
                 let dispatch_receiver_3 = &project_this;
                 dispatch_receiver_3
@@ -401,7 +414,30 @@ impl PaginatorValueRoot {
     }
 }
 
+impl rt::ObjectIdentityCarrier for PaginatorValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for PaginatorValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn PaginatorValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -417,6 +453,23 @@ impl crate::template::values::base::TemplateValueDispatch for PaginatorValueRoot
 }
 
 impl PaginatorValueDispatch for PaginatorValueRoot {
+    fn project_paginator_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn PaginatorValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_paginator_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -433,7 +486,7 @@ impl PaginatorValueDispatch for PaginatorValueRoot {
     fn read_paginator_value_source_pages(
         &self,
     ) -> js_abi::JsArray<crate::models::page_context::PageContext> {
-        self.state.with(|state| state.source_pages.clone())
+        self.state.with(|state| state.sourcePages.clone())
     }
 
     fn write_paginator_value_source_pages(
@@ -443,49 +496,49 @@ impl PaginatorValueDispatch for PaginatorValueRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.source_pages = value)
+                self.state.with_mut(|state| state.sourcePages = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_paginator_value_page_size(&self) -> i32 {
-        self.state.with(|state| state.page_size)
+        self.state.with(|state| state.pageSize)
     }
 
     fn write_paginator_value_page_size(&self, value: i32) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.page_size = value)
+                self.state.with_mut(|state| state.pageSize = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_paginator_value_page_number(&self) -> i32 {
-        self.state.with(|state| state.page_number)
+        self.state.with(|state| state.pageNumber)
     }
 
     fn write_paginator_value_page_number(&self, value: i32) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.page_number = value)
+                self.state.with_mut(|state| state.pageNumber = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_paginator_value_base_path(&self) -> String {
-        self.state.with(|state| state.base_path.clone())
+        self.state.with(|state| state.basePath.clone())
     }
 
     fn write_paginator_value_base_path(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.base_path = value)
+                self.state.with_mut(|state| state.basePath = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -523,31 +576,68 @@ impl PaginatorValueDispatch for PaginatorValueRoot {
         PaginatorValueRoot::exact_paginator_value_url(self)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_paginator_value_with_page_number(
         self: alloc::rc::Rc<Self>,
-        page_number: i32,
+        pageNumber: i32,
     ) -> Result<PaginatorValue, rt::TsonicError> {
-        PaginatorValueRoot::exact_paginator_value_with_page_number(self, page_number)
+        PaginatorValueRoot::exact_paginator_value_with_page_number(self, pageNumber)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_paginator_value_with_page_number(
         self: alloc::rc::Rc<Self>,
-        page_number: i32,
+        pageNumber: i32,
     ) -> Result<PaginatorValue, rt::TsonicError> {
-        PaginatorValueRoot::exact_paginator_value_with_page_number(self, page_number)
+        PaginatorValueRoot::exact_paginator_value_with_page_number(self, pageNumber)
     }
 
     fn dispatch_paginator_value_has_same_source(
         self: alloc::rc::Rc<Self>,
         other: PaginatorValue,
-    ) -> Result<bool, rt::TsonicError> {
+    ) -> bool {
         PaginatorValueRoot::exact_paginator_value_has_same_source(self, other)
     }
 
     fn exact_paginator_value_has_same_source(
         self: alloc::rc::Rc<Self>,
         other: PaginatorValue,
-    ) -> Result<bool, rt::TsonicError> {
+    ) -> bool {
         PaginatorValueRoot::exact_paginator_value_has_same_source(self, other)
     }
+}
+
+pub struct PaginatorValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for PaginatorValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for PaginatorValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for PaginatorValueClass {}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = {
+            alloc::rc::Rc::new(PaginatorValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        PAGINATOR_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding| module_binding.initialize(module_value))
+    };
 }

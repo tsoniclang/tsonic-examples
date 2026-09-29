@@ -4,6 +4,9 @@ use crate::program as rt;
 
 #[doc(hidden)]
 pub trait TextBuilderDispatch {
+    fn project_text_builder(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_text_builder_to_text_builder(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn TextBuilderDispatch + 'static>> {
@@ -11,15 +14,9 @@ pub trait TextBuilderDispatch {
     }
     fn read_text_builder_state(&self) -> tsumo_platform::TextBuilderState;
     fn write_text_builder_state(&self, value: tsumo_platform::TextBuilderState);
-    fn read_text_builder_length(self: alloc::rc::Rc<Self>) -> i32;
-    fn dispatch_text_builder_append(
-        self: alloc::rc::Rc<Self>,
-        text: String,
-    ) -> Result<(), rt::TsonicError>;
-    fn exact_text_builder_append(
-        self: alloc::rc::Rc<Self>,
-        text: String,
-    ) -> Result<(), rt::TsonicError>;
+    fn read_text_builder_length(self: alloc::rc::Rc<Self>) -> usize;
+    fn dispatch_text_builder_append(self: alloc::rc::Rc<Self>, text: String);
+    fn exact_text_builder_append(self: alloc::rc::Rc<Self>, text: String);
     fn dispatch_text_builder_to_string(self: alloc::rc::Rc<Self>) -> String;
     fn exact_text_builder_to_string(self: alloc::rc::Rc<Self>) -> String;
 }
@@ -102,10 +99,7 @@ impl Default for TextBuilder {
 }
 
 impl TextBuilderRoot {
-    fn exact_text_builder_append(
-        self: alloc::rc::Rc<Self>,
-        text: String,
-    ) -> Result<(), rt::TsonicError> {
+    fn exact_text_builder_append(self: alloc::rc::Rc<Self>, text: String) {
         let project_this = TextBuilder {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -114,8 +108,7 @@ impl TextBuilderRoot {
             let dispatch_receiver = &project_this;
             dispatch_receiver.dispatch.read_text_builder_state()
         }
-        .append(&text)?;
-        Ok(())
+        .append(&text);
     }
 
     fn exact_text_builder_to_string(self: alloc::rc::Rc<Self>) -> String {
@@ -130,7 +123,7 @@ impl TextBuilderRoot {
         .snapshot()
     }
 
-    fn read_text_builder_length(self: alloc::rc::Rc<Self>) -> i32 {
+    fn read_text_builder_length(self: alloc::rc::Rc<Self>) -> usize {
         let project_this = TextBuilder {
             identity: self.identity.clone(),
             dispatch: self.clone(),
@@ -143,7 +136,24 @@ impl TextBuilderRoot {
     }
 }
 
+impl rt::ObjectIdentityCarrier for TextBuilderRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl TextBuilderDispatch for TextBuilderRoot {
+    fn project_text_builder(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn TextBuilderDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_text_builder_to_text_builder(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn TextBuilderDispatch + 'static>> {
@@ -159,21 +169,15 @@ impl TextBuilderDispatch for TextBuilderRoot {
             .with_mut(|state| state.write_text_builder_state(value));
     }
 
-    fn read_text_builder_length(self: alloc::rc::Rc<Self>) -> i32 {
+    fn read_text_builder_length(self: alloc::rc::Rc<Self>) -> usize {
         TextBuilderRoot::read_text_builder_length(self)
     }
 
-    fn dispatch_text_builder_append(
-        self: alloc::rc::Rc<Self>,
-        text: String,
-    ) -> Result<(), rt::TsonicError> {
+    fn dispatch_text_builder_append(self: alloc::rc::Rc<Self>, text: String) {
         TextBuilderRoot::exact_text_builder_append(self, text)
     }
 
-    fn exact_text_builder_append(
-        self: alloc::rc::Rc<Self>,
-        text: String,
-    ) -> Result<(), rt::TsonicError> {
+    fn exact_text_builder_append(self: alloc::rc::Rc<Self>, text: String) {
         TextBuilderRoot::exact_text_builder_append(self, text)
     }
 

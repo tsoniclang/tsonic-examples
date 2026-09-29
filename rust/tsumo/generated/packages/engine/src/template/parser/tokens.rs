@@ -5,8 +5,9 @@ use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct TemplateSegmentState {
-    pub is_action: bool,
+    pub isAction: bool,
     pub text: String,
     pub line: i32,
     pub column: i32,
@@ -25,19 +26,20 @@ impl rt::ObjectIdentityCarrier for TemplateSegment {
 }
 
 impl TemplateSegment {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
-        is_action: bool,
+        isAction: bool,
         text: String,
         line: i32,
         column: i32,
     ) -> Result<TemplateSegment, rt::TsonicError> {
-        let field_is_action: bool = is_action;
+        let field_is_action: bool = isAction;
         let field_text: String = text;
         let field_line: i32 = line;
         let field_column: i32 = column;
         Ok(TemplateSegment {
             state: rt::ObjectRef::new(TemplateSegmentState {
-                is_action: field_is_action,
+                isAction: field_is_action,
                 text: field_text,
                 line: field_line,
                 column: field_column,
@@ -77,18 +79,17 @@ impl TemplatePosition {
     }
 }
 
-pub fn position_at(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn positionAt(
     source: crate::utils::indexed_source_text::IndexedSourceText,
-    line_starts: js_abi::JsArray<i32>,
+    lineStarts: js_abi::JsArray<i32>,
     offset: i32,
 ) -> Result<TemplatePosition, rt::TsonicError> {
     let mut low: i32 = 0;
-    let mut high: i32 = rt::conversions::usize_to_i32(line_starts.len())?;
+    let mut high: i32 = rt::conversions::usize_to_i32(lineStarts.len())?;
     while low < high {
-        let middle: i32 = rt::conversions::f64_to_i32(
-            low as f64 + rt::conversions::i32_to_f64((high - low) / 2).floor(),
-        )?;
-        if (match line_starts.get_number(rt::conversions::i32_to_f64(middle)) {
+        let middle: i32 = low + (high - low) / 2;
+        if (match lineStarts.get_number(middle) {
             Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
         }) <= offset
@@ -98,21 +99,20 @@ pub fn position_at(
             high = middle;
         }
     }
-    let line_index: i32 = low - 1;
+    let lineIndex: i32 = low - 1;
     TemplatePosition::new(
-        line_index + 1,
-        source.utf16_offset_at(offset)
-            - source.utf16_offset_at(
-                match line_starts.get_number(rt::conversions::i32_to_f64(line_index)) {
-                    Some(flow_value_2) => flow_value_2,
-                    None => unreachable!("checked flow selected a missing optional value"),
-                },
-            )
+        lineIndex + 1,
+        source.utf16OffsetAt(offset)
+            - source.utf16OffsetAt(match lineStarts.get_number(lineIndex) {
+                Some(flow_value_2) => flow_value_2,
+                None => unreachable!("checked flow selected a missing optional value"),
+            })
             + 1,
     )
 }
 
-pub fn find_delimiter(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn findDelimiter(
     source: crate::utils::indexed_source_text::IndexedSourceText,
     first: &str,
     second: &str,
@@ -121,7 +121,7 @@ pub fn find_delimiter(
     {
         let mut index: i32 = start;
         while index + 1 < source.state.with(|state| state.length) {
-            if source.character_at(index) == first && source.character_at(index + 1) == second {
+            if source.characterAt(index) == first && source.characterAt(index + 1) == second {
                 return index;
             }
             index += 1;
@@ -130,71 +130,64 @@ pub fn find_delimiter(
     -1
 }
 
-pub fn parse_string_literal(token: &str) -> Result<Option<String>, rt::TsonicError> {
-    crate::template::parser::string_literals::decode_template_string_literal(token)
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseStringLiteral(token: &str) -> Result<Option<String>, rt::TsonicError> {
+    crate::template::parser::string_literals::decodeTemplateStringLiteral(token)
 }
 
-pub fn slice_tokens(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn sliceTokens(
     tokens: js_abi::JsArray<String>,
-    start_index: i32,
+    startIndex: i32,
 ) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
     let result: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-    {
-        let mut index: i32 = start_index;
-        while index < rt::conversions::usize_to_i32(tokens.len())? {
-            {
-                let operation_input_0 = result.clone();
-                operation_input_0.push_many_discard([
-                    match tokens.get_number(rt::conversions::i32_to_f64(index)) {
-                        Some(flow_value) => flow_value,
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                ])
-            };
-            index += 1;
-        }
+    let tokenCount: i32 = rt::conversions::usize_to_i32(tokens.len())?;
+    for index in startIndex..tokenCount {
+        result.push_many_discard([match tokens.get_number(index) {
+            Some(flow_value) => flow_value,
+            None => unreachable!("checked flow selected a missing optional value"),
+        }]);
     }
     Ok(result)
 }
 
-pub fn scan_template_segments(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn scanTemplateSegments(
     template: String,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
 ) -> Result<js_abi::JsArray<TemplateSegment>, rt::TsonicError> {
     let source: crate::utils::indexed_source_text::IndexedSourceText =
-        crate::utils::indexed_source_text::IndexedSourceText::new(template)?;
-    let line_starts: js_abi::JsArray<i32> = js_abi::JsArray::from_dense(vec![0]);
+        crate::utils::indexed_source_text::IndexedSourceText::new(&template)?;
+    let lineStarts: js_abi::JsArray<i32> = js_abi::JsArray::from_dense(vec![0]);
     {
         let mut index: i32 = 0;
         while index < source.state.with(|state| state.length) {
-            if source.character_at(index) == "\n" {
-                line_starts.push_many_discard([rt::conversions::f64_to_i32(
-                    rt::conversions::i32_to_f64(index + 1),
-                )?]);
+            if source.characterAt(index) == "\n" {
+                lineStarts.push_many_discard([index + 1]);
             }
             index += 1;
         }
     }
     let segments: js_abi::JsArray<TemplateSegment> = js_abi::JsArray::from_dense(vec![]);
     let mut offset: i32 = 0;
-    let mut last_segment: Option<TemplateSegment> = Option::<TemplateSegment>::None;
+    let mut lastSegment: Option<TemplateSegment> = Option::<TemplateSegment>::None;
     'loop_value_2: while offset < source.state.with(|state| state.length) {
-        let start: i32 = find_delimiter(source.clone(), "{", "{", offset);
+        let start: i32 = findDelimiter(source.clone(), "{", "{", offset);
         if start < 0 {
             let position: TemplatePosition =
-                position_at(source.clone(), line_starts.clone(), offset)?;
+                positionAt(source.clone(), lineStarts.clone(), offset)?;
             let segment: TemplateSegment = TemplateSegment::new(
                 false,
                 source.slice(offset, source.state.with(|state| state.length)),
                 position.state.with(|state| state.line),
                 position.state.with(|state| state.column),
             )?;
-            segments.push_many_discard([segment.clone()]);
+            segments.push_many_discard([segment]);
             break 'loop_value_2;
         }
         if start > offset {
             let position: TemplatePosition =
-                position_at(source.clone(), line_starts.clone(), offset)?;
+                positionAt(source.clone(), lineStarts.clone(), offset)?;
             let segment: TemplateSegment = TemplateSegment::new(
                 false,
                 source.slice(offset, start),
@@ -202,73 +195,63 @@ pub fn scan_template_segments(
                 position.state.with(|state| state.column),
             )?;
             segments.push_many_discard([segment.clone()]);
-            last_segment = Some(segment.clone());
+            lastSegment = Some(segment.clone());
         }
-        let position: TemplatePosition = position_at(source.clone(), line_starts.clone(), start)?;
-        let end: i32 = find_delimiter(source.clone(), "}", "}", start + 2);
+        let position: TemplatePosition = positionAt(source.clone(), lineStarts.clone(), start)?;
+        let end: i32 = findDelimiter(source.clone(), "}", "}", start + 2);
         if end < 0 {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_TEMPLATE_ACTION_UNCLOSED"),
                     String::from("Template action opened with '{{' but has no closing '}}'"),
-                    source_path.clone(),
-                    Some(rt::conversions::i32_to_f64(
-                        position.state.with(|state| state.line),
-                    )),
-                    Some(rt::conversions::i32_to_f64(
-                        position.state.with(|state| state.column),
-                    )),
+                    sourcePath.clone(),
+                    Some(position.state.with(|state| state.line)),
+                    Some(position.state.with(|state| state.column)),
                 )?,
             ));
         }
         let mut action: String = source.slice(start + 2, end);
-        let mut left_trim: bool = false;
-        let mut right_trim: bool = false;
+        let mut leftTrim: bool = false;
+        let mut rightTrim: bool = false;
         if js_string::starts_with_from_start(&action, "-") {
-            left_trim = true;
+            leftTrim = true;
             action = js_string::substring_from(&action, 1.0)?;
         }
         if js_string::ends_with_at_end(&action, "-") {
-            right_trim = true;
+            rightTrim = true;
             action = {
                 let operation_input_0 = action.clone();
-                js_string::substring(
-                    &operation_input_0,
-                    0.0,
-                    rt::conversions::i32_to_f64(
-                        rt::conversions::usize_to_i32(js_string::js_len(&action))? - 1,
-                    ),
-                )
+                js_string::substring(&operation_input_0, 0.0, js_string::js_len(&action) - 1)
             }?;
         }
         action = js_string::trim(&action);
-        if left_trim
-            && last_segment.is_some()
-            && !match last_segment.as_ref() {
+        if leftTrim
+            && lastSegment.is_some()
+            && !match lastSegment.as_ref() {
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             }
             .state
-            .with(|state| state.is_action)
+            .with(|state| state.isAction)
         {
             segments.pop();
             let trimmed: TemplateSegment = TemplateSegment::new(
                 false,
                 js_string::trim_end(
-                    &match last_segment.as_ref() {
+                    &match lastSegment.as_ref() {
                         Some(flow_value_2) => flow_value_2.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                     .state
                     .with(|state| state.text.clone()),
                 ),
-                match last_segment.as_ref() {
+                match lastSegment.as_ref() {
                     Some(flow_value_3) => flow_value_3.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
                 .state
                 .with(|state| state.line),
-                match last_segment.as_ref() {
+                match lastSegment.as_ref() {
                     Some(flow_value_4) => flow_value_4.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
@@ -278,21 +261,21 @@ pub fn scan_template_segments(
             segments.push_many_discard([trimmed.clone()]);
             {
                 #![expect(unused_assignments, reason = "checked source evaluation order")]
-                last_segment = Some(trimmed.clone());
+                lastSegment = Some(trimmed.clone());
             }
         }
-        let action_segment: TemplateSegment = TemplateSegment::new(
+        let actionSegment: TemplateSegment = TemplateSegment::new(
             true,
-            action.clone(),
+            action,
             position.state.with(|state| state.line),
             position.state.with(|state| state.column),
         )?;
-        segments.push_many_discard([action_segment.clone()]);
-        last_segment = Some(action_segment.clone());
+        segments.push_many_discard([actionSegment.clone()]);
+        lastSegment = Some(actionSegment.clone());
         offset = end + 2;
-        if right_trim {
+        if rightTrim {
             'loop_value_3: while offset < source.state.with(|state| state.length) {
-                let character: String = source.character_at(offset);
+                let character: String = source.characterAt(offset);
                 if character != " " && character != "\t" && character != "\r" && character != "\n" {
                     break 'loop_value_3;
                 }
@@ -303,32 +286,32 @@ pub fn scan_template_segments(
     Ok(segments)
 }
 
-pub fn tokenize_template_action(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn tokenizeTemplateAction(
     action: String,
     line: Option<i32>,
     column: Option<i32>,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
 ) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
     let source: crate::utils::indexed_source_text::IndexedSourceText =
-        crate::utils::indexed_source_text::IndexedSourceText::new(action)?;
+        crate::utils::indexed_source_text::IndexedSourceText::new(&action)?;
     let tokens: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     let mut offset: i32 = 0;
     'loop_value: while offset < source.state.with(|state| state.length) {
-        let character: String = source.character_at(offset);
-        let next_offset: i32 = offset + 1;
+        let character: String = source.characterAt(offset);
+        let nextOffset: i32 = offset + 1;
         if character == " " || character == "\t" || character == "\r" || character == "\n" {
-            offset = next_offset;
+            offset = nextOffset;
             continue 'loop_value;
         }
         if character == ")" {
-            let token_start: i32 = offset;
-            offset = next_offset;
-            if offset < source.state.with(|state| state.length)
-                && source.character_at(offset) == "."
+            let tokenStart: i32 = offset;
+            offset = nextOffset;
+            if offset < source.state.with(|state| state.length) && source.characterAt(offset) == "."
             {
                 offset += 1;
                 'loop_value_2: while offset < source.state.with(|state| state.length) {
-                    let current: String = source.character_at(offset);
+                    let current: String = source.characterAt(offset);
                     if current == " "
                         || current == "\t"
                         || current == "\r"
@@ -343,39 +326,36 @@ pub fn tokenize_template_action(
                     }
                     if current == ":"
                         && offset + 1 < source.state.with(|state| state.length)
-                        && source.character_at(offset + 1) == "="
+                        && source.characterAt(offset + 1) == "="
                     {
                         break 'loop_value_2;
                     }
                     offset += 1;
                 }
             }
-            {
-                let operation_input_0 = tokens.clone();
-                operation_input_0.push_many_discard([source.slice(token_start, offset)])
-            };
+            tokens.push_many_discard([source.slice(tokenStart, offset)]);
             continue 'loop_value;
         }
         if character == "|" || character == "(" || character == "," || character == "=" {
-            tokens.push_many_discard([character.clone()]);
-            offset = next_offset;
+            tokens.push_many_discard([character]);
+            offset = nextOffset;
             continue 'loop_value;
         }
         if character == ":"
             && offset + 1 < source.state.with(|state| state.length)
-            && source.character_at(offset + 1) == "="
+            && source.characterAt(offset + 1) == "="
         {
             tokens.push_many_discard([String::from(":=")]);
             offset += 2;
             continue 'loop_value;
         }
         if character == "\"" || character == "'" || character == "`" {
-            let quote: String = character.clone();
-            let token_start: i32 = offset;
-            offset = next_offset;
+            let quote: String = character;
+            let tokenStart: i32 = offset;
+            offset = nextOffset;
             let mut escaped: bool = false;
             'loop_value_3: while offset < source.state.with(|state| state.length) {
-                let current: String = source.character_at(offset);
+                let current: String = source.characterAt(offset);
                 if (quote == "`" || !escaped) && current == quote {
                     break 'loop_value_3;
                 }
@@ -389,7 +369,7 @@ pub fn tokenize_template_action(
             }
             if offset >= source.state.with(|state| state.length) {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_TEMPLATE_STRING_UNCLOSED"),
                         format!(
                             "{}{}{}",
@@ -397,22 +377,19 @@ pub fn tokenize_template_action(
                             quote,
                             String::from(" but is not closed")
                         ),
-                        source_path.clone(),
-                        line.map(rt::conversions::i32_to_f64),
-                        column.map(rt::conversions::i32_to_f64),
+                        sourcePath.clone(),
+                        line,
+                        column,
                     )?,
                 ));
             }
             offset += 1;
-            {
-                let operation_input_0_2 = tokens.clone();
-                operation_input_0_2.push_many_discard([source.slice(token_start, offset)])
-            };
+            tokens.push_many_discard([source.slice(tokenStart, offset)]);
             continue 'loop_value;
         }
-        let token_start: i32 = offset;
+        let tokenStart: i32 = offset;
         'loop_value_4: while offset < source.state.with(|state| state.length) {
-            let current: String = source.character_at(offset);
+            let current: String = source.characterAt(offset);
             if current == " "
                 || current == "\t"
                 || current == "\r"
@@ -427,16 +404,13 @@ pub fn tokenize_template_action(
             }
             if current == ":"
                 && offset + 1 < source.state.with(|state| state.length)
-                && source.character_at(offset + 1) == "="
+                && source.characterAt(offset + 1) == "="
             {
                 break 'loop_value_4;
             }
             offset += 1;
         }
-        {
-            let operation_input_0_3 = tokens.clone();
-            operation_input_0_3.push_many_discard([source.slice(token_start, offset)])
-        };
+        tokens.push_many_discard([source.slice(tokenStart, offset)]);
     }
     Ok(tokens)
 }

@@ -5,9 +5,10 @@ use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct ExternalProcessResultState {
-    pub exit_code: i32,
-    pub standard_error: String,
+    pub exitCode: i32,
+    pub standardError: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -23,31 +24,33 @@ impl rt::ObjectIdentityCarrier for ExternalProcessResult {
 }
 
 impl ExternalProcessResult {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
-        exit_code: i32,
-        standard_error: String,
+        exitCode: i32,
+        standardError: String,
     ) -> Result<ExternalProcessResult, rt::TsonicError> {
-        let field_exit_code: i32 = exit_code;
-        let field_standard_error: String = standard_error;
+        let field_exit_code: i32 = exitCode;
+        let field_standard_error: String = standardError;
         Ok(ExternalProcessResult {
             state: rt::ObjectRef::new(ExternalProcessResultState {
-                exit_code: field_exit_code,
-                standard_error: field_standard_error,
+                exitCode: field_exit_code,
+                standardError: field_standard_error,
             }),
         })
     }
 }
 
-pub fn run_external_process(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn runExternalProcess(
     executable: String,
-    arguments_list: js_abi::JsArray<String>,
-    tool_name: String,
-    start_diagnostic_code: String,
+    argumentsList: js_abi::JsArray<String>,
+    toolName: String,
+    startDiagnosticCode: String,
 ) -> Result<ExternalProcessResult, rt::TsonicError> {
     let result: tsonic_rust_node::child_process::SpawnSyncResult =
-        tsonic_rust_node::child_process::spawn_sync_result(&executable, &arguments_list)?;
+        tsonic_rust_node::child_process::spawn_sync_result(&executable, &argumentsList)?;
     let stderr: Option<tsonic_rust_node::buffer::Buffer> = result.stderr.clone();
-    let standard_error: String = if stderr.is_none() {
+    let standardError: String = if stderr.is_none() {
         String::from("")
     } else {
         js_string::trim(
@@ -61,7 +64,7 @@ pub fn run_external_process(
     let error: Option<tsonic_rust_node::NodeError> = result.error.clone();
     if error.is_some() || result.status.is_none() {
         let detail: String = if error.is_none() {
-            standard_error.clone()
+            standardError.clone()
         } else {
             String::from(
                 match error.as_ref() {
@@ -72,13 +75,13 @@ pub fn run_external_process(
             )
         };
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
-                start_diagnostic_code,
+            crate::diagnostics::createTsumoError(
+                startDiagnosticCode,
                 if detail.is_empty() {
                     format!(
                         "{}{}{}{}{}",
                         String::from("Failed to start "),
-                        tool_name,
+                        toolName,
                         String::from(" '"),
                         executable,
                         String::from("'")
@@ -87,7 +90,7 @@ pub fn run_external_process(
                     format!(
                         "{}{}{}{}{}{}",
                         String::from("Failed to start "),
-                        tool_name,
+                        toolName,
                         String::from(" '"),
                         executable,
                         String::from("': "),
@@ -105,6 +108,6 @@ pub fn run_external_process(
             Some(flow_value_3) => *flow_value_3,
             None => unreachable!("checked flow selected a missing optional value"),
         },
-        standard_error,
+        standardError,
     )
 }

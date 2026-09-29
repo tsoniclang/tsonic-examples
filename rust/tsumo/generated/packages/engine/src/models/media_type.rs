@@ -3,8 +3,9 @@
 use crate::program as rt;
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct MediaTypeState {
-    pub r#type: String,
+    pub Type: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -21,11 +22,9 @@ impl rt::ObjectIdentityCarrier for MediaType {
 
 impl MediaType {
     pub fn new(r#type: String) -> Result<MediaType, rt::TsonicError> {
-        let field_r_type: String = r#type;
+        let field_type: String = r#type;
         Ok(MediaType {
-            state: rt::ObjectRef::new(MediaTypeState {
-                r#type: field_r_type,
-            }),
+            state: rt::ObjectRef::new(MediaTypeState { Type: field_type }),
         })
     }
 }

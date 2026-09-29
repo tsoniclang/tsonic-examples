@@ -3,19 +3,20 @@
 use crate::program as rt;
 use tsonic_rust_js::string as js_string;
 
-pub fn create_docs_edit_url(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn createDocsEditUrl(
     mount: crate::docs::models::DocsMountConfig,
-    relative_path: String,
+    relativePath: String,
 ) -> Result<Option<String>, rt::TsonicError> {
-    let repo_url: Option<String> = {
+    let repoUrl: Option<String> = {
         let dispatch_receiver = &mount;
         dispatch_receiver.dispatch.read_docs_mount_config_repo_url()
     };
-    if repo_url.is_none() {
+    if repoUrl.is_none() {
         return Ok(Option::<String>::None);
     }
-    let repository: String = crate::utils::strings::trim_end_char(
-        js_string::trim(&match repo_url.as_ref() {
+    let repository: String = crate::utils::strings::trimEndChar(
+        js_string::trim(&match repoUrl.as_ref() {
             Some(flow_value) => flow_value.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         }),
@@ -43,16 +44,15 @@ pub fn create_docs_edit_url(
             })
         }
     };
-    let source_path: String =
-        crate::utils::strings::trim_start_char(relative_path, String::from("/"))?;
-    let configured_repo_path: Option<String> = {
+    let sourcePath: String = crate::utils::strings::trimStartChar(relativePath, String::from("/"))?;
+    let configuredRepoPath: Option<String> = {
         let dispatch_receiver_4 = &mount;
         dispatch_receiver_4
             .dispatch
             .read_docs_mount_config_repo_path()
     };
-    if configured_repo_path.is_none()
-        || js_string::trim(&match configured_repo_path.as_ref() {
+    if configuredRepoPath.is_none()
+        || js_string::trim(&match configuredRepoPath.as_ref() {
             Some(flow_value_2) => flow_value_2.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         })
@@ -64,12 +64,12 @@ pub fn create_docs_edit_url(
             String::from("/blob/"),
             branch,
             String::from("/"),
-            source_path
+            sourcePath
         )));
     }
-    let repo_path: String = crate::utils::strings::trim_end_char(
-        crate::utils::strings::trim_start_char(
-            js_string::trim(&match configured_repo_path.as_ref() {
+    let repoPath: String = crate::utils::strings::trimEndChar(
+        crate::utils::strings::trimStartChar(
+            js_string::trim(&match configuredRepoPath.as_ref() {
                 Some(flow_value_3) => flow_value_3.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             }),
@@ -83,8 +83,8 @@ pub fn create_docs_edit_url(
         String::from("/blob/"),
         branch,
         String::from("/"),
-        repo_path,
+        repoPath,
         String::from("/"),
-        source_path
+        sourcePath
     )))
 }

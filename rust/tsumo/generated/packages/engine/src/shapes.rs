@@ -2,8 +2,8 @@
 
 use tsonic_rust_js::abi as js_abi;
 
-#[expect(dead_code, reason = "retains an unconstructed checked source shape")]
 #[derive(Clone)]
+#[expect(dead_code, reason = "retains an unconstructed checked source shape")]
 pub(crate) enum Union2<Payload0, Payload1> {
     Variant0(Payload0),
     Variant1(Payload1),
@@ -22,13 +22,15 @@ pub(crate) struct ForceRecursiveShape {
     pub recursive: bool,
 }
 
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct EndPosInnerShape {
-    pub end_pos: i32,
+    pub endPos: i32,
     pub inner: String,
 }
 
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct IsNamedParamsPositionalShape {
-    pub is_named: bool,
+    pub isNamed: bool,
     pub params: js_abi::JsMap<String, crate::params::ParamValue>,
     pub positional: js_abi::JsArray<String>,
 }

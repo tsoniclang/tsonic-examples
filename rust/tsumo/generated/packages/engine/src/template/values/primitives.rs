@@ -2,8 +2,15 @@
 
 use crate::program as rt;
 
+std::thread_local! {
+    pub static STRING_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<StringValueClass>> = const { rt::ModuleCell::new() };
+}
+
 #[doc(hidden)]
 pub trait StringValueDispatch: crate::template::values::base::TemplateValueDispatch {
+    fn project_string_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_string_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -84,7 +91,30 @@ impl StringValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for StringValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for StringValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn StringValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -100,6 +130,23 @@ impl crate::template::values::base::TemplateValueDispatch for StringValueRoot {
 }
 
 impl StringValueDispatch for StringValueRoot {
+    fn project_string_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn StringValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_string_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -126,6 +173,10 @@ impl StringValueDispatch for StringValueRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+std::thread_local! {
+    pub static BOOL_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<BoolValueClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -210,7 +261,30 @@ impl BoolValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for BoolValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for BoolValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn BoolValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -252,6 +326,10 @@ impl BoolValueDispatch for BoolValueRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+std::thread_local! {
+    pub static NUMBER_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<NumberValueClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -336,7 +414,30 @@ impl NumberValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for NumberValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for NumberValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn NumberValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -378,6 +479,10 @@ impl NumberValueDispatch for NumberValueRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+std::thread_local! {
+    pub static HTML_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<HtmlValueClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -467,7 +572,30 @@ impl HtmlValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for HtmlValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for HtmlValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn HtmlValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -512,4 +640,132 @@ impl HtmlValueDispatch for HtmlValueRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+pub struct StringValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for StringValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for StringValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for StringValueClass {}
+
+pub struct BoolValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for BoolValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for BoolValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for BoolValueClass {}
+
+pub struct NumberValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for NumberValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for NumberValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for NumberValueClass {}
+
+pub struct HtmlValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for HtmlValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for HtmlValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for HtmlValueClass {}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = {
+            alloc::rc::Rc::new(StringValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        STRING_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding| module_binding.initialize(module_value))
+    };
+    {
+        let module_value_2 = {
+            alloc::rc::Rc::new(BoolValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        BOOL_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding_2| module_binding_2.initialize(module_value_2))
+    };
+    {
+        let module_value_3 = {
+            alloc::rc::Rc::new(NumberValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        NUMBER_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding_3| module_binding_3.initialize(module_value_3))
+    };
+    {
+        let module_value_4 = {
+            alloc::rc::Rc::new(HtmlValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        HTML_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding_4| module_binding_4.initialize(module_value_4))
+    };
 }

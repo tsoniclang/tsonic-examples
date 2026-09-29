@@ -6,6 +6,11 @@ use tsonic_rust_js::string as js_string;
 
 #[doc(hidden)]
 pub trait DocsLinkRewriteContextDispatch {
+    fn project_docs_link_rewrite_context(
+        self: alloc::rc::Rc<Self>,
+        output: &mut dyn core::any::Any,
+    ) where
+        Self: 'static;
     fn downcast_docs_link_rewrite_context_to_docs_link_rewrite_context(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn DocsLinkRewriteContextDispatch + 'static>> {
@@ -41,12 +46,13 @@ pub trait DocsLinkRewriteContextDispatch {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct DocsLinkRewriteContextState {
     pub mount: crate::docs::models::DocsMountConfig,
-    pub source_path: String,
-    pub current_dir_key: String,
-    pub rel_permalink_by_rel_path_lower: js_abi::JsMap<String, String>,
-    pub strict_links: bool,
+    pub sourcePath: String,
+    pub currentDirKey: String,
+    pub relPermalinkByRelPathLower: js_abi::JsMap<String, String>,
+    pub strictLinks: bool,
 }
 
 #[derive(Clone)]
@@ -84,41 +90,43 @@ pub(crate) struct DocsLinkRewriteContextRoot {
 
 impl DocsLinkRewriteContext {
     #[doc(hidden)]
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn initialize_state(
         mount: crate::docs::models::DocsMountConfig,
-        source_path: String,
-        current_dir_key: String,
-        rel_permalink_by_rel_path_lower: js_abi::JsMap<String, String>,
-        strict_links: bool,
+        sourcePath: String,
+        currentDirKey: String,
+        relPermalinkByRelPathLower: js_abi::JsMap<String, String>,
+        strictLinks: bool,
     ) -> Result<DocsLinkRewriteContextState, rt::TsonicError> {
         let field_mount: crate::docs::models::DocsMountConfig = mount;
-        let field_source_path: String = source_path;
-        let field_current_dir_key: String = current_dir_key;
+        let field_source_path: String = sourcePath;
+        let field_current_dir_key: String = currentDirKey;
         let field_rel_permalink_by_rel_path_lower: js_abi::JsMap<String, String> =
-            rel_permalink_by_rel_path_lower;
-        let field_strict_links: bool = strict_links;
+            relPermalinkByRelPathLower;
+        let field_strict_links: bool = strictLinks;
         Ok(DocsLinkRewriteContextState {
             mount: field_mount,
-            source_path: field_source_path,
-            current_dir_key: field_current_dir_key,
-            rel_permalink_by_rel_path_lower: field_rel_permalink_by_rel_path_lower,
-            strict_links: field_strict_links,
+            sourcePath: field_source_path,
+            currentDirKey: field_current_dir_key,
+            relPermalinkByRelPathLower: field_rel_permalink_by_rel_path_lower,
+            strictLinks: field_strict_links,
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         mount: crate::docs::models::DocsMountConfig,
-        source_path: String,
-        current_dir_key: String,
-        rel_permalink_by_rel_path_lower: js_abi::JsMap<String, String>,
-        strict_links: bool,
+        sourcePath: String,
+        currentDirKey: String,
+        relPermalinkByRelPathLower: js_abi::JsMap<String, String>,
+        strictLinks: bool,
     ) -> Result<DocsLinkRewriteContext, rt::TsonicError> {
         let state = DocsLinkRewriteContext::initialize_state(
             mount,
-            source_path,
-            current_dir_key,
-            rel_permalink_by_rel_path_lower,
-            strict_links,
+            sourcePath,
+            currentDirKey,
+            relPermalinkByRelPathLower,
+            strictLinks,
         )?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(DocsLinkRewriteContextRoot {
@@ -132,7 +140,24 @@ impl DocsLinkRewriteContext {
     }
 }
 
+impl rt::ObjectIdentityCarrier for DocsLinkRewriteContextRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl DocsLinkRewriteContextDispatch for DocsLinkRewriteContextRoot {
+    fn project_docs_link_rewrite_context(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output
+            .downcast_mut::<Option<alloc::rc::Rc<dyn DocsLinkRewriteContextDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_docs_link_rewrite_context_to_docs_link_rewrite_context(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn DocsLinkRewriteContextDispatch + 'static>> {
@@ -157,7 +182,7 @@ impl DocsLinkRewriteContextDispatch for DocsLinkRewriteContextRoot {
     }
 
     fn read_docs_link_rewrite_context_source_path(&self) -> String {
-        self.state.with(|state| state.source_path.clone())
+        self.state.with(|state| state.sourcePath.clone())
     }
 
     fn write_docs_link_rewrite_context_source_path(
@@ -167,14 +192,14 @@ impl DocsLinkRewriteContextDispatch for DocsLinkRewriteContextRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.source_path = value)
+                self.state.with_mut(|state| state.sourcePath = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_docs_link_rewrite_context_current_dir_key(&self) -> String {
-        self.state.with(|state| state.current_dir_key.clone())
+        self.state.with(|state| state.currentDirKey.clone())
     }
 
     fn write_docs_link_rewrite_context_current_dir_key(
@@ -184,7 +209,7 @@ impl DocsLinkRewriteContextDispatch for DocsLinkRewriteContextRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.current_dir_key = value)
+                self.state.with_mut(|state| state.currentDirKey = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -194,7 +219,7 @@ impl DocsLinkRewriteContextDispatch for DocsLinkRewriteContextRoot {
         &self,
     ) -> js_abi::JsMap<String, String> {
         self.state
-            .with(|state| state.rel_permalink_by_rel_path_lower.clone())
+            .with(|state| state.relPermalinkByRelPathLower.clone())
     }
 
     fn write_docs_link_rewrite_context_rel_permalink_by_rel_path_lower(
@@ -205,14 +230,14 @@ impl DocsLinkRewriteContextDispatch for DocsLinkRewriteContextRoot {
             {
                 self.identity.validate_data_write()?;
                 self.state
-                    .with_mut(|state| state.rel_permalink_by_rel_path_lower = value)
+                    .with_mut(|state| state.relPermalinkByRelPathLower = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_docs_link_rewrite_context_strict_links(&self) -> bool {
-        self.state.with(|state| state.strict_links)
+        self.state.with(|state| state.strictLinks)
     }
 
     fn write_docs_link_rewrite_context_strict_links(
@@ -222,18 +247,20 @@ impl DocsLinkRewriteContextDispatch for DocsLinkRewriteContextRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.strict_links = value)
+                self.state.with_mut(|state| state.strictLinks = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 }
 
-pub fn normalize_slashes(path: &str) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn normalizeSlashes(path: &str) -> Result<String, rt::TsonicError> {
     js_string::replace_all(path, "\\", "/").map_err(rt::TsonicError::from)
 }
 
-pub fn is_external_url(url: &str) -> bool {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isExternalUrl(url: &str) -> bool {
     let lower: String = js_string::to_lower_case(&js_string::trim(url));
     js_string::starts_with_from_start(&lower, "http://")
         || js_string::starts_with_from_start(&lower, "https://")
@@ -242,102 +269,109 @@ pub fn is_external_url(url: &str) -> bool {
         || js_string::starts_with_from_start(&lower, "//")
 }
 
-pub fn is_unsafe_url(url: &str) -> bool {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isUnsafeUrl(url: &str) -> bool {
     let lower: String = js_string::to_lower_case(&js_string::trim(url));
     js_string::starts_with_from_start(&lower, "javascript:")
         || js_string::starts_with_from_start(&lower, "data:")
         || js_string::starts_with_from_start(&lower, "vbscript:")
 }
 
-pub fn is_markdown_link(path: &str) -> bool {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isMarkdownLink(path: &str) -> bool {
     let lower: String = js_string::to_lower_case(&js_string::trim(path));
     js_string::ends_with_at_end(&lower, ".md") || js_string::ends_with_at_end(&lower, ".markdown")
 }
 
-pub fn normalize_relative_path(
-    base_dir_key: &str,
-    target_path: &str,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn normalizeRelativePath(
+    baseDirKey: &str,
+    targetPath: &str,
 ) -> Result<Option<String>, rt::TsonicError> {
-    let base: String = js_string::trim(base_dir_key);
+    let base: String = js_string::trim(baseDirKey);
     let start: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     if !base.is_empty() {
-        let base_parts: js_abi::JsArray<String> = js_string::split_all(&base, "/")?;
+        let baseParts: js_abi::JsArray<String> = js_string::split_all(&base, "/")?;
         {
-            let mut i: f64 = 0.0;
-            while i < (rt::conversions::usize_to_i32(base_parts.len())? as f64) {
-                let seg: String = js_string::trim(&match base_parts.get_number(i) {
+            let mut i: usize = 0;
+            while i < baseParts.len() {
+                let seg: String = js_string::trim(&match baseParts.get_number(i) {
                     Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 });
                 if !seg.is_empty() {
-                    start.push_many_discard([seg.clone()]);
+                    start.push_many_discard([seg]);
                 }
-                i += 1.0;
+                i += 1;
             }
         }
     }
-    let target: String = normalize_slashes(&js_string::trim(target_path))?;
+    let target: String = normalizeSlashes(&js_string::trim(targetPath))?;
     let parts: js_abi::JsArray<String> = js_string::split_all(&target, "/")?;
     {
-        let mut i: f64 = 0.0;
-        'loop_value_2: while i < (rt::conversions::usize_to_i32(parts.len())? as f64) {
+        let mut i: usize = 0;
+        'loop_value_2: while i < parts.len() {
             let raw: String = match parts.get_number(i) {
                 Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let seg: String = js_string::trim(&raw);
             if seg.is_empty() || seg == "." {
-                i += 1.0;
+                i += 1;
                 continue 'loop_value_2;
             }
             if seg == ".." {
-                if rt::conversions::usize_to_i32(start.len())? == 0 {
+                if start.is_empty() {
                     return Ok(Option::<String>::None);
                 }
                 start.pop();
-                i += 1.0;
+                i += 1;
                 continue 'loop_value_2;
             }
-            start.push_many_discard([seg.clone()]);
-            i += 1.0;
+            start.push_many_discard([seg]);
+            i += 1;
         }
     }
     let arr: js_abi::JsArray<String> = start.clone();
-    if rt::conversions::usize_to_i32(arr.len())? == 0 {
+    if arr.is_empty() {
         return Ok(Some(String::from("")));
     }
     let mut out: String = match arr.get_number(0.0) {
         Some(flow_value_3) => flow_value_3,
         None => unreachable!("checked flow selected a missing optional value"),
     };
-    for i_range in 1..rt::conversions::usize_to_i32(arr.len())? {
-        let i = i_range as f64;
-        out.push_str(&format!(
-            "{}{}",
-            String::from("/"),
-            match arr.get_number(i) {
-                Some(flow_value_4) => flow_value_4,
-                None => unreachable!("checked flow selected a missing optional value"),
-            }
-        ));
+    {
+        let mut i: f64 = 1.0;
+        while i < (arr.len() as f64) {
+            out.push_str(&format!(
+                "{}{}",
+                String::from("/"),
+                match arr.get_number(i) {
+                    Some(flow_value_4) => flow_value_4,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }
+            ));
+            i += 1.0;
+        }
     }
     Ok(Some(out))
 }
 
-pub fn compute_git_hub_blob_url(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn computeGitHubBlobUrl(
     mount: crate::docs::models::DocsMountConfig,
-    repo_rel_path: &str,
+    repoRelPath: &str,
 ) -> Result<Option<String>, rt::TsonicError> {
-    let repo_url: Option<String> = {
+    let repoUrl: Option<String> = {
         let dispatch_receiver = &mount;
         dispatch_receiver.dispatch.read_docs_mount_config_repo_url()
     };
-    if repo_url.is_none() {
+    if repoUrl.is_none() {
         return Ok(Option::<String>::None);
     }
     let slash: String = String::from("/");
-    let repo: String = crate::utils::strings::trim_end_char(
-        js_string::trim(&match repo_url.as_ref() {
+    let repo: String = crate::utils::strings::trimEndChar(
+        js_string::trim(&match repoUrl.as_ref() {
             Some(flow_value) => flow_value.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         }),
@@ -365,8 +399,7 @@ pub fn compute_git_hub_blob_url(
             })
         }
     };
-    let rel: String =
-        crate::utils::strings::trim_start_char(js_string::trim(repo_rel_path), slash)?;
+    let rel: String = crate::utils::strings::trimStartChar(js_string::trim(repoRelPath), slash)?;
     if rel.is_empty() {
         return Ok(Option::<String>::None);
     }
@@ -380,14 +413,15 @@ pub fn compute_git_hub_blob_url(
     )))
 }
 
-pub fn maybe_rewrite_url(
-    url_value: &str,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn maybeRewriteUrl(
+    urlValue: &str,
     ctx: DocsLinkRewriteContext,
 ) -> Result<Option<String>, rt::TsonicError> {
-    let url: String = js_string::trim(url_value);
-    if is_unsafe_url(&url) {
+    let url: String = js_string::trim(urlValue);
+    if isUnsafeUrl(&url) {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_DOCS_LINK_UNSAFE"),
                 format!("{}{}", String::from("Unsafe docs link: "), url),
                 Some({
@@ -401,17 +435,17 @@ pub fn maybe_rewrite_url(
             )?,
         ));
     }
-    if url.is_empty() || js_string::starts_with_from_start(&url, "#") || is_external_url(&url) {
+    if url.is_empty() || js_string::starts_with_from_start(&url, "#") || isExternalUrl(&url) {
         return Ok(Option::<String>::None);
     }
-    let split: crate::docs::url::UrlSuffixSplit = crate::docs::url::split_url_suffix(url.clone())?;
-    let path_part: String = js_string::trim(&split.state.with(|state| state.path.clone()));
+    let split: crate::docs::url::UrlSuffixSplit = crate::docs::url::splitUrlSuffix(url.clone())?;
+    let pathPart: String = js_string::trim(&split.state.with(|state| state.path.clone()));
     let suffix: String = split.state.with(|state| state.suffix.clone());
-    if path_part.is_empty() {
+    if pathPart.is_empty() {
         return Ok(Option::<String>::None);
     }
     let slash: String = String::from("/");
-    let mount_prefix_lower: String = js_string::to_lower_case(&{
+    let mountPrefixLower: String = js_string::to_lower_case(&{
         let dispatch_receiver_3 = &{
             let dispatch_receiver_2 = &ctx;
             dispatch_receiver_2
@@ -422,20 +456,20 @@ pub fn maybe_rewrite_url(
             .dispatch
             .read_docs_mount_config_url_prefix()
     });
-    let path_lower: String = js_string::to_lower_case(&path_part);
+    let pathLower: String = js_string::to_lower_case(&pathPart);
     #[expect(unused_assignments, reason = "checked source evaluation order")]
-    let mut resolved_rel: Option<String> = Option::<String>::None;
+    let mut resolvedRel: Option<String> = Option::<String>::None;
     let mut escaped: bool = false;
-    if js_string::starts_with_from_start(&path_part, "/") {
-        if mount_prefix_lower == "/" {
-            resolved_rel = Some(crate::utils::strings::trim_start_char(
-                path_part.clone(),
+    if js_string::starts_with_from_start(&pathPart, "/") {
+        if mountPrefixLower == "/" {
+            resolvedRel = Some(crate::utils::strings::trimStartChar(
+                pathPart.clone(),
                 slash.clone(),
             )?);
-        } else if js_string::starts_with_from_start(&path_lower, &mount_prefix_lower) {
-            resolved_rel = Some(crate::utils::strings::trim_start_char(
-                crate::utils::strings::substring_from(
-                    &path_part,
+        } else if js_string::starts_with_from_start(&pathLower, &mountPrefixLower) {
+            resolvedRel = Some(crate::utils::strings::trimStartChar(
+                crate::utils::strings::substringFrom(
+                    &pathPart,
                     rt::conversions::usize_to_i32(js_string::js_len(&{
                         let dispatch_receiver_5 = &{
                             let dispatch_receiver_4 = &ctx;
@@ -454,16 +488,16 @@ pub fn maybe_rewrite_url(
             return Ok(Option::<String>::None);
         }
     } else {
-        resolved_rel = normalize_relative_path(
+        resolvedRel = normalizeRelativePath(
             &{
                 let dispatch_receiver_6 = &ctx;
                 dispatch_receiver_6
                     .dispatch
                     .read_docs_link_rewrite_context_current_dir_key()
             },
-            &path_part,
+            &pathPart,
         )?;
-        escaped = resolved_rel.is_none();
+        escaped = resolvedRel.is_none();
     }
     if escaped {
         #[expect(clippy::blocks_in_conditions, reason = "checked evaluation region")]
@@ -474,7 +508,7 @@ pub fn maybe_rewrite_url(
                 .read_docs_link_rewrite_context_strict_links()
         } {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_DOCS_LINK_ESCAPES_MOUNT"),
                     format!(
                         "{}{}{}{}",
@@ -502,7 +536,7 @@ pub fn maybe_rewrite_url(
                 )?,
             ));
         }
-        let repo_path_raw: Option<String> = {
+        let repoPathRaw: Option<String> = {
             let dispatch_receiver_12 = &{
                 let dispatch_receiver_11 = &ctx;
                 dispatch_receiver_11
@@ -513,8 +547,8 @@ pub fn maybe_rewrite_url(
                 .dispatch
                 .read_docs_mount_config_repo_path()
         };
-        if repo_path_raw.is_none()
-            || js_string::trim(&match repo_path_raw.as_ref() {
+        if repoPathRaw.is_none()
+            || js_string::trim(&match repoPathRaw.as_ref() {
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             })
@@ -522,17 +556,17 @@ pub fn maybe_rewrite_url(
         {
             return Ok(Option::<String>::None);
         }
-        let repo_path: String = crate::utils::strings::trim_end_char(
-            crate::utils::strings::trim_start_char(
-                js_string::trim(&match repo_path_raw.as_ref() {
+        let repoPath: String = crate::utils::strings::trimEndChar(
+            crate::utils::strings::trimStartChar(
+                js_string::trim(&match repoPathRaw.as_ref() {
                     Some(flow_value_2) => flow_value_2.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 }),
                 slash.clone(),
             )?,
-            slash.clone(),
+            slash,
         )?;
-        let base_dir: String = {
+        let baseDir: String = {
             let conditional_test = js_string::trim(&{
                 let dispatch_receiver_13 = &ctx;
                 dispatch_receiver_13
@@ -541,9 +575,9 @@ pub fn maybe_rewrite_url(
             })
             .is_empty();
             if conditional_test {
-                repo_path.clone()
+                repoPath.clone()
             } else {
-                format!("{}{}{}", repo_path, String::from("/"), {
+                format!("{}{}{}", repoPath, String::from("/"), {
                     let dispatch_receiver_14 = &ctx;
                     dispatch_receiver_14
                         .dispatch
@@ -551,18 +585,18 @@ pub fn maybe_rewrite_url(
                 })
             }
         };
-        let repo_rel: Option<String> = normalize_relative_path(&base_dir, &path_part)?;
-        if repo_rel.is_none() {
+        let repoRel: Option<String> = normalizeRelativePath(&baseDir, &pathPart)?;
+        if repoRel.is_none() {
             return Ok(Option::<String>::None);
         }
-        let gh: Option<String> = compute_git_hub_blob_url(
+        let gh: Option<String> = computeGitHubBlobUrl(
             {
                 let dispatch_receiver_15 = &ctx;
                 dispatch_receiver_15
                     .dispatch
                     .read_docs_link_rewrite_context_mount()
             },
-            &match repo_rel.as_ref() {
+            &match repoRel.as_ref() {
                 Some(flow_value_3) => flow_value_3.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             },
@@ -580,16 +614,16 @@ pub fn maybe_rewrite_url(
             Option::<String>::None
         });
     }
-    if resolved_rel.is_none() {
+    if resolvedRel.is_none() {
         return Ok(Option::<String>::None);
     }
-    if !is_markdown_link(&match resolved_rel.as_ref() {
+    if !isMarkdownLink(&match resolvedRel.as_ref() {
         Some(flow_value_5) => flow_value_5.clone(),
         None => unreachable!("checked flow selected a missing optional value"),
     }) {
         return Ok(Option::<String>::None);
     }
-    let key: String = js_string::to_lower_case(&match resolved_rel.as_ref() {
+    let key: String = js_string::to_lower_case(&match resolvedRel.as_ref() {
         Some(flow_value_6) => flow_value_6.clone(),
         None => unreachable!("checked flow selected a missing optional value"),
     });
@@ -618,7 +652,7 @@ pub fn maybe_rewrite_url(
             .read_docs_link_rewrite_context_strict_links()
     } {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_DOCS_LINK_UNRESOLVED"),
                 format!(
                     "{}{}{}{}",
@@ -649,13 +683,14 @@ pub fn maybe_rewrite_url(
     Ok(Option::<String>::None)
 }
 
-pub fn create_document_with_rewrites(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn createDocumentWithRewrites(
     markdown: String,
     ctx: DocsLinkRewriteContext,
 ) -> Result<crate::markdown::platform::TsumoMarkdownDocument, rt::TsonicError> {
     let document: crate::markdown::platform::TsumoMarkdownDocument =
-        crate::markdown::platform::create_markdown_document(markdown);
-    let count: i32 = document.occurrence_count();
+        crate::markdown::platform::createMarkdownDocument(markdown);
+    let count: i32 = document.occurrenceCount()?;
     'loop_value: for index in 0..count {
         let occurrence: crate::markdown::platform::TsumoMarkdownOccurrence =
             document.occurrence(index)?;
@@ -664,12 +699,12 @@ pub fn create_document_with_rewrites(
         {
             continue 'loop_value;
         }
-        let updated: Option<String> = maybe_rewrite_url(
+        let updated: Option<String> = maybeRewriteUrl(
             &occurrence.state.with(|state| state.destination.clone()),
             ctx.clone(),
         )?;
         if updated.is_some() {
-            document.replace_url(
+            document.replaceUrl(
                 index,
                 match updated.as_ref() {
                     Some(flow_value) => flow_value.clone(),
@@ -681,31 +716,32 @@ pub fn create_document_with_rewrites(
     Ok(document)
 }
 
-pub fn render_docs_markdown(
-    markdown_raw: String,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn renderDocsMarkdown(
+    markdownRaw: &str,
     ctx: DocsLinkRewriteContext,
 ) -> Result<crate::markdown::result::MarkdownResult, rt::TsonicError> {
-    let source_plan: crate::markdown::platform::TsumoMarkdownSourcePlan =
-        crate::markdown::platform::create_markdown_source_plan(markdown_raw)?;
-    let document: crate::markdown::platform::TsumoMarkdownDocument = create_document_with_rewrites(
-        source_plan.state.with(|state| state.full_source.clone()),
+    let sourcePlan: crate::markdown::platform::TsumoMarkdownSourcePlan =
+        crate::markdown::platform::createMarkdownSourcePlan(markdownRaw)?;
+    let document: crate::markdown::platform::TsumoMarkdownDocument = createDocumentWithRewrites(
+        sourcePlan.state.with(|state| state.fullSource.clone()),
         ctx.clone(),
     )?;
     let html: String = document.render();
-    let summary_html: String = if source_plan
+    let summaryHtml: String = if sourcePlan
         .state
-        .with(|state| state.summary_source.clone())
+        .with(|state| state.summarySource.clone())
         .is_empty()
     {
         String::from("")
-    } else if source_plan.state.with(|state| state.summary_source.clone())
-        == source_plan.state.with(|state| state.full_source.clone())
+    } else if sourcePlan.state.with(|state| state.summarySource.clone())
+        == sourcePlan.state.with(|state| state.fullSource.clone())
     {
         js_string::trim(&html)
     } else {
         js_string::trim(
-            &create_document_with_rewrites(
-                source_plan.state.with(|state| state.summary_source.clone()),
+            &createDocumentWithRewrites(
+                sourcePlan.state.with(|state| state.summarySource.clone()),
                 ctx.clone(),
             )?
             .render(),
@@ -713,8 +749,8 @@ pub fn render_docs_markdown(
     };
     crate::markdown::result::MarkdownResult::new(
         html,
-        summary_html,
-        document.plain_text(),
+        summaryHtml,
+        document.plainText(),
         String::from(""),
     )
 }

@@ -4,37 +4,37 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn normalize_rel_path(raw: &str) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn normalizeRelPath(raw: &str) -> Result<String, rt::TsonicError> {
     let normalized: String =
-        crate::utils::strings::replace_text(raw, String::from("\\"), String::from("/"))?;
+        crate::utils::strings::replaceText(raw, String::from("\\"), String::from("/"))?;
     let parts: js_abi::JsArray<String> = js_string::split_all(&normalized, "/")?;
-    let out_parts: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    let outParts: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     {
-        let mut i: f64 = 0.0;
-        'loop_value: while i < (rt::conversions::usize_to_i32(parts.len())? as f64) {
+        let mut i: usize = 0;
+        'loop_value: while i < parts.len() {
             let p: String = js_string::trim(&match parts.get_number(i) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             });
             if p.is_empty() || p == "." {
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if p == ".." {
-                if rt::conversions::usize_to_i32(out_parts.len())? > 0 {
-                    out_parts.pop();
+                if !outParts.is_empty() {
+                    outParts.pop();
                 }
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
-            out_parts.push_many_discard([p.clone()]);
-            i += 1.0;
+            outParts.push_many_discard([p]);
+            i += 1;
         }
     }
-    let arr: js_abi::JsArray<String> = out_parts.clone();
+    let arr: js_abi::JsArray<String> = outParts.clone();
     let mut out: String = String::from("");
-    for i_range in 0..rt::conversions::usize_to_i32(arr.len())? {
-        let i = i_range as f64;
+    for i in 0..arr.len() {
         out = if out.is_empty() {
             match arr.get_number(i) {
                 Some(flow_value_2) => flow_value_2,
@@ -55,52 +55,50 @@ pub fn normalize_rel_path(raw: &str) -> Result<String, rt::TsonicError> {
     Ok(out)
 }
 
-pub fn segment_match(pattern: &str, segment: &str) -> Result<bool, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn segmentMatch(pattern: &str, segment: &str) -> Result<bool, rt::TsonicError> {
     if pattern == "*" {
         return Ok(true);
     }
-    let star: i32 = rt::conversions::isize_to_i32(js_string::index_of_from_start(pattern, "*"))?;
+    let star: isize = js_string::index_of_from_start(pattern, "*");
     if star < 0 {
         return Ok(pattern == segment);
     }
     let parts: js_abi::JsArray<String> = js_string::split_all(pattern, "*")?;
-    let mut pos: f64 = 0.0;
+    let mut pos: usize = 0;
     {
-        let mut i: f64 = 0.0;
-        'loop_value: while i < (rt::conversions::usize_to_i32(parts.len())? as f64) {
+        let mut i: usize = 0;
+        'loop_value: while i < parts.len() {
             let p: String = match parts.get_number(i) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if p.is_empty() {
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
-            let idx: i32 = rt::conversions::isize_to_i32(js_string::index_of(segment, &p, pos))?;
+            let idx: isize = js_string::index_of(segment, &p, pos);
             if idx < 0 {
                 return Ok(false);
             }
-            if i == 0.0 && !js_string::starts_with_from_start(pattern, "*") && idx != 0 {
+            if i == 0 && !js_string::starts_with_from_start(pattern, "*") && idx != 0 {
                 return Ok(false);
             }
-            pos = rt::conversions::i32_to_f64(
-                idx + rt::conversions::usize_to_i32(js_string::js_len(&p))?,
-            );
-            i += 1.0;
+            pos = rt::conversions::checked_integer::<usize>(idx)? + js_string::js_len(&p);
+            i += 1;
         }
     }
-    if !js_string::ends_with_at_end(pattern, "*")
-        && pos != rt::conversions::usize_to_i32(js_string::js_len(segment))? as f64
-    {
+    if !js_string::ends_with_at_end(pattern, "*") && pos != js_string::js_len(segment) {
         return Ok(false);
     }
     Ok(true)
 }
 
-pub fn split_glob_segments(raw: &str) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn splitGlobSegments(raw: &str) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
     let slash: String = String::from("/");
-    let normalized: String = crate::template::evaluation::serialization::trim_start_character(
-        crate::utils::strings::replace_text(
+    let normalized: String = crate::template::evaluation::serialization::trimStartCharacter(
+        crate::utils::strings::replaceText(
             &js_string::trim(raw),
             String::from("\\"),
             String::from("/"),
@@ -114,24 +112,25 @@ pub fn split_glob_segments(raw: &str) -> Result<js_abi::JsArray<String>, rt::Tso
     js_string::split_all(&normalized, "/").map_err(rt::TsonicError::from)
 }
 
-pub fn glob_match_at(
-    pat_segs: js_abi::JsArray<String>,
-    path_segs: js_abi::JsArray<String>,
-    pi: i32,
-    si: i32,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn globMatchAt(
+    patSegs: js_abi::JsArray<String>,
+    pathSegs: js_abi::JsArray<String>,
+    pi: usize,
+    si: usize,
 ) -> Result<bool, rt::TsonicError> {
-    if pi >= rt::conversions::usize_to_i32(pat_segs.len())? {
-        return Ok(si >= rt::conversions::usize_to_i32(path_segs.len())?);
+    if pi >= patSegs.len() {
+        return Ok(si >= pathSegs.len());
     }
-    let p: String = match pat_segs.get_number(rt::conversions::i32_to_f64(pi)) {
+    let p: String = match patSegs.get_number(pi) {
         Some(flow_value) => flow_value,
         None => unreachable!("checked flow selected a missing optional value"),
     };
     if p == "**" {
         {
-            let mut i: i32 = si;
-            while i <= rt::conversions::usize_to_i32(path_segs.len())? {
-                if glob_match_at(pat_segs.clone(), path_segs.clone(), pi + 1, i)? {
+            let mut i: usize = si;
+            while i <= pathSegs.len() {
+                if globMatchAt(patSegs.clone(), pathSegs.clone(), pi + 1, i)? {
                     return Ok(true);
                 }
                 i += 1;
@@ -139,28 +138,30 @@ pub fn glob_match_at(
         }
         return Ok(false);
     }
-    if si >= rt::conversions::usize_to_i32(path_segs.len())? {
+    if si >= pathSegs.len() {
         return Ok(false);
     }
-    if !segment_match(
+    if !segmentMatch(
         &p,
-        &match path_segs.get_number(rt::conversions::i32_to_f64(si)) {
+        &match pathSegs.get_number(si) {
             Some(flow_value_2) => flow_value_2,
             None => unreachable!("checked flow selected a missing optional value"),
         },
     )? {
         return Ok(false);
     }
-    glob_match_at(pat_segs.clone(), path_segs.clone(), pi + 1, si + 1)
+    globMatchAt(patSegs.clone(), pathSegs.clone(), pi + 1, si + 1)
 }
 
-pub fn glob_match(pattern_raw: &str, path_raw: &str) -> Result<bool, rt::TsonicError> {
-    let pat_segs: js_abi::JsArray<String> = split_glob_segments(pattern_raw)?;
-    let path_segs: js_abi::JsArray<String> = split_glob_segments(path_raw)?;
-    glob_match_at(pat_segs, path_segs, 0, 0)
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn globMatch(patternRaw: &str, pathRaw: &str) -> Result<bool, rt::TsonicError> {
+    let patSegs: js_abi::JsArray<String> = splitGlobSegments(patternRaw)?;
+    let pathSegs: js_abi::JsArray<String> = splitGlobSegments(pathRaw)?;
+    globMatchAt(patSegs, pathSegs, 0, 0)
 }
 
-pub fn resolve_page_ref(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn resolvePageRef(
     page: crate::models::page_context::PageContext,
     r#ref: &str,
 ) -> Result<String, rt::TsonicError> {
@@ -169,20 +170,20 @@ pub fn resolve_page_ref(
         return Ok(String::from(""));
     }
     if js_string::starts_with_from_start(&raw, "/") {
-        return crate::template::evaluation::serialization::trim_slashes(raw.clone());
+        return crate::template::evaluation::serialization::trimSlashes(raw.clone());
     }
-    let page_file: Option<crate::models::page_file::PageFile> = {
+    let pageFile: Option<crate::models::page_file::PageFile> = {
         let dispatch_receiver = &page;
         dispatch_receiver.dispatch.read_page_context_file()
     };
-    let base: String = if page_file.is_some() {
-        let dispatch_receiver_2 = &match page_file.as_ref() {
+    let base: String = if pageFile.is_some() {
+        let dispatch_receiver_2 = &match pageFile.as_ref() {
             Some(flow_value) => flow_value.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         };
         dispatch_receiver_2.dispatch.read_page_file_dir()
     } else {
-        crate::template::evaluation::serialization::trim_slashes({
+        crate::template::evaluation::serialization::trimSlashes({
             let dispatch_receiver_3 = &page;
             dispatch_receiver_3
                 .dispatch
@@ -194,32 +195,33 @@ pub fn resolve_page_ref(
     } else {
         format!(
             "{}{}{}",
-            crate::template::evaluation::serialization::trim_end_character(
+            crate::template::evaluation::serialization::trimEndCharacter(
                 base.clone(),
                 String::from("/")
             )?,
             String::from("/"),
-            crate::template::evaluation::serialization::trim_start_character(
+            crate::template::evaluation::serialization::trimStartCharacter(
                 raw.clone(),
                 String::from("/")
             )?
         )
     };
-    normalize_rel_path(&combined)
+    normalizeRelPath(&combined)
 }
 
-pub fn try_get_page(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn tryGetPage(
     site: crate::models::site_context::SiteContext,
-    path_raw: &str,
+    pathRaw: &str,
 ) -> Result<Option<crate::models::page_context::PageContext>, rt::TsonicError> {
-    let trimmed: String = js_string::trim(path_raw);
+    let trimmed: String = js_string::trim(pathRaw);
     if trimmed.is_empty() || trimmed == "/" {
         return Ok({
             let dispatch_receiver = &site;
             dispatch_receiver.dispatch.read_site_context_home()
         });
     }
-    let needle: String = crate::template::evaluation::serialization::trim_slashes(trimmed)?;
+    let needle: String = crate::template::evaluation::serialization::trimSlashes(trimmed)?;
     if needle.is_empty() {
         return Ok({
             let dispatch_receiver_2 = &site;
@@ -230,13 +232,11 @@ pub fn try_get_page(
         let dispatch_receiver_3 = &site;
         dispatch_receiver_3.dispatch.read_site_context_pages()
     };
-    if rt::conversions::usize_to_i32(
-        {
-            let dispatch_receiver_4 = &site;
-            dispatch_receiver_4.dispatch.read_site_context_all_pages()
-        }
-        .len(),
-    )? > 0
+    if !{
+        let dispatch_receiver_4 = &site;
+        dispatch_receiver_4.dispatch.read_site_context_all_pages()
+    }
+    .is_empty()
     {
         candidates = {
             let dispatch_receiver_5 = &site;
@@ -244,13 +244,13 @@ pub fn try_get_page(
         };
     }
     {
-        let mut i: f64 = 0.0;
-        while i < (rt::conversions::usize_to_i32(candidates.len())? as f64) {
+        let mut i: usize = 0;
+        while i < candidates.len() {
             let p: crate::models::page_context::PageContext = match candidates.get_number(i) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            if crate::template::evaluation::serialization::trim_slashes({
+            if crate::template::evaluation::serialization::trimSlashes({
                 let dispatch_receiver_6 = &p;
                 dispatch_receiver_6
                     .dispatch
@@ -266,7 +266,7 @@ pub fn try_get_page(
             {
                 return Ok(Some(p.clone()));
             }
-            i += 1.0;
+            i += 1;
         }
     }
     Ok(Option::<crate::models::page_context::PageContext>::None)

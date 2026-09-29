@@ -2,22 +2,27 @@
 
 use crate::program as rt;
 
-pub fn escape_html(input: String) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn escapeHtml(input: String) -> Result<String, rt::TsonicError> {
     let mut s: String = input;
-    s = crate::utils::strings::replace_text(&s, String::from("&"), String::from("&amp;"))?;
-    s = crate::utils::strings::replace_text(&s, String::from("<"), String::from("&lt;"))?;
-    s = crate::utils::strings::replace_text(&s, String::from(">"), String::from("&gt;"))?;
-    s = crate::utils::strings::replace_text(&s, String::from("\""), String::from("&quot;"))?;
-    s = crate::utils::strings::replace_text(&s, String::from("'"), String::from("&#39;"))?;
+    s = crate::utils::strings::replaceText(&s, String::from("&"), String::from("&amp;"))?;
+    s = crate::utils::strings::replaceText(&s, String::from("<"), String::from("&lt;"))?;
+    s = crate::utils::strings::replaceText(&s, String::from(">"), String::from("&gt;"))?;
+    s = crate::utils::strings::replaceText(&s, String::from("\""), String::from("&quot;"))?;
+    s = crate::utils::strings::replaceText(&s, String::from("'"), String::from("&#39;"))?;
     Ok(s)
 }
 
-pub fn decode_html(input: String) -> String {
-    tsumo_platform::decode_html(&input)
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn decodeHtml(input: &str) -> String {
+    tsumo_platform::decode_html(input)
 }
 
 #[doc(hidden)]
 pub trait HtmlStringDispatch {
+    fn project_html_string(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_html_string_to_html_string(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn HtmlStringDispatch + 'static>> {
@@ -86,7 +91,24 @@ impl HtmlString {
     }
 }
 
+impl rt::ObjectIdentityCarrier for HtmlStringRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl HtmlStringDispatch for HtmlStringRoot {
+    fn project_html_string(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn HtmlStringDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_html_string_to_html_string(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn HtmlStringDispatch + 'static>> {

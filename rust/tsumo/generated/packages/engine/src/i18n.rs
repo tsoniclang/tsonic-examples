@@ -5,31 +5,31 @@ use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
 std::thread_local! {
-    pub static PLURAL_VARIANT_NAMES: rt::ModuleCell<js_abi::JsArray<String>> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub static pluralVariantNames: rt::ModuleCell<js_abi::JsArray<String>> = const { rt::ModuleCell::new() };
 }
 
-pub fn is_plural_variant_name(name: &str) -> Result<bool, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isPluralVariantName(name: &str) -> bool {
     let normalized: String = js_string::to_lower_case(name);
     {
-        let mut index: i32 = 0;
+        let mut index: usize = 0;
         while index
-            < rt::conversions::usize_to_i32(
-                PLURAL_VARIANT_NAMES
-                    .with(|module_binding| module_binding.load())
-                    .len(),
-            )?
-        {
-            if PLURAL_VARIANT_NAMES
+            < pluralVariantNames
                 .with(|module_binding| module_binding.load())
-                .get_number(rt::conversions::i32_to_f64(index))
+                .len()
+        {
+            if pluralVariantNames
+                .with(|module_binding| module_binding.load())
+                .get_number(index)
                 == Some(normalized.clone())
             {
-                return Ok(true);
+                return true;
             }
             index += 1;
         }
     }
-    Ok(false)
+    false
 }
 
 #[doc(hidden)]
@@ -59,9 +59,10 @@ impl I18nMessage {
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn select(&self, count: Option<i32>) -> Result<String, rt::TsonicError> {
         if count.is_some() {
-            let exact_name: String = if count == Some(0) {
+            let exactName: String = if count == Some(0) {
                 String::from("zero")
             } else if count == Some(1) {
                 String::from("one")
@@ -73,7 +74,7 @@ impl I18nMessage {
             let exact: Option<String> = self
                 .state
                 .with(|state| state.variants.clone())
-                .get(&exact_name);
+                .get(&exactName);
             if exact.is_some() {
                 return Ok(match exact {
                     Some(flow_value) => flow_value,
@@ -89,19 +90,17 @@ impl I18nMessage {
             });
         }
         {
-            let mut index: i32 = 0;
+            let mut index: usize = 0;
             while index
-                < rt::conversions::usize_to_i32(
-                    PLURAL_VARIANT_NAMES
-                        .with(|module_binding| module_binding.load())
-                        .len(),
-                )?
+                < pluralVariantNames
+                    .with(|module_binding| module_binding.load())
+                    .len()
             {
                 let value: Option<String> = {
                     let operation_input_0 = self.state.with(|state| state.variants.clone());
-                    operation_input_0.get(&match PLURAL_VARIANT_NAMES
+                    operation_input_0.get(&match pluralVariantNames
                         .with(|module_binding| module_binding.load())
-                        .get_number(rt::conversions::i32_to_f64(index))
+                        .get_number(index)
                     {
                         Some(flow_value_3) => flow_value_3,
                         None => unreachable!("checked flow selected a missing optional value"),
@@ -117,7 +116,7 @@ impl I18nMessage {
             }
         }
         Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_I18N_MESSAGE_EMPTY"),
                 String::from("An internationalization message has no text variants"),
                 None,
@@ -128,10 +127,11 @@ impl I18nMessage {
     }
 }
 
-pub fn i18n_text(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn i18nText(
     value: crate::template::values::base::TemplateValue,
     identity: String,
-    source_path: String,
+    sourcePath: String,
 ) -> Result<String, rt::TsonicError> {
     if let Some(selected_dispatch) = value
         .dispatch
@@ -148,7 +148,7 @@ pub fn i18n_text(
         });
     }
     Err(rt::TsonicError::TsumoError(
-        crate::diagnostics::create_tsumo_error(
+        crate::diagnostics::createTsumoError(
             String::from("TSUMO_I18N_MESSAGE_VALUE_INVALID"),
             format!(
                 "{}{}{}",
@@ -156,17 +156,18 @@ pub fn i18n_text(
                 identity,
                 String::from("' must contain text values")
             ),
-            Some(source_path),
+            Some(sourcePath),
             None,
             None,
         )?,
     ))
 }
 
-pub fn message_from_value(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn messageFromValue(
     value: crate::template::values::base::TemplateValue,
     identity: String,
-    source_path: String,
+    sourcePath: String,
 ) -> Result<Option<I18nMessage>, rt::TsonicError> {
     if let Some(selected_dispatch) = value
         .dispatch
@@ -212,24 +213,24 @@ pub fn message_from_value(
     let translation: Option<crate::template::values::base::TemplateValue> =
         fields.get("translation");
     if translation.is_some() {
-        return message_from_value(
+        return messageFromValue(
             match translation.as_ref() {
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             },
             identity.clone(),
-            source_path.clone(),
+            sourcePath.clone(),
         );
     }
     let variants: js_abi::JsMap<String, String> = js_abi::JsMap::new();
     'loop_value: for key in fields.keys() {
-        if !is_plural_variant_name(&key)? {
+        if !isPluralVariantName(&key) {
             continue 'loop_value;
         }
         let field: Option<crate::template::values::base::TemplateValue> = fields.get(&key);
         if field.is_none() {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_I18N_MESSAGE_INCONSISTENT"),
                     format!(
                         "{}{}{}{}{}",
@@ -239,7 +240,7 @@ pub fn message_from_value(
                         key,
                         String::from("' disappeared")
                     ),
-                    Some(source_path.clone()),
+                    Some(sourcePath.clone()),
                     None,
                     None,
                 )?,
@@ -249,36 +250,37 @@ pub fn message_from_value(
             let operation_input_0_2 = variants.clone();
             operation_input_0_2.set_discard(
                 js_string::to_lower_case(&key),
-                i18n_text(
+                i18nText(
                     match field.as_ref() {
                         Some(flow_value_2) => flow_value_2.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                     format!("{}{}{}", identity, String::from("."), key),
-                    source_path.clone(),
+                    sourcePath.clone(),
                 )?,
             )
         };
     }
-    Ok(if rt::conversions::usize_to_i32(variants.len())? == 0 {
+    Ok(if variants.is_empty() {
         Option::<I18nMessage>::None
     } else {
         Some(I18nMessage::new(variants.clone())?)
     })
 }
 
-pub fn set_layer_message(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn setLayerMessage(
     layer: js_abi::JsMap<String, I18nMessage>,
     identity: String,
     message: I18nMessage,
-    source_path: String,
+    sourcePath: String,
 ) -> Result<(), rt::TsonicError> {
     if identity.is_empty() {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_I18N_MESSAGE_IDENTITY_INVALID"),
                 String::from("Internationalization message identity cannot be empty"),
-                Some(source_path.clone()),
+                Some(sourcePath.clone()),
                 None,
                 None,
             )?,
@@ -286,7 +288,7 @@ pub fn set_layer_message(
     }
     if layer.has(&identity) {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_I18N_MESSAGE_CONFLICT"),
                 format!(
                     "{}{}{}",
@@ -294,7 +296,7 @@ pub fn set_layer_message(
                     identity,
                     String::from("' is declared more than once in the same layer")
                 ),
-                Some(source_path.clone()),
+                Some(sourcePath.clone()),
                 None,
                 None,
             )?,
@@ -304,23 +306,24 @@ pub fn set_layer_message(
     Ok(())
 }
 
-pub fn collect_message_tree(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn collectMessageTree(
     value: crate::template::values::base::TemplateValue,
     identity: String,
     layer: js_abi::JsMap<String, I18nMessage>,
-    source_path: String,
+    sourcePath: String,
 ) -> Result<(), rt::TsonicError> {
     let message: Option<I18nMessage> =
-        message_from_value(value.clone(), identity.clone(), source_path.clone())?;
+        messageFromValue(value.clone(), identity.clone(), sourcePath.clone())?;
     if message.is_some() {
-        set_layer_message(
+        setLayerMessage(
             layer.clone(),
-            identity.clone(),
+            identity,
             match message.as_ref() {
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             },
-            source_path.clone(),
+            sourcePath,
         )?;
         return Ok(());
     }
@@ -331,7 +334,7 @@ pub fn collect_message_tree(
         .is_none()
     {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_I18N_MESSAGE_SHAPE_INVALID"),
                 format!(
                     "{}{}{}",
@@ -339,7 +342,7 @@ pub fn collect_message_tree(
                     identity,
                     String::from("' must be text or a message dictionary")
                 ),
-                Some(source_path.clone()),
+                Some(sourcePath.clone()),
                 None,
                 None,
             )?,
@@ -378,7 +381,7 @@ pub fn collect_message_tree(
         .get(&key);
         if child.is_none() {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_I18N_MESSAGE_INCONSISTENT"),
                     format!(
                         "{}{}{}",
@@ -386,13 +389,13 @@ pub fn collect_message_tree(
                         key,
                         String::from("' disappeared")
                     ),
-                    Some(source_path.clone()),
+                    Some(sourcePath.clone()),
                     None,
                     None,
                 )?,
             ));
         }
-        collect_message_tree(
+        collectMessageTree(
             match child.as_ref() {
                 Some(flow_value_2) => flow_value_2.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
@@ -403,33 +406,31 @@ pub fn collect_message_tree(
                 format!("{}{}{}", identity, String::from("."), key)
             },
             layer.clone(),
-            source_path.clone(),
+            sourcePath.clone(),
         )?;
     }
     Ok(())
 }
 
-pub fn collect_legacy_messages(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn collectLegacyMessages(
     values: crate::template::values::arrays::AnyArrayValue,
     layer: js_abi::JsMap<String, I18nMessage>,
-    source_path: String,
+    sourcePath: String,
 ) -> Result<(), rt::TsonicError> {
     {
-        let mut index: i32 = 0;
-        while index
-            < rt::conversions::usize_to_i32(
-                {
-                    let dispatch_receiver = &values;
-                    dispatch_receiver.dispatch.read_any_array_value_value()
-                }
-                .len(),
-            )?
+        let mut index: usize = 0;
+        while index < {
+            let dispatch_receiver = &values;
+            dispatch_receiver.dispatch.read_any_array_value_value()
+        }
+        .len()
         {
             let item: crate::template::values::base::TemplateValue = match {
                 let dispatch_receiver_2 = &values;
                 dispatch_receiver_2.dispatch.read_any_array_value_value()
             }
-            .get_number(rt::conversions::i32_to_f64(index))
+            .get_number(index)
             {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
@@ -441,18 +442,18 @@ pub fn collect_legacy_messages(
                 .is_none()
             {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_I18N_MESSAGE_SHAPE_INVALID"),
                         String::from(
                             "Internationalization message list entries must be dictionaries",
                         ),
-                        Some(source_path.clone()),
+                        Some(sourcePath.clone()),
                         None,
                         None,
                     )?,
                 ));
             }
-            let identity_value: Option<crate::template::values::base::TemplateValue> = {
+            let identityValue: Option<crate::template::values::base::TemplateValue> = {
                 let dispatch_receiver_3 = &{
                     let downcast_value = &item;
                     crate::template::values::dict::DictValue {
@@ -482,7 +483,7 @@ pub fn collect_legacy_messages(
                 dispatch_receiver_4.dispatch.read_dict_value_value()
             }
             .get("translation");
-            if !identity_value.as_ref().is_some_and(|value| {
+            if !identityValue.as_ref().is_some_and(|value| {
                 value
                     .dispatch
                     .clone()
@@ -491,25 +492,25 @@ pub fn collect_legacy_messages(
             }) || translation.is_none()
             {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_I18N_MESSAGE_SHAPE_INVALID"),
                         String::from(
                             "Internationalization message list entries require text 'id' and 'translation' fields",
                         ),
-                        Some(source_path.clone()),
+                        Some(sourcePath.clone()),
                         None,
                         None,
                     )?,
                 ));
             }
-            let message: Option<I18nMessage> = message_from_value(
+            let message: Option<I18nMessage> = messageFromValue(
                 match translation.as_ref() {
                     Some(flow_value_2) => flow_value_2.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
                 {
                     let dispatch_receiver_5 = &{
-                        let downcast_value_3 = &identity_value;
+                        let downcast_value_3 = &identityValue;
                         crate::template::values::primitives::StringValue {
                             identity: downcast_value_3.as_ref().unwrap().identity.clone(),
                             dispatch: downcast_value_3
@@ -523,18 +524,18 @@ pub fn collect_legacy_messages(
                     };
                     dispatch_receiver_5.dispatch.read_string_value_value()
                 },
-                source_path.clone(),
+                sourcePath.clone(),
             )?;
             if message.is_none() {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_I18N_MESSAGE_SHAPE_INVALID"),
                         format!(
                             "{}{}{}",
                             String::from("Internationalization message '"),
                             {
                                 let dispatch_receiver_6 = &{
-                                    let downcast_value_4 = &identity_value;
+                                    let downcast_value_4 = &identityValue;
                                     crate::template::values::primitives::StringValue {
                                         identity: downcast_value_4
                                             .as_ref()
@@ -554,17 +555,17 @@ pub fn collect_legacy_messages(
                             },
                             String::from("' has an invalid translation")
                         ),
-                        Some(source_path.clone()),
+                        Some(sourcePath.clone()),
                         None,
                         None,
                     )?,
                 ));
             }
-            set_layer_message(
+            setLayerMessage(
                 layer.clone(),
                 {
                     let dispatch_receiver_7 = &{
-                        let downcast_value_5 = &identity_value;
+                        let downcast_value_5 = &identityValue;
                         crate::template::values::primitives::StringValue {
                             identity: downcast_value_5.as_ref().unwrap().identity.clone(),
                             dispatch: downcast_value_5
@@ -582,7 +583,7 @@ pub fn collect_legacy_messages(
                     Some(flow_value_3) => flow_value_3.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
-                source_path.clone(),
+                sourcePath.clone(),
             )?;
             index += 1;
         }
@@ -590,17 +591,18 @@ pub fn collect_legacy_messages(
     Ok(())
 }
 
-pub fn collect_i18n_file(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn collectI18nFile(
     content: String,
     format: &str,
-    source_path: String,
+    sourcePath: String,
     layer: js_abi::JsMap<String, I18nMessage>,
 ) -> Result<(), rt::TsonicError> {
     let value: crate::template::values::base::TemplateValue =
-        crate::template::evaluation::structured_data::parse_template_data_text(
+        crate::template::evaluation::structured_data::parseTemplateDataText(
             content,
             format,
-            Some(source_path.clone()),
+            Some(sourcePath.clone()),
         )?;
     if value
         .dispatch
@@ -608,7 +610,7 @@ pub fn collect_i18n_file(
         .downcast_template_value_to_any_array_value()
         .is_some()
     {
-        let legacy_messages: crate::template::values::arrays::AnyArrayValue = {
+        let legacyMessages: crate::template::values::arrays::AnyArrayValue = {
             let downcast_value = &value;
             crate::template::values::arrays::AnyArrayValue {
                 identity: downcast_value.identity.clone(),
@@ -619,20 +621,18 @@ pub fn collect_i18n_file(
                     .unwrap(),
             }
         };
-        collect_legacy_messages(legacy_messages, layer.clone(), source_path.clone())?;
+        collectLegacyMessages(legacyMessages, layer.clone(), sourcePath.clone())?;
     } else {
-        collect_message_tree(
-            value.clone(),
-            String::from(""),
-            layer.clone(),
-            source_path.clone(),
-        )?;
+        collectMessageTree(value.clone(), String::from(""), layer.clone(), sourcePath)?;
     }
     Ok(())
 }
 
 #[doc(hidden)]
 pub trait I18nStoreDispatch {
+    fn project_i18n_store(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_i18n_store_to_i18n_store(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn I18nStoreDispatch + 'static>> {
@@ -730,6 +730,7 @@ impl I18nStore {
 }
 
 impl I18nStoreRoot {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_i18n_store_load_from_dir(
         self: alloc::rc::Rc<Self>,
         dir: String,
@@ -739,13 +740,13 @@ impl I18nStoreRoot {
             dispatch: self.clone(),
         };
         let files: js_abi::JsArray<String> =
-            crate::fs::list_files_top_directory(dir.clone(), String::from("*"))?;
+            crate::fs::listFilesTopDirectory(dir.clone(), String::from("*"))?;
         files.sort_by_js_string();
         let layer: js_abi::JsMap<String, js_abi::JsMap<String, I18nMessage>> = js_abi::JsMap::new();
         {
-            let mut index: i32 = 0;
-            'loop_value: while index < rt::conversions::usize_to_i32(files.len())? {
-                let file: String = match files.get_number(rt::conversions::i32_to_f64(index)) {
+            let mut index: usize = 0;
+            'loop_value: while index < files.len() {
+                let file: String = match files.get_number(index) {
                     Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
@@ -763,40 +764,37 @@ impl I18nStoreRoot {
                     index += 1;
                     continue 'loop_value;
                 }
-                let full_file_name: String = tsonic_rust_node::path::basename(&file, None);
-                let file_name: String = {
-                    let operation_input_0 = full_file_name.clone();
+                let fullFileName: String = tsonic_rust_node::path::basename(&file, None);
+                let fileName: String = {
+                    let operation_input_0 = fullFileName.clone();
                     js_string::slice_to(
                         &operation_input_0,
                         0.0,
-                        rt::conversions::i32_to_f64(
-                            rt::conversions::usize_to_i32(js_string::js_len(&full_file_name))?
-                                - rt::conversions::usize_to_i32(js_string::js_len(&extension))?,
-                        ),
+                        js_string::js_len(&fullFileName) - js_string::js_len(&extension),
                     )
                 }?;
-                if file_name.is_empty() {
+                if fileName.is_empty() {
                     index += 1;
                     continue 'loop_value;
                 }
-                let language: String = js_string::to_lower_case(&file_name);
-                let mut language_layer: Option<js_abi::JsMap<String, I18nMessage>> =
+                let language: String = js_string::to_lower_case(&fileName);
+                let mut languageLayer: Option<js_abi::JsMap<String, I18nMessage>> =
                     layer.get(&language);
-                if language_layer.is_none() {
-                    language_layer = Some(js_abi::JsMap::new());
+                if languageLayer.is_none() {
+                    languageLayer = Some(js_abi::JsMap::new());
                     layer.set_discard(
-                        language.clone(),
-                        match language_layer.as_ref() {
+                        language,
+                        match languageLayer.as_ref() {
                             Some(flow_value_2) => flow_value_2.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     );
                 }
-                collect_i18n_file(
-                    crate::fs::read_text_file(file.clone())?,
+                collectI18nFile(
+                    crate::fs::readTextFile(file.clone())?,
                     &format,
-                    file.clone(),
-                    match language_layer.as_ref() {
+                    file,
+                    match languageLayer.as_ref() {
                         Some(flow_value_3) => flow_value_3.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
@@ -827,7 +825,7 @@ impl I18nStoreRoot {
             let messages: Option<js_abi::JsMap<String, I18nMessage>> = layer.get(&language);
             if messages.is_none() {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_I18N_LAYER_INCONSISTENT"),
                         format!(
                             "{}{}{}",
@@ -854,7 +852,7 @@ impl I18nStoreRoot {
                 .get(&identity);
                 if message.is_none() {
                     return Err(rt::TsonicError::TsumoError(
-                        crate::diagnostics::create_tsumo_error(
+                        crate::diagnostics::createTsumoError(
                             String::from("TSUMO_I18N_LAYER_INCONSISTENT"),
                             format!(
                                 "{}{}{}",
@@ -900,19 +898,14 @@ impl I18nStoreRoot {
             dispatch_receiver.dispatch.read_i18n_store_translations()
         }
         .get(&normalized);
-        let separator: i32 =
-            rt::conversions::isize_to_i32(js_string::index_of_from_start(&normalized, "-"))?;
+        let separator: isize = js_string::index_of_from_start(&normalized, "-");
         if messages.is_none() && separator > 0 {
             messages = {
                 let operation_input_0 = {
                     let dispatch_receiver_2 = &project_this;
                     dispatch_receiver_2.dispatch.read_i18n_store_translations()
                 };
-                operation_input_0.get(&js_string::slice_to(
-                    &normalized,
-                    0.0,
-                    rt::conversions::i32_to_f64(separator),
-                )?)
+                operation_input_0.get(&js_string::slice_to(&normalized, 0.0, separator)?)
             };
         }
         if messages.is_none() {
@@ -942,7 +935,24 @@ impl I18nStoreRoot {
     }
 }
 
+impl rt::ObjectIdentityCarrier for I18nStoreRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl I18nStoreDispatch for I18nStoreRoot {
+    fn project_i18n_store(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn I18nStoreDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_i18n_store_to_i18n_store(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn I18nStoreDispatch + 'static>> {
@@ -1012,6 +1022,6 @@ pub fn module_init() {
             String::from("many"),
             String::from("other"),
         ]);
-        PLURAL_VARIANT_NAMES.with(|module_binding| module_binding.initialize(module_value))
+        pluralVariantNames.with(|module_binding| module_binding.initialize(module_value))
     };
 }

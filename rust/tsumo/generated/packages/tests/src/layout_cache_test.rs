@@ -9,7 +9,8 @@ type RequireTemplateCallable = rt::Callable<
 >;
 
 std::thread_local! {
-    pub(crate) static REQUIRE_TEMPLATE: rt::ModuleCell<RequireTemplateCallable> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub(crate) static requireTemplate: rt::ModuleCell<RequireTemplateCallable> = const { rt::ModuleCell::new() };
 }
 
 type RenderCallable = rt::Callable<
@@ -21,7 +22,8 @@ type RenderCallable = rt::Callable<
 >;
 
 std::thread_local! {
-    pub(crate) static RENDER: rt::ModuleCell<RenderCallable> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub(crate) static render: rt::ModuleCell<RenderCallable> = const { rt::ModuleCell::new() };
 }
 
 pub(crate) struct LayoutCacheTestsState {}
@@ -44,19 +46,20 @@ impl LayoutCacheTests {
         }
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn logical_results_are_stable_within_one_build_and_refreshed_between_builds(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        let root: String = crate::test_root::create_test_directory(String::from("layout-cache"))?;
+        let root: String = crate::test_root::createTestDirectory(String::from("layout-cache"))?;
         let site: String = tsonic_rust_node::path::join(&[root.as_str(), "site"]);
         let layouts: String = tsonic_rust_node::path::join(&[site.as_str(), "layouts"]);
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::create_directory(layouts.clone())?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[layouts.as_str(), "single.html"]),
-                String::from("first"),
+            crate::test_root::createDirectory(&layouts)?;
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[layouts.as_str(), "single.html"]),
+                "first",
             )?;
-            let first_build: tsumo_engine::testing::LayoutEnvironment =
+            let firstBuild: tsumo_engine::testing::LayoutEnvironment =
                 tsumo_engine::testing::LayoutEnvironment::new(
                     site.clone(),
                     Option::<String>::None,
@@ -64,35 +67,35 @@ impl LayoutCacheTests {
                     None,
                     None,
                 )?;
-            let first_template: tsumo_engine::testing::Template = REQUIRE_TEMPLATE
+            let firstTemplate: tsumo_engine::testing::Template = requireTemplate
                 .with(|module_binding| module_binding.load())
                 .call(({
-                    let dispatch_receiver = first_build.clone();
+                    let dispatch_receiver = firstBuild.clone();
                     dispatch_receiver
                         .dispatch
                         .clone()
                         .dispatch_layout_environment_get_template(String::from("single.html"))
                 }?,))?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("first"),
                 Some(
-                    RENDER
+                    render
                         .with(|module_binding| module_binding.load())
-                        .call((first_build.clone(), first_template.clone()))?,
+                        .call((firstBuild.clone(), firstTemplate.clone()))?,
                 ),
             )?;
-            crate::test_root::Assert::r#true(
+            crate::test_root::Assert::True(
                 {
-                    let dispatch_receiver_2 = first_build.clone();
+                    let dispatch_receiver_2 = firstBuild.clone();
                     dispatch_receiver_2
                         .dispatch
                         .clone()
                         .dispatch_layout_environment_get_template(String::from("single.html"))
-                }? == Some(first_template.clone()),
+                }? == Some(firstTemplate.clone()),
             )?;
-            crate::test_root::Assert::r#true(
+            crate::test_root::Assert::True(
                 {
-                    let dispatch_receiver_3 = first_build.clone();
+                    let dispatch_receiver_3 = firstBuild.clone();
                     dispatch_receiver_3
                         .dispatch
                         .clone()
@@ -100,23 +103,23 @@ impl LayoutCacheTests {
                 }?
                 .is_none(),
             )?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[layouts.as_str(), "single.html"]),
-                String::from("second"),
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[layouts.as_str(), "single.html"]),
+                "second",
             )?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[layouts.as_str(), "late.html"]),
-                String::from("late"),
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[layouts.as_str(), "late.html"]),
+                "late",
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("first"),
                 Some(
-                    RENDER.with(|module_binding| module_binding.load()).call((
-                        first_build.clone(),
-                        REQUIRE_TEMPLATE
+                    render.with(|module_binding| module_binding.load()).call((
+                        firstBuild.clone(),
+                        requireTemplate
                             .with(|module_binding| module_binding.load())
                             .call(({
-                                let dispatch_receiver_4 = first_build.clone();
+                                let dispatch_receiver_4 = firstBuild.clone();
                                 dispatch_receiver_4
                                     .dispatch
                                     .clone()
@@ -127,9 +130,9 @@ impl LayoutCacheTests {
                     ))?,
                 ),
             )?;
-            crate::test_root::Assert::r#true(
+            crate::test_root::Assert::True(
                 {
-                    let dispatch_receiver_5 = first_build.clone();
+                    let dispatch_receiver_5 = firstBuild.clone();
                     dispatch_receiver_5
                         .dispatch
                         .clone()
@@ -137,7 +140,7 @@ impl LayoutCacheTests {
                 }?
                 .is_none(),
             )?;
-            let second_build: tsumo_engine::testing::LayoutEnvironment =
+            let secondBuild: tsumo_engine::testing::LayoutEnvironment =
                 tsumo_engine::testing::LayoutEnvironment::new(
                     site.clone(),
                     Option::<String>::None,
@@ -145,15 +148,15 @@ impl LayoutCacheTests {
                     None,
                     None,
                 )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("second"),
                 Some(
-                    RENDER.with(|module_binding| module_binding.load()).call((
-                        second_build.clone(),
-                        REQUIRE_TEMPLATE
+                    render.with(|module_binding| module_binding.load()).call((
+                        secondBuild.clone(),
+                        requireTemplate
                             .with(|module_binding| module_binding.load())
                             .call(({
-                                let dispatch_receiver_6 = second_build.clone();
+                                let dispatch_receiver_6 = secondBuild.clone();
                                 dispatch_receiver_6
                                     .dispatch
                                     .clone()
@@ -164,15 +167,15 @@ impl LayoutCacheTests {
                     ))?,
                 ),
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("late"),
                 Some(
-                    RENDER.with(|module_binding| module_binding.load()).call((
-                        second_build.clone(),
-                        REQUIRE_TEMPLATE
+                    render.with(|module_binding| module_binding.load()).call((
+                        secondBuild.clone(),
+                        requireTemplate
                             .with(|module_binding| module_binding.load())
                             .call(({
-                                let dispatch_receiver_7 = second_build.clone();
+                                let dispatch_receiver_7 = secondBuild.clone();
                                 dispatch_receiver_7
                                     .dispatch
                                     .clone()
@@ -187,7 +190,7 @@ impl LayoutCacheTests {
         });
         let try_flow = try_body;
         let finally_flow: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::delete_test_directory(root.clone())?;
+            crate::test_root::deleteTestDirectory(&root)?;
             Ok(rt::Completion::Normal)
         });
         let try_flow: rt::TsonicResult<rt::Completion<()>> =
@@ -209,12 +212,13 @@ impl Default for LayoutCacheTests {
     }
 }
 
-pub fn run_layout_cache_tests() -> Result<(), rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn runLayoutCacheTests() -> Result<(), rt::TsonicError> {
     let tests: LayoutCacheTests = LayoutCacheTests::new();
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("logical template results are stable per build and refreshed between builds"),
         {
-            let capture_tests = tests.clone();
+            let capture_tests = tests;
             rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
                 capture_tests
                     .logical_results_are_stable_within_one_build_and_refreshed_between_builds()?;
@@ -243,7 +247,7 @@ pub fn module_init() {
                 None => unreachable!("checked flow selected a missing optional value"),
             })
         });
-        REQUIRE_TEMPLATE.with(|module_binding| module_binding.initialize(module_value))
+        requireTemplate.with(|module_binding| module_binding.initialize(module_value))
     };
     {
         let module_value_2 = rt::Callable::<
@@ -256,9 +260,9 @@ pub fn module_init() {
             let environment = callable_arguments_2.0;
             let template = callable_arguments_2.1;
             let site: tsumo_engine::testing::SiteContext =
-                crate::template_test_harness::create_site()?;
+                crate::template_test_harness::createSite()?;
             let page: tsumo_engine::testing::PageContext =
-                crate::template_test_harness::create_page(
+                crate::template_test_harness::createPage(
                     site.clone(),
                     String::from("Cache"),
                     String::from(""),
@@ -284,6 +288,6 @@ pub fn module_init() {
                     )
             }
         });
-        RENDER.with(|module_binding_2| module_binding_2.initialize(module_value_2))
+        render.with(|module_binding_2| module_binding_2.initialize(module_value_2))
     };
 }

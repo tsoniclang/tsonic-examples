@@ -9,19 +9,22 @@ type CaptureDiagnosticCallable = rt::Callable<
 >;
 
 std::thread_local! {
-    pub(crate) static CAPTURE_DIAGNOSTIC: rt::ModuleCell<CaptureDiagnosticCallable> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub(crate) static captureDiagnostic: rt::ModuleCell<CaptureDiagnosticCallable> = const { rt::ModuleCell::new() };
 }
 
 type AssertFrontMatterModelCallable = rt::Callable<(String,), rt::TsonicResult<()>>;
 
 std::thread_local! {
-    pub(crate) static ASSERT_FRONT_MATTER_MODEL: rt::ModuleCell<AssertFrontMatterModelCallable> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub(crate) static assertFrontMatterModel: rt::ModuleCell<AssertFrontMatterModelCallable> = const { rt::ModuleCell::new() };
 }
 
 type AssertConfigModelCallable = rt::Callable<(String, String, bool, String), rt::TsonicResult<()>>;
 
 std::thread_local! {
-    pub(crate) static ASSERT_CONFIG_MODEL: rt::ModuleCell<AssertConfigModelCallable> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub(crate) static assertConfigModel: rt::ModuleCell<AssertConfigModelCallable> = const { rt::ModuleCell::new() };
 }
 
 pub(crate) struct InputBoundaryTestsState {}
@@ -47,11 +50,11 @@ impl InputBoundaryTests {
     pub fn json_tree_preserves_unicode_kinds_and_source_locations(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        let value: tsumo_engine::utils::json::JsonValue = tsumo_engine::testing::parse_json(
+        let value: tsumo_engine::utils::json::JsonValue = tsumo_engine::testing::parseJson(
             String::from("{\n  \"title\": \"Caf\\u00e9 \\ud83d\\ude80\"\n}"),
             Some(String::from("config.json")),
         )?;
-        crate::test_root::Assert::r#true(
+        crate::test_root::Assert::True(
             value
                 .dispatch
                 .clone()
@@ -84,8 +87,8 @@ impl InputBoundaryTests {
                 .dispatch
                 .clone()
                 .dispatch_json_object_get("title")
-        }?;
-        crate::test_root::Assert::r#true(title.as_ref().is_some_and(|value| {
+        };
+        crate::test_root::Assert::True(title.as_ref().is_some_and(|value| {
             value
                 .dispatch
                 .clone()
@@ -103,7 +106,7 @@ impl InputBoundaryTests {
                 "Expected JSON string",
             )));
         }
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("Café 🚀"),
             Some({
                 let dispatch_receiver_2 = &{
@@ -122,7 +125,7 @@ impl InputBoundaryTests {
                 dispatch_receiver_2.dispatch.read_json_string_value()
             }),
         )?;
-        crate::test_root::Assert::number_equal(
+        crate::test_root::Assert::NumberEqual(
             2.0,
             Some(rt::conversions::i32_to_f64({
                 let dispatch_receiver_3 = &{
@@ -141,7 +144,7 @@ impl InputBoundaryTests {
                 dispatch_receiver_3.dispatch.read_json_value_line()
             })),
         )?;
-        crate::test_root::Assert::number_equal(
+        crate::test_root::Assert::NumberEqual(
             12.0,
             Some(rt::conversions::i32_to_f64({
                 let dispatch_receiver_4 = &{
@@ -172,7 +175,7 @@ impl InputBoundaryTests {
                 index += 1.0;
             }
         }
-        let value: tsumo_engine::utils::json::JsonValue = tsumo_engine::testing::parse_json(
+        let value: tsumo_engine::utils::json::JsonValue = tsumo_engine::testing::parseJson(
             format!(
                 "{}{}{}",
                 String::from("["),
@@ -181,7 +184,7 @@ impl InputBoundaryTests {
             ),
             Some(String::from("large.json")),
         )?;
-        crate::test_root::Assert::r#true(
+        crate::test_root::Assert::True(
             value
                 .dispatch
                 .clone()
@@ -198,9 +201,9 @@ impl InputBoundaryTests {
                 "Expected JSON array",
             )));
         }
-        crate::test_root::Assert::number_equal(
+        crate::test_root::Assert::NumberEqual(
             27000.0,
-            Some(rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
+            Some(
                 {
                     let dispatch_receiver = &{
                         let downcast_value = &value;
@@ -215,79 +218,96 @@ impl InputBoundaryTests {
                     };
                     dispatch_receiver.dispatch.read_json_array_items()
                 }
-                .len(),
-            )?)),
+                .len() as f64,
+            ),
         )?;
         Ok(())
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn json_tree_rejects_ambiguous_and_malformed_inputs_exactly(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        let leading_zero: tsumo_engine::TsumoDiagnostic = CAPTURE_DIAGNOSTIC
+        let leadingZero: tsumo_engine::TsumoDiagnostic = captureDiagnostic
             .with(|module_binding| module_binding.load())
             .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
                 move |_callable_arguments| {
-                    tsumo_engine::testing::parse_json(
+                    tsumo_engine::testing::parseJson(
                         String::from("{\n  \"value\": 01\n}"),
                         Some(String::from("bad.json")),
                     )?;
                     Ok::<_, rt::TsonicError>(())
                 },
             ),))?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_JSON_SYNTAX_INVALID"),
             Some({
-                let dispatch_receiver = &leading_zero;
+                let dispatch_receiver = &leadingZero;
                 dispatch_receiver.dispatch.read_tsumo_diagnostic_code()
             }),
         )?;
-        crate::test_root::Assert::string_equal(String::from("bad.json"), {
-            let dispatch_receiver_2 = &leading_zero;
+        crate::test_root::Assert::StringEqual(String::from("bad.json"), {
+            let dispatch_receiver_2 = &leadingZero;
             dispatch_receiver_2.dispatch.read_tsumo_diagnostic_file()
         })?;
-        crate::test_root::Assert::number_equal(2.0, {
-            let dispatch_receiver_3 = &leading_zero;
-            dispatch_receiver_3.dispatch.read_tsumo_diagnostic_line()
-        })?;
-        crate::test_root::Assert::number_equal(13.0, {
-            let dispatch_receiver_4 = &leading_zero;
-            dispatch_receiver_4.dispatch.read_tsumo_diagnostic_column()
-        })?;
-        let duplicate: tsumo_engine::TsumoDiagnostic = CAPTURE_DIAGNOSTIC
+        crate::test_root::Assert::NumberEqual(
+            2.0,
+            {
+                let dispatch_receiver_3 = &leadingZero;
+                dispatch_receiver_3.dispatch.read_tsumo_diagnostic_line()
+            }
+            .map(rt::conversions::i32_to_f64),
+        )?;
+        crate::test_root::Assert::NumberEqual(
+            13.0,
+            {
+                let dispatch_receiver_4 = &leadingZero;
+                dispatch_receiver_4.dispatch.read_tsumo_diagnostic_column()
+            }
+            .map(rt::conversions::i32_to_f64),
+        )?;
+        let duplicate: tsumo_engine::TsumoDiagnostic = captureDiagnostic
             .with(|module_binding| module_binding.load())
             .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
                 move |_callable_arguments_2| {
-                    tsumo_engine::testing::parse_json(
+                    tsumo_engine::testing::parseJson(
                         String::from("{\n  \"value\": 1,\n  \"value\": 2\n}"),
                         Some(String::from("duplicate.json")),
                     )?;
                     Ok::<_, rt::TsonicError>(())
                 },
             ),))?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_JSON_DUPLICATE_PROPERTY"),
             Some({
                 let dispatch_receiver_5 = &duplicate;
                 dispatch_receiver_5.dispatch.read_tsumo_diagnostic_code()
             }),
         )?;
-        crate::test_root::Assert::number_equal(3.0, {
-            let dispatch_receiver_6 = &duplicate;
-            dispatch_receiver_6.dispatch.read_tsumo_diagnostic_line()
-        })?;
-        crate::test_root::Assert::number_equal(3.0, {
-            let dispatch_receiver_7 = &duplicate;
-            dispatch_receiver_7.dispatch.read_tsumo_diagnostic_column()
-        })?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::NumberEqual(
+            3.0,
+            {
+                let dispatch_receiver_6 = &duplicate;
+                dispatch_receiver_6.dispatch.read_tsumo_diagnostic_line()
+            }
+            .map(rt::conversions::i32_to_f64),
+        )?;
+        crate::test_root::Assert::NumberEqual(
+            3.0,
+            {
+                let dispatch_receiver_7 = &duplicate;
+                dispatch_receiver_7.dispatch.read_tsumo_diagnostic_column()
+            }
+            .map(rt::conversions::i32_to_f64),
+        )?;
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_JSON_SYNTAX_INVALID"),
             Some({
-                let dispatch_receiver_8 = &CAPTURE_DIAGNOSTIC
+                let dispatch_receiver_8 = &captureDiagnostic
                     .with(|module_binding| module_binding.load())
                     .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
                         move |_callable_arguments_3| {
-                            tsumo_engine::testing::parse_json(
+                            tsumo_engine::testing::parseJson(
                                 String::from("{\"value\": \"\\ud800\"}"),
                                 Some(String::from("surrogate.json")),
                             )?;
@@ -297,13 +317,13 @@ impl InputBoundaryTests {
                 dispatch_receiver_8.dispatch.read_tsumo_diagnostic_code()
             }),
         )?;
-        let deeply_nested: rt::Location<String, core::convert::Infallible> =
+        let deeplyNested: rt::Location<String, core::convert::Infallible> =
             rt::Location::allocate(String::from(""));
         {
             let mut index: f64 = 0.0;
             while index < 257.0 {
                 {
-                    let location = deeply_nested.clone();
+                    let location = deeplyNested.clone();
                     let current = location.load();
                     location.store(format!("{}{}", current, String::from("[")))
                 };
@@ -314,23 +334,23 @@ impl InputBoundaryTests {
             let mut index: f64 = 0.0;
             while index < 257.0 {
                 {
-                    let location_2 = deeply_nested.clone();
+                    let location_2 = deeplyNested.clone();
                     let current_2 = location_2.load();
                     location_2.store(format!("{}{}", current_2, String::from("]")))
                 };
                 index += 1.0;
             }
         }
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_JSON_DEPTH_EXCEEDED"),
             Some({
-                let dispatch_receiver_9 = &CAPTURE_DIAGNOSTIC
+                let dispatch_receiver_9 = &captureDiagnostic
                     .with(|module_binding| module_binding.load())
                     .call(({
-                        let capture_deeply_nested = deeply_nested.clone();
+                        let capture_deeply_nested = deeplyNested.clone();
                         rt::Callable::<(), rt::TsonicResult<()>>::new(
                             move |_callable_arguments_4| {
-                                tsumo_engine::testing::parse_json(
+                                tsumo_engine::testing::parseJson(
                                     capture_deeply_nested.load(),
                                     Some(String::from("deep.json")),
                                 )?;
@@ -345,7 +365,7 @@ impl InputBoundaryTests {
     }
 
     pub fn all_front_matter_formats_create_one_closed_model(&self) -> Result<(), rt::TsonicError> {
-        ASSERT_FRONT_MATTER_MODEL
+        assertFrontMatterModel
             .with(|module_binding| module_binding.load())
             .call((js_abi::JsArray::from_dense(vec![
                 String::from("---"),
@@ -363,7 +383,7 @@ impl InputBoundaryTests {
                 String::from("Body"),
             ])
             .join("\n"),))?;
-        ASSERT_FRONT_MATTER_MODEL
+        assertFrontMatterModel
             .with(|module_binding| module_binding.load())
             .call((js_abi::JsArray::from_dense(vec![
                 String::from("+++"),
@@ -380,7 +400,7 @@ impl InputBoundaryTests {
                 String::from("Body"),
             ])
             .join("\n"),))?;
-        ASSERT_FRONT_MATTER_MODEL
+        assertFrontMatterModel
             .with(|module_binding| module_binding.load())
             .call((js_abi::JsArray::from_dense(vec![
                 String::from("{"),
@@ -397,43 +417,48 @@ impl InputBoundaryTests {
         Ok(())
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn front_matter_rejects_invalid_shapes_with_exact_locations(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        let invalid_date: tsumo_engine::TsumoDiagnostic = CAPTURE_DIAGNOSTIC
+        let invalidDate: tsumo_engine::TsumoDiagnostic = captureDiagnostic
             .with(|module_binding| module_binding.load())
             .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
                 move |_callable_arguments| {
-                    tsumo_engine::testing::parse_content(
+                    tsumo_engine::testing::parseContent(
                         String::from("---\ndate: not-a-date\n---\nBody"),
                         Some(String::from("date.md")),
                     )?;
                     Ok::<_, rt::TsonicError>(())
                 },
             ),))?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_FRONTMATTER_INVALID_DATE"),
             Some({
-                let dispatch_receiver = &invalid_date;
+                let dispatch_receiver = &invalidDate;
                 dispatch_receiver.dispatch.read_tsumo_diagnostic_code()
             }),
         )?;
-        crate::test_root::Assert::string_equal(String::from("date.md"), {
-            let dispatch_receiver_2 = &invalid_date;
+        crate::test_root::Assert::StringEqual(String::from("date.md"), {
+            let dispatch_receiver_2 = &invalidDate;
             dispatch_receiver_2.dispatch.read_tsumo_diagnostic_file()
         })?;
-        crate::test_root::Assert::number_equal(2.0, {
-            let dispatch_receiver_3 = &invalid_date;
-            dispatch_receiver_3.dispatch.read_tsumo_diagnostic_line()
-        })?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::NumberEqual(
+            2.0,
+            {
+                let dispatch_receiver_3 = &invalidDate;
+                dispatch_receiver_3.dispatch.read_tsumo_diagnostic_line()
+            }
+            .map(rt::conversions::i32_to_f64),
+        )?;
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_FRONTMATTER_INVALID_BOOL"),
             Some({
-                let dispatch_receiver_4 = &CAPTURE_DIAGNOSTIC
+                let dispatch_receiver_4 = &captureDiagnostic
                     .with(|module_binding| module_binding.load())
                     .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
                         move |_callable_arguments_2| {
-                            tsumo_engine::testing::parse_content(
+                            tsumo_engine::testing::parseContent(
                                 String::from("+++\ndraft = 'false'\n+++"),
                                 Some(String::from("draft.md")),
                             )?;
@@ -443,14 +468,14 @@ impl InputBoundaryTests {
                 dispatch_receiver_4.dispatch.read_tsumo_diagnostic_code()
             }),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_FRONTMATTER_FIELD_INVALID"),
             Some({
-                let dispatch_receiver_5 = &CAPTURE_DIAGNOSTIC
+                let dispatch_receiver_5 = &captureDiagnostic
                     .with(|module_binding| module_binding.load())
                     .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
                         move |_callable_arguments_3| {
-                            tsumo_engine::testing::parse_content(
+                            tsumo_engine::testing::parseContent(
                                 String::from("{\"tags\": [\"ok\", 1]}"),
                                 Some(String::from("tags.md")),
                             )?;
@@ -460,14 +485,14 @@ impl InputBoundaryTests {
                 dispatch_receiver_5.dispatch.read_tsumo_diagnostic_code()
             }),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_FRONTMATTER_FIELD_DUPLICATE"),
             Some({
-                let dispatch_receiver_6 = &CAPTURE_DIAGNOSTIC
+                let dispatch_receiver_6 = &captureDiagnostic
                     .with(|module_binding| module_binding.load())
                     .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
                         move |_callable_arguments_4| {
-                            tsumo_engine::testing::parse_content(
+                            tsumo_engine::testing::parseContent(
                                 String::from("---\ntitle: First\nTitle: Second\n---"),
                                 Some(String::from("duplicate.md")),
                             )?;
@@ -477,14 +502,14 @@ impl InputBoundaryTests {
                 dispatch_receiver_6.dispatch.read_tsumo_diagnostic_code()
             }),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_FRONTMATTER_DELIMITER_UNCLOSED"),
             Some({
-                let dispatch_receiver_7 = &CAPTURE_DIAGNOSTIC
+                let dispatch_receiver_7 = &captureDiagnostic
                     .with(|module_binding| module_binding.load())
                     .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
                         move |_callable_arguments_5| {
-                            tsumo_engine::testing::parse_content(
+                            tsumo_engine::testing::parseContent(
                                 String::from("---\ntitle: Missing"),
                                 Some(String::from("unclosed.md")),
                             )?;
@@ -497,8 +522,9 @@ impl InputBoundaryTests {
         Ok(())
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn all_configuration_formats_create_one_closed_model(&self) -> Result<(), rt::TsonicError> {
-        let toml: tsumo_engine::testing::SiteConfig = tsumo_engine::testing::parse_toml_config(
+        let toml: tsumo_engine::testing::SiteConfig = tsumo_engine::testing::parseTomlConfig(
             &js_abi::JsArray::from_dense(vec![
                 String::from("title = 'Café'"),
                 String::from("baseURL = 'https://example.test'"),
@@ -510,7 +536,7 @@ impl InputBoundaryTests {
             .join("\n"),
             Some(String::from("hugo.toml")),
         )?;
-        let yaml: tsumo_engine::testing::SiteConfig = tsumo_engine::testing::parse_yaml_config(
+        let yaml: tsumo_engine::testing::SiteConfig = tsumo_engine::testing::parseYamlConfig(
             &js_abi::JsArray::from_dense(vec![
                 String::from("title: Café"),
                 String::from("baseURL: https://example.test"),
@@ -523,51 +549,51 @@ impl InputBoundaryTests {
             .join("\n"),
             Some(String::from("hugo.yaml")),
         )?;
-        let json: tsumo_engine::testing::SiteConfig = tsumo_engine::testing::parse_json_config(
+        let json: tsumo_engine::testing::SiteConfig = tsumo_engine::testing::parseJsonConfig(
             String::from(
                 "{\"title\":\"Caf\\u00e9\",\"baseURL\":\"https://example.test\",\"params\":{\"featured\":true},\"menu\":{\"main\":[{\"name\":\"Home\"}]}}",
             ),
             Some(String::from("hugo.json")),
         )?;
-        let toml_featured: Option<tsumo_engine::testing::ParamValue> = {
+        let tomlFeatured: Option<tsumo_engine::testing::ParamValue> = {
             let dispatch_receiver = &toml;
             dispatch_receiver.dispatch.read_site_config_params()
         }
         .get("featured");
-        let yaml_featured: Option<tsumo_engine::testing::ParamValue> = {
+        let yamlFeatured: Option<tsumo_engine::testing::ParamValue> = {
             let dispatch_receiver_2 = &yaml;
             dispatch_receiver_2.dispatch.read_site_config_params()
         }
         .get("featured");
-        let json_featured: Option<tsumo_engine::testing::ParamValue> = {
+        let jsonFeatured: Option<tsumo_engine::testing::ParamValue> = {
             let dispatch_receiver_3 = &json;
             dispatch_receiver_3.dispatch.read_site_config_params()
         }
         .get("featured");
-        let toml_menu: Option<js_abi::JsArray<tsumo_engine::testing::MenuEntry>> = {
+        let tomlMenu: Option<js_abi::JsArray<tsumo_engine::testing::MenuEntry>> = {
             let dispatch_receiver_4 = &toml;
             dispatch_receiver_4.dispatch.read_site_config_menus()
         }
         .get("main");
-        let yaml_menu: Option<js_abi::JsArray<tsumo_engine::testing::MenuEntry>> = {
+        let yamlMenu: Option<js_abi::JsArray<tsumo_engine::testing::MenuEntry>> = {
             let dispatch_receiver_5 = &yaml;
             dispatch_receiver_5.dispatch.read_site_config_menus()
         }
         .get("main");
-        let json_menu: Option<js_abi::JsArray<tsumo_engine::testing::MenuEntry>> = {
+        let jsonMenu: Option<js_abi::JsArray<tsumo_engine::testing::MenuEntry>> = {
             let dispatch_receiver_6 = &json;
             dispatch_receiver_6.dispatch.read_site_config_menus()
         }
         .get("main");
-        crate::test_root::Assert::r#true(
-            toml_menu.is_some() && yaml_menu.is_some() && json_menu.is_some(),
+        crate::test_root::Assert::True(
+            tomlMenu.is_some() && yamlMenu.is_some() && jsonMenu.is_some(),
         )?;
-        if toml_menu.is_none() || yaml_menu.is_none() || json_menu.is_none() {
+        if tomlMenu.is_none() || yamlMenu.is_none() || jsonMenu.is_none() {
             return Err(rt::TsonicError::from(rt::JsError::error(
                 "Expected main menus",
             )));
         }
-        ASSERT_CONFIG_MODEL
+        assertConfigModel
             .with(|module_binding| module_binding.load())
             .call((
                 {
@@ -578,15 +604,15 @@ impl InputBoundaryTests {
                     let dispatch_receiver_8 = &toml;
                     dispatch_receiver_8.dispatch.read_site_config_base_url()
                 },
-                toml_featured.is_some() && {
-                    let dispatch_receiver_9 = &match toml_featured.as_ref() {
+                tomlFeatured.is_some() && {
+                    let dispatch_receiver_9 = &match tomlFeatured.as_ref() {
                         Some(flow_value) => flow_value.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     dispatch_receiver_9.dispatch.read_param_value_bool_value()
                 },
                 {
-                    let dispatch_receiver_10 = &match match toml_menu.as_ref() {
+                    let dispatch_receiver_10 = &match match tomlMenu.as_ref() {
                         Some(flow_value_2) => flow_value_2.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
@@ -598,7 +624,7 @@ impl InputBoundaryTests {
                     dispatch_receiver_10.dispatch.read_menu_entry_name()
                 },
             ))?;
-        ASSERT_CONFIG_MODEL
+        assertConfigModel
             .with(|module_binding| module_binding.load())
             .call((
                 {
@@ -609,15 +635,15 @@ impl InputBoundaryTests {
                     let dispatch_receiver_12 = &yaml;
                     dispatch_receiver_12.dispatch.read_site_config_base_url()
                 },
-                yaml_featured.is_some() && {
-                    let dispatch_receiver_13 = &match yaml_featured.as_ref() {
+                yamlFeatured.is_some() && {
+                    let dispatch_receiver_13 = &match yamlFeatured.as_ref() {
                         Some(flow_value_4) => flow_value_4.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     dispatch_receiver_13.dispatch.read_param_value_bool_value()
                 },
                 {
-                    let dispatch_receiver_14 = &match match yaml_menu.as_ref() {
+                    let dispatch_receiver_14 = &match match yamlMenu.as_ref() {
                         Some(flow_value_5) => flow_value_5.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
@@ -629,7 +655,7 @@ impl InputBoundaryTests {
                     dispatch_receiver_14.dispatch.read_menu_entry_name()
                 },
             ))?;
-        ASSERT_CONFIG_MODEL
+        assertConfigModel
             .with(|module_binding| module_binding.load())
             .call((
                 {
@@ -640,15 +666,15 @@ impl InputBoundaryTests {
                     let dispatch_receiver_16 = &json;
                     dispatch_receiver_16.dispatch.read_site_config_base_url()
                 },
-                json_featured.is_some() && {
-                    let dispatch_receiver_17 = &match json_featured.as_ref() {
+                jsonFeatured.is_some() && {
+                    let dispatch_receiver_17 = &match jsonFeatured.as_ref() {
                         Some(flow_value_7) => flow_value_7.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     dispatch_receiver_17.dispatch.read_param_value_bool_value()
                 },
                 {
-                    let dispatch_receiver_18 = &match match json_menu.as_ref() {
+                    let dispatch_receiver_18 = &match match jsonMenu.as_ref() {
                         Some(flow_value_8) => flow_value_8.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
@@ -666,36 +692,40 @@ impl InputBoundaryTests {
     pub fn configuration_rejects_unknown_malformed_and_mistyped_fields(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        let json: tsumo_engine::TsumoDiagnostic = CAPTURE_DIAGNOSTIC
+        let json: tsumo_engine::TsumoDiagnostic = captureDiagnostic
             .with(|module_binding| module_binding.load())
             .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
                 move |_callable_arguments| {
-                    tsumo_engine::testing::parse_json_config(
+                    tsumo_engine::testing::parseJsonConfig(
                         String::from("{\n  \"title\": 42\n}"),
                         Some(String::from("hugo.json")),
                     )?;
                     Ok::<_, rt::TsonicError>(())
                 },
             ),))?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_CONFIG_INVALID_FIELD"),
             Some({
                 let dispatch_receiver = &json;
                 dispatch_receiver.dispatch.read_tsumo_diagnostic_code()
             }),
         )?;
-        crate::test_root::Assert::number_equal(2.0, {
-            let dispatch_receiver_2 = &json;
-            dispatch_receiver_2.dispatch.read_tsumo_diagnostic_line()
-        })?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::NumberEqual(
+            2.0,
+            {
+                let dispatch_receiver_2 = &json;
+                dispatch_receiver_2.dispatch.read_tsumo_diagnostic_line()
+            }
+            .map(rt::conversions::i32_to_f64),
+        )?;
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_CONFIG_UNKNOWN_FIELD"),
             Some({
-                let dispatch_receiver_3 = &CAPTURE_DIAGNOSTIC
+                let dispatch_receiver_3 = &captureDiagnostic
                     .with(|module_binding| module_binding.load())
                     .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
                         move |_callable_arguments_2| {
-                            tsumo_engine::testing::parse_yaml_config(
+                            tsumo_engine::testing::parseYamlConfig(
                                 "unsupported: value",
                                 Some(String::from("hugo.yaml")),
                             )?;
@@ -705,14 +735,14 @@ impl InputBoundaryTests {
                 dispatch_receiver_3.dispatch.read_tsumo_diagnostic_code()
             }),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_CONFIG_INVALID_FIELD"),
             Some({
-                let dispatch_receiver_4 = &CAPTURE_DIAGNOSTIC
+                let dispatch_receiver_4 = &captureDiagnostic
                     .with(|module_binding| module_binding.load())
                     .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
                         move |_callable_arguments_3| {
-                            tsumo_engine::testing::parse_yaml_config(
+                            tsumo_engine::testing::parseYamlConfig(
                                 "title: true",
                                 Some(String::from("typed.yaml")),
                             )?;
@@ -722,14 +752,14 @@ impl InputBoundaryTests {
                 dispatch_receiver_4.dispatch.read_tsumo_diagnostic_code()
             }),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_CONFIG_DUPLICATE_FIELD"),
             Some({
-                let dispatch_receiver_5 = &CAPTURE_DIAGNOSTIC
+                let dispatch_receiver_5 = &captureDiagnostic
                     .with(|module_binding| module_binding.load())
                     .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
                         move |_callable_arguments_4| {
-                            tsumo_engine::testing::parse_yaml_config(
+                            tsumo_engine::testing::parseYamlConfig(
                                 "title: First\nTitle: Second",
                                 Some(String::from("duplicate.yaml")),
                             )?;
@@ -739,14 +769,14 @@ impl InputBoundaryTests {
                 dispatch_receiver_5.dispatch.read_tsumo_diagnostic_code()
             }),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_CONFIG_INVALID_FIELD"),
             Some({
-                let dispatch_receiver_6 = &CAPTURE_DIAGNOSTIC
+                let dispatch_receiver_6 = &captureDiagnostic
                     .with(|module_binding| module_binding.load())
                     .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
                         move |_callable_arguments_5| {
-                            tsumo_engine::testing::parse_toml_config(
+                            tsumo_engine::testing::parseTomlConfig(
                                 "title = 42",
                                 Some(String::from("typed.toml")),
                             )?;
@@ -756,14 +786,14 @@ impl InputBoundaryTests {
                 dispatch_receiver_6.dispatch.read_tsumo_diagnostic_code()
             }),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_CONFIG_TABLE_UNSUPPORTED"),
             Some({
-                let dispatch_receiver_7 = &CAPTURE_DIAGNOSTIC
+                let dispatch_receiver_7 = &captureDiagnostic
                     .with(|module_binding| module_binding.load())
                     .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
                         move |_callable_arguments_6| {
-                            tsumo_engine::testing::parse_toml_config(
+                            tsumo_engine::testing::parseTomlConfig(
                                 "[unsupported]\nvalue = 1",
                                 Some(String::from("hugo.toml")),
                             )?;
@@ -773,14 +803,14 @@ impl InputBoundaryTests {
                 dispatch_receiver_7.dispatch.read_tsumo_diagnostic_code()
             }),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_CONFIG_SYNTAX_INVALID"),
             Some({
-                let dispatch_receiver_8 = &CAPTURE_DIAGNOSTIC
+                let dispatch_receiver_8 = &captureDiagnostic
                     .with(|module_binding| module_binding.load())
                     .call((rt::Callable::<(), rt::TsonicResult<()>>::new(
                         move |_callable_arguments_7| {
-                            tsumo_engine::testing::parse_toml_config(
+                            tsumo_engine::testing::parseTomlConfig(
                                 "title = bare",
                                 Some(String::from("bare.toml")),
                             )?;
@@ -793,8 +823,9 @@ impl InputBoundaryTests {
         Ok(())
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn structured_scalars_decode_strings_and_comments(&self) -> Result<(), rt::TsonicError> {
-        let toml: tsumo_engine::testing::SiteConfig = tsumo_engine::testing::parse_toml_config(
+        let toml: tsumo_engine::testing::SiteConfig = tsumo_engine::testing::parseTomlConfig(
             &js_abi::JsArray::from_dense(vec![
                 String::from("title = \"Caf\\u00e9 # retained\" # removed"),
                 String::from("[params]"),
@@ -804,14 +835,14 @@ impl InputBoundaryTests {
             .join("\n"),
             Some(String::from("scalars.toml")),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("Café # retained"),
             Some({
                 let dispatch_receiver = &toml;
                 dispatch_receiver.dispatch.read_site_config_title()
             }),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("literal # retained"),
             {
                 let dispatch_receiver_2 = &toml;
@@ -824,7 +855,7 @@ impl InputBoundaryTests {
                 dispatch_receiver_3.dispatch.read_param_value_string_value()
             }),
         )?;
-        crate::test_root::Assert::number_equal(
+        crate::test_root::Assert::NumberEqual(
             1024.0,
             {
                 let dispatch_receiver_4 = &toml;
@@ -838,7 +869,7 @@ impl InputBoundaryTests {
             })
             .map(rt::conversions::i32_to_f64),
         )?;
-        let yaml: tsumo_engine::testing::SiteConfig = tsumo_engine::testing::parse_yaml_config(
+        let yaml: tsumo_engine::testing::SiteConfig = tsumo_engine::testing::parseYamlConfig(
             &js_abi::JsArray::from_dense(vec![
                 String::from("title: \"Caf\\u00e9 # retained\" # removed"),
                 String::from("copyright: 'Tsumo''s docs' # removed"),
@@ -848,18 +879,18 @@ impl InputBoundaryTests {
             .join("\n"),
             Some(String::from("scalars.yaml")),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("Café # retained"),
             Some({
                 let dispatch_receiver_6 = &yaml;
                 dispatch_receiver_6.dispatch.read_site_config_title()
             }),
         )?;
-        crate::test_root::Assert::string_equal(String::from("Tsumo's docs"), {
+        crate::test_root::Assert::StringEqual(String::from("Tsumo's docs"), {
             let dispatch_receiver_7 = &yaml;
             dispatch_receiver_7.dispatch.read_site_config_copyright()
         })?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("value#fragment"),
             {
                 let dispatch_receiver_8 = &yaml;
@@ -872,59 +903,60 @@ impl InputBoundaryTests {
                 dispatch_receiver_9.dispatch.read_param_value_string_value()
             }),
         )?;
-        let front_matter: tsumo_engine::frontmatter::parsed_content::ParsedContent =
-            tsumo_engine::testing::parse_content(
+        let frontMatter: tsumo_engine::frontmatter::parsed_content::ParsedContent =
+            tsumo_engine::testing::parseContent(
                 String::from("---\ntitle: 'Tsumo''s \\u263a' # removed\n---\nBody"),
                 Some(String::from("frontmatter.md")),
             )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("Tsumo's \\u263a"),
-            front_matter
+            frontMatter
                 .state
-                .with(|state| state.front_matter.clone())
+                .with(|state| state.frontMatter.clone())
                 .state
                 .with(|state| state.title.clone()),
         )?;
-        let leading_json: String = String::from(" \n{\"title\":\"Not front matter\"}");
+        let leadingJson: String = String::from(" \n{\"title\":\"Not front matter\"}");
         let content: tsumo_engine::frontmatter::parsed_content::ParsedContent =
-            tsumo_engine::testing::parse_content(
-                leading_json.clone(),
+            tsumo_engine::testing::parseContent(
+                leadingJson.clone(),
                 Some(String::from("leading-json.md")),
             )?;
-        crate::test_root::Assert::r#true(
+        crate::test_root::Assert::True(
             content
                 .state
-                .with(|state| state.front_matter.clone())
+                .with(|state| state.frontMatter.clone())
                 .state
                 .with(|state| state.title.clone())
                 .is_none(),
         )?;
-        crate::test_root::Assert::string_equal(
-            leading_json,
+        crate::test_root::Assert::StringEqual(
+            leadingJson,
             Some(content.state.with(|state| state.body.clone())),
         )?;
         Ok(())
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn split_configuration_has_one_deterministic_merge_contract(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        let site: String = crate::test_root::create_test_directory(String::from("split-config"))?;
+        let site: String = crate::test_root::createTestDirectory(String::from("split-config"))?;
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            let config_dir: String =
+            let configDir: String =
                 tsonic_rust_node::path::join(&[site.as_str(), "config", "_default"]);
-            crate::test_root::create_directory(config_dir.clone())?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[config_dir.as_str(), "hugo.toml"]),
-                String::from("title = 'Example'\nbaseURL = 'https://example.test'"),
+            crate::test_root::createDirectory(&configDir)?;
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[configDir.as_str(), "hugo.toml"]),
+                "title = 'Example'\nbaseURL = 'https://example.test'",
             )?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[config_dir.as_str(), "params.yaml"]),
-                String::from("message: \"Hello # retained\" # removed"),
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[configDir.as_str(), "params.yaml"]),
+                "message: \"Hello # retained\" # removed",
             )?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[config_dir.as_str(), "languages.toml"]),
-                js_abi::JsArray::from_dense(vec![
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[configDir.as_str(), "languages.toml"]),
+                &js_abi::JsArray::from_dense(vec![
                     String::from("[en]"),
                     String::from("languageName = 'English'"),
                     String::from("languageDirection = 'rtl'"),
@@ -933,13 +965,13 @@ impl InputBoundaryTests {
                 ])
                 .join("\n"),
             )?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[config_dir.as_str(), "languages.en.toml"]),
-                String::from("weight = 1"),
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[configDir.as_str(), "languages.en.toml"]),
+                "weight = 1",
             )?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[config_dir.as_str(), "module.toml"]),
-                js_abi::JsArray::from_dense(vec![
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[configDir.as_str(), "module.toml"]),
+                &js_abi::JsArray::from_dense(vec![
                     String::from("[[mounts]]"),
                     String::from("source = 'shared'"),
                     String::from("target = 'content'"),
@@ -947,24 +979,24 @@ impl InputBoundaryTests {
                 .join("\n"),
             )?;
             let loaded: tsumo_engine::testing::SiteConfig =
-                tsumo_engine::testing::load_site_config(site.clone())?
+                tsumo_engine::testing::loadSiteConfig(site.clone())?
                     .state
                     .with(|state| state.config.clone());
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("Example"),
                 Some({
                     let dispatch_receiver = &loaded;
                     dispatch_receiver.dispatch.read_site_config_title()
                 }),
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("https://example.test/"),
                 Some({
                     let dispatch_receiver_2 = &loaded;
                     dispatch_receiver_2.dispatch.read_site_config_base_url()
                 }),
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("Hello # retained"),
                 {
                     let dispatch_receiver_3 = &loaded;
@@ -977,17 +1009,17 @@ impl InputBoundaryTests {
                     dispatch_receiver_4.dispatch.read_param_value_string_value()
                 }),
             )?;
-            crate::test_root::Assert::number_equal(
+            crate::test_root::Assert::NumberEqual(
                 1.0,
-                Some(rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
+                Some(
                     {
                         let dispatch_receiver_5 = &loaded;
                         dispatch_receiver_5.dispatch.read_site_config_languages()
                     }
-                    .len(),
-                )?)),
+                    .len() as f64,
+                ),
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("English"),
                 Some(
                     match {
@@ -1000,10 +1032,10 @@ impl InputBoundaryTests {
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                     .state
-                    .with(|state| state.language_name.clone()),
+                    .with(|state| state.languageName.clone()),
                 ),
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("rtl"),
                 Some(
                     match {
@@ -1016,10 +1048,10 @@ impl InputBoundaryTests {
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                     .state
-                    .with(|state| state.language_direction.clone()),
+                    .with(|state| state.languageDirection.clone()),
                 ),
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("content/custom"),
                 Some(
                     match {
@@ -1032,10 +1064,10 @@ impl InputBoundaryTests {
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                     .state
-                    .with(|state| state.content_dir.clone()),
+                    .with(|state| state.contentDir.clone()),
                 ),
             )?;
-            crate::test_root::Assert::number_equal(
+            crate::test_root::Assert::NumberEqual(
                 1.0,
                 Some(rt::conversions::i32_to_f64(
                     match {
@@ -1051,19 +1083,19 @@ impl InputBoundaryTests {
                     .with(|state| state.weight),
                 )),
             )?;
-            crate::test_root::Assert::number_equal(
+            crate::test_root::Assert::NumberEqual(
                 1.0,
-                Some(rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
+                Some(
                     {
                         let dispatch_receiver_10 = &loaded;
                         dispatch_receiver_10
                             .dispatch
                             .read_site_config_module_mounts()
                     }
-                    .len(),
-                )?)),
+                    .len() as f64,
+                ),
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("shared"),
                 Some({
                     let dispatch_receiver_12 = &match {
@@ -1080,20 +1112,20 @@ impl InputBoundaryTests {
                     dispatch_receiver_12.dispatch.read_module_mount_source()
                 }),
             )?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[config_dir.as_str(), "params.yaml"]),
-                String::from("message: first\nMessage: second"),
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[configDir.as_str(), "params.yaml"]),
+                "message: first\nMessage: second",
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("TSUMO_CONFIG_DUPLICATE_FIELD"),
                 Some({
-                    let dispatch_receiver_13 = &CAPTURE_DIAGNOSTIC
+                    let dispatch_receiver_13 = &captureDiagnostic
                         .with(|module_binding| module_binding.load())
                         .call(({
                             let capture_site = site.clone();
                             rt::Callable::<(), rt::TsonicResult<()>>::new(
                                 move |_callable_arguments| {
-                                    tsumo_engine::testing::load_site_config(capture_site.clone())?;
+                                    tsumo_engine::testing::loadSiteConfig(capture_site.clone())?;
                                     Ok::<_, rt::TsonicError>(())
                                 },
                             )
@@ -1101,26 +1133,24 @@ impl InputBoundaryTests {
                     dispatch_receiver_13.dispatch.read_tsumo_diagnostic_code()
                 }),
             )?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[config_dir.as_str(), "params.yaml"]),
-                String::from("message: first"),
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[configDir.as_str(), "params.yaml"]),
+                "message: first",
             )?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[config_dir.as_str(), "config.yaml"]),
-                String::from("title: Other"),
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[configDir.as_str(), "config.yaml"]),
+                "title: Other",
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("TSUMO_CONFIG_FILE_AMBIGUOUS"),
                 Some({
-                    let dispatch_receiver_14 = &CAPTURE_DIAGNOSTIC
+                    let dispatch_receiver_14 = &captureDiagnostic
                         .with(|module_binding| module_binding.load())
                         .call(({
                             let capture_site_2 = site.clone();
                             rt::Callable::<(), rt::TsonicResult<()>>::new(
                                 move |_callable_arguments_2| {
-                                    tsumo_engine::testing::load_site_config(
-                                        capture_site_2.clone(),
-                                    )?;
+                                    tsumo_engine::testing::loadSiteConfig(capture_site_2.clone())?;
                                     Ok::<_, rt::TsonicError>(())
                                 },
                             )
@@ -1132,7 +1162,7 @@ impl InputBoundaryTests {
         });
         let try_flow = try_body;
         let finally_flow: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::delete_test_directory(site.clone())?;
+            crate::test_root::deleteTestDirectory(&site)?;
             Ok(rt::Completion::Normal)
         });
         let try_flow: rt::TsonicResult<rt::Completion<()>> =
@@ -1150,27 +1180,25 @@ impl InputBoundaryTests {
     pub fn content_types_are_exact_and_fail_to_binary_by_default(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("text/html; charset=utf-8"),
-            Some(tsumo_engine::testing::content_type_for_path("INDEX.HTML")),
+            Some(tsumo_engine::testing::contentTypeForPath("INDEX.HTML")),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("application/json; charset=utf-8"),
-            Some(tsumo_engine::testing::content_type_for_path("data.json")),
+            Some(tsumo_engine::testing::contentTypeForPath("data.json")),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("image/png"),
-            Some(tsumo_engine::testing::content_type_for_path("image.png")),
+            Some(tsumo_engine::testing::contentTypeForPath("image.png")),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("font/woff2"),
-            Some(tsumo_engine::testing::content_type_for_path("font.woff2")),
+            Some(tsumo_engine::testing::contentTypeForPath("font.woff2")),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("application/octet-stream"),
-            Some(tsumo_engine::testing::content_type_for_path(
-                "archive.unknown",
-            )),
+            Some(tsumo_engine::testing::contentTypeForPath("archive.unknown")),
         )?;
         Ok(())
     }
@@ -1182,9 +1210,10 @@ impl Default for InputBoundaryTests {
     }
 }
 
-pub fn run_input_boundary_tests() -> Result<(), rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn runInputBoundaryTests() -> Result<(), rt::TsonicError> {
     let tests: InputBoundaryTests = InputBoundaryTests::new();
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("JSON trees preserve Unicode kinds and source locations"),
         {
             let capture_tests = tests.clone();
@@ -1194,14 +1223,14 @@ pub fn run_input_boundary_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(String::from("JSON trees handle large indexed inputs"), {
+    crate::test_root::runTest(String::from("JSON trees handle large indexed inputs"), {
         let capture_tests_2 = tests.clone();
         rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
             capture_tests_2.json_tree_handles_large_indexed_inputs()?;
             Ok::<_, rt::TsonicError>(())
         })
     })?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("JSON trees reject ambiguous and malformed inputs exactly"),
         {
             let capture_tests_3 = tests.clone();
@@ -1211,7 +1240,7 @@ pub fn run_input_boundary_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("all front matter formats create one closed model"),
         {
             let capture_tests_4 = tests.clone();
@@ -1221,7 +1250,7 @@ pub fn run_input_boundary_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("front matter rejects invalid shapes with exact locations"),
         {
             let capture_tests_5 = tests.clone();
@@ -1231,7 +1260,7 @@ pub fn run_input_boundary_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("all configuration formats create one closed model"),
         {
             let capture_tests_6 = tests.clone();
@@ -1241,7 +1270,7 @@ pub fn run_input_boundary_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("configuration rejects unknown malformed and mistyped fields"),
         {
             let capture_tests_7 = tests.clone();
@@ -1251,7 +1280,7 @@ pub fn run_input_boundary_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("structured scalars decode strings and comments"),
         {
             let capture_tests_8 = tests.clone();
@@ -1261,7 +1290,7 @@ pub fn run_input_boundary_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("split configuration has one deterministic merge contract"),
         {
             let capture_tests_9 = tests.clone();
@@ -1271,7 +1300,7 @@ pub fn run_input_boundary_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("content types are exact and fail to binary by default"),
         {
             let capture_tests_10 = tests.clone();
@@ -1285,6 +1314,7 @@ pub fn run_input_boundary_tests() -> Result<(), rt::TsonicError> {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub fn module_init() {
     {
         let module_value = rt::Callable::<
@@ -1329,76 +1359,76 @@ pub fn module_init() {
                 "Expected a Tsumo diagnostic",
             )))
         });
-        CAPTURE_DIAGNOSTIC.with(|module_binding| module_binding.initialize(module_value))
+        captureDiagnostic.with(|module_binding| module_binding.initialize(module_value))
     };
     {
         let module_value_2 =
             rt::Callable::<(String,), rt::TsonicResult<()>>::new(move |callable_arguments_2| {
                 let source = callable_arguments_2.0;
                 let parsed: tsumo_engine::frontmatter::parsed_content::ParsedContent =
-                    tsumo_engine::testing::parse_content(
+                    tsumo_engine::testing::parseContent(
                         source,
                         Some(String::from("content/post.md")),
                     )?;
-                crate::test_root::Assert::string_equal(
+                crate::test_root::Assert::StringEqual(
                     String::from("Café 🚀"),
                     parsed
                         .state
-                        .with(|state| state.front_matter.clone())
+                        .with(|state| state.frontMatter.clone())
                         .state
                         .with(|state| state.title.clone()),
                 )?;
-                crate::test_root::Assert::r#true(
+                crate::test_root::Assert::True(
                     parsed
                         .state
-                        .with(|state| state.front_matter.clone())
+                        .with(|state| state.frontMatter.clone())
                         .state
                         .with(|state| state.date.clone())
                         .is_some(),
                 )?;
-                crate::test_root::Assert::r#true(
+                crate::test_root::Assert::True(
                     !parsed
                         .state
-                        .with(|state| state.front_matter.clone())
+                        .with(|state| state.frontMatter.clone())
                         .state
                         .with(|state| state.draft),
                 )?;
-                crate::test_root::Assert::number_equal(
+                crate::test_root::Assert::NumberEqual(
                     2.0,
-                    Some(rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
+                    Some(
                         parsed
                             .state
-                            .with(|state| state.front_matter.clone())
+                            .with(|state| state.frontMatter.clone())
                             .state
                             .with(|state| state.tags.clone())
-                            .len(),
-                    )?)),
+                            .len() as f64,
+                    ),
                 )?;
-                crate::test_root::Assert::string_equal(
+                crate::test_root::Assert::StringEqual(
                     String::from("alpha"),
                     parsed
                         .state
-                        .with(|state| state.front_matter.clone())
+                        .with(|state| state.frontMatter.clone())
                         .state
                         .with(|state| state.tags.clone())
                         .get_number(0.0),
                 )?;
-                crate::test_root::Assert::string_equal(
+                crate::test_root::Assert::StringEqual(
                     String::from("beta"),
                     parsed
                         .state
-                        .with(|state| state.front_matter.clone())
+                        .with(|state| state.frontMatter.clone())
                         .state
                         .with(|state| state.tags.clone())
                         .get_number(1.0),
                 )?;
                 let featured: Option<tsumo_engine::testing::ParamValue> = parsed
                     .state
-                    .with(|state| state.front_matter.clone())
+                    .with(|state| state.frontMatter.clone())
                     .state
-                    .with(|state| state.params.clone())
+                    .with(|state| state.Params.clone())
                     .get("featured");
-                crate::test_root::Assert::r#true(
+                crate::test_root::Assert::True(
                     featured.is_some() && {
                         let dispatch_receiver_2 = &match featured.as_ref() {
                             Some(flow_value) => flow_value.clone(),
@@ -1407,23 +1437,23 @@ pub fn module_init() {
                         dispatch_receiver_2.dispatch.read_param_value_bool_value()
                     },
                 )?;
-                crate::test_root::Assert::number_equal(
+                crate::test_root::Assert::NumberEqual(
                     1.0,
-                    Some(rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
+                    Some(
                         parsed
                             .state
-                            .with(|state| state.front_matter.clone())
+                            .with(|state| state.frontMatter.clone())
                             .state
                             .with(|state| state.menus.clone())
-                            .len(),
-                    )?)),
+                            .len() as f64,
+                    ),
                 )?;
-                crate::test_root::Assert::string_equal(
+                crate::test_root::Assert::StringEqual(
                     String::from("main"),
                     Some({
                         let dispatch_receiver_3 = &match parsed
                             .state
-                            .with(|state| state.front_matter.clone())
+                            .with(|state| state.frontMatter.clone())
                             .state
                             .with(|state| state.menus.clone())
                             .get_number(0.0)
@@ -1434,12 +1464,12 @@ pub fn module_init() {
                         dispatch_receiver_3.dispatch.read_front_matter_menu_menu()
                     }),
                 )?;
-                crate::test_root::Assert::number_equal(
+                crate::test_root::Assert::NumberEqual(
                     2.0,
                     Some(rt::conversions::i32_to_f64({
                         let dispatch_receiver_4 = &match parsed
                             .state
-                            .with(|state| state.front_matter.clone())
+                            .with(|state| state.frontMatter.clone())
                             .state
                             .with(|state| state.menus.clone())
                             .get_number(0.0)
@@ -1450,33 +1480,32 @@ pub fn module_init() {
                         dispatch_receiver_4.dispatch.read_front_matter_menu_weight()
                     })),
                 )?;
-                crate::test_root::Assert::string_equal(
+                crate::test_root::Assert::StringEqual(
                     String::from("Body"),
                     Some(parsed.state.with(|state| state.body.clone())),
                 )?;
                 Ok::<_, rt::TsonicError>(())
             });
-        ASSERT_FRONT_MATTER_MODEL
-            .with(|module_binding_2| module_binding_2.initialize(module_value_2))
+        assertFrontMatterModel.with(|module_binding_2| module_binding_2.initialize(module_value_2))
     };
     {
         let module_value_3 =
             rt::Callable::<(String, String, bool, String), rt::TsonicResult<()>>::new(
                 move |callable_arguments_3| {
                     let title = callable_arguments_3.0;
-                    let base_url = callable_arguments_3.1;
+                    let baseURL = callable_arguments_3.1;
                     let featured = callable_arguments_3.2;
-                    let menu_name = callable_arguments_3.3;
-                    crate::test_root::Assert::string_equal(String::from("Café"), Some(title))?;
-                    crate::test_root::Assert::string_equal(
+                    let menuName = callable_arguments_3.3;
+                    crate::test_root::Assert::StringEqual(String::from("Café"), Some(title))?;
+                    crate::test_root::Assert::StringEqual(
                         String::from("https://example.test/"),
-                        Some(base_url),
+                        Some(baseURL),
                     )?;
-                    crate::test_root::Assert::r#true(featured)?;
-                    crate::test_root::Assert::string_equal(String::from("Home"), Some(menu_name))?;
+                    crate::test_root::Assert::True(featured)?;
+                    crate::test_root::Assert::StringEqual(String::from("Home"), Some(menuName))?;
                     Ok::<_, rt::TsonicError>(())
                 },
             );
-        ASSERT_CONFIG_MODEL.with(|module_binding_3| module_binding_3.initialize(module_value_3))
+        assertConfigModel.with(|module_binding_3| module_binding_3.initialize(module_value_3))
     };
 }

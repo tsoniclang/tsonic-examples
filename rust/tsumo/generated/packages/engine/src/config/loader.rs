@@ -4,10 +4,11 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn load_split_config(
-    config_dir: String,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn loadSplitConfig(
+    configDir: String,
 ) -> Result<crate::models::site_config::SiteConfig, rt::TsonicError> {
-    crate::fs::reject_filesystem_link(config_dir.clone())?;
+    crate::fs::rejectFilesystemLink(configDir.clone())?;
     let mut config: crate::models::site_config::SiteConfig =
         crate::models::site_config::SiteConfig::new(
             String::from("Tsumo Site"),
@@ -16,13 +17,13 @@ pub fn load_split_config(
             Option::<String>::None,
             Option::<String>::None,
         )?;
-    let entries: js_abi::JsArray<String> = tsonic_rust_node::fs::readdir_sync(config_dir.as_str())?;
+    let entries: js_abi::JsArray<String> = tsonic_rust_node::fs::readdir_sync(configDir.as_str())?;
     let files: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     {
-        let mut i: f64 = 0.0;
-        while i < (rt::conversions::usize_to_i32(entries.len())? as f64) {
+        let mut i: usize = 0;
+        while i < entries.len() {
             let path: String = {
-                let operation_input_0 = config_dir.clone();
+                let operation_input_0 = configDir.clone();
                 tsonic_rust_node::path::join(&[
                     operation_input_0.as_str(),
                     match entries.get_number(i) {
@@ -32,10 +33,10 @@ pub fn load_split_config(
                     .as_str(),
                 ])
             };
-            crate::fs::reject_filesystem_link(path.clone())?;
+            crate::fs::rejectFilesystemLink(path.clone())?;
             if !tsonic_rust_node::fs::stat_sync(path.as_str())?.is_file() {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_CONFIG_ENTRY_INVALID"),
                         format!(
                             "{}{}",
@@ -48,30 +49,30 @@ pub fn load_split_config(
                     )?,
                 ));
             }
-            files.push_many_discard([path.clone()]);
-            i += 1.0;
+            files.push_many_discard([path]);
+            i += 1;
         }
     }
-    let sorted_files: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-    let base_files: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-    let param_files: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-    let lang_files: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-    let menu_files: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-    let module_files: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-    let other_files: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-    let file_names: js_abi::JsSet<String> = js_abi::JsSet::new();
+    let sortedFiles: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    let baseFiles: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    let paramFiles: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    let langFiles: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    let menuFiles: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    let moduleFiles: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    let otherFiles: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    let fileNames: js_abi::JsSet<String> = js_abi::JsSet::new();
     {
-        let mut i: f64 = 0.0;
-        while i < (rt::conversions::usize_to_i32(files.len())? as f64) {
-            let file_path: String = match files.get_number(i) {
+        let mut i: usize = 0;
+        while i < files.len() {
+            let filePath: String = match files.get_number(i) {
                 Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let name: String =
-                js_string::to_lower_case(&tsonic_rust_node::path::basename(&file_path, None));
-            if file_names.has(&name) {
+                js_string::to_lower_case(&tsonic_rust_node::path::basename(&filePath, None));
+            if fileNames.has(&name) {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_CONFIG_FILE_AMBIGUOUS"),
                         format!(
                             "{}{}{}",
@@ -79,13 +80,13 @@ pub fn load_split_config(
                             name,
                             String::from("' is not unique")
                         ),
-                        Some(config_dir.clone()),
+                        Some(configDir.clone()),
                         None,
                         None,
                     )?,
                 ));
             }
-            file_names.add_discard(name.clone());
+            fileNames.add_discard(name.clone());
             if name == "hugo.toml"
                 || name == "hugo.yaml"
                 || name == "hugo.yml"
@@ -93,269 +94,249 @@ pub fn load_split_config(
                 || name == "config.yaml"
                 || name == "config.yml"
             {
-                base_files.push_many_discard([file_path.clone()]);
+                baseFiles.push_many_discard([filePath.clone()]);
             } else if name == "params.toml" || name == "params.yaml" || name == "params.yml" {
-                param_files.push_many_discard([file_path.clone()]);
+                paramFiles.push_many_discard([filePath.clone()]);
             } else if js_string::starts_with_from_start(&name, "languages.") {
-                lang_files.push_many_discard([file_path.clone()]);
+                langFiles.push_many_discard([filePath.clone()]);
             } else if js_string::starts_with_from_start(&name, "menus.") {
-                menu_files.push_many_discard([file_path.clone()]);
+                menuFiles.push_many_discard([filePath.clone()]);
             } else if name == "module.toml" {
-                module_files.push_many_discard([file_path.clone()]);
+                moduleFiles.push_many_discard([filePath.clone()]);
             } else {
-                other_files.push_many_discard([file_path.clone()]);
+                otherFiles.push_many_discard([filePath]);
             }
-            i += 1.0;
+            i += 1;
         }
     }
-    base_files.sort_by_js_string();
-    param_files.sort_by_js_string();
-    lang_files.sort_by_js_string();
-    menu_files.sort_by_js_string();
-    module_files.sort_by_js_string();
-    other_files.sort_by_js_string();
-    if rt::conversions::usize_to_i32(base_files.len())? > 1 {
+    baseFiles.sort_by_js_string();
+    paramFiles.sort_by_js_string();
+    langFiles.sort_by_js_string();
+    menuFiles.sort_by_js_string();
+    moduleFiles.sort_by_js_string();
+    otherFiles.sort_by_js_string();
+    if baseFiles.len() > 1 {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_CONFIG_FILE_AMBIGUOUS"),
                 String::from("Split configuration accepts at most one base configuration file"),
-                Some(config_dir.clone()),
+                Some(configDir.clone()),
                 None,
                 None,
             )?,
         ));
     }
-    if rt::conversions::usize_to_i32(param_files.len())? > 1 {
+    if paramFiles.len() > 1 {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_CONFIG_FILE_AMBIGUOUS"),
                 String::from("Split configuration accepts at most one params configuration file"),
-                Some(config_dir.clone()),
+                Some(configDir.clone()),
                 None,
                 None,
             )?,
         ));
     }
-    if rt::conversions::usize_to_i32(module_files.len())? > 1 {
+    if moduleFiles.len() > 1 {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_CONFIG_FILE_AMBIGUOUS"),
                 String::from("Split configuration accepts at most one module configuration file"),
-                Some(config_dir.clone()),
+                Some(configDir.clone()),
                 None,
                 None,
             )?,
         ));
     }
-    let mut aggregate_language_files: f64 = 0.0;
+    let mut aggregateLanguageFiles: f64 = 0.0;
     {
-        let mut i: f64 = 0.0;
-        while i < (rt::conversions::usize_to_i32(lang_files.len())? as f64) {
+        let mut i: usize = 0;
+        while i < langFiles.len() {
             if js_string::to_lower_case(&tsonic_rust_node::path::basename(
-                &match lang_files.get_number(i) {
+                &match langFiles.get_number(i) {
                     Some(flow_value_3) => flow_value_3,
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
                 None,
             )) == "languages.toml"
             {
-                aggregate_language_files += 1.0;
+                aggregateLanguageFiles += 1.0;
             }
-            i += 1.0;
+            i += 1;
         }
     }
-    if aggregate_language_files > 1.0 {
+    if aggregateLanguageFiles > 1.0 {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_CONFIG_FILE_AMBIGUOUS"),
                 String::from(
                     "Split configuration accepts at most one aggregate language configuration file",
                 ),
-                Some(config_dir.clone()),
+                Some(configDir.clone()),
                 None,
                 None,
             )?,
         ));
     }
     {
-        let mut i: f64 = 0.0;
-        while i < (rt::conversions::usize_to_i32(base_files.len())? as f64) {
-            {
-                let operation_input_0_2 = sorted_files.clone();
-                operation_input_0_2.push_many_discard([match base_files.get_number(i) {
-                    Some(flow_value_4) => flow_value_4,
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }])
-            };
-            i += 1.0;
+        let mut i: usize = 0;
+        while i < baseFiles.len() {
+            sortedFiles.push_many_discard([match baseFiles.get_number(i) {
+                Some(flow_value_4) => flow_value_4,
+                None => unreachable!("checked flow selected a missing optional value"),
+            }]);
+            i += 1;
         }
     }
     {
-        let mut i: f64 = 0.0;
-        while i < (rt::conversions::usize_to_i32(param_files.len())? as f64) {
-            {
-                let operation_input_0_3 = sorted_files.clone();
-                operation_input_0_3.push_many_discard([match param_files.get_number(i) {
-                    Some(flow_value_5) => flow_value_5,
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }])
-            };
-            i += 1.0;
+        let mut i: usize = 0;
+        while i < paramFiles.len() {
+            sortedFiles.push_many_discard([match paramFiles.get_number(i) {
+                Some(flow_value_5) => flow_value_5,
+                None => unreachable!("checked flow selected a missing optional value"),
+            }]);
+            i += 1;
         }
     }
     {
-        let mut i: f64 = 0.0;
-        while i < (rt::conversions::usize_to_i32(lang_files.len())? as f64) {
+        let mut i: usize = 0;
+        while i < langFiles.len() {
             if js_string::to_lower_case(&tsonic_rust_node::path::basename(
-                &match lang_files.get_number(i) {
+                &match langFiles.get_number(i) {
                     Some(flow_value_6) => flow_value_6,
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
                 None,
             )) == "languages.toml"
             {
-                {
-                    let operation_input_0_4 = sorted_files.clone();
-                    operation_input_0_4.push_many_discard([match lang_files.get_number(i) {
-                        Some(flow_value_7) => flow_value_7,
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }])
-                };
+                sortedFiles.push_many_discard([match langFiles.get_number(i) {
+                    Some(flow_value_7) => flow_value_7,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }]);
             }
-            i += 1.0;
+            i += 1;
         }
     }
     {
-        let mut i: f64 = 0.0;
-        while i < (rt::conversions::usize_to_i32(lang_files.len())? as f64) {
+        let mut i: usize = 0;
+        while i < langFiles.len() {
             if js_string::to_lower_case(&tsonic_rust_node::path::basename(
-                &match lang_files.get_number(i) {
+                &match langFiles.get_number(i) {
                     Some(flow_value_8) => flow_value_8,
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
                 None,
             )) != "languages.toml"
             {
-                {
-                    let operation_input_0_5 = sorted_files.clone();
-                    operation_input_0_5.push_many_discard([match lang_files.get_number(i) {
-                        Some(flow_value_9) => flow_value_9,
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }])
-                };
+                sortedFiles.push_many_discard([match langFiles.get_number(i) {
+                    Some(flow_value_9) => flow_value_9,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }]);
             }
-            i += 1.0;
+            i += 1;
         }
     }
     {
-        let mut i: f64 = 0.0;
-        while i < (rt::conversions::usize_to_i32(menu_files.len())? as f64) {
-            {
-                let operation_input_0_6 = sorted_files.clone();
-                operation_input_0_6.push_many_discard([match menu_files.get_number(i) {
-                    Some(flow_value_10) => flow_value_10,
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }])
-            };
-            i += 1.0;
+        let mut i: usize = 0;
+        while i < menuFiles.len() {
+            sortedFiles.push_many_discard([match menuFiles.get_number(i) {
+                Some(flow_value_10) => flow_value_10,
+                None => unreachable!("checked flow selected a missing optional value"),
+            }]);
+            i += 1;
         }
     }
     {
-        let mut i: f64 = 0.0;
-        while i < (rt::conversions::usize_to_i32(module_files.len())? as f64) {
-            {
-                let operation_input_0_7 = sorted_files.clone();
-                operation_input_0_7.push_many_discard([match module_files.get_number(i) {
-                    Some(flow_value_11) => flow_value_11,
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }])
-            };
-            i += 1.0;
+        let mut i: usize = 0;
+        while i < moduleFiles.len() {
+            sortedFiles.push_many_discard([match moduleFiles.get_number(i) {
+                Some(flow_value_11) => flow_value_11,
+                None => unreachable!("checked flow selected a missing optional value"),
+            }]);
+            i += 1;
         }
     }
     {
-        let mut i: f64 = 0.0;
-        while i < (rt::conversions::usize_to_i32(other_files.len())? as f64) {
-            {
-                let operation_input_0_8 = sorted_files.clone();
-                operation_input_0_8.push_many_discard([match other_files.get_number(i) {
-                    Some(flow_value_12) => flow_value_12,
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }])
-            };
-            i += 1.0;
+        let mut i: usize = 0;
+        while i < otherFiles.len() {
+            sortedFiles.push_many_discard([match otherFiles.get_number(i) {
+                Some(flow_value_12) => flow_value_12,
+                None => unreachable!("checked flow selected a missing optional value"),
+            }]);
+            i += 1;
         }
     }
     {
-        let mut i: f64 = 0.0;
-        while i < (rt::conversions::usize_to_i32(sorted_files.len())? as f64) {
-            let file_path: String = match sorted_files.get_number(i) {
+        let mut i: usize = 0;
+        while i < sortedFiles.len() {
+            let filePath: String = match sortedFiles.get_number(i) {
                 Some(flow_value_13) => flow_value_13,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let file_name: String =
-                js_string::to_lower_case(&tsonic_rust_node::path::basename(&file_path, None));
-            let text: String = crate::fs::read_text_file(file_path.clone())?;
-            if js_string::ends_with_at_end(&file_name, ".toml") {
-                config = crate::config::toml::merge_toml_into_config(
+            let fileName: String =
+                js_string::to_lower_case(&tsonic_rust_node::path::basename(&filePath, None));
+            let text: String = crate::fs::readTextFile(filePath.clone())?;
+            if js_string::ends_with_at_end(&fileName, ".toml") {
+                config = crate::config::toml::mergeTomlIntoConfig(
                     config.clone(),
                     &text,
-                    file_name.clone(),
-                    Some(file_path.clone()),
+                    fileName.clone(),
+                    Some(filePath.clone()),
                 )?;
-            } else if js_string::ends_with_at_end(&file_name, ".yaml")
-                || js_string::ends_with_at_end(&file_name, ".yml")
+            } else if js_string::ends_with_at_end(&fileName, ".yaml")
+                || js_string::ends_with_at_end(&fileName, ".yml")
             {
-                config = crate::config::yaml::merge_yaml_into_config(
+                config = crate::config::yaml::mergeYamlIntoConfig(
                     config.clone(),
                     &text,
-                    file_name.clone(),
-                    Some(file_path.clone()),
+                    fileName.clone(),
+                    Some(filePath.clone()),
                 )?;
             } else {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_CONFIG_FILE_UNSUPPORTED"),
                         format!(
                             "{}{}{}",
                             String::from("Unsupported split configuration file '"),
-                            file_name,
+                            fileName,
                             String::from("'")
                         ),
-                        Some(file_path.clone()),
+                        Some(filePath.clone()),
                         None,
                         None,
                     )?,
                 ));
             }
-            i += 1.0;
+            i += 1;
         }
     }
     Ok(config)
 }
 
-pub fn load_site_config(
-    site_dir: String,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn loadSiteConfig(
+    siteDir: String,
 ) -> Result<crate::config::loaded_config::LoadedConfig, rt::TsonicError> {
-    let split_config_dir: String =
-        tsonic_rust_node::path::join(&[site_dir.as_str(), "config", "_default"]);
-    if crate::fs::dir_exists(split_config_dir.clone())? {
+    let splitConfigDir: String =
+        tsonic_rust_node::path::join(&[siteDir.as_str(), "config", "_default"]);
+    if crate::fs::dirExists(&splitConfigDir)? {
         return crate::config::loaded_config::LoadedConfig::new(
-            Some(split_config_dir.clone()),
-            load_split_config(split_config_dir.clone())?,
+            Some(splitConfigDir.clone()),
+            loadSplitConfig(splitConfigDir)?,
         );
     }
     let candidates: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
-        tsonic_rust_node::path::join(&[site_dir.as_str(), "hugo.toml"]),
-        tsonic_rust_node::path::join(&[site_dir.as_str(), "hugo.yaml"]),
-        tsonic_rust_node::path::join(&[site_dir.as_str(), "hugo.yml"]),
-        tsonic_rust_node::path::join(&[site_dir.as_str(), "hugo.json"]),
-        tsonic_rust_node::path::join(&[site_dir.as_str(), "config.toml"]),
-        tsonic_rust_node::path::join(&[site_dir.as_str(), "config.yaml"]),
-        tsonic_rust_node::path::join(&[site_dir.as_str(), "config.yml"]),
-        tsonic_rust_node::path::join(&[site_dir.as_str(), "config.json"]),
+        tsonic_rust_node::path::join(&[siteDir.as_str(), "hugo.toml"]),
+        tsonic_rust_node::path::join(&[siteDir.as_str(), "hugo.yaml"]),
+        tsonic_rust_node::path::join(&[siteDir.as_str(), "hugo.yml"]),
+        tsonic_rust_node::path::join(&[siteDir.as_str(), "hugo.json"]),
+        tsonic_rust_node::path::join(&[siteDir.as_str(), "config.toml"]),
+        tsonic_rust_node::path::join(&[siteDir.as_str(), "config.yaml"]),
+        tsonic_rust_node::path::join(&[siteDir.as_str(), "config.yml"]),
+        tsonic_rust_node::path::join(&[siteDir.as_str(), "config.json"]),
     ]);
-    let path: Option<String> = crate::config::helpers::try_get_first_existing(candidates)?;
+    let path: Option<String> = crate::config::helpers::tryGetFirstExisting(candidates)?;
     if path.is_none() {
         return crate::config::loaded_config::LoadedConfig::new(
             Option::<String>::None,
@@ -368,7 +349,7 @@ pub fn load_site_config(
             )?,
         );
     }
-    let text: String = crate::fs::read_text_file(match path.as_ref() {
+    let text: String = crate::fs::readTextFile(match path.as_ref() {
         Some(flow_value) => flow_value.clone(),
         None => unreachable!("checked flow selected a missing optional value"),
     })?;
@@ -376,9 +357,9 @@ pub fn load_site_config(
         Some(flow_value_2) => flow_value_2.clone(),
         None => unreachable!("checked flow selected a missing optional value"),
     });
-    let parsed_config: crate::models::site_config::SiteConfig =
+    let parsedConfig: crate::models::site_config::SiteConfig =
         if js_string::ends_with_at_end(&lower, ".toml") {
-            crate::config::toml::parse_toml_config(
+            crate::config::toml::parseTomlConfig(
                 &text,
                 Some(match path.as_ref() {
                     Some(flow_value_3) => flow_value_3.clone(),
@@ -386,7 +367,7 @@ pub fn load_site_config(
                 }),
             )?
         } else if js_string::ends_with_at_end(&lower, ".json") {
-            crate::config::json::parse_json_config(
+            crate::config::json::parseJsonConfig(
                 text.clone(),
                 Some(match path.as_ref() {
                     Some(flow_value_4) => flow_value_4.clone(),
@@ -394,7 +375,7 @@ pub fn load_site_config(
                 }),
             )?
         } else {
-            crate::config::yaml::parse_yaml_config(
+            crate::config::yaml::parseYamlConfig(
                 &text,
                 Some(match path.as_ref() {
                     Some(flow_value_5) => flow_value_5.clone(),
@@ -407,6 +388,6 @@ pub fn load_site_config(
             Some(flow_value_6) => flow_value_6.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         }),
-        parsed_config,
+        parsedConfig,
     )
 }

@@ -5,9 +5,10 @@ use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct SelectedDataFileState {
-    pub semantic_path: String,
-    pub source_path: String,
+    pub semanticPath: String,
+    pub sourcePath: String,
     pub format: String,
 }
 
@@ -24,26 +25,28 @@ impl rt::ObjectIdentityCarrier for SelectedDataFile {
 }
 
 impl SelectedDataFile {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
-        semantic_path: String,
-        source_path: String,
+        semanticPath: String,
+        sourcePath: String,
         format: String,
     ) -> Result<SelectedDataFile, rt::TsonicError> {
-        let field_semantic_path: String = semantic_path;
-        let field_source_path: String = source_path;
+        let field_semantic_path: String = semanticPath;
+        let field_source_path: String = sourcePath;
         let field_format: String = format;
         Ok(SelectedDataFile {
             state: rt::ObjectRef::new(SelectedDataFileState {
-                semantic_path: field_semantic_path,
-                source_path: field_source_path,
+                semanticPath: field_semantic_path,
+                sourcePath: field_source_path,
                 format: field_format,
             }),
         })
     }
 }
 
-pub fn data_format(path: String) -> Option<String> {
-    let extension: String = js_string::to_lower_case(&tsonic_rust_node::path::extname(&path));
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn dataFormat(path: &str) -> Option<String> {
+    let extension: String = js_string::to_lower_case(&tsonic_rust_node::path::extname(path));
     if extension == ".json" {
         return Some(String::from("json"));
     }
@@ -59,50 +62,49 @@ pub fn data_format(path: String) -> Option<String> {
     Option::<String>::None
 }
 
-pub fn normalize_data_path(path: &str) -> Result<String, rt::TsonicError> {
-    crate::utils::strings::replace_text(path, String::from("\\"), String::from("/"))
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn normalizeDataPath(path: &str) -> Result<String, rt::TsonicError> {
+    crate::utils::strings::replaceText(path, String::from("\\"), String::from("/"))
 }
 
-pub fn collect_data_layer(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn collectDataLayer(
     root: String,
     selected: js_abi::JsMap<String, SelectedDataFile>,
 ) -> Result<(), rt::TsonicError> {
-    if !crate::fs::dir_exists(root.clone())? {
+    if !crate::fs::dirExists(&root)? {
         return Ok(());
     }
     let files: js_abi::JsArray<String> =
-        crate::fs::list_files_recursive(root.clone(), String::from("*"))?;
+        crate::fs::listFilesRecursive(root.clone(), String::from("*"))?;
     let layer: js_abi::JsMap<String, SelectedDataFile> = js_abi::JsMap::new();
     {
-        let mut index: i32 = 0;
-        'loop_value: while index < rt::conversions::usize_to_i32(files.len())? {
-            let source_path: String = match files.get_number(rt::conversions::i32_to_f64(index)) {
+        let mut index: usize = 0;
+        'loop_value: while index < files.len() {
+            let sourcePath: String = match files.get_number(index) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let format: Option<String> = data_format(source_path.clone());
+            let format: Option<String> = dataFormat(&sourcePath);
             if format.is_none() {
                 index += 1;
                 continue 'loop_value;
             }
-            let relative_path: String =
-                normalize_data_path(&tsonic_rust_node::path::relative(&root, &source_path))?;
-            let extension: String = tsonic_rust_node::path::extname(&relative_path);
-            let semantic_path: String = {
-                let operation_input_0 = relative_path.clone();
+            let relativePath: String =
+                normalizeDataPath(&tsonic_rust_node::path::relative(&root, &sourcePath))?;
+            let extension: String = tsonic_rust_node::path::extname(&relativePath);
+            let semanticPath: String = {
+                let operation_input_0 = relativePath.clone();
                 js_string::slice_to(
                     &operation_input_0,
                     0.0,
-                    rt::conversions::i32_to_f64(
-                        rt::conversions::usize_to_i32(js_string::js_len(&relative_path))?
-                            - rt::conversions::usize_to_i32(js_string::js_len(&extension))?,
-                    ),
+                    js_string::js_len(&relativePath) - js_string::js_len(&extension),
                 )
             }?;
-            let existing: Option<SelectedDataFile> = layer.get(&semantic_path);
+            let existing: Option<SelectedDataFile> = layer.get(&semanticPath);
             if existing.is_some() {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_DATA_IDENTITY_CONFLICT"),
                         format!(
                             "{}{}{}{}{}{}{}",
@@ -113,14 +115,14 @@ pub fn collect_data_layer(
                                     unreachable!("checked flow selected a missing optional value"),
                             }
                             .state
-                            .with(|state| state.source_path.clone()),
+                            .with(|state| state.sourcePath.clone()),
                             String::from("' and '"),
-                            source_path,
+                            sourcePath,
                             String::from("' define the same data identity '"),
-                            semantic_path,
+                            semanticPath,
                             String::from("'")
                         ),
-                        Some(source_path.clone()),
+                        Some(sourcePath.clone()),
                         None,
                         None,
                     )?,
@@ -129,10 +131,10 @@ pub fn collect_data_layer(
             {
                 let operation_input_0_2 = layer.clone();
                 operation_input_0_2.set_discard(
-                    semantic_path.clone(),
+                    semanticPath.clone(),
                     SelectedDataFile::new(
-                        semantic_path.clone(),
-                        source_path.clone(),
+                        semanticPath,
+                        sourcePath,
                         match format.as_ref() {
                             Some(flow_value_3) => flow_value_3.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
@@ -147,7 +149,7 @@ pub fn collect_data_layer(
         {
             let operation_input_0_3 = selected.clone();
             operation_input_0_3.set_discard(
-                file.state.with(|state| state.semantic_path.clone()),
+                file.state.with(|state| state.semanticPath.clone()),
                 file.clone(),
             )
         };
@@ -155,18 +157,19 @@ pub fn collect_data_layer(
     Ok(())
 }
 
-pub fn set_data_path(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn setDataPath(
     root: crate::template::values::dict::DictValue,
-    semantic_path: String,
+    semanticPath: String,
     value: crate::template::values::base::TemplateValue,
-    source_path: String,
+    sourcePath: String,
 ) -> Result<(), rt::TsonicError> {
-    let segments: js_abi::JsArray<String> = js_string::split_all(&semantic_path, "/")?;
+    let segments: js_abi::JsArray<String> = js_string::split_all(&semanticPath, "/")?;
     let mut current: crate::template::values::dict::DictValue = root;
     {
-        let mut index: i32 = 0;
-        'loop_value: while index < rt::conversions::usize_to_i32(segments.len())? - 1 {
-            let segment: String = match segments.get_number(rt::conversions::i32_to_f64(index)) {
+        let mut index: usize = 0;
+        'loop_value: while index < segments.len() - 1 {
+            let segment: String = match segments.get_number(index) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
@@ -182,7 +185,7 @@ pub fn set_data_path(
                     let dispatch_receiver_2 = &current;
                     dispatch_receiver_2.dispatch.read_dict_value_value()
                 }
-                .set_discard(segment.clone(), {
+                .set_discard(segment, {
                     let upcast_value = created.clone();
                     crate::template::values::base::TemplateValue {
                         identity: upcast_value.identity.clone(),
@@ -203,19 +206,17 @@ pub fn set_data_path(
             .is_none()
             {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_DATA_TREE_CONFLICT"),
                         format!(
                             "{}{}{}{}{}",
                             String::from("Data identity '"),
-                            semantic_path,
+                            semanticPath,
                             String::from("' conflicts with a data file at '"),
-                            segments
-                                .slice_to(0.0, rt::conversions::i32_to_f64(index + 1))
-                                .join("/"),
+                            segments.slice_to(0.0, index + 1).join("/"),
                             String::from("'")
                         ),
-                        Some(source_path.clone()),
+                        Some(sourcePath.clone()),
                         None,
                         None,
                     )?,
@@ -237,17 +238,9 @@ pub fn set_data_path(
             index += 1;
         }
     }
-    let name: String = {
-        let flow_input = {
-            let operation_input_0 = segments.clone();
-            operation_input_0.get_number(rt::conversions::i32_to_f64(
-                rt::conversions::usize_to_i32(segments.len())? - 1,
-            ))
-        };
-        match flow_input {
-            Some(flow_value_3) => flow_value_3,
-            None => unreachable!("checked flow selected a missing optional value"),
-        }
+    let name: String = match segments.get_number(segments.len() - 1) {
+        Some(flow_value_3) => flow_value_3,
+        None => unreachable!("checked flow selected a missing optional value"),
     };
     if {
         let dispatch_receiver_3 = &current;
@@ -256,15 +249,15 @@ pub fn set_data_path(
     .has(&name)
     {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_DATA_TREE_CONFLICT"),
                 format!(
                     "{}{}{}",
                     String::from("Data identity '"),
-                    semantic_path,
+                    semanticPath,
                     String::from("' is declared more than once")
                 ),
-                Some(source_path.clone()),
+                Some(sourcePath.clone()),
                 None,
                 None,
             )?,
@@ -278,16 +271,17 @@ pub fn set_data_path(
     Ok(())
 }
 
-pub fn load_site_data(
-    site_dir: String,
-    theme_dir: Option<String>,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn loadSiteData(
+    siteDir: String,
+    themeDir: Option<String>,
     mounts: Option<js_abi::JsArray<crate::models::site_config::ModuleMount>>,
 ) -> Result<crate::template::values::dict::DictValue, rt::TsonicError> {
     let selected: js_abi::JsMap<String, SelectedDataFile> = js_abi::JsMap::new();
-    if theme_dir.is_some() {
-        collect_data_layer(
+    if themeDir.is_some() {
+        collectDataLayer(
             tsonic_rust_node::path::join(&[
-                match theme_dir.as_ref() {
+                match themeDir.as_ref() {
                     Some(flow_value) => flow_value.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
@@ -299,26 +293,24 @@ pub fn load_site_data(
     }
     if mounts.is_some() {
         {
-            let mut index: i32 = rt::conversions::usize_to_i32(
-                match mounts.as_ref() {
-                    Some(flow_value_2) => flow_value_2.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }
-                .len(),
-            )? - 1;
-            'loop_value: while index >= 0 {
+            let mut index: usize = match mounts.as_ref() {
+                Some(flow_value_2) => flow_value_2.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            }
+            .len();
+            'loop_value: while index != 0 {
                 let mount: crate::models::site_config::ModuleMount = match match mounts.as_ref() {
                     Some(flow_value_3) => flow_value_3.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
-                .get_number(rt::conversions::i32_to_f64(index))
+                .get_number(index - 1)
                 {
                     Some(flow_value_4) => flow_value_4,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-                let target: String = crate::utils::strings::trim_end_char(
-                    crate::utils::strings::trim_start_char(
-                        normalize_data_path(&{
+                let target: String = crate::utils::strings::trimEndChar(
+                    crate::utils::strings::trimStartChar(
+                        normalizeDataPath(&{
                             let dispatch_receiver = &mount;
                             dispatch_receiver.dispatch.read_module_mount_target()
                         })?,
@@ -339,9 +331,8 @@ pub fn load_site_data(
                         let dispatch_receiver_3 = &mount;
                         dispatch_receiver_3.dispatch.read_module_mount_source()
                     } else {
-                        let operation_input_0 = site_dir.clone();
                         tsonic_rust_node::path::join(&[
-                            operation_input_0.as_str(),
+                            siteDir.as_str(),
                             {
                                 let dispatch_receiver_4 = &mount;
                                 dispatch_receiver_4.dispatch.read_module_mount_source()
@@ -350,13 +341,13 @@ pub fn load_site_data(
                         ])
                     }
                 };
-                collect_data_layer(root.clone(), selected.clone())?;
+                collectDataLayer(root, selected.clone())?;
                 index -= 1;
             }
         }
     }
-    collect_data_layer(
-        tsonic_rust_node::path::join(&[site_dir.as_str(), "data"]),
+    collectDataLayer(
+        tsonic_rust_node::path::join(&[siteDir.as_str(), "data"]),
         selected.clone(),
     )?;
     let identities: js_abi::JsArray<String> = js_abi::array_from_vec(&selected.keys());
@@ -364,16 +355,16 @@ pub fn load_site_data(
     let root: crate::template::values::dict::DictValue =
         crate::template::values::dict::DictValue::new(js_abi::JsMap::new())?;
     {
-        let mut index: i32 = 0;
-        while index < rt::conversions::usize_to_i32(identities.len())? {
-            let identity: String = match identities.get_number(rt::conversions::i32_to_f64(index)) {
+        let mut index: usize = 0;
+        while index < identities.len() {
+            let identity: String = match identities.get_number(index) {
                 Some(flow_value_5) => flow_value_5,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let file: Option<SelectedDataFile> = selected.get(&identity);
             if file.is_none() {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_DATA_SELECTION_INCONSISTENT"),
                         format!(
                             "{}{}{}",
@@ -388,14 +379,14 @@ pub fn load_site_data(
                 ));
             }
             let value: crate::template::values::base::TemplateValue =
-                crate::template::evaluation::structured_data::parse_template_data_text(
-                    crate::fs::read_text_file(
+                crate::template::evaluation::structured_data::parseTemplateDataText(
+                    crate::fs::readTextFile(
                         match file.as_ref() {
                             Some(flow_value_6) => flow_value_6.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         }
                         .state
-                        .with(|state| state.source_path.clone()),
+                        .with(|state| state.sourcePath.clone()),
                     )?,
                     &match file.as_ref() {
                         Some(flow_value_7) => flow_value_7.clone(),
@@ -409,24 +400,24 @@ pub fn load_site_data(
                             None => unreachable!("checked flow selected a missing optional value"),
                         }
                         .state
-                        .with(|state| state.source_path.clone()),
+                        .with(|state| state.sourcePath.clone()),
                     ),
                 )?;
-            set_data_path(
+            setDataPath(
                 root.clone(),
                 match file.as_ref() {
                     Some(flow_value_9) => flow_value_9.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
                 .state
-                .with(|state| state.semantic_path.clone()),
-                value.clone(),
+                .with(|state| state.semanticPath.clone()),
+                value,
                 match file.as_ref() {
                     Some(flow_value_10) => flow_value_10.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
                 .state
-                .with(|state| state.source_path.clone()),
+                .with(|state| state.sourcePath.clone()),
             )?;
             index += 1;
         }

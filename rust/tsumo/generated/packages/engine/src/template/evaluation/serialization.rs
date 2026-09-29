@@ -4,33 +4,28 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn get_path_extension(path: &str) -> Result<String, rt::TsonicError> {
-    let last_dot: i32 =
-        rt::conversions::isize_to_i32(js_string::last_index_of_from_end(path, "."))?;
-    let last_slash: f64 = js_abi::math_max(&[
-        rt::conversions::i32_to_f64(rt::conversions::isize_to_i32(
-            js_string::last_index_of_from_end(path, "/"),
-        )?),
-        rt::conversions::i32_to_f64(rt::conversions::isize_to_i32(
-            js_string::last_index_of_from_end(path, "\\"),
-        )?),
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn getPathExtension(path: &str) -> Result<String, rt::TsonicError> {
+    let lastDot: isize = js_string::last_index_of_from_end(path, ".");
+    let lastSlash: f64 = js_abi::math_max(&[
+        js_string::last_index_of_from_end(path, "/") as f64,
+        js_string::last_index_of_from_end(path, "\\") as f64,
     ]);
-    if last_dot < 0 || (last_dot as f64) <= last_slash {
+    if lastDot < 0 || (lastDot as f64) <= lastSlash {
         return Ok(String::from(""));
     }
-    crate::utils::strings::substring_from(path, last_dot)
+    crate::utils::strings::substringFrom(path, rt::conversions::isize_to_i32(lastDot)?)
 }
 
-pub fn to_json(
-    value: crate::template::values::base::TemplateValue,
-) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn toJson(value: crate::template::values::base::TemplateValue) -> String {
     if value
         .dispatch
         .clone()
         .downcast_template_value_to_nil_value()
         .is_some()
     {
-        return Ok(String::from("null"));
+        return String::from("null");
     }
     if let Some(selected_dispatch) = value
         .dispatch
@@ -41,7 +36,7 @@ pub fn to_json(
             identity: value.identity.clone(),
             dispatch: selected_dispatch,
         };
-        return Ok({
+        return {
             let conditional_test = {
                 let dispatch_receiver = &selected_value;
                 dispatch_receiver.dispatch.read_bool_value_value()
@@ -51,7 +46,7 @@ pub fn to_json(
             } else {
                 String::from("false")
             }
-        });
+        };
     }
     if let Some(selected_dispatch_2) = value
         .dispatch
@@ -62,10 +57,10 @@ pub fn to_json(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_2,
         };
-        return Ok(rt::source_string(&{
+        return rt::source_string(&{
             let dispatch_receiver_2 = &selected_value_2;
             dispatch_receiver_2.dispatch.read_number_value_value()
-        }));
+        });
     }
     if let Some(selected_dispatch_3) = value
         .dispatch
@@ -76,7 +71,7 @@ pub fn to_json(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_3,
         };
-        return to_json_string({
+        return toJsonString({
             let dispatch_receiver_3 = &selected_value_3;
             dispatch_receiver_3.dispatch.read_string_value_value()
         });
@@ -90,7 +85,7 @@ pub fn to_json(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_4,
         };
-        return to_json_string({
+        return toJsonString({
             let dispatch_receiver_4 = &selected_value_4;
             dispatch_receiver_4.dispatch.read_date_value_value()
         });
@@ -104,7 +99,7 @@ pub fn to_json(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_5,
         };
-        return to_json_string({
+        return toJsonString({
             let dispatch_receiver_6 = &{
                 let dispatch_receiver_5 = &selected_value_5;
                 dispatch_receiver_5.dispatch.read_html_value_value()
@@ -133,11 +128,11 @@ pub fn to_json(
                 .dispatch
                 .clone()
                 .dispatch_text_builder_append(String::from("["))
-        }?;
+        };
         let mut first: bool = true;
         {
-            let mut i: f64 = 0.0;
-            while i < (rt::conversions::usize_to_i32(items.len())? as f64) {
+            let mut i: usize = 0;
+            while i < items.len() {
                 if !first {
                     {
                         let dispatch_receiver_9 = sb.clone();
@@ -145,7 +140,7 @@ pub fn to_json(
                             .dispatch
                             .clone()
                             .dispatch_text_builder_append(String::from(","))
-                    }?;
+                    };
                 }
                 first = false;
                 {
@@ -153,12 +148,12 @@ pub fn to_json(
                     dispatch_receiver_10
                         .dispatch
                         .clone()
-                        .dispatch_text_builder_append(to_json(match items.get_number(i) {
+                        .dispatch_text_builder_append(toJson(match items.get_number(i) {
                             Some(flow_value) => flow_value,
                             None => unreachable!("checked flow selected a missing optional value"),
-                        })?)
-                }?;
-                i += 1.0;
+                        }))
+                };
+                i += 1;
             }
         }
         {
@@ -167,14 +162,14 @@ pub fn to_json(
                 .dispatch
                 .clone()
                 .dispatch_text_builder_append(String::from("]"))
-        }?;
-        return Ok({
+        };
+        return {
             let dispatch_receiver_12 = sb.clone();
             dispatch_receiver_12
                 .dispatch
                 .clone()
                 .dispatch_text_builder_to_string()
-        });
+        };
     }
     if let Some(selected_dispatch_7) = value
         .dispatch
@@ -193,7 +188,7 @@ pub fn to_json(
                 .dispatch
                 .clone()
                 .dispatch_text_builder_append(String::from("{"))
-        }?;
+        };
         let mut first: bool = true;
         'loop_value_2: for k in {
             let dispatch_receiver_14 = &selected_value_7;
@@ -216,7 +211,7 @@ pub fn to_json(
                         .dispatch
                         .clone()
                         .dispatch_text_builder_append(String::from(","))
-                }?;
+                };
             }
             first = false;
             {
@@ -224,25 +219,25 @@ pub fn to_json(
                 dispatch_receiver_17
                     .dispatch
                     .clone()
-                    .dispatch_text_builder_append(to_json_string(k.clone())?)
-            }?;
+                    .dispatch_text_builder_append(toJsonString(k.clone()))
+            };
             {
                 let dispatch_receiver_18 = sb.clone();
                 dispatch_receiver_18
                     .dispatch
                     .clone()
                     .dispatch_text_builder_append(String::from(":"))
-            }?;
+            };
             {
                 let dispatch_receiver_19 = sb.clone();
                 dispatch_receiver_19
                     .dispatch
                     .clone()
-                    .dispatch_text_builder_append(to_json(match v.as_ref() {
+                    .dispatch_text_builder_append(toJson(match v.as_ref() {
                         Some(flow_value_2) => flow_value_2.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
-                    })?)
-            }?;
+                    }))
+            };
         }
         {
             let dispatch_receiver_20 = sb.clone();
@@ -250,19 +245,20 @@ pub fn to_json(
                 .dispatch
                 .clone()
                 .dispatch_text_builder_append(String::from("}"))
-        }?;
-        return Ok({
+        };
+        return {
             let dispatch_receiver_21 = sb.clone();
             dispatch_receiver_21
                 .dispatch
                 .clone()
                 .dispatch_text_builder_to_string()
-        });
+        };
     }
-    Ok(String::from("null"))
+    String::from("null")
 }
 
-pub fn to_json_string(value: String) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn toJsonString(value: String) -> String {
     let sb: crate::utils::text_builder::TextBuilder =
         crate::utils::text_builder::TextBuilder::new();
     {
@@ -271,7 +267,7 @@ pub fn to_json_string(value: String) -> Result<String, rt::TsonicError> {
             .dispatch
             .clone()
             .dispatch_text_builder_append(String::from("\""))
-    }?;
+    };
     for ch in js_abi::NativeStringIterator::new(value.clone()) {
         if ch == "\\" {
             {
@@ -280,7 +276,7 @@ pub fn to_json_string(value: String) -> Result<String, rt::TsonicError> {
                     .dispatch
                     .clone()
                     .dispatch_text_builder_append(String::from("\\\\"))
-            }?;
+            };
         } else if ch == "\"" {
             {
                 let dispatch_receiver_3 = sb.clone();
@@ -288,7 +284,7 @@ pub fn to_json_string(value: String) -> Result<String, rt::TsonicError> {
                     .dispatch
                     .clone()
                     .dispatch_text_builder_append(String::from("\\\""))
-            }?;
+            };
         } else if ch == "\n" {
             {
                 let dispatch_receiver_4 = sb.clone();
@@ -296,7 +292,7 @@ pub fn to_json_string(value: String) -> Result<String, rt::TsonicError> {
                     .dispatch
                     .clone()
                     .dispatch_text_builder_append(String::from("\\n"))
-            }?;
+            };
         } else if ch == "\r" {
             {
                 let dispatch_receiver_5 = sb.clone();
@@ -304,7 +300,7 @@ pub fn to_json_string(value: String) -> Result<String, rt::TsonicError> {
                     .dispatch
                     .clone()
                     .dispatch_text_builder_append(String::from("\\r"))
-            }?;
+            };
         } else if ch == "\t" {
             {
                 let dispatch_receiver_6 = sb.clone();
@@ -312,7 +308,7 @@ pub fn to_json_string(value: String) -> Result<String, rt::TsonicError> {
                     .dispatch
                     .clone()
                     .dispatch_text_builder_append(String::from("\\t"))
-            }?;
+            };
         } else {
             {
                 let dispatch_receiver_7 = sb.clone();
@@ -320,7 +316,7 @@ pub fn to_json_string(value: String) -> Result<String, rt::TsonicError> {
                     .dispatch
                     .clone()
                     .dispatch_text_builder_append(ch.clone())
-            }?;
+            };
         }
     }
     {
@@ -329,23 +325,22 @@ pub fn to_json_string(value: String) -> Result<String, rt::TsonicError> {
             .dispatch
             .clone()
             .dispatch_text_builder_append(String::from("\""))
-    }?;
-    Ok({
+    };
+    {
         let dispatch_receiver_9 = sb.clone();
         dispatch_receiver_9
             .dispatch
             .clone()
             .dispatch_text_builder_to_string()
-    })
+    }
 }
 
-pub fn parse_url(
-    value: String,
-) -> Result<crate::template::values::url::ParsedUrl, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseUrl(value: String) -> Result<crate::template::values::url::ParsedUrl, rt::TsonicError> {
     let trimmed: String = js_string::trim(&value);
     if js_string::includes_from_start(&trimmed, "\0") {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_TEMPLATE_URL_INVALID"),
                 format!("{}{}", String::from("Invalid URL: "), value),
                 None,
@@ -360,19 +355,23 @@ pub fn parse_url(
     )
 }
 
-pub fn trim_start_character(value: String, ch: String) -> Result<String, rt::TsonicError> {
-    crate::utils::strings::trim_start_char(value, ch)
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn trimStartCharacter(value: String, ch: String) -> Result<String, rt::TsonicError> {
+    crate::utils::strings::trimStartChar(value, ch)
 }
 
-pub fn trim_end_character(value: String, ch: String) -> Result<String, rt::TsonicError> {
-    crate::utils::strings::trim_end_char(value, ch)
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn trimEndCharacter(value: String, ch: String) -> Result<String, rt::TsonicError> {
+    crate::utils::strings::trimEndChar(value, ch)
 }
 
-pub fn trim_slashes(value: String) -> Result<String, rt::TsonicError> {
-    let without_leading: String = trim_start_character(value, String::from("/"))?;
-    trim_end_character(without_leading, String::from("/"))
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn trimSlashes(value: String) -> Result<String, rt::TsonicError> {
+    let withoutLeading: String = trimStartCharacter(value, String::from("/"))?;
+    trimEndCharacter(withoutLeading, String::from("/"))
 }
 
-pub fn trim_right_whitespace(s: &str) -> String {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn trimRightWhitespace(s: &str) -> String {
     js_string::trim_end(s)
 }

@@ -4,33 +4,23 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn resource_segment_matches(pattern: &str, segment: &str) -> Result<bool, rt::TsonicError> {
-    let brace_start: i32 =
-        rt::conversions::isize_to_i32(js_string::index_of_from_start(pattern, "{"))?;
-    if brace_start >= 0 {
-        let brace_end: i32 = rt::conversions::isize_to_i32(js_string::index_of(
-            pattern,
-            "}",
-            rt::conversions::i32_to_f64(brace_start + 1),
-        ))?;
-        if brace_end > brace_start + 1 {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn resourceSegmentMatches(pattern: &str, segment: &str) -> Result<bool, rt::TsonicError> {
+    let braceStart: isize = js_string::index_of_from_start(pattern, "{");
+    if braceStart >= 0 {
+        let braceEnd: isize = js_string::index_of(pattern, "}", braceStart + 1);
+        if braceEnd > braceStart + 1 {
             let alternatives: js_abi::JsArray<String> = js_string::split_all(
-                &js_string::substring(
-                    pattern,
-                    rt::conversions::i32_to_f64(brace_start + 1),
-                    rt::conversions::i32_to_f64(brace_end),
-                )?,
+                &js_string::substring(pattern, braceStart + 1, braceEnd)?,
                 ",",
             )?;
-            if rt::conversions::usize_to_i32(alternatives.len())? > 1 {
-                let prefix: String =
-                    js_string::substring(pattern, 0.0, rt::conversions::i32_to_f64(brace_start))?;
-                let suffix: String =
-                    js_string::substring_from(pattern, rt::conversions::i32_to_f64(brace_end + 1))?;
+            if alternatives.len() > 1 {
+                let prefix: String = js_string::substring(pattern, 0.0, braceStart)?;
+                let suffix: String = js_string::substring_from(pattern, braceEnd + 1)?;
                 {
-                    let mut index: f64 = 0.0;
-                    while index < (rt::conversions::usize_to_i32(alternatives.len())? as f64) {
-                        if resource_segment_matches(
+                    let mut index: usize = 0;
+                    while index < alternatives.len() {
+                        if resourceSegmentMatches(
                             &format!(
                                 "{}{}{}",
                                 prefix,
@@ -46,7 +36,7 @@ pub fn resource_segment_matches(pattern: &str, segment: &str) -> Result<bool, rt
                         )? {
                             return Ok(true);
                         }
-                        index += 1.0;
+                        index += 1;
                     }
                 }
                 return Ok(false);
@@ -56,71 +46,68 @@ pub fn resource_segment_matches(pattern: &str, segment: &str) -> Result<bool, rt
     if pattern == "*" {
         return Ok(true);
     }
-    let star: i32 = rt::conversions::isize_to_i32(js_string::index_of_from_start(pattern, "*"))?;
+    let star: isize = js_string::index_of_from_start(pattern, "*");
     if star < 0 {
         return Ok(pattern == segment);
     }
     let parts: js_abi::JsArray<String> = js_string::split_all(pattern, "*")?;
-    let mut position: f64 = 0.0;
+    let mut position: usize = 0;
     {
-        let mut index: f64 = 0.0;
-        'loop_value_2: while index < (rt::conversions::usize_to_i32(parts.len())? as f64) {
+        let mut index: usize = 0;
+        'loop_value_2: while index < parts.len() {
             let part: String = match parts.get_number(index) {
                 Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if part.is_empty() {
-                index += 1.0;
+                index += 1;
                 continue 'loop_value_2;
             }
-            let found: i32 =
-                rt::conversions::isize_to_i32(js_string::index_of(segment, &part, position))?;
+            let found: isize = js_string::index_of(segment, &part, position);
             if found < 0 {
                 return Ok(false);
             }
-            if index == 0.0 && !js_string::starts_with_from_start(pattern, "*") && found != 0 {
+            if index == 0 && !js_string::starts_with_from_start(pattern, "*") && found != 0 {
                 return Ok(false);
             }
-            position = rt::conversions::i32_to_f64(
-                found + rt::conversions::usize_to_i32(js_string::js_len(&part))?,
-            );
-            index += 1.0;
+            position = rt::conversions::checked_integer::<usize>(found)? + js_string::js_len(&part);
+            index += 1;
         }
     }
-    Ok(js_string::ends_with_at_end(pattern, "*")
-        || position == rt::conversions::usize_to_i32(js_string::js_len(segment))? as f64)
+    Ok(js_string::ends_with_at_end(pattern, "*") || position == js_string::js_len(segment))
 }
 
-pub fn split_glob_segments(value: String) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
-    let normalized: String = crate::resources::paths::normalize_resource_relative_path(value)?;
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn splitGlobSegments(value: String) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
+    let normalized: String = crate::resources::paths::normalizeResourceRelativePath(value)?;
     if normalized.is_empty() {
         return Ok(js_abi::JsArray::from_dense(vec![]));
     }
     js_string::split_all(&normalized, "/").map_err(rt::TsonicError::from)
 }
 
-pub fn resource_glob_matches_at(
-    pattern_segments: js_abi::JsArray<String>,
-    path_segments: js_abi::JsArray<String>,
-    pattern_index: i32,
-    path_index: i32,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn resourceGlobMatchesAt(
+    patternSegments: js_abi::JsArray<String>,
+    pathSegments: js_abi::JsArray<String>,
+    patternIndex: usize,
+    pathIndex: usize,
 ) -> Result<bool, rt::TsonicError> {
-    if pattern_index >= rt::conversions::usize_to_i32(pattern_segments.len())? {
-        return Ok(path_index >= rt::conversions::usize_to_i32(path_segments.len())?);
+    if patternIndex >= patternSegments.len() {
+        return Ok(pathIndex >= pathSegments.len());
     }
-    let pattern: String =
-        match pattern_segments.get_number(rt::conversions::i32_to_f64(pattern_index)) {
-            Some(flow_value) => flow_value,
-            None => unreachable!("checked flow selected a missing optional value"),
-        };
+    let pattern: String = match patternSegments.get_number(patternIndex) {
+        Some(flow_value) => flow_value,
+        None => unreachable!("checked flow selected a missing optional value"),
+    };
     if pattern == "**" {
         {
-            let mut index: i32 = path_index;
-            while index <= rt::conversions::usize_to_i32(path_segments.len())? {
-                if resource_glob_matches_at(
-                    pattern_segments.clone(),
-                    path_segments.clone(),
-                    pattern_index + 1,
+            let mut index: usize = pathIndex;
+            while index <= pathSegments.len() {
+                if resourceGlobMatchesAt(
+                    patternSegments.clone(),
+                    pathSegments.clone(),
+                    patternIndex + 1,
                     index,
                 )? {
                     return Ok(true);
@@ -130,31 +117,27 @@ pub fn resource_glob_matches_at(
         }
         return Ok(false);
     }
-    if path_index >= rt::conversions::usize_to_i32(path_segments.len())? {
+    if pathIndex >= pathSegments.len() {
         return Ok(false);
     }
-    if !resource_segment_matches(
+    if !resourceSegmentMatches(
         &pattern,
-        &match path_segments.get_number(rt::conversions::i32_to_f64(path_index)) {
+        &match pathSegments.get_number(pathIndex) {
             Some(flow_value_2) => flow_value_2,
             None => unreachable!("checked flow selected a missing optional value"),
         },
     )? {
         return Ok(false);
     }
-    resource_glob_matches_at(
-        pattern_segments.clone(),
-        path_segments.clone(),
-        pattern_index + 1,
-        path_index + 1,
+    resourceGlobMatchesAt(
+        patternSegments.clone(),
+        pathSegments.clone(),
+        patternIndex + 1,
+        pathIndex + 1,
     )
 }
 
-pub fn resource_glob_matches(pattern: String, path: String) -> Result<bool, rt::TsonicError> {
-    resource_glob_matches_at(
-        split_glob_segments(pattern)?,
-        split_glob_segments(path)?,
-        0,
-        0,
-    )
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn resourceGlobMatches(pattern: String, path: String) -> Result<bool, rt::TsonicError> {
+    resourceGlobMatchesAt(splitGlobSegments(pattern)?, splitGlobSegments(path)?, 0, 0)
 }

@@ -1,3 +1,4 @@
+import type { int32 } from "@tsonic/core/types.js";
 import { LanguageContext, MediaType, PageContext, SiteContext } from "../../models.js";
 import { ParamKind, ParamValue } from "../../params.js";
 import { compareText } from "../../utils/strings.js";
@@ -11,17 +12,11 @@ const siteStores = new Map<SiteContext, ScratchStore>();
 
 export const taxonomyTermsByCount = (terms: Map<string, PageContext[]>): AnyArrayValue => {
   const names = Array.from(terms.keys());
-  for (let left = 0; left < names.length; left++) {
-    for (let right = left + 1; right < names.length; right++) {
-      const leftName = names[left]!;
-      const rightName = names[right]!;
-      const leftCount = terms.get(leftName)?.length ?? 0;
-      const rightCount = terms.get(rightName)?.length ?? 0;
-      if (leftCount > rightCount || (leftCount === rightCount && compareText(leftName, rightName) <= 0)) continue;
-      names[left] = rightName;
-      names[right] = leftName;
-    }
-  }
+  names.sort((left, right) => {
+    const leftCount = terms.get(left)?.length ?? 0;
+    const rightCount = terms.get(right)?.length ?? 0;
+    return leftCount > rightCount ? -1 : leftCount < rightCount ? 1 : compareText(left, right);
+  });
 
   const values: TemplateValue[] = [];
   for (let index = 0; index < names.length; index++) {
@@ -30,7 +25,7 @@ export const taxonomyTermsByCount = (terms: Map<string, PageContext[]>): AnyArra
     if (pages === undefined) continue;
     const fields = new Map<string, TemplateValue>();
     fields.set("Name", new StringValue(name));
-    fields.set("Count", new NumberValue(pages.length));
+    fields.set("Count", new NumberValue(pages.length as int32));
     fields.set("Pages", new PageArrayValue(pages));
     values.push(new DictValue(fields));
   }

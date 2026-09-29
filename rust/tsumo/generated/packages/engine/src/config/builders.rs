@@ -4,10 +4,11 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct MenuEntryBuilderState {
     pub name: String,
     pub url: String,
-    pub page_ref: String,
+    pub pageRef: String,
     pub title: String,
     pub weight: i32,
     pub parent: String,
@@ -47,7 +48,7 @@ impl MenuEntryBuilder {
             state: rt::ObjectHandle::new(MenuEntryBuilderState {
                 name: field_name,
                 url: field_url,
-                page_ref: field_page_ref,
+                pageRef: field_page_ref,
                 title: field_title,
                 weight: field_weight,
                 parent: field_parent,
@@ -60,11 +61,12 @@ impl MenuEntryBuilder {
         })
     }
 
-    pub fn to_entry(&self) -> Result<crate::models::menu_entry::MenuEntry, rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn toEntry(&self) -> Result<crate::models::menu_entry::MenuEntry, rt::TsonicError> {
         crate::models::menu_entry::MenuEntry::new(
             self.state.with(|state| state.name.clone()),
             self.state.with(|state| state.url.clone()),
-            self.state.with(|state| state.page_ref.clone()),
+            self.state.with(|state| state.pageRef.clone()),
             self.state.with(|state| state.title.clone()),
             self.state.with(|state| state.weight),
             self.state.with(|state| state.parent.clone()),
@@ -78,11 +80,12 @@ impl MenuEntryBuilder {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct LanguageConfigBuilderState {
     pub lang: String,
-    pub language_name: String,
-    pub language_direction: String,
-    pub content_dir: String,
+    pub languageName: String,
+    pub languageDirection: String,
+    pub contentDir: String,
     pub weight: i32,
 }
 
@@ -108,7 +111,7 @@ impl LanguageConfigBuilder {
             source.as_ref().map(|optional_receiver| {
                 optional_receiver
                     .state
-                    .with(|state| state.language_name.clone())
+                    .with(|state| state.languageName.clone())
             }),
             core::convert::identity,
             || lang.clone(),
@@ -117,7 +120,7 @@ impl LanguageConfigBuilder {
             source.as_ref().map(|optional_receiver_2| {
                 optional_receiver_2
                     .state
-                    .with(|state| state.language_direction.clone())
+                    .with(|state| state.languageDirection.clone())
             }),
             core::convert::identity,
             || String::from("ltr"),
@@ -126,7 +129,7 @@ impl LanguageConfigBuilder {
             source.as_ref().map(|optional_receiver_3| {
                 optional_receiver_3
                     .state
-                    .with(|state| state.content_dir.clone())
+                    .with(|state| state.contentDir.clone())
             }),
             core::convert::identity,
             || format!("{}{}", String::from("content."), lang),
@@ -141,20 +144,21 @@ impl LanguageConfigBuilder {
         Ok(LanguageConfigBuilder {
             state: rt::ObjectHandle::new(LanguageConfigBuilderState {
                 lang: field_lang,
-                language_name: field_language_name,
-                language_direction: field_language_direction,
-                content_dir: field_content_dir,
+                languageName: field_language_name,
+                languageDirection: field_language_direction,
+                contentDir: field_content_dir,
                 weight: field_weight,
             }),
         })
     }
 
-    pub fn to_config(&self) -> Result<crate::models::language::LanguageConfig, rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn toConfig(&self) -> Result<crate::models::language::LanguageConfig, rt::TsonicError> {
         crate::models::language::LanguageConfig::new(
             self.state.with(|state| state.lang.clone()),
-            self.state.with(|state| state.language_name.clone()),
-            self.state.with(|state| state.language_direction.clone()),
-            self.state.with(|state| state.content_dir.clone()),
+            self.state.with(|state| state.languageName.clone()),
+            self.state.with(|state| state.languageDirection.clone()),
+            self.state.with(|state| state.contentDir.clone()),
             self.state.with(|state| state.weight),
         )
     }

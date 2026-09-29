@@ -4,41 +4,41 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn try_parse_json_front_matter(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn tryParseJsonFrontMatter(
     text: &str,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
 ) -> Result<Option<crate::frontmatter::parsed_content::ParsedContent>, rt::TsonicError> {
     let start: i32 = 0;
-    if rt::conversions::usize_to_i32(js_string::js_len(text))? == 0
-        || js_string::char_at(text, rt::conversions::i32_to_f64(start))? != "{"
-    {
+    if js_string::js_len(text) == 0 || js_string::char_at(text, start)? != "{" {
         return Ok(Option::<crate::frontmatter::parsed_content::ParsedContent>::None);
     }
+    let textLength: i32 = rt::conversions::usize_to_i32(js_string::js_len(text))?;
     let mut depth: i32 = 0;
-    let mut in_string: bool = false;
+    let mut inString: bool = false;
     let mut escaped: bool = false;
     let mut end: i32 = -1;
     {
         let mut index: i32 = start;
-        'loop_value: while index < rt::conversions::usize_to_i32(js_string::js_len(text))? {
-            let current: String = js_string::char_at(text, rt::conversions::i32_to_f64(index))?;
-            if in_string && escaped {
+        'loop_value: while index < textLength {
+            let current: String = js_string::char_at(text, index)?;
+            if inString && escaped {
                 escaped = false;
-                index = crate::utils::strings::next_code_point_index(text, index)?;
+                index = crate::utils::strings::nextCodePointIndex(text, index)?;
                 continue 'loop_value;
             }
-            if in_string && current == "\\" {
+            if inString && current == "\\" {
                 escaped = true;
-                index = crate::utils::strings::next_code_point_index(text, index)?;
+                index = crate::utils::strings::nextCodePointIndex(text, index)?;
                 continue 'loop_value;
             }
             if current == "\"" {
-                in_string = !in_string;
-                index = crate::utils::strings::next_code_point_index(text, index)?;
+                inString = !inString;
+                index = crate::utils::strings::nextCodePointIndex(text, index)?;
                 continue 'loop_value;
             }
-            if in_string {
-                index = crate::utils::strings::next_code_point_index(text, index)?;
+            if inString {
+                index = crate::utils::strings::nextCodePointIndex(text, index)?;
                 continue 'loop_value;
             }
             if current == "{" {
@@ -50,85 +50,73 @@ pub fn try_parse_json_front_matter(
                     break 'loop_value;
                 }
             }
-            index = crate::utils::strings::next_code_point_index(text, index)?;
+            index = crate::utils::strings::nextCodePointIndex(text, index)?;
         }
     }
     if end < 0 {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_FRONTMATTER_JSON_UNCLOSED"),
                 String::from("JSON front matter has no closing object delimiter"),
-                source_path.clone(),
-                Some(1.0),
-                Some(1.0),
+                sourcePath.clone(),
+                Some(1),
+                Some(1),
             )?,
         ));
     }
-    let input: String = crate::utils::strings::substring_count(text, start, end - start)?;
-    let body: String = js_string::trim_start(&crate::utils::strings::substring_from(text, end)?);
+    let input: String = crate::utils::strings::substringCount(text, start, end - start)?;
+    let body: String = js_string::trim_start(&crate::utils::strings::substringFrom(text, end)?);
     Ok(Some(
         crate::frontmatter::parsed_content::ParsedContent::new(
-            crate::frontmatter::json::parse_json_front_matter(input, source_path.clone())?,
+            crate::frontmatter::json::parseJsonFrontMatter(input, sourcePath.clone())?,
             body,
         )?,
     ))
 }
 
-pub fn parse_delimited_front_matter(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseDelimitedFrontMatter(
     lines: js_abi::JsArray<String>,
     delimiter: String,
     format: &str,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
 ) -> Result<crate::frontmatter::parsed_content::ParsedContent, rt::TsonicError> {
-    let front_matter_lines: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    let frontMatterLines: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    let lineCount: i32 = rt::conversions::usize_to_i32(lines.len())?;
     #[expect(unused_assignments, reason = "checked source evaluation order")]
-    let mut body_start: i32 = rt::conversions::usize_to_i32(lines.len())?;
+    let mut bodyStart: i32 = lineCount;
     {
         let mut index: i32 = 1;
-        while index < rt::conversions::usize_to_i32(lines.len())? {
-            if js_string::trim(
-                &match lines.get_number(rt::conversions::i32_to_f64(index)) {
-                    Some(flow_value) => flow_value,
-                    None => unreachable!("checked flow selected a missing optional value"),
-                },
-            ) == delimiter
+        while index < lineCount {
+            if js_string::trim(&match lines.get_number(index) {
+                Some(flow_value) => flow_value,
+                None => unreachable!("checked flow selected a missing optional value"),
+            }) == delimiter
             {
-                body_start = index + 1;
-                let body: String = js_string::trim_start(
-                    &lines
-                        .slice_from(rt::conversions::i32_to_f64(body_start))
-                        .join("\n"),
-                );
-                let front_matter: crate::frontmatter::data::FrontMatter = if format == "yaml" {
-                    crate::frontmatter::yaml::parse_yaml_front_matter(
-                        front_matter_lines.clone(),
-                        source_path.clone(),
+                bodyStart = index + 1;
+                let body: String = js_string::trim_start(&lines.slice_from(bodyStart).join("\n"));
+                let frontMatter: crate::frontmatter::data::FrontMatter = if format == "yaml" {
+                    crate::frontmatter::yaml::parseYamlFrontMatter(
+                        frontMatterLines.clone(),
+                        sourcePath.clone(),
                     )?
                 } else {
-                    crate::frontmatter::toml::parse_toml_front_matter(
-                        front_matter_lines.clone(),
-                        source_path.clone(),
+                    crate::frontmatter::toml::parseTomlFrontMatter(
+                        frontMatterLines.clone(),
+                        sourcePath.clone(),
                     )?
                 };
-                return crate::frontmatter::parsed_content::ParsedContent::new(
-                    front_matter.clone(),
-                    body.clone(),
-                );
+                return crate::frontmatter::parsed_content::ParsedContent::new(frontMatter, body);
             }
-            {
-                let operation_input_0 = front_matter_lines.clone();
-                operation_input_0.push_many_discard([
-                    match lines.get_number(rt::conversions::i32_to_f64(index)) {
-                        Some(flow_value_2) => flow_value_2,
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                ])
-            };
+            frontMatterLines.push_many_discard([match lines.get_number(index) {
+                Some(flow_value_2) => flow_value_2,
+                None => unreachable!("checked flow selected a missing optional value"),
+            }]);
             index += 1;
         }
     }
     Err(rt::TsonicError::TsumoError(
-        crate::diagnostics::create_tsumo_error(
+        crate::diagnostics::createTsumoError(
             String::from("TSUMO_FRONTMATTER_DELIMITER_UNCLOSED"),
             format!(
                 "{}{}{}{}",
@@ -141,52 +129,52 @@ pub fn parse_delimited_front_matter(
                 delimiter,
                 String::from(" delimiter")
             ),
-            source_path.clone(),
-            Some(1.0),
-            Some(1.0),
+            sourcePath.clone(),
+            Some(1),
+            Some(1),
         )?,
     ))
 }
 
-pub fn parse_content(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseContent(
     text: String,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
 ) -> Result<crate::frontmatter::parsed_content::ParsedContent, rt::TsonicError> {
     let json: Option<crate::frontmatter::parsed_content::ParsedContent> =
-        try_parse_json_front_matter(&text, source_path.clone())?;
+        tryParseJsonFrontMatter(&text, sourcePath.clone())?;
     if json.is_some() {
         return Ok(match json {
             Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
         });
     }
-    let normalized: String =
-        crate::utils::strings::replace_line_endings(&text, String::from("\n"))?;
+    let normalized: String = crate::utils::strings::replaceLineEndings(&text, String::from("\n"))?;
     let lines: js_abi::JsArray<String> = js_string::split_all(&normalized, "\n")?;
-    if rt::conversions::usize_to_i32(lines.len())? == 0 {
+    if lines.is_empty() {
         return crate::frontmatter::parsed_content::ParsedContent::new(
             crate::frontmatter::data::FrontMatter::new()?,
             String::from(""),
         );
     }
-    let first_line: String = js_string::trim(&match lines.get_number(0.0) {
+    let firstLine: String = js_string::trim(&match lines.get_number(0.0) {
         Some(flow_value_2) => flow_value_2,
         None => unreachable!("checked flow selected a missing optional value"),
     });
-    if first_line == "---" {
-        return parse_delimited_front_matter(
+    if firstLine == "---" {
+        return parseDelimitedFrontMatter(
             lines.clone(),
             String::from("---"),
             "yaml",
-            source_path.clone(),
+            sourcePath.clone(),
         );
     }
-    if first_line == "+++" {
-        return parse_delimited_front_matter(
+    if firstLine == "+++" {
+        return parseDelimitedFrontMatter(
             lines.clone(),
             String::from("+++"),
             "toml",
-            source_path.clone(),
+            sourcePath.clone(),
         );
     }
     crate::frontmatter::parsed_content::ParsedContent::new(

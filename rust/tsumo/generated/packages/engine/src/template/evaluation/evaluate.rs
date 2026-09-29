@@ -52,7 +52,8 @@ impl TemplateEvaluationContext {
     }
 }
 
-pub fn evaluate_pipeline(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn evaluatePipeline(
     pipeline: crate::template::syntax::expressions::Pipeline,
     scope: crate::template::scope::RenderScope,
     environment: crate::template::environment::TemplateEnvironment,
@@ -61,13 +62,12 @@ pub fn evaluate_pipeline(
 ) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
     let context: TemplateEvaluationContext =
         TemplateEvaluationContext::new(scope, environment, overrides, defines)?;
-    if rt::conversions::usize_to_i32(pipeline.state.with(|state| state.stages.clone()).len())? == 0
-    {
+    if pipeline.state.with(|state| state.stages.clone()).is_empty() {
         return Ok(
-            crate::template::runtime_helpers::NIL.with(|module_binding| module_binding.load())
+            crate::template::runtime_helpers::nil.with(|module_binding| module_binding.load())
         );
     }
-    let mut value: crate::template::values::base::TemplateValue = evaluate_command(
+    let mut value: crate::template::values::base::TemplateValue = evaluateCommand(
         match pipeline
             .state
             .with(|state| state.stages.clone())
@@ -81,12 +81,8 @@ pub fn evaluate_pipeline(
     )?;
     {
         let mut index: f64 = 1.0;
-        while index
-            < (rt::conversions::usize_to_i32(
-                pipeline.state.with(|state| state.stages.clone()).len(),
-            )? as f64)
-        {
-            value = evaluate_command(
+        while index < (pipeline.state.with(|state| state.stages.clone()).len() as f64) {
+            value = evaluateCommand(
                 match pipeline
                     .state
                     .with(|state| state.stages.clone())
@@ -104,15 +100,14 @@ pub fn evaluate_pipeline(
     Ok(value)
 }
 
-pub fn evaluate_command(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn evaluateCommand(
     command: crate::template::syntax::expressions::Command,
     context: TemplateEvaluationContext,
     piped: Option<crate::template::values::base::TemplateValue>,
 ) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
-    if rt::conversions::usize_to_i32(command.state.with(|state| state.args.clone()).len())? == 0
-        && piped.is_none()
-    {
-        return evaluate_expression(
+    if command.state.with(|state| state.args.clone()).is_empty() && piped.is_none() {
+        return evaluateExpression(
             command.state.with(|state| state.head.clone()),
             context.clone(),
         );
@@ -127,27 +122,20 @@ pub fn evaluate_command(
         let args: js_abi::JsArray<crate::template::values::base::TemplateValue> =
             js_abi::JsArray::from_dense(vec![]);
         {
-            let mut index: f64 = 0.0;
-            while index
-                < (rt::conversions::usize_to_i32(
-                    command.state.with(|state| state.args.clone()).len(),
-                )? as f64)
-            {
-                {
-                    let operation_input_0 = args.clone();
-                    operation_input_0.push_many_discard([evaluate_expression(
-                        match command
-                            .state
-                            .with(|state| state.args.clone())
-                            .get_number(index)
-                        {
-                            Some(flow_value) => flow_value,
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },
-                        context.clone(),
-                    )?])
-                };
-                index += 1.0;
+            let mut index: usize = 0;
+            while index < command.state.with(|state| state.args.clone()).len() {
+                args.push_many_discard([evaluateExpression(
+                    match command
+                        .state
+                        .with(|state| state.args.clone())
+                        .get_number(index)
+                    {
+                        Some(flow_value) => flow_value,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
+                    context.clone(),
+                )?]);
+                index += 1;
             }
         }
         if piped.is_some() {
@@ -156,7 +144,7 @@ pub fn evaluate_command(
                 None => unreachable!("checked flow selected a missing optional value"),
             }]);
         }
-        return crate::template::functions::call_function::call_template_function(
+        return crate::template::functions::call_function::callTemplateFunction(
             {
                 let dispatch_receiver = &selected_value;
                 dispatch_receiver.dispatch.read_token_expr_token()
@@ -173,25 +161,23 @@ pub fn evaluate_command(
         .clone()
         .downcast_expr_to_access_expr()
         .is_some()
-        && rt::conversions::usize_to_i32(
-            {
-                let dispatch_receiver_2 = &{
-                    let downcast_value = &head;
-                    crate::template::syntax::expressions::AccessExpr {
-                        identity: downcast_value.identity.clone(),
-                        dispatch: downcast_value
-                            .dispatch
-                            .clone()
-                            .downcast_expr_to_access_expr()
-                            .unwrap(),
-                    }
-                };
-                dispatch_receiver_2.dispatch.read_access_expr_segments()
-            }
-            .len(),
-        )? > 0
+        && !{
+            let dispatch_receiver_2 = &{
+                let downcast_value = &head;
+                crate::template::syntax::expressions::AccessExpr {
+                    identity: downcast_value.identity.clone(),
+                    dispatch: downcast_value
+                        .dispatch
+                        .clone()
+                        .downcast_expr_to_access_expr()
+                        .unwrap(),
+                }
+            };
+            dispatch_receiver_2.dispatch.read_access_expr_segments()
+        }
+        .is_empty()
     {
-        let mut receiver: crate::template::values::base::TemplateValue = evaluate_expression(
+        let mut receiver: crate::template::values::base::TemplateValue = evaluateExpression(
             {
                 let dispatch_receiver_3 = &{
                     let downcast_value_2 = &head;
@@ -208,105 +194,90 @@ pub fn evaluate_command(
             },
             context.clone(),
         )?;
-        if rt::conversions::usize_to_i32(
-            {
-                let dispatch_receiver_4 = &{
-                    let downcast_value_3 = &head;
-                    crate::template::syntax::expressions::AccessExpr {
-                        identity: downcast_value_3.identity.clone(),
-                        dispatch: downcast_value_3
-                            .dispatch
-                            .clone()
-                            .downcast_expr_to_access_expr()
-                            .unwrap(),
-                    }
-                };
-                dispatch_receiver_4.dispatch.read_access_expr_segments()
-            }
-            .len(),
-        )? > 1
+        if {
+            let dispatch_receiver_4 = &{
+                let downcast_value_3 = &head;
+                crate::template::syntax::expressions::AccessExpr {
+                    identity: downcast_value_3.identity.clone(),
+                    dispatch: downcast_value_3
+                        .dispatch
+                        .clone()
+                        .downcast_expr_to_access_expr()
+                        .unwrap(),
+                }
+            };
+            dispatch_receiver_4.dispatch.read_access_expr_segments()
+        }
+        .len()
+            > 1
         {
-            let receiver_segments: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+            let receiverSegments: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
             {
-                let mut index: f64 = 0.0;
-                while index
-                    < ((rt::conversions::usize_to_i32(
-                        {
-                            let dispatch_receiver_5 = &{
-                                let downcast_value_4 = &head;
+                let mut index: usize = 0;
+                while index < {
+                    let dispatch_receiver_5 = &{
+                        let downcast_value_4 = &head;
+                        crate::template::syntax::expressions::AccessExpr {
+                            identity: downcast_value_4.identity.clone(),
+                            dispatch: downcast_value_4
+                                .dispatch
+                                .clone()
+                                .downcast_expr_to_access_expr()
+                                .unwrap(),
+                        }
+                    };
+                    dispatch_receiver_5.dispatch.read_access_expr_segments()
+                }
+                .len()
+                    - 1
+                {
+                    receiverSegments.push_many_discard([
+                        match {
+                            let dispatch_receiver_6 = &{
+                                let downcast_value_5 = &head;
                                 crate::template::syntax::expressions::AccessExpr {
-                                    identity: downcast_value_4.identity.clone(),
-                                    dispatch: downcast_value_4
+                                    identity: downcast_value_5.identity.clone(),
+                                    dispatch: downcast_value_5
                                         .dispatch
                                         .clone()
                                         .downcast_expr_to_access_expr()
                                         .unwrap(),
                                 }
                             };
-                            dispatch_receiver_5.dispatch.read_access_expr_segments()
+                            dispatch_receiver_6.dispatch.read_access_expr_segments()
                         }
-                        .len(),
-                    )? - 1) as f64)
-                {
-                    {
-                        let operation_input_0_2 = receiver_segments.clone();
-                        operation_input_0_2.push_many_discard([
-                            match {
-                                let dispatch_receiver_6 = &{
-                                    let downcast_value_5 = &head;
-                                    crate::template::syntax::expressions::AccessExpr {
-                                        identity: downcast_value_5.identity.clone(),
-                                        dispatch: downcast_value_5
-                                            .dispatch
-                                            .clone()
-                                            .downcast_expr_to_access_expr()
-                                            .unwrap(),
-                                    }
-                                };
-                                dispatch_receiver_6.dispatch.read_access_expr_segments()
-                            }
-                            .get_number(index)
-                            {
-                                Some(flow_value_3) => flow_value_3,
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                        ])
-                    };
-                    index += 1.0;
+                        .get_number(index)
+                        {
+                            Some(flow_value_3) => flow_value_3,
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        },
+                    ]);
+                    index += 1;
                 }
             }
-            receiver = crate::template::evaluation::property_semantics::resolve_path(
+            receiver = crate::template::evaluation::property_semantics::resolvePath(
                 receiver.clone(),
-                receiver_segments.clone(),
+                receiverSegments.clone(),
                 context.state.with(|state| state.scope.clone()),
             )?;
         }
         let args: js_abi::JsArray<crate::template::values::base::TemplateValue> =
             js_abi::JsArray::from_dense(vec![]);
         {
-            let mut index: f64 = 0.0;
-            while index
-                < (rt::conversions::usize_to_i32(
-                    command.state.with(|state| state.args.clone()).len(),
-                )? as f64)
-            {
-                {
-                    let operation_input_0_3 = args.clone();
-                    operation_input_0_3.push_many_discard([evaluate_expression(
-                        match command
-                            .state
-                            .with(|state| state.args.clone())
-                            .get_number(index)
-                        {
-                            Some(flow_value_4) => flow_value_4,
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },
-                        context.clone(),
-                    )?])
-                };
-                index += 1.0;
+            let mut index: usize = 0;
+            while index < command.state.with(|state| state.args.clone()).len() {
+                args.push_many_discard([evaluateExpression(
+                    match command
+                        .state
+                        .with(|state| state.args.clone())
+                        .get_number(index)
+                    {
+                        Some(flow_value_4) => flow_value_4,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
+                    context.clone(),
+                )?]);
+                index += 1;
             }
         }
         if piped.is_some() {
@@ -315,11 +286,11 @@ pub fn evaluate_command(
                 None => unreachable!("checked flow selected a missing optional value"),
             }]);
         }
-        return crate::template::evaluation::expression_semantics::call_method(
+        return crate::template::evaluation::expression_semantics::callMethod(
             receiver.clone(),
             {
                 let flow_input = {
-                    let operation_input_0_4 = {
+                    let operation_input_0 = {
                         let dispatch_receiver_7 = &{
                             let downcast_value_6 = &head;
                             crate::template::syntax::expressions::AccessExpr {
@@ -333,25 +304,24 @@ pub fn evaluate_command(
                         };
                         dispatch_receiver_7.dispatch.read_access_expr_segments()
                     };
-                    operation_input_0_4.get_number(rt::conversions::i32_to_f64(
-                        rt::conversions::usize_to_i32(
-                            {
-                                let dispatch_receiver_8 = &{
-                                    let downcast_value_7 = &head;
-                                    crate::template::syntax::expressions::AccessExpr {
-                                        identity: downcast_value_7.identity.clone(),
-                                        dispatch: downcast_value_7
-                                            .dispatch
-                                            .clone()
-                                            .downcast_expr_to_access_expr()
-                                            .unwrap(),
-                                    }
-                                };
-                                dispatch_receiver_8.dispatch.read_access_expr_segments()
-                            }
-                            .len(),
-                        )? - 1,
-                    ))
+                    operation_input_0.get_number(
+                        {
+                            let dispatch_receiver_8 = &{
+                                let downcast_value_7 = &head;
+                                crate::template::syntax::expressions::AccessExpr {
+                                    identity: downcast_value_7.identity.clone(),
+                                    dispatch: downcast_value_7
+                                        .dispatch
+                                        .clone()
+                                        .downcast_expr_to_access_expr()
+                                        .unwrap(),
+                                }
+                            };
+                            dispatch_receiver_8.dispatch.read_access_expr_segments()
+                        }
+                        .len()
+                            - 1,
+                    )
                 };
                 match flow_input {
                     Some(flow_value_6) => flow_value_6,
@@ -371,10 +341,11 @@ pub fn evaluate_command(
             None => unreachable!("checked flow selected a missing optional value"),
         });
     }
-    evaluate_expression(head.clone(), context.clone())
+    evaluateExpression(head.clone(), context.clone())
 }
 
-pub fn evaluate_expression(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn evaluateExpression(
     expression: crate::template::syntax::expressions::Expr,
     context: TemplateEvaluationContext,
 ) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
@@ -400,19 +371,19 @@ pub fn evaluate_expression(
             || token == "resources"
             || token == "page"
             || js_string::starts_with_from_start(&token, "page.")
-            || crate::template::parser::tokens::parse_string_literal(&token)?.is_some()
+            || crate::template::parser::tokens::parseStringLiteral(&token)?.is_some()
             || token == "true"
             || token == "false"
             || token == "nil"
-            || crate::template::evaluation::scalar_semantics::is_number_literal(&token)?
+            || crate::template::evaluation::scalar_semantics::isNumberLiteral(&token)?
         {
-            return crate::template::evaluation::expression_semantics::eval_token(
+            return crate::template::evaluation::expression_semantics::evalToken(
                 &token,
                 context.state.with(|state| state.scope.clone()),
             );
         }
-        return crate::template::functions::call_function::call_template_function(
-            token.clone(),
+        return crate::template::functions::call_function::callTemplateFunction(
+            token,
             js_abi::JsArray::from_dense(vec![]),
             context.state.with(|state| state.scope.clone()),
             context.state.with(|state| state.environment.clone()),
@@ -426,7 +397,7 @@ pub fn evaluate_expression(
             identity: expression.identity.clone(),
             dispatch: selected_dispatch_2,
         };
-        return evaluate_pipeline(
+        return evaluatePipeline(
             {
                 let dispatch_receiver_2 = &selected_value_2;
                 dispatch_receiver_2.dispatch.read_pipeline_expr_pipeline()
@@ -442,7 +413,7 @@ pub fn evaluate_expression(
             identity: expression.identity.clone(),
             dispatch: selected_dispatch_3,
         };
-        return evaluate_command(
+        return evaluateCommand(
             {
                 let dispatch_receiver_3 = &selected_value_3;
                 dispatch_receiver_3.dispatch.read_command_expr_command()
@@ -456,14 +427,14 @@ pub fn evaluate_expression(
             identity: expression.identity.clone(),
             dispatch: selected_dispatch_4,
         };
-        let value: crate::template::values::base::TemplateValue = evaluate_expression(
+        let value: crate::template::values::base::TemplateValue = evaluateExpression(
             {
                 let dispatch_receiver_4 = &selected_value_4;
                 dispatch_receiver_4.dispatch.read_access_expr_base()
             },
             context.clone(),
         )?;
-        return crate::template::evaluation::property_semantics::resolve_path(
+        return crate::template::evaluation::property_semantics::resolvePath(
             value,
             {
                 let dispatch_receiver_5 = &selected_value_4;
@@ -473,7 +444,7 @@ pub fn evaluate_expression(
         );
     }
     Err(rt::TsonicError::TsumoError(
-        crate::diagnostics::create_tsumo_error(
+        crate::diagnostics::createTsumoError(
             String::from("TSUMO_TEMPLATE_EXPRESSION_INVALID"),
             String::from("The parsed template expression has no supported evaluation form"),
             None,

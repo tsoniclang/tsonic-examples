@@ -4,76 +4,83 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn find_regular_expression_matches(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn findRegularExpressionMatches(
     pattern: String,
     input: &str,
     limit: i32,
 ) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
-    let expression: js_abi::JsRegExp = compile_regular_expression(pattern)?;
+    let expression: js_abi::JsRegExp = compileRegularExpression(pattern)?;
     if limit == 0 {
         return Ok(js_abi::JsArray::from_dense(vec![]));
     }
+    let maximum: usize = if limit > 0 {
+        rt::conversions::checked_integer::<usize>(limit)?
+    } else {
+        0
+    };
     let result: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     'loop_value: for fallible_item in
         js_abi::string_match_all_regexp_native(input, &expression)?.iterator()
     {
         let r#match = fallible_item?;
-        {
-            let operation_input_0 = result.clone();
-            operation_input_0.push_many_discard([require_full_match(r#match.clone())?])
-        };
-        if limit > 0 && rt::conversions::usize_to_i32(result.len())? >= limit {
+        result.push_many_discard([requireFullMatch(r#match.clone())?]);
+        if maximum != 0 && result.len() >= maximum {
             break 'loop_value;
         }
     }
     Ok(result)
 }
 
-pub fn find_regular_expression_submatches(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn findRegularExpressionSubmatches(
     pattern: String,
     input: &str,
     limit: i32,
 ) -> Result<js_abi::JsArray<js_abi::JsArray<String>>, rt::TsonicError> {
-    let expression: js_abi::JsRegExp = compile_regular_expression(pattern)?;
+    let expression: js_abi::JsRegExp = compileRegularExpression(pattern)?;
     if limit == 0 {
         return Ok(js_abi::JsArray::from_dense(vec![]));
     }
+    let maximum: usize = if limit > 0 {
+        rt::conversions::checked_integer::<usize>(limit)?
+    } else {
+        0
+    };
     let result: js_abi::JsArray<js_abi::JsArray<String>> = js_abi::JsArray::from_dense(vec![]);
     'loop_value: for fallible_item in
         js_abi::string_match_all_regexp_native(input, &expression)?.iterator()
     {
         let r#match = fallible_item?;
         let row: js_abi::JsArray<String> =
-            js_abi::JsArray::from_dense(vec![require_full_match(r#match.clone())?]);
+            js_abi::JsArray::from_dense(vec![requireFullMatch(r#match.clone())?]);
         {
-            let mut group_index: f64 = 1.0;
-            while group_index < (rt::conversions::usize_to_i32(r#match.len())? as f64) {
-                {
-                    let operation_input_0 = row.clone();
-                    operation_input_0.push_many_discard([rt::option_coalesce(
-                        r#match.get_number(group_index).flatten(),
-                        core::convert::identity,
-                        || String::from(""),
-                    )])
-                };
-                group_index += 1.0;
+            let mut groupIndex: f64 = 1.0;
+            while groupIndex < (r#match.len() as f64) {
+                row.push_many_discard([rt::option_coalesce(
+                    r#match.get_number(groupIndex).flatten(),
+                    core::convert::identity,
+                    || String::from(""),
+                )]);
+                groupIndex += 1.0;
             }
         }
         result.push_many_discard([row.clone()]);
-        if limit > 0 && rt::conversions::usize_to_i32(result.len())? >= limit {
+        if maximum != 0 && result.len() >= maximum {
             break 'loop_value;
         }
     }
     Ok(result)
 }
 
-pub fn replace_regular_expression(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn replaceRegularExpression(
     pattern: String,
     replacement: String,
     input: String,
     limit: i32,
 ) -> Result<String, rt::TsonicError> {
-    let expression: js_abi::JsRegExp = compile_regular_expression(pattern)?;
+    let expression: js_abi::JsRegExp = compileRegularExpression(pattern)?;
     if limit == 0 {
         return Ok(input);
     }
@@ -82,7 +89,7 @@ pub fn replace_regular_expression(
             .map_err(rt::TsonicError::from);
     }
     let result: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-    let mut cursor: i32 = 0;
+    let mut cursor: usize = 0;
     let mut remaining: i32 = limit;
     'loop_value: for fallible_item in
         js_abi::string_match_all_regexp_native(&input, &expression)?.iterator()
@@ -91,41 +98,25 @@ pub fn replace_regular_expression(
         if remaining == 0 {
             break 'loop_value;
         }
-        let match_index: i32 = rt::conversions::f64_to_i32(r#match.index())?;
-        let full_match: String = require_full_match(r#match.clone())?;
-        {
-            let operation_input_0 = result.clone();
-            operation_input_0.push_many_discard([js_string::slice_to(
-                &input,
-                rt::conversions::i32_to_f64(cursor),
-                rt::conversions::i32_to_f64(match_index),
-            )?])
-        };
-        {
-            let operation_input_0_2 = result.clone();
-            operation_input_0_2.push_many_discard([expand_regular_expression_replacement(
-                &replacement,
-                &input,
-                r#match.clone(),
-                full_match.clone(),
-                match_index,
-            )?])
-        };
-        cursor = match_index + rt::conversions::usize_to_i32(js_string::js_len(&full_match))?;
+        let matchIndex: usize = r#match.index();
+        let fullMatch: String = requireFullMatch(r#match.clone())?;
+        result.push_many_discard([js_string::slice_to(&input, cursor, matchIndex)?]);
+        result.push_many_discard([expandRegularExpressionReplacement(
+            &replacement,
+            &input,
+            r#match.clone(),
+            fullMatch.clone(),
+            matchIndex,
+        )?]);
+        cursor = matchIndex + js_string::js_len(&fullMatch);
         remaining -= 1;
     }
-    {
-        let operation_input_0_3 = result.clone();
-        operation_input_0_3.push_many_discard([js_string::slice(
-            &input,
-            rt::conversions::i32_to_f64(cursor),
-            None,
-        )?])
-    };
+    result.push_many_discard([js_string::slice_from(&input, cursor)?]);
     Ok(result.join(""))
 }
 
-pub fn compile_regular_expression(pattern: String) -> Result<js_abi::JsRegExp, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn compileRegularExpression(pattern: String) -> Result<js_abi::JsRegExp, rt::TsonicError> {
     let try_body: rt::TsonicResult<rt::Completion<js_abi::JsRegExp>> =
         rt::completion_region(|| {
             Ok(rt::Completion::Return(
@@ -136,7 +127,7 @@ pub fn compile_regular_expression(pattern: String) -> Result<js_abi::JsRegExp, r
         Ok(completion) => Ok(completion),
         Err(_) => rt::completion_region(|| {
             Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_TEMPLATE_REGEXP_INVALID"),
                     format!(
                         "{}{}{}",
@@ -163,169 +154,124 @@ pub fn compile_regular_expression(pattern: String) -> Result<js_abi::JsRegExp, r
     }
 }
 
-pub fn expand_regular_expression_replacement(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn expandRegularExpressionReplacement(
     replacement: &str,
     input: &str,
     r#match: js_abi::RegExpExecArray,
-    full_match: String,
-    match_index: i32,
+    fullMatch: String,
+    matchIndex: usize,
 ) -> Result<String, rt::TsonicError> {
     let result: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    let replacementLength: i32 = rt::conversions::usize_to_i32(js_string::js_len(replacement))?;
     {
         let mut index: i32 = 0;
-        'loop_value: while index < rt::conversions::usize_to_i32(js_string::js_len(replacement))? {
-            let current: String =
-                js_string::char_at(replacement, rt::conversions::i32_to_f64(index))?;
-            if current != "$"
-                || index + 1 >= rt::conversions::usize_to_i32(js_string::js_len(replacement))?
-            {
-                result.push_many_discard([current.clone()]);
-                index = crate::utils::strings::next_code_point_index(replacement, index)?;
+        'loop_value: while index < replacementLength {
+            let current: String = js_string::char_at(replacement, index)?;
+            if current != "$" || index + 1 >= replacementLength {
+                result.push_many_discard([current]);
+                index = crate::utils::strings::nextCodePointIndex(replacement, index)?;
                 continue 'loop_value;
             }
-            let next: String =
-                js_string::char_at(replacement, rt::conversions::i32_to_f64(index + 1))?;
+            let next: String = js_string::char_at(replacement, index + 1)?;
             if next == "$" {
                 result.push_many_discard([String::from("$")]);
                 index += 1;
-                index = crate::utils::strings::next_code_point_index(replacement, index)?;
+                index = crate::utils::strings::nextCodePointIndex(replacement, index)?;
                 continue 'loop_value;
             }
             if next == "&" {
-                result.push_many_discard([full_match.clone()]);
+                result.push_many_discard([fullMatch.clone()]);
                 index += 1;
-                index = crate::utils::strings::next_code_point_index(replacement, index)?;
+                index = crate::utils::strings::nextCodePointIndex(replacement, index)?;
                 continue 'loop_value;
             }
             if next == "`" {
-                {
-                    let operation_input_0 = result.clone();
-                    operation_input_0.push_many_discard([js_string::slice_to(
-                        input,
-                        0.0,
-                        rt::conversions::i32_to_f64(match_index),
-                    )?])
-                };
+                result.push_many_discard([js_string::slice_to(input, 0.0, matchIndex)?]);
                 index += 1;
-                index = crate::utils::strings::next_code_point_index(replacement, index)?;
+                index = crate::utils::strings::nextCodePointIndex(replacement, index)?;
                 continue 'loop_value;
             }
             if next == "'" {
-                {
-                    let operation_input_0_2 = result.clone();
-                    operation_input_0_2.push_many_discard([js_string::slice(
-                        input,
-                        rt::conversions::i32_to_f64(
-                            match_index
-                                + rt::conversions::usize_to_i32(js_string::js_len(&full_match))?,
-                        ),
-                        None,
-                    )?])
-                };
+                result.push_many_discard([js_string::slice_from(
+                    input,
+                    matchIndex + js_string::js_len(&fullMatch),
+                )?]);
                 index += 1;
-                index = crate::utils::strings::next_code_point_index(replacement, index)?;
+                index = crate::utils::strings::nextCodePointIndex(replacement, index)?;
                 continue 'loop_value;
             }
             if next == "<" && r#match.groups().is_some() {
-                let closing: i32 = rt::conversions::isize_to_i32(js_string::index_of(
-                    replacement,
-                    ">",
-                    rt::conversions::i32_to_f64(index + 2),
-                ))?;
+                let closing: isize = js_string::index_of(replacement, ">", index + 2);
                 if closing >= 0 {
-                    let group_name: String = js_string::slice_to(
-                        replacement,
-                        rt::conversions::i32_to_f64(index + 2),
-                        rt::conversions::i32_to_f64(closing),
-                    )?;
-                    {
-                        let operation_input_0_3 = result.clone();
-                        operation_input_0_3.push_many_discard([regular_expression_named_group(
-                            r#match.clone(),
-                            group_name.clone(),
-                        )])
-                    };
-                    index = closing;
-                    index = crate::utils::strings::next_code_point_index(replacement, index)?;
+                    let groupName: String = js_string::slice_to(replacement, index + 2, closing)?;
+                    result.push_many_discard([regularExpressionNamedGroup(
+                        r#match.clone(),
+                        groupName,
+                    )]);
+                    index = rt::conversions::isize_to_i32(closing)?;
+                    index = crate::utils::strings::nextCodePointIndex(replacement, index)?;
                     continue 'loop_value;
                 }
             }
-            let first_digit: i32 = digit_value(&next)?;
-            if first_digit >= 0 {
-                let mut capture_index: i32 = -1;
-                let mut consumed_digits: i32 = 0;
-                if index + 2 < rt::conversions::usize_to_i32(js_string::js_len(replacement))? {
-                    let second_digit: i32 = digit_value(&js_string::char_at(
-                        replacement,
-                        rt::conversions::i32_to_f64(index + 2),
-                    )?)?;
-                    let two_digit_index: i32 = first_digit * 10 + second_digit;
-                    if second_digit >= 0
-                        && two_digit_index > 0
-                        && two_digit_index < rt::conversions::usize_to_i32(r#match.len())?
+            let firstDigit: i32 = digitValue(&next)?;
+            if firstDigit >= 0 {
+                let mut captureIndex: i32 = -1;
+                let mut consumedDigits: i32 = 0;
+                if index + 2 < replacementLength {
+                    let secondDigit: i32 =
+                        digitValue(&js_string::char_at(replacement, index + 2)?)?;
+                    let twoDigitIndex: i32 = firstDigit * 10 + secondDigit;
+                    if secondDigit >= 0
+                        && twoDigitIndex > 0
+                        && rt::conversions::checked_integer::<usize>(twoDigitIndex)? < r#match.len()
                     {
-                        capture_index = two_digit_index;
-                        consumed_digits = 2;
+                        captureIndex = twoDigitIndex;
+                        consumedDigits = 2;
                     }
                 }
-                if capture_index < 0
-                    && first_digit > 0
-                    && first_digit < rt::conversions::usize_to_i32(r#match.len())?
+                if captureIndex < 0
+                    && firstDigit > 0
+                    && rt::conversions::checked_integer::<usize>(firstDigit)? < r#match.len()
                 {
-                    capture_index = first_digit;
-                    consumed_digits = 1;
+                    captureIndex = firstDigit;
+                    consumedDigits = 1;
                 }
-                if capture_index > 0 {
-                    {
-                        let operation_input_0_4 = result.clone();
-                        operation_input_0_4.push_many_discard([rt::option_coalesce(
-                            r#match
-                                .get_number(rt::conversions::i32_to_f64(capture_index))
-                                .flatten(),
-                            core::convert::identity,
-                            || String::from(""),
-                        )])
-                    };
-                    index += consumed_digits;
-                    index = crate::utils::strings::next_code_point_index(replacement, index)?;
+                if captureIndex > 0 {
+                    result.push_many_discard([rt::option_coalesce(
+                        r#match.get_number(captureIndex).flatten(),
+                        core::convert::identity,
+                        || String::from(""),
+                    )]);
+                    index += consumedDigits;
+                    index = crate::utils::strings::nextCodePointIndex(replacement, index)?;
                     continue 'loop_value;
                 }
             }
             result.push_many_discard([String::from("$")]);
-            index = crate::utils::strings::next_code_point_index(replacement, index)?;
+            index = crate::utils::strings::nextCodePointIndex(replacement, index)?;
         }
     }
     Ok(result.join(""))
 }
 
-pub fn regular_expression_named_group(
-    r#match: js_abi::RegExpExecArray,
-    group_name: String,
-) -> String {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn regularExpressionNamedGroup(r#match: js_abi::RegExpExecArray, groupName: String) -> String {
     rt::option_coalesce(
         r#match.groups().as_ref().and_then(|optional_receiver| {
-            js_abi::regexp_named_groups_get_native(optional_receiver, &group_name)
+            js_abi::regexp_named_groups_get_native(optional_receiver, &groupName)
         }),
         core::convert::identity,
         || String::from(""),
     )
 }
 
-pub fn require_full_match(r#match: js_abi::RegExpExecArray) -> Result<String, rt::TsonicError> {
-    let full_match: Option<String> = Some(r#match.required_group(0.0));
-    #[expect(clippy::blocks_in_conditions, reason = "checked evaluation region")]
-    if {
-        let _ = match full_match.as_ref() {
-            Some(flow_value) => flow_value.clone(),
-            None => unreachable!("checked flow selected a missing optional value"),
-        };
-        {
-            let _ = rt::Undefined;
-            false
-        }
-    } {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn requireFullMatch(r#match: js_abi::RegExpExecArray) -> Result<String, rt::TsonicError> {
+    let fullMatch: Option<String> = Some(r#match.required_group(0.0));
+    if fullMatch.is_none() {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_TEMPLATE_REGEXP_RESULT_INVALID"),
                 String::from("Regular expression execution returned no full match"),
                 None,
@@ -334,14 +280,15 @@ pub fn require_full_match(r#match: js_abi::RegExpExecArray) -> Result<String, rt
             )?,
         ));
     }
-    Ok(match full_match {
-        Some(flow_value_2) => flow_value_2,
+    Ok(match fullMatch {
+        Some(flow_value) => flow_value,
         None => unreachable!("checked flow selected a missing optional value"),
     })
 }
 
-pub fn digit_value(value: &str) -> Result<i32, rt::TsonicError> {
-    if rt::conversions::usize_to_i32(js_string::js_len(value))? != 1 {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn digitValue(value: &str) -> Result<i32, rt::TsonicError> {
+    if js_string::js_len(value) != 1 {
         return Ok(-1);
     }
     let code: i32 = rt::conversions::f64_to_i32(js_string::char_code_at(value, 0.0))?;

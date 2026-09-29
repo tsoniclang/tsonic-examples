@@ -3,45 +3,46 @@
 use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
-pub fn add_bundle_resources(
-    source_dir: String,
-    output_prefix: String,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn addBundleResources(
+    sourceDir: String,
+    outputPrefix: String,
     owner: String,
-    output_plan: crate::build::output_plan::SiteOutputPlan,
+    outputPlan: crate::build::output_plan::SiteOutputPlan,
 ) -> Result<(), rt::TsonicError> {
     let files: js_abi::JsArray<crate::resources::page_bundle::PageBundleResourceFile> =
-        crate::resources::page_bundle::discover_page_bundle_resource_files(source_dir)?;
+        crate::resources::page_bundle::discoverPageBundleResourceFiles(sourceDir)?;
     {
-        let mut index: f64 = 0.0;
-        while index < (rt::conversions::usize_to_i32(files.len())? as f64) {
+        let mut index: usize = 0;
+        while index < files.len() {
             let file: crate::resources::page_bundle::PageBundleResourceFile =
                 match files.get_number(index) {
                     Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-            let output_path: String = if output_prefix.is_empty() {
-                file.state.with(|state| state.relative_path.clone())
+            let outputPath: String = if outputPrefix.is_empty() {
+                file.state.with(|state| state.relativePath.clone())
             } else {
                 format!(
                     "{}{}{}",
-                    output_prefix,
+                    outputPrefix,
                     String::from("/"),
-                    file.state.with(|state| state.relative_path.clone())
+                    file.state.with(|state| state.relativePath.clone())
                 )
             };
             {
-                let dispatch_receiver = output_plan.clone();
+                let dispatch_receiver = outputPlan.clone();
                 dispatch_receiver
                     .dispatch
                     .clone()
                     .dispatch_site_output_plan_add_asset(
-                        output_path.clone(),
-                        file.state.with(|state| state.source_path.clone()),
+                        outputPath,
+                        file.state.with(|state| state.sourcePath.clone()),
                         owner.clone(),
                         crate::build::output_plan::AssetLayer::Bundle,
                     )
             }?;
-            index += 1.0;
+            index += 1;
         }
     }
     Ok(())

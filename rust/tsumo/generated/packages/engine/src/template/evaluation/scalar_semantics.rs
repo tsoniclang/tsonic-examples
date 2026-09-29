@@ -4,38 +4,45 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn is_number_literal(token: &str) -> Result<bool, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isNumberLiteral(token: &str) -> Result<bool, rt::TsonicError> {
     if token.is_empty() {
         return Ok(false);
     }
-    Ok(crate::utils::int32::parse_int32(token)?.is_some())
+    Ok(crate::utils::int32::parseInt32(token)?.is_some())
 }
 
 std::thread_local! {
-    pub static LONG_WEEKDAYS: rt::ModuleCell<js_abi::JsArray<String>> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub static longWeekdays: rt::ModuleCell<js_abi::JsArray<String>> = const { rt::ModuleCell::new() };
 }
 
 std::thread_local! {
-    pub static SHORT_WEEKDAYS: rt::ModuleCell<js_abi::JsArray<String>> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub static shortWeekdays: rt::ModuleCell<js_abi::JsArray<String>> = const { rt::ModuleCell::new() };
 }
 
 std::thread_local! {
-    pub static LONG_MONTHS: rt::ModuleCell<js_abi::JsArray<String>> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub static longMonths: rt::ModuleCell<js_abi::JsArray<String>> = const { rt::ModuleCell::new() };
 }
 
 std::thread_local! {
-    pub static SHORT_MONTHS: rt::ModuleCell<js_abi::JsArray<String>> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub static shortMonths: rt::ModuleCell<js_abi::JsArray<String>> = const { rt::ModuleCell::new() };
 }
 
-pub fn strip_leading_zero(value: String) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn stripLeadingZero(value: String) -> Result<String, rt::TsonicError> {
     Ok(if js_string::starts_with_from_start(&value, "0") {
-        js_string::slice(&value, 1.0, None)?
+        js_string::slice_from(&value, 1.0)?
     } else {
         value
     })
 }
 
-pub fn weekday_index(milliseconds: f64) -> Result<i32, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn weekdayIndex(milliseconds: f64) -> Result<i32, rt::TsonicError> {
     let mut value: f64 = ((milliseconds / 86400000.0).floor() + 4.0) % 7.0;
     if value < 0.0 {
         value += 7.0;
@@ -43,34 +50,35 @@ pub fn weekday_index(milliseconds: f64) -> Result<i32, rt::TsonicError> {
     rt::conversions::f64_to_i32(value).map_err(rt::TsonicError::from)
 }
 
-pub fn add_calendar_date(
-    value: String,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn addCalendarDate(
+    value: &str,
     years: i32,
     months: i32,
     days: i32,
 ) -> Result<Option<String>, rt::TsonicError> {
-    let milliseconds: f64 = js_abi::JsDate::parse(&value);
+    let milliseconds: f64 = js_abi::JsDate::parse(value);
     if js_abi::number_is_nan(milliseconds) {
         return Ok(Option::<String>::None);
     }
     let iso: String = js_abi::JsDate::from_millis(milliseconds).to_iso_string()?;
-    let source_year: Option<i32> =
-        crate::utils::int32::parse_int32(&crate::utils::strings::substring_count(&iso, 0, 4)?)?;
-    let source_month: Option<i32> =
-        crate::utils::int32::parse_int32(&crate::utils::strings::substring_count(&iso, 5, 2)?)?;
-    let source_day: Option<i32> =
-        crate::utils::int32::parse_int32(&crate::utils::strings::substring_count(&iso, 8, 2)?)?;
+    let sourceYear: Option<i32> =
+        crate::utils::int32::parseInt32(&crate::utils::strings::substringCount(&iso, 0, 4)?)?;
+    let sourceMonth: Option<i32> =
+        crate::utils::int32::parseInt32(&crate::utils::strings::substringCount(&iso, 5, 2)?)?;
+    let sourceDay: Option<i32> =
+        crate::utils::int32::parseInt32(&crate::utils::strings::substringCount(&iso, 8, 2)?)?;
     let hour: Option<i32> =
-        crate::utils::int32::parse_int32(&crate::utils::strings::substring_count(&iso, 11, 2)?)?;
+        crate::utils::int32::parseInt32(&crate::utils::strings::substringCount(&iso, 11, 2)?)?;
     let minute: Option<i32> =
-        crate::utils::int32::parse_int32(&crate::utils::strings::substring_count(&iso, 14, 2)?)?;
+        crate::utils::int32::parseInt32(&crate::utils::strings::substringCount(&iso, 14, 2)?)?;
     let second: Option<i32> =
-        crate::utils::int32::parse_int32(&crate::utils::strings::substring_count(&iso, 17, 2)?)?;
+        crate::utils::int32::parseInt32(&crate::utils::strings::substringCount(&iso, 17, 2)?)?;
     let millisecond: Option<i32> =
-        crate::utils::int32::parse_int32(&crate::utils::strings::substring_count(&iso, 20, 3)?)?;
-    if source_year.is_none()
-        || source_month.is_none()
-        || source_day.is_none()
+        crate::utils::int32::parseInt32(&crate::utils::strings::substringCount(&iso, 20, 3)?)?;
+    if sourceYear.is_none()
+        || sourceMonth.is_none()
+        || sourceDay.is_none()
         || hour.is_none()
         || minute.is_none()
         || second.is_none()
@@ -78,151 +86,154 @@ pub fn add_calendar_date(
     {
         return Ok(Option::<String>::None);
     }
-    let source_year_value: f64 = rt::conversions::i32_to_f64(match source_year.as_ref() {
+    let sourceYearValue: f64 = rt::conversions::i32_to_f64(match sourceYear.as_ref() {
         Some(flow_value) => *flow_value,
         None => unreachable!("checked flow selected a missing optional value"),
     });
-    let source_month_value: f64 = rt::conversions::i32_to_f64(match source_month.as_ref() {
+    let sourceMonthValue: f64 = rt::conversions::i32_to_f64(match sourceMonth.as_ref() {
         Some(flow_value_2) => *flow_value_2,
         None => unreachable!("checked flow selected a missing optional value"),
     });
-    let years_value: f64 = rt::conversions::i32_to_f64(years);
-    let months_value: f64 = rt::conversions::i32_to_f64(months);
-    let total_months: f64 =
-        source_year_value * 12.0 + source_month_value - 1.0 + years_value * 12.0 + months_value;
-    let target_year_value: f64 = (total_months / 12.0).floor();
-    if target_year_value.partial_cmp(&1.0) == Some(core::cmp::Ordering::Less)
-        || target_year_value.partial_cmp(&9999.0) == Some(core::cmp::Ordering::Greater)
+    let yearsValue: f64 = rt::conversions::i32_to_f64(years);
+    let monthsValue: f64 = rt::conversions::i32_to_f64(months);
+    let totalMonths: f64 =
+        sourceYearValue * 12.0 + sourceMonthValue - 1.0 + yearsValue * 12.0 + monthsValue;
+    let targetYearValue: f64 = (totalMonths / 12.0).floor();
+    if targetYearValue.partial_cmp(&1.0) == Some(core::cmp::Ordering::Less)
+        || targetYearValue.partial_cmp(&9999.0) == Some(core::cmp::Ordering::Greater)
     {
         return Ok(Option::<String>::None);
     }
-    let target_year: Option<i32> = crate::utils::int32::to_int32(target_year_value)?;
-    let target_month: Option<i32> =
-        crate::utils::int32::to_int32(total_months - target_year_value * 12.0)?;
-    if target_year.is_none() || target_month.is_none() {
+    let targetYear: Option<i32> = crate::utils::int32::toInt32(targetYearValue)?;
+    let targetMonth: Option<i32> =
+        crate::utils::int32::toInt32(totalMonths - targetYearValue * 12.0)?;
+    if targetYear.is_none() || targetMonth.is_none() {
         return Ok(Option::<String>::None);
     }
-    let year_text: String = crate::utils::strings::zero_pad_integer(
-        match target_year.as_ref() {
+    let yearText: String = crate::utils::strings::zeroPadInteger(
+        match targetYear.as_ref() {
             Some(flow_value_3) => *flow_value_3,
             None => unreachable!("checked flow selected a missing optional value"),
         },
         4,
     )?;
-    let month_text: String = crate::utils::strings::zero_pad_integer(
-        (match target_month.as_ref() {
+    let monthText: String = crate::utils::strings::zeroPadInteger(
+        (match targetMonth.as_ref() {
             Some(flow_value_4) => *flow_value_4,
             None => unreachable!("checked flow selected a missing optional value"),
         }) + 1,
         2,
     )?;
-    let hour_text: String = crate::utils::strings::zero_pad_integer(
+    let hourText: String = crate::utils::strings::zeroPadInteger(
         match hour.as_ref() {
             Some(flow_value_5) => *flow_value_5,
             None => unreachable!("checked flow selected a missing optional value"),
         },
         2,
     )?;
-    let minute_text: String = crate::utils::strings::zero_pad_integer(
+    let minuteText: String = crate::utils::strings::zeroPadInteger(
         match minute.as_ref() {
             Some(flow_value_6) => *flow_value_6,
             None => unreachable!("checked flow selected a missing optional value"),
         },
         2,
     )?;
-    let second_text: String = crate::utils::strings::zero_pad_integer(
+    let secondText: String = crate::utils::strings::zeroPadInteger(
         match second.as_ref() {
             Some(flow_value_7) => *flow_value_7,
             None => unreachable!("checked flow selected a missing optional value"),
         },
         2,
     )?;
-    let millisecond_text: String = crate::utils::strings::zero_pad_integer(
+    let millisecondText: String = crate::utils::strings::zeroPadInteger(
         match millisecond.as_ref() {
             Some(flow_value_8) => *flow_value_8,
             None => unreachable!("checked flow selected a missing optional value"),
         },
         3,
     )?;
-    let month_start_text: String = format!(
+    let monthStartText: String = format!(
         "{}{}{}{}{}{}{}{}{}{}{}{}",
-        year_text,
+        yearText,
         String::from("-"),
-        month_text,
+        monthText,
         String::from("-01T"),
-        hour_text,
+        hourText,
         String::from(":"),
-        minute_text,
+        minuteText,
         String::from(":"),
-        second_text,
+        secondText,
         String::from("."),
-        millisecond_text,
+        millisecondText,
         String::from("Z")
     );
-    let month_start: f64 = js_abi::JsDate::parse(&month_start_text);
-    if js_abi::number_is_nan(month_start) {
+    let monthStart: f64 = js_abi::JsDate::parse(&monthStartText);
+    if js_abi::number_is_nan(monthStart) {
         return Ok(Option::<String>::None);
     }
-    let source_day_value: f64 = rt::conversions::i32_to_f64(match source_day.as_ref() {
+    let sourceDayValue: f64 = rt::conversions::i32_to_f64(match sourceDay.as_ref() {
         Some(flow_value_9) => *flow_value_9,
         None => unreachable!("checked flow selected a missing optional value"),
     });
-    let days_value: f64 = rt::conversions::i32_to_f64(days);
-    let day_offset: f64 = source_day_value - 1.0 + days_value;
-    let result: f64 = month_start + day_offset * 86400000.0;
+    let daysValue: f64 = rt::conversions::i32_to_f64(days);
+    let dayOffset: f64 = sourceDayValue - 1.0 + daysValue;
+    let result: f64 = monthStart + dayOffset * 86400000.0;
     if !js_abi::number_is_finite(result) || result.abs() > 8640000000000000.0 {
         return Ok(Option::<String>::None);
     }
     Ok(Some(js_abi::JsDate::from_millis(result).to_iso_string()?))
 }
 
-pub fn is_date_after(left: String, right: String) -> Option<bool> {
-    let left_milliseconds: f64 = js_abi::JsDate::parse(&left);
-    let right_milliseconds: f64 = js_abi::JsDate::parse(&right);
-    if js_abi::number_is_nan(left_milliseconds) || js_abi::number_is_nan(right_milliseconds) {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isDateAfter(left: &str, right: &str) -> Option<bool> {
+    let leftMilliseconds: f64 = js_abi::JsDate::parse(left);
+    let rightMilliseconds: f64 = js_abi::JsDate::parse(right);
+    if js_abi::number_is_nan(leftMilliseconds) || js_abi::number_is_nan(rightMilliseconds) {
         return Option::<bool>::None;
     }
-    Some(left_milliseconds > right_milliseconds)
+    Some(leftMilliseconds > rightMilliseconds)
 }
 
-pub fn format_date_time(value: String, layout: &str) -> Result<Option<String>, rt::TsonicError> {
-    let milliseconds: f64 = js_abi::JsDate::parse(&value);
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn formatDateTime(value: &str, layout: &str) -> Result<Option<String>, rt::TsonicError> {
+    let milliseconds: f64 = js_abi::JsDate::parse(value);
     if js_abi::number_is_nan(milliseconds) {
         return Ok(Option::<String>::None);
     }
     let iso: String = js_abi::JsDate::from_millis(milliseconds).to_iso_string()?;
-    let year: String = crate::utils::strings::substring_count(&iso, 0, 4)?;
-    let month: String = crate::utils::strings::substring_count(&iso, 5, 2)?;
-    let day: String = crate::utils::strings::substring_count(&iso, 8, 2)?;
-    let hour24: String = crate::utils::strings::substring_count(&iso, 11, 2)?;
-    let minute: String = crate::utils::strings::substring_count(&iso, 14, 2)?;
-    let second: String = crate::utils::strings::substring_count(&iso, 17, 2)?;
-    let month_index: i32 = rt::option_coalesce(
-        crate::utils::int32::parse_int32(&month)?,
+    let year: String = crate::utils::strings::substringCount(&iso, 0, 4)?;
+    let month: String = crate::utils::strings::substringCount(&iso, 5, 2)?;
+    let day: String = crate::utils::strings::substringCount(&iso, 8, 2)?;
+    let hour24: String = crate::utils::strings::substringCount(&iso, 11, 2)?;
+    let minute: String = crate::utils::strings::substringCount(&iso, 14, 2)?;
+    let second: String = crate::utils::strings::substringCount(&iso, 17, 2)?;
+    let monthIndex: i32 = rt::option_coalesce(
+        crate::utils::int32::parseInt32(&month)?,
         core::convert::identity,
         || 1,
     ) - 1;
-    let hour_value: i32 = rt::option_coalesce(
-        crate::utils::int32::parse_int32(&hour24)?,
+    let hourValue: i32 = rt::option_coalesce(
+        crate::utils::int32::parseInt32(&hour24)?,
         core::convert::identity,
         || 0,
     );
-    let hour12_value: f64 = if hour_value % 12 == 0 {
-        12.0
+    let hour12Value: i32 = if hourValue % 12 == 0 {
+        12
     } else {
-        rt::conversions::i32_to_f64(hour_value % 12)
+        hourValue % 12
     };
-    let hour12: String = if hour12_value < 10.0 {
-        format!("{}{}", String::from("0"), rt::source_string(&hour12_value))
+    let hour12: String = if hour12Value < 10 {
+        format!("{}{}", String::from("0"), rt::source_string(&hour12Value))
     } else {
-        rt::source_string(&hour12_value)
+        rt::source_string(&hour12Value)
     };
-    let weekday: i32 = weekday_index(milliseconds)?;
+    let weekday: i32 = weekdayIndex(milliseconds)?;
     let output: crate::utils::text_builder::TextBuilder =
         crate::utils::text_builder::TextBuilder::new();
+    let layoutLength: i32 = rt::conversions::usize_to_i32(js_string::js_len(layout))?;
     let mut index: i32 = 0;
-    while index < rt::conversions::usize_to_i32(js_string::js_len(layout))? {
-        let remaining: String = js_string::slice(layout, rt::conversions::i32_to_f64(index), None)?;
+    while index < layoutLength {
+        let remaining: String = js_string::slice_from(layout, index)?;
         if js_string::starts_with_from_start(&remaining, "Monday") {
             {
                 let dispatch_receiver = output.clone();
@@ -230,15 +241,15 @@ pub fn format_date_time(value: String, layout: &str) -> Result<Option<String>, r
                     .dispatch
                     .clone()
                     .dispatch_text_builder_append(
-                        match LONG_WEEKDAYS
+                        match longWeekdays
                             .with(|module_binding| module_binding.load())
-                            .get_number(rt::conversions::i32_to_f64(weekday))
+                            .get_number(weekday)
                         {
                             Some(flow_value) => flow_value,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     )
-            }?;
+            };
             index += 6;
         } else if js_string::starts_with_from_start(&remaining, "January") {
             {
@@ -247,15 +258,15 @@ pub fn format_date_time(value: String, layout: &str) -> Result<Option<String>, r
                     .dispatch
                     .clone()
                     .dispatch_text_builder_append(
-                        match LONG_MONTHS
+                        match longMonths
                             .with(|module_binding| module_binding.load())
-                            .get_number(rt::conversions::i32_to_f64(month_index))
+                            .get_number(monthIndex)
                         {
                             Some(flow_value_2) => flow_value_2,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     )
-            }?;
+            };
             index += 7;
         } else if js_string::starts_with_from_start(&remaining, "2006") {
             {
@@ -264,7 +275,7 @@ pub fn format_date_time(value: String, layout: &str) -> Result<Option<String>, r
                     .dispatch
                     .clone()
                     .dispatch_text_builder_append(year.clone())
-            }?;
+            };
             index += 4;
         } else if js_string::starts_with_from_start(&remaining, "Mon") {
             {
@@ -273,15 +284,15 @@ pub fn format_date_time(value: String, layout: &str) -> Result<Option<String>, r
                     .dispatch
                     .clone()
                     .dispatch_text_builder_append(
-                        match SHORT_WEEKDAYS
+                        match shortWeekdays
                             .with(|module_binding| module_binding.load())
-                            .get_number(rt::conversions::i32_to_f64(weekday))
+                            .get_number(weekday)
                         {
                             Some(flow_value_3) => flow_value_3,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     )
-            }?;
+            };
             index += 3;
         } else if js_string::starts_with_from_start(&remaining, "Jan") {
             {
@@ -290,15 +301,15 @@ pub fn format_date_time(value: String, layout: &str) -> Result<Option<String>, r
                     .dispatch
                     .clone()
                     .dispatch_text_builder_append(
-                        match SHORT_MONTHS
+                        match shortMonths
                             .with(|module_binding| module_binding.load())
-                            .get_number(rt::conversions::i32_to_f64(month_index))
+                            .get_number(monthIndex)
                         {
                             Some(flow_value_4) => flow_value_4,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     )
-            }?;
+            };
             index += 3;
         } else if js_string::starts_with_from_start(&remaining, "PM") {
             {
@@ -306,12 +317,12 @@ pub fn format_date_time(value: String, layout: &str) -> Result<Option<String>, r
                 dispatch_receiver_6
                     .dispatch
                     .clone()
-                    .dispatch_text_builder_append(if hour_value < 12 {
+                    .dispatch_text_builder_append(if hourValue < 12 {
                         String::from("AM")
                     } else {
                         String::from("PM")
                     })
-            }?;
+            };
             index += 2;
         } else if js_string::starts_with_from_start(&remaining, "pm") {
             {
@@ -319,12 +330,12 @@ pub fn format_date_time(value: String, layout: &str) -> Result<Option<String>, r
                 dispatch_receiver_7
                     .dispatch
                     .clone()
-                    .dispatch_text_builder_append(if hour_value < 12 {
+                    .dispatch_text_builder_append(if hourValue < 12 {
                         String::from("am")
                     } else {
                         String::from("pm")
                     })
-            }?;
+            };
             index += 2;
         } else if js_string::starts_with_from_start(&remaining, "06") {
             {
@@ -332,8 +343,8 @@ pub fn format_date_time(value: String, layout: &str) -> Result<Option<String>, r
                 dispatch_receiver_8
                     .dispatch
                     .clone()
-                    .dispatch_text_builder_append(js_string::slice(&year, 2.0, None)?)
-            }?;
+                    .dispatch_text_builder_append(js_string::slice_from(&year, 2.0)?)
+            };
             index += 2;
         } else if js_string::starts_with_from_start(&remaining, "01") {
             {
@@ -342,7 +353,7 @@ pub fn format_date_time(value: String, layout: &str) -> Result<Option<String>, r
                     .dispatch
                     .clone()
                     .dispatch_text_builder_append(month.clone())
-            }?;
+            };
             index += 2;
         } else if js_string::starts_with_from_start(&remaining, "02") {
             {
@@ -351,7 +362,7 @@ pub fn format_date_time(value: String, layout: &str) -> Result<Option<String>, r
                     .dispatch
                     .clone()
                     .dispatch_text_builder_append(day.clone())
-            }?;
+            };
             index += 2;
         } else if js_string::starts_with_from_start(&remaining, "15") {
             {
@@ -360,7 +371,7 @@ pub fn format_date_time(value: String, layout: &str) -> Result<Option<String>, r
                     .dispatch
                     .clone()
                     .dispatch_text_builder_append(hour24.clone())
-            }?;
+            };
             index += 2;
         } else if js_string::starts_with_from_start(&remaining, "03") {
             {
@@ -369,7 +380,7 @@ pub fn format_date_time(value: String, layout: &str) -> Result<Option<String>, r
                     .dispatch
                     .clone()
                     .dispatch_text_builder_append(hour12.clone())
-            }?;
+            };
             index += 2;
         } else if js_string::starts_with_from_start(&remaining, "04") {
             {
@@ -378,7 +389,7 @@ pub fn format_date_time(value: String, layout: &str) -> Result<Option<String>, r
                     .dispatch
                     .clone()
                     .dispatch_text_builder_append(minute.clone())
-            }?;
+            };
             index += 2;
         } else if js_string::starts_with_from_start(&remaining, "05") {
             {
@@ -387,7 +398,7 @@ pub fn format_date_time(value: String, layout: &str) -> Result<Option<String>, r
                     .dispatch
                     .clone()
                     .dispatch_text_builder_append(second.clone())
-            }?;
+            };
             index += 2;
         } else if js_string::starts_with_from_start(&remaining, "1") {
             {
@@ -395,8 +406,8 @@ pub fn format_date_time(value: String, layout: &str) -> Result<Option<String>, r
                 dispatch_receiver_15
                     .dispatch
                     .clone()
-                    .dispatch_text_builder_append(strip_leading_zero(month.clone())?)
-            }?;
+                    .dispatch_text_builder_append(stripLeadingZero(month.clone())?)
+            };
             index += 1;
         } else if js_string::starts_with_from_start(&remaining, "2") {
             {
@@ -404,8 +415,8 @@ pub fn format_date_time(value: String, layout: &str) -> Result<Option<String>, r
                 dispatch_receiver_16
                     .dispatch
                     .clone()
-                    .dispatch_text_builder_append(strip_leading_zero(day.clone())?)
-            }?;
+                    .dispatch_text_builder_append(stripLeadingZero(day.clone())?)
+            };
             index += 1;
         } else if js_string::starts_with_from_start(&remaining, "3") {
             {
@@ -413,8 +424,8 @@ pub fn format_date_time(value: String, layout: &str) -> Result<Option<String>, r
                 dispatch_receiver_17
                     .dispatch
                     .clone()
-                    .dispatch_text_builder_append(rt::source_string(&hour12_value))
-            }?;
+                    .dispatch_text_builder_append(rt::source_string(&hour12Value))
+            };
             index += 1;
         } else {
             {
@@ -422,11 +433,11 @@ pub fn format_date_time(value: String, layout: &str) -> Result<Option<String>, r
                 dispatch_receiver_18
                     .dispatch
                     .clone()
-                    .dispatch_text_builder_append(crate::utils::strings::code_point_at_text(
+                    .dispatch_text_builder_append(crate::utils::strings::codePointAtText(
                         layout, index,
                     )?)
-            }?;
-            index = crate::utils::strings::next_code_point_index(layout, index)?;
+            };
+            index = crate::utils::strings::nextCodePointIndex(layout, index)?;
         }
     }
     Ok(Some({
@@ -450,7 +461,7 @@ pub fn module_init() {
             String::from("Friday"),
             String::from("Saturday"),
         ]);
-        LONG_WEEKDAYS.with(|module_binding| module_binding.initialize(module_value))
+        longWeekdays.with(|module_binding| module_binding.initialize(module_value))
     };
     {
         let module_value_2 = js_abi::JsArray::from_dense(vec![
@@ -462,7 +473,7 @@ pub fn module_init() {
             String::from("Fri"),
             String::from("Sat"),
         ]);
-        SHORT_WEEKDAYS.with(|module_binding_2| module_binding_2.initialize(module_value_2))
+        shortWeekdays.with(|module_binding_2| module_binding_2.initialize(module_value_2))
     };
     {
         let module_value_3 = js_abi::JsArray::from_dense(vec![
@@ -479,7 +490,7 @@ pub fn module_init() {
             String::from("November"),
             String::from("December"),
         ]);
-        LONG_MONTHS.with(|module_binding_3| module_binding_3.initialize(module_value_3))
+        longMonths.with(|module_binding_3| module_binding_3.initialize(module_value_3))
     };
     {
         let module_value_4 = js_abi::JsArray::from_dense(vec![
@@ -496,6 +507,6 @@ pub fn module_init() {
             String::from("Nov"),
             String::from("Dec"),
         ]);
-        SHORT_MONTHS.with(|module_binding_4| module_binding_4.initialize(module_value_4))
+        shortMonths.with(|module_binding_4| module_binding_4.initialize(module_value_4))
     };
 }

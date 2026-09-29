@@ -4,17 +4,18 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct ShortcodeContextState {
     pub name: String,
-    pub page: crate::models::page_context::PageContext,
-    pub site: crate::models::site_context::SiteContext,
-    pub params: js_abi::JsMap<String, crate::params::ParamValue>,
-    pub positional_params: js_abi::JsArray<String>,
-    pub is_named_params: bool,
-    pub inner: String,
-    pub inner_deindent: String,
-    pub ordinal: i32,
-    pub parent: Option<ShortcodeContext>,
+    pub Page: crate::models::page_context::PageContext,
+    pub Site: crate::models::site_context::SiteContext,
+    pub Params: js_abi::JsMap<String, crate::params::ParamValue>,
+    pub positionalParams: js_abi::JsArray<String>,
+    pub IsNamedParams: bool,
+    pub Inner: String,
+    pub InnerDeindent: String,
+    pub Ordinal: i32,
+    pub Parent: Option<ShortcodeContext>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -30,14 +31,15 @@ impl rt::ObjectIdentityCarrier for ShortcodeContext {
 }
 
 impl ShortcodeContext {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     pub fn new(
         name: String,
         page: crate::models::page_context::PageContext,
         site: crate::models::site_context::SiteContext,
         params: js_abi::JsMap<String, crate::params::ParamValue>,
-        positional_params: js_abi::JsArray<String>,
-        is_named_params: bool,
+        positionalParams: js_abi::JsArray<String>,
+        isNamedParams: bool,
         inner: String,
         ordinal: i32,
         parent: Option<ShortcodeContext>,
@@ -46,61 +48,61 @@ impl ShortcodeContext {
         let field_page: crate::models::page_context::PageContext = page;
         let field_site: crate::models::site_context::SiteContext = site;
         let field_params: js_abi::JsMap<String, crate::params::ParamValue> = params;
-        let field_positional_params: js_abi::JsArray<String> = positional_params;
-        let field_is_named_params: bool = is_named_params;
+        let field_positional_params: js_abi::JsArray<String> = positionalParams;
+        let field_is_named_params: bool = isNamedParams;
         let field_inner: String = inner.clone();
-        let field_inner_deindent: String = crate::shortcode::inner_deindent(inner.clone())?;
+        let field_inner_deindent: String = crate::shortcode::innerDeindent(inner.clone())?;
         let field_ordinal: i32 = ordinal;
         let field_parent: Option<ShortcodeContext> = parent;
         Ok(ShortcodeContext {
             state: rt::ObjectRef::new(ShortcodeContextState {
                 name: field_name,
-                page: field_page,
-                site: field_site,
-                params: field_params,
-                positional_params: field_positional_params,
-                is_named_params: field_is_named_params,
-                inner: field_inner,
-                inner_deindent: field_inner_deindent,
-                ordinal: field_ordinal,
-                parent: field_parent,
+                Page: field_page,
+                Site: field_site,
+                Params: field_params,
+                positionalParams: field_positional_params,
+                IsNamedParams: field_is_named_params,
+                Inner: field_inner,
+                InnerDeindent: field_inner_deindent,
+                Ordinal: field_ordinal,
+                Parent: field_parent,
             }),
         })
     }
 
-    pub fn get(
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn Get(
         &self,
-        key_or_index: String,
+        keyOrIndex: String,
     ) -> Result<Option<crate::params::ParamValue>, rt::TsonicError> {
-        if self.state.with(|state| state.is_named_params) {
+        if self.state.with(|state| state.IsNamedParams) {
             return Ok(self
                 .state
-                .with(|state| state.params.clone())
-                .get(&key_or_index));
+                .with(|state| state.Params.clone())
+                .get(&keyOrIndex));
         }
-        let idx: Option<i32> = crate::utils::int32::parse_int32(&key_or_index)?;
+        let idx: Option<i32> = crate::utils::int32::parseInt32(&keyOrIndex)?;
         if idx.is_some()
             && (match idx.as_ref() {
                 Some(flow_value) => *flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             }) >= 0
-            && (match idx.as_ref() {
+            && rt::conversions::checked_integer::<usize>(match idx.as_ref() {
                 Some(flow_value_2) => *flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
-            }) < rt::conversions::usize_to_i32(
-                self.state
-                    .with(|state| state.positional_params.clone())
-                    .len(),
-            )?
+            })? < self
+                .state
+                .with(|state| state.positionalParams.clone())
+                .len()
         {
             return Ok(Some(crate::params::ParamValue::string(
                 match self
                     .state
-                    .with(|state| state.positional_params.clone())
-                    .get_number(rt::conversions::i32_to_f64(match idx.as_ref() {
+                    .with(|state| state.positionalParams.clone())
+                    .get_number(match idx.as_ref() {
                         Some(flow_value_3) => *flow_value_3,
                         None => unreachable!("checked flow selected a missing optional value"),
-                    })) {
+                    }) {
                     Some(flow_value_4) => flow_value_4,
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
@@ -108,6 +110,10 @@ impl ShortcodeContext {
         }
         Ok(Option::<crate::params::ParamValue>::None)
     }
+}
+
+std::thread_local! {
+    pub static SHORTCODE_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<ShortcodeValueClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -194,7 +200,30 @@ impl ShortcodeValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for ShortcodeValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for ShortcodeValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn ShortcodeValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_shortcode_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ShortcodeValueDispatch + 'static>> {
@@ -239,14 +268,15 @@ impl ShortcodeValueDispatch for ShortcodeValueRoot {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct LinkHookContextState {
-    pub destination: String,
-    pub text: String,
-    pub title: String,
-    pub plain_text: String,
-    pub page: crate::models::page_context::PageContext,
-    pub page_inner: crate::models::page_context::PageContext,
-    pub page_outer: crate::models::page_context::PageContext,
+    pub Destination: String,
+    pub Text: String,
+    pub Title: String,
+    pub PlainText: String,
+    pub Page: crate::models::page_context::PageContext,
+    pub PageInner: crate::models::page_context::PageContext,
+    pub PageOuter: crate::models::page_context::PageContext,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -262,33 +292,38 @@ impl rt::ObjectIdentityCarrier for LinkHookContext {
 }
 
 impl LinkHookContext {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         destination: String,
         text: String,
         title: String,
-        plain_text: String,
-        page_inner: crate::models::page_context::PageContext,
-        page_outer: crate::models::page_context::PageContext,
+        plainText: String,
+        pageInner: crate::models::page_context::PageContext,
+        pageOuter: crate::models::page_context::PageContext,
     ) -> Result<LinkHookContext, rt::TsonicError> {
         let field_destination: String = destination;
         let field_text: String = text;
         let field_title: String = title;
-        let field_plain_text: String = plain_text;
-        let field_page: crate::models::page_context::PageContext = page_inner.clone();
-        let field_page_inner: crate::models::page_context::PageContext = page_inner.clone();
-        let field_page_outer: crate::models::page_context::PageContext = page_outer;
+        let field_plain_text: String = plainText;
+        let field_page: crate::models::page_context::PageContext = pageInner.clone();
+        let field_page_inner: crate::models::page_context::PageContext = pageInner.clone();
+        let field_page_outer: crate::models::page_context::PageContext = pageOuter;
         Ok(LinkHookContext {
             state: rt::ObjectRef::new(LinkHookContextState {
-                destination: field_destination,
-                text: field_text,
-                title: field_title,
-                plain_text: field_plain_text,
-                page: field_page,
-                page_inner: field_page_inner,
-                page_outer: field_page_outer,
+                Destination: field_destination,
+                Text: field_text,
+                Title: field_title,
+                PlainText: field_plain_text,
+                Page: field_page,
+                PageInner: field_page_inner,
+                PageOuter: field_page_outer,
             }),
         })
     }
+}
+
+std::thread_local! {
+    pub static LINK_HOOK_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<LinkHookValueClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -373,7 +408,30 @@ impl LinkHookValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for LinkHookValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for LinkHookValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn LinkHookValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_link_hook_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn LinkHookValueDispatch + 'static>> {
@@ -418,14 +476,15 @@ impl LinkHookValueDispatch for LinkHookValueRoot {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct ImageHookContextState {
-    pub destination: String,
-    pub text: String,
-    pub title: String,
-    pub plain_text: String,
-    pub page: crate::models::page_context::PageContext,
-    pub page_inner: crate::models::page_context::PageContext,
-    pub page_outer: crate::models::page_context::PageContext,
+    pub Destination: String,
+    pub Text: String,
+    pub Title: String,
+    pub PlainText: String,
+    pub Page: crate::models::page_context::PageContext,
+    pub PageInner: crate::models::page_context::PageContext,
+    pub PageOuter: crate::models::page_context::PageContext,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -441,33 +500,38 @@ impl rt::ObjectIdentityCarrier for ImageHookContext {
 }
 
 impl ImageHookContext {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         destination: String,
         text: String,
         title: String,
-        plain_text: String,
-        page_inner: crate::models::page_context::PageContext,
-        page_outer: crate::models::page_context::PageContext,
+        plainText: String,
+        pageInner: crate::models::page_context::PageContext,
+        pageOuter: crate::models::page_context::PageContext,
     ) -> Result<ImageHookContext, rt::TsonicError> {
         let field_destination: String = destination;
         let field_text: String = text;
         let field_title: String = title;
-        let field_plain_text: String = plain_text;
-        let field_page: crate::models::page_context::PageContext = page_inner.clone();
-        let field_page_inner: crate::models::page_context::PageContext = page_inner.clone();
-        let field_page_outer: crate::models::page_context::PageContext = page_outer;
+        let field_plain_text: String = plainText;
+        let field_page: crate::models::page_context::PageContext = pageInner.clone();
+        let field_page_inner: crate::models::page_context::PageContext = pageInner.clone();
+        let field_page_outer: crate::models::page_context::PageContext = pageOuter;
         Ok(ImageHookContext {
             state: rt::ObjectRef::new(ImageHookContextState {
-                destination: field_destination,
-                text: field_text,
-                title: field_title,
-                plain_text: field_plain_text,
-                page: field_page,
-                page_inner: field_page_inner,
-                page_outer: field_page_outer,
+                Destination: field_destination,
+                Text: field_text,
+                Title: field_title,
+                PlainText: field_plain_text,
+                Page: field_page,
+                PageInner: field_page_inner,
+                PageOuter: field_page_outer,
             }),
         })
     }
+}
+
+std::thread_local! {
+    pub static IMAGE_HOOK_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<ImageHookValueClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -554,7 +618,30 @@ impl ImageHookValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for ImageHookValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for ImageHookValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn ImageHookValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_image_hook_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ImageHookValueDispatch + 'static>> {
@@ -599,14 +686,15 @@ impl ImageHookValueDispatch for ImageHookValueRoot {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct HeadingHookContextState {
-    pub level: i32,
-    pub text: String,
-    pub plain_text: String,
-    pub anchor: String,
-    pub page: crate::models::page_context::PageContext,
-    pub page_inner: crate::models::page_context::PageContext,
-    pub page_outer: crate::models::page_context::PageContext,
+    pub Level: i32,
+    pub Text: String,
+    pub PlainText: String,
+    pub Anchor: String,
+    pub Page: crate::models::page_context::PageContext,
+    pub PageInner: crate::models::page_context::PageContext,
+    pub PageOuter: crate::models::page_context::PageContext,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -622,33 +710,38 @@ impl rt::ObjectIdentityCarrier for HeadingHookContext {
 }
 
 impl HeadingHookContext {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         level: i32,
         text: String,
-        plain_text: String,
+        plainText: String,
         anchor: String,
-        page_inner: crate::models::page_context::PageContext,
-        page_outer: crate::models::page_context::PageContext,
+        pageInner: crate::models::page_context::PageContext,
+        pageOuter: crate::models::page_context::PageContext,
     ) -> Result<HeadingHookContext, rt::TsonicError> {
         let field_level: i32 = level;
         let field_text: String = text;
-        let field_plain_text: String = plain_text;
+        let field_plain_text: String = plainText;
         let field_anchor: String = anchor;
-        let field_page: crate::models::page_context::PageContext = page_inner.clone();
-        let field_page_inner: crate::models::page_context::PageContext = page_inner.clone();
-        let field_page_outer: crate::models::page_context::PageContext = page_outer;
+        let field_page: crate::models::page_context::PageContext = pageInner.clone();
+        let field_page_inner: crate::models::page_context::PageContext = pageInner.clone();
+        let field_page_outer: crate::models::page_context::PageContext = pageOuter;
         Ok(HeadingHookContext {
             state: rt::ObjectRef::new(HeadingHookContextState {
-                level: field_level,
-                text: field_text,
-                plain_text: field_plain_text,
-                anchor: field_anchor,
-                page: field_page,
-                page_inner: field_page_inner,
-                page_outer: field_page_outer,
+                Level: field_level,
+                Text: field_text,
+                PlainText: field_plain_text,
+                Anchor: field_anchor,
+                Page: field_page,
+                PageInner: field_page_inner,
+                PageOuter: field_page_outer,
             }),
         })
     }
+}
+
+std::thread_local! {
+    pub static HEADING_HOOK_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<HeadingHookValueClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -738,7 +831,30 @@ impl HeadingHookValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for HeadingHookValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for HeadingHookValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn HeadingHookValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_heading_hook_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn HeadingHookValueDispatch + 'static>> {
@@ -783,4 +899,132 @@ impl HeadingHookValueDispatch for HeadingHookValueRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+pub struct ShortcodeValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for ShortcodeValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for ShortcodeValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for ShortcodeValueClass {}
+
+pub struct LinkHookValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for LinkHookValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for LinkHookValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for LinkHookValueClass {}
+
+pub struct ImageHookValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for ImageHookValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for ImageHookValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for ImageHookValueClass {}
+
+pub struct HeadingHookValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for HeadingHookValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for HeadingHookValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for HeadingHookValueClass {}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = {
+            alloc::rc::Rc::new(ShortcodeValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        SHORTCODE_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding| module_binding.initialize(module_value))
+    };
+    {
+        let module_value_2 = {
+            alloc::rc::Rc::new(LinkHookValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        LINK_HOOK_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding_2| module_binding_2.initialize(module_value_2))
+    };
+    {
+        let module_value_3 = {
+            alloc::rc::Rc::new(ImageHookValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        IMAGE_HOOK_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding_3| module_binding_3.initialize(module_value_3))
+    };
+    {
+        let module_value_4 = {
+            alloc::rc::Rc::new(HeadingHookValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        HEADING_HOOK_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding_4| module_binding_4.initialize(module_value_4))
+    };
 }

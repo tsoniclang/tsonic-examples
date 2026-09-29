@@ -10,6 +10,9 @@ pub enum TsumoDiagnosticCategory {
 
 #[doc(hidden)]
 pub trait TsumoDiagnosticDispatch {
+    fn project_tsumo_diagnostic(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_tsumo_diagnostic_to_tsumo_diagnostic(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn TsumoDiagnosticDispatch + 'static>> {
@@ -26,10 +29,10 @@ pub trait TsumoDiagnosticDispatch {
     fn write_tsumo_diagnostic_message(&self, value: String) -> Result<(), rt::TsonicError>;
     fn read_tsumo_diagnostic_file(&self) -> Option<String>;
     fn write_tsumo_diagnostic_file(&self, value: Option<String>) -> Result<(), rt::TsonicError>;
-    fn read_tsumo_diagnostic_line(&self) -> Option<f64>;
-    fn write_tsumo_diagnostic_line(&self, value: Option<f64>) -> Result<(), rt::TsonicError>;
-    fn read_tsumo_diagnostic_column(&self) -> Option<f64>;
-    fn write_tsumo_diagnostic_column(&self, value: Option<f64>) -> Result<(), rt::TsonicError>;
+    fn read_tsumo_diagnostic_line(&self) -> Option<i32>;
+    fn write_tsumo_diagnostic_line(&self, value: Option<i32>) -> Result<(), rt::TsonicError>;
+    fn read_tsumo_diagnostic_column(&self) -> Option<i32>;
+    fn write_tsumo_diagnostic_column(&self, value: Option<i32>) -> Result<(), rt::TsonicError>;
     fn dispatch_tsumo_diagnostic_format(self: alloc::rc::Rc<Self>) -> String;
     fn exact_tsumo_diagnostic_format(self: alloc::rc::Rc<Self>) -> String;
 }
@@ -40,8 +43,8 @@ pub struct TsumoDiagnosticState {
     pub category: TsumoDiagnosticCategory,
     pub message: String,
     pub file: Option<String>,
-    pub line: Option<f64>,
-    pub column: Option<f64>,
+    pub line: Option<i32>,
+    pub column: Option<i32>,
 }
 
 #[derive(Clone)]
@@ -84,15 +87,15 @@ impl TsumoDiagnostic {
         category: TsumoDiagnosticCategory,
         message: String,
         file: Option<String>,
-        line: Option<f64>,
-        column: Option<f64>,
+        line: Option<i32>,
+        column: Option<i32>,
     ) -> Result<TsumoDiagnosticState, rt::TsonicError> {
         let field_code: String = code;
         let field_category: TsumoDiagnosticCategory = category;
         let field_message: String = message;
         let field_file: Option<String> = file;
-        let field_line: Option<f64> = line;
-        let field_column: Option<f64> = column;
+        let field_line: Option<i32> = line;
+        let field_column: Option<i32> = column;
         Ok(TsumoDiagnosticState {
             code: field_code,
             category: field_category,
@@ -108,8 +111,8 @@ impl TsumoDiagnostic {
         category: TsumoDiagnosticCategory,
         message: String,
         file: Option<String>,
-        line: Option<f64>,
-        column: Option<f64>,
+        line: Option<i32>,
+        column: Option<i32>,
     ) -> Result<TsumoDiagnostic, rt::TsonicError> {
         let state = TsumoDiagnostic::initialize_state(code, category, message, file, line, column)?;
         let identity = rt::ObjectIdentity::new();
@@ -187,7 +190,7 @@ impl TsumoDiagnosticRoot {
                                 dispatch_receiver_6.dispatch.read_tsumo_diagnostic_column()
                             },
                             core::convert::identity,
-                            || 1.0
+                            || 1
                         )),
                         String::from(": ")
                     )
@@ -210,7 +213,24 @@ impl TsumoDiagnosticRoot {
     }
 }
 
+impl rt::ObjectIdentityCarrier for TsumoDiagnosticRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl TsumoDiagnosticDispatch for TsumoDiagnosticRoot {
+    fn project_tsumo_diagnostic(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn TsumoDiagnosticDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_tsumo_diagnostic_to_tsumo_diagnostic(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn TsumoDiagnosticDispatch + 'static>> {
@@ -276,11 +296,11 @@ impl TsumoDiagnosticDispatch for TsumoDiagnosticRoot {
         }
     }
 
-    fn read_tsumo_diagnostic_line(&self) -> Option<f64> {
+    fn read_tsumo_diagnostic_line(&self) -> Option<i32> {
         self.state.with(|state| state.line)
     }
 
-    fn write_tsumo_diagnostic_line(&self, value: Option<f64>) -> Result<(), rt::TsonicError> {
+    fn write_tsumo_diagnostic_line(&self, value: Option<i32>) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
@@ -290,11 +310,11 @@ impl TsumoDiagnosticDispatch for TsumoDiagnosticRoot {
         }
     }
 
-    fn read_tsumo_diagnostic_column(&self) -> Option<f64> {
+    fn read_tsumo_diagnostic_column(&self) -> Option<i32> {
         self.state.with(|state| state.column)
     }
 
-    fn write_tsumo_diagnostic_column(&self, value: Option<f64>) -> Result<(), rt::TsonicError> {
+    fn write_tsumo_diagnostic_column(&self, value: Option<i32>) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
@@ -313,8 +333,15 @@ impl TsumoDiagnosticDispatch for TsumoDiagnosticRoot {
     }
 }
 
+std::thread_local! {
+    pub static TSUMO_ERROR_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<TsumoErrorClass>> = const { rt::ModuleCell::new() };
+}
+
 #[doc(hidden)]
 pub trait TsumoErrorDispatch {
+    fn project_tsumo_error(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_tsumo_error_to_tsumo_error(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn TsumoErrorDispatch + 'static>> {
@@ -412,7 +439,24 @@ impl TsumoError {
     }
 }
 
+impl rt::ObjectIdentityCarrier for TsumoErrorRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl TsumoErrorDispatch for TsumoErrorRoot {
+    fn project_tsumo_error(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn TsumoErrorDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_tsumo_error_to_tsumo_error(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn TsumoErrorDispatch + 'static>> {
@@ -481,12 +525,13 @@ impl rt::ToSourceString for TsumoError {
     }
 }
 
-pub fn create_tsumo_error(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn createTsumoError(
     code: String,
     message: String,
     file: Option<String>,
-    line: Option<f64>,
-    column: Option<f64>,
+    line: Option<i32>,
+    column: Option<i32>,
 ) -> Result<TsumoError, rt::TsonicError> {
     TsumoError::new(TsumoDiagnostic::new(
         code,
@@ -496,4 +541,38 @@ pub fn create_tsumo_error(
         line,
         column,
     )?)
+}
+
+pub struct TsumoErrorClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for TsumoErrorClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for TsumoErrorClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for TsumoErrorClass {}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = {
+            alloc::rc::Rc::new(TsumoErrorClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        TSUMO_ERROR_CLASS_ENVIRONMENT.with(|module_binding| module_binding.initialize(module_value))
+    };
 }

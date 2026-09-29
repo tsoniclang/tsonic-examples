@@ -43,6 +43,66 @@ pub struct Expr {
     pub dispatch: alloc::rc::Rc<dyn ExprDispatch + 'static>,
 }
 
+impl core::convert::TryFrom<Expr> for TokenExpr {
+    type Error = ();
+
+    fn try_from(source: Expr) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_expr_to_token_expr();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<Expr> for AccessExpr {
+    type Error = ();
+
+    fn try_from(source: Expr) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_expr_to_access_expr();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<Expr> for PipelineExpr {
+    type Error = ();
+
+    fn try_from(source: Expr) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_expr_to_pipeline_expr();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<Expr> for CommandExpr {
+    type Error = ();
+
+    fn try_from(source: Expr) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_expr_to_command_expr();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
 impl core::fmt::Debug for Expr {
     fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("Expr")
@@ -64,7 +124,6 @@ impl rt::ObjectIdentityCarrier for Expr {
 }
 
 pub(crate) struct ExprRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     #[expect(dead_code, reason = "retains unused generated storage")]
     state: rt::ObjectState<ExprState>,
@@ -96,12 +155,22 @@ impl Default for Expr {
     }
 }
 
+impl rt::ObjectIdentityCarrier for ExprRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl ExprDispatch for ExprRoot {
     fn downcast_expr_to_expr(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ExprDispatch + 'static>> {
         Some(self)
     }
+}
+
+std::thread_local! {
+    pub static TOKEN_EXPR_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<TokenExprClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -185,6 +254,12 @@ impl TokenExpr {
     }
 }
 
+impl rt::ObjectIdentityCarrier for TokenExprRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl ExprDispatch for TokenExprRoot {
     fn downcast_expr_to_expr(
         self: alloc::rc::Rc<Self>,
@@ -225,6 +300,10 @@ impl TokenExprDispatch for TokenExprRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+std::thread_local! {
+    pub static PIPELINE_EXPR_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<PipelineExprClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -308,6 +387,12 @@ impl PipelineExpr {
     }
 }
 
+impl rt::ObjectIdentityCarrier for PipelineExprRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl ExprDispatch for PipelineExprRoot {
     fn downcast_expr_to_expr(
         self: alloc::rc::Rc<Self>,
@@ -348,6 +433,10 @@ impl PipelineExprDispatch for PipelineExprRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+std::thread_local! {
+    pub static COMMAND_EXPR_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<CommandExprClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -431,6 +520,12 @@ impl CommandExpr {
     }
 }
 
+impl rt::ObjectIdentityCarrier for CommandExprRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl ExprDispatch for CommandExprRoot {
     fn downcast_expr_to_command_expr(
         self: alloc::rc::Rc<Self>,
@@ -471,6 +566,10 @@ impl CommandExprDispatch for CommandExprRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+std::thread_local! {
+    pub static ACCESS_EXPR_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<AccessExprClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -565,6 +664,12 @@ impl AccessExpr {
             identity,
             dispatch: root,
         })
+    }
+}
+
+impl rt::ObjectIdentityCarrier for AccessExprRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
     }
 }
 
@@ -684,4 +789,131 @@ impl Pipeline {
             }),
         })
     }
+}
+
+pub struct TokenExprClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for TokenExprClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for TokenExprClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for TokenExprClass {}
+
+pub struct PipelineExprClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for PipelineExprClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for PipelineExprClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for PipelineExprClass {}
+
+pub struct CommandExprClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for CommandExprClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for CommandExprClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for CommandExprClass {}
+
+pub struct AccessExprClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for AccessExprClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for AccessExprClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for AccessExprClass {}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = {
+            alloc::rc::Rc::new(TokenExprClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        TOKEN_EXPR_CLASS_ENVIRONMENT.with(|module_binding| module_binding.initialize(module_value))
+    };
+    {
+        let module_value_2 = {
+            alloc::rc::Rc::new(PipelineExprClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        PIPELINE_EXPR_CLASS_ENVIRONMENT
+            .with(|module_binding_2| module_binding_2.initialize(module_value_2))
+    };
+    {
+        let module_value_3 = {
+            alloc::rc::Rc::new(CommandExprClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        COMMAND_EXPR_CLASS_ENVIRONMENT
+            .with(|module_binding_3| module_binding_3.initialize(module_value_3))
+    };
+    {
+        let module_value_4 = {
+            alloc::rc::Rc::new(AccessExprClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        ACCESS_EXPR_CLASS_ENVIRONMENT
+            .with(|module_binding_4| module_binding_4.initialize(module_value_4))
+    };
 }

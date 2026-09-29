@@ -4,65 +4,70 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub const WORD_SEPARATOR_SPACE: &str = " ";
+#[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+pub const wordSeparatorSpace: &str = " ";
 
-pub const WORD_SEPARATOR_DASH: &str = "-";
+#[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+pub const wordSeparatorDash: &str = "-";
 
-pub const WORD_SEPARATOR_UNDERSCORE: &str = "_";
+#[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+pub const wordSeparatorUnderscore: &str = "_";
 
-pub const WORD_SEPARATOR_DOT: &str = ".";
+#[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+pub const wordSeparatorDot: &str = ".";
 
-pub const WORD_SEPARATOR_SLASH: &str = "/";
+#[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+pub const wordSeparatorSlash: &str = "/";
 
-pub fn is_word_separator(ch: &str) -> bool {
-    ch == WORD_SEPARATOR_SPACE
-        || ch == WORD_SEPARATOR_DASH
-        || ch == WORD_SEPARATOR_UNDERSCORE
-        || ch == WORD_SEPARATOR_DOT
-        || ch == WORD_SEPARATOR_SLASH
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isWordSeparator(ch: &str) -> bool {
+    ch == wordSeparatorSpace
+        || ch == wordSeparatorDash
+        || ch == wordSeparatorUnderscore
+        || ch == wordSeparatorDot
+        || ch == wordSeparatorSlash
 }
 
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub fn slugify(input: &str) -> Result<String, rt::TsonicError> {
     let lower: String = js_string::to_lower_case(&js_string::trim(input));
     let chars: js_abi::JsArray<String> = js_string::split_all(&lower, "")?;
     let output: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-    let mut wrote_dash: bool = false;
+    let mut wroteDash: bool = false;
     {
-        let mut i: f64 = 0.0;
-        'loop_value: while i < (rt::conversions::usize_to_i32(chars.len())? as f64) {
+        let mut i: usize = 0;
+        'loop_value: while i < chars.len() {
             let ch: String = match chars.get_number(i) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let is_alpha_numeric: bool =
+            let isAlphaNumeric: bool =
                 js_abi::regexp_test_native(&js_abi::regexp_new_native("^[a-z0-9]$", "i")?, &ch)?;
-            if is_alpha_numeric {
-                output.push_many_discard([ch.clone()]);
-                wrote_dash = false;
-                i += 1.0;
+            if isAlphaNumeric {
+                output.push_many_discard([ch]);
+                wroteDash = false;
+                i += 1;
                 continue 'loop_value;
             }
-            if is_word_separator(&ch)
-                && rt::conversions::usize_to_i32(output.len())? > 0
-                && !wrote_dash
-            {
-                output.push_many_discard([String::from(WORD_SEPARATOR_DASH)]);
-                wrote_dash = true;
+            if isWordSeparator(&ch) && !output.is_empty() && !wroteDash {
+                output.push_many_discard([String::from(wordSeparatorDash)]);
+                wroteDash = true;
             }
-            i += 1.0;
+            i += 1;
         }
     }
     let mut out: String = output.join("");
     while js_string::starts_with_from_start(&out, "-") {
         out = js_string::substring_from(&out, 1.0)?;
     }
-    crate::utils::strings::trim_end_char(out, String::from("-"))
+    crate::utils::strings::trimEndChar(out, String::from("-"))
 }
 
-pub fn humanize_slug(slug: &str) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn humanizeSlug(slug: &str) -> Result<String, rt::TsonicError> {
     let parts: js_abi::JsArray<String> = js_string::split_all(
-        &crate::utils::strings::replace_text(
-            &crate::utils::strings::replace_text(slug, String::from("_"), String::from("-"))?,
+        &crate::utils::strings::replaceText(
+            &crate::utils::strings::replaceText(slug, String::from("_"), String::from("-"))?,
             String::from("."),
             String::from("-"),
         )?,
@@ -70,46 +75,37 @@ pub fn humanize_slug(slug: &str) -> Result<String, rt::TsonicError> {
     )?;
     let words: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     {
-        let mut i: f64 = 0.0;
-        'loop_value: while i < (rt::conversions::usize_to_i32(parts.len())? as f64) {
-            let part_raw: String = match parts.get_number(i) {
+        let mut i: usize = 0;
+        'loop_value: while i < parts.len() {
+            let partRaw: String = match parts.get_number(i) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            #[expect(clippy::blocks_in_conditions, reason = "checked evaluation region")]
-            if {
-                let _ = part_raw;
-                {
-                    let _ = rt::Undefined;
-                    false
-                }
-            } {
-                i += 1.0;
+            if false {
+                i += 1;
                 continue 'loop_value;
             }
-            let part: String = js_string::trim(&part_raw);
+            let part: String = js_string::trim(&partRaw);
             if part.is_empty() {
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
-            let first_end: i32 = crate::utils::strings::next_code_point_index(&part, 0)?;
-            {
-                let operation_input_0 = words.clone();
-                operation_input_0.push_many_discard([format!(
-                    "{}{}",
-                    js_string::to_upper_case(&crate::utils::strings::substring_count(
-                        &part, 0, first_end
-                    )?),
-                    js_string::substring_from(&part, rt::conversions::i32_to_f64(first_end))?
-                )])
-            };
-            i += 1.0;
+            let firstEnd: i32 = crate::utils::strings::nextCodePointIndex(&part, 0)?;
+            words.push_many_discard([format!(
+                "{}{}",
+                js_string::to_upper_case(&crate::utils::strings::substringCount(
+                    &part, 0, firstEnd
+                )?),
+                js_string::substring_from(&part, firstEnd)?
+            )]);
+            i += 1;
         }
     }
     Ok(words.join(" "))
 }
 
-pub fn ensure_trailing_slash(url: String) -> String {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn ensureTrailingSlash(url: String) -> String {
     if url.is_empty() {
         return url;
     }
@@ -120,7 +116,8 @@ pub fn ensure_trailing_slash(url: String) -> String {
     }
 }
 
-pub fn ensure_leading_slash(url: &str) -> String {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn ensureLeadingSlash(url: &str) -> String {
     let trimmed: String = js_string::trim(url);
     if trimmed.is_empty() {
         return String::from("/");

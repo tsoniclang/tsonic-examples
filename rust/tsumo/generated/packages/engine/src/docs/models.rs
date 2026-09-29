@@ -5,6 +5,9 @@ use tsonic_rust_js::abi as js_abi;
 
 #[doc(hidden)]
 pub trait DocsMountConfigDispatch {
+    fn project_docs_mount_config(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_docs_mount_config_to_docs_mount_config(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn DocsMountConfigDispatch + 'static>> {
@@ -36,14 +39,15 @@ pub trait DocsMountConfigDispatch {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct DocsMountConfigState {
     pub name: String,
-    pub source_dir: String,
-    pub url_prefix: String,
-    pub repo_url: Option<String>,
-    pub repo_branch: String,
-    pub repo_path: Option<String>,
-    pub nav_path: Option<String>,
+    pub sourceDir: String,
+    pub urlPrefix: String,
+    pub repoUrl: Option<String>,
+    pub repoBranch: String,
+    pub repoPath: Option<String>,
+    pub navPath: Option<String>,
 }
 
 #[derive(Clone)]
@@ -81,50 +85,46 @@ pub(crate) struct DocsMountConfigRoot {
 
 impl DocsMountConfig {
     #[doc(hidden)]
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn initialize_state(
         name: String,
-        source_dir: String,
-        url_prefix: String,
-        repo_url: Option<String>,
-        repo_branch: String,
-        repo_path: Option<String>,
-        nav_path: Option<String>,
+        sourceDir: String,
+        urlPrefix: String,
+        repoUrl: Option<String>,
+        repoBranch: String,
+        repoPath: Option<String>,
+        navPath: Option<String>,
     ) -> Result<DocsMountConfigState, rt::TsonicError> {
         let field_name: String = name;
-        let field_source_dir: String = source_dir;
-        let field_url_prefix: String = url_prefix;
-        let field_repo_url: Option<String> = repo_url;
-        let field_repo_branch: String = repo_branch;
-        let field_repo_path: Option<String> = repo_path;
-        let field_nav_path: Option<String> = nav_path;
+        let field_source_dir: String = sourceDir;
+        let field_url_prefix: String = urlPrefix;
+        let field_repo_url: Option<String> = repoUrl;
+        let field_repo_branch: String = repoBranch;
+        let field_repo_path: Option<String> = repoPath;
+        let field_nav_path: Option<String> = navPath;
         Ok(DocsMountConfigState {
             name: field_name,
-            source_dir: field_source_dir,
-            url_prefix: field_url_prefix,
-            repo_url: field_repo_url,
-            repo_branch: field_repo_branch,
-            repo_path: field_repo_path,
-            nav_path: field_nav_path,
+            sourceDir: field_source_dir,
+            urlPrefix: field_url_prefix,
+            repoUrl: field_repo_url,
+            repoBranch: field_repo_branch,
+            repoPath: field_repo_path,
+            navPath: field_nav_path,
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         name: String,
-        source_dir: String,
-        url_prefix: String,
-        repo_url: Option<String>,
-        repo_branch: String,
-        repo_path: Option<String>,
-        nav_path: Option<String>,
+        sourceDir: String,
+        urlPrefix: String,
+        repoUrl: Option<String>,
+        repoBranch: String,
+        repoPath: Option<String>,
+        navPath: Option<String>,
     ) -> Result<DocsMountConfig, rt::TsonicError> {
         let state = DocsMountConfig::initialize_state(
-            name,
-            source_dir,
-            url_prefix,
-            repo_url,
-            repo_branch,
-            repo_path,
-            nav_path,
+            name, sourceDir, urlPrefix, repoUrl, repoBranch, repoPath, navPath,
         )?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(DocsMountConfigRoot {
@@ -138,7 +138,24 @@ impl DocsMountConfig {
     }
 }
 
+impl rt::ObjectIdentityCarrier for DocsMountConfigRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl DocsMountConfigDispatch for DocsMountConfigRoot {
+    fn project_docs_mount_config(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn DocsMountConfigDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_docs_mount_config_to_docs_mount_config(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn DocsMountConfigDispatch + 'static>> {
@@ -160,35 +177,35 @@ impl DocsMountConfigDispatch for DocsMountConfigRoot {
     }
 
     fn read_docs_mount_config_source_dir(&self) -> String {
-        self.state.with(|state| state.source_dir.clone())
+        self.state.with(|state| state.sourceDir.clone())
     }
 
     fn write_docs_mount_config_source_dir(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.source_dir = value)
+                self.state.with_mut(|state| state.sourceDir = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_docs_mount_config_url_prefix(&self) -> String {
-        self.state.with(|state| state.url_prefix.clone())
+        self.state.with(|state| state.urlPrefix.clone())
     }
 
     fn write_docs_mount_config_url_prefix(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.url_prefix = value)
+                self.state.with_mut(|state| state.urlPrefix = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_docs_mount_config_repo_url(&self) -> Option<String> {
-        self.state.with(|state| state.repo_url.clone())
+        self.state.with(|state| state.repoUrl.clone())
     }
 
     fn write_docs_mount_config_repo_url(
@@ -198,28 +215,28 @@ impl DocsMountConfigDispatch for DocsMountConfigRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.repo_url = value)
+                self.state.with_mut(|state| state.repoUrl = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_docs_mount_config_repo_branch(&self) -> String {
-        self.state.with(|state| state.repo_branch.clone())
+        self.state.with(|state| state.repoBranch.clone())
     }
 
     fn write_docs_mount_config_repo_branch(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.repo_branch = value)
+                self.state.with_mut(|state| state.repoBranch = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_docs_mount_config_repo_path(&self) -> Option<String> {
-        self.state.with(|state| state.repo_path.clone())
+        self.state.with(|state| state.repoPath.clone())
     }
 
     fn write_docs_mount_config_repo_path(
@@ -229,14 +246,14 @@ impl DocsMountConfigDispatch for DocsMountConfigRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.repo_path = value)
+                self.state.with_mut(|state| state.repoPath = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_docs_mount_config_nav_path(&self) -> Option<String> {
-        self.state.with(|state| state.nav_path.clone())
+        self.state.with(|state| state.navPath.clone())
     }
 
     fn write_docs_mount_config_nav_path(
@@ -246,7 +263,7 @@ impl DocsMountConfigDispatch for DocsMountConfigRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.nav_path = value)
+                self.state.with_mut(|state| state.navPath = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -254,13 +271,14 @@ impl DocsMountConfigDispatch for DocsMountConfigRoot {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct DocsSiteConfigState {
     pub mounts: js_abi::JsArray<DocsMountConfig>,
-    pub strict_links: bool,
-    pub generate_search_index: bool,
-    pub search_index_file_name: String,
-    pub home_mount: Option<String>,
-    pub site_name: String,
+    pub strictLinks: bool,
+    pub generateSearchIndex: bool,
+    pub searchIndexFileName: String,
+    pub homeMount: Option<String>,
+    pub siteName: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -276,40 +294,42 @@ impl rt::ObjectIdentityCarrier for DocsSiteConfig {
 }
 
 impl DocsSiteConfig {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         mounts: js_abi::JsArray<DocsMountConfig>,
-        strict_links: bool,
-        generate_search_index: bool,
-        search_index_file_name: String,
-        home_mount: Option<String>,
-        site_name: String,
+        strictLinks: bool,
+        generateSearchIndex: bool,
+        searchIndexFileName: String,
+        homeMount: Option<String>,
+        siteName: String,
     ) -> Result<DocsSiteConfig, rt::TsonicError> {
         let field_mounts: js_abi::JsArray<DocsMountConfig> = mounts;
-        let field_strict_links: bool = strict_links;
-        let field_generate_search_index: bool = generate_search_index;
-        let field_search_index_file_name: String = search_index_file_name;
-        let field_home_mount: Option<String> = home_mount;
-        let field_site_name: String = site_name;
+        let field_strict_links: bool = strictLinks;
+        let field_generate_search_index: bool = generateSearchIndex;
+        let field_search_index_file_name: String = searchIndexFileName;
+        let field_home_mount: Option<String> = homeMount;
+        let field_site_name: String = siteName;
         Ok(DocsSiteConfig {
             state: rt::ObjectRef::new(DocsSiteConfigState {
                 mounts: field_mounts,
-                strict_links: field_strict_links,
-                generate_search_index: field_generate_search_index,
-                search_index_file_name: field_search_index_file_name,
-                home_mount: field_home_mount,
-                site_name: field_site_name,
+                strictLinks: field_strict_links,
+                generateSearchIndex: field_generate_search_index,
+                searchIndexFileName: field_search_index_file_name,
+                homeMount: field_home_mount,
+                siteName: field_site_name,
             }),
         })
     }
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct NavItemState {
     pub title: String,
     pub url: String,
     pub children: js_abi::JsArray<NavItem>,
-    pub is_section: bool,
-    pub is_current: bool,
+    pub isSection: bool,
+    pub isCurrent: bool,
     pub order: i32,
 }
 
@@ -326,27 +346,28 @@ impl rt::ObjectIdentityCarrier for NavItem {
 }
 
 impl NavItem {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         title: String,
         url: String,
         children: js_abi::JsArray<NavItem>,
-        is_section: bool,
-        is_current: bool,
+        isSection: bool,
+        isCurrent: bool,
         order: i32,
     ) -> Result<NavItem, rt::TsonicError> {
         let field_title: String = title;
         let field_url: String = url;
         let field_children: js_abi::JsArray<NavItem> = children;
-        let field_is_section: bool = is_section;
-        let field_is_current: bool = is_current;
+        let field_is_section: bool = isSection;
+        let field_is_current: bool = isCurrent;
         let field_order: i32 = order;
         Ok(NavItem {
             state: rt::ObjectRef::new(NavItemState {
                 title: field_title,
                 url: field_url,
                 children: field_children,
-                is_section: field_is_section,
-                is_current: field_is_current,
+                isSection: field_is_section,
+                isCurrent: field_is_current,
                 order: field_order,
             }),
         })
@@ -354,9 +375,10 @@ impl NavItem {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct DocsMountContextState {
     pub name: String,
-    pub url_prefix: String,
+    pub urlPrefix: String,
     pub nav: js_abi::JsArray<NavItem>,
 }
 
@@ -373,18 +395,19 @@ impl rt::ObjectIdentityCarrier for DocsMountContext {
 }
 
 impl DocsMountContext {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         name: String,
-        url_prefix: String,
+        urlPrefix: String,
         nav: js_abi::JsArray<NavItem>,
     ) -> Result<DocsMountContext, rt::TsonicError> {
         let field_name: String = name;
-        let field_url_prefix: String = url_prefix;
+        let field_url_prefix: String = urlPrefix;
         let field_nav: js_abi::JsArray<NavItem> = nav;
         Ok(DocsMountContext {
             state: rt::ObjectRef::new(DocsMountContextState {
                 name: field_name,
-                url_prefix: field_url_prefix,
+                urlPrefix: field_url_prefix,
                 nav: field_nav,
             }),
         })

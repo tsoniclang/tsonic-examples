@@ -4,20 +4,21 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn matches_pattern(file_path: &str, search_pattern: String) -> Result<bool, rt::TsonicError> {
-    if search_pattern == "*" || search_pattern == "*.*" {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn matchesPattern(filePath: &str, searchPattern: String) -> Result<bool, rt::TsonicError> {
+    if searchPattern == "*" || searchPattern == "*.*" {
         return Ok(true);
     }
-    if js_string::starts_with_from_start(&search_pattern, "*.") {
+    if js_string::starts_with_from_start(&searchPattern, "*.") {
         return Ok({
-            let operation_input_0 = js_string::to_lower_case(file_path);
+            let operation_input_0 = js_string::to_lower_case(filePath);
             js_string::ends_with_at_end(
                 &operation_input_0,
-                &js_string::to_lower_case(&js_string::substring_from(&search_pattern, 1.0)?),
+                &js_string::to_lower_case(&js_string::substring_from(&searchPattern, 1.0)?),
             )
         });
     }
-    Ok(js_string::ends_with_at_end(file_path, &search_pattern))
+    Ok(js_string::ends_with_at_end(filePath, &searchPattern))
 }
 
 #[doc(hidden)]
@@ -51,19 +52,21 @@ impl ManagedDirectoryEntry {
     }
 }
 
-pub fn dir_exists(path: String) -> Result<bool, rt::TsonicError> {
-    Ok(tsonic_rust_node::fs::exists_sync(path.as_str())
-        && tsonic_rust_node::fs::stat_sync(path.as_str())?.is_directory())
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn dirExists(path: &str) -> Result<bool, rt::TsonicError> {
+    Ok(tsonic_rust_node::fs::exists_sync(path)
+        && tsonic_rust_node::fs::stat_sync(path)?.is_directory())
 }
 
-pub fn file_exists(path: String) -> Result<bool, rt::TsonicError> {
-    Ok(tsonic_rust_node::fs::exists_sync(path.as_str())
-        && tsonic_rust_node::fs::stat_sync(path.as_str())?.is_file())
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn fileExists(path: &str) -> Result<bool, rt::TsonicError> {
+    Ok(tsonic_rust_node::fs::exists_sync(path) && tsonic_rust_node::fs::stat_sync(path)?.is_file())
 }
 
-pub fn ensure_dir(path: String) -> Result<(), rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn ensureDir(path: &str) -> Result<(), rt::TsonicError> {
     tsonic_rust_node::fs::mkdir_sync_with_options(
-        path.as_str(),
+        path,
         tsonic_rust_node::fs::MakeDirectoryOptions {
             recursive: Some(true),
             ..Default::default()
@@ -72,19 +75,22 @@ pub fn ensure_dir(path: String) -> Result<(), rt::TsonicError> {
     Ok(())
 }
 
-pub fn read_text_file(path: String) -> Result<String, rt::TsonicError> {
-    reject_filesystem_link(path.clone())?;
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn readTextFile(path: String) -> Result<String, rt::TsonicError> {
+    rejectFilesystemLink(path.clone())?;
     tsonic_rust_node::fs::read_file_sync_string(path.as_str(), "utf-8")
         .map_err(rt::TsonicError::from)
 }
 
-pub fn read_binary_file(path: String) -> Result<tsonic_rust_node::buffer::Buffer, rt::TsonicError> {
-    reject_filesystem_link(path.clone())?;
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn readBinaryFile(path: String) -> Result<tsonic_rust_node::buffer::Buffer, rt::TsonicError> {
+    rejectFilesystemLink(path.clone())?;
     tsonic_rust_node::fs::read_file_sync_buffer(path.as_str()).map_err(rt::TsonicError::from)
 }
 
-pub fn write_text_file(path: String, content: String) -> Result<(), rt::TsonicError> {
-    let dir: String = tsonic_rust_node::path::dirname(&path);
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn writeTextFile(path: &str, content: &str) -> Result<(), rt::TsonicError> {
+    let dir: String = tsonic_rust_node::path::dirname(path);
     if !dir.is_empty() {
         tsonic_rust_node::fs::mkdir_sync_with_options(
             dir.as_str(),
@@ -94,16 +100,17 @@ pub fn write_text_file(path: String, content: String) -> Result<(), rt::TsonicEr
             },
         )?;
     }
-    tsonic_rust_node::fs::write_file_sync_string(path.as_str(), content.as_str(), "utf-8")?;
+    tsonic_rust_node::fs::write_file_sync_string(path, content, "utf-8")?;
     Ok(())
 }
 
-pub fn delete_dir_recursive(path: String) -> Result<(), rt::TsonicError> {
-    if !dir_exists(path.clone())? {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn deleteDirRecursive(path: &str) -> Result<(), rt::TsonicError> {
+    if !dirExists(path)? {
         return Ok(());
     }
     tsonic_rust_node::fs::rm_sync_with_options(
-        path.as_str(),
+        path,
         tsonic_rust_node::fs::RmOptions {
             recursive: Some(true),
             force: Some(true),
@@ -113,12 +120,13 @@ pub fn delete_dir_recursive(path: String) -> Result<(), rt::TsonicError> {
     Ok(())
 }
 
-pub fn reject_filesystem_link(path: String) -> Result<(), rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn rejectFilesystemLink(path: String) -> Result<(), rt::TsonicError> {
     if !tsonic_rust_node::fs::lstat_sync(path.as_str())?.is_symbolic_link() {
         return Ok(());
     }
     Err(rt::TsonicError::TsumoError(
-        crate::diagnostics::create_tsumo_error(
+        crate::diagnostics::createTsumoError(
             String::from("TSUMO_FILESYSTEM_LINK_UNSUPPORTED"),
             String::from(
                 "Symbolic links and filesystem reparse points are not supported in Tsumo-managed filesystem trees",
@@ -130,18 +138,19 @@ pub fn reject_filesystem_link(path: String) -> Result<(), rt::TsonicError> {
     ))
 }
 
-pub fn list_managed_directory_entries(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn listManagedDirectoryEntries(
     directory: String,
 ) -> Result<js_abi::JsArray<ManagedDirectoryEntry>, rt::TsonicError> {
-    if !dir_exists(directory.clone())? {
+    if !dirExists(&directory)? {
         return Ok(js_abi::JsArray::from_dense(vec![]));
     }
-    reject_filesystem_link(directory.clone())?;
+    rejectFilesystemLink(directory.clone())?;
     let names: js_abi::JsArray<String> = tsonic_rust_node::fs::readdir_sync(directory.as_str())?;
     let entries: js_abi::JsArray<ManagedDirectoryEntry> = js_abi::JsArray::from_dense(vec![]);
     {
-        let mut index: f64 = 0.0;
-        while index < (rt::conversions::usize_to_i32(names.len())? as f64) {
+        let mut index: usize = 0;
+        while index < names.len() {
             let path: String = {
                 let operation_input_0 = directory.clone();
                 tsonic_rust_node::path::join(&[
@@ -153,19 +162,16 @@ pub fn list_managed_directory_entries(
                     .as_str(),
                 ])
             };
-            reject_filesystem_link(path.clone())?;
-            {
-                let operation_input_0_2 = entries.clone();
-                operation_input_0_2.push_many_discard([ManagedDirectoryEntry::new(
-                    path.clone(),
-                    tsonic_rust_node::fs::stat_sync(path.as_str())?.is_directory(),
-                )?])
-            };
-            index += 1.0;
+            rejectFilesystemLink(path.clone())?;
+            entries.push_many_discard([ManagedDirectoryEntry::new(
+                path.clone(),
+                tsonic_rust_node::fs::stat_sync(path.as_str())?.is_directory(),
+            )?]);
+            index += 1;
         }
     }
     entries.sort(|left, right| {
-        rt::conversions::i32_to_f64(crate::utils::strings::compare_text(
+        rt::conversions::i32_to_f64(crate::utils::strings::compareText(
             left.state.with(|state| state.path.clone()),
             right.state.with(|state| state.path.clone()),
         ))
@@ -173,80 +179,73 @@ pub fn list_managed_directory_entries(
     Ok(entries)
 }
 
-pub fn list_files_top_directory(
-    root_dir: String,
-    search_pattern: String,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn listFilesTopDirectory(
+    rootDir: String,
+    searchPattern: String,
 ) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
-    let entries: js_abi::JsArray<ManagedDirectoryEntry> = list_managed_directory_entries(root_dir)?;
+    let entries: js_abi::JsArray<ManagedDirectoryEntry> = listManagedDirectoryEntries(rootDir)?;
     let files: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     {
-        let mut index: f64 = 0.0;
-        while index < (rt::conversions::usize_to_i32(entries.len())? as f64) {
+        let mut index: usize = 0;
+        while index < entries.len() {
             let entry: ManagedDirectoryEntry = match entries.get_number(index) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if !entry.state.with(|state| state.directory)
-                && matches_pattern(
+                && matchesPattern(
                     &entry.state.with(|state| state.path.clone()),
-                    search_pattern.clone(),
+                    searchPattern.clone(),
                 )?
             {
-                {
-                    let operation_input_0 = files.clone();
-                    operation_input_0
-                        .push_many_discard([entry.state.with(|state| state.path.clone())])
-                };
+                files.push_many_discard([entry.state.with(|state| state.path.clone())]);
             }
-            index += 1.0;
+            index += 1;
         }
     }
     Ok(files)
 }
 
-pub fn list_directories_top_directory(
-    root_dir: String,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn listDirectoriesTopDirectory(
+    rootDir: String,
 ) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
-    let entries: js_abi::JsArray<ManagedDirectoryEntry> = list_managed_directory_entries(root_dir)?;
+    let entries: js_abi::JsArray<ManagedDirectoryEntry> = listManagedDirectoryEntries(rootDir)?;
     let directories: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     {
-        let mut index: f64 = 0.0;
-        while index < (rt::conversions::usize_to_i32(entries.len())? as f64) {
+        let mut index: usize = 0;
+        while index < entries.len() {
             let entry: ManagedDirectoryEntry = match entries.get_number(index) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if entry.state.with(|state| state.directory) {
-                {
-                    let operation_input_0 = directories.clone();
-                    operation_input_0
-                        .push_many_discard([entry.state.with(|state| state.path.clone())])
-                };
+                directories.push_many_discard([entry.state.with(|state| state.path.clone())]);
             }
-            index += 1.0;
+            index += 1;
         }
     }
     Ok(directories)
 }
 
-pub fn list_files_recursive(
-    root_dir: String,
-    search_pattern: String,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn listFilesRecursive(
+    rootDir: String,
+    searchPattern: String,
 ) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
     let files: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     let walk: rt::Callable<(String,), rt::TsonicResult<()>> = {
-        let capture_search_pattern = search_pattern.clone();
+        let capture_search_pattern = searchPattern;
         let capture_files = files.clone();
         rt::Callable::<(String,), rt::TsonicResult<()>>::recursive(
             move |recursive_callable, callable_arguments| {
-                let current_dir = callable_arguments.0;
+                let currentDir = callable_arguments.0;
                 let entries: js_abi::JsArray<ManagedDirectoryEntry> =
-                    list_managed_directory_entries(current_dir)?;
+                    listManagedDirectoryEntries(currentDir)?;
                 {
-                    let mut index: f64 = 0.0;
-                    'loop_value: while index
-                        < (rt::conversions::usize_to_i32(entries.len())? as f64)
-                    {
+                    let mut index: usize = 0;
+                    'loop_value: while index < entries.len() {
                         let entry: ManagedDirectoryEntry = match entries.get_number(index) {
                             Some(flow_value) => flow_value,
                             None => unreachable!("checked flow selected a missing optional value"),
@@ -254,10 +253,10 @@ pub fn list_files_recursive(
                         if entry.state.with(|state| state.directory) {
                             recursive_callable
                                 .call((entry.state.with(|state| state.path.clone()),))?;
-                            index += 1.0;
+                            index += 1;
                             continue 'loop_value;
                         }
-                        if matches_pattern(
+                        if matchesPattern(
                             &entry.state.with(|state| state.path.clone()),
                             capture_search_pattern.clone(),
                         )? {
@@ -268,39 +267,40 @@ pub fn list_files_recursive(
                                     .with(|state| state.path.clone())])
                             };
                         }
-                        index += 1.0;
+                        index += 1;
                     }
                 }
                 Ok::<_, rt::TsonicError>(())
             },
         )
     };
-    walk.call((root_dir,))?;
+    walk.call((rootDir,))?;
     files.sort(|left, right| {
-        rt::conversions::i32_to_f64(crate::utils::strings::compare_text(left, right))
+        rt::conversions::i32_to_f64(crate::utils::strings::compareText(left, right))
     });
     Ok(files.clone())
 }
 
-pub fn copy_dir_recursive(src_dir: String, dest_dir: String) -> Result<(), rt::TsonicError> {
-    if !dir_exists(src_dir.clone())? {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn copyDirRecursive(srcDir: String, destDir: String) -> Result<(), rt::TsonicError> {
+    if !dirExists(&srcDir)? {
         return Ok(());
     }
-    ensure_dir(dest_dir.clone())?;
-    let files: js_abi::JsArray<String> = list_files_recursive(src_dir.clone(), String::from("*"))?;
+    ensureDir(&destDir)?;
+    let files: js_abi::JsArray<String> = listFilesRecursive(srcDir.clone(), String::from("*"))?;
     {
-        let mut i: f64 = 0.0;
-        while i < (rt::conversions::usize_to_i32(files.len())? as f64) {
-            let src_file: String = match files.get_number(i) {
+        let mut i: usize = 0;
+        while i < files.len() {
+            let srcFile: String = match files.get_number(i) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let rel_path: String = tsonic_rust_node::path::relative(&src_dir, &src_file);
-            let dest_file: String =
-                tsonic_rust_node::path::join(&[dest_dir.as_str(), rel_path.as_str()]);
-            ensure_dir(tsonic_rust_node::path::dirname(&dest_file))?;
-            tsonic_rust_node::fs::copy_file_sync(src_file.as_str(), dest_file.as_str())?;
-            i += 1.0;
+            let relPath: String = tsonic_rust_node::path::relative(&srcDir, &srcFile);
+            let destFile: String =
+                tsonic_rust_node::path::join(&[destDir.as_str(), relPath.as_str()]);
+            ensureDir(&tsonic_rust_node::path::dirname(&destFile))?;
+            tsonic_rust_node::fs::copy_file_sync(srcFile.as_str(), destFile.as_str())?;
+            i += 1;
         }
     }
     Ok(())

@@ -4,9 +4,10 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn substring_error() -> Result<(), rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn substringError() -> Result<(), rt::TsonicError> {
     Err(rt::TsonicError::TsumoError(
-        crate::diagnostics::create_tsumo_error(
+        crate::diagnostics::createTsumoError(
             String::from("TSUMO_INTERNAL_STRING_RANGE_INVALID"),
             String::from("Substring bounds are out of range"),
             None,
@@ -16,35 +17,40 @@ pub fn substring_error() -> Result<(), rt::TsonicError> {
     ))
 }
 
-pub fn require_substring_bounds(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn requireSubstringBounds(
     source: &str,
-    start_index: i32,
+    startIndex: i32,
     length: i32,
 ) -> Result<(), rt::TsonicError> {
-    if start_index < 0
+    let sourceLength: i32 = rt::conversions::usize_to_i32(js_string::js_len(source))?;
+    if startIndex < 0
         || length < 0
-        || start_index > rt::conversions::usize_to_i32(js_string::js_len(source))?
-        || start_index + length > rt::conversions::usize_to_i32(js_string::js_len(source))?
+        || startIndex > sourceLength
+        || length > sourceLength - startIndex
     {
-        substring_error()?;
+        substringError()?;
     }
     Ok(())
 }
 
-pub fn replace_text(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn replaceText(
     source: &str,
-    old_value: String,
-    new_value: String,
+    oldValue: String,
+    newValue: String,
 ) -> Result<String, rt::TsonicError> {
-    js_string::replace_all(source, &old_value, &new_value).map_err(rt::TsonicError::from)
+    js_string::replace_all(source, &oldValue, &newValue).map_err(rt::TsonicError::from)
 }
 
-pub fn index_of_text(source: &str, value: String) -> Result<i32, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn indexOfText(source: &str, value: String) -> Result<i32, rt::TsonicError> {
     rt::conversions::isize_to_i32(js_string::index_of_from_start(source, &value))
         .map_err(rt::TsonicError::from)
 }
 
-pub fn index_of_text_ignore_case(source: &str, value: &str) -> Result<i32, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn indexOfTextIgnoreCase(source: &str, value: &str) -> Result<i32, rt::TsonicError> {
     rt::conversions::isize_to_i32({
         let operation_input_0 = js_string::to_lower_case(source);
         js_string::index_of_from_start(&operation_input_0, &js_string::to_lower_case(value))
@@ -52,29 +58,29 @@ pub fn index_of_text_ignore_case(source: &str, value: &str) -> Result<i32, rt::T
     .map_err(rt::TsonicError::from)
 }
 
-pub fn index_of_text_from(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn indexOfTextFrom(
     source: &str,
     value: String,
-    start_index: i32,
+    startIndex: i32,
 ) -> Result<i32, rt::TsonicError> {
-    rt::conversions::isize_to_i32(js_string::index_of(
-        source,
-        &value,
-        rt::conversions::i32_to_f64(start_index),
-    ))
-    .map_err(rt::TsonicError::from)
+    rt::conversions::isize_to_i32(js_string::index_of(source, &value, startIndex))
+        .map_err(rt::TsonicError::from)
 }
 
-pub fn last_index_of_text(source: &str, value: String) -> Result<i32, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn lastIndexOfText(source: &str, value: String) -> Result<i32, rt::TsonicError> {
     rt::conversions::isize_to_i32(js_string::last_index_of_from_end(source, &value))
         .map_err(rt::TsonicError::from)
 }
 
-pub fn contains_text(source: &str, value: String) -> bool {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn containsText(source: &str, value: String) -> bool {
     js_string::includes_from_start(source, &value)
 }
 
-pub fn compare_text(left: String, right: String) -> i32 {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn compareText(left: String, right: String) -> i32 {
     if rt::source_string_less_than(&left, &right) {
         -1
     } else if rt::source_string_greater_than(&left, &right) {
@@ -84,74 +90,71 @@ pub fn compare_text(left: String, right: String) -> i32 {
     }
 }
 
-pub fn substring_from(source: &str, start_index: i32) -> Result<String, rt::TsonicError> {
-    if start_index < 0 || start_index > rt::conversions::usize_to_i32(js_string::js_len(source))? {
-        substring_error()?;
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn substringFrom(source: &str, startIndex: i32) -> Result<String, rt::TsonicError> {
+    if startIndex < 0 || startIndex > rt::conversions::usize_to_i32(js_string::js_len(source))? {
+        substringError()?;
     }
-    js_string::substring_from(source, rt::conversions::i32_to_f64(start_index))
-        .map_err(rt::TsonicError::from)
+    js_string::substring_from(source, startIndex).map_err(rt::TsonicError::from)
 }
 
-pub fn substring_count(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn substringCount(
     source: &str,
-    start_index: i32,
+    startIndex: i32,
     length: i32,
 ) -> Result<String, rt::TsonicError> {
-    require_substring_bounds(source, start_index, length)?;
-    js_string::substring(
-        source,
-        rt::conversions::i32_to_f64(start_index),
-        rt::conversions::i32_to_f64(start_index + length),
-    )
-    .map_err(rt::TsonicError::from)
+    requireSubstringBounds(source, startIndex, length)?;
+    js_string::substring(source, startIndex, startIndex + length).map_err(rt::TsonicError::from)
 }
 
-pub fn char_at_text(source: &str, index: i32) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn charAtText(source: &str, index: i32) -> Result<String, rt::TsonicError> {
     if index < 0 || index >= rt::conversions::usize_to_i32(js_string::js_len(source))? {
         return Ok(String::from(""));
     }
-    js_string::char_at(source, rt::conversions::i32_to_f64(index)).map_err(rt::TsonicError::from)
+    js_string::char_at(source, index).map_err(rt::TsonicError::from)
 }
 
-pub fn code_point_at_text(source: &str, index: i32) -> Result<String, rt::TsonicError> {
-    let code_point: Option<f64> =
-        js_string::code_point_at(source, rt::conversions::i32_to_f64(index));
-    Ok(if code_point.is_none() {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn codePointAtText(source: &str, index: i32) -> Result<String, rt::TsonicError> {
+    let codePoint: Option<u32> = js_string::code_point_at(source, index);
+    Ok(if codePoint.is_none() {
         String::from("")
     } else {
-        js_string::from_code_point(&[match code_point.as_ref() {
+        js_string::from_code_point::<u32>(&[match codePoint.as_ref() {
             Some(flow_value) => *flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
         }])?
     })
 }
 
-pub fn next_code_point_index(source: &str, index: i32) -> Result<i32, rt::TsonicError> {
-    let code_point: Option<f64> =
-        js_string::code_point_at(source, rt::conversions::i32_to_f64(index));
-    if code_point.is_none() {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn nextCodePointIndex(source: &str, index: i32) -> Result<i32, rt::TsonicError> {
+    let codePoint: Option<u32> = js_string::code_point_at(source, index);
+    if codePoint.is_none() {
         return rt::conversions::usize_to_i32(js_string::js_len(source))
             .map_err(rt::TsonicError::from);
     }
     let width: f64 = {
-        let conditional_test_3 = (match code_point.as_ref() {
+        let conditional_test_3 = (match codePoint.as_ref() {
             Some(flow_value) => *flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
-        }) <= 127.0;
+        }) <= 127;
         if conditional_test_3 {
             1.0
         } else {
-            let conditional_test_2 = (match code_point.as_ref() {
+            let conditional_test_2 = (match codePoint.as_ref() {
                 Some(flow_value_2) => *flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
-            }) <= 2047.0;
+            }) <= 2047;
             if conditional_test_2 {
                 2.0
             } else {
-                let conditional_test = (match code_point.as_ref() {
+                let conditional_test = (match codePoint.as_ref() {
                     Some(flow_value_3) => *flow_value_3,
                     None => unreachable!("checked flow selected a missing optional value"),
-                }) <= 65535.0;
+                }) <= 65535;
                 if conditional_test { 3.0 } else { 4.0 }
             }
         }
@@ -159,80 +162,86 @@ pub fn next_code_point_index(source: &str, index: i32) -> Result<i32, rt::Tsonic
     rt::conversions::f64_to_i32(index as f64 + width).map_err(rt::TsonicError::from)
 }
 
-pub fn code_point_length(source: &str) -> Result<i32, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn codePointLength(source: &str) -> Result<i32, rt::TsonicError> {
+    let sourceLength: i32 = rt::conversions::usize_to_i32(js_string::js_len(source))?;
     let mut count: i32 = 0;
     let mut index: i32 = 0;
-    while index < rt::conversions::usize_to_i32(js_string::js_len(source))? {
-        index = next_code_point_index(source, index)?;
+    while index < sourceLength {
+        index = nextCodePointIndex(source, index)?;
         count += 1;
     }
     Ok(count)
 }
 
-pub fn native_index_at_code_point(
-    source: &str,
-    code_point_index: i32,
-) -> Result<i32, rt::TsonicError> {
-    if code_point_index < 0 {
-        substring_error()?;
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn nativeIndexAtCodePoint(source: &str, codePointIndex: i32) -> Result<i32, rt::TsonicError> {
+    if codePointIndex < 0 {
+        substringError()?;
     }
-    let mut current_code_point: i32 = 0;
-    let mut native_index: i32 = 0;
-    while current_code_point < code_point_index
-        && native_index < rt::conversions::usize_to_i32(js_string::js_len(source))?
-    {
-        native_index = next_code_point_index(source, native_index)?;
-        current_code_point += 1;
+    let sourceLength: i32 = rt::conversions::usize_to_i32(js_string::js_len(source))?;
+    let mut currentCodePoint: i32 = 0;
+    let mut nativeIndex: i32 = 0;
+    while currentCodePoint < codePointIndex && nativeIndex < sourceLength {
+        nativeIndex = nextCodePointIndex(source, nativeIndex)?;
+        currentCodePoint += 1;
     }
-    if current_code_point != code_point_index {
-        substring_error()?;
+    if currentCodePoint != codePointIndex {
+        substringError()?;
     }
-    Ok(native_index)
+    Ok(nativeIndex)
 }
 
-pub fn substring_code_points(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn substringCodePoints(
     source: &str,
-    start_index: i32,
+    startIndex: i32,
     length: i32,
 ) -> Result<String, rt::TsonicError> {
-    if start_index < 0 || length < 0 {
-        substring_error()?;
+    if startIndex < 0 || length < 0 {
+        substringError()?;
     }
-    let start: i32 = native_index_at_code_point(source, start_index)?;
-    let end: i32 = native_index_at_code_point(source, start_index + length)?;
-    substring_count(source, start, end - start)
+    let start: i32 = nativeIndexAtCodePoint(source, startIndex)?;
+    let end: i32 = nativeIndexAtCodePoint(source, startIndex + length)?;
+    substringCount(source, start, end - start)
 }
 
-pub fn trim_start_code_points(source: &str, cutset: &str) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn trimStartCodePoints(source: &str, cutset: &str) -> Result<String, rt::TsonicError> {
+    let sourceLength: i32 = rt::conversions::usize_to_i32(js_string::js_len(source))?;
     let mut start: i32 = 0;
-    'loop_value: while start < rt::conversions::usize_to_i32(js_string::js_len(source))? {
-        let next: i32 = next_code_point_index(source, start)?;
-        if !js_string::includes_from_start(cutset, &substring_count(source, start, next - start)?) {
+    'loop_value: while start < sourceLength {
+        let next: i32 = nextCodePointIndex(source, start)?;
+        if !js_string::includes_from_start(cutset, &substringCount(source, start, next - start)?) {
             break 'loop_value;
         }
         start = next;
     }
-    substring_from(source, start)
+    substringFrom(source, start)
 }
 
-pub fn trim_end_code_points(source: &str, cutset: &str) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn trimEndCodePoints(source: &str, cutset: &str) -> Result<String, rt::TsonicError> {
+    let sourceLength: i32 = rt::conversions::usize_to_i32(js_string::js_len(source))?;
     let mut index: i32 = 0;
     let mut end: i32 = 0;
-    while index < rt::conversions::usize_to_i32(js_string::js_len(source))? {
-        let next: i32 = next_code_point_index(source, index)?;
-        if !js_string::includes_from_start(cutset, &substring_count(source, index, next - index)?) {
+    while index < sourceLength {
+        let next: i32 = nextCodePointIndex(source, index)?;
+        if !js_string::includes_from_start(cutset, &substringCount(source, index, next - index)?) {
             end = next;
         }
         index = next;
     }
-    substring_count(source, 0, end)
+    substringCount(source, 0, end)
 }
 
-pub fn trim_code_points(source: &str, cutset: &str) -> Result<String, rt::TsonicError> {
-    trim_end_code_points(&trim_start_code_points(source, cutset)?, cutset)
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn trimCodePoints(source: &str, cutset: &str) -> Result<String, rt::TsonicError> {
+    trimEndCodePoints(&trimStartCodePoints(source, cutset)?, cutset)
 }
 
-pub fn is_unicode_space(value: f64) -> bool {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isUnicodeSpace(value: f64) -> bool {
     (9.0..=13.0).contains(&value)
         || value == 32.0
         || value == 133.0
@@ -246,41 +255,46 @@ pub fn is_unicode_space(value: f64) -> bool {
         || value == 12288.0
 }
 
-pub fn trim_unicode_space(source: &str) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn trimUnicodeSpace(source: &str) -> Result<String, rt::TsonicError> {
+    let sourceLength: i32 = rt::conversions::usize_to_i32(js_string::js_len(source))?;
     let mut start: i32 = 0;
-    'loop_value: while start < rt::conversions::usize_to_i32(js_string::js_len(source))? {
-        let code_point: Option<f64> =
-            js_string::code_point_at(source, rt::conversions::i32_to_f64(start));
-        if code_point.is_none()
-            || !is_unicode_space(match code_point.as_ref() {
-                Some(flow_value) => *flow_value,
-                None => unreachable!("checked flow selected a missing optional value"),
-            })
+    'loop_value: while start < sourceLength {
+        let codePoint: Option<u32> = js_string::code_point_at(source, start);
+        if codePoint.is_none()
+            || !isUnicodeSpace(
+                (match codePoint.as_ref() {
+                    Some(flow_value) => *flow_value,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }) as f64,
+            )
         {
             break 'loop_value;
         }
-        start = next_code_point_index(source, start)?;
+        start = nextCodePointIndex(source, start)?;
     }
     let mut index: i32 = start;
     let mut end: i32 = start;
-    while index < rt::conversions::usize_to_i32(js_string::js_len(source))? {
-        let code_point: Option<f64> =
-            js_string::code_point_at(source, rt::conversions::i32_to_f64(index));
-        let next: i32 = next_code_point_index(source, index)?;
-        if code_point.is_some()
-            && !is_unicode_space(match code_point.as_ref() {
-                Some(flow_value_2) => *flow_value_2,
-                None => unreachable!("checked flow selected a missing optional value"),
-            })
+    while index < sourceLength {
+        let codePoint: Option<u32> = js_string::code_point_at(source, index);
+        let next: i32 = nextCodePointIndex(source, index)?;
+        if codePoint.is_some()
+            && !isUnicodeSpace(
+                (match codePoint.as_ref() {
+                    Some(flow_value_2) => *flow_value_2,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }) as f64,
+            )
         {
             end = next;
         }
         index = next;
     }
-    substring_count(source, start, end - start)
+    substringCount(source, start, end - start)
 }
 
-pub fn zero_pad_integer(value: i32, width: i32) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn zeroPadInteger(value: i32, width: i32) -> Result<String, rt::TsonicError> {
     let mut result: String = rt::source_string(&value);
     while rt::conversions::usize_to_i32(js_string::js_len(&result))? < width {
         result = format!("{}{}", String::from("0"), result);
@@ -288,37 +302,37 @@ pub fn zero_pad_integer(value: i32, width: i32) -> Result<String, rt::TsonicErro
     Ok(result)
 }
 
-pub fn trim_start_char(source: String, ch: String) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn trimStartChar(source: String, ch: String) -> Result<String, rt::TsonicError> {
     if ch.is_empty()
-        || next_code_point_index(&ch, 0)? != rt::conversions::usize_to_i32(js_string::js_len(&ch))?
+        || nextCodePointIndex(&ch, 0)? != rt::conversions::usize_to_i32(js_string::js_len(&ch))?
     {
         return Ok(source);
     }
     let mut start: f64 = 0.0;
-    while start < (rt::conversions::usize_to_i32(js_string::js_len(&source))? as f64)
-        && js_string::starts_with(&source, &ch, start)
+    while start < (js_string::js_len(&source) as f64) && js_string::starts_with(&source, &ch, start)
     {
-        start +=
-            rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(js_string::js_len(&ch))?);
+        start += js_string::js_len(&ch) as f64;
     }
     js_string::substring_from(&source, start).map_err(rt::TsonicError::from)
 }
 
-pub fn trim_end_char(source: String, ch: String) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn trimEndChar(source: String, ch: String) -> Result<String, rt::TsonicError> {
     if ch.is_empty()
-        || next_code_point_index(&ch, 0)? != rt::conversions::usize_to_i32(js_string::js_len(&ch))?
+        || nextCodePointIndex(&ch, 0)? != rt::conversions::usize_to_i32(js_string::js_len(&ch))?
     {
         return Ok(source);
     }
-    let mut end: i32 = rt::conversions::usize_to_i32(js_string::js_len(&source))?;
-    while end > 0 && js_string::ends_with(&source, &ch, rt::conversions::i32_to_f64(end)) {
-        end -= rt::conversions::usize_to_i32(js_string::js_len(&ch))?;
+    let mut end: usize = js_string::js_len(&source);
+    while end != 0 && js_string::ends_with(&source, &ch, end) {
+        end -= js_string::js_len(&ch);
     }
-    js_string::substring(&source, 0.0, rt::conversions::i32_to_f64(end))
-        .map_err(rt::TsonicError::from)
+    js_string::substring(&source, 0.0, end).map_err(rt::TsonicError::from)
 }
 
-pub fn replace_line_endings(source: &str, replacement: String) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn replaceLineEndings(source: &str, replacement: String) -> Result<String, rt::TsonicError> {
     let normalized: String =
         js_string::replace_all(&js_string::replace_all(source, "\r\n", "\n")?, "\r", "\n")?;
     Ok(if replacement == "\n" {
@@ -328,7 +342,8 @@ pub fn replace_line_endings(source: &str, replacement: String) -> Result<String,
     })
 }
 
-pub fn split_lines(source: &str) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
-    js_string::split_all(&replace_line_endings(source, String::from("\n"))?, "\n")
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn splitLines(source: &str) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
+    js_string::split_all(&replaceLineEndings(source, String::from("\n"))?, "\n")
         .map_err(rt::TsonicError::from)
 }

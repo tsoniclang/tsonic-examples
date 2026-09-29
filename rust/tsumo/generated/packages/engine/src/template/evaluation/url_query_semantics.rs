@@ -4,31 +4,28 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn is_hex_digit(value: &str) -> bool {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isHexDigit(value: &str) -> bool {
     let code: f64 = js_string::char_code_at(value, 0.0);
     (48.0..=57.0).contains(&code) || (65.0..=70.0).contains(&code) || (97.0..=102.0).contains(&code)
 }
 
-pub fn decode_query_component(value: &str) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn decodeQueryComponent(value: &str) -> Result<String, rt::TsonicError> {
+    let valueLength: i32 = rt::conversions::usize_to_i32(js_string::js_len(value))?;
     {
         let mut index: i32 = 0;
-        'loop_value: while index < rt::conversions::usize_to_i32(js_string::js_len(value))? {
-            if crate::utils::strings::code_point_at_text(value, index)? != "%" {
-                index = crate::utils::strings::next_code_point_index(value, index)?;
+        'loop_value: while index < valueLength {
+            if crate::utils::strings::codePointAtText(value, index)? != "%" {
+                index = crate::utils::strings::nextCodePointIndex(value, index)?;
                 continue 'loop_value;
             }
-            if index + 2 >= rt::conversions::usize_to_i32(js_string::js_len(value))?
-                || !is_hex_digit(&crate::utils::strings::code_point_at_text(
-                    value,
-                    index + 1,
-                )?)
-                || !is_hex_digit(&crate::utils::strings::code_point_at_text(
-                    value,
-                    index + 2,
-                )?)
+            if index + 2 >= valueLength
+                || !isHexDigit(&crate::utils::strings::codePointAtText(value, index + 1)?)
+                || !isHexDigit(&crate::utils::strings::codePointAtText(value, index + 2)?)
             {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_TEMPLATE_URL_QUERY_INVALID"),
                         String::from("URL query contains an invalid percent escape"),
                         None,
@@ -38,21 +35,23 @@ pub fn decode_query_component(value: &str) -> Result<String, rt::TsonicError> {
                 ));
             }
             index += 2;
-            index = crate::utils::strings::next_code_point_index(value, index)?;
+            index = crate::utils::strings::nextCodePointIndex(value, index)?;
         }
     }
     let try_body: rt::TsonicResult<rt::Completion<String>> = rt::completion_region(|| {
         Ok(rt::Completion::Return(
-            crate::utils::url_components::decode_url_component(
-                crate::utils::strings::replace_text(value, String::from("+"), String::from(" "))?,
-            )?,
+            crate::utils::url_components::decodeUrlComponent(&crate::utils::strings::replaceText(
+                value,
+                String::from("+"),
+                String::from(" "),
+            )?)?,
         ))
     });
     let try_flow: rt::TsonicResult<rt::Completion<String>> = match try_body {
         Ok(completion) => Ok(completion),
         Err(__error) => rt::completion_region(|| {
             Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_TEMPLATE_URL_QUERY_INVALID"),
                     String::from("URL query contains invalid UTF-8 data"),
                     None,
@@ -74,72 +73,75 @@ pub fn decode_query_component(value: &str) -> Result<String, rt::TsonicError> {
     }
 }
 
-pub fn parse_url_query(
-    raw_query: &str,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseUrlQuery(
+    rawQuery: &str,
 ) -> Result<crate::template::values::url::UrlQueryValue, rt::TsonicError> {
     let values: js_abi::JsMap<String, js_abi::JsArray<String>> = js_abi::JsMap::new();
-    if raw_query.is_empty() {
+    if rawQuery.is_empty() {
         return crate::template::values::url::UrlQueryValue::new(values.clone());
     }
-    let fields: js_abi::JsArray<String> = js_string::split_all(raw_query, "&")?;
+    let fields: js_abi::JsArray<String> = js_string::split_all(rawQuery, "&")?;
     {
-        let mut index: f64 = 0.0;
-        'loop_value: while index < (rt::conversions::usize_to_i32(fields.len())? as f64) {
+        let mut index: usize = 0;
+        'loop_value: while index < fields.len() {
             let field: String = match fields.get_number(index) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if field.is_empty() {
-                index += 1.0;
+                index += 1;
                 continue 'loop_value;
             }
-            let separator: i32 =
-                rt::conversions::isize_to_i32(js_string::index_of_from_start(&field, "="))?;
-            let raw_name: String = if separator < 0 {
+            let separator: isize = js_string::index_of_from_start(&field, "=");
+            let rawName: String = if separator < 0 {
                 field.clone()
             } else {
-                crate::utils::strings::substring_count(&field, 0, separator)?
+                crate::utils::strings::substringCount(
+                    &field,
+                    0,
+                    rt::conversions::isize_to_i32(separator)?,
+                )?
             };
-            let raw_value: String = if separator < 0 {
+            let rawValue: String = if separator < 0 {
                 String::from("")
             } else {
-                crate::utils::strings::substring_from(&field, separator + 1)?
+                crate::utils::strings::substringFrom(
+                    &field,
+                    rt::conversions::isize_to_i32(separator + 1)?,
+                )?
             };
-            let name: String = decode_query_component(&raw_name)?;
-            let value: String = decode_query_component(&raw_value)?;
+            let name: String = decodeQueryComponent(&rawName)?;
+            let value: String = decodeQueryComponent(&rawValue)?;
             let existing: Option<js_abi::JsArray<String>> = values.get(&name);
             if existing.is_none() {
-                values.set_discard(
-                    name.clone(),
-                    js_abi::JsArray::from_dense(vec![value.clone()]),
-                );
+                values.set_discard(name, js_abi::JsArray::from_dense(vec![value.clone()]));
             } else {
                 match existing.as_ref() {
                     Some(flow_value_2) => flow_value_2.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
-                .push_many_discard([value.clone()]);
+                .push_many_discard([value]);
             }
-            index += 1.0;
+            index += 1;
         }
     }
     crate::template::values::url::UrlQueryValue::new(values.clone())
 }
 
-pub fn get_url_query_value(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn getUrlQueryValue(
     query: js_abi::JsMap<String, js_abi::JsArray<String>>,
     name: String,
-) -> Result<Option<String>, rt::TsonicError> {
+) -> Option<String> {
     let values: Option<js_abi::JsArray<String>> = query.get(&name);
-    Ok({
+    {
         let conditional_test = values.is_none()
-            || rt::conversions::usize_to_i32(
-                match values.as_ref() {
-                    Some(flow_value) => flow_value.clone(),
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }
-                .len(),
-            )? == 0;
+            || match values.as_ref() {
+                Some(flow_value) => flow_value.clone(),
+                None => unreachable!("checked flow selected a missing optional value"),
+            }
+            .is_empty();
         if conditional_test {
             Option::<String>::None
         } else {
@@ -149,5 +151,5 @@ pub fn get_url_query_value(
             }
             .get_number(0.0)
         }
-    })
+    }
 }

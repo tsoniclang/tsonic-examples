@@ -4,18 +4,18 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn call_template_function(
-    name_raw: String,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn callTemplateFunction(
+    nameRaw: String,
     args: js_abi::JsArray<crate::template::values::base::TemplateValue>,
     scope: crate::template::scope::RenderScope,
     environment: crate::template::environment::TemplateEnvironment,
     overrides: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
     defines: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
 ) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
-    let name: String =
-        crate::template::functions::function_registry::canonical_template_function_name(
-            js_string::to_lower_case(&js_string::trim(&name_raw)),
-        );
+    let name: String = crate::template::functions::function_registry::canonicalTemplateFunctionName(
+        js_string::to_lower_case(&js_string::trim(&nameRaw)),
+    );
     let context: crate::template::functions::function_context::TemplateFunctionContext =
         crate::template::functions::function_context::TemplateFunctionContext::new(
             scope,
@@ -24,8 +24,8 @@ pub fn call_template_function(
             defines,
         )?;
     let mut result: Option<crate::template::values::base::TemplateValue> =
-        crate::template::functions::context_functions::call_context_function(
-            &name_raw,
+        crate::template::functions::context_functions::callContextFunction(
+            &nameRaw,
             &name,
             args.clone(),
             context.clone(),
@@ -36,7 +36,7 @@ pub fn call_template_function(
             None => unreachable!("checked flow selected a missing optional value"),
         });
     }
-    result = crate::template::functions::resource_functions::call_resource_function(
+    result = crate::template::functions::resource_functions::callResourceFunction(
         &name,
         args.clone(),
         context.clone(),
@@ -47,7 +47,7 @@ pub fn call_template_function(
             None => unreachable!("checked flow selected a missing optional value"),
         });
     }
-    result = crate::template::functions::template_functions::call_template_function_family(
+    result = crate::template::functions::template_functions::callTemplateFunctionFamily(
         &name,
         args.clone(),
         context.clone(),
@@ -58,7 +58,7 @@ pub fn call_template_function(
             None => unreachable!("checked flow selected a missing optional value"),
         });
     }
-    result = crate::template::functions::collection_functions::call_collection_function(
+    result = crate::template::functions::collection_functions::callCollectionFunction(
         &name,
         args.clone(),
         context.clone(),
@@ -69,7 +69,7 @@ pub fn call_template_function(
             None => unreachable!("checked flow selected a missing optional value"),
         });
     }
-    result = crate::template::functions::scalar_functions::call_scalar_function(
+    result = crate::template::functions::scalar_functions::callScalarFunction(
         &name,
         args.clone(),
         context.clone(),
@@ -80,14 +80,14 @@ pub fn call_template_function(
             None => unreachable!("checked flow selected a missing optional value"),
         });
     }
-    if crate::template::functions::function_registry::is_known_template_function(name.clone()) {
+    if crate::template::functions::function_registry::isKnownTemplateFunction(name.clone()) {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_TEMPLATE_FUNCTION_ARGUMENTS_INVALID"),
                 format!(
                     "{}{}{}",
                     String::from("Template function '"),
-                    name_raw,
+                    nameRaw,
                     String::from("' does not accept the supplied arguments")
                 ),
                 {
@@ -102,13 +102,9 @@ pub fn call_template_function(
         ));
     }
     Err(rt::TsonicError::TsumoError(
-        crate::diagnostics::create_tsumo_error(
+        crate::diagnostics::createTsumoError(
             String::from("TSUMO_TEMPLATE_UNKNOWN_FUNCTION"),
-            format!(
-                "{}{}",
-                String::from("Unknown template function: "),
-                name_raw
-            ),
+            format!("{}{}", String::from("Unknown template function: "), nameRaw),
             {
                 let dispatch_receiver_2 = &context.state.with(|state| state.scope.clone());
                 dispatch_receiver_2

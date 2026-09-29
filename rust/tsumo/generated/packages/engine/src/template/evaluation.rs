@@ -10,6 +10,9 @@ pub mod evaluate;
 pub mod expression_semantics;
 
 #[doc(hidden)]
+pub mod json_template_values;
+
+#[doc(hidden)]
 pub mod menu_semantics;
 
 #[doc(hidden)]

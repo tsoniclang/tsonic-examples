@@ -2,12 +2,13 @@
 
 use crate::program as rt;
 
-pub fn split_url_parts(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn splitUrlParts(
     uri: crate::template::values::url::ParsedUrl,
 ) -> Result<crate::template::values::url::UrlParts, rt::TsonicError> {
     crate::template::values::url::UrlParts::new(
         uri.state.with(|state| state.path.clone()),
-        uri.state.with(|state| state.raw_query.clone()),
+        uri.state.with(|state| state.rawQuery.clone()),
         uri.state.with(|state| state.fragment.clone()),
     )
 }

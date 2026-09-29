@@ -2,6 +2,10 @@
 
 use crate::program as rt;
 
+std::thread_local! {
+    pub static RESOURCE_NAMESPACE_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<ResourceNamespaceValueClass>> = const { rt::ModuleCell::new() };
+}
+
 #[doc(hidden)]
 pub trait ResourceNamespaceValueDispatch:
     crate::template::values::base::TemplateValueDispatch
@@ -54,7 +58,6 @@ impl rt::ObjectIdentityCarrier for ResourceNamespaceValue {
 }
 
 pub(crate) struct ResourceNamespaceValueRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     #[expect(dead_code, reason = "retains unused generated storage")]
     state: rt::ObjectState<ResourceNamespaceValueState>,
@@ -87,7 +90,30 @@ impl Default for ResourceNamespaceValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for ResourceNamespaceValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for ResourceNamespaceValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) = output
+            .downcast_mut::<Option<alloc::rc::Rc<dyn ResourceNamespaceValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -115,6 +141,10 @@ impl ResourceNamespaceValueDispatch for ResourceNamespaceValueRoot {
     ) -> Option<alloc::rc::Rc<dyn ResourceNamespaceValueDispatch + 'static>> {
         Some(self)
     }
+}
+
+std::thread_local! {
+    pub static RESOURCE_DATA_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<ResourceDataValueClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -206,7 +236,30 @@ impl ResourceDataValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for ResourceDataValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for ResourceDataValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn ResourceDataValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -251,6 +304,10 @@ impl ResourceDataValueDispatch for ResourceDataValueRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+std::thread_local! {
+    pub static RESOURCE_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<ResourceValueClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -352,7 +409,30 @@ impl ResourceValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for ResourceValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for ResourceValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn ResourceValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -414,4 +494,101 @@ impl ResourceValueDispatch for ResourceValueRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+pub struct ResourceNamespaceValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for ResourceNamespaceValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for ResourceNamespaceValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for ResourceNamespaceValueClass {}
+
+pub struct ResourceDataValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for ResourceDataValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for ResourceDataValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for ResourceDataValueClass {}
+
+pub struct ResourceValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for ResourceValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for ResourceValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for ResourceValueClass {}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = {
+            alloc::rc::Rc::new(ResourceNamespaceValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        RESOURCE_NAMESPACE_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding| module_binding.initialize(module_value))
+    };
+    {
+        let module_value_2 = {
+            alloc::rc::Rc::new(ResourceDataValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        RESOURCE_DATA_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding_2| module_binding_2.initialize(module_value_2))
+    };
+    {
+        let module_value_3 = {
+            alloc::rc::Rc::new(ResourceValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        RESOURCE_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding_3| module_binding_3.initialize(module_value_3))
+    };
 }

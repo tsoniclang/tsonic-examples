@@ -5,6 +5,9 @@ use tsonic_rust_js::abi as js_abi;
 
 #[doc(hidden)]
 pub trait ModuleMountDispatch {
+    fn project_module_mount(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_module_mount_to_module_mount(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ModuleMountDispatch + 'static>> {
@@ -83,7 +86,24 @@ impl ModuleMount {
     }
 }
 
+impl rt::ObjectIdentityCarrier for ModuleMountRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl ModuleMountDispatch for ModuleMountRoot {
+    fn project_module_mount(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn ModuleMountDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_module_mount_to_module_mount(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ModuleMountDispatch + 'static>> {
@@ -121,6 +141,9 @@ impl ModuleMountDispatch for ModuleMountRoot {
 
 #[doc(hidden)]
 pub trait SiteConfigDispatch {
+    fn project_site_config(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_site_config_to_site_config(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn SiteConfigDispatch + 'static>> {
@@ -165,17 +188,18 @@ pub trait SiteConfigDispatch {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct SiteConfigState {
     pub title: String,
-    pub base_url: String,
-    pub language_code: String,
-    pub content_dir: String,
+    pub baseURL: String,
+    pub languageCode: String,
+    pub contentDir: String,
     pub languages: js_abi::JsArray<crate::models::language::LanguageConfig>,
     pub theme: Option<String>,
     pub copyright: Option<String>,
-    pub params: js_abi::JsMap<String, crate::params::ParamValue>,
-    pub menus: js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>>,
-    pub module_mounts: js_abi::JsArray<ModuleMount>,
+    pub Params: js_abi::JsMap<String, crate::params::ParamValue>,
+    pub Menus: js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>>,
+    pub moduleMounts: js_abi::JsArray<ModuleMount>,
 }
 
 #[derive(Clone)]
@@ -213,16 +237,17 @@ pub(crate) struct SiteConfigRoot {
 
 impl SiteConfig {
     #[doc(hidden)]
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn initialize_state(
         title: String,
-        base_url: String,
-        language_code: String,
+        baseURL: String,
+        languageCode: String,
         theme: Option<String>,
         copyright: Option<String>,
     ) -> Result<SiteConfigState, rt::TsonicError> {
         let field_title: String = title;
-        let field_base_url: String = base_url;
-        let field_language_code: String = language_code;
+        let field_base_url: String = baseURL;
+        let field_language_code: String = languageCode;
         let field_content_dir: String = String::from("content");
         let empty: js_abi::JsArray<crate::models::language::LanguageConfig> =
             js_abi::JsArray::from_dense(vec![]);
@@ -234,30 +259,31 @@ impl SiteConfig {
             String,
             js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
         > = js_abi::JsMap::new();
-        let empty_mounts: js_abi::JsArray<ModuleMount> = js_abi::JsArray::from_dense(vec![]);
-        let field_module_mounts: js_abi::JsArray<ModuleMount> = empty_mounts;
+        let emptyMounts: js_abi::JsArray<ModuleMount> = js_abi::JsArray::from_dense(vec![]);
+        let field_module_mounts: js_abi::JsArray<ModuleMount> = emptyMounts;
         Ok(SiteConfigState {
             title: field_title,
-            base_url: field_base_url,
-            language_code: field_language_code,
-            content_dir: field_content_dir,
+            baseURL: field_base_url,
+            languageCode: field_language_code,
+            contentDir: field_content_dir,
             languages: field_languages,
             theme: field_theme,
             copyright: field_copyright,
-            params: field_params,
-            menus: field_menus,
-            module_mounts: field_module_mounts,
+            Params: field_params,
+            Menus: field_menus,
+            moduleMounts: field_module_mounts,
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         title: String,
-        base_url: String,
-        language_code: String,
+        baseURL: String,
+        languageCode: String,
         theme: Option<String>,
         copyright: Option<String>,
     ) -> Result<SiteConfig, rt::TsonicError> {
-        let state = SiteConfig::initialize_state(title, base_url, language_code, theme, copyright)?;
+        let state = SiteConfig::initialize_state(title, baseURL, languageCode, theme, copyright)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(SiteConfigRoot {
             identity: identity.clone(),
@@ -270,7 +296,24 @@ impl SiteConfig {
     }
 }
 
+impl rt::ObjectIdentityCarrier for SiteConfigRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl SiteConfigDispatch for SiteConfigRoot {
+    fn project_site_config(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn SiteConfigDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_site_config_to_site_config(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn SiteConfigDispatch + 'static>> {
@@ -292,42 +335,42 @@ impl SiteConfigDispatch for SiteConfigRoot {
     }
 
     fn read_site_config_base_url(&self) -> String {
-        self.state.with(|state| state.base_url.clone())
+        self.state.with(|state| state.baseURL.clone())
     }
 
     fn write_site_config_base_url(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.base_url = value)
+                self.state.with_mut(|state| state.baseURL = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_site_config_language_code(&self) -> String {
-        self.state.with(|state| state.language_code.clone())
+        self.state.with(|state| state.languageCode.clone())
     }
 
     fn write_site_config_language_code(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.language_code = value)
+                self.state.with_mut(|state| state.languageCode = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_site_config_content_dir(&self) -> String {
-        self.state.with(|state| state.content_dir.clone())
+        self.state.with(|state| state.contentDir.clone())
     }
 
     fn write_site_config_content_dir(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.content_dir = value)
+                self.state.with_mut(|state| state.contentDir = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -381,7 +424,7 @@ impl SiteConfigDispatch for SiteConfigRoot {
     }
 
     fn read_site_config_params(&self) -> js_abi::JsMap<String, crate::params::ParamValue> {
-        self.state.with(|state| state.params.clone())
+        self.state.with(|state| state.Params.clone())
     }
 
     fn write_site_config_params(
@@ -391,7 +434,7 @@ impl SiteConfigDispatch for SiteConfigRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.params = value)
+                self.state.with_mut(|state| state.Params = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -400,7 +443,7 @@ impl SiteConfigDispatch for SiteConfigRoot {
     fn read_site_config_menus(
         &self,
     ) -> js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>> {
-        self.state.with(|state| state.menus.clone())
+        self.state.with(|state| state.Menus.clone())
     }
 
     fn write_site_config_menus(
@@ -410,14 +453,14 @@ impl SiteConfigDispatch for SiteConfigRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.menus = value)
+                self.state.with_mut(|state| state.Menus = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_site_config_module_mounts(&self) -> js_abi::JsArray<ModuleMount> {
-        self.state.with(|state| state.module_mounts.clone())
+        self.state.with(|state| state.moduleMounts.clone())
     }
 
     fn write_site_config_module_mounts(
@@ -427,7 +470,7 @@ impl SiteConfigDispatch for SiteConfigRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.module_mounts = value)
+                self.state.with_mut(|state| state.moduleMounts = value)
             };
             Ok::<_, rt::TsonicError>(())
         }

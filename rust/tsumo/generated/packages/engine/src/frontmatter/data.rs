@@ -4,6 +4,7 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct FrontMatterState {
     pub title: Option<String>,
     pub date: Option<js_abi::JsDate>,
@@ -14,7 +15,7 @@ pub struct FrontMatterState {
     pub slug: Option<String>,
     pub layout: Option<String>,
     pub r#type: Option<String>,
-    pub params: js_abi::JsMap<String, crate::params::ParamValue>,
+    pub Params: js_abi::JsMap<String, crate::params::ParamValue>,
     pub menus: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu>,
 }
 
@@ -31,21 +32,22 @@ impl rt::ObjectIdentityCarrier for FrontMatter {
 }
 
 impl FrontMatter {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new() -> Result<FrontMatter, rt::TsonicError> {
         let field_title: Option<String> = Option::<String>::None;
         let field_date: Option<js_abi::JsDate> = Option::<js_abi::JsDate>::None;
         let field_draft: bool = false;
-        let empty_strings: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-        let field_tags: js_abi::JsArray<String> = empty_strings.clone();
-        let field_categories: js_abi::JsArray<String> = empty_strings.clone();
+        let emptyStrings: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+        let field_tags: js_abi::JsArray<String> = emptyStrings.clone();
+        let field_categories: js_abi::JsArray<String> = emptyStrings.clone();
         let field_description: Option<String> = Option::<String>::None;
         let field_slug: Option<String> = Option::<String>::None;
         let field_layout: Option<String> = Option::<String>::None;
         let field_r_type: Option<String> = Option::<String>::None;
         let field_params: js_abi::JsMap<String, crate::params::ParamValue> = js_abi::JsMap::new();
-        let empty_menus: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu> =
+        let emptyMenus: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu> =
             js_abi::JsArray::from_dense(vec![]);
-        let field_menus: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu> = empty_menus;
+        let field_menus: js_abi::JsArray<crate::frontmatter::menu::FrontMatterMenu> = emptyMenus;
         Ok(FrontMatter {
             state: rt::ObjectHandle::new(FrontMatterState {
                 title: field_title,
@@ -57,7 +59,7 @@ impl FrontMatter {
                 slug: field_slug,
                 layout: field_layout,
                 r#type: field_r_type,
-                params: field_params,
+                Params: field_params,
                 menus: field_menus,
             }),
         })

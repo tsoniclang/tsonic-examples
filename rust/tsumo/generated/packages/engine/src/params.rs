@@ -46,6 +46,9 @@ impl Default for ParamKind {
 
 #[doc(hidden)]
 pub trait ParamValueDispatch {
+    fn project_param_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_param_value_to_param_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ParamValueDispatch + 'static>> {
@@ -62,11 +65,12 @@ pub trait ParamValueDispatch {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct ParamValueState {
     pub kind: i32,
-    pub string_value: String,
-    pub bool_value: bool,
-    pub number_value: i32,
+    pub stringValue: String,
+    pub boolValue: bool,
+    pub numberValue: i32,
 }
 
 #[derive(Clone)]
@@ -104,31 +108,33 @@ pub(crate) struct ParamValueRoot {
 
 impl ParamValue {
     #[doc(hidden)]
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn initialize_state(
         kind: i32,
-        string_value: String,
-        bool_value: bool,
-        number_value: i32,
+        stringValue: String,
+        boolValue: bool,
+        numberValue: i32,
     ) -> Result<ParamValueState, rt::TsonicError> {
         let field_kind: i32 = kind;
-        let field_string_value: String = string_value;
-        let field_bool_value: bool = bool_value;
-        let field_number_value: i32 = number_value;
+        let field_string_value: String = stringValue;
+        let field_bool_value: bool = boolValue;
+        let field_number_value: i32 = numberValue;
         Ok(ParamValueState {
             kind: field_kind,
-            string_value: field_string_value,
-            bool_value: field_bool_value,
-            number_value: field_number_value,
+            stringValue: field_string_value,
+            boolValue: field_bool_value,
+            numberValue: field_number_value,
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         kind: i32,
-        string_value: String,
-        bool_value: bool,
-        number_value: i32,
+        stringValue: String,
+        boolValue: bool,
+        numberValue: i32,
     ) -> Result<ParamValue, rt::TsonicError> {
-        let state = ParamValue::initialize_state(kind, string_value, bool_value, number_value)?;
+        let state = ParamValue::initialize_state(kind, stringValue, boolValue, numberValue)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(ParamValueRoot {
             identity: identity.clone(),
@@ -167,7 +173,8 @@ impl ParamValue {
         )
     }
 
-    pub fn parse_scalar(text: &str) -> Result<ParamValue, rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn parseScalar(text: &str) -> Result<ParamValue, rt::TsonicError> {
         let trimmed: String = js_string::trim(text);
         let lower: String = js_string::to_lower_case(&trimmed);
         if lower == "true" {
@@ -176,7 +183,7 @@ impl ParamValue {
         if lower == "false" {
             return ParamValue::bool(false);
         }
-        let parsed: Option<i32> = crate::utils::int32::parse_int32(&trimmed)?;
+        let parsed: Option<i32> = crate::utils::int32::parseInt32(&trimmed)?;
         if parsed.is_some() {
             return ParamValue::number(match parsed.as_ref() {
                 Some(flow_value) => *flow_value,
@@ -187,7 +194,24 @@ impl ParamValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for ParamValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl ParamValueDispatch for ParamValueRoot {
+    fn project_param_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn ParamValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_param_value_to_param_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ParamValueDispatch + 'static>> {
@@ -209,42 +233,42 @@ impl ParamValueDispatch for ParamValueRoot {
     }
 
     fn read_param_value_string_value(&self) -> String {
-        self.state.with(|state| state.string_value.clone())
+        self.state.with(|state| state.stringValue.clone())
     }
 
     fn write_param_value_string_value(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.string_value = value)
+                self.state.with_mut(|state| state.stringValue = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_param_value_bool_value(&self) -> bool {
-        self.state.with(|state| state.bool_value)
+        self.state.with(|state| state.boolValue)
     }
 
     fn write_param_value_bool_value(&self, value: bool) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.bool_value = value)
+                self.state.with_mut(|state| state.boolValue = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_param_value_number_value(&self) -> i32 {
-        self.state.with(|state| state.number_value)
+        self.state.with(|state| state.numberValue)
     }
 
     fn write_param_value_number_value(&self, value: i32) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.number_value = value)
+                self.state.with_mut(|state| state.numberValue = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
