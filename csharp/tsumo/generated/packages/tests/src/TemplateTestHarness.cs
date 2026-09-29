@@ -4,97 +4,70 @@ namespace Tsumo.Tests
 {
     public static class TemplateTestHarness
     {
-        public static Func<SiteContext> createSite
+        public static SiteContext createSite()
         {
-            get;
-            private set;
-        } = default(Func<SiteContext>)!;
-        public static Func<string, TemplateValue, string> renderWithRoot
+            SiteConfig config = new SiteConfig("Test Site", "https://example.test/", "en", null, null);
+            return new SiteContext(config, Tsonic.CSharp.Js.JSArray<PageContext>.of([]), null, null);
+        }
+        public static string renderWithRoot(string source, TemplateValue root)
         {
-            get;
-            private set;
-        } = default(Func<string, TemplateValue, string>)!;
-        public static Func<string, string> render
+            Template template = Node_modules_Tsumo_engine_src_template_parser_parseTemplate.parseTemplate(source, null);
+            TestTemplateEnvironment environment = new TestTemplateEnvironment();
+            SiteContext site = createSite();
+            RenderScope scope = new RenderScope(root, root, site, environment, null);
+            TextBuilder output = new TextBuilder();
+            template.renderInto(output, scope, environment, new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>());
+            return output.toString();
+        }
+        public static string render(string source)
         {
-            get;
-            private set;
-        } = default(Func<string, string>)!;
-        public static Func<SiteContext, string, string, string, PageContext> createPage
+            return renderWithRoot(source, new DictValue(new Tsonic.CSharp.Js.Map<string, TemplateValue>()));
+        }
+        public static PageContext createPage(SiteContext site, string title, string date, string kind)
         {
-            get;
-            private set;
-        } = default(Func<SiteContext, string, string, string, PageContext>)!;
-        public static Func<Action, string> captureDiagnosticCode
+            Tsonic.CSharp.Js.JSArray<PageContext> emptyPages = Tsonic.CSharp.Js.JSArray<PageContext>.of([]);
+            Tsonic.CSharp.Js.JSArray<string> emptyStrings = Tsonic.CSharp.Js.JSArray<string>.of([]);
+            HtmlString emptyHtml = new HtmlString("");
+            return new PageContext(title, date, date, false, kind, kind == "page" ? "posts" : "", kind, Tsonic.CSharp.Js.String.toLowerCase(title), $"/{Tsonic.CSharp.Js.String.toLowerCase(title)}/", "", emptyHtml, new HtmlString($"<p>{title}</p>"), new HtmlString($"<p>{title}</p>"), "", emptyStrings, emptyStrings, new Tsonic.CSharp.Js.Map<string, ParamValue>(), null, site.Language, emptyPages, null, site, emptyPages, null, emptyPages, null);
+        }
+        public static string captureDiagnosticCode(Action operation)
         {
-            get;
-            private set;
-        } = default(Func<Action, string>)!;
-        public static Func<Action, TsumoError> captureDiagnostic
+            try
+            {
+                operation();
+            }
+            catch (System.Exception __tsonic_catch0)
+            {
+                Tsonic.CSharp.Runtime.TsValue error = Tsonic.CSharp.Runtime.TsThrownValueException.toValue(__tsonic_catch0);
+                if (Tsonic.CSharp.Runtime.TsValue.IsDynamicInstanceOf<TsumoError>(error))
+                {
+                    return Tsonic.CSharp.Runtime.TsValue.CastDynamic<TsumoError>(error).diagnostic.code;
+                }
+                throw;
+            }
+            throw new Tsonic.CSharp.Runtime.Error("Expected a TsumoError diagnostic");
+        }
+        public static TsumoError captureDiagnostic(Action operation)
         {
-            get;
-            private set;
-        } = default(Func<Action, TsumoError>)!;
+            try
+            {
+                operation();
+            }
+            catch (System.Exception __tsonic_catch0)
+            {
+                Tsonic.CSharp.Runtime.TsValue error = Tsonic.CSharp.Runtime.TsThrownValueException.toValue(__tsonic_catch0);
+                if (Tsonic.CSharp.Runtime.TsValue.IsDynamicInstanceOf<TsumoError>(error))
+                {
+                    return Tsonic.CSharp.Runtime.TsValue.CastDynamic<TsumoError>(error);
+                }
+                throw;
+            }
+            throw new Tsonic.CSharp.Runtime.Error("Expected a TsumoError diagnostic");
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
             Node_modules_Tsumo_engine_src_testing.__tsonic_module_init();
-            createSite = () =>
-            {
-                SiteConfig config = new SiteConfig("Test Site", "https://example.test/", "en", null, null);
-                return new SiteContext(config, Tsonic.CSharp.Js.JSArray<PageContext>.of([]), null, null);
-            };
-            renderWithRoot = (string source, TemplateValue root) =>
-            {
-                Template template = Node_modules_Tsumo_engine_src_template_parser_parseTemplate.parseTemplate(source, null);
-                TestTemplateEnvironment environment = new TestTemplateEnvironment();
-                SiteContext site = createSite();
-                RenderScope scope = new RenderScope(root, root, site, environment, null);
-                TextBuilder output = new TextBuilder();
-                template.renderInto(output, scope, environment, new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>());
-                return output.toString();
-            };
-            render = (string source) => renderWithRoot(source, new DictValue(new Tsonic.CSharp.Js.Map<string, TemplateValue>()));
-            createPage = (SiteContext site, string title, string date, string kind) =>
-            {
-                Tsonic.CSharp.Js.JSArray<PageContext> emptyPages = Tsonic.CSharp.Js.JSArray<PageContext>.of([]);
-                Tsonic.CSharp.Js.JSArray<string> emptyStrings = Tsonic.CSharp.Js.JSArray<string>.of([]);
-                HtmlString emptyHtml = new HtmlString("");
-                return new PageContext(title, date, date, false, kind, kind == "page" ? "posts" : "", kind, Tsonic.CSharp.Js.String.toLowerCase(title), $"/{Tsonic.CSharp.Js.String.toLowerCase(title)}/", "", emptyHtml, new HtmlString($"<p>{title}</p>"), new HtmlString($"<p>{title}</p>"), "", emptyStrings, emptyStrings, new Tsonic.CSharp.Js.Map<string, ParamValue>(), null, site.Language, emptyPages, null, site, emptyPages, null, emptyPages, null);
-            };
-            captureDiagnosticCode = (Action operation) =>
-            {
-                try
-                {
-                    operation();
-                }
-                catch (System.Exception __tsonic_catch0)
-                {
-                    Tsonic.CSharp.Runtime.TsValue error = Tsonic.CSharp.Runtime.TsThrownValueException.toValue(__tsonic_catch0);
-                    if (Tsonic.CSharp.Runtime.TsValue.IsDynamicInstanceOf<TsumoError>(error))
-                    {
-                        return Tsonic.CSharp.Runtime.TsValue.CastDynamic<TsumoError>(error).diagnostic.code;
-                    }
-                    throw;
-                }
-                throw new Tsonic.CSharp.Runtime.Error("Expected a TsumoError diagnostic");
-            };
-            captureDiagnostic = (Action operation) =>
-            {
-                try
-                {
-                    operation();
-                }
-                catch (System.Exception __tsonic_catch0)
-                {
-                    Tsonic.CSharp.Runtime.TsValue error = Tsonic.CSharp.Runtime.TsThrownValueException.toValue(__tsonic_catch0);
-                    if (Tsonic.CSharp.Runtime.TsValue.IsDynamicInstanceOf<TsumoError>(error))
-                    {
-                        return Tsonic.CSharp.Runtime.TsValue.CastDynamic<TsumoError>(error);
-                    }
-                    throw;
-                }
-                throw new Tsonic.CSharp.Runtime.Error("Expected a TsumoError diagnostic");
-            };
             return null;
         }
         public static void __tsonic_module_init()
@@ -123,7 +96,7 @@ namespace Tsumo.Tests
         }
         public override Template? getTemplate(string path)
         {
-            return Tsonic.CSharp.Js.Map.getReference<string, Template>(this.templates, path);
+            return Tsonic.CSharp.Js.Map.getOptional<string, Template>(this.templates, path);
         }
         public override string? getTemplateSourceRelativePath(string sourcePath)
         {

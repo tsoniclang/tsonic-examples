@@ -28,12 +28,14 @@ namespace Tsumo.Engine
             {
                 throw invalid("String escape does not name a Unicode scalar value");
             }
-            return Tsonic.CSharp.Js.String.fromCodePoint(value);
+            return Tsonic.CSharp.Js.String.fromCodePoint<int>(value);
         }
         internal static string decodeSingleQuoted(string inner, string format, Func<string, TsumoError> invalid)
         {
             string result = "";
+            #pragma warning disable CS0162
             for (int index = 0; index < inner.Length; index = Utils_strings.nextCodePointIndex(inner, index))
+            #pragma warning restore CS0162
             {
                 string current = Utils_strings.codePointAtText(inner, index);
                 if (current != "'")
@@ -184,116 +186,106 @@ namespace Tsumo.Engine
             }
             return ParamValue.number(parsed.Value);
         }
-        public static Func<string, string, Func<string, TsumoError>, ParamValue> parseStructuredScalar
+        public static ParamValue parseStructuredScalar(string value, string format, Func<string, TsumoError> invalid)
         {
-            get;
-            private set;
-        } = default(Func<string, string, Func<string, TsumoError>, ParamValue>)!;
-        public static Func<string, string, string> stripStructuredComment
+            string trimmed = Tsonic.CSharp.Js.String.trim(value);
+            string? quoted = decodeQuoted(trimmed, format, invalid);
+            if (quoted is not null)
+            {
+                return ParamValue.@string(quoted);
+            }
+            if (format == "toml")
+            {
+                if (trimmed == "true")
+                {
+                    return ParamValue.@bool(true);
+                }
+                if (trimmed == "false")
+                {
+                    return ParamValue.@bool(false);
+                }
+            }
+            else
+            {
+                string normalized = Tsonic.CSharp.Js.String.toLowerCase(trimmed);
+                if (normalized == "true")
+                {
+                    return ParamValue.@bool(true);
+                }
+                if (normalized == "false")
+                {
+                    return ParamValue.@bool(false);
+                }
+            }
+            ParamValue? integer = parseInteger(trimmed, invalid);
+            if (integer is not null)
+            {
+                return integer;
+            }
+            if (format == "toml")
+            {
+                throw invalid("TOML string values must be quoted");
+            }
+            return ParamValue.@string(trimmed);
+        }
+        public static string stripStructuredComment(string line, string format)
         {
-            get;
-            private set;
-        } = default(Func<string, string, string>)!;
+            string quote = "";
+            bool escaped = false;
+            bool previousWasWhitespace = false;
+            for (int index = 0; index < line.Length; index = Utils_strings.nextCodePointIndex(line, index))
+            {
+                string current = Utils_strings.codePointAtText(line, index);
+                if (escaped)
+                {
+                    escaped = false;
+                    previousWasWhitespace = new Tsonic.CSharp.Js.RegExp("\\s", "").testNative(current);
+                    continue;
+                }
+                if (quote == "\"" && current == "\\")
+                {
+                    escaped = true;
+                    previousWasWhitespace = false;
+                    continue;
+                }
+                if (current == "\"" || current == "'")
+                {
+                    if (quote == "")
+                    {
+                        quote = current;
+                    }
+                    else
+                    {
+                        if (quote == current)
+                        {
+                            if (quote == "'" && format == "yaml" && index + 1 < line.Length && line.Substring(index + 1, 1) == "'")
+                            {
+                                index++;
+                            }
+                            else
+                            {
+                                quote = "";
+                            }
+                        }
+                    }
+                    previousWasWhitespace = false;
+                    continue;
+                }
+                bool yamlComment = format == "yaml" && current == "#" && (index == 0 || previousWasWhitespace);
+                if ((format == "toml" && current == "#" && quote == "") || (yamlComment && quote == ""))
+                {
+                    return Tsonic.CSharp.Js.String.trimEnd(Utils_strings.substringCount(line, 0, index));
+                }
+                previousWasWhitespace = new Tsonic.CSharp.Js.RegExp("\\s", "").testNative(current);
+            }
+            return line;
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
             Params.__tsonic_module_init();
             Utils_int32.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
-            parseStructuredScalar = (string value, string format, Func<string, TsumoError> invalid) =>
-            {
-                string trimmed = Tsonic.CSharp.Js.String.trim(value);
-                string? quoted = decodeQuoted(trimmed, format, invalid);
-                if (quoted is not null)
-                {
-                    return ParamValue.@string(quoted);
-                }
-                if (format == "toml")
-                {
-                    if (trimmed == "true")
-                    {
-                        return ParamValue.@bool(true);
-                    }
-                    if (trimmed == "false")
-                    {
-                        return ParamValue.@bool(false);
-                    }
-                }
-                else
-                {
-                    string normalized = Tsonic.CSharp.Js.String.toLowerCase(trimmed);
-                    if (normalized == "true")
-                    {
-                        return ParamValue.@bool(true);
-                    }
-                    if (normalized == "false")
-                    {
-                        return ParamValue.@bool(false);
-                    }
-                }
-                ParamValue? integer = parseInteger(trimmed, invalid);
-                if (integer is not null)
-                {
-                    return integer;
-                }
-                if (format == "toml")
-                {
-                    throw invalid("TOML string values must be quoted");
-                }
-                return ParamValue.@string(trimmed);
-            };
-            stripStructuredComment = (string line, string format) =>
-            {
-                string quote = "";
-                bool escaped = false;
-                bool previousWasWhitespace = false;
-                for (int index = 0; index < line.Length; index = Utils_strings.nextCodePointIndex(line, index))
-                {
-                    string current = Utils_strings.codePointAtText(line, index);
-                    if (escaped)
-                    {
-                        escaped = false;
-                        previousWasWhitespace = new Tsonic.CSharp.Js.RegExp("\\s", "").testNative(current);
-                        continue;
-                    }
-                    if (quote == "\"" && current == "\\")
-                    {
-                        escaped = true;
-                        previousWasWhitespace = false;
-                        continue;
-                    }
-                    if (current == "\"" || current == "'")
-                    {
-                        if (quote == "")
-                        {
-                            quote = current;
-                        }
-                        else
-                        {
-                            if (quote == current)
-                            {
-                                if (quote == "'" && format == "yaml" && index + 1 < line.Length && line.Substring(index + 1, 1) == "'")
-                                {
-                                    index++;
-                                }
-                                else
-                                {
-                                    quote = "";
-                                }
-                            }
-                        }
-                        previousWasWhitespace = false;
-                        continue;
-                    }
-                    bool yamlComment = format == "yaml" && current == "#" && (index == 0 || previousWasWhitespace);
-                    if ((format == "toml" && current == "#" && quote == "") || (yamlComment && quote == ""))
-                    {
-                        return Tsonic.CSharp.Js.String.trimEnd(Utils_strings.substringCount(line, 0, index));
-                    }
-                    previousWasWhitespace = new Tsonic.CSharp.Js.RegExp("\\s", "").testNative(current);
-                }
-                return line;
-            };
             return null;
         }
         public static void __tsonic_module_init()

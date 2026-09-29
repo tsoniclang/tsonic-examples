@@ -41,6 +41,22 @@ namespace Tsumo.Tests
     public class FilesystemBoundaryTests
     {
         [Xunit.FactAttribute]
+        public void watch_snapshot_sizes_preserve_adjacent_native_integers()
+        {
+            Tsonic.CSharp.Js.Map<string, WatchEntryState> first = new Tsonic.CSharp.Js.Map<string, WatchEntryState>();
+            Tsonic.CSharp.Js.Map<string, WatchEntryState> same = new Tsonic.CSharp.Js.Map<string, WatchEntryState>();
+            Tsonic.CSharp.Js.Map<string, WatchEntryState> next = new Tsonic.CSharp.Js.Map<string, WatchEntryState>();
+            first.set("large", new WatchEntryState(123.5, 9007199254740992L));
+            same.set("large", new WatchEntryState(123.5, 9007199254740992L));
+            WatchEntryState adjacent = new WatchEntryState(123.5, 9007199254740992L);
+            adjacent.size++;
+            next.set("large", adjacent);
+            Xunit.Assert.True(Node_modules_Tsumo_engine_src_watchSnapshot.watchSnapshotsEqual(first, same));
+            Xunit.Assert.False(Node_modules_Tsumo_engine_src_watchSnapshot.watchSnapshotsEqual(first, next));
+            same.set("large", new WatchEntryState(123.75, 9007199254740992L));
+            Xunit.Assert.False(Node_modules_Tsumo_engine_src_watchSnapshot.watchSnapshotsEqual(first, same));
+        }
+        [Xunit.FactAttribute]
         public void recursive_discovery_is_sorted_and_rejects_links()
         {
             string root = TestRoot.createTestDirectory("filesystem-discovery");

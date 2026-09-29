@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Scaffold_initSite
@@ -208,42 +206,37 @@ namespace Tsumo.Engine
 
             """;
         }
-        public static Action<string, Tsonic.CSharp.Js.Date?> initSite
+        public static void initSite(string targetDir, Tsonic.CSharp.Js.Date? creationTime)
         {
-            get;
-            private set;
-        } = default(Action<string, Tsonic.CSharp.Js.Date?>)!;
+            string dir = Tsonic.CSharp.Node.path.resolve(targetDir);
+            Tsonic.CSharp.Js.Date scaffoldTime = creationTime ?? new Tsonic.CSharp.Js.Date();
+            ensureEmptyDir(dir);
+            string @base = Tsonic.CSharp.Node.path.basename(dir);
+            string title = Utils_text.humanizeSlug(@base == "" ? "Tsumo Site" : @base);
+            Fs.ensureDir(Tsonic.CSharp.Node.path.join(dir, "content"));
+            Fs.ensureDir(Tsonic.CSharp.Node.path.join(dir, "content", "posts"));
+            Fs.ensureDir(Tsonic.CSharp.Node.path.join(dir, "layouts", "_default"));
+            Fs.ensureDir(Tsonic.CSharp.Node.path.join(dir, "layouts", "partials"));
+            Fs.ensureDir(Tsonic.CSharp.Node.path.join(dir, "static"));
+            Fs.ensureDir(Tsonic.CSharp.Node.path.join(dir, "archetypes"));
+            Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "hugo.toml"), defaultConfigToml(title));
+            Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "archetypes", "default.md"), defaultArchetype());
+            Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "layouts", "_default", "baseof.html"), baseofHtml());
+            Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "layouts", "_default", "single.html"), singleHtml());
+            Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "layouts", "_default", "list.html"), listHtml());
+            Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "layouts", "_default", "terms.html"), termsHtml());
+            Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "layouts", "_default", "taxonomy.html"), taxonomyHtml());
+            Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "layouts", "partials", "header.html"), partialHeader());
+            Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "layouts", "partials", "footer.html"), partialFooter());
+            Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "static", "style.css"), styleCss());
+            Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "content", "_index.md"), indexMd());
+            Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "content", "posts", "hello-world.md"), helloWorldMd(scaffoldTime));
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
             Fs.__tsonic_module_init();
             Utils_text.__tsonic_module_init();
-            initSite = (string targetDir, Tsonic.CSharp.Js.Date? creationTime) =>
-            {
-                string dir = Tsonic.CSharp.Node.path.resolve(targetDir);
-                Tsonic.CSharp.Js.Date scaffoldTime = creationTime ?? new Tsonic.CSharp.Js.Date();
-                ensureEmptyDir(dir);
-                string @base = Tsonic.CSharp.Node.path.basename(dir);
-                string title = Utils_text.humanizeSlug(@base == "" ? "Tsumo Site" : @base);
-                Fs.ensureDir(Tsonic.CSharp.Node.path.join(dir, "content"));
-                Fs.ensureDir(Tsonic.CSharp.Node.path.join(dir, "content", "posts"));
-                Fs.ensureDir(Tsonic.CSharp.Node.path.join(dir, "layouts", "_default"));
-                Fs.ensureDir(Tsonic.CSharp.Node.path.join(dir, "layouts", "partials"));
-                Fs.ensureDir(Tsonic.CSharp.Node.path.join(dir, "static"));
-                Fs.ensureDir(Tsonic.CSharp.Node.path.join(dir, "archetypes"));
-                Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "hugo.toml"), defaultConfigToml(title));
-                Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "archetypes", "default.md"), defaultArchetype());
-                Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "layouts", "_default", "baseof.html"), baseofHtml());
-                Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "layouts", "_default", "single.html"), singleHtml());
-                Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "layouts", "_default", "list.html"), listHtml());
-                Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "layouts", "_default", "terms.html"), termsHtml());
-                Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "layouts", "_default", "taxonomy.html"), taxonomyHtml());
-                Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "layouts", "partials", "header.html"), partialHeader());
-                Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "layouts", "partials", "footer.html"), partialFooter());
-                Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "static", "style.css"), styleCss());
-                Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "content", "_index.md"), indexMd());
-                Fs.writeTextFile(Tsonic.CSharp.Node.path.join(dir, "content", "posts", "hello-world.md"), helloWorldMd(scaffoldTime));
-            };
             return null;
         }
         public static void __tsonic_module_init()

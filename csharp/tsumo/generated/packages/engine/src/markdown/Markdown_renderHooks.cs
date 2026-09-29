@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Markdown_renderHooks
@@ -91,7 +89,7 @@ namespace Tsumo.Engine
             }
             it.Dispose();
             Tsonic.CSharp.Js.JSArray<Markdig.Syntax.Inlines.LinkInline> linkArr = linksToRewrite;
-            for (double i = 0; i < linkArr.length; i++)
+            for (int i = 0; i < linkArr.length; i++)
             {
                 Markdig.Syntax.Inlines.LinkInline link_1 = linkArr[i];
                 bool isImage_1 = link_1.IsImage;
@@ -191,11 +189,12 @@ namespace Tsumo.Engine
             }
             rewriteBlocksForHooks(document, hookCtx);
         }
-        public static Func<string, RenderHookContext, string> renderMarkdownWithHooks
+        public static string renderMarkdownWithHooks(string markdown, RenderHookContext hookCtx)
         {
-            get;
-            private set;
-        } = default(Func<string, RenderHookContext, string>)!;
+            Markdig.Syntax.MarkdownDocument document = Markdig.Markdown.Parse(markdown, Markdown_pipeline.markdownPipeline);
+            applyRenderHooksToAst(document, hookCtx);
+            return Markdig.Markdown.ToHtml(document, Markdown_pipeline.markdownPipeline);
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
@@ -204,12 +203,6 @@ namespace Tsumo.Engine
             Markdown_pipeline.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
             sharedHtmlBlockParser = null;
-            renderMarkdownWithHooks = (string markdown, RenderHookContext hookCtx) =>
-            {
-                Markdig.Syntax.MarkdownDocument document = Markdig.Markdown.Parse(markdown, Markdown_pipeline.markdownPipeline);
-                applyRenderHooksToAst(document, hookCtx);
-                return Markdig.Markdown.ToHtml(document, Markdown_pipeline.markdownPipeline);
-            };
             return null;
         }
         public static void __tsonic_module_init()

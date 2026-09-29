@@ -1,14 +1,41 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class OutputPublicationModule
     {
-        public static Func<string, string, bool, OutputPublication> beginOutputPublication
+        public static OutputPublication beginOutputPublication(string siteDir, string requestedDestinationDir, bool preserveExistingOutput)
         {
-            get;
-            private set;
-        } = default(Func<string, string, bool, OutputPublication>)!;
+            string siteRoot = Tsonic.CSharp.Node.path.resolve(siteDir);
+            string destinationDir = Tsonic.CSharp.Node.path.isAbsolute(requestedDestinationDir) ? Tsonic.CSharp.Node.path.resolve(requestedDestinationDir) : Tsonic.CSharp.Node.path.resolve(siteRoot, requestedDestinationDir);
+            if (!Tsonic.CSharp.Node.path.isAbsolute(requestedDestinationDir) && !Utils_paths.pathContainsOrEquals(siteRoot, destinationDir))
+            {
+                throw Diagnostics.createTsumoError("TSUMO_OUTPUT_DESTINATION_ESCAPES_SITE", $"Relative output directory escapes the site root: {requestedDestinationDir}");
+            }
+            if (Utils_paths.pathContainsOrEquals(destinationDir, siteRoot))
+            {
+                throw Diagnostics.createTsumoError("TSUMO_OUTPUT_DESTINATION_CONTAINS_SITE", $"Output directory cannot contain the source site: {destinationDir}");
+            }
+            string parent = Tsonic.CSharp.Node.path.dirname(destinationDir);
+            if (parent == destinationDir)
+            {
+                throw Diagnostics.createTsumoError("TSUMO_OUTPUT_DESTINATION_IS_ROOT", $"Output directory cannot be a filesystem root: {destinationDir}");
+            }
+            if (Fs.fileExists(destinationDir))
+            {
+                throw Diagnostics.createTsumoError("TSUMO_OUTPUT_DESTINATION_IS_FILE", $"Output directory path names an existing file: {destinationDir}");
+            }
+            Fs.ensureDir(parent);
+            string key = Tsonic.CSharp.Js.String.slice(Tsonic.CSharp.Node.crypto.createHash("sha256").update(destinationDir).digest("hex"), 0, 24);
+            string scratchPrefix = $".tsumo-output-{key}";
+            string backupDir = Tsonic.CSharp.Node.path.resolve(parent, $"{scratchPrefix}.backup");
+            string stagePrefix = Tsonic.CSharp.Node.path.resolve(parent, $"{scratchPrefix}.stage-");
+            recoverOutputPublication(destinationDir, backupDir, parent, $"{scratchPrefix}.stage-");
+            string stagingDir = Tsonic.CSharp.Node.fs.mkdtempSync(stagePrefix);
+            if (preserveExistingOutput && Fs.dirExists(destinationDir))
+            {
+                Fs.copyDirRecursive(destinationDir, stagingDir);
+            }
+            return new OutputPublication(destinationDir, stagingDir, backupDir);
+        }
         internal static void recoverOutputPublication(string destinationDir, string backupDir, string parentDir, string stageNamePrefix)
         {
             if (Fs.fileExists(backupDir))
@@ -49,40 +76,6 @@ namespace Tsumo.Engine
         {
             Fs.__tsonic_module_init();
             Utils_paths.__tsonic_module_init();
-            beginOutputPublication = (string siteDir, string requestedDestinationDir, bool preserveExistingOutput) =>
-            {
-                string siteRoot = Tsonic.CSharp.Node.path.resolve(siteDir);
-                string destinationDir = Tsonic.CSharp.Node.path.isAbsolute(requestedDestinationDir) ? Tsonic.CSharp.Node.path.resolve(requestedDestinationDir) : Tsonic.CSharp.Node.path.resolve(siteRoot, requestedDestinationDir);
-                if (!Tsonic.CSharp.Node.path.isAbsolute(requestedDestinationDir) && !Utils_paths.pathContainsOrEquals(siteRoot, destinationDir))
-                {
-                    throw Diagnostics.createTsumoError("TSUMO_OUTPUT_DESTINATION_ESCAPES_SITE", $"Relative output directory escapes the site root: {requestedDestinationDir}");
-                }
-                if (Utils_paths.pathContainsOrEquals(destinationDir, siteRoot))
-                {
-                    throw Diagnostics.createTsumoError("TSUMO_OUTPUT_DESTINATION_CONTAINS_SITE", $"Output directory cannot contain the source site: {destinationDir}");
-                }
-                string parent = Tsonic.CSharp.Node.path.dirname(destinationDir);
-                if (parent == destinationDir)
-                {
-                    throw Diagnostics.createTsumoError("TSUMO_OUTPUT_DESTINATION_IS_ROOT", $"Output directory cannot be a filesystem root: {destinationDir}");
-                }
-                if (Fs.fileExists(destinationDir))
-                {
-                    throw Diagnostics.createTsumoError("TSUMO_OUTPUT_DESTINATION_IS_FILE", $"Output directory path names an existing file: {destinationDir}");
-                }
-                Fs.ensureDir(parent);
-                string key = Tsonic.CSharp.Js.String.slice(Tsonic.CSharp.Node.crypto.createHash("sha256").update(destinationDir).digest("hex"), 0, 24);
-                string scratchPrefix = $".tsumo-output-{key}";
-                string backupDir = Tsonic.CSharp.Node.path.resolve(parent, $"{scratchPrefix}.backup");
-                string stagePrefix = Tsonic.CSharp.Node.path.resolve(parent, $"{scratchPrefix}.stage-");
-                recoverOutputPublication(destinationDir, backupDir, parent, $"{scratchPrefix}.stage-");
-                string stagingDir = Tsonic.CSharp.Node.fs.mkdtempSync(stagePrefix);
-                if (preserveExistingOutput && Fs.dirExists(destinationDir))
-                {
-                    Fs.copyDirRecursive(destinationDir, stagingDir);
-                }
-                return new OutputPublication(destinationDir, stagingDir, backupDir);
-            };
             return null;
         }
         public static void __tsonic_module_init()

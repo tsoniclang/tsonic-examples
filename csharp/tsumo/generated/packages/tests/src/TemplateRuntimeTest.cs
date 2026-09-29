@@ -117,6 +117,12 @@ namespace Tsumo.Tests
                 TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(themeDirectory, "fr.json"), "{\"local\":\"Locale française\"}");
                 TestRoot.writeTextFile(Tsonic.CSharp.Node.path.join(siteDirectory, "en.yaml"), "- id: toggleMenu # site override\n" + "  translation: Site Menu\n" + "- id: legacy\n" + "  translation: Legacy {{ .Name }}\n" + "- id: continued\n" + "  translation:\n" + "    \"Continued scalar\"\n" + "- id: folded\n" + "  translation: >-\n" + "    Folded\n" + "    scalar\n" + "- id: literal\n" + "  translation: |\n" + "    Literal\n" + "    scalar\n" + "- id: escapedQuoted\n" + "  translation:\n" + "    \"Generated with " + "\\" + "\n" + "    exact continuity.\"\n" + "- id: foldedQuoted\n" + "  translation: \"Folded\n" + "  quoted scalar\"\n" + "- id: singleQuoted\n" + "  translation:\n" + "    'Single\n" + "    quoted ''value'''\n" + "- id: plainWithQuotes\n" + "  translation: Tagged '{{ . }}'\n");
                 I18nStore store = new I18nStore();
+                LayoutEnvironment noMounts = new LayoutEnvironment(root, null, Tsonic.CSharp.Js.JSArray<ModuleMount>.of([]));
+                Xunit.Assert.Equal("toggleMenu", noMounts.i18nStore.translate("en", "toggleMenu"));
+                LayoutEnvironment oneMount = new LayoutEnvironment(root, null, Tsonic.CSharp.Js.JSArray<ModuleMount>.of([new ModuleMount(siteDirectory, "i18n")]));
+                Xunit.Assert.Equal("Site Menu", oneMount.i18nStore.translate("en", "toggleMenu"));
+                LayoutEnvironment layeredMounts = new LayoutEnvironment(root, null, Tsonic.CSharp.Js.JSArray<ModuleMount>.of([new ModuleMount(themeDirectory, "i18n"), new ModuleMount(siteDirectory, "i18n"), new ModuleMount(siteDirectory, "unrelated")]));
+                Xunit.Assert.Equal("Theme Menu", layeredMounts.i18nStore.translate("en", "toggleMenu"));
                 store.loadFromDir(themeDirectory);
                 store.loadFromDir(siteDirectory);
                 Xunit.Assert.Equal("Site Menu", store.translate("en-US", "toggleMenu"));
@@ -157,7 +163,7 @@ namespace Tsumo.Tests
             Tsonic.CSharp.Js.Map<string, string> results = environment.finalizeDeferredTemplates();
             foreach (string token in results.keys())
             {
-                string? result = Tsonic.CSharp.Js.Map.getReference<string, string>(results, token);
+                string? result = Tsonic.CSharp.Js.Map.getOptional<string, string>(results, token);
                 if (result is null)
                 {
                     throw new Tsonic.CSharp.Runtime.Error("Expected a finalized deferred-template result");
@@ -181,7 +187,7 @@ namespace Tsumo.Tests
             Xunit.Assert.Equal<double>(2, results.size);
             foreach (string token in results.keys())
             {
-                string? result = Tsonic.CSharp.Js.Map.getReference<string, string>(results, token);
+                string? result = Tsonic.CSharp.Js.Map.getOptional<string, string>(results, token);
                 if (result is null)
                 {
                     throw new Tsonic.CSharp.Runtime.Error("Expected a finalized deferred-template result");
@@ -325,9 +331,9 @@ namespace Tsumo.Tests
             }));
             Tsonic.CSharp.Js.JSArray<ShortcodeCall> quoted = Node_modules_Tsumo_engine_src_shortcode.parseShortcodes("{{< figure caption=\"\" published=\"true\" count=2 >}}", "content/post.md");
             Xunit.Assert.Equal<double>(1, quoted.length);
-            Xunit.Assert.Equal("", Tsonic.CSharp.Js.Map.getReference<string, ParamValue>(quoted[0].@params, "caption")?.stringValue);
-            Xunit.Assert.Equal("true", Tsonic.CSharp.Js.Map.getReference<string, ParamValue>(quoted[0].@params, "published")?.stringValue);
-            Xunit.Assert.Equal<double?>(2, Tsonic.CSharp.Js.Map.getReference<string, ParamValue>(quoted[0].@params, "count")?.numberValue);
+            Xunit.Assert.Equal("", Tsonic.CSharp.Js.Map.getOptional<string, ParamValue>(quoted[0].@params, "caption")?.stringValue);
+            Xunit.Assert.Equal("true", Tsonic.CSharp.Js.Map.getOptional<string, ParamValue>(quoted[0].@params, "published")?.stringValue);
+            Xunit.Assert.Equal<double?>(2, Tsonic.CSharp.Js.Map.getOptional<string, ParamValue>(quoted[0].@params, "count")?.numberValue);
         }
         [Xunit.FactAttribute]
         public void evaluator_reports_exact_unknown_and_invalid_operations()

@@ -1,21 +1,14 @@
-using System;
-
 namespace Tsumo.Cli
 {
     public static class LogLine
     {
-        public static Action<string> logLine
+        public static void logLine(string message)
         {
-            get;
-            private set;
-        } = default(Action<string>)!;
+            Tsonic.CSharp.Js.console.log(message);
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
-            logLine = (string message) =>
-            {
-                Tsonic.CSharp.Js.console.log(message);
-            };
             return null;
         }
         public static void __tsonic_module_init()

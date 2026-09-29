@@ -13,7 +13,7 @@ namespace Tsumo.Engine
         }
         public TemplateValue get(string key)
         {
-            TemplateValue? v = Tsonic.CSharp.Js.Map.getReference<string, TemplateValue>(this.values, key);
+            TemplateValue? v = Tsonic.CSharp.Js.Map.getOptional<string, TemplateValue>(this.values, key);
             return v is not null ? v : new NilValue();
         }
         public void set(string key, TemplateValue value)
@@ -22,7 +22,7 @@ namespace Tsumo.Engine
         }
         public void add(string key, TemplateValue value)
         {
-            TemplateValue? cur = Tsonic.CSharp.Js.Map.getReference<string, TemplateValue>(this.values, key);
+            TemplateValue? cur = Tsonic.CSharp.Js.Map.getOptional<string, TemplateValue>(this.values, key);
             if (cur is null)
             {
                 this.set(key, value);
@@ -32,14 +32,14 @@ namespace Tsumo.Engine
             {
                 AnyArrayValue curArray = (AnyArrayValue)cur;
                 Tsonic.CSharp.Js.JSArray<TemplateValue> mergedList = Tsonic.CSharp.Js.JSArray<TemplateValue>.of([]);
-                for (double i = 0; i < curArray.value.length; i++)
+                for (int i = 0; i < curArray.value.length; i++)
                 {
                     mergedList.push(curArray.value[i]);
                 }
                 if ((object?)value is AnyArrayValue)
                 {
                     AnyArrayValue valueArray = (AnyArrayValue)value;
-                    for (double i_1 = 0; i_1 < valueArray.value.length; i_1++)
+                    for (int i_1 = 0; i_1 < valueArray.value.length; i_1++)
                     {
                         mergedList.push(valueArray.value[i_1]);
                     }
@@ -62,7 +62,7 @@ namespace Tsumo.Engine
         }
         public void setInMap(string mapName, string key, TemplateValue value)
         {
-            TemplateValue? cur = Tsonic.CSharp.Js.Map.getReference<string, TemplateValue>(this.values, mapName);
+            TemplateValue? cur = Tsonic.CSharp.Js.Map.getOptional<string, TemplateValue>(this.values, mapName);
             if (cur is not null)
             {
                 if ((object?)cur is DictValue)
@@ -78,7 +78,7 @@ namespace Tsumo.Engine
         }
         public void deleteInMap(string mapName, string key)
         {
-            TemplateValue? cur = Tsonic.CSharp.Js.Map.getReference<string, TemplateValue>(this.values, mapName);
+            TemplateValue? cur = Tsonic.CSharp.Js.Map.getOptional<string, TemplateValue>(this.values, mapName);
             if (cur is not null)
             {
                 if ((object?)cur is DictValue)

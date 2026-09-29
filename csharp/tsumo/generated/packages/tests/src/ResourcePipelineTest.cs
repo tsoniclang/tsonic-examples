@@ -83,13 +83,21 @@ namespace Tsumo.Tests
             ImageDimensions? dimensions = Node_modules_Tsumo_engine_src_resources_imageDimensions.parseImageDimensions(png);
             Xunit.Assert.True(dimensions is not null && dimensions.width == 2 && dimensions.height == 3);
             Xunit.Assert.True(Node_modules_Tsumo_engine_src_resources_imageDimensions.parseImageDimensions(Tsonic.CSharp.Node.Buffer.from(new int[] { 1, 2, 3 })) is null);
+            Tsonic.CSharp.Js.JSArray<Tsonic.CSharp.Node.Buffer> images = Tsonic.CSharp.Js.JSArray<Tsonic.CSharp.Node.Buffer>.of([Tsonic.CSharp.Node.Buffer.from(new int[] { 137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 1, 44, 0, 0, 3, 232 }), Tsonic.CSharp.Node.Buffer.from(new int[] { 71, 73, 70, 56, 57, 97, 44, 1, 232, 3 }), Tsonic.CSharp.Node.Buffer.from(new int[] { 255, 216, 255, 192, 0, 8, 8, 3, 232, 1, 44, 3 }), Tsonic.CSharp.Node.Buffer.from(new int[] { 82, 73, 70, 70, 0, 0, 0, 0, 87, 69, 66, 80, 86, 80, 56, 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 44, 1, 232, 3 }), Tsonic.CSharp.Node.Buffer.from(new int[] { 82, 73, 70, 70, 0, 0, 0, 0, 87, 69, 66, 80, 86, 80, 56, 76, 0, 0, 0, 0, 47, 43, 193, 249, 0 })]);
+            foreach (Tsonic.CSharp.Node.Buffer image in images)
+            {
+                ImageDimensions? measured = Node_modules_Tsumo_engine_src_resources_imageDimensions.parseImageDimensions(image);
+                Xunit.Assert.True(measured is not null && measured.width == 300 && measured.height == 1000);
+            }
+            Tsonic.CSharp.Node.Buffer oversized = Tsonic.CSharp.Node.Buffer.from(new int[] { 137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 128, 0, 0, 0, 0, 0, 0, 1 });
+            Xunit.Assert.True(Node_modules_Tsumo_engine_src_resources_imageDimensions.parseImageDimensions(oversized) is null);
         }
         [Xunit.FactAttribute]
         public void utf8_validation_accepts_scalars_and_rejects_malformed_sequences()
         {
             Xunit.Assert.True(Node_modules_Tsumo_engine_src_resources_text.isValidUtf8(Tsonic.CSharp.Node.Buffer.from(new int[] { 65, 194, 162, 226, 130, 172, 240, 159, 152, 128 })));
             Tsonic.CSharp.Js.JSArray<Tsonic.CSharp.Node.Buffer> malformed = Tsonic.CSharp.Js.JSArray<Tsonic.CSharp.Node.Buffer>.of([Tsonic.CSharp.Node.Buffer.from(new int[] { 128 }), Tsonic.CSharp.Node.Buffer.from(new int[] { 192, 128 }), Tsonic.CSharp.Node.Buffer.from(new int[] { 224, 128, 128 }), Tsonic.CSharp.Node.Buffer.from(new int[] { 237, 160, 128 }), Tsonic.CSharp.Node.Buffer.from(new int[] { 244, 144, 128, 128 }), Tsonic.CSharp.Node.Buffer.from(new int[] { 240, 159, 146 })]);
-            for (double index = 0; index < malformed.length; index++)
+            for (int index = 0; index < malformed.length; index++)
             {
                 Xunit.Assert.True(!Node_modules_Tsumo_engine_src_resources_text.isValidUtf8(malformed[index]));
             }

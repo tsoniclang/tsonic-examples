@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Build_menuResolution
@@ -11,7 +9,7 @@ namespace Tsumo.Engine
         internal static Tsonic.CSharp.Js.Map<string, PageContext> createPageIndex(Tsonic.CSharp.Js.JSArray<PageContext> pages)
         {
             Tsonic.CSharp.Js.Map<string, PageContext> index = new Tsonic.CSharp.Js.Map<string, PageContext>();
-            for (double pageIndex = 0; pageIndex < pages.length; pageIndex++)
+            for (int pageIndex = 0; pageIndex < pages.length; pageIndex++)
             {
                 PageContext page = pages[pageIndex];
                 string key = normalizePageReference(page.relPermalink);
@@ -25,12 +23,12 @@ namespace Tsumo.Engine
         }
         internal static void resolveMenuPageReferences(Tsonic.CSharp.Js.JSArray<MenuEntry> entries, Tsonic.CSharp.Js.Map<string, PageContext> pagesByRoute)
         {
-            for (double index = 0; index < entries.length; index++)
+            for (int index = 0; index < entries.length; index++)
             {
                 MenuEntry entry = entries[index];
                 if (Tsonic.CSharp.Js.String.trim(entry.pageRef) != "")
                 {
-                    PageContext? page = Tsonic.CSharp.Js.Map.getReference<string, PageContext>(pagesByRoute, normalizePageReference(entry.pageRef));
+                    PageContext? page = Tsonic.CSharp.Js.Map.getOptional<string, PageContext>(pagesByRoute, normalizePageReference(entry.pageRef));
                     if (page is null)
                     {
                         string entryIdentity = Tsonic.CSharp.Js.String.trim(entry.identifier) != "" ? entry.identifier : entry.name;
@@ -41,67 +39,62 @@ namespace Tsumo.Engine
                 resolveMenuPageReferences(entry.children, pagesByRoute);
             }
         }
-        public static Action<Tsonic.CSharp.Js.JSArray<ContentPageSource>, Tsonic.CSharp.Js.JSArray<PageContext>, SiteContext> configureSiteMenus
+        public static void configureSiteMenus(Tsonic.CSharp.Js.JSArray<ContentPageSource> pageSources, Tsonic.CSharp.Js.JSArray<PageContext> pages, SiteContext site)
         {
-            get;
-            private set;
-        } = default(Action<Tsonic.CSharp.Js.JSArray<ContentPageSource>, Tsonic.CSharp.Js.JSArray<PageContext>, SiteContext>)!;
+            if (pageSources.length != pages.length)
+            {
+                throw Diagnostics.createTsumoError("TSUMO_MENU_PAGE_ALIGNMENT_INVALID", "Content sources and page contexts must remain exactly aligned");
+            }
+            Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntry>> frontMatterByMenu = new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>();
+            for (int pageIndex = 0; pageIndex < pageSources.length; pageIndex++)
+            {
+                ContentPageSource source = pageSources[pageIndex];
+                PageContext page = pages[pageIndex];
+                for (int menuIndex = 0; menuIndex < source.menus.length; menuIndex++)
+                {
+                    FrontMatterMenu menu = source.menus[menuIndex];
+                    string menuName = Tsonic.CSharp.Js.String.trim(menu.menu);
+                    if (menuName == "")
+                    {
+                        throw Diagnostics.createTsumoError("TSUMO_MENU_NAME_REQUIRED", "Front matter menu entries require a menu name", source.sourcePath);
+                    }
+                    MenuEntry entry = new MenuEntry(menu.name != "" ? menu.name : page.title, "", "", menu.title, menu.weight, menu.parent, menu.identifier != "" ? menu.identifier : page.relPermalink, menu.pre, menu.post, menuName);
+                    entry.page = page;
+                    Tsonic.CSharp.Js.JSArray<MenuEntry> entries = Tsonic.CSharp.Js.Map.getOptional<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>(frontMatterByMenu, menuName) ?? Tsonic.CSharp.Js.JSArray<MenuEntry>.of([]);
+                    entries.push(entry);
+                    frontMatterByMenu.set(menuName, entries);
+                }
+            }
+            Tsonic.CSharp.Js.JSArray<string> menuNames = Tsonic.CSharp.Js.JSArrayStatics.from<string>(frontMatterByMenu.keys());
+            menuNames.sort((string left, string right) => Utils_strings.compareText(left, right));
+            for (int index = 0; index < menuNames.length; index++)
+            {
+                string menuName_1 = menuNames[index];
+                Tsonic.CSharp.Js.JSArray<MenuEntry>? existing = Tsonic.CSharp.Js.Map.getOptional<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>(site.Menus, menuName_1);
+                Tsonic.CSharp.Js.JSArray<MenuEntry> combined = existing is null ? Tsonic.CSharp.Js.JSArray<MenuEntry>.of([]) : Menus.flattenMenuEntries(existing);
+                Tsonic.CSharp.Js.JSArray<MenuEntry>? additions = Tsonic.CSharp.Js.Map.getOptional<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>(frontMatterByMenu, menuName_1);
+                if (additions is null)
+                {
+                    throw Diagnostics.createTsumoError("TSUMO_MENU_CONFIGURATION_INCONSISTENT", $"Menu '{menuName_1}' disappeared while its immutable configuration was being resolved");
+                }
+                for (int entryIndex = 0; entryIndex < additions.length; entryIndex++)
+                {
+                    combined.push(additions[entryIndex]);
+                }
+                site.Menus.set(menuName_1, Menus.buildMenuHierarchy(combined));
+            }
+            Tsonic.CSharp.Js.Map<string, PageContext> pagesByRoute = createPageIndex(pages);
+            foreach (Tsonic.CSharp.Js.JSArray<MenuEntry> entries_1 in site.Menus.values())
+            {
+                resolveMenuPageReferences(entries_1, pagesByRoute);
+            }
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
             Menus.__tsonic_module_init();
             Models.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
-            configureSiteMenus = (Tsonic.CSharp.Js.JSArray<ContentPageSource> pageSources, Tsonic.CSharp.Js.JSArray<PageContext> pages, SiteContext site) =>
-            {
-                if (pageSources.length != pages.length)
-                {
-                    throw Diagnostics.createTsumoError("TSUMO_MENU_PAGE_ALIGNMENT_INVALID", "Content sources and page contexts must remain exactly aligned");
-                }
-                Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntry>> frontMatterByMenu = new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>();
-                for (double pageIndex = 0; pageIndex < pageSources.length; pageIndex++)
-                {
-                    ContentPageSource source = pageSources[pageIndex];
-                    PageContext page = pages[pageIndex];
-                    for (double menuIndex = 0; menuIndex < source.menus.length; menuIndex++)
-                    {
-                        FrontMatterMenu menu = source.menus[menuIndex];
-                        string menuName = Tsonic.CSharp.Js.String.trim(menu.menu);
-                        if (menuName == "")
-                        {
-                            throw Diagnostics.createTsumoError("TSUMO_MENU_NAME_REQUIRED", "Front matter menu entries require a menu name", source.sourcePath);
-                        }
-                        MenuEntry entry = new MenuEntry(menu.name != "" ? menu.name : page.title, "", "", menu.title, menu.weight, menu.parent, menu.identifier != "" ? menu.identifier : page.relPermalink, menu.pre, menu.post, menuName);
-                        entry.page = page;
-                        Tsonic.CSharp.Js.JSArray<MenuEntry> entries = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>(frontMatterByMenu, menuName) ?? Tsonic.CSharp.Js.JSArray<MenuEntry>.of([]);
-                        entries.push(entry);
-                        frontMatterByMenu.set(menuName, entries);
-                    }
-                }
-                Tsonic.CSharp.Js.JSArray<string> menuNames = Tsonic.CSharp.Js.JSArrayStatics.from<string>(frontMatterByMenu.keys());
-                menuNames.sort((string left, string right) => Utils_strings.compareText(left, right));
-                for (double index = 0; index < menuNames.length; index++)
-                {
-                    string menuName_1 = menuNames[index];
-                    Tsonic.CSharp.Js.JSArray<MenuEntry>? existing = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>(site.Menus, menuName_1);
-                    Tsonic.CSharp.Js.JSArray<MenuEntry> combined = existing is null ? Tsonic.CSharp.Js.JSArray<MenuEntry>.of([]) : Menus.flattenMenuEntries(existing);
-                    Tsonic.CSharp.Js.JSArray<MenuEntry>? additions = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>(frontMatterByMenu, menuName_1);
-                    if (additions is null)
-                    {
-                        throw Diagnostics.createTsumoError("TSUMO_MENU_CONFIGURATION_INCONSISTENT", $"Menu '{menuName_1}' disappeared while its immutable configuration was being resolved");
-                    }
-                    for (double entryIndex = 0; entryIndex < additions.length; entryIndex++)
-                    {
-                        combined.push(additions[entryIndex]);
-                    }
-                    site.Menus.set(menuName_1, Menus.buildMenuHierarchy(combined));
-                }
-                Tsonic.CSharp.Js.Map<string, PageContext> pagesByRoute = createPageIndex(pages);
-                foreach (Tsonic.CSharp.Js.JSArray<MenuEntry> entries_1 in site.Menus.values())
-                {
-                    resolveMenuPageReferences(entries_1, pagesByRoute);
-                }
-            };
             return null;
         }
         public static void __tsonic_module_init()

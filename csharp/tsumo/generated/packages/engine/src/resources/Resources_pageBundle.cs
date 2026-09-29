@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Resources_pageBundle
@@ -16,7 +14,7 @@ namespace Tsumo.Engine
         {
             Tsonic.CSharp.Js.JSArray<string> files = Fs.listFilesTopDirectory(directory, "*");
             sortPaths(files);
-            for (double index = 0; index < files.length; index++)
+            for (int index = 0; index < files.length; index++)
             {
                 string sourcePath = files[index];
                 if (Tsonic.CSharp.Js.String.endsWith(Tsonic.CSharp.Js.String.toLowerCase(sourcePath), ".md"))
@@ -33,7 +31,7 @@ namespace Tsumo.Engine
             }
             Tsonic.CSharp.Js.JSArray<string> directories = Fs.listDirectoriesTopDirectory(directory);
             sortPaths(directories);
-            for (double index_1 = 0; index_1 < directories.length; index_1++)
+            for (int index_1 = 0; index_1 < directories.length; index_1++)
             {
                 string child = directories[index_1];
                 if (isNestedBundle(child) || Fs.listFilesTopDirectory(child, "*.md").length > 0)
@@ -48,22 +46,17 @@ namespace Tsumo.Engine
                 collectPageBundleResourceFiles(child, prefix == "" ? name_1 : $"{prefix}/{name_1}", result);
             }
         }
-        public static Func<string, Tsonic.CSharp.Js.JSArray<PageBundleResourceFile>> discoverPageBundleResourceFiles
+        public static Tsonic.CSharp.Js.JSArray<PageBundleResourceFile> discoverPageBundleResourceFiles(string directory)
         {
-            get;
-            private set;
-        } = default(Func<string, Tsonic.CSharp.Js.JSArray<PageBundleResourceFile>>)!;
+            Tsonic.CSharp.Js.JSArray<PageBundleResourceFile> result = Tsonic.CSharp.Js.JSArray<PageBundleResourceFile>.of([]);
+            collectPageBundleResourceFiles(directory, "", result);
+            return result;
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
             Fs.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
-            discoverPageBundleResourceFiles = (string directory) =>
-            {
-                Tsonic.CSharp.Js.JSArray<PageBundleResourceFile> result = Tsonic.CSharp.Js.JSArray<PageBundleResourceFile>.of([]);
-                collectPageBundleResourceFiles(directory, "", result);
-                return result;
-            };
             return null;
         }
         public static void __tsonic_module_init()

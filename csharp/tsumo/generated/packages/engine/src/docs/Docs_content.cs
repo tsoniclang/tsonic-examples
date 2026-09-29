@@ -1,45 +1,38 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Docs_content
     {
-        public static Func<Tsonic.CSharp.Js.JSArray<DocsMarkdownRoute>, bool, DocsContentInventory> loadDocsContent
+        public static DocsContentInventory loadDocsContent(Tsonic.CSharp.Js.JSArray<DocsMarkdownRoute> routes, bool buildDrafts)
         {
-            get;
-            private set;
-        } = default(Func<Tsonic.CSharp.Js.JSArray<DocsMarkdownRoute>, bool, DocsContentInventory>)!;
+            Tsonic.CSharp.Js.Map<string, DocsContentRoute> indexByDirectory = new Tsonic.CSharp.Js.Map<string, DocsContentRoute>();
+            Tsonic.CSharp.Js.JSArray<DocsContentRoute> leaves = Tsonic.CSharp.Js.JSArray<DocsContentRoute>.of([]);
+            Tsonic.CSharp.Js.Map<string, string> permalinkByRelativePath = new Tsonic.CSharp.Js.Map<string, string>();
+            for (int index = 0; index < routes.length; index++)
+            {
+                DocsMarkdownRoute route = routes[index];
+                ParsedContent parsed = Frontmatter_parse.parseContent(Fs.readTextFile(route.sourcePath), route.sourcePath);
+                DocsContentRoute content = new DocsContentRoute(route, parsed, new Tsonic.CSharp.Js.Date(Tsonic.CSharp.Node.fs.statSync(route.sourcePath).mtimeMs));
+                if (route.isIndex)
+                {
+                    indexByDirectory.set(route.dirKey, content);
+                    permalinkByRelativePath.set(Tsonic.CSharp.Js.String.toLowerCase(route.relPath), route.relPermalink);
+                    continue;
+                }
+                if (parsed.frontMatter.draft && !buildDrafts)
+                {
+                    continue;
+                }
+                leaves.push(content);
+                permalinkByRelativePath.set(Tsonic.CSharp.Js.String.toLowerCase(route.relPath), route.relPermalink);
+            }
+            return new DocsContentInventory(indexByDirectory, leaves, permalinkByRelativePath);
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
             Frontmatter.__tsonic_module_init();
             Fs.__tsonic_module_init();
             Docs_routes.__tsonic_module_init();
-            loadDocsContent = (Tsonic.CSharp.Js.JSArray<DocsMarkdownRoute> routes, bool buildDrafts) =>
-            {
-                Tsonic.CSharp.Js.Map<string, DocsContentRoute> indexByDirectory = new Tsonic.CSharp.Js.Map<string, DocsContentRoute>();
-                Tsonic.CSharp.Js.JSArray<DocsContentRoute> leaves = Tsonic.CSharp.Js.JSArray<DocsContentRoute>.of([]);
-                Tsonic.CSharp.Js.Map<string, string> permalinkByRelativePath = new Tsonic.CSharp.Js.Map<string, string>();
-                for (double index = 0; index < routes.length; index++)
-                {
-                    DocsMarkdownRoute route = routes[index];
-                    ParsedContent parsed = Frontmatter_parse.parseContent(Fs.readTextFile(route.sourcePath), route.sourcePath);
-                    DocsContentRoute content = new DocsContentRoute(route, parsed, new Tsonic.CSharp.Js.Date(Tsonic.CSharp.Node.fs.statSync(route.sourcePath).mtimeMs));
-                    if (route.isIndex)
-                    {
-                        indexByDirectory.set(route.dirKey, content);
-                        permalinkByRelativePath.set(Tsonic.CSharp.Js.String.toLowerCase(route.relPath), route.relPermalink);
-                        continue;
-                    }
-                    if (parsed.frontMatter.draft && !buildDrafts)
-                    {
-                        continue;
-                    }
-                    leaves.push(content);
-                    permalinkByRelativePath.set(Tsonic.CSharp.Js.String.toLowerCase(route.relPath), route.relPermalink);
-                }
-                return new DocsContentInventory(indexByDirectory, leaves, permalinkByRelativePath);
-            };
             return null;
         }
         public static void __tsonic_module_init()

@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Template_parser_parsePipeline
@@ -8,29 +6,24 @@ namespace Tsumo.Engine
         {
             return token == ")" || Tsonic.CSharp.Js.String.startsWith(token, ").");
         }
-        public static Func<Tsonic.CSharp.Js.JSArray<string>, string?, int?, int?, Pipeline> parsePipeline
+        public static Pipeline parsePipeline(Tsonic.CSharp.Js.JSArray<string> tokens, string? sourcePath, int? line, int? column)
         {
-            get;
-            private set;
-        } = default(Func<Tsonic.CSharp.Js.JSArray<string>, string?, int?, int?, Pipeline>)!;
+            if (tokens.length == 0)
+            {
+                return new Pipeline(Tsonic.CSharp.Js.JSArray<Command>.of([]));
+            }
+            PipelineParser parser = new PipelineParser(tokens, sourcePath, line, column);
+            Pipeline pipeline = parser.parse(false);
+            if (parser.index != tokens.length)
+            {
+                throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_TOKEN_UNEXPECTED", $"Unexpected template token: {tokens[parser.index]}", sourcePath, line, column);
+            }
+            return pipeline;
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
             Utils_strings.__tsonic_module_init();
-            parsePipeline = (Tsonic.CSharp.Js.JSArray<string> tokens, string? sourcePath, int? line, int? column) =>
-            {
-                if (tokens.length == 0)
-                {
-                    return new Pipeline(Tsonic.CSharp.Js.JSArray<Command>.of([]));
-                }
-                PipelineParser parser = new PipelineParser(tokens, sourcePath, line, column);
-                Pipeline pipeline = parser.parse(false);
-                if (parser.index != tokens.length)
-                {
-                    throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_TOKEN_UNEXPECTED", $"Unexpected template token: {tokens[parser.index]}", sourcePath, line, column);
-                }
-                return pipeline;
-            };
             return null;
         }
         public static void __tsonic_module_init()

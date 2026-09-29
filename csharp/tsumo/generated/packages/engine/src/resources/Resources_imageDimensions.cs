@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Resources_imageDimensions
@@ -24,16 +22,6 @@ namespace Tsumo.Engine
             get;
             private set;
         } = default(int)!;
-        public static int shift16
-        {
-            get;
-            private set;
-        } = default(int)!;
-        public static int shift24
-        {
-            get;
-            private set;
-        } = default(int)!;
         internal static ImageDimensions? parsePngDimensions(Tsonic.CSharp.Node.Buffer bytes)
         {
             if (bytes.length < 24)
@@ -44,9 +32,13 @@ namespace Tsumo.Engine
             {
                 return null;
             }
-            int width = (bytes.readUInt8(16) << shift24) | (bytes.readUInt8(17) << shift16) | (bytes.readUInt8(18) << shift8) | bytes.readUInt8(19);
-            int height = (bytes.readUInt8(20) << shift24) | (bytes.readUInt8(21) << shift16) | (bytes.readUInt8(22) << shift8) | bytes.readUInt8(23);
-            return new ImageDimensions(width, height);
+            uint width = bytes.readUInt32BE(16);
+            uint height = bytes.readUInt32BE(20);
+            if (width > 2147483647 || height > 2147483647)
+            {
+                return null;
+            }
+            return new ImageDimensions((int)width, (int)height);
         }
         internal static ImageDimensions? parseJpegDimensions(Tsonic.CSharp.Node.Buffer bytes)
         {
@@ -69,8 +61,8 @@ namespace Tsumo.Engine
                     {
                         return null;
                     }
-                    int height = (bytes.readUInt8(index + 5) << shift8) | bytes.readUInt8(index + 6);
-                    int width = (bytes.readUInt8(index + 7) << shift8) | bytes.readUInt8(index + 8);
+                    int height = bytes.readUInt16BE(index + 5);
+                    int width = bytes.readUInt16BE(index + 7);
                     return new ImageDimensions(width, height);
                 }
                 if (marker == 216 || marker == 217 || marker == 1 || (marker >= 208 && marker <= 215))
@@ -82,7 +74,7 @@ namespace Tsumo.Engine
                 {
                     return null;
                 }
-                int length = (bytes.readUInt8(index + 2) << shift8) | bytes.readUInt8(index + 3);
+                int length = bytes.readUInt16BE(index + 2);
                 if (length < 2)
                 {
                     return null;
@@ -101,8 +93,8 @@ namespace Tsumo.Engine
             {
                 return null;
             }
-            int width = bytes.readUInt8(6) | (bytes.readUInt8(7) << shift8);
-            int height = bytes.readUInt8(8) | (bytes.readUInt8(9) << shift8);
+            int width = bytes.readUInt16LE(6);
+            int height = bytes.readUInt16LE(8);
             return new ImageDimensions(width, height);
         }
         internal static ImageDimensions? parseWebpDimensions(Tsonic.CSharp.Node.Buffer bytes)
@@ -117,8 +109,8 @@ namespace Tsumo.Engine
             }
             if (bytes.length >= 30 && bytes.readUInt8(12) == 86 && bytes.readUInt8(13) == 80 && bytes.readUInt8(14) == 56 && bytes.readUInt8(15) == 32)
             {
-                int width = (bytes.readUInt8(26) | (bytes.readUInt8(27) << shift8)) & 16383;
-                int height = (bytes.readUInt8(28) | (bytes.readUInt8(29) << shift8)) & 16383;
+                int width = bytes.readUInt16LE(26) & 16383;
+                int height = bytes.readUInt16LE(28) & 16383;
                 return new ImageDimensions(width, height);
             }
             if (bytes.readUInt8(12) == 86 && bytes.readUInt8(13) == 80 && bytes.readUInt8(14) == 56 && bytes.readUInt8(15) == 76)
@@ -133,11 +125,10 @@ namespace Tsumo.Engine
             }
             return null;
         }
-        public static Func<Tsonic.CSharp.Node.Buffer, ImageDimensions?> parseImageDimensions
+        public static ImageDimensions? parseImageDimensions(Tsonic.CSharp.Node.Buffer bytes)
         {
-            get;
-            private set;
-        } = default(Func<Tsonic.CSharp.Node.Buffer, ImageDimensions?>)!;
+            return parsePngDimensions(bytes) ?? parseJpegDimensions(bytes) ?? parseGifDimensions(bytes) ?? parseWebpDimensions(bytes);
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
@@ -145,9 +136,6 @@ namespace Tsumo.Engine
             shift6 = 6;
             shift8 = 8;
             shift10 = 10;
-            shift16 = 16;
-            shift24 = 24;
-            parseImageDimensions = (Tsonic.CSharp.Node.Buffer bytes) => parsePngDimensions(bytes) ?? parseJpegDimensions(bytes) ?? parseGifDimensions(bytes) ?? parseWebpDimensions(bytes);
             return null;
         }
         public static void __tsonic_module_init()

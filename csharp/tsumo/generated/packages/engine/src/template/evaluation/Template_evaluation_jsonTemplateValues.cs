@@ -1,0 +1,61 @@
+namespace Tsumo.Engine
+{
+    public static class Template_evaluation_jsonTemplateValues
+    {
+        public static TemplateValue jsonToTemplateValue(JsonValue value)
+        {
+            if ((object?)value is JsonNull)
+            {
+                return Template_runtimeHelpers.nil;
+            }
+            if ((object?)value is JsonBool)
+            {
+                return new BoolValue(((JsonBool)value).value);
+            }
+            if ((object?)value is JsonNumber)
+            {
+                if (!Tsonic.CSharp.Js.Number.isInteger(((JsonNumber)value).value) || ((JsonNumber)value).value < -2147483648 || ((JsonNumber)value).value > 2147483647)
+                {
+                    throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_UNMARSHAL_NUMBER_UNSUPPORTED", "Structured template data currently requires 32-bit integer numbers", null, ((JsonNumber)value).line, ((JsonNumber)value).column);
+                }
+                return new NumberValue((int)((JsonNumber)value).value);
+            }
+            if ((object?)value is JsonString)
+            {
+                return new StringValue(((JsonString)value).value);
+            }
+            if ((object?)value is JsonArray)
+            {
+                Tsonic.CSharp.Js.JSArray<TemplateValue> items = Tsonic.CSharp.Js.JSArray<TemplateValue>.of([]);
+                for (int index = 0; index < ((JsonArray)value).items.length; index++)
+                {
+                    items.push(jsonToTemplateValue(((JsonArray)value).items[index]));
+                }
+                return new AnyArrayValue(items);
+            }
+            if ((object?)value is JsonObject)
+            {
+                Tsonic.CSharp.Js.Map<string, TemplateValue> fields = new Tsonic.CSharp.Js.Map<string, TemplateValue>();
+                for (int index_1 = 0; index_1 < ((JsonObject)value).properties.length; index_1++)
+                {
+                    JsonProperty property = ((JsonObject)value).properties[index_1];
+                    fields.set(property.key, jsonToTemplateValue(property.value));
+                }
+                return new DictValue(fields);
+            }
+            throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_UNMARSHAL_VALUE_INVALID", "Structured data contains an unknown value kind");
+        }
+        private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
+        private static object? __tsonic_module_init_core()
+        {
+            Utils_json.__tsonic_module_init();
+            Template_values.__tsonic_module_init();
+            Template_runtimeHelpers.__tsonic_module_init();
+            return null;
+        }
+        public static void __tsonic_module_init()
+        {
+            _ = __tsonic_module_initialization.Value;
+        }
+    }
+}

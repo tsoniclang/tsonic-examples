@@ -36,7 +36,7 @@ namespace Tsumo.Engine
             Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>> definitions = new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>();
             foreach (string name in inherited.keys())
             {
-                Tsonic.CSharp.Js.JSArray<TemplateNode>? inheritedBody = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>(inherited, name);
+                Tsonic.CSharp.Js.JSArray<TemplateNode>? inheritedBody = Tsonic.CSharp.Js.Map.getOptional<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>(inherited, name);
                 if (inheritedBody is null)
                 {
                     throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_DEFINE_INVENTORY_INVALID", $"Inherited template definition '{name}' has no body", this.sourcePath);
@@ -45,12 +45,12 @@ namespace Tsumo.Engine
             }
             foreach (string name_1 in this.defines.keys())
             {
-                Tsonic.CSharp.Js.JSArray<TemplateNode>? body = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>(this.defines, name_1);
+                Tsonic.CSharp.Js.JSArray<TemplateNode>? body = Tsonic.CSharp.Js.Map.getOptional<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>(this.defines, name_1);
                 if (body is null)
                 {
                     throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_DEFINE_INVENTORY_INVALID", $"Template definition '{name_1}' has no body", this.sourcePath);
                 }
-                Tsonic.CSharp.Js.JSArray<TemplateNode>? existing = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>(definitions, name_1);
+                Tsonic.CSharp.Js.JSArray<TemplateNode>? existing = Tsonic.CSharp.Js.Map.getOptional<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>(definitions, name_1);
                 if (existing is not null)
                 {
                     throw Diagnostics.createTsumoError("TSUMO_TEMPLATE_DEFINE_CONFLICT", $"Template definition '{name_1}' conflicts with an inherited definition", this.sourcePath);

@@ -18,6 +18,10 @@ namespace Tsumo.Tests
         [Xunit.FactAttribute]
         public void template_namespaces_expose_exact_string_and_hugo_functions()
         {
+            Xunit.Assert.Equal("", TemplateTestHarness.render("{{ delimit (collections.Reverse (slice)) \",\" }}"));
+            Xunit.Assert.Equal("only", TemplateTestHarness.render("{{ delimit (collections.Reverse (slice \"only\")) \",\" }}"));
+            Xunit.Assert.Equal("c,b,a", TemplateTestHarness.render("{{ delimit (collections.Reverse (strings.Split \"a,b,c\" \",\")) \",\" }}"));
+            Xunit.Assert.Equal("only", TemplateTestHarness.render("{{ delimit (collections.Reverse (strings.Split \"only\" \",\")) \",\" }}"));
             Xunit.Assert.Equal("=====", TemplateTestHarness.render("{{ strings.Repeat 5 \"=\" }}"));
             Xunit.Assert.Equal("Hello World", TemplateTestHarness.render("{{ strings.Title \"hello world\" }}"));
             Xunit.Assert.Equal("3|9|4|4|5", TemplateTestHarness.render("{{ math.Min 9 3 7 }}|{{ math.Max 9 3 7 }}|{{ math.Round 4 }}|{{ math.Ceil 4 }}|{{ math.Add 2 3 }}"));
