@@ -3,21 +3,22 @@
 use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
-pub fn plan_home_output(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn planHomeOutput(
     graph: crate::build::standard_page_graph::StandardPageGraph,
     environment: crate::env::BuildEnvironment,
     templates: crate::build::standard_templates::StandardTemplates,
-    output_plan: crate::build::output_plan::SiteOutputPlan,
-    sitemap_urls: js_abi::JsMap<String, bool>,
+    outputPlan: crate::build::output_plan::SiteOutputPlan,
+    sitemapUrls: js_abi::JsMap<String, bool>,
 ) -> Result<(), rt::TsonicError> {
     {
-        let dispatch_receiver_2 = output_plan.clone();
+        let dispatch_receiver_2 = outputPlan.clone();
         dispatch_receiver_2
             .dispatch
             .clone()
             .dispatch_site_output_plan_add_text(
                 String::from("index.html"),
-                crate::build::layout::render_with_base(
+                crate::build::layout::renderWithBase(
                     {
                         let upcast_value = environment;
                         crate::layouts::LayoutEnvironment {
@@ -35,8 +36,8 @@ pub fn plan_home_output(
                 String::from("home page"),
             )
     }?;
-    sitemap_urls.set_discard(String::from("/"), true);
-    let bundle_source: Option<String> = {
+    sitemapUrls.set_discard(String::from("/"), true);
+    let bundleSource: Option<String> = {
         let operation_input_0 = {
             let dispatch_receiver_3 = &graph;
             dispatch_receiver_3
@@ -48,15 +49,15 @@ pub fn plan_home_output(
             dispatch_receiver_4.dispatch.read_standard_page_graph_home()
         })
     };
-    if bundle_source.is_some() {
-        crate::build::bundle_resources::add_bundle_resources(
-            match bundle_source.as_ref() {
+    if bundleSource.is_some() {
+        crate::build::bundle_resources::addBundleResources(
+            match bundleSource.as_ref() {
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             },
             String::from(""),
             String::from("home bundle"),
-            output_plan.clone(),
+            outputPlan.clone(),
         )?;
     }
     Ok(())

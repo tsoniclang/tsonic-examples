@@ -50,7 +50,7 @@ namespace Tsumo.Tests
                 Xunit.Assert.Equal<double>(2, parsed.frontMatter.tags.length);
                 Xunit.Assert.Equal("alpha", parsed.frontMatter.tags[0]);
                 Xunit.Assert.Equal("beta", parsed.frontMatter.tags[1]);
-                ParamValue? featured = Tsonic.CSharp.Js.Map.getReference<string, ParamValue>(parsed.frontMatter.Params, "featured");
+                ParamValue? featured = Tsonic.CSharp.Js.Map.getOptional<string, ParamValue>(parsed.frontMatter.Params, "featured");
                 Xunit.Assert.True(featured is not null && featured.boolValue);
                 Xunit.Assert.Equal<double>(1, parsed.frontMatter.menus.length);
                 Xunit.Assert.Equal("main", parsed.frontMatter.menus[0].menu);
@@ -214,12 +214,12 @@ namespace Tsumo.Tests
             SiteConfig toml = Node_modules_Tsumo_engine_src_config_toml.parseTomlConfig(Tsonic.CSharp.Js.Array.join(Tsonic.CSharp.Js.JSArray<string>.of(["title = 'Café'", "baseURL = 'https://example.test'", "[params]", "featured = true", "[[menu.main]]", "name = 'Home'"]), "\n"), "hugo.toml");
             SiteConfig yaml = Node_modules_Tsumo_engine_src_config_yaml.parseYamlConfig(Tsonic.CSharp.Js.Array.join(Tsonic.CSharp.Js.JSArray<string>.of(["title: Café", "baseURL: https://example.test", "params:", "  featured: true", "menu:", "  main:", "    - name: Home"]), "\n"), "hugo.yaml");
             SiteConfig json = Node_modules_Tsumo_engine_src_config_json.parseJsonConfig("{\"title\":\"Caf\\u00e9\",\"baseURL\":\"https://example.test\",\"params\":{\"featured\":true},\"menu\":{\"main\":[{\"name\":\"Home\"}]}}", "hugo.json");
-            ParamValue? tomlFeatured = Tsonic.CSharp.Js.Map.getReference<string, ParamValue>(toml.Params, "featured");
-            ParamValue? yamlFeatured = Tsonic.CSharp.Js.Map.getReference<string, ParamValue>(yaml.Params, "featured");
-            ParamValue? jsonFeatured = Tsonic.CSharp.Js.Map.getReference<string, ParamValue>(json.Params, "featured");
-            Tsonic.CSharp.Js.JSArray<MenuEntry>? tomlMenu = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>(toml.Menus, "main");
-            Tsonic.CSharp.Js.JSArray<MenuEntry>? yamlMenu = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>(yaml.Menus, "main");
-            Tsonic.CSharp.Js.JSArray<MenuEntry>? jsonMenu = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>(json.Menus, "main");
+            ParamValue? tomlFeatured = Tsonic.CSharp.Js.Map.getOptional<string, ParamValue>(toml.Params, "featured");
+            ParamValue? yamlFeatured = Tsonic.CSharp.Js.Map.getOptional<string, ParamValue>(yaml.Params, "featured");
+            ParamValue? jsonFeatured = Tsonic.CSharp.Js.Map.getOptional<string, ParamValue>(json.Params, "featured");
+            Tsonic.CSharp.Js.JSArray<MenuEntry>? tomlMenu = Tsonic.CSharp.Js.Map.getOptional<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>(toml.Menus, "main");
+            Tsonic.CSharp.Js.JSArray<MenuEntry>? yamlMenu = Tsonic.CSharp.Js.Map.getOptional<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>(yaml.Menus, "main");
+            Tsonic.CSharp.Js.JSArray<MenuEntry>? jsonMenu = Tsonic.CSharp.Js.Map.getOptional<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>(json.Menus, "main");
             Xunit.Assert.True(tomlMenu is not null && yamlMenu is not null && jsonMenu is not null);
             if (tomlMenu is null || yamlMenu is null || jsonMenu is null)
             {
@@ -278,12 +278,12 @@ namespace Tsumo.Tests
         {
             SiteConfig toml = Node_modules_Tsumo_engine_src_config_toml.parseTomlConfig(Tsonic.CSharp.Js.Array.join(Tsonic.CSharp.Js.JSArray<string>.of(["title = \"Caf\\u00e9 # retained\" # removed", "[params]", "message = 'literal # retained' # removed", "count = 1_024"]), "\n"), "scalars.toml");
             Xunit.Assert.Equal("Café # retained", toml.title);
-            Xunit.Assert.Equal("literal # retained", Tsonic.CSharp.Js.Map.getReference<string, ParamValue>(toml.Params, "message")?.stringValue);
-            Xunit.Assert.Equal<double?>(1024, Tsonic.CSharp.Js.Map.getReference<string, ParamValue>(toml.Params, "count")?.numberValue);
+            Xunit.Assert.Equal("literal # retained", Tsonic.CSharp.Js.Map.getOptional<string, ParamValue>(toml.Params, "message")?.stringValue);
+            Xunit.Assert.Equal<double?>(1024, Tsonic.CSharp.Js.Map.getOptional<string, ParamValue>(toml.Params, "count")?.numberValue);
             SiteConfig yaml = Node_modules_Tsumo_engine_src_config_yaml.parseYamlConfig(Tsonic.CSharp.Js.Array.join(Tsonic.CSharp.Js.JSArray<string>.of(["title: \"Caf\\u00e9 # retained\" # removed", "copyright: 'Tsumo''s docs' # removed", "params:", "  address: value#fragment # removed"]), "\n"), "scalars.yaml");
             Xunit.Assert.Equal("Café # retained", yaml.title);
             Xunit.Assert.Equal("Tsumo's docs", yaml.copyright);
-            Xunit.Assert.Equal("value#fragment", Tsonic.CSharp.Js.Map.getReference<string, ParamValue>(yaml.Params, "address")?.stringValue);
+            Xunit.Assert.Equal("value#fragment", Tsonic.CSharp.Js.Map.getOptional<string, ParamValue>(yaml.Params, "address")?.stringValue);
             ParsedContent frontMatter = Node_modules_Tsumo_engine_src_frontmatter_parse.parseContent("""
             ---
             title: 'Tsumo''s \u263a' # removed
@@ -315,7 +315,7 @@ namespace Tsumo.Tests
                 SiteConfig loaded = Node_modules_Tsumo_engine_src_config_loader.loadSiteConfig(site).config;
                 Xunit.Assert.Equal("Example", loaded.title);
                 Xunit.Assert.Equal("https://example.test/", loaded.baseURL);
-                Xunit.Assert.Equal("Hello # retained", Tsonic.CSharp.Js.Map.getReference<string, ParamValue>(loaded.Params, "message")?.stringValue);
+                Xunit.Assert.Equal("Hello # retained", Tsonic.CSharp.Js.Map.getOptional<string, ParamValue>(loaded.Params, "message")?.stringValue);
                 Xunit.Assert.Equal<double>(1, loaded.languages.length);
                 Xunit.Assert.Equal("English", loaded.languages[0].languageName);
                 Xunit.Assert.Equal("rtl", loaded.languages[0].languageDirection);

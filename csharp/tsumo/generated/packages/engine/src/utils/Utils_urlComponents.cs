@@ -1,24 +1,18 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Utils_urlComponents
     {
-        public static Func<string, string> encodeUrlComponent
+        public static string encodeUrlComponent(string value)
         {
-            get;
-            private set;
-        } = default(Func<string, string>)!;
-        public static Func<string, string> decodeUrlComponent
+            return Tsonic.CSharp.Js.Globals.encodeURIComponent(value);
+        }
+        public static string decodeUrlComponent(string value)
         {
-            get;
-            private set;
-        } = default(Func<string, string>)!;
+            return Tsonic.CSharp.Js.Globals.decodeURIComponent(value);
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
-            encodeUrlComponent = (string value) => Tsonic.CSharp.Js.Globals.encodeURIComponent(value);
-            decodeUrlComponent = (string value) => Tsonic.CSharp.Js.Globals.decodeURIComponent(value);
             return null;
         }
         public static void __tsonic_module_init()

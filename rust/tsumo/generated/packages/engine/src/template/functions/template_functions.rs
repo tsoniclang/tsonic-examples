@@ -4,9 +4,10 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn render_partial_resolution(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn renderPartialResolution(
     selected: crate::template::environment::PartialTemplateResolution,
-    context_value: crate::template::values::base::TemplateValue,
+    contextValue: crate::template::values::base::TemplateValue,
     context: crate::template::functions::function_context::TemplateFunctionContext,
 ) -> Result<String, rt::TsonicError> {
     let environment: crate::template::environment::TemplateEnvironment =
@@ -18,7 +19,7 @@ pub fn render_partial_resolution(
             selected.state.with(|state| state.definition.clone());
         if definition.is_none() {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_TEMPLATE_PARTIAL_RESOLUTION_INVALID"),
                     String::from("Template partial definition has no body"),
                     None,
@@ -38,8 +39,8 @@ pub fn render_partial_resolution(
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                     context.state.with(|state| state.defines.clone()),
-                    selected.state.with(|state| state.source_path.clone()),
-                    context_value.clone(),
+                    selected.state.with(|state| state.sourcePath.clone()),
+                    contextValue.clone(),
                     {
                         let dispatch_receiver = &scope;
                         dispatch_receiver.dispatch.read_render_scope_site()
@@ -57,7 +58,7 @@ pub fn render_partial_resolution(
             selected.state.with(|state| state.template.clone());
         if template.is_none() {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_TEMPLATE_PARTIAL_RESOLUTION_INVALID"),
                     String::from("Template partial file has no template"),
                     None,
@@ -76,7 +77,7 @@ pub fn render_partial_resolution(
                         Some(flow_value_2) => flow_value_2.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
-                    context_value.clone(),
+                    contextValue.clone(),
                     {
                         let dispatch_receiver_4 = &scope;
                         dispatch_receiver_4.dispatch.read_render_scope_site()
@@ -90,7 +91,7 @@ pub fn render_partial_resolution(
         };
     }
     Err(rt::TsonicError::TsumoError(
-        crate::diagnostics::create_tsumo_error(
+        crate::diagnostics::createTsumoError(
             String::from("TSUMO_TEMPLATE_PARTIAL_RESOLUTION_INVALID"),
             String::from("Template partial resolution is invalid"),
             None,
@@ -100,7 +101,8 @@ pub fn render_partial_resolution(
     ))
 }
 
-pub fn call_template_function_family(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn callTemplateFunctionFamily(
     name: &str,
     args: js_abi::JsArray<crate::template::values::base::TemplateValue>,
     context: crate::template::functions::function_context::TemplateFunctionContext,
@@ -110,7 +112,7 @@ pub fn call_template_function_family(
     let env: crate::template::environment::TemplateEnvironment =
         context.state.with(|state| state.environment.clone());
     if name == "templates.defer"
-        && rt::conversions::usize_to_i32(args.len())? == 1
+        && args.len() == 1
         && match args.get_number(0.0) {
             Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
@@ -137,15 +139,15 @@ pub fn call_template_function_family(
             };
             dispatch_receiver.dispatch.read_dict_value_value()
         };
-        for option_name in options.keys() {
-            if option_name != "key" && option_name != "data" {
+        for optionName in options.keys() {
+            if optionName != "key" && optionName != "data" {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_TEMPLATE_DEFER_OPTION_INVALID"),
                         format!(
                             "{}{}{}",
                             String::from("templates.Defer does not support option '"),
-                            option_name,
+                            optionName,
                             String::from("'")
                         ),
                         None,
@@ -155,9 +157,9 @@ pub fn call_template_function_family(
                 ));
             }
         }
-        let key_value: Option<crate::template::values::base::TemplateValue> = options.get("key");
-        if key_value.is_some()
-            && match key_value.as_ref() {
+        let keyValue: Option<crate::template::values::base::TemplateValue> = options.get("key");
+        if keyValue.is_some()
+            && match keyValue.as_ref() {
                 Some(flow_value_3) => flow_value_3.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             }
@@ -167,7 +169,7 @@ pub fn call_template_function_family(
             .is_none()
         {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_TEMPLATE_DEFER_KEY_INVALID"),
                     String::from("templates.Defer key must be a string"),
                     None,
@@ -176,10 +178,10 @@ pub fn call_template_function_family(
                 )?,
             ));
         }
-        let key: Option<String> = if key_value.is_some() {
+        let key: Option<String> = if keyValue.is_some() {
             Some({
                 let dispatch_receiver_2 = &{
-                    let downcast_value_2 = &key_value;
+                    let downcast_value_2 = &keyValue;
                     crate::template::values::primitives::StringValue {
                         identity: downcast_value_2.as_ref().unwrap().identity.clone(),
                         dispatch: downcast_value_2
@@ -200,7 +202,7 @@ pub fn call_template_function_family(
             let upcast_value = crate::template::values::deferred::DeferredTemplateValue::new(
                 key,
                 rt::option_coalesce(options.get("data"), core::convert::identity, || {
-                    crate::template::runtime_helpers::NIL
+                    crate::template::runtime_helpers::nil
                         .with(|module_binding| module_binding.load())
                 }),
             )?;
@@ -210,29 +212,28 @@ pub fn call_template_function_family(
             }
         }));
     }
-    if name == "partial" && rt::conversions::usize_to_i32(args.len())? >= 1 {
-        let name_arg: String =
-            crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0) {
+    if name == "partial" && !args.is_empty() {
+        let nameArg: String =
+            crate::template::runtime_helpers::toPlainString(match args.get_number(0.0) {
                 Some(flow_value_4) => flow_value_4,
                 None => unreachable!("checked flow selected a missing optional value"),
             })?;
-        let ctx: crate::template::values::base::TemplateValue =
-            if rt::conversions::usize_to_i32(args.len())? >= 2 {
-                match args.get_number(1.0) {
-                    Some(flow_value_5) => flow_value_5,
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }
-            } else {
-                let dispatch_receiver_3 = &scope;
-                dispatch_receiver_3.dispatch.read_render_scope_dot()
-            };
+        let ctx: crate::template::values::base::TemplateValue = if args.len() >= 2 {
+            match args.get_number(1.0) {
+                Some(flow_value_5) => flow_value_5,
+                None => unreachable!("checked flow selected a missing optional value"),
+            }
+        } else {
+            let dispatch_receiver_3 = &scope;
+            dispatch_receiver_3.dispatch.read_render_scope_dot()
+        };
         let selected: Option<crate::template::environment::PartialTemplateResolution> = {
             let dispatch_receiver_5 = env.clone();
             dispatch_receiver_5
                 .dispatch
                 .clone()
                 .dispatch_template_environment_resolve_partial_template(
-                    name_arg.clone(),
+                    nameArg.clone(),
                     {
                         let dispatch_receiver_4 = &scope;
                         dispatch_receiver_4
@@ -244,12 +245,12 @@ pub fn call_template_function_family(
         }?;
         if selected.is_none() {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_TEMPLATE_PARTIAL_MISSING"),
                     format!(
                         "{}{}{}",
                         String::from("Template partial '"),
-                        name_arg,
+                        nameArg,
                         String::from("' was not found")
                     ),
                     None,
@@ -261,7 +262,7 @@ pub fn call_template_function_family(
         let try_body: rt::TsonicResult<
             rt::Completion<Option<crate::template::values::base::TemplateValue>>,
         > = rt::completion_region(|| {
-            let rendered: String = render_partial_resolution(
+            let rendered: String = renderPartialResolution(
                 match selected.as_ref() {
                     Some(flow_value_6) => flow_value_6.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
@@ -313,29 +314,28 @@ pub fn call_template_function_family(
             }
         }
     }
-    if name == "partialcached" && rt::conversions::usize_to_i32(args.len())? >= 1 {
-        let name_arg: String =
-            crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0) {
+    if name == "partialcached" && !args.is_empty() {
+        let nameArg: String =
+            crate::template::runtime_helpers::toPlainString(match args.get_number(0.0) {
                 Some(flow_value_7) => flow_value_7,
                 None => unreachable!("checked flow selected a missing optional value"),
             })?;
-        let ctx: crate::template::values::base::TemplateValue =
-            if rt::conversions::usize_to_i32(args.len())? >= 2 {
-                match args.get_number(1.0) {
-                    Some(flow_value_8) => flow_value_8,
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }
-            } else {
-                let dispatch_receiver_7 = &scope;
-                dispatch_receiver_7.dispatch.read_render_scope_dot()
-            };
+        let ctx: crate::template::values::base::TemplateValue = if args.len() >= 2 {
+            match args.get_number(1.0) {
+                Some(flow_value_8) => flow_value_8,
+                None => unreachable!("checked flow selected a missing optional value"),
+            }
+        } else {
+            let dispatch_receiver_7 = &scope;
+            dispatch_receiver_7.dispatch.read_render_scope_dot()
+        };
         let selected: Option<crate::template::environment::PartialTemplateResolution> = {
             let dispatch_receiver_9 = env.clone();
             dispatch_receiver_9
                 .dispatch
                 .clone()
                 .dispatch_template_environment_resolve_partial_template(
-                    name_arg.clone(),
+                    nameArg.clone(),
                     {
                         let dispatch_receiver_8 = &scope;
                         dispatch_receiver_8
@@ -347,12 +347,12 @@ pub fn call_template_function_family(
         }?;
         if selected.is_none() {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_TEMPLATE_PARTIAL_MISSING"),
                     format!(
                         "{}{}{}",
                         String::from("Template partial '"),
-                        name_arg,
+                        nameArg,
                         String::from("' was not found")
                     ),
                     None,
@@ -364,7 +364,7 @@ pub fn call_template_function_family(
         let try_body_2: rt::TsonicResult<
             rt::Completion<Option<crate::template::values::base::TemplateValue>>,
         > = rt::completion_region(|| {
-            let rendered: String = render_partial_resolution(
+            let rendered: String = renderPartialResolution(
                 match selected.as_ref() {
                     Some(flow_value_9) => flow_value_9.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
@@ -418,12 +418,12 @@ pub fn call_template_function_family(
     }
     if name == "unmarshal" {
         return Ok(Some(
-            crate::template::evaluation::structured_data::unmarshal_template_data(args.clone())?,
+            crate::template::evaluation::structured_data::unmarshalTemplateData(args.clone())?,
         ));
     }
-    if name == "templates.exists" && rt::conversions::usize_to_i32(args.len())? >= 1 {
-        let template_path: String =
-            crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0) {
+    if name == "templates.exists" && !args.is_empty() {
+        let templatePath: String =
+            crate::template::runtime_helpers::toPlainString(match args.get_number(0.0) {
                 Some(flow_value_10) => flow_value_10,
                 None => unreachable!("checked flow selected a missing optional value"),
             })?;
@@ -432,7 +432,7 @@ pub fn call_template_function_family(
             dispatch_receiver_11
                 .dispatch
                 .clone()
-                .dispatch_template_environment_get_template(&template_path)
+                .dispatch_template_environment_get_template(&templatePath)
         }?;
         return Ok(Some({
             let upcast_value_4 =
@@ -443,23 +443,22 @@ pub fn call_template_function_family(
             }
         }));
     }
-    if name == "errorf" && rt::conversions::usize_to_i32(args.len())? >= 1 {
+    if name == "errorf" && !args.is_empty() {
         let format: String =
-            crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0) {
+            crate::template::runtime_helpers::toPlainString(match args.get_number(0.0) {
                 Some(flow_value_11) => flow_value_11,
                 None => unreachable!("checked flow selected a missing optional value"),
             })?;
         let mut message: String = format;
         {
             let mut index: f64 = 1.0;
-            while index < (rt::conversions::usize_to_i32(args.len())? as f64) {
+            while index < (args.len() as f64) {
                 message = {
                     let operation_input_0 = message.clone();
-                    let operation_input_1 = String::from("%s");
                     js_string::replace_all(
                         &operation_input_0,
-                        &operation_input_1,
-                        &crate::template::runtime_helpers::to_plain_string(
+                        "%s",
+                        &crate::template::runtime_helpers::toPlainString(
                             match args.get_number(index) {
                                 Some(flow_value_12) => flow_value_12,
                                 None => {
@@ -471,11 +470,10 @@ pub fn call_template_function_family(
                 }?;
                 message = {
                     let operation_input_0_2 = message.clone();
-                    let operation_input_1_2 = String::from("%v");
                     js_string::replace_all(
                         &operation_input_0_2,
-                        &operation_input_1_2,
-                        &crate::template::runtime_helpers::to_plain_string(
+                        "%v",
+                        &crate::template::runtime_helpers::toPlainString(
                             match args.get_number(index) {
                                 Some(flow_value_13) => flow_value_13,
                                 None => {
@@ -487,11 +485,10 @@ pub fn call_template_function_family(
                 }?;
                 message = {
                     let operation_input_0_3 = message.clone();
-                    let operation_input_1_3 = String::from("%d");
                     js_string::replace_all(
                         &operation_input_0_3,
-                        &operation_input_1_3,
-                        &crate::template::runtime_helpers::to_plain_string(
+                        "%d",
+                        &crate::template::runtime_helpers::toPlainString(
                             match args.get_number(index) {
                                 Some(flow_value_14) => flow_value_14,
                                 None => {
@@ -505,7 +502,7 @@ pub fn call_template_function_family(
             }
         }
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_TEMPLATE_ERRORF"),
                 message.clone(),
                 None,
@@ -514,23 +511,22 @@ pub fn call_template_function_family(
             )?,
         ));
     }
-    if name == "warnf" && rt::conversions::usize_to_i32(args.len())? >= 1 {
+    if name == "warnf" && !args.is_empty() {
         let format: String =
-            crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0) {
+            crate::template::runtime_helpers::toPlainString(match args.get_number(0.0) {
                 Some(flow_value_15) => flow_value_15,
                 None => unreachable!("checked flow selected a missing optional value"),
             })?;
         let mut message: String = format;
         {
             let mut i: f64 = 1.0;
-            while i < (rt::conversions::usize_to_i32(args.len())? as f64) {
+            while i < (args.len() as f64) {
                 message = {
                     let operation_input_0_4 = message.clone();
-                    let operation_input_1_4 = String::from("%s");
                     js_string::replace_all(
                         &operation_input_0_4,
-                        &operation_input_1_4,
-                        &crate::template::runtime_helpers::to_plain_string(
+                        "%s",
+                        &crate::template::runtime_helpers::toPlainString(
                             match args.get_number(i) {
                                 Some(flow_value_16) => flow_value_16,
                                 None => {
@@ -542,11 +538,10 @@ pub fn call_template_function_family(
                 }?;
                 message = {
                     let operation_input_0_5 = message.clone();
-                    let operation_input_1_5 = String::from("%v");
                     js_string::replace_all(
                         &operation_input_0_5,
-                        &operation_input_1_5,
-                        &crate::template::runtime_helpers::to_plain_string(
+                        "%v",
+                        &crate::template::runtime_helpers::toPlainString(
                             match args.get_number(i) {
                                 Some(flow_value_17) => flow_value_17,
                                 None => {
@@ -558,11 +553,10 @@ pub fn call_template_function_family(
                 }?;
                 message = {
                     let operation_input_0_6 = message.clone();
-                    let operation_input_1_6 = String::from("%d");
                     js_string::replace_all(
                         &operation_input_0_6,
-                        &operation_input_1_6,
-                        &crate::template::runtime_helpers::to_plain_string(
+                        "%d",
+                        &crate::template::runtime_helpers::toPlainString(
                             match args.get_number(i) {
                                 Some(flow_value_18) => flow_value_18,
                                 None => {
@@ -581,10 +575,10 @@ pub fn call_template_function_family(
             message
         ))]);
         return Ok(Some(
-            crate::template::runtime_helpers::NIL.with(|module_binding| module_binding.load()),
+            crate::template::runtime_helpers::nil.with(|module_binding| module_binding.load()),
         ));
     }
-    if name == "safehtml" && rt::conversions::usize_to_i32(args.len())? >= 1 {
+    if name == "safehtml" && !args.is_empty() {
         let v: crate::template::values::base::TemplateValue = match args.get_number(0.0) {
             Some(flow_value_19) => flow_value_19,
             None => unreachable!("checked flow selected a missing optional value"),
@@ -599,7 +593,7 @@ pub fn call_template_function_family(
         return Ok(Some({
             let upcast_value_5 = crate::template::values::primitives::HtmlValue::new(
                 crate::utils::html::HtmlString::new(
-                    crate::template::runtime_helpers::to_plain_string(v.clone())?,
+                    crate::template::runtime_helpers::toPlainString(v.clone())?,
                 )?,
             )?;
             crate::template::values::base::TemplateValue {
@@ -608,7 +602,7 @@ pub fn call_template_function_family(
             }
         }));
     }
-    if name == "safehtmlattr" && rt::conversions::usize_to_i32(args.len())? >= 1 {
+    if name == "safehtmlattr" && !args.is_empty() {
         let v: crate::template::values::base::TemplateValue = match args.get_number(0.0) {
             Some(flow_value_20) => flow_value_20,
             None => unreachable!("checked flow selected a missing optional value"),
@@ -623,7 +617,7 @@ pub fn call_template_function_family(
         return Ok(Some({
             let upcast_value_6 = crate::template::values::primitives::HtmlValue::new(
                 crate::utils::html::HtmlString::new(
-                    crate::template::runtime_helpers::to_plain_string(v.clone())?,
+                    crate::template::runtime_helpers::toPlainString(v.clone())?,
                 )?,
             )?;
             crate::template::values::base::TemplateValue {
@@ -632,7 +626,7 @@ pub fn call_template_function_family(
             }
         }));
     }
-    if name == "safejs" && rt::conversions::usize_to_i32(args.len())? >= 1 {
+    if name == "safejs" && !args.is_empty() {
         let v: crate::template::values::base::TemplateValue = match args.get_number(0.0) {
             Some(flow_value_21) => flow_value_21,
             None => unreachable!("checked flow selected a missing optional value"),
@@ -640,7 +634,7 @@ pub fn call_template_function_family(
         return Ok(Some({
             let upcast_value_7 = crate::template::values::primitives::HtmlValue::new(
                 crate::utils::html::HtmlString::new(
-                    crate::template::runtime_helpers::to_plain_string(v)?,
+                    crate::template::runtime_helpers::toPlainString(v)?,
                 )?,
             )?;
             crate::template::values::base::TemplateValue {
@@ -649,15 +643,15 @@ pub fn call_template_function_family(
             }
         }));
     }
-    if name == "safeurl" && rt::conversions::usize_to_i32(args.len())? >= 1 {
+    if name == "safeurl" && !args.is_empty() {
         let v: crate::template::values::base::TemplateValue = match args.get_number(0.0) {
             Some(flow_value_22) => flow_value_22,
             None => unreachable!("checked flow selected a missing optional value"),
         };
         return Ok(Some({
             let upcast_value_8 = crate::template::values::primitives::HtmlValue::new(
-                crate::utils::html::HtmlString::new(crate::utils::html::escape_html(
-                    crate::template::runtime_helpers::to_plain_string(v)?,
+                crate::utils::html::HtmlString::new(crate::utils::html::escapeHtml(
+                    crate::template::runtime_helpers::toPlainString(v)?,
                 )?)?,
             )?;
             crate::template::values::base::TemplateValue {
@@ -666,7 +660,7 @@ pub fn call_template_function_family(
             }
         }));
     }
-    if name == "safecss" && rt::conversions::usize_to_i32(args.len())? >= 1 {
+    if name == "safecss" && !args.is_empty() {
         let v: crate::template::values::base::TemplateValue = match args.get_number(0.0) {
             Some(flow_value_23) => flow_value_23,
             None => unreachable!("checked flow selected a missing optional value"),
@@ -674,7 +668,7 @@ pub fn call_template_function_family(
         return Ok(Some({
             let upcast_value_9 = crate::template::values::primitives::HtmlValue::new(
                 crate::utils::html::HtmlString::new(
-                    crate::template::runtime_helpers::to_plain_string(v)?,
+                    crate::template::runtime_helpers::toPlainString(v)?,
                 )?,
             )?;
             crate::template::values::base::TemplateValue {
@@ -683,16 +677,16 @@ pub fn call_template_function_family(
             }
         }));
     }
-    if name == "htmlescape" && rt::conversions::usize_to_i32(args.len())? >= 1 {
+    if name == "htmlescape" && !args.is_empty() {
         let v: crate::template::values::base::TemplateValue = match args.get_number(0.0) {
             Some(flow_value_24) => flow_value_24,
             None => unreachable!("checked flow selected a missing optional value"),
         };
         return Ok(Some({
             let upcast_value_10 = crate::template::values::primitives::StringValue::new(
-                crate::utils::html::escape_html(
-                    crate::template::runtime_helpers::to_plain_string(v)?,
-                )?,
+                crate::utils::html::escapeHtml(crate::template::runtime_helpers::toPlainString(
+                    v,
+                )?)?,
             )?;
             crate::template::values::base::TemplateValue {
                 identity: upcast_value_10.identity.clone(),
@@ -700,14 +694,14 @@ pub fn call_template_function_family(
             }
         }));
     }
-    if name == "htmlunescape" && rt::conversions::usize_to_i32(args.len())? >= 1 {
+    if name == "htmlunescape" && !args.is_empty() {
         let v: crate::template::values::base::TemplateValue = match args.get_number(0.0) {
             Some(flow_value_25) => flow_value_25,
             None => unreachable!("checked flow selected a missing optional value"),
         };
         return Ok(Some({
             let upcast_value_11 = crate::template::values::primitives::StringValue::new(
-                crate::utils::html::decode_html(crate::template::runtime_helpers::to_plain_string(
+                crate::utils::html::decodeHtml(&crate::template::runtime_helpers::toPlainString(
                     v,
                 )?),
             )?;
@@ -717,23 +711,21 @@ pub fn call_template_function_family(
             }
         }));
     }
-    if name == "time.format" && rt::conversions::usize_to_i32(args.len())? >= 2 {
+    if name == "time.format" && args.len() >= 2 {
         let layout: String =
-            crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0) {
+            crate::template::runtime_helpers::toPlainString(match args.get_number(0.0) {
                 Some(flow_value_26) => flow_value_26,
                 None => unreachable!("checked flow selected a missing optional value"),
             })?;
         let input: String =
-            crate::template::runtime_helpers::to_plain_string(match args.get_number(1.0) {
+            crate::template::runtime_helpers::toPlainString(match args.get_number(1.0) {
                 Some(flow_value_27) => flow_value_27,
                 None => unreachable!("checked flow selected a missing optional value"),
             })?;
         return Ok(Some({
             let upcast_value_12 =
                 crate::template::values::primitives::StringValue::new(rt::option_coalesce(
-                    crate::template::evaluation::scalar_semantics::format_date_time(
-                        input, &layout,
-                    )?,
+                    crate::template::evaluation::scalar_semantics::formatDateTime(&input, &layout)?,
                     core::convert::identity,
                     || String::from(""),
                 ))?;
@@ -743,14 +735,14 @@ pub fn call_template_function_family(
             }
         }));
     }
-    if name == "path.base" && rt::conversions::usize_to_i32(args.len())? >= 1 {
+    if name == "path.base" && !args.is_empty() {
         let raw: String =
-            crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0) {
+            crate::template::runtime_helpers::toPlainString(match args.get_number(0.0) {
                 Some(flow_value_28) => flow_value_28,
                 None => unreachable!("checked flow selected a missing optional value"),
             })?;
-        let normalized: String = crate::template::evaluation::serialization::trim_end_character(
-            crate::utils::strings::replace_text(&raw, String::from("\\"), String::from("/"))?,
+        let normalized: String = crate::template::evaluation::serialization::trimEndCharacter(
+            crate::utils::strings::replaceText(&raw, String::from("\\"), String::from("/"))?,
             String::from("/"),
         )?;
         if normalized.is_empty() {
@@ -763,12 +755,14 @@ pub fn call_template_function_family(
                 }
             }));
         }
-        let idx: i32 =
-            rt::conversions::isize_to_i32(js_string::last_index_of_from_end(&normalized, "/"))?;
+        let idx: isize = js_string::last_index_of_from_end(&normalized, "/");
         return Ok(if idx >= 0 {
             Some({
                 let upcast_value_14 = crate::template::values::primitives::StringValue::new(
-                    crate::utils::strings::substring_from(&normalized, idx + 1)?,
+                    crate::utils::strings::substringFrom(
+                        &normalized,
+                        rt::conversions::isize_to_i32(idx + 1)?,
+                    )?,
                 )?;
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_14.identity.clone(),
@@ -786,16 +780,14 @@ pub fn call_template_function_family(
             })
         });
     }
-    if name == "path.ext" && rt::conversions::usize_to_i32(args.len())? >= 1 {
+    if name == "path.ext" && !args.is_empty() {
         return Ok(Some({
             let upcast_value_16 = crate::template::values::primitives::StringValue::new(
-                crate::template::evaluation::serialization::get_path_extension(
-                    &crate::template::runtime_helpers::to_plain_string(
-                        match args.get_number(0.0) {
-                            Some(flow_value_29) => flow_value_29,
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },
-                    )?,
+                crate::template::evaluation::serialization::getPathExtension(
+                    &crate::template::runtime_helpers::toPlainString(match args.get_number(0.0) {
+                        Some(flow_value_29) => flow_value_29,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    })?,
                 )?,
             )?;
             crate::template::values::base::TemplateValue {
@@ -804,15 +796,15 @@ pub fn call_template_function_family(
             }
         }));
     }
-    if name == "path.join" && rt::conversions::usize_to_i32(args.len())? >= 1 {
+    if name == "path.join" && !args.is_empty() {
         let segments: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
         let mut rooted: bool = false;
         {
-            let mut argument_index: f64 = 0.0;
-            while argument_index < (rt::conversions::usize_to_i32(args.len())? as f64) {
-                let value: String = crate::utils::strings::replace_text(
-                    &crate::template::runtime_helpers::to_plain_string(
-                        match args.get_number(argument_index) {
+            let mut argumentIndex: usize = 0;
+            while argumentIndex < args.len() {
+                let value: String = crate::utils::strings::replaceText(
+                    &crate::template::runtime_helpers::toPlainString(
+                        match args.get_number(argumentIndex) {
                             Some(flow_value_30) => flow_value_30,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
@@ -820,44 +812,38 @@ pub fn call_template_function_family(
                     String::from("\\"),
                     String::from("/"),
                 )?;
-                if argument_index == 0.0 && js_string::starts_with_from_start(&value, "/") {
+                if argumentIndex == 0 && js_string::starts_with_from_start(&value, "/") {
                     rooted = true;
                 }
                 let parts: js_abi::JsArray<String> = js_string::split_all(&value, "/")?;
                 {
-                    let mut part_index: f64 = 0.0;
-                    'loop_value_5: while part_index
-                        < (rt::conversions::usize_to_i32(parts.len())? as f64)
-                    {
-                        let part: String = match parts.get_number(part_index) {
+                    let mut partIndex: usize = 0;
+                    'loop_value_5: while partIndex < parts.len() {
+                        let part: String = match parts.get_number(partIndex) {
                             Some(flow_value_31) => flow_value_31,
                             None => unreachable!("checked flow selected a missing optional value"),
                         };
                         if part.is_empty() || part == "." {
-                            part_index += 1.0;
+                            partIndex += 1;
                             continue 'loop_value_5;
                         }
                         if part == ".." {
-                            if rt::conversions::usize_to_i32(segments.len())? > 0
-                                && ({
-                                    let operation_input_0_7 = segments.clone();
-                                    operation_input_0_7.get_number(rt::conversions::i32_to_f64(
-                                        rt::conversions::usize_to_i32(segments.len())? - 1,
-                                    ))
-                                }) != Some(String::from(".."))
+                            if !segments.is_empty()
+                                && segments.get_number(segments.len() - 1)
+                                    != Some(String::from(".."))
                             {
                                 segments.pop();
                             } else if !rooted {
-                                segments.push_many_discard([part.clone()]);
+                                segments.push_many_discard([part]);
                             }
-                            part_index += 1.0;
+                            partIndex += 1;
                             continue 'loop_value_5;
                         }
-                        segments.push_many_discard([part.clone()]);
-                        part_index += 1.0;
+                        segments.push_many_discard([part]);
+                        partIndex += 1;
                     }
                 }
-                argument_index += 1.0;
+                argumentIndex += 1;
             }
         }
         let joined: String = segments.join("/");
@@ -876,16 +862,14 @@ pub fn call_template_function_family(
             }
         }));
     }
-    if name == "title" && rt::conversions::usize_to_i32(args.len())? >= 1 {
+    if name == "title" && !args.is_empty() {
         return Ok(Some({
             let upcast_value_18 = crate::template::values::primitives::StringValue::new(
-                crate::template::evaluation::page_semantics::to_title_case(
-                    &crate::template::runtime_helpers::to_plain_string(
-                        match args.get_number(0.0) {
-                            Some(flow_value_32) => flow_value_32,
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },
-                    )?,
+                crate::template::evaluation::page_semantics::toTitleCase(
+                    &crate::template::runtime_helpers::toPlainString(match args.get_number(0.0) {
+                        Some(flow_value_32) => flow_value_32,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    })?,
                 )?,
             )?;
             crate::template::values::base::TemplateValue {

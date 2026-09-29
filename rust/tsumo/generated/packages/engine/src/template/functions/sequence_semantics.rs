@@ -3,9 +3,11 @@
 use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
-pub const MAX_SEQUENCE_SIZE: i32 = 1000000;
+#[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+pub const maxSequenceSize: i32 = 1000000;
 
-pub fn sequence_argument(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn sequenceArgument(
     value: crate::template::values::base::TemplateValue,
     position: i32,
 ) -> Result<i32, rt::TsonicError> {
@@ -32,7 +34,7 @@ pub fn sequence_argument(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_2,
         };
-        let parsed: Option<i32> = crate::utils::int32::parse_int32(&{
+        let parsed: Option<i32> = crate::utils::int32::parseInt32(&{
             let dispatch_receiver_2 = &selected_value_2;
             dispatch_receiver_2.dispatch.read_string_value_value()
         })?;
@@ -44,7 +46,7 @@ pub fn sequence_argument(
         }
     }
     Err(rt::TsonicError::TsumoError(
-        crate::diagnostics::create_tsumo_error(
+        crate::diagnostics::createTsumoError(
             String::from("TSUMO_TEMPLATE_SEQUENCE_ARGUMENT_INVALID"),
             format!(
                 "{}{}{}",
@@ -59,14 +61,13 @@ pub fn sequence_argument(
     ))
 }
 
-pub fn create_integer_sequence(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn createIntegerSequence(
     args: js_abi::JsArray<crate::template::values::base::TemplateValue>,
 ) -> Result<crate::template::values::arrays::AnyArrayValue, rt::TsonicError> {
-    if rt::conversions::usize_to_i32(args.len())? < 1
-        || rt::conversions::usize_to_i32(args.len())? > 3
-    {
+    if args.is_empty() || args.len() > 3 {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_TEMPLATE_SEQUENCE_ARGUMENT_INVALID"),
                 String::from("seq requires one, two, or three integer arguments"),
                 None,
@@ -75,7 +76,7 @@ pub fn create_integer_sequence(
             )?,
         ));
     }
-    let mut first: i32 = sequence_argument(
+    let mut first: i32 = sequenceArgument(
         match args.get_number(0.0) {
             Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
@@ -84,7 +85,7 @@ pub fn create_integer_sequence(
     )?;
     let mut increment: i32 = 1;
     let mut last: i32 = first;
-    if rt::conversions::usize_to_i32(args.len())? == 1 {
+    if args.len() == 1 {
         if last == 0 {
             return crate::template::values::arrays::AnyArrayValue::new(
                 js_abi::JsArray::from_dense(vec![]),
@@ -97,27 +98,19 @@ pub fn create_integer_sequence(
             increment = -1;
         }
     } else {
-        last = sequence_argument(
-            {
-                let flow_input = {
-                    let operation_input_0 = args.clone();
-                    operation_input_0.get_number(rt::conversions::i32_to_f64(
-                        rt::conversions::usize_to_i32(args.len())? - 1,
-                    ))
-                };
-                match flow_input {
-                    Some(flow_value_2) => flow_value_2,
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }
+        last = sequenceArgument(
+            match args.get_number(args.len() - 1) {
+                Some(flow_value_2) => flow_value_2,
+                None => unreachable!("checked flow selected a missing optional value"),
             },
             rt::conversions::usize_to_i32(args.len())?,
         )?;
-        if rt::conversions::usize_to_i32(args.len())? == 2 {
+        if args.len() == 2 {
             if last < first {
                 increment = -1;
             }
         } else {
-            increment = sequence_argument(
+            increment = sequenceArgument(
                 match args.get_number(1.0) {
                     Some(flow_value_3) => flow_value_3,
                     None => unreachable!("checked flow selected a missing optional value"),
@@ -126,7 +119,7 @@ pub fn create_integer_sequence(
             )?;
             if increment == 0 || first < last && increment < 0 || first > last && increment > 0 {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_TEMPLATE_SEQUENCE_INCREMENT_INVALID"),
                         String::from(
                             "seq increment must be non-zero and move from the first value toward the last value",
@@ -140,8 +133,8 @@ pub fn create_integer_sequence(
         }
     }
     let difference: f64 = rt::conversions::i32_to_f64(last - first);
-    let size_value: f64 = (difference / increment as f64).floor() + 1.0;
-    let size: Option<i32> = crate::utils::int32::to_int32(size_value)?;
+    let sizeValue: f64 = (difference / increment as f64).floor() + 1.0;
+    let size: Option<i32> = crate::utils::int32::toInt32(sizeValue)?;
     if size.is_none()
         || (match size.as_ref() {
             Some(flow_value_4) => *flow_value_4,
@@ -150,15 +143,15 @@ pub fn create_integer_sequence(
         || (match size.as_ref() {
             Some(flow_value_5) => *flow_value_5,
             None => unreachable!("checked flow selected a missing optional value"),
-        }) > MAX_SEQUENCE_SIZE
+        }) > maxSequenceSize
     {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_TEMPLATE_SEQUENCE_SIZE_UNSUPPORTED"),
                 format!(
                     "{}{}{}",
                     String::from("seq cannot produce more than "),
-                    rt::source_string(&MAX_SEQUENCE_SIZE),
+                    rt::source_string(&maxSequenceSize),
                     String::from(" values")
                 ),
                 None,
@@ -178,17 +171,13 @@ pub fn create_integer_sequence(
                 None => unreachable!("checked flow selected a missing optional value"),
             }
         {
-            {
-                let operation_input_0_2 = values.clone();
-                operation_input_0_2.push_many_discard([{
-                    let upcast_value =
-                        crate::template::values::primitives::NumberValue::new(value)?;
-                    crate::template::values::base::TemplateValue {
-                        identity: upcast_value.identity.clone(),
-                        dispatch: upcast_value.dispatch.clone(),
-                    }
-                }])
-            };
+            values.push_many_discard([{
+                let upcast_value = crate::template::values::primitives::NumberValue::new(value)?;
+                crate::template::values::base::TemplateValue {
+                    identity: upcast_value.identity.clone(),
+                    dispatch: upcast_value.dispatch.clone(),
+                }
+            }]);
             if index + 1
                 < match size.as_ref() {
                     Some(flow_value_7) => *flow_value_7,
@@ -196,10 +185,10 @@ pub fn create_integer_sequence(
                 }
             {
                 let next: Option<i32> =
-                    crate::utils::int32::to_int32(rt::conversions::i32_to_f64(value + increment))?;
+                    crate::utils::int32::toInt32(rt::conversions::i32_to_f64(value + increment))?;
                 if next.is_none() {
                     return Err(rt::TsonicError::TsumoError(
-                        crate::diagnostics::create_tsumo_error(
+                        crate::diagnostics::createTsumoError(
                             String::from("TSUMO_TEMPLATE_SEQUENCE_SIZE_UNSUPPORTED"),
                             String::from("seq result exceeds the supported 32-bit integer range"),
                             None,
@@ -219,7 +208,8 @@ pub fn create_integer_sequence(
     crate::template::values::arrays::AnyArrayValue::new(values.clone())
 }
 
-pub fn reverse_template_collection(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn reverseTemplateCollection(
     collection: crate::template::values::base::TemplateValue,
 ) -> Result<Option<crate::template::values::base::TemplateValue>, rt::TsonicError> {
     if let Some(selected_dispatch) = collection
@@ -234,29 +224,24 @@ pub fn reverse_template_collection(
         let result: js_abi::JsArray<crate::template::values::base::TemplateValue> =
             js_abi::JsArray::from_dense(vec![]);
         {
-            let mut index: i32 = rt::conversions::usize_to_i32(
-                {
-                    let dispatch_receiver = &selected_value;
-                    dispatch_receiver.dispatch.read_any_array_value_value()
-                }
-                .len(),
-            )? - 1;
-            while index >= 0 {
-                {
-                    let operation_input_0 = result.clone();
-                    operation_input_0.push_many_discard([
-                        match {
-                            let dispatch_receiver_2 = &selected_value;
-                            dispatch_receiver_2.dispatch.read_any_array_value_value()
-                        }
-                        .get_number(rt::conversions::i32_to_f64(index))
-                        {
-                            Some(flow_value) => flow_value,
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },
-                    ])
-                };
+            let mut index: usize = {
+                let dispatch_receiver = &selected_value;
+                dispatch_receiver.dispatch.read_any_array_value_value()
+            }
+            .len();
+            while index != 0 {
                 index -= 1;
+                result.push_many_discard([
+                    match {
+                        let dispatch_receiver_2 = &selected_value;
+                        dispatch_receiver_2.dispatch.read_any_array_value_value()
+                    }
+                    .get_number(index)
+                    {
+                        Some(flow_value) => flow_value,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
+                ]);
             }
         }
         return Ok(Some({
@@ -278,29 +263,24 @@ pub fn reverse_template_collection(
         };
         let result: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
         {
-            let mut index: i32 = rt::conversions::usize_to_i32(
-                {
-                    let dispatch_receiver_3 = &selected_value_2;
-                    dispatch_receiver_3.dispatch.read_string_array_value_value()
-                }
-                .len(),
-            )? - 1;
-            while index >= 0 {
-                {
-                    let operation_input_0_2 = result.clone();
-                    operation_input_0_2.push_many_discard([
-                        match {
-                            let dispatch_receiver_4 = &selected_value_2;
-                            dispatch_receiver_4.dispatch.read_string_array_value_value()
-                        }
-                        .get_number(rt::conversions::i32_to_f64(index))
-                        {
-                            Some(flow_value_2) => flow_value_2,
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },
-                    ])
-                };
+            let mut index: usize = {
+                let dispatch_receiver_3 = &selected_value_2;
+                dispatch_receiver_3.dispatch.read_string_array_value_value()
+            }
+            .len();
+            while index != 0 {
                 index -= 1;
+                result.push_many_discard([
+                    match {
+                        let dispatch_receiver_4 = &selected_value_2;
+                        dispatch_receiver_4.dispatch.read_string_array_value_value()
+                    }
+                    .get_number(index)
+                    {
+                        Some(flow_value_2) => flow_value_2,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
+                ]);
             }
         }
         return Ok(Some({
@@ -324,29 +304,24 @@ pub fn reverse_template_collection(
         let result: js_abi::JsArray<crate::models::page_context::PageContext> =
             js_abi::JsArray::from_dense(vec![]);
         {
-            let mut index: i32 = rt::conversions::usize_to_i32(
-                {
-                    let dispatch_receiver_5 = &selected_value_3;
-                    dispatch_receiver_5.dispatch.read_page_array_value_value()
-                }
-                .len(),
-            )? - 1;
-            while index >= 0 {
-                {
-                    let operation_input_0_3 = result.clone();
-                    operation_input_0_3.push_many_discard([
-                        match {
-                            let dispatch_receiver_6 = &selected_value_3;
-                            dispatch_receiver_6.dispatch.read_page_array_value_value()
-                        }
-                        .get_number(rt::conversions::i32_to_f64(index))
-                        {
-                            Some(flow_value_3) => flow_value_3,
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },
-                    ])
-                };
+            let mut index: usize = {
+                let dispatch_receiver_5 = &selected_value_3;
+                dispatch_receiver_5.dispatch.read_page_array_value_value()
+            }
+            .len();
+            while index != 0 {
                 index -= 1;
+                result.push_many_discard([
+                    match {
+                        let dispatch_receiver_6 = &selected_value_3;
+                        dispatch_receiver_6.dispatch.read_page_array_value_value()
+                    }
+                    .get_number(index)
+                    {
+                        Some(flow_value_3) => flow_value_3,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
+                ]);
             }
         }
         return Ok(Some({

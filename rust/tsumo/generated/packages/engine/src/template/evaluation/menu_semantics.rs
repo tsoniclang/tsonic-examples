@@ -3,18 +3,19 @@
 use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
-pub fn menu_entry_represents_page(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn menuEntryRepresentsPage(
     entry: crate::models::menu_entry::MenuEntry,
     page: crate::models::page_context::PageContext,
 ) -> Result<bool, rt::TsonicError> {
-    let linked_page: Option<crate::models::page_context::PageContext> = {
+    let linkedPage: Option<crate::models::page_context::PageContext> = {
         let dispatch_receiver = &entry;
         dispatch_receiver.dispatch.read_menu_entry_page()
     };
-    if linked_page.is_some()
-        && crate::template::evaluation::serialization::trim_end_character(
+    if linkedPage.is_some()
+        && crate::template::evaluation::serialization::trimEndCharacter(
             {
-                let dispatch_receiver_2 = &match linked_page.as_ref() {
+                let dispatch_receiver_2 = &match linkedPage.as_ref() {
                     Some(flow_value) => flow_value.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
@@ -23,7 +24,7 @@ pub fn menu_entry_represents_page(
                     .read_page_context_rel_permalink()
             },
             String::from("/"),
-        )? == crate::template::evaluation::serialization::trim_end_character(
+        )? == crate::template::evaluation::serialization::trimEndCharacter(
             {
                 let dispatch_receiver_3 = &page;
                 dispatch_receiver_3
@@ -44,13 +45,13 @@ pub fn menu_entry_represents_page(
         return Ok(false);
     }
     Ok(
-        crate::template::evaluation::serialization::trim_end_character(
+        crate::template::evaluation::serialization::trimEndCharacter(
             {
                 let dispatch_receiver_5 = &entry;
                 dispatch_receiver_5.dispatch.read_menu_entry_url()
             },
             String::from("/"),
-        )? == crate::template::evaluation::serialization::trim_end_character(
+        )? == crate::template::evaluation::serialization::trimEndCharacter(
             {
                 let dispatch_receiver_6 = &page;
                 dispatch_receiver_6
@@ -62,69 +63,63 @@ pub fn menu_entry_represents_page(
     )
 }
 
-pub fn menu_entry_belongs_to_menu(
-    entry: crate::models::menu_entry::MenuEntry,
-    menu_name: &str,
-) -> bool {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn menuEntryBelongsToMenu(entry: crate::models::menu_entry::MenuEntry, menuName: &str) -> bool {
     ({
         let dispatch_receiver = &entry;
         dispatch_receiver.dispatch.read_menu_entry_menu()
-    }) == menu_name
+    }) == menuName
 }
 
-pub fn is_menu_current(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isMenuCurrent(
     page: crate::models::page_context::PageContext,
-    menu_name: &str,
+    menuName: &str,
     entry: crate::models::menu_entry::MenuEntry,
 ) -> Result<bool, rt::TsonicError> {
-    Ok(menu_entry_belongs_to_menu(entry.clone(), menu_name)
-        && menu_entry_represents_page(entry.clone(), page)?)
+    Ok(menuEntryBelongsToMenu(entry.clone(), menuName)
+        && menuEntryRepresentsPage(entry.clone(), page)?)
 }
 
-pub fn has_menu_current(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn hasMenuCurrent(
     page: crate::models::page_context::PageContext,
-    menu_name: &str,
+    menuName: &str,
     entry: crate::models::menu_entry::MenuEntry,
 ) -> Result<bool, rt::TsonicError> {
-    if !menu_entry_belongs_to_menu(entry.clone(), menu_name) {
+    if !menuEntryBelongsToMenu(entry.clone(), menuName) {
         return Ok(false);
     }
     let pending: js_abi::JsArray<crate::models::menu_entry::MenuEntry> =
         js_abi::JsArray::from_dense(vec![]);
     {
-        let mut index: f64 = 0.0;
-        while index
-            < (rt::conversions::usize_to_i32(
-                {
-                    let dispatch_receiver = &entry;
-                    dispatch_receiver.dispatch.read_menu_entry_children()
-                }
-                .len(),
-            )? as f64)
+        let mut index: usize = 0;
+        while index < {
+            let dispatch_receiver = &entry;
+            dispatch_receiver.dispatch.read_menu_entry_children()
+        }
+        .len()
         {
-            {
-                let operation_input_0 = pending.clone();
-                operation_input_0.push_many_discard([
-                    match {
-                        let dispatch_receiver_2 = &entry;
-                        dispatch_receiver_2.dispatch.read_menu_entry_children()
-                    }
-                    .get_number(index)
-                    {
-                        Some(flow_value) => flow_value,
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                ])
-            };
-            index += 1.0;
+            pending.push_many_discard([
+                match {
+                    let dispatch_receiver_2 = &entry;
+                    dispatch_receiver_2.dispatch.read_menu_entry_children()
+                }
+                .get_number(index)
+                {
+                    Some(flow_value) => flow_value,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                },
+            ]);
+            index += 1;
         }
     }
-    'loop_value_2: while rt::conversions::usize_to_i32(pending.len())? > 0 {
+    'loop_value_2: while !pending.is_empty() {
         let candidate: Option<crate::models::menu_entry::MenuEntry> = pending.pop();
         if candidate.is_none() {
             break 'loop_value_2;
         }
-        if menu_entry_represents_page(
+        if menuEntryRepresentsPage(
             match candidate.as_ref() {
                 Some(flow_value_2) => flow_value_2.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
@@ -134,39 +129,31 @@ pub fn has_menu_current(
             return Ok(true);
         }
         {
-            let mut index: f64 = 0.0;
-            while index
-                < (rt::conversions::usize_to_i32(
-                    {
-                        let dispatch_receiver_3 = &match candidate.as_ref() {
-                            Some(flow_value_3) => flow_value_3.clone(),
+            let mut index: usize = 0;
+            while index < {
+                let dispatch_receiver_3 = &match candidate.as_ref() {
+                    Some(flow_value_3) => flow_value_3.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                };
+                dispatch_receiver_3.dispatch.read_menu_entry_children()
+            }
+            .len()
+            {
+                pending.push_many_discard([
+                    match {
+                        let dispatch_receiver_4 = &match candidate.as_ref() {
+                            Some(flow_value_4) => flow_value_4.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         };
-                        dispatch_receiver_3.dispatch.read_menu_entry_children()
+                        dispatch_receiver_4.dispatch.read_menu_entry_children()
                     }
-                    .len(),
-                )? as f64)
-            {
-                {
-                    let operation_input_0_2 = pending.clone();
-                    operation_input_0_2.push_many_discard([
-                        match {
-                            let dispatch_receiver_4 = &match candidate.as_ref() {
-                                Some(flow_value_4) => flow_value_4.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            };
-                            dispatch_receiver_4.dispatch.read_menu_entry_children()
-                        }
-                        .get_number(index)
-                        {
-                            Some(flow_value_5) => flow_value_5,
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },
-                    ])
-                };
-                index += 1.0;
+                    .get_number(index)
+                    {
+                        Some(flow_value_5) => flow_value_5,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
+                ]);
+                index += 1;
             }
         }
     }

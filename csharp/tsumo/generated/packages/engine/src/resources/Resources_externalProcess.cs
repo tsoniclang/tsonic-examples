@@ -1,30 +1,23 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Resources_externalProcess
     {
-        public static Func<string, Tsonic.CSharp.Js.JSArray<string>, string, string, ExternalProcessResult> runExternalProcess
+        public static ExternalProcessResult runExternalProcess(string executable, Tsonic.CSharp.Js.JSArray<string> argumentsList, string toolName, string startDiagnosticCode)
         {
-            get;
-            private set;
-        } = default(Func<string, Tsonic.CSharp.Js.JSArray<string>, string, string, ExternalProcessResult>)!;
+            Tsonic.CSharp.Node.SpawnSyncResult result = Tsonic.CSharp.Node.child_process.spawnSyncResult(executable, argumentsList);
+            Tsonic.CSharp.Node.Buffer? stderr = result.stderr;
+            string standardError = stderr is null ? "" : Tsonic.CSharp.Js.String.trim(stderr.toString("utf8"));
+            Tsonic.CSharp.Node.SpawnSyncError? error = result.error;
+            if (error is not null || result.status is null)
+            {
+                string detail = error is null ? standardError : error.message;
+                throw Diagnostics.createTsumoError(startDiagnosticCode, detail == "" ? $"Failed to start {toolName} '{executable}'" : $"Failed to start {toolName} '{executable}': {detail}");
+            }
+            return new ExternalProcessResult(result.status!.Value, standardError);
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
-            runExternalProcess = (string executable, Tsonic.CSharp.Js.JSArray<string> argumentsList, string toolName, string startDiagnosticCode) =>
-            {
-                Tsonic.CSharp.Node.SpawnSyncResult result = Tsonic.CSharp.Node.child_process.spawnSyncResult(executable, argumentsList);
-                Tsonic.CSharp.Node.Buffer? stderr = result.stderr;
-                string standardError = stderr is null ? "" : Tsonic.CSharp.Js.String.trim(stderr.toString("utf8"));
-                Tsonic.CSharp.Node.SpawnSyncError? error = result.error;
-                if (error is not null || result.status is null)
-                {
-                    string detail = error is null ? standardError : error.message;
-                    throw Diagnostics.createTsumoError(startDiagnosticCode, detail == "" ? $"Failed to start {toolName} '{executable}'" : $"Failed to start {toolName} '{executable}': {detail}");
-                }
-                return new ExternalProcessResult(result.status.Value, standardError);
-            };
             return null;
         }
         public static void __tsonic_module_init()

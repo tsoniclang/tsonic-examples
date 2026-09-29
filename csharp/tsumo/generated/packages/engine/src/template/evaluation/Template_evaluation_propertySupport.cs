@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Template_evaluation_propertySupport
@@ -14,36 +12,90 @@ namespace Tsumo.Engine
             get;
             private set;
         } = default(Tsonic.CSharp.Js.Map<SiteContext, ScratchStore>)!;
-        public static Func<Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<PageContext>>, AnyArrayValue> taxonomyTermsByCount
+        public static AnyArrayValue taxonomyTermsByCount(Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<PageContext>> terms)
         {
-            get;
-            private set;
-        } = default(Func<Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<PageContext>>, AnyArrayValue>)!;
-        public static Func<Tsonic.CSharp.Js.Map<string, ParamValue>, DictValue> wrapParamDict
+            Tsonic.CSharp.Js.JSArray<string> names = Tsonic.CSharp.Js.JSArrayStatics.from<string>(terms.keys());
+            names.sort((string left, string right) =>
+            {
+                int leftCount = Tsonic.CSharp.Js.Map.getOptional<string, Tsonic.CSharp.Js.JSArray<PageContext>>(terms, left)?.length ?? 0;
+                int rightCount = Tsonic.CSharp.Js.Map.getOptional<string, Tsonic.CSharp.Js.JSArray<PageContext>>(terms, right)?.length ?? 0;
+                return leftCount > rightCount ? -1 : leftCount < rightCount ? 1 : Utils_strings.compareText(left, right);
+            });
+            Tsonic.CSharp.Js.JSArray<TemplateValue> values = Tsonic.CSharp.Js.JSArray<TemplateValue>.of([]);
+            for (int index = 0; index < names.length; index++)
+            {
+                string name = names[index];
+                Tsonic.CSharp.Js.JSArray<PageContext>? pages = Tsonic.CSharp.Js.Map.getOptional<string, Tsonic.CSharp.Js.JSArray<PageContext>>(terms, name);
+                if (pages is null)
+                {
+                    continue;
+                }
+                Tsonic.CSharp.Js.Map<string, TemplateValue> fields = new Tsonic.CSharp.Js.Map<string, TemplateValue>();
+                fields.set("Name", new StringValue(name));
+                fields.set("Count", new NumberValue(pages.length));
+                fields.set("Pages", new PageArrayValue(pages));
+                values.push(new DictValue(fields));
+            }
+            return new AnyArrayValue(values);
+        }
+        public static DictValue wrapParamDict(Tsonic.CSharp.Js.Map<string, ParamValue> dict)
         {
-            get;
-            private set;
-        } = default(Func<Tsonic.CSharp.Js.Map<string, ParamValue>, DictValue>)!;
-        public static Func<Tsonic.CSharp.Js.JSArray<LanguageContext>, AnyArrayValue> wrapLanguages
+            Tsonic.CSharp.Js.Map<string, TemplateValue> mapped = new Tsonic.CSharp.Js.Map<string, TemplateValue>();
+            foreach (string key in dict.keys())
+            {
+                ParamValue? value = Tsonic.CSharp.Js.Map.getOptional<string, ParamValue>(dict, key);
+                if (value is null)
+                {
+                    continue;
+                }
+                TemplateValue wrapped = new StringValue(value.stringValue);
+                if (value.kind == ParamKind.Bool)
+                {
+                    wrapped = new BoolValue(value.boolValue);
+                }
+                if (value.kind == ParamKind.Number)
+                {
+                    wrapped = new NumberValue(value.numberValue);
+                }
+                mapped.set(key, wrapped);
+            }
+            return new DictValue(mapped);
+        }
+        public static AnyArrayValue wrapLanguages(Tsonic.CSharp.Js.JSArray<LanguageContext> languages)
         {
-            get;
-            private set;
-        } = default(Func<Tsonic.CSharp.Js.JSArray<LanguageContext>, AnyArrayValue>)!;
-        public static Func<MediaType, MediaTypeValue> wrapMediaType
+            Tsonic.CSharp.Js.JSArray<TemplateValue> items = Tsonic.CSharp.Js.JSArray<TemplateValue>.of([]);
+            for (int index = 0; index < languages.length; index++)
+            {
+                items.push(new LanguageValue(languages[index]));
+            }
+            return new AnyArrayValue(items);
+        }
+        public static MediaTypeValue wrapMediaType(MediaType mediaType)
         {
-            get;
-            private set;
-        } = default(Func<MediaType, MediaTypeValue>)!;
-        public static Func<PageContext, ScratchStore> getPageStore
+            return new MediaTypeValue(mediaType);
+        }
+        public static ScratchStore getPageStore(PageContext page)
         {
-            get;
-            private set;
-        } = default(Func<PageContext, ScratchStore>)!;
-        public static Func<SiteContext, ScratchStore> getSiteStore
+            ScratchStore? existing = Tsonic.CSharp.Js.Map.getOptional<PageContext, ScratchStore>(pageStores, page);
+            if (existing is not null)
+            {
+                return existing;
+            }
+            ScratchStore store = new ScratchStore();
+            pageStores.set(page, store);
+            return store;
+        }
+        public static ScratchStore getSiteStore(SiteContext site)
         {
-            get;
-            private set;
-        } = default(Func<SiteContext, ScratchStore>)!;
+            ScratchStore? existing = Tsonic.CSharp.Js.Map.getOptional<SiteContext, ScratchStore>(siteStores, site);
+            if (existing is not null)
+            {
+                return existing;
+            }
+            ScratchStore store = new ScratchStore();
+            siteStores.set(site, store);
+            return store;
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
@@ -53,97 +105,6 @@ namespace Tsumo.Engine
             Template_values.__tsonic_module_init();
             pageStores = new Tsonic.CSharp.Js.Map<PageContext, ScratchStore>();
             siteStores = new Tsonic.CSharp.Js.Map<SiteContext, ScratchStore>();
-            taxonomyTermsByCount = (Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<PageContext>> terms) =>
-            {
-                Tsonic.CSharp.Js.JSArray<string> names = Tsonic.CSharp.Js.JSArrayStatics.from<string>(terms.keys());
-                for (double left = 0; left < names.length; left++)
-                {
-                    for (double right = left + 1; right < names.length; right++)
-                    {
-                        string leftName = names[left];
-                        string rightName = names[right];
-                        int leftCount = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<PageContext>>(terms, leftName)?.length ?? 0;
-                        int rightCount = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<PageContext>>(terms, rightName)?.length ?? 0;
-                        if (leftCount > rightCount || (leftCount == rightCount && Utils_strings.compareText(leftName, rightName) <= 0))
-                        {
-                            continue;
-                        }
-                        names[left] = rightName;
-                        names[right] = leftName;
-                    }
-                }
-                Tsonic.CSharp.Js.JSArray<TemplateValue> values = Tsonic.CSharp.Js.JSArray<TemplateValue>.of([]);
-                for (double index = 0; index < names.length; index++)
-                {
-                    string name = names[index];
-                    Tsonic.CSharp.Js.JSArray<PageContext>? pages = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<PageContext>>(terms, name);
-                    if (pages is null)
-                    {
-                        continue;
-                    }
-                    Tsonic.CSharp.Js.Map<string, TemplateValue> fields = new Tsonic.CSharp.Js.Map<string, TemplateValue>();
-                    fields.set("Name", new StringValue(name));
-                    fields.set("Count", new NumberValue(pages.length));
-                    fields.set("Pages", new PageArrayValue(pages));
-                    values.push(new DictValue(fields));
-                }
-                return new AnyArrayValue(values);
-            };
-            wrapParamDict = (Tsonic.CSharp.Js.Map<string, ParamValue> dict) =>
-            {
-                Tsonic.CSharp.Js.Map<string, TemplateValue> mapped = new Tsonic.CSharp.Js.Map<string, TemplateValue>();
-                foreach (string key in dict.keys())
-                {
-                    ParamValue? value = Tsonic.CSharp.Js.Map.getReference<string, ParamValue>(dict, key);
-                    if (value is null)
-                    {
-                        continue;
-                    }
-                    TemplateValue wrapped = new StringValue(value.stringValue);
-                    if (value.kind == ParamKind.Bool)
-                    {
-                        wrapped = new BoolValue(value.boolValue);
-                    }
-                    if (value.kind == ParamKind.Number)
-                    {
-                        wrapped = new NumberValue(value.numberValue);
-                    }
-                    mapped.set(key, wrapped);
-                }
-                return new DictValue(mapped);
-            };
-            wrapLanguages = (Tsonic.CSharp.Js.JSArray<LanguageContext> languages) =>
-            {
-                Tsonic.CSharp.Js.JSArray<TemplateValue> items = Tsonic.CSharp.Js.JSArray<TemplateValue>.of([]);
-                for (double index = 0; index < languages.length; index++)
-                {
-                    items.push(new LanguageValue(languages[index]));
-                }
-                return new AnyArrayValue(items);
-            };
-            wrapMediaType = (MediaType mediaType) => new MediaTypeValue(mediaType);
-            getPageStore = (PageContext page) =>
-            {
-                ScratchStore? existing = Tsonic.CSharp.Js.Map.getReference<PageContext, ScratchStore>(pageStores, page);
-                if (existing is not null)
-                {
-                    return existing;
-                }
-                ScratchStore store = new ScratchStore();
-                pageStores.set(page, store);
-                return store;
-            };
-            getSiteStore = (SiteContext site) =>
-            {
-                ScratchStore? existing = Tsonic.CSharp.Js.Map.getReference<SiteContext, ScratchStore>(siteStores, site);
-                if (existing is not null)
-                {
-                    return existing;
-                }
-                ScratchStore store = new ScratchStore();
-                siteStores.set(site, store);
-                return store;
-            };
             return null;
         }
         public static void __tsonic_module_init()

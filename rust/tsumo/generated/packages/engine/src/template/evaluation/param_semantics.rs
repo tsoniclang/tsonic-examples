@@ -4,7 +4,8 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn param_to_template_value(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn paramToTemplateValue(
     value: crate::params::ParamValue,
 ) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
     if ({
@@ -51,7 +52,8 @@ pub fn param_to_template_value(
     })
 }
 
-pub fn find_param(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn findParam(
     values: js_abi::JsMap<String, crate::params::ParamValue>,
     name: String,
 ) -> Option<crate::params::ParamValue> {

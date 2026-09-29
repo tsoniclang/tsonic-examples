@@ -4,6 +4,9 @@ use crate::program as rt;
 
 #[doc(hidden)]
 pub trait FrontMatterMenuDispatch {
+    fn project_front_matter_menu(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_front_matter_menu_to_front_matter_menu(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn FrontMatterMenuDispatch + 'static>> {
@@ -109,7 +112,24 @@ impl FrontMatterMenu {
     }
 }
 
+impl rt::ObjectIdentityCarrier for FrontMatterMenuRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl FrontMatterMenuDispatch for FrontMatterMenuRoot {
+    fn project_front_matter_menu(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn FrontMatterMenuDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_front_matter_menu_to_front_matter_menu(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn FrontMatterMenuDispatch + 'static>> {

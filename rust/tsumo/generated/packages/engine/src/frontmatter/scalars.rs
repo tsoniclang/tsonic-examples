@@ -4,39 +4,41 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn parse_front_matter_param(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseFrontMatterParam(
     value: &str,
     format: crate::utils::structured_scalars::StructuredScalarFormat,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
     line: Option<i32>,
 ) -> Result<crate::params::ParamValue, rt::TsonicError> {
-    crate::utils::structured_scalars::parse_structured_scalar(value, format, {
-        let capture_source_path = source_path.clone();
+    crate::utils::structured_scalars::parseStructuredScalar(value, format, {
+        let capture_source_path = sourcePath;
         let capture_line = line;
         rt::Callable::<(String,), rt::TsonicResult<crate::diagnostics::TsumoError>>::new(
             move |callable_arguments| {
                 let message = callable_arguments.0;
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_FRONTMATTER_SCALAR_INVALID"),
                     message,
                     capture_source_path.clone(),
-                    capture_line.map(rt::conversions::i32_to_f64),
-                    Some(1.0),
+                    capture_line,
+                    Some(1),
                 )
             },
         )
     })
 }
 
-pub fn parse_front_matter_string(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseFrontMatterString(
     value: &str,
     field: String,
     format: crate::utils::structured_scalars::StructuredScalarFormat,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
     line: Option<i32>,
 ) -> Result<String, rt::TsonicError> {
     let parsed: crate::params::ParamValue =
-        parse_front_matter_param(value, format, source_path.clone(), line)?;
+        parseFrontMatterParam(value, format, sourcePath.clone(), line)?;
     if ({
         let dispatch_receiver = &parsed;
         dispatch_receiver.dispatch.read_param_value_kind()
@@ -48,7 +50,7 @@ pub fn parse_front_matter_string(
         });
     }
     Err(rt::TsonicError::TsumoError(
-        crate::diagnostics::create_tsumo_error(
+        crate::diagnostics::createTsumoError(
             String::from("TSUMO_FRONTMATTER_FIELD_INVALID"),
             format!(
                 "{}{}{}",
@@ -56,24 +58,25 @@ pub fn parse_front_matter_string(
                 field,
                 String::from("' requires a string")
             ),
-            source_path.clone(),
-            line.map(rt::conversions::i32_to_f64),
-            Some(1.0),
+            sourcePath.clone(),
+            line,
+            Some(1),
         )?,
     ))
 }
 
-pub fn record_front_matter_field(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn recordFrontMatterField(
     fields: js_abi::JsSet<String>,
     field: String,
     context: String,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
     line: Option<i32>,
 ) -> Result<(), rt::TsonicError> {
     let normalized: String = js_string::to_lower_case(&field);
     if fields.has(&normalized) {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_FRONTMATTER_FIELD_DUPLICATE"),
                 format!(
                     "{}{}{}{}",
@@ -82,9 +85,9 @@ pub fn record_front_matter_field(
                     field,
                     String::from("' is declared more than once")
                 ),
-                source_path,
-                line.map(rt::conversions::i32_to_f64),
-                Some(1.0),
+                sourcePath,
+                line,
+                Some(1),
             )?,
         ));
     }
@@ -92,22 +95,23 @@ pub fn record_front_matter_field(
     Ok(())
 }
 
-pub fn parse_front_matter_int(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseFrontMatterInt(
     value: &str,
     field: String,
     format: crate::utils::structured_scalars::StructuredScalarFormat,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
     line: Option<i32>,
 ) -> Result<i32, rt::TsonicError> {
     let parsed: crate::params::ParamValue =
-        parse_front_matter_param(value, format, source_path.clone(), line)?;
+        parseFrontMatterParam(value, format, sourcePath.clone(), line)?;
     if ({
         let dispatch_receiver = &parsed;
         dispatch_receiver.dispatch.read_param_value_kind()
     }) != crate::params::PARAM_KIND_NUMBER.with(|module_binding| module_binding.load())
     {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_FRONTMATTER_INVALID_INTEGER"),
                 format!(
                     "{}{}{}",
@@ -115,9 +119,9 @@ pub fn parse_front_matter_int(
                     field,
                     String::from("' requires a 32-bit integer")
                 ),
-                source_path.clone(),
-                line.map(rt::conversions::i32_to_f64),
-                Some(1.0),
+                sourcePath.clone(),
+                line,
+                Some(1),
             )?,
         ));
     }
@@ -127,11 +131,12 @@ pub fn parse_front_matter_int(
     })
 }
 
-pub fn parse_front_matter_string_array(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseFrontMatterStringArray(
     value: &str,
     field: String,
     format: crate::utils::structured_scalars::StructuredScalarFormat,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
     line: Option<i32>,
 ) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
     let trimmed: String = js_string::trim(value);
@@ -139,7 +144,7 @@ pub fn parse_front_matter_string_array(
         || !js_string::ends_with_at_end(&trimmed, "]")
     {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_FRONTMATTER_INVALID_STRING_ARRAY"),
                 format!(
                     "{}{}{}",
@@ -147,48 +152,48 @@ pub fn parse_front_matter_string_array(
                     field,
                     String::from("' requires a string array")
                 ),
-                source_path.clone(),
-                line.map(rt::conversions::i32_to_f64),
-                Some(1.0),
+                sourcePath.clone(),
+                line,
+                Some(1),
             )?,
         ));
     }
-    let inner: String = crate::utils::strings::substring_count(
+    let inner: String = crate::utils::strings::substringCount(
         &trimmed,
         1,
-        rt::conversions::usize_to_i32(js_string::js_len(&trimmed))? - 2,
+        rt::conversions::usize_to_i32(js_string::js_len(&trimmed) - 2)?,
     )?;
     if js_string::trim(&inner).is_empty() {
         return Ok(js_abi::JsArray::from_dense(vec![]));
     }
+    let innerLength: i32 = rt::conversions::usize_to_i32(js_string::js_len(&inner))?;
     let values: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     let mut start: i32 = 0;
     let mut quote: String = String::from("");
     let mut escaped: bool = false;
     {
         let mut index: i32 = 0;
-        'loop_value: while index <= rt::conversions::usize_to_i32(js_string::js_len(&inner))? {
-            let current: String =
-                if index < rt::conversions::usize_to_i32(js_string::js_len(&inner))? {
-                    js_string::char_at(&inner, rt::conversions::i32_to_f64(index))?
-                } else {
-                    String::from(",")
-                };
+        'loop_value: while index <= innerLength {
+            let current: String = if index < innerLength {
+                js_string::char_at(&inner, index)?
+            } else {
+                String::from(",")
+            };
             if escaped {
                 escaped = false;
-                index = if index == rt::conversions::usize_to_i32(js_string::js_len(&inner))? {
+                index = if index == innerLength {
                     index + 1
                 } else {
-                    crate::utils::strings::next_code_point_index(&inner, index)?
+                    crate::utils::strings::nextCodePointIndex(&inner, index)?
                 };
                 continue 'loop_value;
             }
             if quote == "\"" && current == "\\" {
                 escaped = true;
-                index = if index == rt::conversions::usize_to_i32(js_string::js_len(&inner))? {
+                index = if index == innerLength {
                     index + 1
                 } else {
-                    crate::utils::strings::next_code_point_index(&inner, index)?
+                    crate::utils::strings::nextCodePointIndex(&inner, index)?
                 };
                 continue 'loop_value;
             }
@@ -198,29 +203,29 @@ pub fn parse_front_matter_string_array(
                 } else if quote == current {
                     quote = String::from("");
                 }
-                index = if index == rt::conversions::usize_to_i32(js_string::js_len(&inner))? {
+                index = if index == innerLength {
                     index + 1
                 } else {
-                    crate::utils::strings::next_code_point_index(&inner, index)?
+                    crate::utils::strings::nextCodePointIndex(&inner, index)?
                 };
                 continue 'loop_value;
             }
             if current != "," || !quote.is_empty() {
-                index = if index == rt::conversions::usize_to_i32(js_string::js_len(&inner))? {
+                index = if index == innerLength {
                     index + 1
                 } else {
-                    crate::utils::strings::next_code_point_index(&inner, index)?
+                    crate::utils::strings::nextCodePointIndex(&inner, index)?
                 };
                 continue 'loop_value;
             }
-            let item: String = js_string::trim(&crate::utils::strings::substring_count(
+            let item: String = js_string::trim(&crate::utils::strings::substringCount(
                 &inner,
                 start,
                 index - start,
             )?);
             if item.is_empty() {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_FRONTMATTER_INVALID_STRING_ARRAY"),
                         format!(
                             "{}{}{}",
@@ -228,33 +233,30 @@ pub fn parse_front_matter_string_array(
                             field,
                             String::from("' contains an empty array item")
                         ),
-                        source_path.clone(),
-                        line.map(rt::conversions::i32_to_f64),
-                        Some(1.0),
+                        sourcePath.clone(),
+                        line,
+                        Some(1),
                     )?,
                 ));
             }
-            {
-                let operation_input_0 = values.clone();
-                operation_input_0.push_many_discard([parse_front_matter_string(
-                    &item,
-                    field.clone(),
-                    format,
-                    source_path.clone(),
-                    line,
-                )?])
-            };
+            values.push_many_discard([parseFrontMatterString(
+                &item,
+                field.clone(),
+                format,
+                sourcePath.clone(),
+                line,
+            )?]);
             start = index + 1;
-            index = if index == rt::conversions::usize_to_i32(js_string::js_len(&inner))? {
+            index = if index == innerLength {
                 index + 1
             } else {
-                crate::utils::strings::next_code_point_index(&inner, index)?
+                crate::utils::strings::nextCodePointIndex(&inner, index)?
             };
         }
     }
     if !quote.is_empty() {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_FRONTMATTER_STRING_INVALID"),
                 format!(
                     "{}{}{}",
@@ -262,37 +264,38 @@ pub fn parse_front_matter_string_array(
                     field,
                     String::from("' contains an unterminated string")
                 ),
-                source_path.clone(),
-                line.map(rt::conversions::i32_to_f64),
-                Some(1.0),
+                sourcePath.clone(),
+                line,
+                Some(1),
             )?,
         ));
     }
     Ok(values)
 }
 
-pub fn apply_front_matter_scalar(
-    front_matter: crate::frontmatter::data::FrontMatter,
-    key_raw: &str,
-    value_raw: &str,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn applyFrontMatterScalar(
+    frontMatter: crate::frontmatter::data::FrontMatter,
+    keyRaw: &str,
+    valueRaw: &str,
     format: crate::utils::structured_scalars::StructuredScalarFormat,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
     line: Option<i32>,
 ) -> Result<(), rt::TsonicError> {
-    let key: String = js_string::to_lower_case(&js_string::trim(key_raw));
-    let value: String = js_string::trim(value_raw);
+    let key: String = js_string::to_lower_case(&js_string::trim(keyRaw));
+    let value: String = js_string::trim(valueRaw);
     if key == "title" {
         {
-            let receiver = &front_matter;
-            let value_2 = Some(parse_front_matter_string(
+            let receiver = &frontMatter;
+            let value_2 = Some(parseFrontMatterString(
                 &value,
-                js_string::trim(key_raw),
+                js_string::trim(keyRaw),
                 format,
-                source_path.clone(),
+                sourcePath.clone(),
                 line,
             )?);
             {
-                let field_owner = receiver.clone();
+                let field_owner = receiver;
                 let field_value = value_2;
                 {
                     field_owner.state.validate_data_write()?;
@@ -303,34 +306,34 @@ pub fn apply_front_matter_scalar(
             }
         };
     } else if key == "date" {
-        let authored: String = parse_front_matter_string(
+        let authored: String = parseFrontMatterString(
             &value,
-            js_string::trim(key_raw),
+            js_string::trim(keyRaw),
             format,
-            source_path.clone(),
+            sourcePath.clone(),
             line,
         )?;
         let milliseconds: f64 = js_abi::JsDate::parse(&authored);
         if js_abi::number_is_nan(milliseconds) {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_FRONTMATTER_INVALID_DATE"),
                     format!(
                         "{}{}",
                         String::from("Invalid front matter date: "),
                         authored
                     ),
-                    source_path.clone(),
-                    line.map(rt::conversions::i32_to_f64),
-                    Some(1.0),
+                    sourcePath.clone(),
+                    line,
+                    Some(1),
                 )?,
             ));
         }
         {
-            let receiver_2 = &front_matter;
+            let receiver_2 = &frontMatter;
             let value_3 = Some(js_abi::JsDate::from_millis(milliseconds));
             {
-                let field_owner_2 = receiver_2.clone();
+                let field_owner_2 = receiver_2;
                 let field_value_2 = value_3;
                 {
                     field_owner_2.state.validate_data_write()?;
@@ -342,35 +345,35 @@ pub fn apply_front_matter_scalar(
         };
     } else if key == "draft" {
         let parsed: crate::params::ParamValue =
-            parse_front_matter_param(&value, format, source_path.clone(), line)?;
+            parseFrontMatterParam(&value, format, sourcePath.clone(), line)?;
         if ({
             let dispatch_receiver = &parsed;
             dispatch_receiver.dispatch.read_param_value_kind()
         }) != crate::params::PARAM_KIND_BOOL.with(|module_binding| module_binding.load())
         {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_FRONTMATTER_INVALID_BOOL"),
                     format!(
                         "{}{}{}",
                         String::from("Front matter field '"),
-                        js_string::trim(key_raw),
+                        js_string::trim(keyRaw),
                         String::from("' requires true or false")
                     ),
-                    source_path.clone(),
-                    line.map(rt::conversions::i32_to_f64),
-                    Some(1.0),
+                    sourcePath.clone(),
+                    line,
+                    Some(1),
                 )?,
             ));
         }
         {
-            let receiver_3 = &front_matter;
+            let receiver_3 = &frontMatter;
             let value_4 = {
                 let dispatch_receiver_2 = &parsed;
                 dispatch_receiver_2.dispatch.read_param_value_bool_value()
             };
             {
-                let field_owner_3 = receiver_3.clone();
+                let field_owner_3 = receiver_3;
                 let field_value_3 = value_4;
                 {
                     field_owner_3.state.validate_data_write()?;
@@ -382,16 +385,16 @@ pub fn apply_front_matter_scalar(
         };
     } else if key == "description" {
         {
-            let receiver_4 = &front_matter;
-            let value_5 = Some(parse_front_matter_string(
+            let receiver_4 = &frontMatter;
+            let value_5 = Some(parseFrontMatterString(
                 &value,
-                js_string::trim(key_raw),
+                js_string::trim(keyRaw),
                 format,
-                source_path.clone(),
+                sourcePath.clone(),
                 line,
             )?);
             {
-                let field_owner_4 = receiver_4.clone();
+                let field_owner_4 = receiver_4;
                 let field_value_4 = value_5;
                 {
                     field_owner_4.state.validate_data_write()?;
@@ -403,16 +406,16 @@ pub fn apply_front_matter_scalar(
         };
     } else if key == "slug" {
         {
-            let receiver_5 = &front_matter;
-            let value_6 = Some(parse_front_matter_string(
+            let receiver_5 = &frontMatter;
+            let value_6 = Some(parseFrontMatterString(
                 &value,
-                js_string::trim(key_raw),
+                js_string::trim(keyRaw),
                 format,
-                source_path.clone(),
+                sourcePath.clone(),
                 line,
             )?);
             {
-                let field_owner_5 = receiver_5.clone();
+                let field_owner_5 = receiver_5;
                 let field_value_5 = value_6;
                 {
                     field_owner_5.state.validate_data_write()?;
@@ -424,16 +427,16 @@ pub fn apply_front_matter_scalar(
         };
     } else if key == "layout" {
         {
-            let receiver_6 = &front_matter;
-            let value_7 = Some(parse_front_matter_string(
+            let receiver_6 = &frontMatter;
+            let value_7 = Some(parseFrontMatterString(
                 &value,
-                js_string::trim(key_raw),
+                js_string::trim(keyRaw),
                 format,
-                source_path.clone(),
+                sourcePath.clone(),
                 line,
             )?);
             {
-                let field_owner_6 = receiver_6.clone();
+                let field_owner_6 = receiver_6;
                 let field_value_6 = value_7;
                 {
                     field_owner_6.state.validate_data_write()?;
@@ -445,16 +448,16 @@ pub fn apply_front_matter_scalar(
         };
     } else if key == "type" {
         {
-            let receiver_7 = &front_matter;
-            let value_8 = Some(parse_front_matter_string(
+            let receiver_7 = &frontMatter;
+            let value_8 = Some(parseFrontMatterString(
                 &value,
-                js_string::trim(key_raw),
+                js_string::trim(keyRaw),
                 format,
-                source_path.clone(),
+                sourcePath.clone(),
                 line,
             )?);
             {
-                let field_owner_7 = receiver_7.clone();
+                let field_owner_7 = receiver_7;
                 let field_value_7 = value_8;
                 {
                     field_owner_7.state.validate_data_write()?;
@@ -466,16 +469,16 @@ pub fn apply_front_matter_scalar(
         };
     } else if key == "tags" {
         {
-            let receiver_8 = &front_matter;
-            let value_9 = parse_front_matter_string_array(
+            let receiver_8 = &frontMatter;
+            let value_9 = parseFrontMatterStringArray(
                 &value,
                 String::from("tags"),
                 format,
-                source_path.clone(),
+                sourcePath.clone(),
                 line,
             )?;
             {
-                let field_owner_8 = receiver_8.clone();
+                let field_owner_8 = receiver_8;
                 let field_value_8 = value_9;
                 {
                     field_owner_8.state.validate_data_write()?;
@@ -487,16 +490,16 @@ pub fn apply_front_matter_scalar(
         };
     } else if key == "categories" {
         {
-            let receiver_9 = &front_matter;
-            let value_10 = parse_front_matter_string_array(
+            let receiver_9 = &frontMatter;
+            let value_10 = parseFrontMatterStringArray(
                 &value,
                 String::from("categories"),
                 format,
-                source_path.clone(),
+                sourcePath.clone(),
                 line,
             )?;
             {
-                let field_owner_9 = receiver_9.clone();
+                let field_owner_9 = receiver_9;
                 let field_value_9 = value_10;
                 {
                     field_owner_9.state.validate_data_write()?;
@@ -508,10 +511,10 @@ pub fn apply_front_matter_scalar(
         };
     } else {
         {
-            let operation_input_0 = front_matter.state.with(|state| state.params.clone());
+            let operation_input_0 = frontMatter.state.with(|state| state.Params.clone());
             operation_input_0.set_discard(
-                js_string::trim(key_raw),
-                parse_front_matter_param(&value, format, source_path.clone(), line)?,
+                js_string::trim(keyRaw),
+                parseFrontMatterParam(&value, format, sourcePath.clone(), line)?,
             )
         };
     }

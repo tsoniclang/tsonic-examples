@@ -3,25 +3,23 @@
 use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
-pub fn plan_list_outputs(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn planListOutputs(
     graph: crate::build::standard_page_graph::StandardPageGraph,
     environment: crate::env::BuildEnvironment,
     templates: crate::build::standard_templates::StandardTemplates,
-    output_plan: crate::build::output_plan::SiteOutputPlan,
-    sitemap_urls: js_abi::JsMap<String, bool>,
+    outputPlan: crate::build::output_plan::SiteOutputPlan,
+    sitemapUrls: js_abi::JsMap<String, bool>,
 ) -> Result<(), rt::TsonicError> {
     {
-        let mut index: f64 = 0.0;
-        'loop_value: while index
-            < (rt::conversions::usize_to_i32(
-                {
-                    let dispatch_receiver = &graph;
-                    dispatch_receiver
-                        .dispatch
-                        .read_standard_page_graph_list_routes()
-                }
-                .len(),
-            )? as f64)
+        let mut index: usize = 0;
+        'loop_value: while index < {
+            let dispatch_receiver = &graph;
+            dispatch_receiver
+                .dispatch
+                .read_standard_page_graph_list_routes()
+        }
+        .len()
         {
             let route: String = match {
                 let dispatch_receiver_2 = &graph;
@@ -35,7 +33,7 @@ pub fn plan_list_outputs(
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if route.is_empty() {
-                index += 1.0;
+                index += 1;
                 continue 'loop_value;
             }
             let page: Option<crate::models::page_context::PageContext> = {
@@ -46,11 +44,11 @@ pub fn plan_list_outputs(
             }
             .get(&route);
             if page.is_none() {
-                index += 1.0;
+                index += 1;
                 continue 'loop_value;
             }
             let main: String = rt::option_coalesce(
-                crate::build::layout::select_template(
+                crate::build::layout::selectTemplate(
                     {
                         let upcast_value = environment.clone();
                         crate::layouts::LayoutEnvironment {
@@ -92,7 +90,7 @@ pub fn plan_list_outputs(
                 || templates.state.with(|state| state.list.clone()),
             );
             let base: Option<String> = rt::option_coalesce(
-                crate::build::layout::select_template(
+                crate::build::layout::selectTemplate(
                     {
                         let upcast_value_2 = environment.clone();
                         crate::layouts::LayoutEnvironment {
@@ -134,15 +132,15 @@ pub fn plan_list_outputs(
                 || templates.state.with(|state| state.base.clone()),
             );
             {
-                let dispatch_receiver_8 = output_plan.clone();
+                let dispatch_receiver_8 = outputPlan.clone();
                 dispatch_receiver_8
                     .dispatch
                     .clone()
                     .dispatch_site_output_plan_add_text(
-                        crate::build::site_routes::site_output_path(
-                            crate::build::site_routes::split_site_path(&route)?,
-                        )?,
-                        crate::build::layout::render_with_base(
+                        crate::build::site_routes::siteOutputPath(
+                            crate::build::site_routes::splitSitePath(&route)?,
+                        ),
+                        crate::build::layout::renderWithBase(
                             {
                                 let upcast_value_3 = environment.clone();
                                 crate::layouts::LayoutEnvironment {
@@ -150,8 +148,8 @@ pub fn plan_list_outputs(
                                     dispatch: upcast_value_3.dispatch.clone(),
                                 }
                             },
-                            base.clone(),
-                            main.clone(),
+                            base,
+                            main,
                             match page.as_ref() {
                                 Some(flow_value_6) => flow_value_6.clone(),
                                 None => {
@@ -168,7 +166,7 @@ pub fn plan_list_outputs(
                     )
             }?;
             {
-                let operation_input_0 = sitemap_urls.clone();
+                let operation_input_0 = sitemapUrls.clone();
                 operation_input_0.set_discard(
                     {
                         let dispatch_receiver_9 = &match page.as_ref() {
@@ -182,7 +180,7 @@ pub fn plan_list_outputs(
                     true,
                 )
             };
-            let bundle_source: Option<String> = {
+            let bundleSource: Option<String> = {
                 let dispatch_receiver_10 = &graph;
                 dispatch_receiver_10
                     .dispatch
@@ -192,9 +190,9 @@ pub fn plan_list_outputs(
                 Some(flow_value_8) => flow_value_8.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             });
-            if bundle_source.is_some() {
-                crate::build::bundle_resources::add_bundle_resources(
-                    match bundle_source.as_ref() {
+            if bundleSource.is_some() {
+                crate::build::bundle_resources::addBundleResources(
+                    match bundleSource.as_ref() {
                         Some(flow_value_9) => flow_value_9.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
@@ -205,10 +203,10 @@ pub fn plan_list_outputs(
                         route,
                         String::from("'")
                     ),
-                    output_plan.clone(),
+                    outputPlan.clone(),
                 )?;
             }
-            index += 1.0;
+            index += 1;
         }
     }
     Ok(())

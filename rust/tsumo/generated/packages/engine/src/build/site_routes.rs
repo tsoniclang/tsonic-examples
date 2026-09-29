@@ -4,52 +4,51 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn normalize_site_path(path: &str) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn normalizeSitePath(path: &str) -> Result<String, rt::TsonicError> {
     js_string::replace_all(path, "\\", "/").map_err(rt::TsonicError::from)
 }
 
-pub fn split_site_path(path: &str) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
-    js_string::split_all(&normalize_site_path(path)?, "/").map_err(rt::TsonicError::from)
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn splitSitePath(path: &str) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
+    js_string::split_all(&normalizeSitePath(path)?, "/").map_err(rt::TsonicError::from)
 }
 
-pub fn join_site_path(segments: js_abi::JsArray<String>) -> String {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn joinSitePath(segments: js_abi::JsArray<String>) -> String {
     segments.join("/")
 }
 
-pub fn without_markdown_extension(file_name: String) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn withoutMarkdownExtension(fileName: String) -> Result<String, rt::TsonicError> {
     Ok(
-        if js_string::ends_with_at_end(&js_string::to_lower_case(&file_name), ".md") {
-            crate::utils::strings::substring_count(
-                &file_name,
+        if js_string::ends_with_at_end(&js_string::to_lower_case(&fileName), ".md") {
+            crate::utils::strings::substringCount(
+                &fileName,
                 0,
-                rt::conversions::usize_to_i32(js_string::js_len(&file_name))? - 3,
+                rt::conversions::usize_to_i32(js_string::js_len(&fileName) - 3)?,
             )?
         } else {
-            file_name
+            fileName
         },
     )
 }
 
-pub fn site_output_path(
-    route_segments: js_abi::JsArray<String>,
-) -> Result<String, rt::TsonicError> {
-    Ok(
-        if rt::conversions::usize_to_i32(route_segments.len())? == 0 {
-            String::from("index.html")
-        } else {
-            format!(
-                "{}{}",
-                join_site_path(route_segments.clone()),
-                String::from("/index.html")
-            )
-        },
-    )
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn siteOutputPath(routeSegments: js_abi::JsArray<String>) -> String {
+    if routeSegments.is_empty() {
+        String::from("index.html")
+    } else {
+        format!(
+            "{}{}",
+            joinSitePath(routeSegments.clone()),
+            String::from("/index.html")
+        )
+    }
 }
 
-pub fn assert_site_route_segment(
-    segment: String,
-    source_path: String,
-) -> Result<(), rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn assertSiteRouteSegment(segment: String, sourcePath: String) -> Result<(), rt::TsonicError> {
     if segment.is_empty()
         || segment == "."
         || segment == ".."
@@ -58,14 +57,14 @@ pub fn assert_site_route_segment(
         || js_string::includes_from_start(&segment, ":")
     {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_CONTENT_ROUTE_SEGMENT_INVALID"),
                 format!(
                     "{}{}",
                     String::from("Content route segment is invalid: "),
                     segment
                 ),
-                Some(source_path),
+                Some(sourcePath),
                 None,
                 None,
             )?,
@@ -74,11 +73,9 @@ pub fn assert_site_route_segment(
     Ok(())
 }
 
-pub fn compare_site_paths(left: &str, right: &str) -> Result<f64, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn compareSitePaths(left: &str, right: &str) -> Result<f64, rt::TsonicError> {
     Ok(rt::conversions::i32_to_f64(
-        crate::utils::strings::compare_text(
-            normalize_site_path(left)?,
-            normalize_site_path(right)?,
-        ),
+        crate::utils::strings::compareText(normalizeSitePath(left)?, normalizeSitePath(right)?),
     ))
 }

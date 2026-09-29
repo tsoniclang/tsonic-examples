@@ -5,10 +5,11 @@ use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct DocsContentRouteState {
     pub route: crate::docs::routes::DocsMarkdownRoute,
     pub parsed: crate::frontmatter::parsed_content::ParsedContent,
-    pub modified_at: js_abi::JsDate,
+    pub modifiedAt: js_abi::JsDate,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -24,29 +25,31 @@ impl rt::ObjectIdentityCarrier for DocsContentRoute {
 }
 
 impl DocsContentRoute {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         route: crate::docs::routes::DocsMarkdownRoute,
         parsed: crate::frontmatter::parsed_content::ParsedContent,
-        modified_at: js_abi::JsDate,
+        modifiedAt: js_abi::JsDate,
     ) -> Result<DocsContentRoute, rt::TsonicError> {
         let field_route: crate::docs::routes::DocsMarkdownRoute = route;
         let field_parsed: crate::frontmatter::parsed_content::ParsedContent = parsed;
-        let field_modified_at: js_abi::JsDate = modified_at;
+        let field_modified_at: js_abi::JsDate = modifiedAt;
         Ok(DocsContentRoute {
             state: rt::ObjectRef::new(DocsContentRouteState {
                 route: field_route,
                 parsed: field_parsed,
-                modified_at: field_modified_at,
+                modifiedAt: field_modified_at,
             }),
         })
     }
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct DocsContentInventoryState {
-    pub index_by_directory: js_abi::JsMap<String, DocsContentRoute>,
+    pub indexByDirectory: js_abi::JsMap<String, DocsContentRoute>,
     pub leaves: js_abi::JsArray<DocsContentRoute>,
-    pub permalink_by_relative_path: js_abi::JsMap<String, String>,
+    pub permalinkByRelativePath: js_abi::JsMap<String, String>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -62,96 +65,98 @@ impl rt::ObjectIdentityCarrier for DocsContentInventory {
 }
 
 impl DocsContentInventory {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
-        index_by_directory: js_abi::JsMap<String, DocsContentRoute>,
+        indexByDirectory: js_abi::JsMap<String, DocsContentRoute>,
         leaves: js_abi::JsArray<DocsContentRoute>,
-        permalink_by_relative_path: js_abi::JsMap<String, String>,
+        permalinkByRelativePath: js_abi::JsMap<String, String>,
     ) -> Result<DocsContentInventory, rt::TsonicError> {
-        let field_index_by_directory: js_abi::JsMap<String, DocsContentRoute> = index_by_directory;
+        let field_index_by_directory: js_abi::JsMap<String, DocsContentRoute> = indexByDirectory;
         let field_leaves: js_abi::JsArray<DocsContentRoute> = leaves;
         let field_permalink_by_relative_path: js_abi::JsMap<String, String> =
-            permalink_by_relative_path;
+            permalinkByRelativePath;
         Ok(DocsContentInventory {
             state: rt::ObjectRef::new(DocsContentInventoryState {
-                index_by_directory: field_index_by_directory,
+                indexByDirectory: field_index_by_directory,
                 leaves: field_leaves,
-                permalink_by_relative_path: field_permalink_by_relative_path,
+                permalinkByRelativePath: field_permalink_by_relative_path,
             }),
         })
     }
 }
 
-pub fn load_docs_content(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn loadDocsContent(
     routes: js_abi::JsArray<crate::docs::routes::DocsMarkdownRoute>,
-    build_drafts: bool,
+    buildDrafts: bool,
 ) -> Result<DocsContentInventory, rt::TsonicError> {
-    let index_by_directory: js_abi::JsMap<String, DocsContentRoute> = js_abi::JsMap::new();
+    let indexByDirectory: js_abi::JsMap<String, DocsContentRoute> = js_abi::JsMap::new();
     let leaves: js_abi::JsArray<DocsContentRoute> = js_abi::JsArray::from_dense(vec![]);
-    let permalink_by_relative_path: js_abi::JsMap<String, String> = js_abi::JsMap::new();
+    let permalinkByRelativePath: js_abi::JsMap<String, String> = js_abi::JsMap::new();
     {
-        let mut index: f64 = 0.0;
-        'loop_value: while index < (rt::conversions::usize_to_i32(routes.len())? as f64) {
+        let mut index: usize = 0;
+        'loop_value: while index < routes.len() {
             let route: crate::docs::routes::DocsMarkdownRoute = match routes.get_number(index) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let parsed: crate::frontmatter::parsed_content::ParsedContent =
-                crate::frontmatter::parse::parse_content(
-                    crate::fs::read_text_file(route.state.with(|state| state.source_path.clone()))?,
-                    Some(route.state.with(|state| state.source_path.clone())),
+                crate::frontmatter::parse::parseContent(
+                    crate::fs::readTextFile(route.state.with(|state| state.sourcePath.clone()))?,
+                    Some(route.state.with(|state| state.sourcePath.clone())),
                 )?;
             let content: DocsContentRoute = DocsContentRoute::new(
                 route.clone(),
                 parsed.clone(),
                 js_abi::JsDate::from_millis(
                     tsonic_rust_node::fs::stat_sync(
-                        route.state.with(|state| state.source_path.clone()).as_str(),
+                        route.state.with(|state| state.sourcePath.clone()).as_str(),
                     )?
                     .mtime_ms(),
                 ),
             )?;
-            if route.state.with(|state| state.is_index) {
+            if route.state.with(|state| state.isIndex) {
                 {
-                    let operation_input_0 = index_by_directory.clone();
+                    let operation_input_0 = indexByDirectory.clone();
                     operation_input_0.set_discard(
-                        route.state.with(|state| state.dir_key.clone()),
+                        route.state.with(|state| state.dirKey.clone()),
                         content.clone(),
                     )
                 };
                 {
-                    let operation_input_0_2 = permalink_by_relative_path.clone();
+                    let operation_input_0_2 = permalinkByRelativePath.clone();
                     operation_input_0_2.set_discard(
-                        js_string::to_lower_case(&route.state.with(|state| state.rel_path.clone())),
-                        route.state.with(|state| state.rel_permalink.clone()),
+                        js_string::to_lower_case(&route.state.with(|state| state.relPath.clone())),
+                        route.state.with(|state| state.relPermalink.clone()),
                     )
                 };
-                index += 1.0;
+                index += 1;
                 continue 'loop_value;
             }
             if parsed
                 .state
-                .with(|state| state.front_matter.clone())
+                .with(|state| state.frontMatter.clone())
                 .state
                 .with(|state| state.draft)
-                && !build_drafts
+                && !buildDrafts
             {
-                index += 1.0;
+                index += 1;
                 continue 'loop_value;
             }
             leaves.push_many_discard([content.clone()]);
             {
-                let operation_input_0_3 = permalink_by_relative_path.clone();
+                let operation_input_0_3 = permalinkByRelativePath.clone();
                 operation_input_0_3.set_discard(
-                    js_string::to_lower_case(&route.state.with(|state| state.rel_path.clone())),
-                    route.state.with(|state| state.rel_permalink.clone()),
+                    js_string::to_lower_case(&route.state.with(|state| state.relPath.clone())),
+                    route.state.with(|state| state.relPermalink.clone()),
                 )
             };
-            index += 1.0;
+            index += 1;
         }
     }
     DocsContentInventory::new(
-        index_by_directory.clone(),
+        indexByDirectory.clone(),
         leaves.clone(),
-        permalink_by_relative_path.clone(),
+        permalinkByRelativePath.clone(),
     )
 }

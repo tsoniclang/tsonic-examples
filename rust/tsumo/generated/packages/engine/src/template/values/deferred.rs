@@ -2,6 +2,10 @@
 
 use crate::program as rt;
 
+std::thread_local! {
+    pub static DEFERRED_TEMPLATE_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<DeferredTemplateValueClass>> = const { rt::ModuleCell::new() };
+}
+
 #[doc(hidden)]
 pub trait DeferredTemplateValueDispatch:
     crate::template::values::base::TemplateValueDispatch
@@ -103,7 +107,30 @@ impl DeferredTemplateValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for DeferredTemplateValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for DeferredTemplateValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) = output
+            .downcast_mut::<Option<alloc::rc::Rc<dyn DeferredTemplateValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -165,4 +192,39 @@ impl DeferredTemplateValueDispatch for DeferredTemplateValueRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+pub struct DeferredTemplateValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for DeferredTemplateValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for DeferredTemplateValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for DeferredTemplateValueClass {}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = {
+            alloc::rc::Rc::new(DeferredTemplateValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        DEFERRED_TEMPLATE_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding| module_binding.initialize(module_value))
+    };
 }

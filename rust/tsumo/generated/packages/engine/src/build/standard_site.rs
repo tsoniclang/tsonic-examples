@@ -4,21 +4,22 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn build_standard_site(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn buildStandardSite(
     request: crate::build::BuildRequest,
-    site_dir: String,
-    out_dir: String,
+    siteDir: String,
+    outDir: String,
 ) -> Result<i32, rt::TsonicError> {
     let config: crate::models::site_config::SiteConfig =
-        crate::config::loader::load_site_config(site_dir.clone())?
+        crate::config::loader::loadSiteConfig(siteDir.clone())?
             .state
             .with(|state| state.config.clone());
-    let requested_base_url: Option<String> = {
+    let requestedBaseUrl: Option<String> = {
         let dispatch_receiver = &request;
         dispatch_receiver.dispatch.read_build_request_base_url()
     };
-    if requested_base_url.is_some()
-        && !js_string::trim(&match requested_base_url.as_ref() {
+    if requestedBaseUrl.is_some()
+        && !js_string::trim(&match requestedBaseUrl.as_ref() {
             Some(flow_value) => flow_value.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         })
@@ -26,12 +27,13 @@ pub fn build_standard_site(
     {
         {
             let receiver = &config;
-            let value = crate::utils::text::ensure_trailing_slash(js_string::trim(
-                &match requested_base_url.as_ref() {
+            let value =
+                crate::utils::text::ensureTrailingSlash(js_string::trim(&match requestedBaseUrl
+                    .as_ref()
+                {
                     Some(flow_value_2) => flow_value_2.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
-                },
-            ));
+                }));
             {
                 let dispatch_receiver_2 = receiver;
                 dispatch_receiver_2
@@ -40,15 +42,15 @@ pub fn build_standard_site(
             }
         };
     }
-    let theme_dir: Option<String> =
-        crate::build::layout::resolve_theme_dir(site_dir.clone(), config.clone(), {
+    let themeDir: Option<String> =
+        crate::build::layout::resolveThemeDir(siteDir.clone(), config.clone(), {
             let dispatch_receiver_3 = &request;
             dispatch_receiver_3.dispatch.read_build_request_themes_dir()
         })?;
     let environment: crate::env::BuildEnvironment = crate::env::BuildEnvironment::new(
-        site_dir.clone(),
-        theme_dir.clone(),
-        out_dir.clone(),
+        siteDir.clone(),
+        themeDir.clone(),
+        outDir.clone(),
         Some({
             let dispatch_receiver_4 = &config;
             dispatch_receiver_4
@@ -60,17 +62,17 @@ pub fn build_standard_site(
             dispatch_receiver_5.dispatch.read_build_request_build_time()
         }),
     )?;
-    let output_plan: crate::build::output_plan::SiteOutputPlan =
+    let outputPlan: crate::build::output_plan::SiteOutputPlan =
         crate::build::output_plan::SiteOutputPlan::new()?;
-    if theme_dir.is_some() {
+    if themeDir.is_some() {
         {
-            let dispatch_receiver_6 = output_plan.clone();
+            let dispatch_receiver_6 = outputPlan.clone();
             dispatch_receiver_6
                 .dispatch
                 .clone()
                 .dispatch_site_output_plan_add_directory(
                     tsonic_rust_node::path::join(&[
-                        match theme_dir.as_ref() {
+                        match themeDir.as_ref() {
                             Some(flow_value_3) => flow_value_3.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         }
@@ -84,21 +86,21 @@ pub fn build_standard_site(
         }?;
     }
     {
-        let dispatch_receiver_7 = output_plan.clone();
+        let dispatch_receiver_7 = outputPlan.clone();
         dispatch_receiver_7
             .dispatch
             .clone()
             .dispatch_site_output_plan_add_directory(
-                tsonic_rust_node::path::join(&[site_dir.as_str(), "static"]),
+                tsonic_rust_node::path::join(&[siteDir.as_str(), "static"]),
                 "",
                 String::from("site static files"),
                 crate::build::output_plan::AssetLayer::SiteStatic,
             )
     }?;
     let inventory: crate::build::content_model::ContentInventory =
-        crate::build::discover_content::discover_content(
+        crate::build::discover_content::discoverContent(
             {
-                let operation_input_0 = site_dir;
+                let operation_input_0 = siteDir;
                 tsonic_rust_node::path::join(&[
                     operation_input_0.as_str(),
                     {
@@ -115,56 +117,55 @@ pub fn build_standard_site(
                     .read_build_request_build_drafts()
             },
         )?;
-    let page_graph: crate::build::standard_page_graph::StandardPageGraph =
-        crate::build::standard_page_graph::create_standard_page_graph(config.clone(), inventory)?;
+    let pageGraph: crate::build::standard_page_graph::StandardPageGraph =
+        crate::build::standard_page_graph::createStandardPageGraph(config.clone(), inventory)?;
     let taxonomies: crate::build::standard_taxonomies::StandardTaxonomyGraph =
-        crate::build::standard_taxonomies::create_standard_taxonomies(page_graph.clone())?;
-    crate::build::render_page_content::render_standard_page_content(
-        page_graph.clone(),
+        crate::build::standard_taxonomies::createStandardTaxonomies(pageGraph.clone())?;
+    crate::build::render_page_content::renderStandardPageContent(
+        pageGraph.clone(),
         environment.clone(),
     )?;
     let templates: crate::build::standard_templates::StandardTemplates =
-        crate::build::standard_templates::select_standard_templates(environment.clone())?;
-    let sitemap_urls: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
-    crate::build::plan_home_output::plan_home_output(
-        page_graph.clone(),
+        crate::build::standard_templates::selectStandardTemplates(environment.clone())?;
+    let sitemapUrls: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
+    crate::build::plan_home_output::planHomeOutput(
+        pageGraph.clone(),
         environment.clone(),
         templates.clone(),
-        output_plan.clone(),
-        sitemap_urls.clone(),
+        outputPlan.clone(),
+        sitemapUrls.clone(),
     )?;
-    crate::build::plan_list_outputs::plan_list_outputs(
-        page_graph.clone(),
+    crate::build::plan_list_outputs::planListOutputs(
+        pageGraph.clone(),
         environment.clone(),
         templates.clone(),
-        output_plan.clone(),
-        sitemap_urls.clone(),
+        outputPlan.clone(),
+        sitemapUrls.clone(),
     )?;
-    crate::build::plan_taxonomy_outputs::plan_taxonomy_outputs(
+    crate::build::plan_taxonomy_outputs::planTaxonomyOutputs(
         taxonomies,
         environment.clone(),
         templates.clone(),
-        output_plan.clone(),
-        sitemap_urls.clone(),
+        outputPlan.clone(),
+        sitemapUrls.clone(),
     )?;
-    crate::build::plan_content_outputs::plan_content_outputs(
-        page_graph.clone(),
+    crate::build::plan_content_outputs::planContentOutputs(
+        pageGraph.clone(),
         environment.clone(),
         templates.clone(),
-        output_plan.clone(),
-        sitemap_urls.clone(),
+        outputPlan.clone(),
+        sitemapUrls.clone(),
     )?;
-    let ordered_sitemap_urls: js_abi::JsArray<String> =
-        js_abi::array_from_vec(&sitemap_urls.keys());
-    ordered_sitemap_urls.try_sort_borrowed(crate::build::site_routes::compare_site_paths)?;
+    let orderedSitemapUrls: js_abi::JsArray<String> = js_abi::array_from_vec(&sitemapUrls.keys());
+    orderedSitemapUrls.try_sort_borrowed(crate::build::site_routes::compareSitePaths)?;
     {
-        let dispatch_receiver_11 = output_plan.clone();
+        let dispatch_receiver_11 = outputPlan.clone();
         dispatch_receiver_11
             .dispatch
             .clone()
             .dispatch_site_output_plan_add_default_text(
                 String::from("sitemap.xml"),
-                crate::outputs::render_sitemap(config.clone(), ordered_sitemap_urls.clone(), {
+                crate::outputs::renderSitemap(config.clone(), orderedSitemapUrls.clone(), {
                     let dispatch_receiver_10 = &request;
                     dispatch_receiver_10
                         .dispatch
@@ -174,16 +175,16 @@ pub fn build_standard_site(
             )
     }?;
     {
-        let dispatch_receiver_14 = output_plan.clone();
+        let dispatch_receiver_14 = outputPlan.clone();
         dispatch_receiver_14
             .dispatch
             .clone()
             .dispatch_site_output_plan_add_default_text(
                 String::from("index.xml"),
-                crate::outputs::render_rss(
+                crate::outputs::renderRss(
                     config.clone(),
                     {
-                        let dispatch_receiver_12 = &page_graph;
+                        let dispatch_receiver_12 = &pageGraph;
                         dispatch_receiver_12
                             .dispatch
                             .read_standard_page_graph_content_pages()
@@ -199,18 +200,18 @@ pub fn build_standard_site(
             )
     }?;
     {
-        let dispatch_receiver_15 = output_plan.clone();
+        let dispatch_receiver_15 = outputPlan.clone();
         dispatch_receiver_15
             .dispatch
             .clone()
             .dispatch_site_output_plan_add_default_text(
                 String::from("robots.txt"),
-                crate::outputs::render_robots_txt(config.clone()),
+                crate::outputs::renderRobotsTxt(config.clone()),
                 String::from("generated robots policy"),
             )
     }?;
     {
-        let dispatch_receiver_17 = output_plan.clone();
+        let dispatch_receiver_17 = outputPlan.clone();
         dispatch_receiver_17
             .dispatch
             .clone()
@@ -223,14 +224,14 @@ pub fn build_standard_site(
             }?)
     }?;
     {
-        let dispatch_receiver_18 = output_plan.clone();
+        let dispatch_receiver_18 = outputPlan.clone();
         dispatch_receiver_18
             .dispatch
             .clone()
-            .dispatch_site_output_plan_render(out_dir)
+            .dispatch_site_output_plan_render(outDir)
     }?;
     Ok({
-        let dispatch_receiver_19 = output_plan.clone();
+        let dispatch_receiver_19 = outputPlan.clone();
         dispatch_receiver_19
             .dispatch
             .clone()

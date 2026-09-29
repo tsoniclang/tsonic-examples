@@ -4,59 +4,69 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn indentation_of(line: &str) -> Result<i32, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn indentationOf(line: &str) -> Result<i32, rt::TsonicError> {
+    let lineLength: i32 = rt::conversions::usize_to_i32(js_string::js_len(line))?;
     let mut indentation: i32 = 0;
-    while indentation < rt::conversions::usize_to_i32(js_string::js_len(line))?
-        && js_string::char_at(line, rt::conversions::i32_to_f64(indentation))? == " "
-    {
+    while indentation < lineLength && js_string::char_at(line, indentation)? == " " {
         indentation += 1;
     }
     Ok(indentation)
 }
 
-pub fn yaml_text(line: String) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn yamlText(line: String) -> Result<String, rt::TsonicError> {
     Ok(js_string::trim(
-        &crate::utils::structured_scalars::strip_structured_comment(
+        &crate::utils::structured_scalars::stripStructuredComment(
             line,
             crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
         )?,
     ))
 }
 
-pub fn split_pair(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn splitPair(
     text: &str,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
     line: i32,
 ) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
-    let separator: i32 = rt::conversions::isize_to_i32(js_string::index_of_from_start(text, ":"))?;
+    let separator: isize = js_string::index_of_from_start(text, ":");
     if separator <= 0 {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_CONFIG_SYNTAX_INVALID"),
                 String::from("YAML configuration entries require 'key: value' syntax"),
-                source_path,
-                Some(rt::conversions::i32_to_f64(line)),
-                Some(1.0),
+                sourcePath,
+                Some(line),
+                Some(1),
             )?,
         ));
     }
     Ok(js_abi::JsArray::from_dense(vec![
-        js_string::trim(&crate::utils::strings::substring_count(text, 0, separator)?),
-        js_string::trim(&crate::utils::strings::substring_from(text, separator + 1)?),
+        js_string::trim(&crate::utils::strings::substringCount(
+            text,
+            0,
+            rt::conversions::isize_to_i32(separator)?,
+        )?),
+        js_string::trim(&crate::utils::strings::substringFrom(
+            text,
+            rt::conversions::isize_to_i32(separator + 1)?,
+        )?),
     ]))
 }
 
-pub fn record_field(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn recordField(
     fields: js_abi::JsSet<String>,
     field: String,
     context: String,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
     line: i32,
 ) -> Result<(), rt::TsonicError> {
     let normalized: String = js_string::to_lower_case(&field);
     if fields.has(&normalized) {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_CONFIG_DUPLICATE_FIELD"),
                 format!(
                     "{}{}{}{}",
@@ -65,9 +75,9 @@ pub fn record_field(
                     field,
                     String::from("' is declared more than once")
                 ),
-                source_path,
-                Some(rt::conversions::i32_to_f64(line)),
-                Some(1.0),
+                sourcePath,
+                Some(line),
+                Some(1),
             )?,
         ));
     }
@@ -75,26 +85,27 @@ pub fn record_field(
     Ok(())
 }
 
-pub fn apply_menu_field(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn applyMenuField(
     builder: crate::config::builders::MenuEntryBuilder,
-    key_raw: String,
+    keyRaw: String,
     value: &str,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
     line: i32,
 ) -> Result<(), rt::TsonicError> {
-    let key: String = js_string::to_lower_case(&key_raw);
+    let key: String = js_string::to_lower_case(&keyRaw);
     if key == "name" {
         {
             let receiver = &builder;
-            let value_2 = crate::config::scalars::parse_config_string(
-                key_raw.clone(),
+            let value_2 = crate::config::scalars::parseConfigString(
+                keyRaw.clone(),
                 value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
-                source_path.clone(),
+                sourcePath.clone(),
                 line,
             )?;
             {
-                let field_owner = receiver.clone();
+                let field_owner = receiver;
                 let field_value = value_2;
                 {
                     field_owner.state.validate_data_write()?;
@@ -105,15 +116,15 @@ pub fn apply_menu_field(
     } else if key == "url" {
         {
             let receiver_2 = &builder;
-            let value_3 = crate::config::scalars::parse_config_string(
-                key_raw.clone(),
+            let value_3 = crate::config::scalars::parseConfigString(
+                keyRaw.clone(),
                 value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
-                source_path.clone(),
+                sourcePath.clone(),
                 line,
             )?;
             {
-                let field_owner_2 = receiver_2.clone();
+                let field_owner_2 = receiver_2;
                 let field_value_2 = value_3;
                 {
                     field_owner_2.state.validate_data_write()?;
@@ -126,36 +137,36 @@ pub fn apply_menu_field(
     } else if key == "pageref" {
         {
             let receiver_3 = &builder;
-            let value_4 = crate::config::scalars::parse_config_string(
-                key_raw.clone(),
+            let value_4 = crate::config::scalars::parseConfigString(
+                keyRaw.clone(),
                 value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
-                source_path.clone(),
+                sourcePath.clone(),
                 line,
             )?;
             {
-                let field_owner_3 = receiver_3.clone();
+                let field_owner_3 = receiver_3;
                 let field_value_3 = value_4;
                 {
                     field_owner_3.state.validate_data_write()?;
                     field_owner_3
                         .state
-                        .with_mut(|state| state.page_ref = field_value_3)
+                        .with_mut(|state| state.pageRef = field_value_3)
                 }
             }
         };
     } else if key == "title" {
         {
             let receiver_4 = &builder;
-            let value_5 = crate::config::scalars::parse_config_string(
-                key_raw.clone(),
+            let value_5 = crate::config::scalars::parseConfigString(
+                keyRaw.clone(),
                 value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
-                source_path.clone(),
+                sourcePath.clone(),
                 line,
             )?;
             {
-                let field_owner_4 = receiver_4.clone();
+                let field_owner_4 = receiver_4;
                 let field_value_4 = value_5;
                 {
                     field_owner_4.state.validate_data_write()?;
@@ -168,15 +179,15 @@ pub fn apply_menu_field(
     } else if key == "parent" {
         {
             let receiver_5 = &builder;
-            let value_6 = crate::config::scalars::parse_config_string(
-                key_raw.clone(),
+            let value_6 = crate::config::scalars::parseConfigString(
+                keyRaw.clone(),
                 value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
-                source_path.clone(),
+                sourcePath.clone(),
                 line,
             )?;
             {
-                let field_owner_5 = receiver_5.clone();
+                let field_owner_5 = receiver_5;
                 let field_value_5 = value_6;
                 {
                     field_owner_5.state.validate_data_write()?;
@@ -189,15 +200,15 @@ pub fn apply_menu_field(
     } else if key == "identifier" {
         {
             let receiver_6 = &builder;
-            let value_7 = crate::config::scalars::parse_config_string(
-                key_raw.clone(),
+            let value_7 = crate::config::scalars::parseConfigString(
+                keyRaw.clone(),
                 value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
-                source_path.clone(),
+                sourcePath.clone(),
                 line,
             )?;
             {
-                let field_owner_6 = receiver_6.clone();
+                let field_owner_6 = receiver_6;
                 let field_value_6 = value_7;
                 {
                     field_owner_6.state.validate_data_write()?;
@@ -210,15 +221,15 @@ pub fn apply_menu_field(
     } else if key == "pre" {
         {
             let receiver_7 = &builder;
-            let value_8 = crate::config::scalars::parse_config_string(
-                key_raw.clone(),
+            let value_8 = crate::config::scalars::parseConfigString(
+                keyRaw.clone(),
                 value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
-                source_path.clone(),
+                sourcePath.clone(),
                 line,
             )?;
             {
-                let field_owner_7 = receiver_7.clone();
+                let field_owner_7 = receiver_7;
                 let field_value_7 = value_8;
                 {
                     field_owner_7.state.validate_data_write()?;
@@ -231,15 +242,15 @@ pub fn apply_menu_field(
     } else if key == "post" {
         {
             let receiver_8 = &builder;
-            let value_9 = crate::config::scalars::parse_config_string(
-                key_raw.clone(),
+            let value_9 = crate::config::scalars::parseConfigString(
+                keyRaw.clone(),
                 value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
-                source_path.clone(),
+                sourcePath.clone(),
                 line,
             )?;
             {
-                let field_owner_8 = receiver_8.clone();
+                let field_owner_8 = receiver_8;
                 let field_value_8 = value_9;
                 {
                     field_owner_8.state.validate_data_write()?;
@@ -252,15 +263,15 @@ pub fn apply_menu_field(
     } else if key == "weight" {
         {
             let receiver_9 = &builder;
-            let value_10 = crate::config::scalars::parse_config_int(
-                key_raw.clone(),
+            let value_10 = crate::config::scalars::parseConfigInt(
+                keyRaw.clone(),
                 value,
                 crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
-                source_path.clone(),
+                sourcePath.clone(),
                 line,
             )?;
             {
-                let field_owner_9 = receiver_9.clone();
+                let field_owner_9 = receiver_9;
                 let field_value_9 = value_10;
                 {
                     field_owner_9.state.validate_data_write()?;
@@ -272,157 +283,158 @@ pub fn apply_menu_field(
         };
     } else {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_CONFIG_UNKNOWN_FIELD"),
                 format!(
                     "{}{}{}",
                     String::from("Unknown menu configuration field '"),
-                    key_raw,
+                    keyRaw,
                     String::from("'")
                 ),
-                source_path.clone(),
-                Some(rt::conversions::i32_to_f64(line)),
-                Some(1.0),
+                sourcePath.clone(),
+                Some(line),
+                Some(1),
             )?,
         ));
     }
     Ok(())
 }
 
-pub fn parse_yaml_config(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseYamlConfig(
     text: &str,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
 ) -> Result<crate::models::site_config::SiteConfig, rt::TsonicError> {
     let mut title: String = String::from("Tsumo Site");
-    let mut base_url: String = String::from("");
-    let mut language_code: String = String::from("en-us");
-    let mut content_dir: String = String::from("content");
+    let mut baseURL: String = String::from("");
+    let mut languageCode: String = String::from("en-us");
+    let mut contentDir: String = String::from("content");
     let mut theme: Option<String> = None;
     let mut copyright: Option<String> = None;
     let params: js_abi::JsMap<String, crate::params::ParamValue> = js_abi::JsMap::new();
-    let menu_builders: js_abi::JsMap<
+    let menuBuilders: js_abi::JsMap<
         String,
         js_abi::JsArray<crate::config::builders::MenuEntryBuilder>,
     > = js_abi::JsMap::new();
-    let root_fields: js_abi::JsSet<String> = js_abi::JsSet::new();
+    let rootFields: js_abi::JsSet<String> = js_abi::JsSet::new();
     let lines: js_abi::JsArray<String> = js_string::split_all(
         &js_string::replace_all(&js_string::replace_all(text, "\r\n", "\n")?, "\r", "\n")?,
         "\n",
     )?;
+    let lineCount: i32 = rt::conversions::usize_to_i32(lines.len())?;
     let mut index: i32 = 0;
-    'loop_value: while index < rt::conversions::usize_to_i32(lines.len())? {
-        let raw: String = match lines.get_number(rt::conversions::i32_to_f64(index)) {
+    'loop_value: while index < lineCount {
+        let raw: String = match lines.get_number(index) {
             Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
         };
-        let line_number: i32 = index + 1;
+        let lineNumber: i32 = index + 1;
         if js_string::includes_from_start(&raw, "\t") {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_CONFIG_SYNTAX_INVALID"),
                     String::from("YAML configuration indentation must use spaces"),
-                    source_path.clone(),
-                    Some(rt::conversions::i32_to_f64(line_number)),
-                    Some(1.0),
+                    sourcePath.clone(),
+                    Some(lineNumber),
+                    Some(1),
                 )?,
             ));
         }
-        let text_value: String = yaml_text(raw.clone())?;
-        if text_value.is_empty() || js_string::starts_with_from_start(&text_value, "#") {
+        let textValue: String = yamlText(raw.clone())?;
+        if textValue.is_empty() || js_string::starts_with_from_start(&textValue, "#") {
             index += 1;
             continue 'loop_value;
         }
-        if indentation_of(&raw)? != 0 {
+        if indentationOf(&raw)? != 0 {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_CONFIG_SYNTAX_INVALID"),
                     String::from("YAML configuration has an unexpected indented entry"),
-                    source_path.clone(),
-                    Some(rt::conversions::i32_to_f64(line_number)),
-                    Some(1.0),
+                    sourcePath.clone(),
+                    Some(lineNumber),
+                    Some(1),
                 )?,
             ));
         }
-        let pair: js_abi::JsArray<String> =
-            split_pair(&text_value, source_path.clone(), line_number)?;
-        let key_raw: String = match pair.get_number(0.0) {
+        let pair: js_abi::JsArray<String> = splitPair(&textValue, sourcePath.clone(), lineNumber)?;
+        let keyRaw: String = match pair.get_number(0.0) {
             Some(flow_value_2) => flow_value_2,
             None => unreachable!("checked flow selected a missing optional value"),
         };
-        let key: String = js_string::to_lower_case(&key_raw);
+        let key: String = js_string::to_lower_case(&keyRaw);
         let value: String = match pair.get_number(1.0) {
             Some(flow_value_3) => flow_value_3,
             None => unreachable!("checked flow selected a missing optional value"),
         };
-        record_field(
-            root_fields.clone(),
-            key_raw.clone(),
+        recordField(
+            rootFields.clone(),
+            keyRaw.clone(),
             String::from("Configuration"),
-            source_path.clone(),
-            line_number,
+            sourcePath.clone(),
+            lineNumber,
         )?;
         if !value.is_empty() {
             if key == "title" {
-                title = crate::config::scalars::parse_config_string(
-                    key_raw.clone(),
+                title = crate::config::scalars::parseConfigString(
+                    keyRaw.clone(),
                     &value,
                     crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
-                    source_path.clone(),
-                    line_number,
+                    sourcePath.clone(),
+                    lineNumber,
                 )?;
             } else if key == "baseurl" {
-                base_url = crate::config::scalars::parse_config_string(
-                    key_raw.clone(),
+                baseURL = crate::config::scalars::parseConfigString(
+                    keyRaw.clone(),
                     &value,
                     crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
-                    source_path.clone(),
-                    line_number,
+                    sourcePath.clone(),
+                    lineNumber,
                 )?;
             } else if key == "languagecode" {
-                language_code = crate::config::scalars::parse_config_string(
-                    key_raw.clone(),
+                languageCode = crate::config::scalars::parseConfigString(
+                    keyRaw.clone(),
                     &value,
                     crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
-                    source_path.clone(),
-                    line_number,
+                    sourcePath.clone(),
+                    lineNumber,
                 )?;
             } else if key == "contentdir" {
-                content_dir = crate::config::scalars::parse_config_string(
-                    key_raw.clone(),
+                contentDir = crate::config::scalars::parseConfigString(
+                    keyRaw.clone(),
                     &value,
                     crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
-                    source_path.clone(),
-                    line_number,
+                    sourcePath.clone(),
+                    lineNumber,
                 )?;
             } else if key == "theme" {
-                theme = Some(crate::config::scalars::parse_config_string(
-                    key_raw.clone(),
+                theme = Some(crate::config::scalars::parseConfigString(
+                    keyRaw.clone(),
                     &value,
                     crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
-                    source_path.clone(),
-                    line_number,
+                    sourcePath.clone(),
+                    lineNumber,
                 )?);
             } else if key == "copyright" {
-                copyright = Some(crate::config::scalars::parse_config_string(
-                    key_raw.clone(),
+                copyright = Some(crate::config::scalars::parseConfigString(
+                    keyRaw.clone(),
                     &value,
                     crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
-                    source_path.clone(),
-                    line_number,
+                    sourcePath.clone(),
+                    lineNumber,
                 )?);
             } else {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_CONFIG_UNKNOWN_FIELD"),
                         format!(
                             "{}{}{}",
                             String::from("Unknown configuration field '"),
-                            key_raw,
+                            keyRaw,
                             String::from("'")
                         ),
-                        source_path.clone(),
-                        Some(rt::conversions::i32_to_f64(line_number)),
-                        Some(1.0),
+                        sourcePath.clone(),
+                        Some(lineNumber),
+                        Some(1),
                     )?,
                 ));
             }
@@ -431,40 +443,38 @@ pub fn parse_yaml_config(
         }
         index += 1;
         if key == "params" {
-            let param_fields: js_abi::JsSet<String> = js_abi::JsSet::new();
-            while index < rt::conversions::usize_to_i32(lines.len())?
-                && indentation_of(
-                    &match lines.get_number(rt::conversions::i32_to_f64(index)) {
-                        Some(flow_value_4) => flow_value_4,
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                )? > 0
+            let paramFields: js_abi::JsSet<String> = js_abi::JsSet::new();
+            while index < lineCount
+                && indentationOf(&match lines.get_number(index) {
+                    Some(flow_value_4) => flow_value_4,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                })? > 0
             {
-                let child_raw: String = match lines.get_number(rt::conversions::i32_to_f64(index)) {
+                let childRaw: String = match lines.get_number(index) {
                     Some(flow_value_5) => flow_value_5,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-                let child_line: i32 = index + 1;
-                let child_text: String = yaml_text(child_raw.clone())?;
-                if !child_text.is_empty() && !js_string::starts_with_from_start(&child_text, "#") {
-                    if indentation_of(&child_raw)? != 2 {
+                let childLine: i32 = index + 1;
+                let childText: String = yamlText(childRaw.clone())?;
+                if !childText.is_empty() && !js_string::starts_with_from_start(&childText, "#") {
+                    if indentationOf(&childRaw)? != 2 {
                         return Err(rt::TsonicError::TsumoError(
-                            crate::diagnostics::create_tsumo_error(
+                            crate::diagnostics::createTsumoError(
                                 String::from("TSUMO_CONFIG_SYNTAX_INVALID"),
                                 String::from(
                                     "Configuration params require one scalar mapping level",
                                 ),
-                                source_path.clone(),
-                                Some(rt::conversions::i32_to_f64(child_line)),
-                                Some(1.0),
+                                sourcePath.clone(),
+                                Some(childLine),
+                                Some(1),
                             )?,
                         ));
                     }
                     let child: js_abi::JsArray<String> =
-                        split_pair(&child_text, source_path.clone(), child_line)?;
+                        splitPair(&childText, sourcePath.clone(), childLine)?;
                     if child.get_number(1.0) == Some(String::from("")) {
                         return Err(rt::TsonicError::TsumoError(
-                            crate::diagnostics::create_tsumo_error(
+                            crate::diagnostics::createTsumoError(
                                 String::from("TSUMO_CONFIG_INVALID_FIELD"),
                                 format!(
                                     "{}{}{}",
@@ -477,21 +487,21 @@ pub fn parse_yaml_config(
                                     },
                                     String::from("' requires a scalar value")
                                 ),
-                                source_path.clone(),
-                                Some(rt::conversions::i32_to_f64(child_line)),
-                                Some(1.0),
+                                sourcePath.clone(),
+                                Some(childLine),
+                                Some(1),
                             )?,
                         ));
                     }
-                    record_field(
-                        param_fields.clone(),
+                    recordField(
+                        paramFields.clone(),
                         match child.get_number(0.0) {
                             Some(flow_value_7) => flow_value_7,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                         String::from("Configuration params"),
-                        source_path.clone(),
-                        child_line,
+                        sourcePath.clone(),
+                        childLine,
                     )?;
                     {
                         let operation_input_0 = params.clone();
@@ -502,7 +512,7 @@ pub fn parse_yaml_config(
                                     unreachable!("checked flow selected a missing optional value")
                                 }
                             },
-                            crate::config::scalars::parse_config_param(
+                            crate::config::scalars::parseConfigParam(
                                 &match child.get_number(1.0) {
                                     Some(flow_value_9) => flow_value_9,
                                     None => unreachable!(
@@ -510,8 +520,8 @@ pub fn parse_yaml_config(
                                     ),
                                 },
                                 crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
-                                source_path.clone(),
-                                child_line,
+                                sourcePath.clone(),
+                                childLine,
                             )?,
                         )
                     };
@@ -521,46 +531,44 @@ pub fn parse_yaml_config(
             continue 'loop_value;
         }
         if key == "menu" {
-            let menu_names: js_abi::JsSet<String> = js_abi::JsSet::new();
-            'loop_value_3: while index < rt::conversions::usize_to_i32(lines.len())?
-                && indentation_of(
-                    &match lines.get_number(rt::conversions::i32_to_f64(index)) {
-                        Some(flow_value_10) => flow_value_10,
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                )? > 0
+            let menuNames: js_abi::JsSet<String> = js_abi::JsSet::new();
+            'loop_value_3: while index < lineCount
+                && indentationOf(&match lines.get_number(index) {
+                    Some(flow_value_10) => flow_value_10,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                })? > 0
             {
-                let menu_raw: String = match lines.get_number(rt::conversions::i32_to_f64(index)) {
+                let menuRaw: String = match lines.get_number(index) {
                     Some(flow_value_11) => flow_value_11,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-                let menu_line: i32 = index + 1;
-                let menu_text: String = yaml_text(menu_raw.clone())?;
-                if menu_text.is_empty() || js_string::starts_with_from_start(&menu_text, "#") {
+                let menuLine: i32 = index + 1;
+                let menuText: String = yamlText(menuRaw.clone())?;
+                if menuText.is_empty() || js_string::starts_with_from_start(&menuText, "#") {
                     index += 1;
                     continue 'loop_value_3;
                 }
-                if indentation_of(&menu_raw)? != 2 {
+                if indentationOf(&menuRaw)? != 2 {
                     return Err(rt::TsonicError::TsumoError(
-                        crate::diagnostics::create_tsumo_error(
+                        crate::diagnostics::createTsumoError(
                             String::from("TSUMO_CONFIG_SYNTAX_INVALID"),
                             String::from("Menu names require one mapping level"),
-                            source_path.clone(),
-                            Some(rt::conversions::i32_to_f64(menu_line)),
-                            Some(1.0),
+                            sourcePath.clone(),
+                            Some(menuLine),
+                            Some(1),
                         )?,
                     ));
                 }
-                let menu_pair: js_abi::JsArray<String> =
-                    split_pair(&menu_text, source_path.clone(), menu_line)?;
-                if menu_pair.get_number(1.0) != Some(String::from("")) {
+                let menuPair: js_abi::JsArray<String> =
+                    splitPair(&menuText, sourcePath.clone(), menuLine)?;
+                if menuPair.get_number(1.0) != Some(String::from("")) {
                     return Err(rt::TsonicError::TsumoError(
-                        crate::diagnostics::create_tsumo_error(
+                        crate::diagnostics::createTsumoError(
                             String::from("TSUMO_CONFIG_INVALID_FIELD"),
                             format!(
                                 "{}{}{}",
                                 String::from("Menu '"),
-                                match menu_pair.get_number(0.0) {
+                                match menuPair.get_number(0.0) {
                                     Some(flow_value_12) => flow_value_12,
                                     None => unreachable!(
                                         "checked flow selected a missing optional value"
@@ -568,78 +576,74 @@ pub fn parse_yaml_config(
                                 },
                                 String::from("' requires an array of entries")
                             ),
-                            source_path.clone(),
-                            Some(rt::conversions::i32_to_f64(menu_line)),
-                            Some(1.0),
+                            sourcePath.clone(),
+                            Some(menuLine),
+                            Some(1),
                         )?,
                     ));
                 }
-                let menu_name: String = match menu_pair.get_number(0.0) {
+                let menuName: String = match menuPair.get_number(0.0) {
                     Some(flow_value_13) => flow_value_13,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-                record_field(
-                    menu_names.clone(),
-                    menu_name.clone(),
+                recordField(
+                    menuNames.clone(),
+                    menuName.clone(),
                     String::from("Configuration menu"),
-                    source_path.clone(),
-                    menu_line,
+                    sourcePath.clone(),
+                    menuLine,
                 )?;
                 let entries: js_abi::JsArray<crate::config::builders::MenuEntryBuilder> =
                     rt::option_coalesce(
-                        menu_builders.get(&menu_name),
+                        menuBuilders.get(&menuName),
                         core::convert::identity,
                         || js_abi::JsArray::from_dense(vec![]),
                     );
                 index += 1;
-                'loop_value_4: while index < rt::conversions::usize_to_i32(lines.len())?
-                    && indentation_of(
-                        &match lines.get_number(rt::conversions::i32_to_f64(index)) {
-                            Some(flow_value_14) => flow_value_14,
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },
-                    )? > 2
+                'loop_value_4: while index < lineCount
+                    && indentationOf(&match lines.get_number(index) {
+                        Some(flow_value_14) => flow_value_14,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    })? > 2
                 {
-                    let entry_raw: String =
-                        match lines.get_number(rt::conversions::i32_to_f64(index)) {
-                            Some(flow_value_15) => flow_value_15,
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        };
-                    let entry_line: i32 = index + 1;
-                    let entry_text: String = yaml_text(entry_raw.clone())?;
-                    if entry_text.is_empty() || js_string::starts_with_from_start(&entry_text, "#")
-                    {
+                    let entryRaw: String = match lines.get_number(index) {
+                        Some(flow_value_15) => flow_value_15,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    };
+                    let entryLine: i32 = index + 1;
+                    let entryText: String = yamlText(entryRaw.clone())?;
+                    if entryText.is_empty() || js_string::starts_with_from_start(&entryText, "#") {
                         index += 1;
                         continue 'loop_value_4;
                     }
-                    if indentation_of(&entry_raw)? != 4
-                        || !js_string::starts_with_from_start(&entry_text, "-")
+                    if indentationOf(&entryRaw)? != 4
+                        || !js_string::starts_with_from_start(&entryText, "-")
                     {
                         return Err(rt::TsonicError::TsumoError(
-                            crate::diagnostics::create_tsumo_error(
+                            crate::diagnostics::createTsumoError(
                                 String::from("TSUMO_CONFIG_SYNTAX_INVALID"),
                                 format!(
                                     "{}{}{}",
                                     String::from("Menu '"),
-                                    menu_name,
+                                    menuName,
                                     String::from("' requires '- field: value' entries")
                                 ),
-                                source_path.clone(),
-                                Some(rt::conversions::i32_to_f64(entry_line)),
-                                Some(1.0),
+                                sourcePath.clone(),
+                                Some(entryLine),
+                                Some(1),
                             )?,
                         ));
                     }
                     let builder: crate::config::builders::MenuEntryBuilder =
-                        crate::config::builders::MenuEntryBuilder::new(menu_name.clone())?;
-                    let first: js_abi::JsArray<String> = split_pair(
-                        &js_string::trim(&crate::utils::strings::substring_from(&entry_text, 1)?),
-                        source_path.clone(),
-                        entry_line,
+                        crate::config::builders::MenuEntryBuilder::new(menuName.clone())?;
+                    let first: js_abi::JsArray<String> = splitPair(
+                        &js_string::trim(&crate::utils::strings::substringFrom(&entryText, 1)?),
+                        sourcePath.clone(),
+                        entryLine,
                     )?;
                     if first.get_number(1.0) == Some(String::from("")) {
                         return Err(rt::TsonicError::TsumoError(
-                            crate::diagnostics::create_tsumo_error(
+                            crate::diagnostics::createTsumoError(
                                 String::from("TSUMO_CONFIG_INVALID_FIELD"),
                                 format!(
                                     "{}{}{}",
@@ -652,15 +656,15 @@ pub fn parse_yaml_config(
                                     },
                                     String::from("' requires a value")
                                 ),
-                                source_path.clone(),
-                                Some(rt::conversions::i32_to_f64(entry_line)),
-                                Some(1.0),
+                                sourcePath.clone(),
+                                Some(entryLine),
+                                Some(1),
                             )?,
                         ));
                     }
-                    let entry_fields: js_abi::JsSet<String> = js_abi::JsSet::new();
-                    record_field(
-                        entry_fields.clone(),
+                    let entryFields: js_abi::JsSet<String> = js_abi::JsSet::new();
+                    recordField(
+                        entryFields.clone(),
                         match first.get_number(0.0) {
                             Some(flow_value_17) => flow_value_17,
                             None => unreachable!("checked flow selected a missing optional value"),
@@ -668,13 +672,13 @@ pub fn parse_yaml_config(
                         format!(
                             "{}{}{}",
                             String::from("Menu '"),
-                            menu_name,
+                            menuName,
                             String::from("' entry")
                         ),
-                        source_path.clone(),
-                        entry_line,
+                        sourcePath.clone(),
+                        entryLine,
                     )?;
-                    apply_menu_field(
+                    applyMenuField(
                         builder.clone(),
                         match first.get_number(0.0) {
                             Some(flow_value_18) => flow_value_18,
@@ -684,47 +688,43 @@ pub fn parse_yaml_config(
                             Some(flow_value_19) => flow_value_19,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
-                        source_path.clone(),
-                        entry_line,
+                        sourcePath.clone(),
+                        entryLine,
                     )?;
                     index += 1;
-                    while index < rt::conversions::usize_to_i32(lines.len())?
-                        && indentation_of(&match lines
-                            .get_number(rt::conversions::i32_to_f64(index))
-                        {
+                    while index < lineCount
+                        && indentationOf(&match lines.get_number(index) {
                             Some(flow_value_20) => flow_value_20,
                             None => unreachable!("checked flow selected a missing optional value"),
                         })? > 4
                     {
-                        let field_raw: String = match lines
-                            .get_number(rt::conversions::i32_to_f64(index))
-                        {
+                        let fieldRaw: String = match lines.get_number(index) {
                             Some(flow_value_21) => flow_value_21,
                             None => unreachable!("checked flow selected a missing optional value"),
                         };
-                        let field_line: i32 = index + 1;
-                        let field_text: String = yaml_text(field_raw.clone())?;
-                        if !field_text.is_empty()
-                            && !js_string::starts_with_from_start(&field_text, "#")
+                        let fieldLine: i32 = index + 1;
+                        let fieldText: String = yamlText(fieldRaw.clone())?;
+                        if !fieldText.is_empty()
+                            && !js_string::starts_with_from_start(&fieldText, "#")
                         {
-                            if indentation_of(&field_raw)? != 6 {
+                            if indentationOf(&fieldRaw)? != 6 {
                                 return Err(rt::TsonicError::TsumoError(
-                                    crate::diagnostics::create_tsumo_error(
+                                    crate::diagnostics::createTsumoError(
                                         String::from("TSUMO_CONFIG_SYNTAX_INVALID"),
                                         String::from(
                                             "Menu entry fields require three mapping levels",
                                         ),
-                                        source_path.clone(),
-                                        Some(rt::conversions::i32_to_f64(field_line)),
-                                        Some(1.0),
+                                        sourcePath.clone(),
+                                        Some(fieldLine),
+                                        Some(1),
                                     )?,
                                 ));
                             }
                             let field: js_abi::JsArray<String> =
-                                split_pair(&field_text, source_path.clone(), field_line)?;
+                                splitPair(&fieldText, sourcePath.clone(), fieldLine)?;
                             if field.get_number(1.0) == Some(String::from("")) {
                                 return Err(rt::TsonicError::TsumoError(
-                                    crate::diagnostics::create_tsumo_error(
+                                    crate::diagnostics::createTsumoError(
                                         String::from("TSUMO_CONFIG_INVALID_FIELD"),
                                         format!(
                                             "{}{}{}",
@@ -737,14 +737,14 @@ pub fn parse_yaml_config(
                                             },
                                             String::from("' requires a value")
                                         ),
-                                        source_path.clone(),
-                                        Some(rt::conversions::i32_to_f64(field_line)),
-                                        Some(1.0),
+                                        sourcePath.clone(),
+                                        Some(fieldLine),
+                                        Some(1),
                                     )?,
                                 ));
                             }
-                            record_field(
-                                entry_fields.clone(),
+                            recordField(
+                                entryFields.clone(),
                                 match field.get_number(0.0) {
                                     Some(flow_value_23) => flow_value_23,
                                     None => unreachable!(
@@ -754,13 +754,13 @@ pub fn parse_yaml_config(
                                 format!(
                                     "{}{}{}",
                                     String::from("Menu '"),
-                                    menu_name,
+                                    menuName,
                                     String::from("' entry")
                                 ),
-                                source_path.clone(),
-                                field_line,
+                                sourcePath.clone(),
+                                fieldLine,
                             )?;
-                            apply_menu_field(
+                            applyMenuField(
                                 builder.clone(),
                                 match field.get_number(0.0) {
                                     Some(flow_value_24) => flow_value_24,
@@ -774,44 +774,44 @@ pub fn parse_yaml_config(
                                         "checked flow selected a missing optional value"
                                     ),
                                 },
-                                source_path.clone(),
-                                field_line,
+                                sourcePath.clone(),
+                                fieldLine,
                             )?;
                         }
                         index += 1;
                     }
                     entries.push_many_discard([builder.clone()]);
                 }
-                menu_builders.set_discard(menu_name.clone(), entries.clone());
+                menuBuilders.set_discard(menuName, entries.clone());
             }
             continue 'loop_value;
         }
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_CONFIG_UNKNOWN_FIELD"),
                 format!(
                     "{}{}{}",
                     String::from("Unknown nested configuration field '"),
-                    key_raw,
+                    keyRaw,
                     String::from("'")
                 ),
-                source_path.clone(),
-                Some(rt::conversions::i32_to_f64(line_number)),
-                Some(1.0),
+                sourcePath.clone(),
+                Some(lineNumber),
+                Some(1),
             )?,
         ));
     }
     let config: crate::models::site_config::SiteConfig =
         crate::models::site_config::SiteConfig::new(
             title,
-            crate::utils::text::ensure_trailing_slash(base_url),
-            language_code,
+            crate::utils::text::ensureTrailingSlash(baseURL),
+            languageCode,
             theme.clone(),
             copyright.clone(),
         )?;
     {
         let receiver = &config;
-        let value_2 = content_dir.clone();
+        let value_2 = contentDir.clone();
         {
             let dispatch_receiver = receiver;
             dispatch_receiver
@@ -829,20 +829,20 @@ pub fn parse_yaml_config(
                 .write_site_config_params(value_3)?
         }
     };
-    for menu_name in menu_builders.keys() {
+    for menuName in menuBuilders.keys() {
         let builders: Option<js_abi::JsArray<crate::config::builders::MenuEntryBuilder>> =
-            menu_builders.get(&menu_name);
+            menuBuilders.get(&menuName);
         if builders.is_none() {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_CONFIG_MODEL_INCONSISTENT"),
                     format!(
                         "{}{}{}",
                         String::from("Menu '"),
-                        menu_name,
+                        menuName,
                         String::from("' disappeared during configuration finalization")
                     ),
-                    source_path.clone(),
+                    sourcePath.clone(),
                     None,
                     None,
                 )?,
@@ -851,162 +851,148 @@ pub fn parse_yaml_config(
         let entries: js_abi::JsArray<crate::models::menu_entry::MenuEntry> =
             js_abi::JsArray::from_dense(vec![]);
         {
-            let mut index: f64 = 0.0;
+            let mut index: usize = 0;
             while index
-                < (rt::conversions::usize_to_i32(
-                    match builders.as_ref() {
-                        Some(flow_value_26) => flow_value_26.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }
-                    .len(),
-                )? as f64)
+                < match builders.as_ref() {
+                    Some(flow_value_26) => flow_value_26.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }
+                .len()
             {
+                entries.push_many_discard([match match builders.as_ref() {
+                    Some(flow_value_27) => flow_value_27.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }
+                .get_number(index)
                 {
-                    let operation_input_0_2 = entries.clone();
-                    operation_input_0_2.push_many_discard([match match builders.as_ref() {
-                        Some(flow_value_27) => flow_value_27.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }
-                    .get_number(index)
-                    {
-                        Some(flow_value_28) => flow_value_28,
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }
-                    .to_entry()?])
-                };
-                index += 1.0;
+                    Some(flow_value_28) => flow_value_28,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }
+                .toEntry()?]);
+                index += 1;
             }
         }
         {
-            let operation_input_0_3 = {
+            let operation_input_0_2 = {
                 let dispatch_receiver_3 = &config;
                 dispatch_receiver_3.dispatch.read_site_config_menus()
             };
-            operation_input_0_3.set_discard(
-                menu_name.clone(),
-                crate::menus::build_menu_hierarchy(entries.clone())?,
+            operation_input_0_2.set_discard(
+                menuName.clone(),
+                crate::menus::buildMenuHierarchy(entries.clone())?,
             )
         };
     }
     Ok(config)
 }
 
-pub fn merge_yaml_into_config(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn mergeYamlIntoConfig(
     config: crate::models::site_config::SiteConfig,
     text: &str,
-    file_name: String,
-    source_path: Option<String>,
+    fileName: String,
+    sourcePath: Option<String>,
 ) -> Result<crate::models::site_config::SiteConfig, rt::TsonicError> {
-    let lower: String = js_string::to_lower_case(&file_name);
+    let lower: String = js_string::to_lower_case(&fileName);
     if lower == "hugo.yaml"
         || lower == "hugo.yml"
         || lower == "config.yaml"
         || lower == "config.yml"
     {
-        return parse_yaml_config(text, source_path.clone());
+        return parseYamlConfig(text, sourcePath.clone());
     }
     if lower == "params.yaml" || lower == "params.yml" {
         let lines: js_abi::JsArray<String> = js_string::split_all(
             &js_string::replace_all(&js_string::replace_all(text, "\r\n", "\n")?, "\r", "\n")?,
             "\n",
         )?;
+        let lineCount: i32 = rt::conversions::usize_to_i32(lines.len())?;
         let fields: js_abi::JsSet<String> = js_abi::JsSet::new();
-        {
-            let mut index: i32 = 0;
-            'loop_value: while index < rt::conversions::usize_to_i32(lines.len())? {
-                let raw: String = match lines.get_number(rt::conversions::i32_to_f64(index)) {
-                    Some(flow_value) => flow_value,
+        'loop_value: for index in 0..lineCount {
+            let raw: String = match lines.get_number(index) {
+                Some(flow_value) => flow_value,
+                None => unreachable!("checked flow selected a missing optional value"),
+            };
+            let value: String = yamlText(raw.clone())?;
+            if value.is_empty() || js_string::starts_with_from_start(&value, "#") {
+                continue 'loop_value;
+            }
+            if indentationOf(&raw)? != 0 {
+                return Err(rt::TsonicError::TsumoError(
+                    crate::diagnostics::createTsumoError(
+                        String::from("TSUMO_CONFIG_SYNTAX_INVALID"),
+                        String::from("Split params configuration requires a flat scalar mapping"),
+                        sourcePath.clone(),
+                        Some(index + 1),
+                        Some(1),
+                    )?,
+                ));
+            }
+            let pair: js_abi::JsArray<String> = splitPair(&value, sourcePath.clone(), index + 1)?;
+            if pair.get_number(1.0) == Some(String::from("")) {
+                return Err(rt::TsonicError::TsumoError(
+                    crate::diagnostics::createTsumoError(
+                        String::from("TSUMO_CONFIG_INVALID_FIELD"),
+                        format!(
+                            "{}{}{}",
+                            String::from("Configuration param '"),
+                            match pair.get_number(0.0) {
+                                Some(flow_value_2) => flow_value_2,
+                                None =>
+                                    unreachable!("checked flow selected a missing optional value"),
+                            },
+                            String::from("' requires a scalar value")
+                        ),
+                        sourcePath.clone(),
+                        Some(index + 1),
+                        Some(1),
+                    )?,
+                ));
+            }
+            recordField(
+                fields.clone(),
+                match pair.get_number(0.0) {
+                    Some(flow_value_3) => flow_value_3,
                     None => unreachable!("checked flow selected a missing optional value"),
+                },
+                String::from("Configuration params"),
+                sourcePath.clone(),
+                index + 1,
+            )?;
+            {
+                let operation_input_0 = {
+                    let dispatch_receiver = &config;
+                    dispatch_receiver.dispatch.read_site_config_params()
                 };
-                let value: String = yaml_text(raw.clone())?;
-                if value.is_empty() || js_string::starts_with_from_start(&value, "#") {
-                    index += 1;
-                    continue 'loop_value;
-                }
-                if indentation_of(&raw)? != 0 {
-                    return Err(rt::TsonicError::TsumoError(
-                        crate::diagnostics::create_tsumo_error(
-                            String::from("TSUMO_CONFIG_SYNTAX_INVALID"),
-                            String::from(
-                                "Split params configuration requires a flat scalar mapping",
-                            ),
-                            source_path.clone(),
-                            Some(rt::conversions::i32_to_f64(index + 1)),
-                            Some(1.0),
-                        )?,
-                    ));
-                }
-                let pair: js_abi::JsArray<String> =
-                    split_pair(&value, source_path.clone(), index + 1)?;
-                if pair.get_number(1.0) == Some(String::from("")) {
-                    return Err(rt::TsonicError::TsumoError(
-                        crate::diagnostics::create_tsumo_error(
-                            String::from("TSUMO_CONFIG_INVALID_FIELD"),
-                            format!(
-                                "{}{}{}",
-                                String::from("Configuration param '"),
-                                match pair.get_number(0.0) {
-                                    Some(flow_value_2) => flow_value_2,
-                                    None => unreachable!(
-                                        "checked flow selected a missing optional value"
-                                    ),
-                                },
-                                String::from("' requires a scalar value")
-                            ),
-                            source_path.clone(),
-                            Some(rt::conversions::i32_to_f64(index + 1)),
-                            Some(1.0),
-                        )?,
-                    ));
-                }
-                record_field(
-                    fields.clone(),
+                operation_input_0.set_discard(
                     match pair.get_number(0.0) {
-                        Some(flow_value_3) => flow_value_3,
+                        Some(flow_value_4) => flow_value_4,
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
-                    String::from("Configuration params"),
-                    source_path.clone(),
-                    index + 1,
-                )?;
-                {
-                    let operation_input_0 = {
-                        let dispatch_receiver = &config;
-                        dispatch_receiver.dispatch.read_site_config_params()
-                    };
-                    operation_input_0.set_discard(
-                        match pair.get_number(0.0) {
-                            Some(flow_value_4) => flow_value_4,
+                    crate::config::scalars::parseConfigParam(
+                        &match pair.get_number(1.0) {
+                            Some(flow_value_5) => flow_value_5,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
-                        crate::config::scalars::parse_config_param(
-                            &match pair.get_number(1.0) {
-                                Some(flow_value_5) => flow_value_5,
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                            crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
-                            source_path.clone(),
-                            index + 1,
-                        )?,
-                    )
-                };
-                index += 1;
-            }
+                        crate::utils::structured_scalars::StructuredScalarFormat::Yaml,
+                        sourcePath.clone(),
+                        index + 1,
+                    )?,
+                )
+            };
         }
         return Ok(config);
     }
     Err(rt::TsonicError::TsumoError(
-        crate::diagnostics::create_tsumo_error(
+        crate::diagnostics::createTsumoError(
             String::from("TSUMO_CONFIG_FILE_UNSUPPORTED"),
             format!(
                 "{}{}{}",
                 String::from("Unsupported split configuration file '"),
-                file_name,
+                fileName,
                 String::from("'")
             ),
-            source_path.clone(),
+            sourcePath.clone(),
             None,
             None,
         )?,

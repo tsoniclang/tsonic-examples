@@ -3,7 +3,8 @@
 use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
-pub fn call_date_method(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn callDateMethod(
     receiver: crate::template::values::base::TemplateValue,
     method: &str,
     args: js_abi::JsArray<crate::template::values::base::TemplateValue>,
@@ -17,9 +18,9 @@ pub fn call_date_method(
         return Ok(Option::<crate::template::values::base::TemplateValue>::None);
     }
     if method == "format" {
-        if rt::conversions::usize_to_i32(args.len())? != 1 {
+        if args.len() != 1 {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_TEMPLATE_DATE_ARGUMENTS_INVALID"),
                     String::from("Date.Format requires one layout argument"),
                     None,
@@ -31,8 +32,8 @@ pub fn call_date_method(
         return Ok(Some({
             let upcast_value =
                 crate::template::values::primitives::StringValue::new(rt::option_coalesce(
-                    crate::template::evaluation::scalar_semantics::format_date_time(
-                        {
+                    crate::template::evaluation::scalar_semantics::formatDateTime(
+                        &{
                             let dispatch_receiver = &{
                                 let downcast_value = &receiver;
                                 crate::template::values::date::DateValue {
@@ -46,7 +47,7 @@ pub fn call_date_method(
                             };
                             dispatch_receiver.dispatch.read_date_value_value()
                         },
-                        &crate::template::runtime_helpers::to_plain_string(
+                        &crate::template::runtime_helpers::toPlainString(
                             match args.get_number(0.0) {
                                 Some(flow_value) => flow_value,
                                 None => {
@@ -65,9 +66,9 @@ pub fn call_date_method(
         }));
     }
     if method == "adddate" {
-        if rt::conversions::usize_to_i32(args.len())? != 3 {
+        if args.len() != 3 {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_TEMPLATE_DATE_ARGUMENTS_INVALID"),
                     String::from("Date.AddDate requires year, month, and day offsets"),
                     None,
@@ -76,27 +77,27 @@ pub fn call_date_method(
                 )?,
             ));
         }
-        let years: Option<i32> = crate::utils::int32::parse_int32(
-            &crate::template::runtime_helpers::to_plain_string(match args.get_number(0.0) {
+        let years: Option<i32> = crate::utils::int32::parseInt32(
+            &crate::template::runtime_helpers::toPlainString(match args.get_number(0.0) {
                 Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             })?,
         )?;
-        let months: Option<i32> = crate::utils::int32::parse_int32(
-            &crate::template::runtime_helpers::to_plain_string(match args.get_number(1.0) {
+        let months: Option<i32> = crate::utils::int32::parseInt32(
+            &crate::template::runtime_helpers::toPlainString(match args.get_number(1.0) {
                 Some(flow_value_3) => flow_value_3,
                 None => unreachable!("checked flow selected a missing optional value"),
             })?,
         )?;
-        let days: Option<i32> = crate::utils::int32::parse_int32(
-            &crate::template::runtime_helpers::to_plain_string(match args.get_number(2.0) {
+        let days: Option<i32> = crate::utils::int32::parseInt32(
+            &crate::template::runtime_helpers::toPlainString(match args.get_number(2.0) {
                 Some(flow_value_4) => flow_value_4,
                 None => unreachable!("checked flow selected a missing optional value"),
             })?,
         )?;
         if years.is_none() || months.is_none() || days.is_none() {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_TEMPLATE_DATE_ARGUMENTS_INVALID"),
                     String::from("Date.AddDate offsets must be 32-bit integers"),
                     None,
@@ -106,8 +107,8 @@ pub fn call_date_method(
             ));
         }
         let result: Option<String> =
-            crate::template::evaluation::scalar_semantics::add_calendar_date(
-                {
+            crate::template::evaluation::scalar_semantics::addCalendarDate(
+                &{
                     let dispatch_receiver_2 = &{
                         let downcast_value_2 = &receiver;
                         crate::template::values::date::DateValue {
@@ -136,7 +137,7 @@ pub fn call_date_method(
             )?;
         if result.is_none() {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_TEMPLATE_DATE_INVALID"),
                     format!(
                         "{}{}{}",
@@ -176,12 +177,11 @@ pub fn call_date_method(
         }));
     }
     if method == "after" {
-        let other: Option<crate::template::values::base::TemplateValue> =
-            if rt::conversions::usize_to_i32(args.len())? == 1 {
-                args.get_number(0.0)
-            } else {
-                Option::<crate::template::values::base::TemplateValue>::None
-            };
+        let other: Option<crate::template::values::base::TemplateValue> = if args.len() == 1 {
+            args.get_number(0.0)
+        } else {
+            Option::<crate::template::values::base::TemplateValue>::None
+        };
         if !other.as_ref().is_some_and(|value| {
             value
                 .dispatch
@@ -190,7 +190,7 @@ pub fn call_date_method(
                 .is_some()
         }) {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_TEMPLATE_DATE_ARGUMENTS_INVALID"),
                     String::from("Date.After requires one date argument"),
                     None,
@@ -199,8 +199,8 @@ pub fn call_date_method(
                 )?,
             ));
         }
-        let result: Option<bool> = crate::template::evaluation::scalar_semantics::is_date_after(
-            {
+        let result: Option<bool> = crate::template::evaluation::scalar_semantics::isDateAfter(
+            &{
                 let dispatch_receiver_4 = &{
                     let downcast_value_4 = &receiver;
                     crate::template::values::date::DateValue {
@@ -214,7 +214,7 @@ pub fn call_date_method(
                 };
                 dispatch_receiver_4.dispatch.read_date_value_value()
             },
-            {
+            &{
                 let dispatch_receiver_5 = &{
                     let downcast_value_5 = &other;
                     crate::template::values::date::DateValue {
@@ -233,7 +233,7 @@ pub fn call_date_method(
         );
         if result.is_none() {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_TEMPLATE_DATE_INVALID"),
                     String::from("Date.After requires two valid dates"),
                     None,

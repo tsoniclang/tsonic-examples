@@ -6,6 +6,9 @@ use tsonic_rust_js::string as js_string;
 
 #[doc(hidden)]
 pub trait SiteContextDispatch {
+    fn project_site_context(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_site_context_to_site_context(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn SiteContextDispatch + 'static>> {
@@ -115,30 +118,31 @@ pub trait SiteContextDispatch {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct SiteContextState {
     pub title: String,
-    pub base_url: String,
-    pub language_code: String,
+    pub baseURL: String,
+    pub languageCode: String,
     pub copyright: String,
-    pub language: crate::models::language::LanguageContext,
-    pub languages: js_abi::JsArray<crate::models::language::LanguageContext>,
-    pub is_multi_lingual: bool,
-    pub language_prefix: String,
-    pub params: js_abi::JsMap<String, crate::params::ParamValue>,
-    pub menus: js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>>,
-    pub taxonomies: js_abi::JsMap<
+    pub Language: crate::models::language::LanguageContext,
+    pub Languages: js_abi::JsArray<crate::models::language::LanguageContext>,
+    pub IsMultiLingual: bool,
+    pub LanguagePrefix: String,
+    pub Params: js_abi::JsMap<String, crate::params::ParamValue>,
+    pub Menus: js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>>,
+    pub Taxonomies: js_abi::JsMap<
         String,
         js_abi::JsMap<String, js_abi::JsArray<crate::models::page_context::PageContext>>,
     >,
-    pub taxonomy_term_pages:
+    pub taxonomyTermPages:
         js_abi::JsMap<String, js_abi::JsMap<String, crate::models::page_context::PageContext>>,
     pub store: Option<crate::template::values::scratch::ScratchStore>,
     pub pages: js_abi::JsArray<crate::models::page_context::PageContext>,
-    pub all_pages: js_abi::JsArray<crate::models::page_context::PageContext>,
+    pub allPages: js_abi::JsArray<crate::models::page_context::PageContext>,
     pub home: Option<crate::models::page_context::PageContext>,
-    pub docs_mounts: js_abi::JsArray<crate::docs::models::DocsMountContext>,
-    pub sites: js_abi::JsArray<SiteContext>,
-    pub pagination_size: i32,
+    pub docsMounts: js_abi::JsArray<crate::docs::models::DocsMountContext>,
+    pub Sites: js_abi::JsArray<SiteContext>,
+    pub paginationSize: i32,
 }
 
 #[derive(Clone)]
@@ -176,11 +180,12 @@ pub(crate) struct SiteContextRoot {
 
 impl SiteContext {
     #[doc(hidden)]
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn initialize_state(
         config: crate::models::site_config::SiteConfig,
         pages: js_abi::JsArray<crate::models::page_context::PageContext>,
-        language_raw: Option<crate::models::language::LanguageConfig>,
-        all_languages_raw: Option<js_abi::JsArray<crate::models::language::LanguageContext>>,
+        languageRaw: Option<crate::models::language::LanguageConfig>,
+        allLanguagesRaw: Option<js_abi::JsArray<crate::models::language::LanguageContext>>,
     ) -> Result<SiteContextState, rt::TsonicError> {
         let field_language: crate::models::language::LanguageContext;
         let field_title: String = {
@@ -199,7 +204,7 @@ impl SiteContext {
             core::convert::identity,
             || String::from(""),
         );
-        let language: Option<crate::models::language::LanguageConfig> = language_raw;
+        let language: Option<crate::models::language::LanguageConfig> = languageRaw;
         let field_language_code: String = if language.is_some() {
             field_language = crate::models::language::LanguageContext::new(
                 match language.as_ref() {
@@ -213,13 +218,13 @@ impl SiteContext {
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
                 .state
-                .with(|state| state.language_name.clone()),
+                .with(|state| state.languageName.clone()),
                 match language.as_ref() {
                     Some(flow_value_3) => flow_value_3.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
                 .state
-                .with(|state| state.language_direction.clone()),
+                .with(|state| state.languageDirection.clone()),
             )?;
             match language.as_ref() {
                 Some(flow_value_4) => flow_value_4.clone(),
@@ -229,13 +234,11 @@ impl SiteContext {
             .with(|state| state.lang.clone())
         } else {
             let lang: String = {
-                let conditional_test_2 = rt::conversions::usize_to_i32(
-                    {
-                        let dispatch_receiver_4 = &config;
-                        dispatch_receiver_4.dispatch.read_site_config_languages()
-                    }
-                    .len(),
-                )? > 0;
+                let conditional_test_2 = !{
+                    let dispatch_receiver_4 = &config;
+                    dispatch_receiver_4.dispatch.read_site_config_languages()
+                }
+                .is_empty();
                 if conditional_test_2 {
                     match {
                         let dispatch_receiver_5 = &config;
@@ -267,13 +270,11 @@ impl SiteContext {
                 }
             };
             let name: String = {
-                let conditional_test_3 = rt::conversions::usize_to_i32(
-                    {
-                        let dispatch_receiver_8 = &config;
-                        dispatch_receiver_8.dispatch.read_site_config_languages()
-                    }
-                    .len(),
-                )? > 0;
+                let conditional_test_3 = !{
+                    let dispatch_receiver_8 = &config;
+                    dispatch_receiver_8.dispatch.read_site_config_languages()
+                }
+                .is_empty();
                 if conditional_test_3 {
                     match {
                         let dispatch_receiver_9 = &config;
@@ -285,19 +286,17 @@ impl SiteContext {
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                     .state
-                    .with(|state| state.language_name.clone())
+                    .with(|state| state.languageName.clone())
                 } else {
                     lang.clone()
                 }
             };
             let dir: String = {
-                let conditional_test_4 = rt::conversions::usize_to_i32(
-                    {
-                        let dispatch_receiver_10 = &config;
-                        dispatch_receiver_10.dispatch.read_site_config_languages()
-                    }
-                    .len(),
-                )? > 0;
+                let conditional_test_4 = !{
+                    let dispatch_receiver_10 = &config;
+                    dispatch_receiver_10.dispatch.read_site_config_languages()
+                }
+                .is_empty();
                 if conditional_test_4 {
                     match {
                         let dispatch_receiver_11 = &config;
@@ -309,7 +308,7 @@ impl SiteContext {
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                     .state
-                    .with(|state| state.language_direction.clone())
+                    .with(|state| state.languageDirection.clone())
                 } else {
                     String::from("ltr")
                 }
@@ -318,19 +317,17 @@ impl SiteContext {
                 crate::models::language::LanguageContext::new(lang.clone(), name, dir)?;
             lang.clone()
         };
-        let all_languages: Option<js_abi::JsArray<crate::models::language::LanguageContext>> =
-            all_languages_raw;
+        let allLanguages: Option<js_abi::JsArray<crate::models::language::LanguageContext>> =
+            allLanguagesRaw;
         let field_languages: js_abi::JsArray<crate::models::language::LanguageContext> =
-            if all_languages.is_some()
-                && rt::conversions::usize_to_i32(
-                    match all_languages.as_ref() {
-                        Some(flow_value_8) => flow_value_8.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }
-                    .len(),
-                )? > 0
+            if allLanguages.is_some()
+                && !match allLanguages.as_ref() {
+                    Some(flow_value_8) => flow_value_8.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }
+                .is_empty()
             {
-                match all_languages.as_ref() {
+                match allLanguages.as_ref() {
                     Some(flow_value_9) => flow_value_9.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
@@ -370,39 +367,40 @@ impl SiteContext {
         let empty: js_abi::JsArray<crate::docs::models::DocsMountContext> =
             js_abi::JsArray::from_dense(vec![]);
         let field_docs_mounts: js_abi::JsArray<crate::docs::models::DocsMountContext> = empty;
-        let empty_sites: js_abi::JsArray<SiteContext> = js_abi::JsArray::from_dense(vec![]);
-        let field_sites: js_abi::JsArray<SiteContext> = empty_sites;
+        let emptySites: js_abi::JsArray<SiteContext> = js_abi::JsArray::from_dense(vec![]);
+        let field_sites: js_abi::JsArray<SiteContext> = emptySites;
         let field_pagination_size: i32 = 10;
         Ok(SiteContextState {
             title: field_title,
-            base_url: field_base_url,
-            language_code: field_language_code,
+            baseURL: field_base_url,
+            languageCode: field_language_code,
             copyright: field_copyright,
-            language: field_language,
-            languages: field_languages,
-            is_multi_lingual: field_is_multi_lingual,
-            language_prefix: field_language_prefix,
-            params: field_params,
-            menus: field_menus,
-            taxonomies: field_taxonomies,
-            taxonomy_term_pages: field_taxonomy_term_pages,
+            Language: field_language,
+            Languages: field_languages,
+            IsMultiLingual: field_is_multi_lingual,
+            LanguagePrefix: field_language_prefix,
+            Params: field_params,
+            Menus: field_menus,
+            Taxonomies: field_taxonomies,
+            taxonomyTermPages: field_taxonomy_term_pages,
             store: field_store,
             pages: field_pages,
-            all_pages: field_all_pages,
+            allPages: field_all_pages,
             home: field_home,
-            docs_mounts: field_docs_mounts,
-            sites: field_sites,
-            pagination_size: field_pagination_size,
+            docsMounts: field_docs_mounts,
+            Sites: field_sites,
+            paginationSize: field_pagination_size,
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         config: crate::models::site_config::SiteConfig,
         pages: js_abi::JsArray<crate::models::page_context::PageContext>,
-        language_raw: Option<crate::models::language::LanguageConfig>,
-        all_languages_raw: Option<js_abi::JsArray<crate::models::language::LanguageContext>>,
+        languageRaw: Option<crate::models::language::LanguageConfig>,
+        allLanguagesRaw: Option<js_abi::JsArray<crate::models::language::LanguageContext>>,
     ) -> Result<SiteContext, rt::TsonicError> {
-        let state = SiteContext::initialize_state(config, pages, language_raw, all_languages_raw)?;
+        let state = SiteContext::initialize_state(config, pages, languageRaw, allLanguagesRaw)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(SiteContextRoot {
             identity: identity.clone(),
@@ -442,7 +440,24 @@ impl SiteContextRoot {
     }
 }
 
+impl rt::ObjectIdentityCarrier for SiteContextRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl SiteContextDispatch for SiteContextRoot {
+    fn project_site_context(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn SiteContextDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_site_context_to_site_context(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn SiteContextDispatch + 'static>> {
@@ -464,28 +479,28 @@ impl SiteContextDispatch for SiteContextRoot {
     }
 
     fn read_site_context_base_url(&self) -> String {
-        self.state.with(|state| state.base_url.clone())
+        self.state.with(|state| state.baseURL.clone())
     }
 
     fn write_site_context_base_url(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.base_url = value)
+                self.state.with_mut(|state| state.baseURL = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_site_context_language_code(&self) -> String {
-        self.state.with(|state| state.language_code.clone())
+        self.state.with(|state| state.languageCode.clone())
     }
 
     fn write_site_context_language_code(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.language_code = value)
+                self.state.with_mut(|state| state.languageCode = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -506,7 +521,7 @@ impl SiteContextDispatch for SiteContextRoot {
     }
 
     fn read_site_context_language(&self) -> crate::models::language::LanguageContext {
-        self.state.with(|state| state.language.clone())
+        self.state.with(|state| state.Language.clone())
     }
 
     fn write_site_context_language(
@@ -516,7 +531,7 @@ impl SiteContextDispatch for SiteContextRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.language = value)
+                self.state.with_mut(|state| state.Language = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -525,7 +540,7 @@ impl SiteContextDispatch for SiteContextRoot {
     fn read_site_context_languages(
         &self,
     ) -> js_abi::JsArray<crate::models::language::LanguageContext> {
-        self.state.with(|state| state.languages.clone())
+        self.state.with(|state| state.Languages.clone())
     }
 
     fn write_site_context_languages(
@@ -535,42 +550,42 @@ impl SiteContextDispatch for SiteContextRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.languages = value)
+                self.state.with_mut(|state| state.Languages = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_site_context_is_multi_lingual(&self) -> bool {
-        self.state.with(|state| state.is_multi_lingual)
+        self.state.with(|state| state.IsMultiLingual)
     }
 
     fn write_site_context_is_multi_lingual(&self, value: bool) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.is_multi_lingual = value)
+                self.state.with_mut(|state| state.IsMultiLingual = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_site_context_language_prefix(&self) -> String {
-        self.state.with(|state| state.language_prefix.clone())
+        self.state.with(|state| state.LanguagePrefix.clone())
     }
 
     fn write_site_context_language_prefix(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.language_prefix = value)
+                self.state.with_mut(|state| state.LanguagePrefix = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_site_context_params(&self) -> js_abi::JsMap<String, crate::params::ParamValue> {
-        self.state.with(|state| state.params.clone())
+        self.state.with(|state| state.Params.clone())
     }
 
     fn write_site_context_params(
@@ -580,7 +595,7 @@ impl SiteContextDispatch for SiteContextRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.params = value)
+                self.state.with_mut(|state| state.Params = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -589,7 +604,7 @@ impl SiteContextDispatch for SiteContextRoot {
     fn read_site_context_menus(
         &self,
     ) -> js_abi::JsMap<String, js_abi::JsArray<crate::models::menu_entry::MenuEntry>> {
-        self.state.with(|state| state.menus.clone())
+        self.state.with(|state| state.Menus.clone())
     }
 
     fn write_site_context_menus(
@@ -599,7 +614,7 @@ impl SiteContextDispatch for SiteContextRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.menus = value)
+                self.state.with_mut(|state| state.Menus = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -611,7 +626,7 @@ impl SiteContextDispatch for SiteContextRoot {
         String,
         js_abi::JsMap<String, js_abi::JsArray<crate::models::page_context::PageContext>>,
     > {
-        self.state.with(|state| state.taxonomies.clone())
+        self.state.with(|state| state.Taxonomies.clone())
     }
 
     fn write_site_context_taxonomies(
@@ -624,7 +639,7 @@ impl SiteContextDispatch for SiteContextRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.taxonomies = value)
+                self.state.with_mut(|state| state.Taxonomies = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -634,7 +649,7 @@ impl SiteContextDispatch for SiteContextRoot {
         &self,
     ) -> js_abi::JsMap<String, js_abi::JsMap<String, crate::models::page_context::PageContext>>
     {
-        self.state.with(|state| state.taxonomy_term_pages.clone())
+        self.state.with(|state| state.taxonomyTermPages.clone())
     }
 
     fn write_site_context_taxonomy_term_pages(
@@ -647,8 +662,7 @@ impl SiteContextDispatch for SiteContextRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state
-                    .with_mut(|state| state.taxonomy_term_pages = value)
+                self.state.with_mut(|state| state.taxonomyTermPages = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -691,7 +705,7 @@ impl SiteContextDispatch for SiteContextRoot {
     fn read_site_context_all_pages(
         &self,
     ) -> js_abi::JsArray<crate::models::page_context::PageContext> {
-        self.state.with(|state| state.all_pages.clone())
+        self.state.with(|state| state.allPages.clone())
     }
 
     fn write_site_context_all_pages(
@@ -701,7 +715,7 @@ impl SiteContextDispatch for SiteContextRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.all_pages = value)
+                self.state.with_mut(|state| state.allPages = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -727,7 +741,7 @@ impl SiteContextDispatch for SiteContextRoot {
     fn read_site_context_docs_mounts(
         &self,
     ) -> js_abi::JsArray<crate::docs::models::DocsMountContext> {
-        self.state.with(|state| state.docs_mounts.clone())
+        self.state.with(|state| state.docsMounts.clone())
     }
 
     fn write_site_context_docs_mounts(
@@ -737,14 +751,14 @@ impl SiteContextDispatch for SiteContextRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.docs_mounts = value)
+                self.state.with_mut(|state| state.docsMounts = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_site_context_sites(&self) -> js_abi::JsArray<SiteContext> {
-        self.state.with(|state| state.sites.clone())
+        self.state.with(|state| state.Sites.clone())
     }
 
     fn write_site_context_sites(
@@ -754,21 +768,21 @@ impl SiteContextDispatch for SiteContextRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.sites = value)
+                self.state.with_mut(|state| state.Sites = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_site_context_pagination_size(&self) -> i32 {
-        self.state.with(|state| state.pagination_size)
+        self.state.with(|state| state.paginationSize)
     }
 
     fn write_site_context_pagination_size(&self, value: i32) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.pagination_size = value)
+                self.state.with_mut(|state| state.paginationSize = value)
             };
             Ok::<_, rt::TsonicError>(())
         }

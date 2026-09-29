@@ -5,9 +5,10 @@ use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct PageBundleResourceFileState {
-    pub source_path: String,
-    pub relative_path: String,
+    pub sourcePath: String,
+    pub relativePath: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -23,101 +24,97 @@ impl rt::ObjectIdentityCarrier for PageBundleResourceFile {
 }
 
 impl PageBundleResourceFile {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
-        source_path: String,
-        relative_path: String,
+        sourcePath: String,
+        relativePath: String,
     ) -> Result<PageBundleResourceFile, rt::TsonicError> {
-        let field_source_path: String = source_path;
-        let field_relative_path: String = relative_path;
+        let field_source_path: String = sourcePath;
+        let field_relative_path: String = relativePath;
         Ok(PageBundleResourceFile {
             state: rt::ObjectRef::new(PageBundleResourceFileState {
-                source_path: field_source_path,
-                relative_path: field_relative_path,
+                sourcePath: field_source_path,
+                relativePath: field_relative_path,
             }),
         })
     }
 }
 
-pub fn sort_paths(paths: js_abi::JsArray<String>) {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn sortPaths(paths: js_abi::JsArray<String>) {
     paths.sort(|left, right| {
-        rt::conversions::i32_to_f64(crate::utils::strings::compare_text(left, right))
+        rt::conversions::i32_to_f64(crate::utils::strings::compareText(left, right))
     });
 }
 
-pub fn is_nested_bundle(directory: String) -> Result<bool, rt::TsonicError> {
-    Ok(crate::fs::file_exists(tsonic_rust_node::path::join(&[
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isNestedBundle(directory: String) -> Result<bool, rt::TsonicError> {
+    Ok(crate::fs::fileExists(&tsonic_rust_node::path::join(&[
         directory.as_str(),
         "index.md",
-    ]))? || crate::fs::file_exists(tsonic_rust_node::path::join(&[
+    ]))? || crate::fs::fileExists(&tsonic_rust_node::path::join(&[
         directory.as_str(),
         "_index.md",
     ]))?)
 }
 
-pub fn collect_page_bundle_resource_files(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn collectPageBundleResourceFiles(
     directory: String,
     prefix: String,
     result: js_abi::JsArray<PageBundleResourceFile>,
 ) -> Result<(), rt::TsonicError> {
     let files: js_abi::JsArray<String> =
-        crate::fs::list_files_top_directory(directory.clone(), String::from("*"))?;
-    sort_paths(files.clone());
+        crate::fs::listFilesTopDirectory(directory.clone(), String::from("*"))?;
+    sortPaths(files.clone());
     {
-        let mut index: f64 = 0.0;
-        'loop_value: while index < (rt::conversions::usize_to_i32(files.len())? as f64) {
-            let source_path: String = match files.get_number(index) {
+        let mut index: usize = 0;
+        'loop_value: while index < files.len() {
+            let sourcePath: String = match files.get_number(index) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            if js_string::ends_with_at_end(&js_string::to_lower_case(&source_path), ".md") {
-                index += 1.0;
+            if js_string::ends_with_at_end(&js_string::to_lower_case(&sourcePath), ".md") {
+                index += 1;
                 continue 'loop_value;
             }
-            let name: String = tsonic_rust_node::path::basename(&source_path, None);
+            let name: String = tsonic_rust_node::path::basename(&sourcePath, None);
             if name.is_empty() {
-                index += 1.0;
+                index += 1;
                 continue 'loop_value;
             }
-            let relative_path: String = if prefix.is_empty() {
+            let relativePath: String = if prefix.is_empty() {
                 name.clone()
             } else {
                 format!("{}{}{}", prefix, String::from("/"), name)
             };
-            {
-                let operation_input_0 = result.clone();
-                operation_input_0.push_many_discard([PageBundleResourceFile::new(
-                    source_path.clone(),
-                    relative_path.clone(),
-                )?])
-            };
-            index += 1.0;
+            result.push_many_discard([PageBundleResourceFile::new(sourcePath, relativePath)?]);
+            index += 1;
         }
     }
-    let directories: js_abi::JsArray<String> =
-        crate::fs::list_directories_top_directory(directory)?;
-    sort_paths(directories.clone());
+    let directories: js_abi::JsArray<String> = crate::fs::listDirectoriesTopDirectory(directory)?;
+    sortPaths(directories.clone());
     {
-        let mut index: f64 = 0.0;
-        'loop_value_2: while index < (rt::conversions::usize_to_i32(directories.len())? as f64) {
+        let mut index: usize = 0;
+        'loop_value_2: while index < directories.len() {
             let child: String = match directories.get_number(index) {
                 Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            if is_nested_bundle(child.clone())?
-                || rt::conversions::usize_to_i32(
-                    crate::fs::list_files_top_directory(child.clone(), String::from("*.md"))?.len(),
-                )? > 0
+            if isNestedBundle(child.clone())?
+                || !crate::fs::listFilesTopDirectory(child.clone(), String::from("*.md"))?
+                    .is_empty()
             {
-                index += 1.0;
+                index += 1;
                 continue 'loop_value_2;
             }
             let name: String = tsonic_rust_node::path::basename(&child, None);
             if name.is_empty() {
-                index += 1.0;
+                index += 1;
                 continue 'loop_value_2;
             }
-            collect_page_bundle_resource_files(
-                child.clone(),
+            collectPageBundleResourceFiles(
+                child,
                 if prefix.is_empty() {
                     name.clone()
                 } else {
@@ -125,16 +122,17 @@ pub fn collect_page_bundle_resource_files(
                 },
                 result.clone(),
             )?;
-            index += 1.0;
+            index += 1;
         }
     }
     Ok(())
 }
 
-pub fn discover_page_bundle_resource_files(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn discoverPageBundleResourceFiles(
     directory: String,
 ) -> Result<js_abi::JsArray<PageBundleResourceFile>, rt::TsonicError> {
     let result: js_abi::JsArray<PageBundleResourceFile> = js_abi::JsArray::from_dense(vec![]);
-    collect_page_bundle_resource_files(directory, String::from(""), result.clone())?;
+    collectPageBundleResourceFiles(directory, String::from(""), result.clone())?;
     Ok(result)
 }

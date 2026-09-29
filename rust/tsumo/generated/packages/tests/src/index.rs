@@ -3,20 +3,20 @@
 use crate::program as rt;
 
 pub fn main() -> Result<(), rt::TsonicError> {
-    crate::scaffold_and_build_test::run_scaffold_and_build_tests()?;
-    crate::input_boundaries_test::run_input_boundary_tests()?;
-    crate::layout_cache_test::run_layout_cache_tests()?;
-    crate::filesystem_boundaries_test::run_filesystem_boundary_tests()?;
-    crate::content_and_menu_test::run_content_and_menu_tests()?;
-    crate::docs_domain_test::run_docs_domain_tests()?;
-    crate::output_plan_test::run_output_plan_tests()?;
-    crate::resource_pipeline_test::run_resource_pipeline_tests()?;
-    crate::template_control_flow_test::run_template_control_flow_tests()?;
-    crate::template_function_semantics_test::run_template_function_semantics_tests()?;
-    crate::template_page_context_test::run_template_page_context_tests()?;
-    crate::template_runtime_test::run_template_runtime_tests()?;
-    crate::theme_compatibility_test::run_theme_compatibility_tests()?;
-    crate::native_text_test::run_native_text_tests()?;
-    crate::test_root::complete_tests(83.0)?;
+    crate::scaffold_and_build_test::runScaffoldAndBuildTests()?;
+    crate::input_boundaries_test::runInputBoundaryTests()?;
+    crate::layout_cache_test::runLayoutCacheTests()?;
+    crate::filesystem_boundaries_test::runFilesystemBoundaryTests()?;
+    crate::content_and_menu_test::runContentAndMenuTests()?;
+    crate::docs_domain_test::runDocsDomainTests()?;
+    crate::output_plan_test::runOutputPlanTests()?;
+    crate::resource_pipeline_test::runResourcePipelineTests()?;
+    crate::template_control_flow_test::runTemplateControlFlowTests()?;
+    crate::template_function_semantics_test::runTemplateFunctionSemanticsTests()?;
+    crate::template_page_context_test::runTemplatePageContextTests()?;
+    crate::template_runtime_test::runTemplateRuntimeTests()?;
+    crate::theme_compatibility_test::runThemeCompatibilityTests()?;
+    crate::native_text_test::runNativeTextTests()?;
+    crate::test_root::completeTests(87.0)?;
     Ok(())
 }

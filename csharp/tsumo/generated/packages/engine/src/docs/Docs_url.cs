@@ -1,47 +1,40 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Docs_url
     {
-        public static Func<string, UrlSuffixSplit> splitUrlSuffix
+        public static UrlSuffixSplit splitUrlSuffix(string url)
         {
-            get;
-            private set;
-        } = default(Func<string, UrlSuffixSplit>)!;
+            int q = Tsonic.CSharp.Js.String.indexOf(url, "?");
+            int h = Tsonic.CSharp.Js.String.indexOf(url, "#");
+            int cut = -1;
+            if (q >= 0 && h >= 0)
+            {
+                cut = q < h ? q : h;
+            }
+            else
+            {
+                if (q >= 0)
+                {
+                    cut = q;
+                }
+                else
+                {
+                    if (h >= 0)
+                    {
+                        cut = h;
+                    }
+                }
+            }
+            if (cut < 0)
+            {
+                return new UrlSuffixSplit(url, "");
+            }
+            return new UrlSuffixSplit(Utils_strings.substringCount(url, 0, cut), Utils_strings.substringFrom(url, cut));
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
             Utils_strings.__tsonic_module_init();
-            splitUrlSuffix = (string url) =>
-            {
-                int q = Tsonic.CSharp.Js.String.indexOf(url, "?");
-                int h = Tsonic.CSharp.Js.String.indexOf(url, "#");
-                int cut = -1;
-                if (q >= 0 && h >= 0)
-                {
-                    cut = q < h ? q : h;
-                }
-                else
-                {
-                    if (q >= 0)
-                    {
-                        cut = q;
-                    }
-                    else
-                    {
-                        if (h >= 0)
-                        {
-                            cut = h;
-                        }
-                    }
-                }
-                if (cut < 0)
-                {
-                    return new UrlSuffixSplit(url, "");
-                }
-                return new UrlSuffixSplit(Utils_strings.substringCount(url, 0, cut), Utils_strings.substringFrom(url, cut));
-            };
             return null;
         }
         public static void __tsonic_module_init()

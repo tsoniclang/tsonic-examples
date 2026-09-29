@@ -6,6 +6,7 @@ use tsonic_rust_js::string as js_string;
 
 pub(crate) const VERSION: &str = "0.0.0";
 
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub(crate) fn run() -> Result<(), rt::TsonicError> {
     let args: js_abi::JsArray<String> = tsonic_rust_node::process::argv()?.slice_from(2.0);
     let mut first: String = String::from("");
@@ -15,11 +16,11 @@ pub(crate) fn run() -> Result<(), rt::TsonicError> {
         break 'loop_value;
     }
     if first == "-h" || first == "--help" || first == "help" {
-        crate::print_usage::print_usage();
+        crate::print_usage::printUsage();
         return Ok(());
     }
     if first == "-v" || first == "--version" || first == "version" {
-        crate::log_line::log_line(String::from(VERSION));
+        crate::log_line::logLine(String::from(VERSION));
         return Ok(());
     }
     let cmd: String = if first.is_empty() || js_string::starts_with_from_start(&first, "-") {
@@ -28,30 +29,30 @@ pub(crate) fn run() -> Result<(), rt::TsonicError> {
         first.clone()
     };
     if cmd == "new" {
-        crate::commands::handle_new::handle_new(args.clone())?;
+        crate::commands::handle_new::handleNew(args.clone())?;
         return Ok(());
     }
     if cmd == "server" || cmd == "serve" {
-        crate::commands::handle_serve::handle_serve(args.clone())?;
+        crate::commands::handle_serve::handleServe(args.clone())?;
         return Ok(());
     }
     if cmd == "build" || cmd == "gen" || cmd == "generate" {
     } else {
-        crate::log_error_line::log_error_line(format!(
+        crate::log_error_line::logErrorLine(format!(
             "{}{}",
             String::from("Unknown command: "),
             cmd
         ));
-        crate::print_usage::print_usage();
+        crate::print_usage::printUsage();
         tsonic_rust_node::process::set_exit_code(Some(2));
         return Ok(());
     }
-    let build_arg_start: i32 = if first == "build" || first == "gen" || first == "generate" {
+    let buildArgStart: i32 = if first == "build" || first == "gen" || first == "generate" {
         1
     } else {
         0
     };
-    crate::commands::handle_build::handle_build(args.clone(), build_arg_start)?;
+    crate::commands::handle_build::handleBuild(args.clone(), buildArgStart)?;
     Ok(())
 }
 
@@ -63,7 +64,7 @@ pub fn main() {
     let try_flow: rt::Completion<()> = match try_body {
         Ok(completion) => completion,
         Err(error) => rt::completion_region(|| {
-            crate::log_error_line::log_error_line(
+            crate::log_error_line::logErrorLine(
                 if matches!(error.clone(), rt::TsonicError::TsumoError(_)) {
                     let dispatch_receiver_2 = {
                         let dispatch_receiver = &match &error {

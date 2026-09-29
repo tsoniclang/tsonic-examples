@@ -181,13 +181,13 @@ namespace Tsumo.Engine
             Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntry>> menus = new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>();
             foreach (string menuName in builders.keys())
             {
-                Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>? source = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>>(builders, menuName);
+                Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>? source = Tsonic.CSharp.Js.Map.getOptional<string, Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>>(builders, menuName);
                 if (source is null)
                 {
                     throw Diagnostics.createTsumoError("TSUMO_CONFIG_MODEL_INCONSISTENT", $"Menu '{menuName}' disappeared during configuration finalization");
                 }
                 Tsonic.CSharp.Js.JSArray<MenuEntry> entries = Tsonic.CSharp.Js.JSArray<MenuEntry>.of([]);
-                for (double index = 0; index < source.length; index++)
+                for (int index = 0; index < source.length; index++)
                 {
                     entries.push(source[index].toEntry());
                 }
@@ -195,21 +195,373 @@ namespace Tsumo.Engine
             }
             return menus;
         }
-        public static Func<string, string?, Tsonic.CSharp.Js.JSArray<ModuleMount>> parseModuleToml
+        public static Tsonic.CSharp.Js.JSArray<ModuleMount> parseModuleToml(string text, string? sourcePath)
         {
-            get;
-            private set;
-        } = default(Func<string, string?, Tsonic.CSharp.Js.JSArray<ModuleMount>>)!;
-        public static Func<string, string?, SiteConfig> parseTomlConfig
+            Tsonic.CSharp.Js.JSArray<ModuleMount> mounts = Tsonic.CSharp.Js.JSArray<ModuleMount>.of([]);
+            Tsonic.CSharp.Js.JSArray<string> lines = Tsonic.CSharp.Js.String.split(Utils_strings.replaceLineEndings(text, "\n"), "\n");
+            string source = "";
+            string target = "";
+            bool inMount = false;
+            Tsonic.CSharp.Js.Set<string> mountFields = new Tsonic.CSharp.Js.Set<string>();
+            Action<int> finishMount = (int line) =>
+            {
+                if (!inMount)
+                {
+                    return;
+                }
+                if (source == "" || target == "")
+                {
+                    throw Diagnostics.createTsumoError("TSUMO_CONFIG_INVALID_MOUNT", "Every module mount requires source and target", sourcePath, line, 1);
+                }
+                mounts.push(new ModuleMount(source, target));
+            };
+            for (int index = 0; index < lines.length; index++)
+            {
+                int lineNumber = index + 1;
+                string line = Tsonic.CSharp.Js.String.trim(Utils_structuredScalars.stripStructuredComment(lines[index], "toml"));
+                if (line == "")
+                {
+                    continue;
+                }
+                if (line == "[[mounts]]")
+                {
+                    finishMount(lineNumber);
+                    inMount = true;
+                    source = "";
+                    target = "";
+                    mountFields = new Tsonic.CSharp.Js.Set<string>();
+                    continue;
+                }
+                if (!inMount)
+                {
+                    throw Diagnostics.createTsumoError("TSUMO_CONFIG_SYNTAX_INVALID", "module.toml accepts only [[mounts]] entries", sourcePath, lineNumber, 1);
+                }
+                Tsonic.CSharp.Js.JSArray<string> assignment = splitAssignment(line, sourcePath, lineNumber);
+                recordField(mountFields, assignment[0], "Module mount", sourcePath, lineNumber);
+                string key = Tsonic.CSharp.Js.String.toLowerCase(assignment[0]);
+                if (key == "source")
+                {
+                    source = Config_scalars.parseConfigString(assignment[0], assignment[1], "toml", sourcePath, lineNumber);
+                }
+                else
+                {
+                    if (key == "target")
+                    {
+                        target = Config_scalars.parseConfigString(assignment[0], assignment[1], "toml", sourcePath, lineNumber);
+                    }
+                    else
+                    {
+                        throw Diagnostics.createTsumoError("TSUMO_CONFIG_UNKNOWN_FIELD", $"Unknown module mount field '{assignment[0]}'", sourcePath, lineNumber, 1);
+                    }
+                }
+            }
+            finishMount(lines.length);
+            return mounts;
+        }
+        public static SiteConfig parseTomlConfig(string text, string? sourcePath)
         {
-            get;
-            private set;
-        } = default(Func<string, string?, SiteConfig>)!;
-        public static Func<SiteConfig, string, string, string?, SiteConfig> mergeTomlIntoConfig
+            SiteConfig config = new SiteConfig("Tsumo Site", "", "en-us", null, null);
+            Tsonic.CSharp.Js.Map<string, LanguageConfigBuilder> languages = new Tsonic.CSharp.Js.Map<string, LanguageConfigBuilder>();
+            Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>> menuBuilders = new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>>();
+            Tsonic.CSharp.Js.JSArray<string> lines = Tsonic.CSharp.Js.String.split(Utils_strings.replaceLineEndings(text, "\n"), "\n");
+            string table = "";
+            MenuEntryBuilder? currentMenu = null;
+            bool hasLanguageCode = false;
+            Tsonic.CSharp.Js.Set<string> rootFields = new Tsonic.CSharp.Js.Set<string>();
+            Tsonic.CSharp.Js.Set<string> declaredTables = new Tsonic.CSharp.Js.Set<string>();
+            Tsonic.CSharp.Js.Set<string> tableFields = new Tsonic.CSharp.Js.Set<string>();
+            Tsonic.CSharp.Js.Set<string> menuFields = new Tsonic.CSharp.Js.Set<string>();
+            for (int index = 0; index < lines.length; index++)
+            {
+                int lineNumber = index + 1;
+                string line = Tsonic.CSharp.Js.String.trim(Utils_structuredScalars.stripStructuredComment(lines[index], "toml"));
+                if (line == "")
+                {
+                    continue;
+                }
+                if (Tsonic.CSharp.Js.String.startsWith(line, "[["))
+                {
+                    if (!Tsonic.CSharp.Js.String.endsWith(line, "]]"))
+                    {
+                        throw Diagnostics.createTsumoError("TSUMO_CONFIG_SYNTAX_INVALID", "Malformed TOML array table", sourcePath, lineNumber, 1);
+                    }
+                    table = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Js.String.trim(Utils_strings.substringCount(line, 2, line.Length - 4)));
+                    if (!Tsonic.CSharp.Js.String.startsWith(table, "menu.") || table.Length == "menu.".Length)
+                    {
+                        throw Diagnostics.createTsumoError("TSUMO_CONFIG_TABLE_UNSUPPORTED", $"Unsupported TOML array table '{table}'", sourcePath, lineNumber, 1);
+                    }
+                    string menuName = Utils_strings.substringFrom(table, "menu.".Length);
+                    currentMenu = new MenuEntryBuilder(menuName);
+                    menuFields = new Tsonic.CSharp.Js.Set<string>();
+                    Tsonic.CSharp.Js.JSArray<MenuEntryBuilder> entries = Tsonic.CSharp.Js.Map.getOptional<string, Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>>(menuBuilders, menuName) ?? Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>.of([]);
+                    entries.push(currentMenu);
+                    menuBuilders.set(menuName, entries);
+                    continue;
+                }
+                if (Tsonic.CSharp.Js.String.startsWith(line, "["))
+                {
+                    if (!Tsonic.CSharp.Js.String.endsWith(line, "]"))
+                    {
+                        throw Diagnostics.createTsumoError("TSUMO_CONFIG_SYNTAX_INVALID", "Malformed TOML table", sourcePath, lineNumber, 1);
+                    }
+                    table = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Js.String.trim(Utils_strings.substringCount(line, 1, line.Length - 2)));
+                    currentMenu = null;
+                    if (declaredTables.has(table))
+                    {
+                        throw Diagnostics.createTsumoError("TSUMO_CONFIG_DUPLICATE_FIELD", $"Configuration table '{table}' is declared more than once", sourcePath, lineNumber, 1);
+                    }
+                    declaredTables.add(table);
+                    tableFields = new Tsonic.CSharp.Js.Set<string>();
+                    if (table == "params")
+                    {
+                        continue;
+                    }
+                    if (Tsonic.CSharp.Js.String.startsWith(table, "languages.") && table.Length > "languages.".Length)
+                    {
+                        string lang = Utils_strings.substringFrom(table, "languages.".Length);
+                        if (!languages.has(lang))
+                        {
+                            languages.set(lang, new LanguageConfigBuilder(lang));
+                        }
+                        continue;
+                    }
+                    throw Diagnostics.createTsumoError("TSUMO_CONFIG_TABLE_UNSUPPORTED", $"Unsupported TOML table '{table}'", sourcePath, lineNumber, 1);
+                }
+                Tsonic.CSharp.Js.JSArray<string> assignment = splitAssignment(line, sourcePath, lineNumber);
+                string key = assignment[0];
+                string value = assignment[1];
+                if (currentMenu is not null)
+                {
+                    recordField(menuFields, key, $"Menu '{currentMenu.menu}' entry", sourcePath, lineNumber);
+                    applyMenuField(currentMenu, key, value, sourcePath, lineNumber);
+                }
+                else
+                {
+                    if (table == "params")
+                    {
+                        recordField(tableFields, key, "Configuration params", sourcePath, lineNumber);
+                        config.Params.set(key, Config_scalars.parseConfigParam(value, "toml", sourcePath, lineNumber));
+                    }
+                    else
+                    {
+                        if (Tsonic.CSharp.Js.String.startsWith(table, "languages."))
+                        {
+                            string lang_1 = Utils_strings.substringFrom(table, "languages.".Length);
+                            LanguageConfigBuilder? language = Tsonic.CSharp.Js.Map.getOptional<string, LanguageConfigBuilder>(languages, lang_1);
+                            if (language is null)
+                            {
+                                throw Diagnostics.createTsumoError("TSUMO_CONFIG_TABLE_UNSUPPORTED", $"Unknown language table '{table}'", sourcePath, lineNumber, 1);
+                            }
+                            recordField(tableFields, key, $"Language '{lang_1}'", sourcePath, lineNumber);
+                            applyLanguageField(language, key, value, sourcePath, lineNumber);
+                        }
+                        else
+                        {
+                            if (table == "")
+                            {
+                                recordField(rootFields, key, "Configuration", sourcePath, lineNumber);
+                                applyRootField(config, key, value, sourcePath, lineNumber);
+                                if (Tsonic.CSharp.Js.String.toLowerCase(key) == "languagecode")
+                                {
+                                    hasLanguageCode = true;
+                                }
+                            }
+                            else
+                            {
+                                throw Diagnostics.createTsumoError("TSUMO_CONFIG_TABLE_UNSUPPORTED", $"Unsupported TOML table '{table}'", sourcePath, lineNumber, 1);
+                            }
+                        }
+                    }
+                }
+            }
+            config.Menus = menuBuildersToEntries(menuBuilders);
+            config.languages = Config_helpers.sortLanguages(Tsonic.CSharp.Js.JSArrayStatics.from<LanguageConfigBuilder, LanguageConfig>(languages.values(), (LanguageConfigBuilder language_1, int _) => language_1.toConfig()));
+            if (config.languages.length > 0)
+            {
+                LanguageConfig selected = config.languages[0];
+                config.contentDir = selected.contentDir;
+                if (!hasLanguageCode)
+                {
+                    config.languageCode = selected.lang;
+                }
+            }
+            return config;
+        }
+        public static SiteConfig mergeTomlIntoConfig(SiteConfig config, string text, string fileName, string? sourcePath)
         {
-            get;
-            private set;
-        } = default(Func<SiteConfig, string, string, string?, SiteConfig>)!;
+            string lower = Tsonic.CSharp.Js.String.toLowerCase(fileName);
+            if (lower == "hugo.toml" || lower == "config.toml")
+            {
+                return parseTomlConfig(text, sourcePath);
+            }
+            if (lower == "module.toml")
+            {
+                config.moduleMounts = parseModuleToml(text, sourcePath);
+                return config;
+            }
+            Tsonic.CSharp.Js.JSArray<string> lines = Tsonic.CSharp.Js.String.split(Utils_strings.replaceLineEndings(text, "\n"), "\n");
+            if (lower == "params.toml")
+            {
+                string prefix = "";
+                Tsonic.CSharp.Js.Set<string> fields = new Tsonic.CSharp.Js.Set<string>();
+                Tsonic.CSharp.Js.Set<string> tables = new Tsonic.CSharp.Js.Set<string>();
+                for (int index = 0; index < lines.length; index++)
+                {
+                    int lineNumber = index + 1;
+                    string line = Tsonic.CSharp.Js.String.trim(Utils_structuredScalars.stripStructuredComment(lines[index], "toml"));
+                    if (line == "")
+                    {
+                        continue;
+                    }
+                    if (Tsonic.CSharp.Js.String.startsWith(line, "[") && Tsonic.CSharp.Js.String.endsWith(line, "]") && !Tsonic.CSharp.Js.String.startsWith(line, "[["))
+                    {
+                        prefix = Tsonic.CSharp.Js.String.trim(Utils_strings.substringCount(line, 1, line.Length - 2));
+                        string normalized = Tsonic.CSharp.Js.String.toLowerCase(prefix);
+                        if (tables.has(normalized))
+                        {
+                            throw Diagnostics.createTsumoError("TSUMO_CONFIG_DUPLICATE_FIELD", $"Configuration params table '{prefix}' is declared more than once", sourcePath, lineNumber, 1);
+                        }
+                        tables.add(normalized);
+                        if (prefix != "")
+                        {
+                            prefix += ".";
+                        }
+                        continue;
+                    }
+                    Tsonic.CSharp.Js.JSArray<string> assignment = splitAssignment(line, sourcePath, lineNumber);
+                    string key = prefix + assignment[0];
+                    recordField(fields, key, "Configuration params", sourcePath, lineNumber);
+                    config.Params.set(key, Config_scalars.parseConfigParam(assignment[1], "toml", sourcePath, lineNumber));
+                }
+                return config;
+            }
+            if (lower == "languages.toml" || (Tsonic.CSharp.Js.String.startsWith(lower, "languages.") && Tsonic.CSharp.Js.String.endsWith(lower, ".toml")))
+            {
+                bool aggregate = lower == "languages.toml";
+                Tsonic.CSharp.Js.Map<string, LanguageConfig> existing = new Tsonic.CSharp.Js.Map<string, LanguageConfig>();
+                for (int index_1 = 0; index_1 < config.languages.length; index_1++)
+                {
+                    existing.set(Tsonic.CSharp.Js.String.toLowerCase(config.languages[index_1].lang), config.languages[index_1]);
+                }
+                Tsonic.CSharp.Js.Map<string, LanguageConfigBuilder> builders = new Tsonic.CSharp.Js.Map<string, LanguageConfigBuilder>();
+                Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.Set<string>> fields_1 = new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.Set<string>>();
+                Tsonic.CSharp.Js.Set<string> tables_1 = new Tsonic.CSharp.Js.Set<string>();
+                string current = "";
+                if (!aggregate)
+                {
+                    current = Utils_strings.substringCount(lower, "languages.".Length, lower.Length - "languages.".Length - ".toml".Length);
+                }
+                for (int index_2 = 0; index_2 < lines.length; index_2++)
+                {
+                    int lineNumber_1 = index_2 + 1;
+                    string line_1 = Tsonic.CSharp.Js.String.trim(Utils_structuredScalars.stripStructuredComment(lines[index_2], "toml"));
+                    if (line_1 == "")
+                    {
+                        continue;
+                    }
+                    if (Tsonic.CSharp.Js.String.startsWith(line_1, "[") && Tsonic.CSharp.Js.String.endsWith(line_1, "]") && !Tsonic.CSharp.Js.String.startsWith(line_1, "[["))
+                    {
+                        if (!aggregate)
+                        {
+                            throw Diagnostics.createTsumoError("TSUMO_CONFIG_TABLE_UNSUPPORTED", $"Language file '{fileName}' accepts fields only for '{current}'", sourcePath, lineNumber_1, 1);
+                        }
+                        current = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Js.String.trim(Utils_strings.substringCount(line_1, 1, line_1.Length - 2)));
+                        if (current == "" || Tsonic.CSharp.Js.String.includes(current, "."))
+                        {
+                            throw Diagnostics.createTsumoError("TSUMO_CONFIG_TABLE_UNSUPPORTED", $"Unsupported language table '{current}'", sourcePath, lineNumber_1, 1);
+                        }
+                        if (tables_1.has(current))
+                        {
+                            throw Diagnostics.createTsumoError("TSUMO_CONFIG_DUPLICATE_FIELD", $"Language table '{current}' is declared more than once", sourcePath, lineNumber_1, 1);
+                        }
+                        tables_1.add(current);
+                        continue;
+                    }
+                    if (current == "")
+                    {
+                        throw Diagnostics.createTsumoError("TSUMO_CONFIG_SYNTAX_INVALID", "Language configuration requires a language identity", sourcePath, lineNumber_1, 1);
+                    }
+                    LanguageConfigBuilder? builder = Tsonic.CSharp.Js.Map.getOptional<string, LanguageConfigBuilder>(builders, current);
+                    if (builder is null)
+                    {
+                        builder = new LanguageConfigBuilder(current, Tsonic.CSharp.Js.Map.getOptional<string, LanguageConfig>(existing, current));
+                        builders.set(current, builder);
+                        fields_1.set(current, new Tsonic.CSharp.Js.Set<string>());
+                    }
+                    Tsonic.CSharp.Js.JSArray<string> assignment_1 = splitAssignment(line_1, sourcePath, lineNumber_1);
+                    Tsonic.CSharp.Js.Set<string>? languageFields = Tsonic.CSharp.Js.Map.getOptional<string, Tsonic.CSharp.Js.Set<string>>(fields_1, current);
+                    if (languageFields is null)
+                    {
+                        throw Diagnostics.createTsumoError("TSUMO_CONFIG_MODEL_INCONSISTENT", $"Language '{current}' fields disappeared during configuration merge", sourcePath);
+                    }
+                    recordField(languageFields, assignment_1[0], $"Language '{current}'", sourcePath, lineNumber_1);
+                    applyLanguageField(builder, assignment_1[0], assignment_1[1], sourcePath, lineNumber_1);
+                }
+                foreach (string key_1 in builders.keys())
+                {
+                    LanguageConfigBuilder? builder_1 = Tsonic.CSharp.Js.Map.getOptional<string, LanguageConfigBuilder>(builders, key_1);
+                    if (builder_1 is null)
+                    {
+                        throw Diagnostics.createTsumoError("TSUMO_CONFIG_MODEL_INCONSISTENT", $"Language '{key_1}' disappeared during configuration merge", sourcePath);
+                    }
+                    existing.set(key_1, builder_1.toConfig());
+                }
+                config.languages = Config_helpers.sortLanguages(Tsonic.CSharp.Js.JSArrayStatics.from<LanguageConfig>(existing.values()));
+                if (config.languages.length > 0)
+                {
+                    config.contentDir = config.languages[0].contentDir;
+                    config.languageCode = config.languages[0].lang;
+                }
+                return config;
+            }
+            if (Tsonic.CSharp.Js.String.startsWith(lower, "menus.") && Tsonic.CSharp.Js.String.endsWith(lower, ".toml"))
+            {
+                string menuName = Utils_strings.substringCount(lower, "menus.".Length, lower.Length - "menus.".Length - ".toml".Length);
+                if (menuName == "")
+                {
+                    throw Diagnostics.createTsumoError("TSUMO_CONFIG_FILE_UNSUPPORTED", $"Unsupported split configuration file '{fileName}'", sourcePath);
+                }
+                Tsonic.CSharp.Js.JSArray<MenuEntryBuilder> builders_1 = Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>.of([]);
+                MenuEntryBuilder? current_1 = null;
+                Tsonic.CSharp.Js.Set<string> fields_2 = new Tsonic.CSharp.Js.Set<string>();
+                for (int index_3 = 0; index_3 < lines.length; index_3++)
+                {
+                    int lineNumber_2 = index_3 + 1;
+                    string line_2 = Tsonic.CSharp.Js.String.trim(Utils_structuredScalars.stripStructuredComment(lines[index_3], "toml"));
+                    if (line_2 == "")
+                    {
+                        continue;
+                    }
+                    if (Tsonic.CSharp.Js.String.startsWith(line_2, "[[") && Tsonic.CSharp.Js.String.endsWith(line_2, "]]"))
+                    {
+                        string table = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Js.String.trim(Utils_strings.substringCount(line_2, 2, line_2.Length - 4)));
+                        if (table != menuName)
+                        {
+                            throw Diagnostics.createTsumoError("TSUMO_CONFIG_TABLE_UNSUPPORTED", $"Menu file '{fileName}' cannot declare '{table}'", sourcePath, lineNumber_2, 1);
+                        }
+                        current_1 = new MenuEntryBuilder(menuName);
+                        fields_2 = new Tsonic.CSharp.Js.Set<string>();
+                        builders_1.push(current_1);
+                        continue;
+                    }
+                    if (current_1 is null)
+                    {
+                        throw Diagnostics.createTsumoError("TSUMO_CONFIG_SYNTAX_INVALID", $"Menu file '{fileName}' requires [[{menuName}]] entries", sourcePath, lineNumber_2, 1);
+                    }
+                    Tsonic.CSharp.Js.JSArray<string> assignment_2 = splitAssignment(line_2, sourcePath, lineNumber_2);
+                    recordField(fields_2, assignment_2[0], $"Menu '{menuName}' entry", sourcePath, lineNumber_2);
+                    applyMenuField(current_1, assignment_2[0], assignment_2[1], sourcePath, lineNumber_2);
+                }
+                Tsonic.CSharp.Js.JSArray<MenuEntry> entries = Tsonic.CSharp.Js.JSArray<MenuEntry>.of([]);
+                for (int index_4 = 0; index_4 < builders_1.length; index_4++)
+                {
+                    entries.push(builders_1[index_4].toEntry());
+                }
+                config.Menus.set(menuName, Menus.buildMenuHierarchy(entries));
+                return config;
+            }
+            throw Diagnostics.createTsumoError("TSUMO_CONFIG_FILE_UNSUPPORTED", $"Unsupported split configuration file '{fileName}'", sourcePath);
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
@@ -221,373 +573,6 @@ namespace Tsumo.Engine
             Config_builders.__tsonic_module_init();
             Config_helpers.__tsonic_module_init();
             Config_scalars.__tsonic_module_init();
-            parseModuleToml = (string text, string? sourcePath) =>
-            {
-                Tsonic.CSharp.Js.JSArray<ModuleMount> mounts = Tsonic.CSharp.Js.JSArray<ModuleMount>.of([]);
-                Tsonic.CSharp.Js.JSArray<string> lines = Tsonic.CSharp.Js.String.split(Utils_strings.replaceLineEndings(text, "\n"), "\n");
-                string source = "";
-                string target = "";
-                bool inMount = false;
-                Tsonic.CSharp.Js.Set<string> mountFields = new Tsonic.CSharp.Js.Set<string>();
-                Action<int> finishMount = (int line) =>
-                {
-                    if (!inMount)
-                    {
-                        return;
-                    }
-                    if (source == "" || target == "")
-                    {
-                        throw Diagnostics.createTsumoError("TSUMO_CONFIG_INVALID_MOUNT", "Every module mount requires source and target", sourcePath, line, 1);
-                    }
-                    mounts.push(new ModuleMount(source, target));
-                };
-                for (int index = 0; index < lines.length; index++)
-                {
-                    int lineNumber = index + 1;
-                    string line = Tsonic.CSharp.Js.String.trim(Utils_structuredScalars.stripStructuredComment(lines[index], "toml"));
-                    if (line == "")
-                    {
-                        continue;
-                    }
-                    if (line == "[[mounts]]")
-                    {
-                        finishMount(lineNumber);
-                        inMount = true;
-                        source = "";
-                        target = "";
-                        mountFields = new Tsonic.CSharp.Js.Set<string>();
-                        continue;
-                    }
-                    if (!inMount)
-                    {
-                        throw Diagnostics.createTsumoError("TSUMO_CONFIG_SYNTAX_INVALID", "module.toml accepts only [[mounts]] entries", sourcePath, lineNumber, 1);
-                    }
-                    Tsonic.CSharp.Js.JSArray<string> assignment = splitAssignment(line, sourcePath, lineNumber);
-                    recordField(mountFields, assignment[0], "Module mount", sourcePath, lineNumber);
-                    string key = Tsonic.CSharp.Js.String.toLowerCase(assignment[0]);
-                    if (key == "source")
-                    {
-                        source = Config_scalars.parseConfigString(assignment[0], assignment[1], "toml", sourcePath, lineNumber);
-                    }
-                    else
-                    {
-                        if (key == "target")
-                        {
-                            target = Config_scalars.parseConfigString(assignment[0], assignment[1], "toml", sourcePath, lineNumber);
-                        }
-                        else
-                        {
-                            throw Diagnostics.createTsumoError("TSUMO_CONFIG_UNKNOWN_FIELD", $"Unknown module mount field '{assignment[0]}'", sourcePath, lineNumber, 1);
-                        }
-                    }
-                }
-                finishMount(lines.length);
-                return mounts;
-            };
-            parseTomlConfig = (string text, string? sourcePath) =>
-            {
-                SiteConfig config = new SiteConfig("Tsumo Site", "", "en-us", null, null);
-                Tsonic.CSharp.Js.Map<string, LanguageConfigBuilder> languages = new Tsonic.CSharp.Js.Map<string, LanguageConfigBuilder>();
-                Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>> menuBuilders = new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>>();
-                Tsonic.CSharp.Js.JSArray<string> lines = Tsonic.CSharp.Js.String.split(Utils_strings.replaceLineEndings(text, "\n"), "\n");
-                string table = "";
-                MenuEntryBuilder? currentMenu = null;
-                bool hasLanguageCode = false;
-                Tsonic.CSharp.Js.Set<string> rootFields = new Tsonic.CSharp.Js.Set<string>();
-                Tsonic.CSharp.Js.Set<string> declaredTables = new Tsonic.CSharp.Js.Set<string>();
-                Tsonic.CSharp.Js.Set<string> tableFields = new Tsonic.CSharp.Js.Set<string>();
-                Tsonic.CSharp.Js.Set<string> menuFields = new Tsonic.CSharp.Js.Set<string>();
-                for (int index = 0; index < lines.length; index++)
-                {
-                    int lineNumber = index + 1;
-                    string line = Tsonic.CSharp.Js.String.trim(Utils_structuredScalars.stripStructuredComment(lines[index], "toml"));
-                    if (line == "")
-                    {
-                        continue;
-                    }
-                    if (Tsonic.CSharp.Js.String.startsWith(line, "[["))
-                    {
-                        if (!Tsonic.CSharp.Js.String.endsWith(line, "]]"))
-                        {
-                            throw Diagnostics.createTsumoError("TSUMO_CONFIG_SYNTAX_INVALID", "Malformed TOML array table", sourcePath, lineNumber, 1);
-                        }
-                        table = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Js.String.trim(Utils_strings.substringCount(line, 2, line.Length - 4)));
-                        if (!Tsonic.CSharp.Js.String.startsWith(table, "menu.") || table.Length == "menu.".Length)
-                        {
-                            throw Diagnostics.createTsumoError("TSUMO_CONFIG_TABLE_UNSUPPORTED", $"Unsupported TOML array table '{table}'", sourcePath, lineNumber, 1);
-                        }
-                        string menuName = Utils_strings.substringFrom(table, "menu.".Length);
-                        currentMenu = new MenuEntryBuilder(menuName);
-                        menuFields = new Tsonic.CSharp.Js.Set<string>();
-                        Tsonic.CSharp.Js.JSArray<MenuEntryBuilder> entries = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>>(menuBuilders, menuName) ?? Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>.of([]);
-                        entries.push(currentMenu);
-                        menuBuilders.set(menuName, entries);
-                        continue;
-                    }
-                    if (Tsonic.CSharp.Js.String.startsWith(line, "["))
-                    {
-                        if (!Tsonic.CSharp.Js.String.endsWith(line, "]"))
-                        {
-                            throw Diagnostics.createTsumoError("TSUMO_CONFIG_SYNTAX_INVALID", "Malformed TOML table", sourcePath, lineNumber, 1);
-                        }
-                        table = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Js.String.trim(Utils_strings.substringCount(line, 1, line.Length - 2)));
-                        currentMenu = null;
-                        if (declaredTables.has(table))
-                        {
-                            throw Diagnostics.createTsumoError("TSUMO_CONFIG_DUPLICATE_FIELD", $"Configuration table '{table}' is declared more than once", sourcePath, lineNumber, 1);
-                        }
-                        declaredTables.add(table);
-                        tableFields = new Tsonic.CSharp.Js.Set<string>();
-                        if (table == "params")
-                        {
-                            continue;
-                        }
-                        if (Tsonic.CSharp.Js.String.startsWith(table, "languages.") && table.Length > "languages.".Length)
-                        {
-                            string lang = Utils_strings.substringFrom(table, "languages.".Length);
-                            if (!languages.has(lang))
-                            {
-                                languages.set(lang, new LanguageConfigBuilder(lang));
-                            }
-                            continue;
-                        }
-                        throw Diagnostics.createTsumoError("TSUMO_CONFIG_TABLE_UNSUPPORTED", $"Unsupported TOML table '{table}'", sourcePath, lineNumber, 1);
-                    }
-                    Tsonic.CSharp.Js.JSArray<string> assignment = splitAssignment(line, sourcePath, lineNumber);
-                    string key = assignment[0];
-                    string value = assignment[1];
-                    if (currentMenu is not null)
-                    {
-                        recordField(menuFields, key, $"Menu '{currentMenu.menu}' entry", sourcePath, lineNumber);
-                        applyMenuField(currentMenu, key, value, sourcePath, lineNumber);
-                    }
-                    else
-                    {
-                        if (table == "params")
-                        {
-                            recordField(tableFields, key, "Configuration params", sourcePath, lineNumber);
-                            config.Params.set(key, Config_scalars.parseConfigParam(value, "toml", sourcePath, lineNumber));
-                        }
-                        else
-                        {
-                            if (Tsonic.CSharp.Js.String.startsWith(table, "languages."))
-                            {
-                                string lang_1 = Utils_strings.substringFrom(table, "languages.".Length);
-                                LanguageConfigBuilder? language = Tsonic.CSharp.Js.Map.getReference<string, LanguageConfigBuilder>(languages, lang_1);
-                                if (language is null)
-                                {
-                                    throw Diagnostics.createTsumoError("TSUMO_CONFIG_TABLE_UNSUPPORTED", $"Unknown language table '{table}'", sourcePath, lineNumber, 1);
-                                }
-                                recordField(tableFields, key, $"Language '{lang_1}'", sourcePath, lineNumber);
-                                applyLanguageField(language, key, value, sourcePath, lineNumber);
-                            }
-                            else
-                            {
-                                if (table == "")
-                                {
-                                    recordField(rootFields, key, "Configuration", sourcePath, lineNumber);
-                                    applyRootField(config, key, value, sourcePath, lineNumber);
-                                    if (Tsonic.CSharp.Js.String.toLowerCase(key) == "languagecode")
-                                    {
-                                        hasLanguageCode = true;
-                                    }
-                                }
-                                else
-                                {
-                                    throw Diagnostics.createTsumoError("TSUMO_CONFIG_TABLE_UNSUPPORTED", $"Unsupported TOML table '{table}'", sourcePath, lineNumber, 1);
-                                }
-                            }
-                        }
-                    }
-                }
-                config.Menus = menuBuildersToEntries(menuBuilders);
-                config.languages = Config_helpers.sortLanguages(Tsonic.CSharp.Js.JSArrayStatics.from<LanguageConfigBuilder, LanguageConfig>(languages.values(), (LanguageConfigBuilder language_1, int _) => language_1.toConfig()));
-                if (config.languages.length > 0)
-                {
-                    LanguageConfig selected = config.languages[0];
-                    config.contentDir = selected.contentDir;
-                    if (!hasLanguageCode)
-                    {
-                        config.languageCode = selected.lang;
-                    }
-                }
-                return config;
-            };
-            mergeTomlIntoConfig = (SiteConfig config, string text, string fileName, string? sourcePath) =>
-            {
-                string lower = Tsonic.CSharp.Js.String.toLowerCase(fileName);
-                if (lower == "hugo.toml" || lower == "config.toml")
-                {
-                    return parseTomlConfig(text, sourcePath);
-                }
-                if (lower == "module.toml")
-                {
-                    config.moduleMounts = parseModuleToml(text, sourcePath);
-                    return config;
-                }
-                Tsonic.CSharp.Js.JSArray<string> lines = Tsonic.CSharp.Js.String.split(Utils_strings.replaceLineEndings(text, "\n"), "\n");
-                if (lower == "params.toml")
-                {
-                    string prefix = "";
-                    Tsonic.CSharp.Js.Set<string> fields = new Tsonic.CSharp.Js.Set<string>();
-                    Tsonic.CSharp.Js.Set<string> tables = new Tsonic.CSharp.Js.Set<string>();
-                    for (int index = 0; index < lines.length; index++)
-                    {
-                        int lineNumber = index + 1;
-                        string line = Tsonic.CSharp.Js.String.trim(Utils_structuredScalars.stripStructuredComment(lines[index], "toml"));
-                        if (line == "")
-                        {
-                            continue;
-                        }
-                        if (Tsonic.CSharp.Js.String.startsWith(line, "[") && Tsonic.CSharp.Js.String.endsWith(line, "]") && !Tsonic.CSharp.Js.String.startsWith(line, "[["))
-                        {
-                            prefix = Tsonic.CSharp.Js.String.trim(Utils_strings.substringCount(line, 1, line.Length - 2));
-                            string normalized = Tsonic.CSharp.Js.String.toLowerCase(prefix);
-                            if (tables.has(normalized))
-                            {
-                                throw Diagnostics.createTsumoError("TSUMO_CONFIG_DUPLICATE_FIELD", $"Configuration params table '{prefix}' is declared more than once", sourcePath, lineNumber, 1);
-                            }
-                            tables.add(normalized);
-                            if (prefix != "")
-                            {
-                                prefix += ".";
-                            }
-                            continue;
-                        }
-                        Tsonic.CSharp.Js.JSArray<string> assignment = splitAssignment(line, sourcePath, lineNumber);
-                        string key = prefix + assignment[0];
-                        recordField(fields, key, "Configuration params", sourcePath, lineNumber);
-                        config.Params.set(key, Config_scalars.parseConfigParam(assignment[1], "toml", sourcePath, lineNumber));
-                    }
-                    return config;
-                }
-                if (lower == "languages.toml" || (Tsonic.CSharp.Js.String.startsWith(lower, "languages.") && Tsonic.CSharp.Js.String.endsWith(lower, ".toml")))
-                {
-                    bool aggregate = lower == "languages.toml";
-                    Tsonic.CSharp.Js.Map<string, LanguageConfig> existing = new Tsonic.CSharp.Js.Map<string, LanguageConfig>();
-                    for (double index_1 = 0; index_1 < config.languages.length; index_1++)
-                    {
-                        existing.set(Tsonic.CSharp.Js.String.toLowerCase(config.languages[index_1].lang), config.languages[index_1]);
-                    }
-                    Tsonic.CSharp.Js.Map<string, LanguageConfigBuilder> builders = new Tsonic.CSharp.Js.Map<string, LanguageConfigBuilder>();
-                    Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.Set<string>> fields_1 = new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.Set<string>>();
-                    Tsonic.CSharp.Js.Set<string> tables_1 = new Tsonic.CSharp.Js.Set<string>();
-                    string current = "";
-                    if (!aggregate)
-                    {
-                        current = Utils_strings.substringCount(lower, "languages.".Length, lower.Length - "languages.".Length - ".toml".Length);
-                    }
-                    for (int index_2 = 0; index_2 < lines.length; index_2++)
-                    {
-                        int lineNumber_1 = index_2 + 1;
-                        string line_1 = Tsonic.CSharp.Js.String.trim(Utils_structuredScalars.stripStructuredComment(lines[index_2], "toml"));
-                        if (line_1 == "")
-                        {
-                            continue;
-                        }
-                        if (Tsonic.CSharp.Js.String.startsWith(line_1, "[") && Tsonic.CSharp.Js.String.endsWith(line_1, "]") && !Tsonic.CSharp.Js.String.startsWith(line_1, "[["))
-                        {
-                            if (!aggregate)
-                            {
-                                throw Diagnostics.createTsumoError("TSUMO_CONFIG_TABLE_UNSUPPORTED", $"Language file '{fileName}' accepts fields only for '{current}'", sourcePath, lineNumber_1, 1);
-                            }
-                            current = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Js.String.trim(Utils_strings.substringCount(line_1, 1, line_1.Length - 2)));
-                            if (current == "" || Tsonic.CSharp.Js.String.includes(current, "."))
-                            {
-                                throw Diagnostics.createTsumoError("TSUMO_CONFIG_TABLE_UNSUPPORTED", $"Unsupported language table '{current}'", sourcePath, lineNumber_1, 1);
-                            }
-                            if (tables_1.has(current))
-                            {
-                                throw Diagnostics.createTsumoError("TSUMO_CONFIG_DUPLICATE_FIELD", $"Language table '{current}' is declared more than once", sourcePath, lineNumber_1, 1);
-                            }
-                            tables_1.add(current);
-                            continue;
-                        }
-                        if (current == "")
-                        {
-                            throw Diagnostics.createTsumoError("TSUMO_CONFIG_SYNTAX_INVALID", "Language configuration requires a language identity", sourcePath, lineNumber_1, 1);
-                        }
-                        LanguageConfigBuilder? builder = Tsonic.CSharp.Js.Map.getReference<string, LanguageConfigBuilder>(builders, current);
-                        if (builder is null)
-                        {
-                            builder = new LanguageConfigBuilder(current, Tsonic.CSharp.Js.Map.getReference<string, LanguageConfig>(existing, current));
-                            builders.set(current, builder);
-                            fields_1.set(current, new Tsonic.CSharp.Js.Set<string>());
-                        }
-                        Tsonic.CSharp.Js.JSArray<string> assignment_1 = splitAssignment(line_1, sourcePath, lineNumber_1);
-                        Tsonic.CSharp.Js.Set<string>? languageFields = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.Set<string>>(fields_1, current);
-                        if (languageFields is null)
-                        {
-                            throw Diagnostics.createTsumoError("TSUMO_CONFIG_MODEL_INCONSISTENT", $"Language '{current}' fields disappeared during configuration merge", sourcePath);
-                        }
-                        recordField(languageFields, assignment_1[0], $"Language '{current}'", sourcePath, lineNumber_1);
-                        applyLanguageField(builder, assignment_1[0], assignment_1[1], sourcePath, lineNumber_1);
-                    }
-                    foreach (string key_1 in builders.keys())
-                    {
-                        LanguageConfigBuilder? builder_1 = Tsonic.CSharp.Js.Map.getReference<string, LanguageConfigBuilder>(builders, key_1);
-                        if (builder_1 is null)
-                        {
-                            throw Diagnostics.createTsumoError("TSUMO_CONFIG_MODEL_INCONSISTENT", $"Language '{key_1}' disappeared during configuration merge", sourcePath);
-                        }
-                        existing.set(key_1, builder_1.toConfig());
-                    }
-                    config.languages = Config_helpers.sortLanguages(Tsonic.CSharp.Js.JSArrayStatics.from<LanguageConfig>(existing.values()));
-                    if (config.languages.length > 0)
-                    {
-                        config.contentDir = config.languages[0].contentDir;
-                        config.languageCode = config.languages[0].lang;
-                    }
-                    return config;
-                }
-                if (Tsonic.CSharp.Js.String.startsWith(lower, "menus.") && Tsonic.CSharp.Js.String.endsWith(lower, ".toml"))
-                {
-                    string menuName = Utils_strings.substringCount(lower, "menus.".Length, lower.Length - "menus.".Length - ".toml".Length);
-                    if (menuName == "")
-                    {
-                        throw Diagnostics.createTsumoError("TSUMO_CONFIG_FILE_UNSUPPORTED", $"Unsupported split configuration file '{fileName}'", sourcePath);
-                    }
-                    Tsonic.CSharp.Js.JSArray<MenuEntryBuilder> builders_1 = Tsonic.CSharp.Js.JSArray<MenuEntryBuilder>.of([]);
-                    MenuEntryBuilder? current_1 = null;
-                    Tsonic.CSharp.Js.Set<string> fields_2 = new Tsonic.CSharp.Js.Set<string>();
-                    for (int index_3 = 0; index_3 < lines.length; index_3++)
-                    {
-                        int lineNumber_2 = index_3 + 1;
-                        string line_2 = Tsonic.CSharp.Js.String.trim(Utils_structuredScalars.stripStructuredComment(lines[index_3], "toml"));
-                        if (line_2 == "")
-                        {
-                            continue;
-                        }
-                        if (Tsonic.CSharp.Js.String.startsWith(line_2, "[[") && Tsonic.CSharp.Js.String.endsWith(line_2, "]]"))
-                        {
-                            string table = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Js.String.trim(Utils_strings.substringCount(line_2, 2, line_2.Length - 4)));
-                            if (table != menuName)
-                            {
-                                throw Diagnostics.createTsumoError("TSUMO_CONFIG_TABLE_UNSUPPORTED", $"Menu file '{fileName}' cannot declare '{table}'", sourcePath, lineNumber_2, 1);
-                            }
-                            current_1 = new MenuEntryBuilder(menuName);
-                            fields_2 = new Tsonic.CSharp.Js.Set<string>();
-                            builders_1.push(current_1);
-                            continue;
-                        }
-                        if (current_1 is null)
-                        {
-                            throw Diagnostics.createTsumoError("TSUMO_CONFIG_SYNTAX_INVALID", $"Menu file '{fileName}' requires [[{menuName}]] entries", sourcePath, lineNumber_2, 1);
-                        }
-                        Tsonic.CSharp.Js.JSArray<string> assignment_2 = splitAssignment(line_2, sourcePath, lineNumber_2);
-                        recordField(fields_2, assignment_2[0], $"Menu '{menuName}' entry", sourcePath, lineNumber_2);
-                        applyMenuField(current_1, assignment_2[0], assignment_2[1], sourcePath, lineNumber_2);
-                    }
-                    Tsonic.CSharp.Js.JSArray<MenuEntry> entries = Tsonic.CSharp.Js.JSArray<MenuEntry>.of([]);
-                    for (double index_4 = 0; index_4 < builders_1.length; index_4++)
-                    {
-                        entries.push(builders_1[index_4].toEntry());
-                    }
-                    config.Menus.set(menuName, Menus.buildMenuHierarchy(entries));
-                    return config;
-                }
-                throw Diagnostics.createTsumoError("TSUMO_CONFIG_FILE_UNSUPPORTED", $"Unsupported split configuration file '{fileName}'", sourcePath);
-            };
             return null;
         }
         public static void __tsonic_module_init()

@@ -4,10 +4,12 @@ use crate::program as rt;
 use tsonic_rust_js::string as js_string;
 
 std::thread_local! {
-    pub static NIL: rt::ModuleCell<crate::template::values::base::TemplateValue> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub static nil: rt::ModuleCell<crate::template::values::base::TemplateValue> = const { rt::ModuleCell::new() };
 }
 
-pub fn is_template_map(value: crate::template::values::base::TemplateValue) -> bool {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isTemplateMap(value: crate::template::values::base::TemplateValue) -> bool {
     value
         .dispatch
         .clone()
@@ -30,7 +32,8 @@ pub fn is_template_map(value: crate::template::values::base::TemplateValue) -> b
             .is_some()
 }
 
-pub fn is_template_slice(value: crate::template::values::base::TemplateValue) -> bool {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isTemplateSlice(value: crate::template::values::base::TemplateValue) -> bool {
     value
         .dispatch
         .clone()
@@ -68,16 +71,15 @@ pub fn is_template_slice(value: crate::template::values::base::TemplateValue) ->
             .is_some()
 }
 
-pub fn is_truthy(
-    value: crate::template::values::base::TemplateValue,
-) -> Result<bool, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isTruthy(value: crate::template::values::base::TemplateValue) -> bool {
     if value
         .dispatch
         .clone()
         .downcast_template_value_to_nil_value()
         .is_some()
     {
-        return Ok(false);
+        return false;
     }
     if let Some(selected_dispatch) = value
         .dispatch
@@ -88,10 +90,10 @@ pub fn is_truthy(
             identity: value.identity.clone(),
             dispatch: selected_dispatch,
         };
-        return Ok({
+        return {
             let dispatch_receiver = &selected_value;
             dispatch_receiver.dispatch.read_bool_value_value()
-        });
+        };
     }
     if let Some(selected_dispatch_2) = value
         .dispatch
@@ -102,10 +104,10 @@ pub fn is_truthy(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_2,
         };
-        return Ok(({
+        return ({
             let dispatch_receiver_2 = &selected_value_2;
             dispatch_receiver_2.dispatch.read_number_value_value()
-        }) != 0);
+        }) != 0;
     }
     if let Some(selected_dispatch_3) = value
         .dispatch
@@ -116,11 +118,11 @@ pub fn is_truthy(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_3,
         };
-        return Ok(!{
+        return !{
             let dispatch_receiver_3 = &selected_value_3;
             dispatch_receiver_3.dispatch.read_string_value_value()
         }
-        .is_empty());
+        .is_empty();
     }
     if let Some(selected_dispatch_4) = value
         .dispatch
@@ -131,14 +133,14 @@ pub fn is_truthy(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_4,
         };
-        return Ok(!{
+        return !{
             let dispatch_receiver_5 = &{
                 let dispatch_receiver_4 = &selected_value_4;
                 dispatch_receiver_4.dispatch.read_html_value_value()
             };
             dispatch_receiver_5.dispatch.read_html_string_value()
         }
-        .is_empty());
+        .is_empty();
     }
     if let Some(selected_dispatch_5) = value
         .dispatch
@@ -149,11 +151,11 @@ pub fn is_truthy(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_5,
         };
-        return Ok(!js_string::trim(&{
+        return !js_string::trim(&{
             let dispatch_receiver_6 = &selected_value_5;
             dispatch_receiver_6.dispatch.read_date_value_value()
         })
-        .is_empty());
+        .is_empty();
     }
     if let Some(selected_dispatch_6) = value
         .dispatch
@@ -164,13 +166,11 @@ pub fn is_truthy(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_6,
         };
-        return Ok(rt::conversions::usize_to_i32(
-            {
-                let dispatch_receiver_7 = &selected_value_6;
-                dispatch_receiver_7.dispatch.read_dict_value_value()
-            }
-            .len(),
-        )? > 0);
+        return !{
+            let dispatch_receiver_7 = &selected_value_6;
+            dispatch_receiver_7.dispatch.read_dict_value_value()
+        }
+        .is_empty();
     }
     if let Some(selected_dispatch_7) = value
         .dispatch
@@ -181,13 +181,11 @@ pub fn is_truthy(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_7,
         };
-        return Ok(rt::conversions::usize_to_i32(
-            {
-                let dispatch_receiver_8 = &selected_value_7;
-                dispatch_receiver_8.dispatch.read_page_array_value_value()
-            }
-            .len(),
-        )? > 0);
+        return !{
+            let dispatch_receiver_8 = &selected_value_7;
+            dispatch_receiver_8.dispatch.read_page_array_value_value()
+        }
+        .is_empty();
     }
     if let Some(selected_dispatch_8) = value
         .dispatch
@@ -198,13 +196,11 @@ pub fn is_truthy(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_8,
         };
-        return Ok(rt::conversions::usize_to_i32(
-            {
-                let dispatch_receiver_9 = &selected_value_8;
-                dispatch_receiver_9.dispatch.read_string_array_value_value()
-            }
-            .len(),
-        )? > 0);
+        return !{
+            let dispatch_receiver_9 = &selected_value_8;
+            dispatch_receiver_9.dispatch.read_string_array_value_value()
+        }
+        .is_empty();
     }
     if let Some(selected_dispatch_9) = value
         .dispatch
@@ -215,13 +211,11 @@ pub fn is_truthy(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_9,
         };
-        return Ok(rt::conversions::usize_to_i32(
-            {
-                let dispatch_receiver_10 = &selected_value_9;
-                dispatch_receiver_10.dispatch.read_sites_array_value_value()
-            }
-            .len(),
-        )? > 0);
+        return !{
+            let dispatch_receiver_10 = &selected_value_9;
+            dispatch_receiver_10.dispatch.read_sites_array_value_value()
+        }
+        .is_empty();
     }
     if let Some(selected_dispatch_10) = value
         .dispatch
@@ -232,15 +226,13 @@ pub fn is_truthy(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_10,
         };
-        return Ok(rt::conversions::usize_to_i32(
-            {
-                let dispatch_receiver_11 = &selected_value_10;
-                dispatch_receiver_11
-                    .dispatch
-                    .read_docs_mount_array_value_value()
-            }
-            .len(),
-        )? > 0);
+        return !{
+            let dispatch_receiver_11 = &selected_value_10;
+            dispatch_receiver_11
+                .dispatch
+                .read_docs_mount_array_value_value()
+        }
+        .is_empty();
     }
     if let Some(selected_dispatch_11) = value
         .dispatch
@@ -251,13 +243,11 @@ pub fn is_truthy(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_11,
         };
-        return Ok(rt::conversions::usize_to_i32(
-            {
-                let dispatch_receiver_12 = &selected_value_11;
-                dispatch_receiver_12.dispatch.read_nav_array_value_value()
-            }
-            .len(),
-        )? > 0);
+        return !{
+            let dispatch_receiver_12 = &selected_value_11;
+            dispatch_receiver_12.dispatch.read_nav_array_value_value()
+        }
+        .is_empty();
     }
     if let Some(selected_dispatch_12) = value
         .dispatch
@@ -268,27 +258,24 @@ pub fn is_truthy(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_12,
         };
-        return Ok(rt::conversions::usize_to_i32(
-            {
-                let dispatch_receiver_13 = &selected_value_12;
-                dispatch_receiver_13.dispatch.read_any_array_value_value()
-            }
-            .len(),
-        )? > 0);
+        return !{
+            let dispatch_receiver_13 = &selected_value_12;
+            dispatch_receiver_13.dispatch.read_any_array_value_value()
+        }
+        .is_empty();
     }
-    Ok(true)
+    true
 }
 
-pub fn is_default_set(
-    value: crate::template::values::base::TemplateValue,
-) -> Result<bool, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isDefaultSet(value: crate::template::values::base::TemplateValue) -> bool {
     if value
         .dispatch
         .clone()
         .downcast_template_value_to_nil_value()
         .is_some()
     {
-        return Ok(false);
+        return false;
     }
     if value
         .dispatch
@@ -296,7 +283,7 @@ pub fn is_default_set(
         .downcast_template_value_to_bool_value()
         .is_some()
     {
-        return Ok(true);
+        return true;
     }
     if let Some(selected_dispatch) = value
         .dispatch
@@ -307,10 +294,10 @@ pub fn is_default_set(
             identity: value.identity.clone(),
             dispatch: selected_dispatch,
         };
-        return Ok(({
+        return ({
             let dispatch_receiver = &selected_value;
             dispatch_receiver.dispatch.read_number_value_value()
-        }) != 0);
+        }) != 0;
     }
     if let Some(selected_dispatch_2) = value
         .dispatch
@@ -321,11 +308,11 @@ pub fn is_default_set(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_2,
         };
-        return Ok(!{
+        return !{
             let dispatch_receiver_2 = &selected_value_2;
             dispatch_receiver_2.dispatch.read_string_value_value()
         }
-        .is_empty());
+        .is_empty();
     }
     if let Some(selected_dispatch_3) = value
         .dispatch
@@ -336,14 +323,14 @@ pub fn is_default_set(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_3,
         };
-        return Ok(!{
+        return !{
             let dispatch_receiver_4 = &{
                 let dispatch_receiver_3 = &selected_value_3;
                 dispatch_receiver_3.dispatch.read_html_value_value()
             };
             dispatch_receiver_4.dispatch.read_html_string_value()
         }
-        .is_empty());
+        .is_empty();
     }
     if let Some(selected_dispatch_4) = value
         .dispatch
@@ -354,11 +341,11 @@ pub fn is_default_set(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_4,
         };
-        return Ok(!js_string::trim(&{
+        return !js_string::trim(&{
             let dispatch_receiver_5 = &selected_value_4;
             dispatch_receiver_5.dispatch.read_date_value_value()
         })
-        .is_empty());
+        .is_empty();
     }
     if let Some(selected_dispatch_5) = value
         .dispatch
@@ -369,13 +356,11 @@ pub fn is_default_set(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_5,
         };
-        return Ok(rt::conversions::usize_to_i32(
-            {
-                let dispatch_receiver_6 = &selected_value_5;
-                dispatch_receiver_6.dispatch.read_dict_value_value()
-            }
-            .len(),
-        )? > 0);
+        return !{
+            let dispatch_receiver_6 = &selected_value_5;
+            dispatch_receiver_6.dispatch.read_dict_value_value()
+        }
+        .is_empty();
     }
     if let Some(selected_dispatch_6) = value
         .dispatch
@@ -386,13 +371,11 @@ pub fn is_default_set(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_6,
         };
-        return Ok(rt::conversions::usize_to_i32(
-            {
-                let dispatch_receiver_7 = &selected_value_6;
-                dispatch_receiver_7.dispatch.read_page_array_value_value()
-            }
-            .len(),
-        )? > 0);
+        return !{
+            let dispatch_receiver_7 = &selected_value_6;
+            dispatch_receiver_7.dispatch.read_page_array_value_value()
+        }
+        .is_empty();
     }
     if let Some(selected_dispatch_7) = value
         .dispatch
@@ -403,13 +386,11 @@ pub fn is_default_set(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_7,
         };
-        return Ok(rt::conversions::usize_to_i32(
-            {
-                let dispatch_receiver_8 = &selected_value_7;
-                dispatch_receiver_8.dispatch.read_string_array_value_value()
-            }
-            .len(),
-        )? > 0);
+        return !{
+            let dispatch_receiver_8 = &selected_value_7;
+            dispatch_receiver_8.dispatch.read_string_array_value_value()
+        }
+        .is_empty();
     }
     if let Some(selected_dispatch_8) = value
         .dispatch
@@ -420,13 +401,11 @@ pub fn is_default_set(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_8,
         };
-        return Ok(rt::conversions::usize_to_i32(
-            {
-                let dispatch_receiver_9 = &selected_value_8;
-                dispatch_receiver_9.dispatch.read_sites_array_value_value()
-            }
-            .len(),
-        )? > 0);
+        return !{
+            let dispatch_receiver_9 = &selected_value_8;
+            dispatch_receiver_9.dispatch.read_sites_array_value_value()
+        }
+        .is_empty();
     }
     if let Some(selected_dispatch_9) = value
         .dispatch
@@ -437,15 +416,13 @@ pub fn is_default_set(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_9,
         };
-        return Ok(rt::conversions::usize_to_i32(
-            {
-                let dispatch_receiver_10 = &selected_value_9;
-                dispatch_receiver_10
-                    .dispatch
-                    .read_docs_mount_array_value_value()
-            }
-            .len(),
-        )? > 0);
+        return !{
+            let dispatch_receiver_10 = &selected_value_9;
+            dispatch_receiver_10
+                .dispatch
+                .read_docs_mount_array_value_value()
+        }
+        .is_empty();
     }
     if let Some(selected_dispatch_10) = value
         .dispatch
@@ -456,13 +433,11 @@ pub fn is_default_set(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_10,
         };
-        return Ok(rt::conversions::usize_to_i32(
-            {
-                let dispatch_receiver_11 = &selected_value_10;
-                dispatch_receiver_11.dispatch.read_nav_array_value_value()
-            }
-            .len(),
-        )? > 0);
+        return !{
+            let dispatch_receiver_11 = &selected_value_10;
+            dispatch_receiver_11.dispatch.read_nav_array_value_value()
+        }
+        .is_empty();
     }
     if let Some(selected_dispatch_11) = value
         .dispatch
@@ -473,15 +448,13 @@ pub fn is_default_set(
             identity: value.identity.clone(),
             dispatch: selected_dispatch_11,
         };
-        return Ok(rt::conversions::usize_to_i32(
-            {
-                let dispatch_receiver_12 = &selected_value_11;
-                dispatch_receiver_12.dispatch.read_any_array_value_value()
-            }
-            .len(),
-        )? > 0);
+        return !{
+            let dispatch_receiver_12 = &selected_value_11;
+            dispatch_receiver_12.dispatch.read_any_array_value_value()
+        }
+        .is_empty();
     }
-    Ok(true)
+    true
 }
 
 pub fn stringify(
@@ -495,7 +468,7 @@ pub fn stringify(
         .is_some()
     {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_TEMPLATE_DEFER_CONTEXT_INVALID"),
                 String::from("templates.Defer can only be evaluated by a with block"),
                 None,
@@ -543,7 +516,7 @@ pub fn stringify(
             dispatch_receiver_3.dispatch.read_string_value_value()
         };
         return Ok(if escape {
-            crate::utils::html::escape_html(s.clone())?
+            crate::utils::html::escapeHtml(s.clone())?
         } else {
             s
         });
@@ -593,7 +566,7 @@ pub fn stringify(
             dispatch: selected_dispatch_5,
         };
         return Ok(if escape {
-            crate::utils::html::escape_html({
+            crate::utils::html::escapeHtml({
                 let dispatch_receiver_6 = &selected_value_5;
                 dispatch_receiver_6.dispatch.read_date_value_value()
             })?
@@ -605,7 +578,8 @@ pub fn stringify(
     Ok(String::from(""))
 }
 
-pub fn to_plain_string(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn toPlainString(
     value: crate::template::values::base::TemplateValue,
 ) -> Result<String, rt::TsonicError> {
     if value
@@ -615,7 +589,7 @@ pub fn to_plain_string(
         .is_some()
     {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_TEMPLATE_DEFER_CONTEXT_INVALID"),
                 String::from("templates.Defer cannot be converted to text outside a with block"),
                 None,
@@ -742,7 +716,8 @@ pub fn to_plain_string(
     Ok(String::from(""))
 }
 
-pub fn to_number(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn toNumber(
     value: crate::template::values::base::TemplateValue,
 ) -> Result<i32, rt::TsonicError> {
     if let Some(selected_dispatch) = value
@@ -769,7 +744,7 @@ pub fn to_number(
             dispatch: selected_dispatch_2,
         };
         return Ok(rt::option_coalesce(
-            crate::utils::int32::parse_int32(&{
+            crate::utils::int32::parseInt32(&{
                 let dispatch_receiver_2 = &selected_value_2;
                 dispatch_receiver_2.dispatch.read_string_value_value()
             })?,
@@ -807,6 +782,6 @@ pub fn module_init() {
                 dispatch: upcast_value.dispatch.clone(),
             }
         };
-        NIL.with(|module_binding| module_binding.initialize(module_value))
+        nil.with(|module_binding| module_binding.initialize(module_value))
     };
 }

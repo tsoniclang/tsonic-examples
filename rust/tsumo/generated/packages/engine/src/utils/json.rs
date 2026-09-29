@@ -64,6 +64,81 @@ pub struct JsonValue {
     pub dispatch: alloc::rc::Rc<dyn JsonValueDispatch + 'static>,
 }
 
+impl core::convert::TryFrom<JsonValue> for JsonNumber {
+    type Error = ();
+
+    fn try_from(source: JsonValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_json_value_to_json_number();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<JsonValue> for JsonObject {
+    type Error = ();
+
+    fn try_from(source: JsonValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_json_value_to_json_object();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<JsonValue> for JsonArray {
+    type Error = ();
+
+    fn try_from(source: JsonValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_json_value_to_json_array();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<JsonValue> for JsonString {
+    type Error = ();
+
+    fn try_from(source: JsonValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_json_value_to_json_string();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<JsonValue> for JsonBool {
+    type Error = ();
+
+    fn try_from(source: JsonValue) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_json_value_to_json_bool();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
 impl core::fmt::Debug for JsonValue {
     fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("JsonValue")
@@ -120,6 +195,12 @@ impl JsonValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for JsonValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl JsonValueDispatch for JsonValueRoot {
     fn downcast_json_value_to_json_value(
         self: alloc::rc::Rc<Self>,
@@ -170,6 +251,10 @@ impl JsonValueDispatch for JsonValueRoot {
     }
 }
 
+std::thread_local! {
+    pub static JSON_NULL_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<JsonNullClass>> = const { rt::ModuleCell::new() };
+}
+
 #[doc(hidden)]
 pub trait JsonNullDispatch: JsonValueDispatch {
     fn downcast_json_null_to_json_null(
@@ -182,15 +267,15 @@ pub trait JsonNullDispatch: JsonValueDispatch {
     ) -> Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>> {
         None
     }
-    fn read_json_null_value(&self) -> rt::Null;
-    fn write_json_null_value(&self, value: rt::Null) -> Result<(), rt::TsonicError>;
+    fn read_json_null_value(&self);
+    fn write_json_null_value(&self, value: ()) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
 pub struct JsonNullState {
     #[doc(hidden)]
     pub base: JsonValueState,
-    pub value: rt::Null,
+    pub value: (),
 }
 
 #[derive(Clone)]
@@ -230,7 +315,7 @@ impl JsonNull {
     #[doc(hidden)]
     pub fn initialize_state(line: i32, column: i32) -> Result<JsonNullState, rt::TsonicError> {
         let base_state = JsonValue::initialize_state(String::from("null"), line, column)?;
-        let field_value: rt::Null = rt::Null;
+        let field_value: () = ();
         Ok(JsonNullState {
             base: base_state,
             value: field_value,
@@ -248,6 +333,12 @@ impl JsonNull {
             identity,
             dispatch: root,
         })
+    }
+}
+
+impl rt::ObjectIdentityCarrier for JsonNullRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
     }
 }
 
@@ -320,11 +411,11 @@ impl JsonNullDispatch for JsonNullRoot {
         Some(self)
     }
 
-    fn read_json_null_value(&self) -> rt::Null {
+    fn read_json_null_value(&self) {
         self.state.with(|state| state.value)
     }
 
-    fn write_json_null_value(&self, value: rt::Null) -> Result<(), rt::TsonicError> {
+    fn write_json_null_value(&self, value: ()) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
@@ -335,8 +426,15 @@ impl JsonNullDispatch for JsonNullRoot {
     }
 }
 
+std::thread_local! {
+    pub static JSON_BOOL_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<JsonBoolClass>> = const { rt::ModuleCell::new() };
+}
+
 #[doc(hidden)]
 pub trait JsonBoolDispatch: JsonValueDispatch {
+    fn project_json_bool(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_json_bool_to_json_bool(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn JsonBoolDispatch + 'static>> {
@@ -420,6 +518,12 @@ impl JsonBool {
     }
 }
 
+impl rt::ObjectIdentityCarrier for JsonBoolRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl JsonValueDispatch for JsonBoolRoot {
     fn downcast_json_value_to_json_bool(
         self: alloc::rc::Rc<Self>,
@@ -477,6 +581,23 @@ impl JsonValueDispatch for JsonBoolRoot {
 }
 
 impl JsonBoolDispatch for JsonBoolRoot {
+    fn project_json_bool(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn JsonBoolDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_json_bool_to_json_bool(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn JsonBoolDispatch + 'static>> {
@@ -504,8 +625,15 @@ impl JsonBoolDispatch for JsonBoolRoot {
     }
 }
 
+std::thread_local! {
+    pub static JSON_NUMBER_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<JsonNumberClass>> = const { rt::ModuleCell::new() };
+}
+
 #[doc(hidden)]
 pub trait JsonNumberDispatch: JsonValueDispatch {
+    fn project_json_number(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_json_number_to_json_number(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn JsonNumberDispatch + 'static>> {
@@ -589,6 +717,12 @@ impl JsonNumber {
     }
 }
 
+impl rt::ObjectIdentityCarrier for JsonNumberRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl JsonValueDispatch for JsonNumberRoot {
     fn downcast_json_value_to_json_number(
         self: alloc::rc::Rc<Self>,
@@ -646,6 +780,23 @@ impl JsonValueDispatch for JsonNumberRoot {
 }
 
 impl JsonNumberDispatch for JsonNumberRoot {
+    fn project_json_number(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn JsonNumberDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_json_number_to_json_number(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn JsonNumberDispatch + 'static>> {
@@ -673,8 +824,15 @@ impl JsonNumberDispatch for JsonNumberRoot {
     }
 }
 
+std::thread_local! {
+    pub static JSON_STRING_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<JsonStringClass>> = const { rt::ModuleCell::new() };
+}
+
 #[doc(hidden)]
 pub trait JsonStringDispatch: JsonValueDispatch {
+    fn project_json_string(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_json_string_to_json_string(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn JsonStringDispatch + 'static>> {
@@ -758,6 +916,12 @@ impl JsonString {
     }
 }
 
+impl rt::ObjectIdentityCarrier for JsonStringRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl JsonValueDispatch for JsonStringRoot {
     fn downcast_json_value_to_json_string(
         self: alloc::rc::Rc<Self>,
@@ -815,6 +979,23 @@ impl JsonValueDispatch for JsonStringRoot {
 }
 
 impl JsonStringDispatch for JsonStringRoot {
+    fn project_json_string(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn JsonStringDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_json_string_to_json_string(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn JsonStringDispatch + 'static>> {
@@ -842,8 +1023,15 @@ impl JsonStringDispatch for JsonStringRoot {
     }
 }
 
+std::thread_local! {
+    pub static JSON_ARRAY_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<JsonArrayClass>> = const { rt::ModuleCell::new() };
+}
+
 #[doc(hidden)]
 pub trait JsonArrayDispatch: JsonValueDispatch {
+    fn project_json_array(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_json_array_to_json_array(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn JsonArrayDispatch + 'static>> {
@@ -934,6 +1122,12 @@ impl JsonArray {
     }
 }
 
+impl rt::ObjectIdentityCarrier for JsonArrayRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl JsonValueDispatch for JsonArrayRoot {
     fn downcast_json_value_to_json_array(
         self: alloc::rc::Rc<Self>,
@@ -991,6 +1185,23 @@ impl JsonValueDispatch for JsonArrayRoot {
 }
 
 impl JsonArrayDispatch for JsonArrayRoot {
+    fn project_json_array(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn JsonArrayDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_json_array_to_json_array(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn JsonArrayDispatch + 'static>> {
@@ -1063,8 +1274,15 @@ impl JsonProperty {
     }
 }
 
+std::thread_local! {
+    pub static JSON_OBJECT_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<JsonObjectClass>> = const { rt::ModuleCell::new() };
+}
+
 #[doc(hidden)]
 pub trait JsonObjectDispatch: JsonValueDispatch {
+    fn project_json_object(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_json_object_to_json_object(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn JsonObjectDispatch + 'static>> {
@@ -1080,22 +1298,16 @@ pub trait JsonObjectDispatch: JsonValueDispatch {
         &self,
         value: js_abi::JsArray<JsonProperty>,
     ) -> Result<(), rt::TsonicError>;
-    fn dispatch_json_object_get(
-        self: alloc::rc::Rc<Self>,
-        name: &str,
-    ) -> Result<Option<JsonValue>, rt::TsonicError>;
-    fn exact_json_object_get(
-        self: alloc::rc::Rc<Self>,
-        name: &str,
-    ) -> Result<Option<JsonValue>, rt::TsonicError>;
+    fn dispatch_json_object_get(self: alloc::rc::Rc<Self>, name: &str) -> Option<JsonValue>;
+    fn exact_json_object_get(self: alloc::rc::Rc<Self>, name: &str) -> Option<JsonValue>;
     fn dispatch_json_object_get_case_insensitive(
         self: alloc::rc::Rc<Self>,
         name: &str,
-    ) -> Result<Option<JsonValue>, rt::TsonicError>;
+    ) -> Option<JsonValue>;
     fn exact_json_object_get_case_insensitive(
         self: alloc::rc::Rc<Self>,
         name: &str,
-    ) -> Result<Option<JsonValue>, rt::TsonicError>;
+    ) -> Option<JsonValue>;
 }
 
 #[doc(hidden)]
@@ -1172,24 +1384,18 @@ impl JsonObject {
 }
 
 impl JsonObjectRoot {
-    fn exact_json_object_get(
-        self: alloc::rc::Rc<Self>,
-        name: &str,
-    ) -> Result<Option<JsonValue>, rt::TsonicError> {
+    fn exact_json_object_get(self: alloc::rc::Rc<Self>, name: &str) -> Option<JsonValue> {
         let project_this = JsonObject {
             identity: self.identity.clone(),
             dispatch: self.clone(),
         };
         {
-            let mut i: f64 = 0.0;
-            while i
-                < (rt::conversions::usize_to_i32(
-                    {
-                        let dispatch_receiver = &project_this;
-                        dispatch_receiver.dispatch.read_json_object_properties()
-                    }
-                    .len(),
-                )? as f64)
+            let mut i: usize = 0;
+            while i < {
+                let dispatch_receiver = &project_this;
+                dispatch_receiver.dispatch.read_json_object_properties()
+            }
+            .len()
             {
                 let property: JsonProperty = match {
                     let dispatch_receiver_2 = &project_this;
@@ -1201,33 +1407,30 @@ impl JsonObjectRoot {
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 if property.state.with(|state| state.key.clone()) == name {
-                    return Ok(Some(property.state.with(|state| state.value.clone())));
+                    return Some(property.state.with(|state| state.value.clone()));
                 }
-                i += 1.0;
+                i += 1;
             }
         }
-        Ok(Option::<JsonValue>::None)
+        Option::<JsonValue>::None
     }
 
     fn exact_json_object_get_case_insensitive(
         self: alloc::rc::Rc<Self>,
         name: &str,
-    ) -> Result<Option<JsonValue>, rt::TsonicError> {
+    ) -> Option<JsonValue> {
         let project_this = JsonObject {
             identity: self.identity.clone(),
             dispatch: self.clone(),
         };
         let lowered: String = js_string::to_lower_case(name);
         {
-            let mut i: f64 = 0.0;
-            while i
-                < (rt::conversions::usize_to_i32(
-                    {
-                        let dispatch_receiver = &project_this;
-                        dispatch_receiver.dispatch.read_json_object_properties()
-                    }
-                    .len(),
-                )? as f64)
+            let mut i: usize = 0;
+            while i < {
+                let dispatch_receiver = &project_this;
+                dispatch_receiver.dispatch.read_json_object_properties()
+            }
+            .len()
             {
                 let property: JsonProperty = match {
                     let dispatch_receiver_2 = &project_this;
@@ -1241,12 +1444,18 @@ impl JsonObjectRoot {
                 if js_string::to_lower_case(&property.state.with(|state| state.key.clone()))
                     == lowered
                 {
-                    return Ok(Some(property.state.with(|state| state.value.clone())));
+                    return Some(property.state.with(|state| state.value.clone()));
                 }
-                i += 1.0;
+                i += 1;
             }
         }
-        Ok(Option::<JsonValue>::None)
+        Option::<JsonValue>::None
+    }
+}
+
+impl rt::ObjectIdentityCarrier for JsonObjectRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
     }
 }
 
@@ -1307,6 +1516,23 @@ impl JsonValueDispatch for JsonObjectRoot {
 }
 
 impl JsonObjectDispatch for JsonObjectRoot {
+    fn project_json_object(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn JsonValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn JsonObjectDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_json_object_to_json_object(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn JsonObjectDispatch + 'static>> {
@@ -1336,69 +1562,61 @@ impl JsonObjectDispatch for JsonObjectRoot {
         }
     }
 
-    fn dispatch_json_object_get(
-        self: alloc::rc::Rc<Self>,
-        name: &str,
-    ) -> Result<Option<JsonValue>, rt::TsonicError> {
+    fn dispatch_json_object_get(self: alloc::rc::Rc<Self>, name: &str) -> Option<JsonValue> {
         JsonObjectRoot::exact_json_object_get(self, name)
     }
 
-    fn exact_json_object_get(
-        self: alloc::rc::Rc<Self>,
-        name: &str,
-    ) -> Result<Option<JsonValue>, rt::TsonicError> {
+    fn exact_json_object_get(self: alloc::rc::Rc<Self>, name: &str) -> Option<JsonValue> {
         JsonObjectRoot::exact_json_object_get(self, name)
     }
 
     fn dispatch_json_object_get_case_insensitive(
         self: alloc::rc::Rc<Self>,
         name: &str,
-    ) -> Result<Option<JsonValue>, rt::TsonicError> {
+    ) -> Option<JsonValue> {
         JsonObjectRoot::exact_json_object_get_case_insensitive(self, name)
     }
 
     fn exact_json_object_get_case_insensitive(
         self: alloc::rc::Rc<Self>,
         name: &str,
-    ) -> Result<Option<JsonValue>, rt::TsonicError> {
+    ) -> Option<JsonValue> {
         JsonObjectRoot::exact_json_object_get_case_insensitive(self, name)
     }
 }
 
 #[derive(Clone)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct JsonParser {
     pub source: crate::utils::indexed_source_text::IndexedSourceText,
     pub index: i32,
-    pub source_path: Option<String>,
-    pub line_starts: js_abi::JsArray<i32>,
+    pub sourcePath: Option<String>,
+    pub lineStarts: js_abi::JsArray<i32>,
     pub depth: i32,
 }
 
 impl JsonParser {
-    pub fn new(text: String, source_path: Option<String>) -> Result<JsonParser, rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn new(text: String, sourcePath: Option<String>) -> Result<JsonParser, rt::TsonicError> {
         let field_source: crate::utils::indexed_source_text::IndexedSourceText =
-            crate::utils::indexed_source_text::IndexedSourceText::new(text)?;
+            crate::utils::indexed_source_text::IndexedSourceText::new(&text)?;
         let field_index: i32 = 0;
-        let field_source_path: Option<String> = source_path;
+        let field_source_path: Option<String> = sourcePath;
         let field_line_starts: js_abi::JsArray<i32> = js_abi::JsArray::from_dense(vec![0]);
         let field_depth: i32 = 0;
         {
             let mut position: i32 = 0;
             while position < field_source.state.with(|state| state.length) {
-                let current: String = field_source.character_at(position);
+                let current: String = field_source.characterAt(position);
                 if current == "\n" {
-                    field_line_starts.push_many_discard([rt::conversions::f64_to_i32(
-                        rt::conversions::i32_to_f64(position + 1),
-                    )?]);
+                    field_line_starts.push_many_discard([position + 1]);
                 } else if current == "\r" {
                     if position + 1 < field_source.state.with(|state| state.length)
-                        && field_source.character_at(position + 1) == "\n"
+                        && field_source.characterAt(position + 1) == "\n"
                     {
                         position += 1;
                     }
-                    field_line_starts.push_many_discard([rt::conversions::f64_to_i32(
-                        rt::conversions::i32_to_f64(position + 1),
-                    )?]);
+                    field_line_starts.push_many_discard([position + 1]);
                 }
                 position += 1;
             }
@@ -1406,18 +1624,18 @@ impl JsonParser {
         Ok(JsonParser {
             source: field_source,
             index: field_index,
-            source_path: field_source_path,
-            line_starts: field_line_starts,
+            sourcePath: field_source_path,
+            lineStarts: field_line_starts,
             depth: field_depth,
         })
     }
 
     pub fn parse(&mut self) -> Result<JsonValue, rt::TsonicError> {
-        self.skip_whitespace();
-        let value: JsonValue = self.parse_value()?;
-        self.skip_whitespace();
+        self.skipWhitespace();
+        let value: JsonValue = self.parseValue()?;
+        self.skipWhitespace();
         if self.index != self.source.state.with(|state| state.length) {
-            return Err(rt::TsonicError::TsumoError(self.syntax_error(
+            return Err(rt::TsonicError::TsumoError(self.syntaxError(
                 String::from("Unexpected trailing JSON content"),
                 None,
             )?));
@@ -1425,15 +1643,16 @@ impl JsonParser {
         Ok(value)
     }
 
-    pub fn parse_value(&mut self) -> Result<JsonValue, rt::TsonicError> {
-        self.skip_whitespace();
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn parseValue(&mut self) -> Result<JsonValue, rt::TsonicError> {
+        self.skipWhitespace();
         let start: i32 = self.index;
-        let line: i32 = self.line_at(start)?;
-        let column: i32 = self.column_at(start)?;
+        let line: i32 = self.lineAt(start)?;
+        let column: i32 = self.columnAt(start)?;
         let ch: String = self.peek();
         if ch == "{" {
             return Ok({
-                let upcast_value = self.parse_object()?;
+                let upcast_value = self.parseObject()?;
                 JsonValue {
                     identity: upcast_value.identity.clone(),
                     dispatch: upcast_value.dispatch.clone(),
@@ -1442,7 +1661,7 @@ impl JsonParser {
         }
         if ch == "[" {
             return Ok({
-                let upcast_value_2 = self.parse_array()?;
+                let upcast_value_2 = self.parseArray()?;
                 JsonValue {
                     identity: upcast_value_2.identity.clone(),
                     dispatch: upcast_value_2.dispatch.clone(),
@@ -1451,7 +1670,7 @@ impl JsonParser {
         }
         if ch == "\"" {
             return Ok({
-                let upcast_value_3 = JsonString::new(self.parse_string()?, line, column)?;
+                let upcast_value_3 = JsonString::new(self.parseString()?, line, column)?;
                 JsonValue {
                     identity: upcast_value_3.identity.clone(),
                     dispatch: upcast_value_3.dispatch.clone(),
@@ -1459,7 +1678,7 @@ impl JsonParser {
             });
         }
         if ch == "t" {
-            self.expect_keyword(String::from("true"))?;
+            self.expectKeyword(String::from("true"))?;
             return Ok({
                 let upcast_value_4 = JsonBool::new(true, line, column)?;
                 JsonValue {
@@ -1469,7 +1688,7 @@ impl JsonParser {
             });
         }
         if ch == "f" {
-            self.expect_keyword(String::from("false"))?;
+            self.expectKeyword(String::from("false"))?;
             return Ok({
                 let upcast_value_5 = JsonBool::new(false, line, column)?;
                 JsonValue {
@@ -1479,7 +1698,7 @@ impl JsonParser {
             });
         }
         if ch == "n" {
-            self.expect_keyword(String::from("null"))?;
+            self.expectKeyword(String::from("null"))?;
             return Ok({
                 let upcast_value_6 = JsonNull::new(line, column)?;
                 JsonValue {
@@ -1488,30 +1707,31 @@ impl JsonParser {
                 }
             });
         }
-        if ch == "-" || self.is_digit(ch.clone()) {
+        if ch == "-" || self.isDigit(ch.clone()) {
             return Ok({
-                let upcast_value_7 = self.parse_number(line, column)?;
+                let upcast_value_7 = self.parseNumber(line, column)?;
                 JsonValue {
                     identity: upcast_value_7.identity.clone(),
                     dispatch: upcast_value_7.dispatch.clone(),
                 }
             });
         }
-        Err(rt::TsonicError::TsumoError(self.syntax_error(
+        Err(rt::TsonicError::TsumoError(self.syntaxError(
             String::from("Invalid JSON value"),
             Some(start),
         )?))
     }
 
-    pub fn parse_object(&mut self) -> Result<JsonObject, rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn parseObject(&mut self) -> Result<JsonObject, rt::TsonicError> {
         let start: i32 = self.index;
-        let line: i32 = self.line_at(start)?;
-        let column: i32 = self.column_at(start)?;
-        self.enter_composite(start)?;
+        let line: i32 = self.lineAt(start)?;
+        let column: i32 = self.columnAt(start)?;
+        self.enterComposite(start)?;
         self.expect(String::from("{"))?;
-        self.skip_whitespace();
+        self.skipWhitespace();
         let properties: js_abi::JsArray<JsonProperty> = js_abi::JsArray::from_dense(vec![]);
-        let property_names: js_abi::JsSet<String> = js_abi::JsSet::new();
+        let propertyNames: js_abi::JsSet<String> = js_abi::JsSet::new();
         if self.peek() == "}" {
             {
                 let update_previous = self.index;
@@ -1532,10 +1752,10 @@ impl JsonParser {
             return JsonObject::new(properties.clone(), line, column);
         }
         'loop_value: loop {
-            self.skip_whitespace();
-            let key_start: i32 = self.index;
-            let key: String = self.parse_string()?;
-            if property_names.has(&key) {
+            self.skipWhitespace();
+            let keyStart: i32 = self.index;
+            let key: String = self.parseString()?;
+            if propertyNames.has(&key) {
                 return Err(rt::TsonicError::TsumoError(self.error(
                     String::from("TSUMO_JSON_DUPLICATE_PROPERTY"),
                     format!(
@@ -1544,23 +1764,20 @@ impl JsonParser {
                         key,
                         String::from("' is declared more than once")
                     ),
-                    key_start,
+                    keyStart,
                 )?));
             }
-            property_names.add_discard(key.clone());
-            self.skip_whitespace();
+            propertyNames.add_discard(key.clone());
+            self.skipWhitespace();
             self.expect(String::from(":"))?;
-            let value: JsonValue = self.parse_value()?;
-            {
-                let operation_input_0 = properties.clone();
-                operation_input_0.push_many_discard([JsonProperty::new(
-                    key.clone(),
-                    value.clone(),
-                    self.line_at(key_start)?,
-                    self.column_at(key_start)?,
-                )?])
-            };
-            self.skip_whitespace();
+            let value: JsonValue = self.parseValue()?;
+            properties.push_many_discard([JsonProperty::new(
+                key,
+                value,
+                self.lineAt(keyStart)?,
+                self.columnAt(keyStart)?,
+            )?]);
+            self.skipWhitespace();
             let separator: String = self.peek();
             if separator == "}" {
                 {
@@ -1574,7 +1791,7 @@ impl JsonParser {
                 break 'loop_value;
             }
             if separator != "," {
-                return Err(rt::TsonicError::TsumoError(self.syntax_error(
+                return Err(rt::TsonicError::TsumoError(self.syntaxError(
                     String::from("Expected ',' or '}' after JSON object property"),
                     None,
                 )?));
@@ -1599,13 +1816,14 @@ impl JsonParser {
         JsonObject::new(properties.clone(), line, column)
     }
 
-    pub fn parse_array(&mut self) -> Result<JsonArray, rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn parseArray(&mut self) -> Result<JsonArray, rt::TsonicError> {
         let start: i32 = self.index;
-        let line: i32 = self.line_at(start)?;
-        let column: i32 = self.column_at(start)?;
-        self.enter_composite(start)?;
+        let line: i32 = self.lineAt(start)?;
+        let column: i32 = self.columnAt(start)?;
+        self.enterComposite(start)?;
         self.expect(String::from("["))?;
-        self.skip_whitespace();
+        self.skipWhitespace();
         let items: js_abi::JsArray<JsonValue> = js_abi::JsArray::from_dense(vec![]);
         if self.peek() == "]" {
             {
@@ -1627,11 +1845,8 @@ impl JsonParser {
             return JsonArray::new(items.clone(), line, column);
         }
         'loop_value: loop {
-            {
-                let operation_input_0 = items.clone();
-                operation_input_0.push_many_discard([self.parse_value()?])
-            };
-            self.skip_whitespace();
+            items.push_many_discard([self.parseValue()?]);
+            self.skipWhitespace();
             let separator: String = self.peek();
             if separator == "]" {
                 {
@@ -1645,7 +1860,7 @@ impl JsonParser {
                 break 'loop_value;
             }
             if separator != "," {
-                return Err(rt::TsonicError::TsumoError(self.syntax_error(
+                return Err(rt::TsonicError::TsumoError(self.syntaxError(
                     String::from("Expected ',' or ']' after JSON array item"),
                     None,
                 )?));
@@ -1670,7 +1885,8 @@ impl JsonParser {
         JsonArray::new(items.clone(), line, column)
     }
 
-    pub fn parse_string(&mut self) -> Result<String, rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn parseString(&mut self) -> Result<String, rt::TsonicError> {
         self.expect(String::from("\""))?;
         let mut result: String = String::from("");
         'loop_value: while self.index < self.source.state.with(|state| state.length) {
@@ -1679,8 +1895,8 @@ impl JsonParser {
                 return Ok(result.clone());
             }
             if ch != "\\" {
-                if crate::utils::strings::compare_text(ch.clone(), String::from(" ")) < 0 {
-                    return Err(rt::TsonicError::TsumoError(self.syntax_error(
+                if crate::utils::strings::compareText(ch.clone(), String::from(" ")) < 0 {
+                    return Err(rt::TsonicError::TsumoError(self.syntaxError(
                         String::from("JSON strings cannot contain unescaped control characters"),
                         Some(self.index - 1),
                     )?));
@@ -1702,28 +1918,29 @@ impl JsonParser {
             } else if escaped == "t" {
                 result.push('\t');
             } else if escaped == "u" {
-                result.push_str(&self.parse_unicode_escape()?);
+                result.push_str(&self.parseUnicodeEscape()?);
             } else {
-                return Err(rt::TsonicError::TsumoError(self.syntax_error(
+                return Err(rt::TsonicError::TsumoError(self.syntaxError(
                     String::from("Invalid JSON string escape"),
                     Some(self.index - 1),
                 )?));
             }
         }
-        Err(rt::TsonicError::TsumoError(self.syntax_error(
+        Err(rt::TsonicError::TsumoError(self.syntaxError(
             String::from("Unterminated JSON string"),
             None,
         )?))
     }
 
-    pub fn parse_unicode_escape(&mut self) -> Result<String, rt::TsonicError> {
-        let first: i32 = self.parse_unicode_code_unit()?;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn parseUnicodeEscape(&mut self) -> Result<String, rt::TsonicError> {
+        let first: i32 = self.parseUnicodeCodeUnit()?;
         if (55296..=56319).contains(&first) {
             if self.index + 6 > self.source.state.with(|state| state.length)
-                || self.source.character_at(self.index) != "\\"
-                || self.source.character_at(self.index + 1) != "u"
+                || self.source.characterAt(self.index) != "\\"
+                || self.source.characterAt(self.index + 1) != "u"
             {
-                return Err(rt::TsonicError::TsumoError(self.syntax_error(
+                return Err(rt::TsonicError::TsumoError(self.syntaxError(
                     String::from(
                         "A high-surrogate JSON escape must be followed by a low-surrogate escape",
                     ),
@@ -1735,34 +1952,33 @@ impl JsonParser {
                 let field_value = 2;
                 self.index = field_previous + field_value
             };
-            let second: i32 = self.parse_unicode_code_unit()?;
+            let second: i32 = self.parseUnicodeCodeUnit()?;
             if !(56320..=57343).contains(&second) {
-                return Err(rt::TsonicError::TsumoError(self.syntax_error(
+                return Err(rt::TsonicError::TsumoError(self.syntaxError(
                     String::from(
                         "A high-surrogate JSON escape must be followed by a low-surrogate escape",
                     ),
                     Some(self.index - 4),
                 )?));
             }
-            let code_point: i32 = 65536 + (first - 55296) * 1024 + second - 56320;
-            return js_string::from_code_point(&[rt::conversions::i32_to_f64(code_point)])
-                .map_err(rt::TsonicError::from);
+            let codePoint: i32 = 65536 + (first - 55296) * 1024 + second - 56320;
+            return js_string::from_code_point::<i32>(&[codePoint]).map_err(rt::TsonicError::from);
         }
         if (56320..=57343).contains(&first) {
-            return Err(rt::TsonicError::TsumoError(self.syntax_error(
+            return Err(rt::TsonicError::TsumoError(self.syntaxError(
                 String::from(
                     "A low-surrogate JSON escape requires a preceding high-surrogate escape",
                 ),
                 Some(self.index - 4),
             )?));
         }
-        js_string::from_code_point(&[rt::conversions::i32_to_f64(first)])
-            .map_err(rt::TsonicError::from)
+        js_string::from_code_point::<i32>(&[first]).map_err(rt::TsonicError::from)
     }
 
-    pub fn parse_unicode_code_unit(&mut self) -> Result<i32, rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn parseUnicodeCodeUnit(&mut self) -> Result<i32, rt::TsonicError> {
         if self.index + 4 > self.source.state.with(|state| state.length) {
-            return Err(rt::TsonicError::TsumoError(self.syntax_error(
+            return Err(rt::TsonicError::TsumoError(self.syntaxError(
                 String::from("JSON unicode escapes require four hexadecimal digits"),
                 None,
             )?));
@@ -1770,10 +1986,10 @@ impl JsonParser {
         let mut value: i32 = 0;
         for offset in 0..4 {
             let ch: String =
-                js_string::to_lower_case(&self.source.character_at(self.index + offset));
-            let digit: i32 = crate::utils::strings::index_of_text("0123456789abcdef", ch.clone())?;
+                js_string::to_lower_case(&self.source.characterAt(self.index + offset));
+            let digit: i32 = crate::utils::strings::indexOfText("0123456789abcdef", ch)?;
             if digit < 0 {
-                return Err(rt::TsonicError::TsumoError(self.syntax_error(
+                return Err(rt::TsonicError::TsumoError(self.syntaxError(
                     String::from("JSON unicode escapes require hexadecimal digits"),
                     Some(self.index + offset),
                 )?));
@@ -1788,7 +2004,8 @@ impl JsonParser {
         Ok(value)
     }
 
-    pub fn parse_number(&mut self, line: i32, column: i32) -> Result<JsonNumber, rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn parseNumber(&mut self, line: i32, column: i32) -> Result<JsonNumber, rt::TsonicError> {
         let start: i32 = self.index;
         if self.peek() == "-" {
             {
@@ -1809,14 +2026,14 @@ impl JsonParser {
                     update_next_2
                 }
             };
-            if self.is_digit(self.peek()) {
-                return Err(rt::TsonicError::TsumoError(self.syntax_error(
+            if self.isDigit(self.peek()) {
+                return Err(rt::TsonicError::TsumoError(self.syntaxError(
                     String::from("JSON numbers cannot contain leading zeroes"),
                     None,
                 )?));
             }
         } else {
-            self.consume_digits()?;
+            self.consumeDigits()?;
         }
         if self.peek() == "." {
             {
@@ -1827,7 +2044,7 @@ impl JsonParser {
                     update_next_3
                 }
             };
-            self.consume_digits()?;
+            self.consumeDigits()?;
         }
         let exponent: String = self.peek();
         if exponent == "e" || exponent == "E" {
@@ -1850,12 +2067,12 @@ impl JsonParser {
                     }
                 };
             }
-            self.consume_digits()?;
+            self.consumeDigits()?;
         }
         let raw: String = self.source.slice(start, self.index);
         let value: f64 = js_abi::number_parse_float(&raw);
         if !js_abi::number_is_finite(value) {
-            return Err(rt::TsonicError::TsumoError(self.syntax_error(
+            return Err(rt::TsonicError::TsumoError(self.syntaxError(
                 String::from("JSON number is outside the supported finite range"),
                 Some(start),
             )?));
@@ -1863,9 +2080,10 @@ impl JsonParser {
         JsonNumber::new(value, line, column)
     }
 
-    pub fn consume_digits(&mut self) -> Result<(), rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn consumeDigits(&mut self) -> Result<(), rt::TsonicError> {
         let start: i32 = self.index;
-        while self.is_digit(self.peek()) {
+        while self.isDigit(self.peek()) {
             {
                 let update_previous = self.index;
                 let update_next = update_previous + 1;
@@ -1877,20 +2095,22 @@ impl JsonParser {
         }
         if self.index == start {
             return Err(rt::TsonicError::TsumoError(
-                self.syntax_error(String::from("Expected JSON digit"), None)?,
+                self.syntaxError(String::from("Expected JSON digit"), None)?,
             ));
         }
         Ok(())
     }
 
-    pub fn expect_keyword(&mut self, keyword: String) -> Result<(), rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn expectKeyword(&mut self, keyword: String) -> Result<(), rt::TsonicError> {
+        let keywordLength: i32 = rt::conversions::usize_to_i32(js_string::js_len(&keyword))?;
         {
             let mut offset: i32 = 0;
-            while offset < rt::conversions::usize_to_i32(js_string::js_len(&keyword))? {
-                if self.source.character_at(self.index + offset)
-                    != js_string::char_at(&keyword, rt::conversions::i32_to_f64(offset))?
+            while offset < keywordLength {
+                if self.source.characterAt(self.index + offset)
+                    != js_string::char_at(&keyword, offset)?
                 {
-                    return Err(rt::TsonicError::TsumoError(self.syntax_error(
+                    return Err(rt::TsonicError::TsumoError(self.syntaxError(
                         format!(
                             "{}{}{}",
                             String::from("Invalid JSON keyword; expected '"),
@@ -1905,7 +2125,7 @@ impl JsonParser {
         }
         {
             let field_previous = self.index;
-            let field_value = rt::conversions::usize_to_i32(js_string::js_len(&keyword))?;
+            let field_value = keywordLength;
             self.index = field_previous + field_value
         };
         Ok(())
@@ -1913,7 +2133,7 @@ impl JsonParser {
 
     pub fn expect(&mut self, expected: String) -> Result<(), rt::TsonicError> {
         if self.next()? != expected {
-            return Err(rt::TsonicError::TsumoError(self.syntax_error(
+            return Err(rt::TsonicError::TsumoError(self.syntaxError(
                 format!(
                     "{}{}{}",
                     String::from("Invalid JSON token; expected '"),
@@ -1930,10 +2150,10 @@ impl JsonParser {
     pub fn next(&mut self) -> Result<String, rt::TsonicError> {
         if self.index >= self.source.state.with(|state| state.length) {
             return Err(rt::TsonicError::TsumoError(
-                self.syntax_error(String::from("Unexpected end of JSON"), None)?,
+                self.syntaxError(String::from("Unexpected end of JSON"), None)?,
             ));
         }
-        let ch: String = self.source.character_at(self.index);
+        let ch: String = self.source.characterAt(self.index);
         {
             let update_previous = self.index;
             let update_next = update_previous + 1;
@@ -1949,10 +2169,11 @@ impl JsonParser {
         if self.index >= self.source.state.with(|state| state.length) {
             return String::from("");
         }
-        self.source.character_at(self.index)
+        self.source.characterAt(self.index)
     }
 
-    pub fn skip_whitespace(&mut self) {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn skipWhitespace(&mut self) {
         loop {
             let ch: String = self.peek();
             if ch != " " && ch != "\n" && ch != "\r" && ch != "\t" {
@@ -1969,12 +2190,14 @@ impl JsonParser {
         }
     }
 
-    pub fn is_digit(&self, ch: String) -> bool {
-        crate::utils::strings::compare_text(ch.clone(), String::from("0")) >= 0
-            && crate::utils::strings::compare_text(ch.clone(), String::from("9")) <= 0
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn isDigit(&self, ch: String) -> bool {
+        crate::utils::strings::compareText(ch.clone(), String::from("0")) >= 0
+            && crate::utils::strings::compareText(ch.clone(), String::from("9")) <= 0
     }
 
-    pub fn enter_composite(&mut self, index: i32) -> Result<(), rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn enterComposite(&mut self, index: i32) -> Result<(), rt::TsonicError> {
         {
             let update_previous = self.depth;
             let update_next = update_previous + 1;
@@ -1993,17 +2216,13 @@ impl JsonParser {
         Ok(())
     }
 
-    pub fn line_index_at(&self, index: i32) -> Result<i32, rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn lineIndexAt(&self, index: i32) -> Result<i32, rt::TsonicError> {
         let mut low: i32 = 0;
-        let mut high: i32 = rt::conversions::usize_to_i32(self.line_starts.len())?;
+        let mut high: i32 = rt::conversions::usize_to_i32(self.lineStarts.len())?;
         while low < high {
-            let middle: i32 = rt::conversions::f64_to_i32(
-                low as f64 + rt::conversions::i32_to_f64((high - low) / 2).floor(),
-            )?;
-            if (match self
-                .line_starts
-                .get_number(rt::conversions::i32_to_f64(middle))
-            {
+            let middle: i32 = low + (high - low) / 2;
+            if (match self.lineStarts.get_number(middle) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             }) <= index
@@ -2016,26 +2235,26 @@ impl JsonParser {
         Ok(low - 1)
     }
 
-    pub fn line_at(&self, index: i32) -> Result<i32, rt::TsonicError> {
-        Ok(self.line_index_at(index)? + 1)
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn lineAt(&self, index: i32) -> Result<i32, rt::TsonicError> {
+        Ok(self.lineIndexAt(index)? + 1)
     }
 
-    pub fn column_at(&self, index: i32) -> Result<i32, rt::TsonicError> {
-        let line_index: i32 = self.line_index_at(index)?;
-        Ok(self.source.utf16_offset_at(index)
-            - self.source.utf16_offset_at(
-                match self
-                    .line_starts
-                    .get_number(rt::conversions::i32_to_f64(line_index))
-                {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn columnAt(&self, index: i32) -> Result<i32, rt::TsonicError> {
+        let lineIndex: i32 = self.lineIndexAt(index)?;
+        Ok(self.source.utf16OffsetAt(index)
+            - self
+                .source
+                .utf16OffsetAt(match self.lineStarts.get_number(lineIndex) {
                     Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
-                },
-            )
+                })
             + 1)
     }
 
-    pub fn syntax_error(
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn syntaxError(
         &self,
         message: String,
         index: Option<i32>,
@@ -2053,21 +2272,23 @@ impl JsonParser {
         message: String,
         index: i32,
     ) -> Result<crate::diagnostics::TsumoError, rt::TsonicError> {
-        crate::diagnostics::create_tsumo_error(
+        crate::diagnostics::createTsumoError(
             code,
             message,
-            self.source_path.clone(),
-            Some(rt::conversions::i32_to_f64(self.line_at(index)?)),
-            Some(rt::conversions::i32_to_f64(self.column_at(index)?)),
+            self.sourcePath.clone(),
+            Some(self.lineAt(index)?),
+            Some(self.columnAt(index)?),
         )
     }
 }
 
-pub fn parse_json(text: String, source_path: Option<String>) -> Result<JsonValue, rt::TsonicError> {
-    JsonParser::new(text, source_path)?.parse()
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseJson(text: String, sourcePath: Option<String>) -> Result<JsonValue, rt::TsonicError> {
+    JsonParser::new(text, sourcePath)?.parse()
 }
 
-pub fn json_string(value: Option<JsonValue>) -> Option<String> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn jsonString(value: Option<JsonValue>) -> Option<String> {
     if value.as_ref().is_some_and(|value| {
         value
             .dispatch
@@ -2096,7 +2317,8 @@ pub fn json_string(value: Option<JsonValue>) -> Option<String> {
     }
 }
 
-pub fn json_bool(value: Option<JsonValue>) -> Option<bool> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn jsonBool(value: Option<JsonValue>) -> Option<bool> {
     if value.as_ref().is_some_and(|value| {
         value
             .dispatch
@@ -2125,7 +2347,8 @@ pub fn json_bool(value: Option<JsonValue>) -> Option<bool> {
     }
 }
 
-pub fn json_number(value: Option<JsonValue>) -> Option<f64> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn jsonNumber(value: Option<JsonValue>) -> Option<f64> {
     if value.as_ref().is_some_and(|value| {
         value
             .dispatch
@@ -2154,7 +2377,8 @@ pub fn json_number(value: Option<JsonValue>) -> Option<f64> {
     }
 }
 
-pub fn json_array(value: Option<JsonValue>) -> Option<JsonArray> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn jsonArray(value: Option<JsonValue>) -> Option<JsonArray> {
     if value.as_ref().is_some_and(|value| {
         value
             .dispatch
@@ -2180,7 +2404,8 @@ pub fn json_array(value: Option<JsonValue>) -> Option<JsonArray> {
     }
 }
 
-pub fn json_object(value: Option<JsonValue>) -> Option<JsonObject> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn jsonObject(value: Option<JsonValue>) -> Option<JsonObject> {
     if value.as_ref().is_some_and(|value| {
         value
             .dispatch
@@ -2204,4 +2429,193 @@ pub fn json_object(value: Option<JsonValue>) -> Option<JsonObject> {
     } else {
         Option::<JsonObject>::None
     }
+}
+
+pub struct JsonNullClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for JsonNullClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for JsonNullClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for JsonNullClass {}
+
+pub struct JsonBoolClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for JsonBoolClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for JsonBoolClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for JsonBoolClass {}
+
+pub struct JsonNumberClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for JsonNumberClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for JsonNumberClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for JsonNumberClass {}
+
+pub struct JsonStringClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for JsonStringClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for JsonStringClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for JsonStringClass {}
+
+pub struct JsonArrayClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for JsonArrayClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for JsonArrayClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for JsonArrayClass {}
+
+pub struct JsonObjectClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for JsonObjectClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for JsonObjectClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for JsonObjectClass {}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = {
+            alloc::rc::Rc::new(JsonNullClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        JSON_NULL_CLASS_ENVIRONMENT.with(|module_binding| module_binding.initialize(module_value))
+    };
+    {
+        let module_value_2 = {
+            alloc::rc::Rc::new(JsonBoolClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        JSON_BOOL_CLASS_ENVIRONMENT
+            .with(|module_binding_2| module_binding_2.initialize(module_value_2))
+    };
+    {
+        let module_value_3 = {
+            alloc::rc::Rc::new(JsonNumberClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        JSON_NUMBER_CLASS_ENVIRONMENT
+            .with(|module_binding_3| module_binding_3.initialize(module_value_3))
+    };
+    {
+        let module_value_4 = {
+            alloc::rc::Rc::new(JsonStringClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        JSON_STRING_CLASS_ENVIRONMENT
+            .with(|module_binding_4| module_binding_4.initialize(module_value_4))
+    };
+    {
+        let module_value_5 = {
+            alloc::rc::Rc::new(JsonArrayClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        JSON_ARRAY_CLASS_ENVIRONMENT
+            .with(|module_binding_5| module_binding_5.initialize(module_value_5))
+    };
+    {
+        let module_value_6 = {
+            alloc::rc::Rc::new(JsonObjectClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        JSON_OBJECT_CLASS_ENVIRONMENT
+            .with(|module_binding_6| module_binding_6.initialize(module_value_6))
+    };
 }

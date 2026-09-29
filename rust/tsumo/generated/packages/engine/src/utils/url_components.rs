@@ -3,10 +3,12 @@
 use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
-pub fn encode_url_component(value: String) -> String {
-    js_abi::encode_uri_component(&value)
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn encodeUrlComponent(value: &str) -> String {
+    js_abi::encode_uri_component(value)
 }
 
-pub fn decode_url_component(value: String) -> Result<String, rt::TsonicError> {
-    js_abi::decode_uri_component(&value).map_err(rt::TsonicError::from)
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn decodeUrlComponent(value: &str) -> Result<String, rt::TsonicError> {
+    js_abi::decode_uri_component(value).map_err(rt::TsonicError::from)
 }

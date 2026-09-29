@@ -5,6 +5,9 @@ use tsonic_rust_js::abi as js_abi;
 
 #[doc(hidden)]
 pub trait PageContextDispatch {
+    fn project_page_context(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_page_context_to_page_context(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn PageContextDispatch + 'static>> {
@@ -114,6 +117,7 @@ pub trait PageContextDispatch {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct PageContextState {
     pub title: String,
     pub date: String,
@@ -123,26 +127,26 @@ pub struct PageContextState {
     pub section: String,
     pub r#type: String,
     pub slug: String,
-    pub rel_permalink: String,
+    pub relPermalink: String,
     pub plain: String,
-    pub table_of_contents: crate::utils::html::HtmlString,
+    pub tableOfContents: crate::utils::html::HtmlString,
     pub content: crate::utils::html::HtmlString,
     pub summary: crate::utils::html::HtmlString,
     pub description: String,
     pub tags: js_abi::JsArray<String>,
     pub categories: js_abi::JsArray<String>,
-    pub params: js_abi::JsMap<String, crate::params::ParamValue>,
-    pub file: Option<crate::models::page_file::PageFile>,
-    pub language: crate::models::language::LanguageContext,
-    pub translations: js_abi::JsArray<PageContext>,
+    pub Params: js_abi::JsMap<String, crate::params::ParamValue>,
+    pub File: Option<crate::models::page_file::PageFile>,
+    pub Language: crate::models::language::LanguageContext,
+    pub Translations: js_abi::JsArray<PageContext>,
     pub store: Option<crate::template::values::scratch::ScratchStore>,
     pub site: crate::models::site_context::SiteContext,
     pub pages: js_abi::JsArray<PageContext>,
     pub layout: Option<String>,
     pub parent: Option<PageContext>,
     pub ancestors: js_abi::JsArray<PageContext>,
-    pub resource_source_dir: Option<String>,
-    pub shortcode_names: js_abi::JsMap<String, bool>,
+    pub resourceSourceDir: Option<String>,
+    pub shortcodeNames: js_abi::JsMap<String, bool>,
 }
 
 #[derive(Clone)]
@@ -180,6 +184,7 @@ pub(crate) struct PageContextRoot {
 
 impl PageContext {
     #[doc(hidden)]
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     pub fn initialize_state(
         title: String,
@@ -190,15 +195,15 @@ impl PageContext {
         section: String,
         r#type: String,
         slug: String,
-        rel_permalink: String,
+        relPermalink: String,
         plain: String,
-        table_of_contents: crate::utils::html::HtmlString,
+        tableOfContents: crate::utils::html::HtmlString,
         content: crate::utils::html::HtmlString,
         summary: crate::utils::html::HtmlString,
         description: String,
         tags: js_abi::JsArray<String>,
         categories: js_abi::JsArray<String>,
-        params: js_abi::JsMap<String, crate::params::ParamValue>,
+        Params: js_abi::JsMap<String, crate::params::ParamValue>,
         file: Option<crate::models::page_file::PageFile>,
         language: crate::models::language::LanguageContext,
         translations: js_abi::JsArray<PageContext>,
@@ -217,15 +222,15 @@ impl PageContext {
         let field_section: String = section;
         let field_type: String = r#type;
         let field_slug: String = slug;
-        let field_rel_permalink: String = rel_permalink;
+        let field_rel_permalink: String = relPermalink;
         let field_plain: String = plain;
-        let field_table_of_contents: crate::utils::html::HtmlString = table_of_contents;
+        let field_table_of_contents: crate::utils::html::HtmlString = tableOfContents;
         let field_content: crate::utils::html::HtmlString = content;
         let field_summary: crate::utils::html::HtmlString = summary;
         let field_description: String = description;
         let field_tags: js_abi::JsArray<String> = tags;
         let field_categories: js_abi::JsArray<String> = categories;
-        let field_params: js_abi::JsMap<String, crate::params::ParamValue> = params;
+        let field_params: js_abi::JsMap<String, crate::params::ParamValue> = Params;
         let field_file: Option<crate::models::page_file::PageFile> = file;
         let field_language: crate::models::language::LanguageContext = language;
         let field_translations: js_abi::JsArray<PageContext> = translations;
@@ -246,29 +251,30 @@ impl PageContext {
             section: field_section,
             r#type: field_type,
             slug: field_slug,
-            rel_permalink: field_rel_permalink,
+            relPermalink: field_rel_permalink,
             plain: field_plain,
-            table_of_contents: field_table_of_contents,
+            tableOfContents: field_table_of_contents,
             content: field_content,
             summary: field_summary,
             description: field_description,
             tags: field_tags,
             categories: field_categories,
-            params: field_params,
-            file: field_file,
-            language: field_language,
-            translations: field_translations,
+            Params: field_params,
+            File: field_file,
+            Language: field_language,
+            Translations: field_translations,
             store: field_store,
             site: field_site,
             pages: field_pages,
             layout: field_layout,
             parent: field_parent,
             ancestors: field_ancestors,
-            resource_source_dir: field_resource_source_dir,
-            shortcode_names: field_shortcode_names,
+            resourceSourceDir: field_resource_source_dir,
+            shortcodeNames: field_shortcode_names,
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     pub fn new(
         title: String,
@@ -279,15 +285,15 @@ impl PageContext {
         section: String,
         r#type: String,
         slug: String,
-        rel_permalink: String,
+        relPermalink: String,
         plain: String,
-        table_of_contents: crate::utils::html::HtmlString,
+        tableOfContents: crate::utils::html::HtmlString,
         content: crate::utils::html::HtmlString,
         summary: crate::utils::html::HtmlString,
         description: String,
         tags: js_abi::JsArray<String>,
         categories: js_abi::JsArray<String>,
-        params: js_abi::JsMap<String, crate::params::ParamValue>,
+        Params: js_abi::JsMap<String, crate::params::ParamValue>,
         file: Option<crate::models::page_file::PageFile>,
         language: crate::models::language::LanguageContext,
         translations: js_abi::JsArray<PageContext>,
@@ -307,15 +313,15 @@ impl PageContext {
             section,
             r#type,
             slug,
-            rel_permalink,
+            relPermalink,
             plain,
-            table_of_contents,
+            tableOfContents,
             content,
             summary,
             description,
             tags,
             categories,
-            params,
+            Params,
             file,
             language,
             translations,
@@ -338,7 +344,24 @@ impl PageContext {
     }
 }
 
+impl rt::ObjectIdentityCarrier for PageContextRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl PageContextDispatch for PageContextRoot {
+    fn project_page_context(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn PageContextDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_page_context_to_page_context(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn PageContextDispatch + 'static>> {
@@ -458,14 +481,14 @@ impl PageContextDispatch for PageContextRoot {
     }
 
     fn read_page_context_rel_permalink(&self) -> String {
-        self.state.with(|state| state.rel_permalink.clone())
+        self.state.with(|state| state.relPermalink.clone())
     }
 
     fn write_page_context_rel_permalink(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.rel_permalink = value)
+                self.state.with_mut(|state| state.relPermalink = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -486,7 +509,7 @@ impl PageContextDispatch for PageContextRoot {
     }
 
     fn read_page_context_table_of_contents(&self) -> crate::utils::html::HtmlString {
-        self.state.with(|state| state.table_of_contents.clone())
+        self.state.with(|state| state.tableOfContents.clone())
     }
 
     fn write_page_context_table_of_contents(
@@ -496,7 +519,7 @@ impl PageContextDispatch for PageContextRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.table_of_contents = value)
+                self.state.with_mut(|state| state.tableOfContents = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -585,7 +608,7 @@ impl PageContextDispatch for PageContextRoot {
     }
 
     fn read_page_context_params(&self) -> js_abi::JsMap<String, crate::params::ParamValue> {
-        self.state.with(|state| state.params.clone())
+        self.state.with(|state| state.Params.clone())
     }
 
     fn write_page_context_params(
@@ -595,14 +618,14 @@ impl PageContextDispatch for PageContextRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.params = value)
+                self.state.with_mut(|state| state.Params = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_page_context_file(&self) -> Option<crate::models::page_file::PageFile> {
-        self.state.with(|state| state.file.clone())
+        self.state.with(|state| state.File.clone())
     }
 
     fn write_page_context_file(
@@ -612,14 +635,14 @@ impl PageContextDispatch for PageContextRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.file = value)
+                self.state.with_mut(|state| state.File = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_page_context_language(&self) -> crate::models::language::LanguageContext {
-        self.state.with(|state| state.language.clone())
+        self.state.with(|state| state.Language.clone())
     }
 
     fn write_page_context_language(
@@ -629,14 +652,14 @@ impl PageContextDispatch for PageContextRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.language = value)
+                self.state.with_mut(|state| state.Language = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_page_context_translations(&self) -> js_abi::JsArray<PageContext> {
-        self.state.with(|state| state.translations.clone())
+        self.state.with(|state| state.Translations.clone())
     }
 
     fn write_page_context_translations(
@@ -646,7 +669,7 @@ impl PageContextDispatch for PageContextRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.translations = value)
+                self.state.with_mut(|state| state.Translations = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -749,7 +772,7 @@ impl PageContextDispatch for PageContextRoot {
     }
 
     fn read_page_context_resource_source_dir(&self) -> Option<String> {
-        self.state.with(|state| state.resource_source_dir.clone())
+        self.state.with(|state| state.resourceSourceDir.clone())
     }
 
     fn write_page_context_resource_source_dir(
@@ -759,15 +782,14 @@ impl PageContextDispatch for PageContextRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state
-                    .with_mut(|state| state.resource_source_dir = value)
+                self.state.with_mut(|state| state.resourceSourceDir = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_page_context_shortcode_names(&self) -> js_abi::JsMap<String, bool> {
-        self.state.with(|state| state.shortcode_names.clone())
+        self.state.with(|state| state.shortcodeNames.clone())
     }
 
     fn write_page_context_shortcode_names(
@@ -777,7 +799,7 @@ impl PageContextDispatch for PageContextRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.shortcode_names = value)
+                self.state.with_mut(|state| state.shortcodeNames = value)
             };
             Ok::<_, rt::TsonicError>(())
         }

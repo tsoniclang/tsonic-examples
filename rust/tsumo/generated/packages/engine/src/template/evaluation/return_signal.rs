@@ -2,6 +2,10 @@
 
 use crate::program as rt;
 
+std::thread_local! {
+    pub static TEMPLATE_RETURN_SIGNAL_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<TemplateReturnSignalClass>> = const { rt::ModuleCell::new() };
+}
+
 #[doc(hidden)]
 pub trait TemplateReturnSignalDispatch {
     fn downcast_template_return_signal_to_template_return_signal(
@@ -100,6 +104,12 @@ impl TemplateReturnSignal {
     }
 }
 
+impl rt::ObjectIdentityCarrier for TemplateReturnSignalRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl TemplateReturnSignalDispatch for TemplateReturnSignalRoot {
     fn downcast_template_return_signal_to_template_return_signal(
         self: alloc::rc::Rc<Self>,
@@ -170,4 +180,39 @@ impl rt::ToSourceString for TemplateReturnSignal {
     fn to_source_string(&self) -> String {
         self.to_string()
     }
+}
+
+pub struct TemplateReturnSignalClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for TemplateReturnSignalClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for TemplateReturnSignalClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for TemplateReturnSignalClass {}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = {
+            alloc::rc::Rc::new(TemplateReturnSignalClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        TEMPLATE_RETURN_SIGNAL_CLASS_ENVIRONMENT
+            .with(|module_binding| module_binding.initialize(module_value))
+    };
 }

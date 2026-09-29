@@ -3,6 +3,10 @@
 use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
+std::thread_local! {
+    pub static STRING_ARRAY_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<StringArrayValueClass>> = const { rt::ModuleCell::new() };
+}
+
 #[doc(hidden)]
 pub trait StringArrayValueDispatch: crate::template::values::base::TemplateValueDispatch {
     fn downcast_string_array_value_to_string_array_value(
@@ -90,7 +94,30 @@ impl StringArrayValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for StringArrayValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for StringArrayValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn StringArrayValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_string_array_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn StringArrayValueDispatch + 'static>> {
@@ -135,6 +162,10 @@ impl StringArrayValueDispatch for StringArrayValueRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+std::thread_local! {
+    pub static ANY_ARRAY_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<AnyArrayValueClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -231,7 +262,30 @@ impl AnyArrayValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for AnyArrayValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for AnyArrayValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn AnyArrayValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_any_array_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn AnyArrayValueDispatch + 'static>> {
@@ -278,4 +332,70 @@ impl AnyArrayValueDispatch for AnyArrayValueRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+pub struct StringArrayValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for StringArrayValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for StringArrayValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for StringArrayValueClass {}
+
+pub struct AnyArrayValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for AnyArrayValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for AnyArrayValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for AnyArrayValueClass {}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = {
+            alloc::rc::Rc::new(StringArrayValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        STRING_ARRAY_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding| module_binding.initialize(module_value))
+    };
+    {
+        let module_value_2 = {
+            alloc::rc::Rc::new(AnyArrayValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        ANY_ARRAY_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding_2| module_binding_2.initialize(module_value_2))
+    };
 }

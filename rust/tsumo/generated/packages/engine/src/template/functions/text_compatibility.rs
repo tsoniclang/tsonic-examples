@@ -4,7 +4,49 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn create_emoji_shortcodes() -> js_abi::JsMap<String, String> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn plainifyText(input: &str) -> Result<String, rt::TsonicError> {
+    let result: crate::utils::text_builder::TextBuilder =
+        crate::utils::text_builder::TextBuilder::new();
+    let textLength: i32 = rt::conversions::usize_to_i32(js_string::js_len(input))?;
+    let mut inTag: bool = false;
+    {
+        let mut index: i32 = 0;
+        'loop_value: while index < textLength {
+            let character: String = crate::utils::strings::codePointAtText(input, index)?;
+            if character == "<" {
+                inTag = true;
+                index = crate::utils::strings::nextCodePointIndex(input, index)?;
+                continue 'loop_value;
+            }
+            if character == ">" {
+                inTag = false;
+                index = crate::utils::strings::nextCodePointIndex(input, index)?;
+                continue 'loop_value;
+            }
+            if !inTag {
+                {
+                    let dispatch_receiver = result.clone();
+                    dispatch_receiver
+                        .dispatch
+                        .clone()
+                        .dispatch_text_builder_append(character)
+                };
+            }
+            index = crate::utils::strings::nextCodePointIndex(input, index)?;
+        }
+    }
+    Ok({
+        let dispatch_receiver_2 = result.clone();
+        dispatch_receiver_2
+            .dispatch
+            .clone()
+            .dispatch_text_builder_to_string()
+    })
+}
+
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn createEmojiShortcodes() -> js_abi::JsMap<String, String> {
     let result: js_abi::JsMap<String, String> = js_abi::JsMap::new();
     result.set_discard(String::from("heart"), String::from("❤️"));
     result.set_discard(String::from("red_heart"), String::from("❤️"));
@@ -21,27 +63,31 @@ pub fn create_emoji_shortcodes() -> js_abi::JsMap<String, String> {
 }
 
 std::thread_local! {
-    pub static EMOJI_BY_SHORTCODE: rt::ModuleCell<js_abi::JsMap<String, String>> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub static emojiByShortcode: rt::ModuleCell<js_abi::JsMap<String, String>> = const { rt::ModuleCell::new() };
 }
 
-pub fn is_ascii_letter_or_digit(character: &str) -> bool {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isAsciiLetterOrDigit(character: &str) -> bool {
     let code: f64 = js_string::char_code_at(character, 0.0);
     (48.0..=57.0).contains(&code) || (65.0..=90.0).contains(&code) || (97.0..=122.0).contains(&code)
 }
 
-pub fn is_ascii_whitespace(character: &str) -> bool {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isAsciiWhitespace(character: &str) -> bool {
     character == " " || character == "\t" || character == "\n" || character == "\r"
 }
 
-pub fn anchorize_text(input: &str) -> String {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn anchorizeText(input: &str) -> String {
     let lower: String = js_string::to_lower_case(input);
     let result: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     'loop_value: for character in js_abi::NativeStringIterator::new(lower.clone()) {
-        if is_ascii_whitespace(&character) {
+        if isAsciiWhitespace(&character) {
             result.push_many_discard([String::from("-")]);
             continue 'loop_value;
         }
-        if is_ascii_letter_or_digit(&character)
+        if isAsciiLetterOrDigit(&character)
             || character == "-"
             || character == "_"
             || js_string::char_code_at(&character, 0.0) >= 128.0
@@ -52,65 +98,35 @@ pub fn anchorize_text(input: &str) -> String {
     result.join("")
 }
 
-pub fn emojify_text(input: &str) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn emojifyText(input: &str) -> Result<String, rt::TsonicError> {
     let result: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     let mut cursor: f64 = 0.0;
-    'loop_value: while cursor < (rt::conversions::usize_to_i32(js_string::js_len(input))? as f64) {
-        let opening: i32 = rt::conversions::isize_to_i32(js_string::index_of(input, ":", cursor))?;
+    'loop_value: while cursor < (js_string::js_len(input) as f64) {
+        let opening: isize = js_string::index_of(input, ":", cursor);
         if opening < 0 {
-            {
-                let operation_input_0 = result.clone();
-                operation_input_0.push_many_discard([js_string::substring_from(input, cursor)?])
-            };
+            result.push_many_discard([js_string::substring_from(input, cursor)?]);
             break 'loop_value;
         }
-        {
-            let operation_input_0_2 = result.clone();
-            operation_input_0_2.push_many_discard([js_string::substring(
-                input,
-                cursor,
-                rt::conversions::i32_to_f64(opening),
-            )?])
-        };
-        let closing: i32 = rt::conversions::isize_to_i32(js_string::index_of(
-            input,
-            ":",
-            rt::conversions::i32_to_f64(opening + 1),
-        ))?;
+        result.push_many_discard([js_string::substring(input, cursor, opening)?]);
+        let closing: isize = js_string::index_of(input, ":", opening + 1);
         if closing < 0 {
-            {
-                let operation_input_0_3 = result.clone();
-                operation_input_0_3.push_many_discard([js_string::substring_from(
-                    input,
-                    rt::conversions::i32_to_f64(opening),
-                )?])
-            };
+            result.push_many_discard([js_string::substring_from(input, opening)?]);
             break 'loop_value;
         }
-        let shortcode: String = js_string::substring(
-            input,
-            rt::conversions::i32_to_f64(opening + 1),
-            rt::conversions::i32_to_f64(closing),
-        )?;
-        let emoji: Option<String> = EMOJI_BY_SHORTCODE
+        let shortcode: String = js_string::substring(input, opening + 1, closing)?;
+        let emoji: Option<String> = emojiByShortcode
             .with(|module_binding| module_binding.load())
             .get(&shortcode);
         if emoji.is_none() {
-            {
-                let operation_input_0_4 = result.clone();
-                operation_input_0_4.push_many_discard([js_string::substring(
-                    input,
-                    rt::conversions::i32_to_f64(opening),
-                    rt::conversions::i32_to_f64(closing + 1),
-                )?])
-            };
+            result.push_many_discard([js_string::substring(input, opening, closing + 1)?]);
         } else {
             result.push_many_discard([match emoji.as_ref() {
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             }]);
         }
-        cursor = rt::conversions::i32_to_f64(closing + 1);
+        cursor = (closing + 1) as f64;
     }
     Ok(result.join(""))
 }
@@ -118,7 +134,7 @@ pub fn emojify_text(input: &str) -> Result<String, rt::TsonicError> {
 #[doc(hidden)]
 pub fn module_init() {
     {
-        let module_value = create_emoji_shortcodes();
-        EMOJI_BY_SHORTCODE.with(|module_binding| module_binding.initialize(module_value))
+        let module_value = createEmojiShortcodes();
+        emojiByShortcode.with(|module_binding| module_binding.initialize(module_value))
     };
 }

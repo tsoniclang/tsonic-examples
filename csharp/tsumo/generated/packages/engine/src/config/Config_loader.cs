@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Config_loader
@@ -28,7 +26,7 @@ namespace Tsumo.Engine
             Tsonic.CSharp.Js.JSArray<string> moduleFiles = Tsonic.CSharp.Js.JSArray<string>.of([]);
             Tsonic.CSharp.Js.JSArray<string> otherFiles = Tsonic.CSharp.Js.JSArray<string>.of([]);
             Tsonic.CSharp.Js.Set<string> fileNames = new Tsonic.CSharp.Js.Set<string>();
-            for (double i_1 = 0; i_1 < files.length; i_1++)
+            for (int i_1 = 0; i_1 < files.length; i_1++)
             {
                 string filePath = files[i_1];
                 string name = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Node.path.basename(filePath));
@@ -93,7 +91,7 @@ namespace Tsumo.Engine
                 throw Diagnostics.createTsumoError("TSUMO_CONFIG_FILE_AMBIGUOUS", "Split configuration accepts at most one module configuration file", configDir);
             }
             double aggregateLanguageFiles = 0;
-            for (double i_2 = 0; i_2 < langFiles.length; i_2++)
+            for (int i_2 = 0; i_2 < langFiles.length; i_2++)
             {
                 if (Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Node.path.basename(langFiles[i_2])) == "languages.toml")
                 {
@@ -104,41 +102,41 @@ namespace Tsumo.Engine
             {
                 throw Diagnostics.createTsumoError("TSUMO_CONFIG_FILE_AMBIGUOUS", "Split configuration accepts at most one aggregate language configuration file", configDir);
             }
-            for (double i_3 = 0; i_3 < baseFiles.length; i_3++)
+            for (int i_3 = 0; i_3 < baseFiles.length; i_3++)
             {
                 sortedFiles.push(baseFiles[i_3]);
             }
-            for (double i_4 = 0; i_4 < paramFiles.length; i_4++)
+            for (int i_4 = 0; i_4 < paramFiles.length; i_4++)
             {
                 sortedFiles.push(paramFiles[i_4]);
             }
-            for (double i_5 = 0; i_5 < langFiles.length; i_5++)
+            for (int i_5 = 0; i_5 < langFiles.length; i_5++)
             {
                 if (Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Node.path.basename(langFiles[i_5])) == "languages.toml")
                 {
                     sortedFiles.push(langFiles[i_5]);
                 }
             }
-            for (double i_6 = 0; i_6 < langFiles.length; i_6++)
+            for (int i_6 = 0; i_6 < langFiles.length; i_6++)
             {
                 if (Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Node.path.basename(langFiles[i_6])) != "languages.toml")
                 {
                     sortedFiles.push(langFiles[i_6]);
                 }
             }
-            for (double i_7 = 0; i_7 < menuFiles.length; i_7++)
+            for (int i_7 = 0; i_7 < menuFiles.length; i_7++)
             {
                 sortedFiles.push(menuFiles[i_7]);
             }
-            for (double i_8 = 0; i_8 < moduleFiles.length; i_8++)
+            for (int i_8 = 0; i_8 < moduleFiles.length; i_8++)
             {
                 sortedFiles.push(moduleFiles[i_8]);
             }
-            for (double i_9 = 0; i_9 < otherFiles.length; i_9++)
+            for (int i_9 = 0; i_9 < otherFiles.length; i_9++)
             {
                 sortedFiles.push(otherFiles[i_9]);
             }
-            for (double i_10 = 0; i_10 < sortedFiles.length; i_10++)
+            for (int i_10 = 0; i_10 < sortedFiles.length; i_10++)
             {
                 string filePath_1 = sortedFiles[i_10];
                 string fileName = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Node.path.basename(filePath_1));
@@ -161,11 +159,24 @@ namespace Tsumo.Engine
             }
             return config;
         }
-        public static Func<string, LoadedConfig> loadSiteConfig
+        public static LoadedConfig loadSiteConfig(string siteDir)
         {
-            get;
-            private set;
-        } = default(Func<string, LoadedConfig>)!;
+            string splitConfigDir = Tsonic.CSharp.Node.path.join(siteDir, "config", "_default");
+            if (Fs.dirExists(splitConfigDir))
+            {
+                return new LoadedConfig(splitConfigDir, loadSplitConfig(splitConfigDir));
+            }
+            Tsonic.CSharp.Js.JSArray<string> candidates = Tsonic.CSharp.Js.JSArray<string>.of([Tsonic.CSharp.Node.path.join(siteDir, "hugo.toml"), Tsonic.CSharp.Node.path.join(siteDir, "hugo.yaml"), Tsonic.CSharp.Node.path.join(siteDir, "hugo.yml"), Tsonic.CSharp.Node.path.join(siteDir, "hugo.json"), Tsonic.CSharp.Node.path.join(siteDir, "config.toml"), Tsonic.CSharp.Node.path.join(siteDir, "config.yaml"), Tsonic.CSharp.Node.path.join(siteDir, "config.yml"), Tsonic.CSharp.Node.path.join(siteDir, "config.json")]);
+            string? path = Config_helpers.tryGetFirstExisting(candidates);
+            if (path is null)
+            {
+                return new LoadedConfig(null, new SiteConfig("Tsumo Site", "", "en-us", null, null));
+            }
+            string text = Fs.readTextFile(path);
+            string lower = Tsonic.CSharp.Js.String.toLowerCase(path);
+            SiteConfig parsedConfig = Tsonic.CSharp.Js.String.endsWith(lower, ".toml") ? Config_toml.parseTomlConfig(text, path) : Tsonic.CSharp.Js.String.endsWith(lower, ".json") ? Config_json.parseJsonConfig(text, path) : Config_yaml.parseYamlConfig(text, path);
+            return new LoadedConfig(path, parsedConfig);
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
@@ -176,24 +187,6 @@ namespace Tsumo.Engine
             Config_toml.__tsonic_module_init();
             Config_yaml.__tsonic_module_init();
             Config_json.__tsonic_module_init();
-            loadSiteConfig = (string siteDir) =>
-            {
-                string splitConfigDir = Tsonic.CSharp.Node.path.join(siteDir, "config", "_default");
-                if (Fs.dirExists(splitConfigDir))
-                {
-                    return new LoadedConfig(splitConfigDir, loadSplitConfig(splitConfigDir));
-                }
-                Tsonic.CSharp.Js.JSArray<string> candidates = Tsonic.CSharp.Js.JSArray<string>.of([Tsonic.CSharp.Node.path.join(siteDir, "hugo.toml"), Tsonic.CSharp.Node.path.join(siteDir, "hugo.yaml"), Tsonic.CSharp.Node.path.join(siteDir, "hugo.yml"), Tsonic.CSharp.Node.path.join(siteDir, "hugo.json"), Tsonic.CSharp.Node.path.join(siteDir, "config.toml"), Tsonic.CSharp.Node.path.join(siteDir, "config.yaml"), Tsonic.CSharp.Node.path.join(siteDir, "config.yml"), Tsonic.CSharp.Node.path.join(siteDir, "config.json")]);
-                string? path = Config_helpers.tryGetFirstExisting(candidates);
-                if (path is null)
-                {
-                    return new LoadedConfig(null, new SiteConfig("Tsumo Site", "", "en-us", null, null));
-                }
-                string text = Fs.readTextFile(path);
-                string lower = Tsonic.CSharp.Js.String.toLowerCase(path);
-                SiteConfig parsedConfig = Tsonic.CSharp.Js.String.endsWith(lower, ".toml") ? Config_toml.parseTomlConfig(text, path) : Tsonic.CSharp.Js.String.endsWith(lower, ".json") ? Config_json.parseJsonConfig(text, path) : Config_yaml.parseYamlConfig(text, path);
-                return new LoadedConfig(path, parsedConfig);
-            };
             return null;
         }
         public static void __tsonic_module_init()

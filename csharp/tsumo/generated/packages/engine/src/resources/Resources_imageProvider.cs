@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Resources_imageProvider
@@ -63,7 +61,9 @@ namespace Tsumo.Engine
                 throw Diagnostics.createTsumoError("TSUMO_IMAGE_RESIZE_SPEC_INVALID", $"Invalid image resize specification: {spec}");
             }
             string? format = null;
+            #pragma warning disable CS0162
             for (double index = 1; index < tokens.length; index++)
+            #pragma warning restore CS0162
             {
                 string token = tokens[index];
                 if (token == "jpg" || token == "jpeg" || token == "png" || token == "gif" || token == "webp")
@@ -79,11 +79,72 @@ namespace Tsumo.Engine
             }
             return new ImageResizeRequest(width, height, format);
         }
-        public static Func<Resource, string, Resource> resizeImageResource
+        public static Resource resizeImageResource(Resource resource, string specification)
         {
-            get;
-            private set;
-        } = default(Func<Resource, string, Resource>)!;
+            ImageResizeRequest request = parseImageResizeRequest(specification);
+            int width = request.width;
+            int height = request.height;
+            if (width == 0 && resource.width > 0 && resource.height > 0)
+            {
+                width = (resource.width * height) / resource.height;
+            }
+            else
+            {
+                if (height == 0 && resource.width > 0 && resource.height > 0)
+                {
+                    height = (resource.height * width) / resource.width;
+                }
+            }
+            if (width <= 0 || height <= 0)
+            {
+                throw Diagnostics.createTsumoError("TSUMO_IMAGE_DIMENSIONS_UNKNOWN", "Image resizing with one automatic dimension requires known source dimensions");
+            }
+            string sourceName = resource.outputRelPath ?? resource.sourcePath ?? "";
+            string sourceExtension = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Node.path.extname(sourceName));
+            if (sourceExtension == "")
+            {
+                throw Diagnostics.createTsumoError("TSUMO_IMAGE_FORMAT_UNKNOWN", "Image resizing requires a source file format");
+            }
+            string outputExtension = request.format is null ? sourceExtension : $".{request.format}";
+            string workDirectory = Tsonic.CSharp.Node.fs.mkdtempSync(Tsonic.CSharp.Node.path.join(Tsonic.CSharp.Node.os.tmpdir(), "tsumo-image-"));
+            try
+            {
+                string inputPath = Tsonic.CSharp.Node.path.join(workDirectory, "input" + sourceExtension);
+                string outputPath = Tsonic.CSharp.Node.path.join(workDirectory, "output" + outputExtension);
+                Tsonic.CSharp.Node.fs.writeFileSync(inputPath, resource.bytes);
+                ensureImageCodecsRegistered();
+                PhotoSauce.MagicScaler.ProcessImageSettings settings = new PhotoSauce.MagicScaler.ProcessImageSettings();
+                settings.Width = width;
+                settings.Height = height;
+                if (request.format is not null)
+                {
+                    settings.TrySetEncoderFormat(outputExtension);
+                }
+                PhotoSauce.MagicScaler.MagicImageProcessor.ProcessImage(inputPath, outputPath, settings);
+                Tsonic.CSharp.Node.Buffer outputBytes = Tsonic.CSharp.Node.fs.readFileSync(outputPath);
+                int outputWidth = width;
+                int outputHeight = height;
+                ImageDimensions? dimensions = Resources_imageDimensions.parseImageDimensions(outputBytes);
+                if (dimensions is not null)
+                {
+                    outputWidth = dimensions.width;
+                    outputHeight = dimensions.height;
+                }
+                string outputRelPath = resource.outputRelPath ?? "";
+                ResourcePathParts path = Resources_paths.splitResourcePath(outputRelPath);
+                ResourceFileNameParts file = Resources_paths.splitResourceFileName(path.fileName);
+                string outputFile = $"{file.baseName}_{outputWidth}x{outputHeight}{outputExtension}";
+                return new Resource($"{resource.id}|resize:{specification}", null, true, path.directory + outputFile, outputBytes, null, new ResourceData(""), Resources_mediaTypes.resourceMediaTypeForExtension(outputExtension), outputWidth, outputHeight);
+            }
+            finally
+            {
+                Tsonic.CSharp.Node.fs.rmSync(workDirectory, new Tsonic.CSharp.Node.RmOptions
+                {
+                    recursive = true,
+                    force = true,
+                });
+            }
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
@@ -92,72 +153,6 @@ namespace Tsumo.Engine
             Resources_mediaTypes.__tsonic_module_init();
             Resources_paths.__tsonic_module_init();
             imageCodecsRegistered = false;
-            resizeImageResource = (Resource resource, string specification) =>
-            {
-                ImageResizeRequest request = parseImageResizeRequest(specification);
-                int width = request.width;
-                int height = request.height;
-                if (width == 0 && resource.width > 0 && resource.height > 0)
-                {
-                    width = (resource.width * height) / resource.height;
-                }
-                else
-                {
-                    if (height == 0 && resource.width > 0 && resource.height > 0)
-                    {
-                        height = (resource.height * width) / resource.width;
-                    }
-                }
-                if (width <= 0 || height <= 0)
-                {
-                    throw Diagnostics.createTsumoError("TSUMO_IMAGE_DIMENSIONS_UNKNOWN", "Image resizing with one automatic dimension requires known source dimensions");
-                }
-                string sourceName = resource.outputRelPath ?? resource.sourcePath ?? "";
-                string sourceExtension = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Node.path.extname(sourceName));
-                if (sourceExtension == "")
-                {
-                    throw Diagnostics.createTsumoError("TSUMO_IMAGE_FORMAT_UNKNOWN", "Image resizing requires a source file format");
-                }
-                string outputExtension = request.format is null ? sourceExtension : $".{request.format}";
-                string workDirectory = Tsonic.CSharp.Node.fs.mkdtempSync(Tsonic.CSharp.Node.path.join(Tsonic.CSharp.Node.os.tmpdir(), "tsumo-image-"));
-                try
-                {
-                    string inputPath = Tsonic.CSharp.Node.path.join(workDirectory, "input" + sourceExtension);
-                    string outputPath = Tsonic.CSharp.Node.path.join(workDirectory, "output" + outputExtension);
-                    Tsonic.CSharp.Node.fs.writeFileSync(inputPath, resource.bytes);
-                    ensureImageCodecsRegistered();
-                    PhotoSauce.MagicScaler.ProcessImageSettings settings = new PhotoSauce.MagicScaler.ProcessImageSettings();
-                    settings.Width = width;
-                    settings.Height = height;
-                    if (request.format is not null)
-                    {
-                        settings.TrySetEncoderFormat(outputExtension);
-                    }
-                    PhotoSauce.MagicScaler.MagicImageProcessor.ProcessImage(inputPath, outputPath, settings);
-                    Tsonic.CSharp.Node.Buffer outputBytes = Tsonic.CSharp.Node.fs.readFileSync(outputPath);
-                    int outputWidth = width;
-                    int outputHeight = height;
-                    ImageDimensions? dimensions = Resources_imageDimensions.parseImageDimensions(outputBytes);
-                    if (dimensions is not null)
-                    {
-                        outputWidth = dimensions.width;
-                        outputHeight = dimensions.height;
-                    }
-                    string outputRelPath = resource.outputRelPath ?? "";
-                    ResourcePathParts path = Resources_paths.splitResourcePath(outputRelPath);
-                    ResourceFileNameParts file = Resources_paths.splitResourceFileName(path.fileName);
-                    string outputFile = $"{file.baseName}_{outputWidth}x{outputHeight}{outputExtension}";
-                    return new Resource($"{resource.id}|resize:{specification}", null, true, path.directory + outputFile, outputBytes, null, new ResourceData(""), Resources_mediaTypes.resourceMediaTypeForExtension(outputExtension), outputWidth, outputHeight);
-                }
-                finally
-                {
-                    Tsonic.CSharp.Node.fs.rmSync(workDirectory, new Tsonic.CSharp.Node.RmOptions
-                    {
-                        recursive = true,
-                        force = true,
-                    });
-                }
-            };
             return null;
         }
         public static void __tsonic_module_init()

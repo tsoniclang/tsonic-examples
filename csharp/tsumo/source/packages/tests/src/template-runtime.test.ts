@@ -5,6 +5,8 @@ import {
   collectShortcodeNames,
   DictValue,
   I18nStore,
+  LayoutEnvironment,
+  ModuleMount,
   PageValue,
   parseShortcodes,
   parseTemplate,
@@ -202,6 +204,16 @@ export class TemplateRuntimeTests {
       );
 
       const store = new I18nStore();
+      const noMounts = new LayoutEnvironment(root, undefined, []);
+      Assert.Equal("toggleMenu", noMounts.i18nStore.translate("en", "toggleMenu"));
+      const oneMount = new LayoutEnvironment(root, undefined, [new ModuleMount(siteDirectory, "i18n")]);
+      Assert.Equal("Site Menu", oneMount.i18nStore.translate("en", "toggleMenu"));
+      const layeredMounts = new LayoutEnvironment(root, undefined, [
+        new ModuleMount(themeDirectory, "i18n"),
+        new ModuleMount(siteDirectory, "i18n"),
+        new ModuleMount(siteDirectory, "unrelated"),
+      ]);
+      Assert.Equal("Theme Menu", layeredMounts.i18nStore.translate("en", "toggleMenu"));
       store.loadFromDir(themeDirectory);
       store.loadFromDir(siteDirectory);
       Assert.Equal("Site Menu", store.translate("en-US", "toggleMenu"));
@@ -487,23 +499,23 @@ export class TemplateRuntimeTests {
   }
 }
 
-attribute<TemplateRuntimeTests>().method((target) => target.parser_and_evaluator_render_control_flow_and_pipeline).add(FactAttribute);
-attribute<TemplateRuntimeTests>().method((target) => target.collection_functions_preserve_exact_split_segments).add(FactAttribute);
-attribute<TemplateRuntimeTests>().method((target) => target.collection_union_accepts_slices_and_nil_without_collapsing_distinct_values).add(FactAttribute);
-attribute<TemplateRuntimeTests>().method((target) => target.page_has_shortcode_uses_the_exact_parsed_page_inventory).add(FactAttribute);
-attribute<TemplateRuntimeTests>().method((target) => target.return_evaluates_its_complete_value_expression).add(FactAttribute);
-attribute<TemplateRuntimeTests>().method((target) => target.hugo_sites_exposes_the_checked_site_graph).add(FactAttribute);
-attribute<TemplateRuntimeTests>().method((target) => target.related_pages_use_exact_default_keyword_and_tag_evidence).add(FactAttribute);
-attribute<TemplateRuntimeTests>().method((target) => target.css_build_applies_its_closed_resource_options).add(FactAttribute);
-attribute<TemplateRuntimeTests>().method((target) => target.i18n_layers_parse_structured_formats_and_render_plural_context).add(FactAttribute);
-attribute<TemplateRuntimeTests>().method((target) => target.deferred_templates_finalize_after_normal_render_and_share_keyed_results).add(FactAttribute);
-attribute<TemplateRuntimeTests>().method((target) => target.deferred_templates_distinguish_authored_occurrences_with_the_same_key).add(FactAttribute);
-attribute<TemplateRuntimeTests>().method((target) => target.template_string_literals_decode_exact_interpreted_and_raw_forms).add(FactAttribute);
-attribute<TemplateRuntimeTests>().method((target) => target.template_text_compatibility_functions_are_deterministic).add(FactAttribute);
-attribute<TemplateRuntimeTests>().method((target) => target.template_regular_expression_functions_preserve_matches_groups_and_limits).add(FactAttribute);
-attribute<TemplateRuntimeTests>().method((target) => target.template_scanning_preserves_unicode_scalars_and_utf16_locations).add(FactAttribute);
-attribute<TemplateRuntimeTests>().method((target) => target.dictionary_range_order_is_deterministic).add(FactAttribute);
-attribute<TemplateRuntimeTests>().method((target) => target.parser_reports_exact_malformed_input_diagnostics).add(FactAttribute);
-attribute<TemplateRuntimeTests>().method((target) => target.shortcode_parser_rejects_ambiguous_input_with_exact_locations).add(FactAttribute);
-attribute<TemplateRuntimeTests>().method((target) => target.evaluator_reports_exact_unknown_and_invalid_operations).add(FactAttribute);
-attribute<TemplateRuntimeTests>().method((target) => target.dictionary_values_are_resolved_without_name_fallbacks).add(FactAttribute);
+attribute<TemplateRuntimeTests>().method((target) => target.parser_and_evaluator_render_control_flow_and_pipeline).add(() => new FactAttribute());
+attribute<TemplateRuntimeTests>().method((target) => target.collection_functions_preserve_exact_split_segments).add(() => new FactAttribute());
+attribute<TemplateRuntimeTests>().method((target) => target.collection_union_accepts_slices_and_nil_without_collapsing_distinct_values).add(() => new FactAttribute());
+attribute<TemplateRuntimeTests>().method((target) => target.page_has_shortcode_uses_the_exact_parsed_page_inventory).add(() => new FactAttribute());
+attribute<TemplateRuntimeTests>().method((target) => target.return_evaluates_its_complete_value_expression).add(() => new FactAttribute());
+attribute<TemplateRuntimeTests>().method((target) => target.hugo_sites_exposes_the_checked_site_graph).add(() => new FactAttribute());
+attribute<TemplateRuntimeTests>().method((target) => target.related_pages_use_exact_default_keyword_and_tag_evidence).add(() => new FactAttribute());
+attribute<TemplateRuntimeTests>().method((target) => target.css_build_applies_its_closed_resource_options).add(() => new FactAttribute());
+attribute<TemplateRuntimeTests>().method((target) => target.i18n_layers_parse_structured_formats_and_render_plural_context).add(() => new FactAttribute());
+attribute<TemplateRuntimeTests>().method((target) => target.deferred_templates_finalize_after_normal_render_and_share_keyed_results).add(() => new FactAttribute());
+attribute<TemplateRuntimeTests>().method((target) => target.deferred_templates_distinguish_authored_occurrences_with_the_same_key).add(() => new FactAttribute());
+attribute<TemplateRuntimeTests>().method((target) => target.template_string_literals_decode_exact_interpreted_and_raw_forms).add(() => new FactAttribute());
+attribute<TemplateRuntimeTests>().method((target) => target.template_text_compatibility_functions_are_deterministic).add(() => new FactAttribute());
+attribute<TemplateRuntimeTests>().method((target) => target.template_regular_expression_functions_preserve_matches_groups_and_limits).add(() => new FactAttribute());
+attribute<TemplateRuntimeTests>().method((target) => target.template_scanning_preserves_unicode_scalars_and_utf16_locations).add(() => new FactAttribute());
+attribute<TemplateRuntimeTests>().method((target) => target.dictionary_range_order_is_deterministic).add(() => new FactAttribute());
+attribute<TemplateRuntimeTests>().method((target) => target.parser_reports_exact_malformed_input_diagnostics).add(() => new FactAttribute());
+attribute<TemplateRuntimeTests>().method((target) => target.shortcode_parser_rejects_ambiguous_input_with_exact_locations).add(() => new FactAttribute());
+attribute<TemplateRuntimeTests>().method((target) => target.evaluator_reports_exact_unknown_and_invalid_operations).add(() => new FactAttribute());
+attribute<TemplateRuntimeTests>().method((target) => target.dictionary_values_are_resolved_without_name_fallbacks).add(() => new FactAttribute());

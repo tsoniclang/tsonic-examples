@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Config_json
@@ -47,7 +45,7 @@ namespace Tsumo.Engine
         internal static void assertUniqueFields(JsonObject @object, string context, string? sourcePath)
         {
             Tsonic.CSharp.Js.Set<string> names = new Tsonic.CSharp.Js.Set<string>();
-            for (double index = 0; index < @object.properties.length; index++)
+            for (int index = 0; index < @object.properties.length; index++)
             {
                 JsonProperty property = @object.properties[index];
                 string name = Tsonic.CSharp.Js.String.toLowerCase(property.key);
@@ -175,11 +173,149 @@ namespace Tsumo.Engine
                 }
             }
         }
-        public static Func<string, string?, SiteConfig> parseJsonConfig
+        public static SiteConfig parseJsonConfig(string text, string? sourcePath)
         {
-            get;
-            private set;
-        } = default(Func<string, string?, SiteConfig>)!;
+            JsonValue rootValue = Utils_json.parseJson(text, sourcePath);
+            JsonObject root = requireObject("<root>", rootValue, sourcePath);
+            assertUniqueFields(root, "Configuration", sourcePath);
+            string title = "Tsumo Site";
+            string baseURL = "";
+            string languageCode = "en-us";
+            string contentDir = "content";
+            string? theme = null;
+            string? copyright = null;
+            bool hasLanguageCode = false;
+            Tsonic.CSharp.Js.Map<string, ParamValue> @params = new Tsonic.CSharp.Js.Map<string, ParamValue>();
+            Tsonic.CSharp.Js.JSArray<LanguageConfig> languages = Tsonic.CSharp.Js.JSArray<LanguageConfig>.of([]);
+            Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntry>> menus = new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>();
+            for (int index = 0; index < root.properties.length; index++)
+            {
+                JsonProperty property = root.properties[index];
+                string key = Tsonic.CSharp.Js.String.toLowerCase(property.key);
+                JsonValue value = property.value;
+                if (key == "title")
+                {
+                    title = requireString(property.key, value, sourcePath);
+                }
+                else
+                {
+                    if (key == "baseurl")
+                    {
+                        baseURL = requireString(property.key, value, sourcePath);
+                    }
+                    else
+                    {
+                        if (key == "languagecode")
+                        {
+                            languageCode = requireString(property.key, value, sourcePath);
+                            hasLanguageCode = true;
+                        }
+                        else
+                        {
+                            if (key == "contentdir")
+                            {
+                                contentDir = requireString(property.key, value, sourcePath);
+                            }
+                            else
+                            {
+                                if (key == "theme")
+                                {
+                                    theme = requireString(property.key, value, sourcePath);
+                                }
+                                else
+                                {
+                                    if (key == "copyright")
+                                    {
+                                        copyright = requireString(property.key, value, sourcePath);
+                                    }
+                                    else
+                                    {
+                                        if (key == "params")
+                                        {
+                                            JsonObject @object = requireObject(property.key, value, sourcePath);
+                                            assertUniqueFields(@object, "Configuration params", sourcePath);
+                                            for (int paramIndex = 0; paramIndex < @object.properties.length; paramIndex++)
+                                            {
+                                                JsonProperty parameter = @object.properties[paramIndex];
+                                                @params.set(parameter.key, toParam(parameter.key, parameter.value, sourcePath));
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (key == "languages")
+                                            {
+                                                JsonObject object_1 = requireObject(property.key, value, sourcePath);
+                                                assertUniqueFields(object_1, "Configuration languages", sourcePath);
+                                                for (int languageIndex = 0; languageIndex < object_1.properties.length; languageIndex++)
+                                                {
+                                                    JsonProperty language = object_1.properties[languageIndex];
+                                                    JsonObject fields = requireObject(language.key, language.value, sourcePath);
+                                                    assertUniqueFields(fields, $"Language '{language.key}'", sourcePath);
+                                                    LanguageConfigBuilder builder = new LanguageConfigBuilder(language.key);
+                                                    for (int fieldIndex = 0; fieldIndex < fields.properties.length; fieldIndex++)
+                                                    {
+                                                        JsonProperty field = fields.properties[fieldIndex];
+                                                        applyLanguageField(builder, field.key, field.value, sourcePath);
+                                                    }
+                                                    languages.push(builder.toConfig());
+                                                }
+                                            }
+                                            else
+                                            {
+                                                if (key == "menu")
+                                                {
+                                                    JsonObject object_2 = requireObject(property.key, value, sourcePath);
+                                                    assertUniqueFields(object_2, "Configuration menus", sourcePath);
+                                                    for (int menuIndex = 0; menuIndex < object_2.properties.length; menuIndex++)
+                                                    {
+                                                        JsonProperty menu = object_2.properties[menuIndex];
+                                                        JsonArray menuItems = requireArray(menu.key, menu.value, sourcePath);
+                                                        Tsonic.CSharp.Js.JSArray<MenuEntry> entries = Tsonic.CSharp.Js.JSArray<MenuEntry>.of([]);
+                                                        for (double entryIndex = 0; entryIndex < menuItems.items.length; entryIndex++)
+                                                        {
+                                                            JsonValue entryValue = menuItems.items[entryIndex];
+                                                            JsonObject fields_1 = requireObject($"{menu.key}[{entryIndex}]", entryValue, sourcePath);
+                                                            assertUniqueFields(fields_1, $"Menu '{menu.key}' entry", sourcePath);
+                                                            MenuEntryBuilder builder_1 = new MenuEntryBuilder(menu.key);
+                                                            for (int fieldIndex_1 = 0; fieldIndex_1 < fields_1.properties.length; fieldIndex_1++)
+                                                            {
+                                                                JsonProperty field_1 = fields_1.properties[fieldIndex_1];
+                                                                applyMenuField(builder_1, field_1.key, field_1.value, sourcePath);
+                                                            }
+                                                            entries.push(builder_1.toEntry());
+                                                        }
+                                                        menus.set(menu.key, Menus.buildMenuHierarchy(entries));
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    throw Diagnostics.createTsumoError("TSUMO_CONFIG_UNKNOWN_FIELD", $"Unknown configuration field '{property.key}'", sourcePath, property.line, property.column);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            SiteConfig config = new SiteConfig(title, Utils_text.ensureTrailingSlash(baseURL), languageCode, theme, copyright);
+            config.contentDir = contentDir;
+            config.Params = @params;
+            config.Menus = menus;
+            if (languages.length > 0)
+            {
+                config.languages = Config_helpers.sortLanguages(languages);
+                LanguageConfig selected = config.languages[0];
+                config.contentDir = selected.contentDir;
+                if (!hasLanguageCode)
+                {
+                    config.languageCode = selected.lang;
+                }
+            }
+            return config;
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
@@ -191,149 +327,6 @@ namespace Tsumo.Engine
             Utils_text.__tsonic_module_init();
             Config_builders.__tsonic_module_init();
             Config_helpers.__tsonic_module_init();
-            parseJsonConfig = (string text, string? sourcePath) =>
-            {
-                JsonValue rootValue = Utils_json.parseJson(text, sourcePath);
-                JsonObject root = requireObject("<root>", rootValue, sourcePath);
-                assertUniqueFields(root, "Configuration", sourcePath);
-                string title = "Tsumo Site";
-                string baseURL = "";
-                string languageCode = "en-us";
-                string contentDir = "content";
-                string? theme = null;
-                string? copyright = null;
-                bool hasLanguageCode = false;
-                Tsonic.CSharp.Js.Map<string, ParamValue> @params = new Tsonic.CSharp.Js.Map<string, ParamValue>();
-                Tsonic.CSharp.Js.JSArray<LanguageConfig> languages = Tsonic.CSharp.Js.JSArray<LanguageConfig>.of([]);
-                Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntry>> menus = new Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<MenuEntry>>();
-                for (double index = 0; index < root.properties.length; index++)
-                {
-                    JsonProperty property = root.properties[index];
-                    string key = Tsonic.CSharp.Js.String.toLowerCase(property.key);
-                    JsonValue value = property.value;
-                    if (key == "title")
-                    {
-                        title = requireString(property.key, value, sourcePath);
-                    }
-                    else
-                    {
-                        if (key == "baseurl")
-                        {
-                            baseURL = requireString(property.key, value, sourcePath);
-                        }
-                        else
-                        {
-                            if (key == "languagecode")
-                            {
-                                languageCode = requireString(property.key, value, sourcePath);
-                                hasLanguageCode = true;
-                            }
-                            else
-                            {
-                                if (key == "contentdir")
-                                {
-                                    contentDir = requireString(property.key, value, sourcePath);
-                                }
-                                else
-                                {
-                                    if (key == "theme")
-                                    {
-                                        theme = requireString(property.key, value, sourcePath);
-                                    }
-                                    else
-                                    {
-                                        if (key == "copyright")
-                                        {
-                                            copyright = requireString(property.key, value, sourcePath);
-                                        }
-                                        else
-                                        {
-                                            if (key == "params")
-                                            {
-                                                JsonObject @object = requireObject(property.key, value, sourcePath);
-                                                assertUniqueFields(@object, "Configuration params", sourcePath);
-                                                for (double paramIndex = 0; paramIndex < @object.properties.length; paramIndex++)
-                                                {
-                                                    JsonProperty parameter = @object.properties[paramIndex];
-                                                    @params.set(parameter.key, toParam(parameter.key, parameter.value, sourcePath));
-                                                }
-                                            }
-                                            else
-                                            {
-                                                if (key == "languages")
-                                                {
-                                                    JsonObject object_1 = requireObject(property.key, value, sourcePath);
-                                                    assertUniqueFields(object_1, "Configuration languages", sourcePath);
-                                                    for (double languageIndex = 0; languageIndex < object_1.properties.length; languageIndex++)
-                                                    {
-                                                        JsonProperty language = object_1.properties[languageIndex];
-                                                        JsonObject fields = requireObject(language.key, language.value, sourcePath);
-                                                        assertUniqueFields(fields, $"Language '{language.key}'", sourcePath);
-                                                        LanguageConfigBuilder builder = new LanguageConfigBuilder(language.key);
-                                                        for (double fieldIndex = 0; fieldIndex < fields.properties.length; fieldIndex++)
-                                                        {
-                                                            JsonProperty field = fields.properties[fieldIndex];
-                                                            applyLanguageField(builder, field.key, field.value, sourcePath);
-                                                        }
-                                                        languages.push(builder.toConfig());
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    if (key == "menu")
-                                                    {
-                                                        JsonObject object_2 = requireObject(property.key, value, sourcePath);
-                                                        assertUniqueFields(object_2, "Configuration menus", sourcePath);
-                                                        for (double menuIndex = 0; menuIndex < object_2.properties.length; menuIndex++)
-                                                        {
-                                                            JsonProperty menu = object_2.properties[menuIndex];
-                                                            JsonArray menuItems = requireArray(menu.key, menu.value, sourcePath);
-                                                            Tsonic.CSharp.Js.JSArray<MenuEntry> entries = Tsonic.CSharp.Js.JSArray<MenuEntry>.of([]);
-                                                            for (double entryIndex = 0; entryIndex < menuItems.items.length; entryIndex++)
-                                                            {
-                                                                JsonValue entryValue = menuItems.items[entryIndex];
-                                                                JsonObject fields_1 = requireObject($"{menu.key}[{entryIndex}]", entryValue, sourcePath);
-                                                                assertUniqueFields(fields_1, $"Menu '{menu.key}' entry", sourcePath);
-                                                                MenuEntryBuilder builder_1 = new MenuEntryBuilder(menu.key);
-                                                                for (double fieldIndex_1 = 0; fieldIndex_1 < fields_1.properties.length; fieldIndex_1++)
-                                                                {
-                                                                    JsonProperty field_1 = fields_1.properties[fieldIndex_1];
-                                                                    applyMenuField(builder_1, field_1.key, field_1.value, sourcePath);
-                                                                }
-                                                                entries.push(builder_1.toEntry());
-                                                            }
-                                                            menus.set(menu.key, Menus.buildMenuHierarchy(entries));
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        throw Diagnostics.createTsumoError("TSUMO_CONFIG_UNKNOWN_FIELD", $"Unknown configuration field '{property.key}'", sourcePath, property.line, property.column);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                SiteConfig config = new SiteConfig(title, Utils_text.ensureTrailingSlash(baseURL), languageCode, theme, copyright);
-                config.contentDir = contentDir;
-                config.Params = @params;
-                config.Menus = menus;
-                if (languages.length > 0)
-                {
-                    config.languages = Config_helpers.sortLanguages(languages);
-                    LanguageConfig selected = config.languages[0];
-                    config.contentDir = selected.contentDir;
-                    if (!hasLanguageCode)
-                    {
-                        config.languageCode = selected.lang;
-                    }
-                }
-                return config;
-            };
             return null;
         }
         public static void __tsonic_module_init()

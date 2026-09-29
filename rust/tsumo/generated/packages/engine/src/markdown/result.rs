@@ -3,11 +3,12 @@
 use crate::program as rt;
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct MarkdownResultState {
     pub html: String,
-    pub summary_html: String,
-    pub plain_text: String,
-    pub table_of_contents: String,
+    pub summaryHtml: String,
+    pub plainText: String,
+    pub tableOfContents: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -23,22 +24,23 @@ impl rt::ObjectIdentityCarrier for MarkdownResult {
 }
 
 impl MarkdownResult {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         html: String,
-        summary_html: String,
-        plain_text: String,
-        table_of_contents: String,
+        summaryHtml: String,
+        plainText: String,
+        tableOfContents: String,
     ) -> Result<MarkdownResult, rt::TsonicError> {
         let field_html: String = html;
-        let field_summary_html: String = summary_html;
-        let field_plain_text: String = plain_text;
-        let field_table_of_contents: String = table_of_contents;
+        let field_summary_html: String = summaryHtml;
+        let field_plain_text: String = plainText;
+        let field_table_of_contents: String = tableOfContents;
         Ok(MarkdownResult {
             state: rt::ObjectRef::new(MarkdownResultState {
                 html: field_html,
-                summary_html: field_summary_html,
-                plain_text: field_plain_text,
-                table_of_contents: field_table_of_contents,
+                summaryHtml: field_summary_html,
+                plainText: field_plain_text,
+                tableOfContents: field_table_of_contents,
             }),
         })
     }

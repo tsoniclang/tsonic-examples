@@ -5,6 +5,7 @@ import {
   MenuEntry,
   PageContext,
   PageValue,
+  PaginatorValue,
   ParamValue,
   parseTemplate,
   RenderScope,
@@ -24,6 +25,54 @@ import {
 } from "./template-test-harness.js";
 
 export class TemplatePageContextTests {
+  page_sorts_preserve_ties_and_do_not_mutate_the_source(): void {
+    const site = createSite();
+    const root = createPage(site, "Home", "", "home");
+    const first = createPage(site, "B", "2024-01-01T00:00:00Z", "page");
+    const second = createPage(site, "A", "2024-01-01T00:00:00Z", "page");
+    const last = createPage(site, "C", "2025-01-01T00:00:00Z", "page");
+    first.Params.set("weight", ParamValue.number(-2147483648));
+    second.Params.set("weight", ParamValue.number(-2147483648));
+    last.Params.set("weight", ParamValue.number(2147483647));
+    root.pages = [last, first, second];
+    Assert.StringEqual("BAC|ABC|BAC|CBA", renderWithRoot(
+      '{{ range .Pages.ByDate }}{{ .Title }}{{ end }}|' +
+      '{{ range .Pages.ByTitle }}{{ .Title }}{{ end }}|' +
+      '{{ range .Pages.ByWeight }}{{ .Title }}{{ end }}|' +
+      '{{ range .Pages }}{{ .Title }}{{ end }}',
+      new PageValue(root),
+    ));
+    Assert.StringEqual("2024:BA;2025:C;|2025:C;2024:BA;", renderWithRoot(
+      '{{ range .Pages.GroupByDate "2006" "asc" }}{{ .Key }}:{{ range .Pages }}{{ .Title }}{{ end }};{{ end }}|' +
+      '{{ range .Pages.GroupByDate "2006" "desc" }}{{ .Key }}:{{ range .Pages }}{{ .Title }}{{ end }};{{ end }}',
+      new PageValue(root),
+    ));
+    root.pages = [];
+    Assert.StringEqual("empty", renderWithRoot(
+      '{{ range .Pages.ByWeight }}unexpected{{ else }}empty{{ end }}',
+      new PageValue(root),
+    ));
+  }
+
+  pagination_uses_exact_integer_ceiling_and_bounded_page_offsets(): void {
+    const site = createSite();
+    const first = createPage(site, "First", "", "page");
+    const second = createPage(site, "Second", "", "page");
+    const third = createPage(site, "Third", "", "page");
+    const paginator = new PaginatorValue([first, second, third], 2, 1, "/posts/");
+    Assert.True(paginator.totalPages() === 2);
+    Assert.True(paginator.pages().length === 2 && paginator.pages()[0] === first);
+    const last = paginator.withPageNumber(2);
+    Assert.True(last.pages().length === 1 && last.pages()[0] === third);
+    Assert.True(paginator.withPageNumber(2147483647).pages().length === 0);
+    const empty = new PaginatorValue([], 0, 0, "/");
+    Assert.True(empty.totalPages() === 1 && empty.pages().length === 0);
+    const exact = new PaginatorValue([first, second], 2, 1, "/");
+    Assert.True(exact.totalPages() === 1 && exact.pages().length === 2);
+    const wide = new PaginatorValue([first, second, third], 2147483647, 1, "/");
+    Assert.True(wide.totalPages() === 1 && wide.pages().length === 3);
+  }
+
   date_page_data_and_render_methods_use_typed_context(): void {
     Assert.StringEqual("2024-01-02", renderWithRoot("{{ .Format \"2006-01-02\" }}", new DateValue("2024-01-02T03:04:05Z")));
 
@@ -33,7 +82,21 @@ export class TemplatePageContextTests {
     older.Params.set("weight", ParamValue.number(20));
     newer.Params.set("weight", ParamValue.number(10));
     const root = createPage(site, "Home", "", "home");
+    Assert.StringEqual("0|0", renderWithRoot(
+      "{{ len .Pages.Reverse }}|{{ len (collections.Reverse .Pages) }}",
+      new PageValue(root),
+    ));
+    root.pages = [older];
+    Assert.StringEqual("Older|Older", renderWithRoot(
+      "{{ range .Pages.Reverse }}{{ .Title }}{{ end }}|{{ range (collections.Reverse .Pages) }}{{ .Title }}{{ end }}",
+      new PageValue(root),
+    ));
     root.pages = [older, newer];
+    Assert.StringEqual("NewerOlder|NewerOlder|OlderNewer", renderWithRoot(
+      "{{ range .Pages.Reverse }}{{ .Title }}{{ end }}|{{ range (collections.Reverse .Pages) }}{{ .Title }}{{ end }}|" +
+      "{{ range .Pages }}{{ .Title }}{{ end }}",
+      new PageValue(root),
+    ));
     const section = createPage(site, "Section", "", "section");
     root.pages.push(section);
     site.pages = root.pages;
@@ -191,6 +254,12 @@ export class TemplatePageContextTests {
 
 export const runTemplatePageContextTests = (): void => {
   const tests = new TemplatePageContextTests();
+  runTest("page sorts preserve ties and do not mutate the source", () => {
+    tests.page_sorts_preserve_ties_and_do_not_mutate_the_source();
+  });
+  runTest("pagination uses exact integer ceiling and bounded page offsets", () => {
+    tests.pagination_uses_exact_integer_ceiling_and_bounded_page_offsets();
+  });
   runTest("date, page data, and render methods use typed context", () => {
     tests.date_page_data_and_render_methods_use_typed_context();
   });

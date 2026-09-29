@@ -65,15 +65,17 @@ pub(crate) trait TestTemplateEnvironmentDispatch:
         self: alloc::rc::Rc<Self>,
         path: String,
     ) -> Result<Option<tsumo_engine::testing::Template>, tsumo_engine::program::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     #[expect(dead_code, reason = "retains an unused generated dispatch slot")]
     fn dispatch_test_template_environment_get_template_source_relative_path(
         self: alloc::rc::Rc<Self>,
-        source_path: String,
+        sourcePath: String,
     ) -> Result<Option<String>, tsumo_engine::program::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     #[expect(dead_code, reason = "retains an unused generated dispatch slot")]
     fn exact_test_template_environment_get_template_source_relative_path(
         self: alloc::rc::Rc<Self>,
-        source_path: String,
+        sourcePath: String,
     ) -> Result<Option<String>, tsumo_engine::program::TsonicError>;
     #[expect(dead_code, reason = "retains an unused generated dispatch slot")]
     fn dispatch_test_template_environment_get_resource_manager(
@@ -163,25 +165,27 @@ pub(crate) trait TestTemplateEnvironmentDispatch:
         overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
         state: Option<tsumo_engine::testing::RenderState>,
     ) -> Result<String, tsumo_engine::program::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     #[expect(dead_code, reason = "retains an unused generated dispatch slot")]
     fn dispatch_test_template_environment_render_template_definition(
         self: alloc::rc::Rc<Self>,
         nodes: js_abi::JsArray<tsumo_engine::testing::TemplateNode>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
-        source_path: Option<String>,
+        sourcePath: Option<String>,
         context: tsumo_engine::testing::TemplateValue,
         site: tsumo_engine::testing::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
         state: Option<tsumo_engine::testing::RenderState>,
     ) -> Result<String, tsumo_engine::program::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     #[expect(dead_code, reason = "retains an unused generated dispatch slot")]
     fn exact_test_template_environment_render_template_definition(
         self: alloc::rc::Rc<Self>,
         nodes: js_abi::JsArray<tsumo_engine::testing::TemplateNode>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
-        source_path: Option<String>,
+        sourcePath: Option<String>,
         context: tsumo_engine::testing::TemplateValue,
         site: tsumo_engine::testing::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
@@ -189,11 +193,12 @@ pub(crate) trait TestTemplateEnvironmentDispatch:
     ) -> Result<String, tsumo_engine::program::TsonicError>;
 }
 
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub(crate) struct TestTemplateEnvironmentState {
     pub(crate) base: tsumo_engine::template::environment::TemplateEnvironmentState,
     pub(crate) templates: js_abi::JsMap<String, tsumo_engine::testing::Template>,
-    pub(crate) resource_manager: Option<tsumo_engine::testing::ResourceManager>,
-    pub(crate) i18n_store: Option<tsumo_engine::testing::I18nStore>,
+    pub(crate) resourceManager: Option<tsumo_engine::testing::ResourceManager>,
+    pub(crate) i18nStore: Option<tsumo_engine::testing::I18nStore>,
 }
 
 #[derive(Clone)]
@@ -228,8 +233,9 @@ pub(crate) struct TestTemplateEnvironmentRoot {
 }
 
 impl TestTemplateEnvironment {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub(crate) fn initialize_state(
-        resource_manager: Option<tsumo_engine::testing::ResourceManager>,
+        resourceManager: Option<tsumo_engine::testing::ResourceManager>,
     ) -> Result<TestTemplateEnvironmentState, rt::TsonicError> {
         let base_state = tsumo_engine::testing::TemplateEnvironment::initialize_state(
             Some(js_abi::JsDate::from_millis(1704067200000.0)),
@@ -238,21 +244,22 @@ impl TestTemplateEnvironment {
         let field_templates: js_abi::JsMap<String, tsumo_engine::testing::Template> =
             js_abi::JsMap::new();
         let field_resource_manager: Option<tsumo_engine::testing::ResourceManager> =
-            resource_manager;
+            resourceManager;
         let field_i18n_store: Option<tsumo_engine::testing::I18nStore> =
             Option::<tsumo_engine::testing::I18nStore>::None;
         Ok(TestTemplateEnvironmentState {
             base: base_state,
             templates: field_templates,
-            resource_manager: field_resource_manager,
-            i18n_store: field_i18n_store,
+            resourceManager: field_resource_manager,
+            i18nStore: field_i18n_store,
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
-        resource_manager: Option<tsumo_engine::testing::ResourceManager>,
+        resourceManager: Option<tsumo_engine::testing::ResourceManager>,
     ) -> Result<TestTemplateEnvironment, rt::TsonicError> {
-        let state = TestTemplateEnvironment::initialize_state(resource_manager)?;
+        let state = TestTemplateEnvironment::initialize_state(resourceManager)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(TestTemplateEnvironmentRoot {
             identity: identity.clone(),
@@ -281,7 +288,7 @@ impl TestTemplateEnvironmentRoot {
         }) == "finalizing"
         {
             return Err(tsumo_engine::program::TsonicError::TsumoError(
-                tsumo_engine::create_tsumo_error(
+                tsumo_engine::createTsumoError(
                     String::from("TSUMO_TEMPLATE_DEFER_LIFECYCLE_INVALID"),
                     String::from("Deferred-template finalization is already running"),
                     None,
@@ -308,17 +315,14 @@ impl TestTemplateEnvironmentRoot {
                 }
             };
             {
-                let mut index: f64 = 0.0;
-                while index
-                    < (rt::conversions::usize_to_i32(
-                        {
-                            let dispatch_receiver_4 = &project_this;
-                            dispatch_receiver_4
-                                .dispatch
-                                .read_template_environment_deferred_requests()
-                        }
-                        .len(),
-                    )? as f64)
+                let mut index: usize = 0;
+                while index < {
+                    let dispatch_receiver_4 = &project_this;
+                    dispatch_receiver_4
+                        .dispatch
+                        .read_template_environment_deferred_requests()
+                }
+                .len()
                 {
                     let request: tsumo_engine::template::environment::DeferredTemplateRequest =
                         match {
@@ -342,7 +346,7 @@ impl TestTemplateEnvironmentRoot {
                                 .dispatch_template_environment_render_template_definition(
                                     request.state.with(|state| state.body.clone()),
                                     request.state.with(|state| state.definitions.clone()),
-                                    request.state.with(|state| state.source_path.clone()),
+                                    request.state.with(|state| state.sourcePath.clone()),
                                     request.state.with(|state| state.data.clone()),
                                     request.state.with(|state| state.site.clone()),
                                     request.state.with(|state| state.overrides.clone()),
@@ -350,7 +354,7 @@ impl TestTemplateEnvironmentRoot {
                                 )
                         }?);
                         {
-                            let field_owner = receiver_2.clone();
+                            let field_owner = receiver_2;
                             let field_value = value_2;
                             {
                                 field_owner.state.validate_data_write()?;
@@ -360,7 +364,7 @@ impl TestTemplateEnvironmentRoot {
                             }
                         }
                     };
-                    index += 1.0;
+                    index += 1;
                 }
             }
             {
@@ -376,17 +380,14 @@ impl TestTemplateEnvironmentRoot {
         }
         let results: js_abi::JsMap<String, String> = js_abi::JsMap::new();
         {
-            let mut index: f64 = 0.0;
-            while index
-                < (rt::conversions::usize_to_i32(
-                    {
-                        let dispatch_receiver_8 = &project_this;
-                        dispatch_receiver_8
-                            .dispatch
-                            .read_template_environment_deferred_placements()
-                    }
-                    .len(),
-                )? as f64)
+            let mut index: usize = 0;
+            while index < {
+                let dispatch_receiver_8 = &project_this;
+                dispatch_receiver_8
+                    .dispatch
+                    .read_template_environment_deferred_placements()
+            }
+            .len()
             {
                 let placement: tsumo_engine::template::environment::DeferredTemplatePlacement =
                     match {
@@ -407,7 +408,7 @@ impl TestTemplateEnvironmentRoot {
                     .with(|state| state.result.clone());
                 if result.is_none() {
                     return Err(tsumo_engine::program::TsonicError::TsumoError(
-                        tsumo_engine::create_tsumo_error(
+                        tsumo_engine::createTsumoError(
                             String::from("TSUMO_TEMPLATE_DEFER_LIFECYCLE_INVALID"),
                             String::from("A deferred template has no finalized output"),
                             None,
@@ -426,7 +427,7 @@ impl TestTemplateEnvironmentRoot {
                         },
                     )
                 };
-                index += 1.0;
+                index += 1;
             }
         }
         Ok(results)
@@ -463,9 +464,10 @@ impl TestTemplateEnvironmentRoot {
         Ok(_key)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_template_environment_get_render_hook_template(
         self: alloc::rc::Rc<Self>,
-        _hook_name: &str,
+        _hookName: &str,
     ) -> Result<Option<tsumo_engine::testing::Template>, tsumo_engine::program::TsonicError> {
         Ok(Option::<tsumo_engine::testing::Template>::None)
     }
@@ -498,12 +500,13 @@ impl TestTemplateEnvironmentRoot {
         }
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_template_environment_get_template(
         self: alloc::rc::Rc<Self>,
-        _rel_path: &str,
+        _relPath: &str,
     ) -> Result<Option<tsumo_engine::testing::Template>, tsumo_engine::program::TsonicError> {
         Err(tsumo_engine::program::TsonicError::TsumoError(
-            tsumo_engine::create_tsumo_error(
+            tsumo_engine::createTsumoError(
                 String::from("TSUMO_TEMPLATE_ENVIRONMENT_OPERATION_UNAVAILABLE"),
                 String::from("TemplateEnvironment.getTemplate is not implemented"),
                 None,
@@ -513,22 +516,24 @@ impl TestTemplateEnvironmentRoot {
         ))
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_template_environment_get_template_source_relative_path(
         self: alloc::rc::Rc<Self>,
-        _source_path: &str,
+        _sourcePath: &str,
     ) -> Result<Option<String>, tsumo_engine::program::TsonicError> {
         Ok(Option::<String>::None)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     fn exact_template_environment_register_deferred_template(
         self: alloc::rc::Rc<Self>,
         value: tsumo_engine::template::values::deferred::DeferredTemplateValue,
         body: js_abi::JsArray<tsumo_engine::testing::TemplateNode>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
-        source_path: Option<String>,
-        source_text: String,
-        source_segment_index: i32,
+        sourcePath: Option<String>,
+        sourceText: String,
+        sourceSegmentIndex: i32,
         site: tsumo_engine::testing::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
         state: tsumo_engine::testing::RenderState,
@@ -545,7 +550,7 @@ impl TestTemplateEnvironmentRoot {
         }) != "collecting"
         {
             return Err(tsumo_engine::program::TsonicError::TsumoError(
-                tsumo_engine::create_tsumo_error(
+                tsumo_engine::createTsumoError(
                     String::from("TSUMO_TEMPLATE_DEFER_LIFECYCLE_INVALID"),
                     String::from(
                         "templates.Defer cannot register work after deferred-template finalization begins",
@@ -567,17 +572,14 @@ impl TestTemplateEnvironmentRoot {
         .is_some()
         {
             {
-                let mut index: f64 = 0.0;
-                'loop_value: while index
-                    < (rt::conversions::usize_to_i32(
-                        {
-                            let dispatch_receiver_3 = &project_this;
-                            dispatch_receiver_3
-                                .dispatch
-                                .read_template_environment_deferred_requests()
-                        }
-                        .len(),
-                    )? as f64)
+                let mut index: usize = 0;
+                'loop_value: while index < {
+                    let dispatch_receiver_3 = &project_this;
+                    dispatch_receiver_3
+                        .dispatch
+                        .read_template_environment_deferred_requests()
+                }
+                .len()
                 {
                     let candidate: tsumo_engine::template::environment::DeferredTemplateRequest =
                         match {
@@ -596,15 +598,15 @@ impl TestTemplateEnvironmentRoot {
                         dispatch_receiver_5
                             .dispatch
                             .read_deferred_template_value_key()
-                    } && candidate.state.with(|state| state.source_path.clone()) == source_path
-                        && candidate.state.with(|state| state.source_text.clone()) == source_text
-                        && candidate.state.with(|state| state.source_segment_index)
-                            == source_segment_index
+                    } && candidate.state.with(|state| state.sourcePath.clone()) == sourcePath
+                        && candidate.state.with(|state| state.sourceText.clone()) == sourceText
+                        && candidate.state.with(|state| state.sourceSegmentIndex)
+                            == sourceSegmentIndex
                     {
                         request = Some(candidate.clone());
                         break 'loop_value;
                     }
-                    index += 1.0;
+                    index += 1;
                 }
             }
         }
@@ -614,9 +616,9 @@ impl TestTemplateEnvironmentRoot {
                     value.clone(),
                     body,
                     definitions,
-                    source_path.clone(),
-                    source_text.clone(),
-                    source_segment_index,
+                    sourcePath.clone(),
+                    sourceText.clone(),
+                    sourceSegmentIndex,
                     site,
                     overrides,
                     state,
@@ -686,7 +688,7 @@ impl TestTemplateEnvironmentRoot {
         _state: Option<tsumo_engine::testing::RenderState>,
     ) -> Result<String, tsumo_engine::program::TsonicError> {
         Err(tsumo_engine::program::TsonicError::TsumoError(
-            tsumo_engine::create_tsumo_error(
+            tsumo_engine::createTsumoError(
                 String::from("TSUMO_TEMPLATE_ENVIRONMENT_OPERATION_UNAVAILABLE"),
                 String::from("TemplateEnvironment.renderTemplate is not implemented"),
                 None,
@@ -696,19 +698,20 @@ impl TestTemplateEnvironmentRoot {
         ))
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     fn exact_template_environment_render_template_definition(
         self: alloc::rc::Rc<Self>,
         _nodes: js_abi::JsArray<tsumo_engine::testing::TemplateNode>,
         _definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
-        _source_path: Option<String>,
+        _sourcePath: Option<String>,
         _context: tsumo_engine::testing::TemplateValue,
         _site: tsumo_engine::testing::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
         _state: Option<tsumo_engine::testing::RenderState>,
     ) -> Result<String, tsumo_engine::program::TsonicError> {
         Err(tsumo_engine::program::TsonicError::TsumoError(
-            tsumo_engine::create_tsumo_error(
+            tsumo_engine::createTsumoError(
                 String::from("TSUMO_TEMPLATE_ENVIRONMENT_OPERATION_UNAVAILABLE"),
                 String::from("TemplateEnvironment.renderTemplateDefinition is not implemented"),
                 None,
@@ -727,7 +730,7 @@ impl TestTemplateEnvironmentRoot {
         _state: Option<tsumo_engine::testing::RenderState>,
     ) -> Result<String, tsumo_engine::program::TsonicError> {
         Err(tsumo_engine::program::TsonicError::TsumoError(
-            tsumo_engine::create_tsumo_error(
+            tsumo_engine::createTsumoError(
                 String::from("TSUMO_TEMPLATE_ENVIRONMENT_OPERATION_UNAVAILABLE"),
                 String::from("TemplateEnvironment.renderTextTemplate is not implemented"),
                 None,
@@ -746,7 +749,7 @@ impl TestTemplateEnvironmentRoot {
         _state: Option<tsumo_engine::testing::RenderState>,
     ) -> Result<String, tsumo_engine::program::TsonicError> {
         Err(tsumo_engine::program::TsonicError::TsumoError(
-            tsumo_engine::create_tsumo_error(
+            tsumo_engine::createTsumoError(
                 String::from("TSUMO_TEMPLATE_ENVIRONMENT_OPERATION_UNAVAILABLE"),
                 String::from("TemplateEnvironment.renderTextTemplateSource is not implemented"),
                 None,
@@ -756,10 +759,11 @@ impl TestTemplateEnvironmentRoot {
         ))
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_template_environment_resolve_partial_template(
         self: alloc::rc::Rc<Self>,
         name: String,
-        caller_source_path: Option<String>,
+        callerSourcePath: Option<String>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
     ) -> Result<
         Option<tsumo_engine::template::environment::PartialTemplateResolution>,
@@ -769,30 +773,30 @@ impl TestTemplateEnvironmentRoot {
             identity: self.identity.clone(),
             dispatch: self.clone(),
         };
-        let mut caller_relative_path: Option<String> = Option::<String>::None;
-        if caller_source_path.is_some() {
-            let selected_source_path: String = match caller_source_path.as_ref() {
+        let mut callerRelativePath: Option<String> = Option::<String>::None;
+        if callerSourcePath.is_some() {
+            let selectedSourcePath: String = match callerSourcePath.as_ref() {
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            caller_relative_path = {
+            callerRelativePath = {
                 let dispatch_receiver = project_this.clone();
                 dispatch_receiver
                     .dispatch
                     .clone()
                     .dispatch_template_environment_get_template_source_relative_path(
-                        &selected_source_path,
+                        &selectedSourcePath,
                     )
             }?;
         }
         let candidates: js_abi::JsArray<String> =
-            tsumo_engine::template::paths::partial_template_candidates(
+            tsumo_engine::template::paths::partialTemplateCandidates(
                 name,
-                caller_relative_path.clone(),
+                callerRelativePath.clone(),
             )?;
         {
-            let mut index: f64 = 0.0;
-            while index < (rt::conversions::usize_to_i32(candidates.len())? as f64) {
+            let mut index: usize = 0;
+            while index < candidates.len() {
                 let candidate: String = match candidates.get_number(index) {
                     Some(flow_value_2) => flow_value_2,
                     None => unreachable!("checked flow selected a missing optional value"),
@@ -810,7 +814,7 @@ impl TestTemplateEnvironmentRoot {
                                 }
                             }),
                             Option::<tsumo_engine::testing::Template>::None,
-                            caller_source_path.clone(),
+                            callerSourcePath.clone(),
                         )?,
                     ));
                 }
@@ -844,7 +848,7 @@ impl TestTemplateEnvironmentRoot {
                         )?,
                     ));
                 }
-                index += 1.0;
+                index += 1;
             }
         }
         Ok(Option::<tsumo_engine::template::environment::PartialTemplateResolution>::None)
@@ -956,12 +960,13 @@ impl TestTemplateEnvironmentRoot {
         .get(&path))
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     #[allow(dead_code, reason = "retains an unused authored declaration")]
     fn exact_test_template_environment_get_template_source_relative_path(
         self: alloc::rc::Rc<Self>,
-        source_path: String,
+        sourcePath: String,
     ) -> Result<Option<String>, tsumo_engine::program::TsonicError> {
-        Ok(Some(source_path))
+        Ok(Some(sourcePath))
     }
 
     #[allow(dead_code, reason = "retains an unused authored declaration")]
@@ -1044,13 +1049,14 @@ impl TestTemplateEnvironmentRoot {
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     #[allow(dead_code, reason = "retains an unused authored declaration")]
     fn exact_test_template_environment_render_template_definition(
         self: alloc::rc::Rc<Self>,
         nodes: js_abi::JsArray<tsumo_engine::testing::TemplateNode>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
-        source_path: Option<String>,
+        sourcePath: Option<String>,
         context: tsumo_engine::testing::TemplateValue,
         site: tsumo_engine::testing::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
@@ -1066,7 +1072,7 @@ impl TestTemplateEnvironmentRoot {
                 .dispatch
                 .clone()
                 .dispatch_test_template_environment_render_template(
-                    tsumo_engine::testing::Template::new(nodes, definitions, source_path)?,
+                    tsumo_engine::testing::Template::new(nodes, definitions, sourcePath)?,
                     context,
                     site,
                     overrides,
@@ -1152,7 +1158,7 @@ impl TestTemplateEnvironmentRoot {
                 .dispatch
                 .clone()
                 .dispatch_test_template_environment_render_text_template(
-                    tsumo_engine::testing::parse_template(source, None)?,
+                    tsumo_engine::testing::parseTemplate(source, None)?,
                     context,
                     site,
                     overrides,
@@ -1170,9 +1176,34 @@ impl TestTemplateEnvironmentRoot {
     }
 }
 
+impl rt::ObjectIdentityCarrier for TestTemplateEnvironmentRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl tsumo_engine::template::environment::TemplateEnvironmentDispatch
     for TestTemplateEnvironmentRoot
 {
+    fn project_template_environment(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<
+                dyn tsumo_engine::template::environment::TemplateEnvironmentDispatch + 'static,
+            >,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) = output
+            .downcast_mut::<Option<alloc::rc::Rc<dyn TestTemplateEnvironmentDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_environment_to_template_environment(
         self: alloc::rc::Rc<Self>,
     ) -> Option<
@@ -1184,7 +1215,7 @@ impl tsumo_engine::template::environment::TemplateEnvironmentDispatch
     }
 
     fn read_template_environment_is_production(&self) -> bool {
-        self.state.with(|state| state.base.is_production)
+        self.state.with(|state| state.base.isProduction)
     }
 
     fn write_template_environment_is_production(
@@ -1194,15 +1225,14 @@ impl tsumo_engine::template::environment::TemplateEnvironmentDispatch
         {
             {
                 self.identity.validate_data_write()?;
-                self.state
-                    .with_mut(|state| state.base.is_production = value)
+                self.state.with_mut(|state| state.base.isProduction = value)
             };
             Ok::<_, tsumo_engine::program::TsonicError>(())
         }
     }
 
     fn read_template_environment_build_time(&self) -> js_abi::JsDate {
-        self.state.with(|state| state.base.build_time.clone())
+        self.state.with(|state| state.base.buildTime.clone())
     }
 
     fn write_template_environment_build_time(
@@ -1212,7 +1242,7 @@ impl tsumo_engine::template::environment::TemplateEnvironmentDispatch
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.base.build_time = value)
+                self.state.with_mut(|state| state.base.buildTime = value)
             };
             Ok::<_, tsumo_engine::program::TsonicError>(())
         }
@@ -1221,8 +1251,7 @@ impl tsumo_engine::template::environment::TemplateEnvironmentDispatch
     fn read_template_environment_deferred_requests(
         &self,
     ) -> js_abi::JsArray<tsumo_engine::template::environment::DeferredTemplateRequest> {
-        self.state
-            .with(|state| state.base.deferred_requests.clone())
+        self.state.with(|state| state.base.deferredRequests.clone())
     }
 
     fn write_template_environment_deferred_requests(
@@ -1233,7 +1262,7 @@ impl tsumo_engine::template::environment::TemplateEnvironmentDispatch
             {
                 self.identity.validate_data_write()?;
                 self.state
-                    .with_mut(|state| state.base.deferred_requests = value)
+                    .with_mut(|state| state.base.deferredRequests = value)
             };
             Ok::<_, tsumo_engine::program::TsonicError>(())
         }
@@ -1243,7 +1272,7 @@ impl tsumo_engine::template::environment::TemplateEnvironmentDispatch
         &self,
     ) -> js_abi::JsArray<tsumo_engine::template::environment::DeferredTemplatePlacement> {
         self.state
-            .with(|state| state.base.deferred_placements.clone())
+            .with(|state| state.base.deferredPlacements.clone())
     }
 
     fn write_template_environment_deferred_placements(
@@ -1254,14 +1283,14 @@ impl tsumo_engine::template::environment::TemplateEnvironmentDispatch
             {
                 self.identity.validate_data_write()?;
                 self.state
-                    .with_mut(|state| state.base.deferred_placements = value)
+                    .with_mut(|state| state.base.deferredPlacements = value)
             };
             Ok::<_, tsumo_engine::program::TsonicError>(())
         }
     }
 
     fn read_template_environment_deferred_phase(&self) -> String {
-        self.state.with(|state| state.base.deferred_phase.clone())
+        self.state.with(|state| state.base.deferredPhase.clone())
     }
 
     fn write_template_environment_deferred_phase(
@@ -1272,14 +1301,14 @@ impl tsumo_engine::template::environment::TemplateEnvironmentDispatch
             {
                 self.identity.validate_data_write()?;
                 self.state
-                    .with_mut(|state| state.base.deferred_phase = value)
+                    .with_mut(|state| state.base.deferredPhase = value)
             };
             Ok::<_, tsumo_engine::program::TsonicError>(())
         }
     }
 
     fn read_template_environment_site_data(&self) -> tsumo_engine::testing::DictValue {
-        self.state.with(|state| state.base.site_data.clone())
+        self.state.with(|state| state.base.siteData.clone())
     }
 
     fn write_template_environment_site_data(
@@ -1289,7 +1318,7 @@ impl tsumo_engine::template::environment::TemplateEnvironmentDispatch
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.base.site_data = value)
+                self.state.with_mut(|state| state.base.siteData = value)
             };
             Ok::<_, tsumo_engine::program::TsonicError>(())
         }
@@ -1298,7 +1327,7 @@ impl tsumo_engine::template::environment::TemplateEnvironmentDispatch
     fn read_template_environment_global_store(
         &self,
     ) -> tsumo_engine::template::values::scratch::ScratchStore {
-        self.state.with(|state| state.base.global_store.clone())
+        self.state.with(|state| state.base.globalStore.clone())
     }
 
     fn write_template_environment_global_store(
@@ -1308,20 +1337,21 @@ impl tsumo_engine::template::environment::TemplateEnvironmentDispatch
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.base.global_store = value)
+                self.state.with_mut(|state| state.base.globalStore = value)
             };
             Ok::<_, tsumo_engine::program::TsonicError>(())
         }
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_template_environment_register_deferred_template(
         self: alloc::rc::Rc<Self>,
         value: tsumo_engine::template::values::deferred::DeferredTemplateValue,
         body: js_abi::JsArray<tsumo_engine::testing::TemplateNode>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
-        source_path: Option<String>,
-        source_text: String,
-        source_segment_index: i32,
+        sourcePath: Option<String>,
+        sourceText: String,
+        sourceSegmentIndex: i32,
         site: tsumo_engine::testing::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
         state: tsumo_engine::testing::RenderState,
@@ -1331,23 +1361,24 @@ impl tsumo_engine::template::environment::TemplateEnvironmentDispatch
             value,
             body,
             definitions,
-            source_path,
-            source_text,
-            source_segment_index,
+            sourcePath,
+            sourceText,
+            sourceSegmentIndex,
             site,
             overrides,
             state,
         )
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_template_environment_register_deferred_template(
         self: alloc::rc::Rc<Self>,
         value: tsumo_engine::template::values::deferred::DeferredTemplateValue,
         body: js_abi::JsArray<tsumo_engine::testing::TemplateNode>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
-        source_path: Option<String>,
-        source_text: String,
-        source_segment_index: i32,
+        sourcePath: Option<String>,
+        sourceText: String,
+        sourceSegmentIndex: i32,
         site: tsumo_engine::testing::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
         state: tsumo_engine::testing::RenderState,
@@ -1357,9 +1388,9 @@ impl tsumo_engine::template::environment::TemplateEnvironmentDispatch
             value,
             body,
             definitions,
-            source_path,
-            source_text,
-            source_segment_index,
+            sourcePath,
+            sourceText,
+            sourceSegmentIndex,
             site,
             overrides,
             state,
@@ -1448,44 +1479,49 @@ impl tsumo_engine::template::environment::TemplateEnvironmentDispatch
         TestTemplateEnvironmentRoot::exact_template_environment_source_file_exists(self, _path)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_template_environment_get_template(
         self: alloc::rc::Rc<Self>,
-        _rel_path: &str,
+        _relPath: &str,
     ) -> Result<Option<tsumo_engine::testing::Template>, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_test_template_environment_get_template(
             self,
-            String::from(_rel_path),
+            String::from(_relPath),
         )
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_template_environment_get_template(
         self: alloc::rc::Rc<Self>,
-        _rel_path: &str,
+        _relPath: &str,
     ) -> Result<Option<tsumo_engine::testing::Template>, tsumo_engine::program::TsonicError> {
-        TestTemplateEnvironmentRoot::exact_template_environment_get_template(self, _rel_path)
+        TestTemplateEnvironmentRoot::exact_template_environment_get_template(self, _relPath)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_template_environment_get_template_source_relative_path(
         self: alloc::rc::Rc<Self>,
-        _source_path: &str,
+        _sourcePath: &str,
     ) -> Result<Option<String>, tsumo_engine::program::TsonicError> {
-        TestTemplateEnvironmentRoot::exact_test_template_environment_get_template_source_relative_path(self, String::from(_source_path))
+        TestTemplateEnvironmentRoot::exact_test_template_environment_get_template_source_relative_path(self, String::from(_sourcePath))
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_template_environment_get_template_source_relative_path(
         self: alloc::rc::Rc<Self>,
-        _source_path: &str,
+        _sourcePath: &str,
     ) -> Result<Option<String>, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_template_environment_get_template_source_relative_path(
             self,
-            _source_path,
+            _sourcePath,
         )
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_template_environment_resolve_partial_template(
         self: alloc::rc::Rc<Self>,
         name: String,
-        caller_source_path: Option<String>,
+        callerSourcePath: Option<String>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
     ) -> Result<
         Option<tsumo_engine::template::environment::PartialTemplateResolution>,
@@ -1494,15 +1530,16 @@ impl tsumo_engine::template::environment::TemplateEnvironmentDispatch
         TestTemplateEnvironmentRoot::exact_template_environment_resolve_partial_template(
             self,
             name,
-            caller_source_path,
+            callerSourcePath,
             definitions,
         )
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_template_environment_resolve_partial_template(
         self: alloc::rc::Rc<Self>,
         name: String,
-        caller_source_path: Option<String>,
+        callerSourcePath: Option<String>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
     ) -> Result<
         Option<tsumo_engine::template::environment::PartialTemplateResolution>,
@@ -1511,7 +1548,7 @@ impl tsumo_engine::template::environment::TemplateEnvironmentDispatch
         TestTemplateEnvironmentRoot::exact_template_environment_resolve_partial_template(
             self,
             name,
-            caller_source_path,
+            callerSourcePath,
             definitions,
         )
     }
@@ -1552,21 +1589,23 @@ impl tsumo_engine::template::environment::TemplateEnvironmentDispatch
         TestTemplateEnvironmentRoot::exact_template_environment_get_shortcode_template(self, _name)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_template_environment_get_render_hook_template(
         self: alloc::rc::Rc<Self>,
-        _hook_name: &str,
+        _hookName: &str,
     ) -> Result<Option<tsumo_engine::testing::Template>, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_template_environment_get_render_hook_template(
-            self, _hook_name,
+            self, _hookName,
         )
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_template_environment_get_render_hook_template(
         self: alloc::rc::Rc<Self>,
-        _hook_name: &str,
+        _hookName: &str,
     ) -> Result<Option<tsumo_engine::testing::Template>, tsumo_engine::program::TsonicError> {
         TestTemplateEnvironmentRoot::exact_template_environment_get_render_hook_template(
-            self, _hook_name,
+            self, _hookName,
         )
     }
 
@@ -1665,11 +1704,12 @@ impl tsumo_engine::template::environment::TemplateEnvironmentDispatch
         )
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_template_environment_render_template_definition(
         self: alloc::rc::Rc<Self>,
         _nodes: js_abi::JsArray<tsumo_engine::testing::TemplateNode>,
         _definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
-        _source_path: Option<String>,
+        _sourcePath: Option<String>,
         _context: tsumo_engine::testing::TemplateValue,
         _site: tsumo_engine::testing::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
@@ -1679,7 +1719,7 @@ impl tsumo_engine::template::environment::TemplateEnvironmentDispatch
             self,
             _nodes,
             _definitions,
-            _source_path,
+            _sourcePath,
             _context,
             _site,
             _overrides,
@@ -1687,11 +1727,12 @@ impl tsumo_engine::template::environment::TemplateEnvironmentDispatch
         )
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_template_environment_render_template_definition(
         self: alloc::rc::Rc<Self>,
         _nodes: js_abi::JsArray<tsumo_engine::testing::TemplateNode>,
         _definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
-        _source_path: Option<String>,
+        _sourcePath: Option<String>,
         _context: tsumo_engine::testing::TemplateValue,
         _site: tsumo_engine::testing::SiteContext,
         _overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
@@ -1701,7 +1742,7 @@ impl tsumo_engine::template::environment::TemplateEnvironmentDispatch
             self,
             _nodes,
             _definitions,
-            _source_path,
+            _sourcePath,
             _context,
             _site,
             _overrides,
@@ -1762,7 +1803,7 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
     fn read_test_template_environment_resource_manager(
         &self,
     ) -> Option<tsumo_engine::testing::ResourceManager> {
-        self.state.with(|state| state.resource_manager.clone())
+        self.state.with(|state| state.resourceManager.clone())
     }
 
     fn write_test_template_environment_resource_manager(
@@ -1772,7 +1813,7 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.resource_manager = value)
+                self.state.with_mut(|state| state.resourceManager = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -1781,7 +1822,7 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
     fn read_test_template_environment_i18n_store(
         &self,
     ) -> Option<tsumo_engine::testing::I18nStore> {
-        self.state.with(|state| state.i18n_store.clone())
+        self.state.with(|state| state.i18nStore.clone())
     }
 
     fn write_test_template_environment_i18n_store(
@@ -1791,7 +1832,7 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.i18n_store = value)
+                self.state.with_mut(|state| state.i18nStore = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -1843,18 +1884,20 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
         TestTemplateEnvironmentRoot::exact_test_template_environment_get_template(self, path)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_test_template_environment_get_template_source_relative_path(
         self: alloc::rc::Rc<Self>,
-        source_path: String,
+        sourcePath: String,
     ) -> Result<Option<String>, tsumo_engine::program::TsonicError> {
-        TestTemplateEnvironmentRoot::exact_test_template_environment_get_template_source_relative_path(self, source_path)
+        TestTemplateEnvironmentRoot::exact_test_template_environment_get_template_source_relative_path(self, sourcePath)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_test_template_environment_get_template_source_relative_path(
         self: alloc::rc::Rc<Self>,
-        source_path: String,
+        sourcePath: String,
     ) -> Result<Option<String>, tsumo_engine::program::TsonicError> {
-        TestTemplateEnvironmentRoot::exact_test_template_environment_get_template_source_relative_path(self, source_path)
+        TestTemplateEnvironmentRoot::exact_test_template_environment_get_template_source_relative_path(self, sourcePath)
     }
 
     fn dispatch_test_template_environment_get_resource_manager(
@@ -1991,11 +2034,12 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
         )
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_test_template_environment_render_template_definition(
         self: alloc::rc::Rc<Self>,
         nodes: js_abi::JsArray<tsumo_engine::testing::TemplateNode>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
-        source_path: Option<String>,
+        sourcePath: Option<String>,
         context: tsumo_engine::testing::TemplateValue,
         site: tsumo_engine::testing::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
@@ -2005,7 +2049,7 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
             self,
             nodes,
             definitions,
-            source_path,
+            sourcePath,
             context,
             site,
             overrides,
@@ -2013,11 +2057,12 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
         )
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_test_template_environment_render_template_definition(
         self: alloc::rc::Rc<Self>,
         nodes: js_abi::JsArray<tsumo_engine::testing::TemplateNode>,
         definitions: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
-        source_path: Option<String>,
+        sourcePath: Option<String>,
         context: tsumo_engine::testing::TemplateValue,
         site: tsumo_engine::testing::SiteContext,
         overrides: js_abi::JsMap<String, js_abi::JsArray<tsumo_engine::testing::TemplateNode>>,
@@ -2027,7 +2072,7 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
             self,
             nodes,
             definitions,
-            source_path,
+            sourcePath,
             context,
             site,
             overrides,
@@ -2036,7 +2081,8 @@ impl TestTemplateEnvironmentDispatch for TestTemplateEnvironmentRoot {
     }
 }
 
-pub fn create_site() -> Result<tsumo_engine::testing::SiteContext, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn createSite() -> Result<tsumo_engine::testing::SiteContext, rt::TsonicError> {
     let config: tsumo_engine::testing::SiteConfig = tsumo_engine::testing::SiteConfig::new(
         String::from("Test Site"),
         String::from("https://example.test/"),
@@ -2052,14 +2098,15 @@ pub fn create_site() -> Result<tsumo_engine::testing::SiteContext, rt::TsonicErr
     )
 }
 
-pub fn render_with_root(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn renderWithRoot(
     source: String,
     root: tsumo_engine::testing::TemplateValue,
 ) -> Result<String, rt::TsonicError> {
     let template: tsumo_engine::testing::Template =
-        tsumo_engine::testing::parse_template(source, None)?;
+        tsumo_engine::testing::parseTemplate(source, None)?;
     let environment: TestTemplateEnvironment = TestTemplateEnvironment::new(None)?;
-    let site: tsumo_engine::testing::SiteContext = create_site()?;
+    let site: tsumo_engine::testing::SiteContext = createSite()?;
     let scope: tsumo_engine::testing::RenderScope = tsumo_engine::testing::RenderScope::new(
         root.clone(),
         root.clone(),
@@ -2104,7 +2151,7 @@ pub fn render_with_root(
 }
 
 pub fn render(source: String) -> Result<String, rt::TsonicError> {
-    render_with_root(source, {
+    renderWithRoot(source, {
         let upcast_value = tsumo_engine::testing::DictValue::new(js_abi::JsMap::new())?;
         tsumo_engine::testing::TemplateValue {
             identity: upcast_value.identity.clone(),
@@ -2113,16 +2160,17 @@ pub fn render(source: String) -> Result<String, rt::TsonicError> {
     })
 }
 
-pub fn create_page(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn createPage(
     site: tsumo_engine::testing::SiteContext,
     title: String,
     date: String,
     kind: String,
 ) -> Result<tsumo_engine::testing::PageContext, rt::TsonicError> {
-    let empty_pages: js_abi::JsArray<tsumo_engine::testing::PageContext> =
+    let emptyPages: js_abi::JsArray<tsumo_engine::testing::PageContext> =
         js_abi::JsArray::from_dense(vec![]);
-    let empty_strings: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-    let empty_html: tsumo_engine::testing::HtmlString =
+    let emptyStrings: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    let emptyHtml: tsumo_engine::testing::HtmlString =
         tsumo_engine::testing::HtmlString::new(String::from(""))?;
     tsumo_engine::testing::PageContext::new(
         title.clone(),
@@ -2144,7 +2192,7 @@ pub fn create_page(
             String::from("/")
         ),
         String::from(""),
-        empty_html,
+        emptyHtml,
         tsumo_engine::testing::HtmlString::new(format!(
             "{}{}{}",
             String::from("<p>"),
@@ -2158,25 +2206,26 @@ pub fn create_page(
             String::from("</p>")
         ))?,
         String::from(""),
-        empty_strings.clone(),
-        empty_strings.clone(),
+        emptyStrings.clone(),
+        emptyStrings.clone(),
         js_abi::JsMap::new(),
         Option::<tsumo_engine::testing::PageFile>::None,
         {
             let dispatch_receiver = &site;
             dispatch_receiver.dispatch.read_site_context_language()
         },
-        empty_pages.clone(),
+        emptyPages.clone(),
         Option::<tsumo_engine::template::values::scratch::ScratchStore>::None,
         site.clone(),
-        empty_pages.clone(),
+        emptyPages.clone(),
         Option::<tsumo_engine::testing::PageContext>::None,
-        empty_pages.clone(),
+        emptyPages.clone(),
         Option::<String>::None,
     )
 }
 
-pub fn capture_diagnostic_code(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn captureDiagnosticCode(
     operation: rt::Callable<(), rt::TsonicResult<()>>,
 ) -> Result<String, rt::TsonicError> {
     let try_body: rt::TsonicResult<rt::Completion<String>> = rt::completion_region(|| {
@@ -2216,7 +2265,8 @@ pub fn capture_diagnostic_code(
     )))
 }
 
-pub fn capture_diagnostic(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn captureDiagnostic(
     operation: rt::Callable<(), rt::TsonicResult<()>>,
 ) -> Result<tsumo_engine::TsumoDiagnostic, rt::TsonicError> {
     let try_body: rt::TsonicResult<rt::Completion<tsumo_engine::TsumoDiagnostic>> =

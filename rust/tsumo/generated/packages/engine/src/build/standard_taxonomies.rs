@@ -44,6 +44,9 @@ impl StandardTaxonomy {
 
 #[doc(hidden)]
 pub trait StandardTaxonomyGraphDispatch {
+    fn project_standard_taxonomy_graph(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_standard_taxonomy_graph_to_standard_taxonomy_graph(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn StandardTaxonomyGraphDispatch + 'static>> {
@@ -121,7 +124,24 @@ impl StandardTaxonomyGraph {
     }
 }
 
+impl rt::ObjectIdentityCarrier for StandardTaxonomyGraphRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl StandardTaxonomyGraphDispatch for StandardTaxonomyGraphRoot {
+    fn project_standard_taxonomy_graph(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output
+            .downcast_mut::<Option<alloc::rc::Rc<dyn StandardTaxonomyGraphDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_standard_taxonomy_graph_to_standard_taxonomy_graph(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn StandardTaxonomyGraphDispatch + 'static>> {
@@ -146,20 +166,20 @@ impl StandardTaxonomyGraphDispatch for StandardTaxonomyGraphRoot {
     }
 }
 
-pub fn create_taxonomy_page(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn createTaxonomyPage(
     graph: crate::build::standard_page_graph::StandardPageGraph,
     taxonomy: String,
-    pages_by_term: js_abi::JsMap<String, js_abi::JsArray<crate::models::page_context::PageContext>>,
+    pagesByTerm: js_abi::JsMap<String, js_abi::JsArray<crate::models::page_context::PageContext>>,
 ) -> Result<StandardTaxonomy, rt::TsonicError> {
-    let empty_strings: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-    let empty_pages: js_abi::JsArray<crate::models::page_context::PageContext> =
+    let emptyStrings: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    let emptyPages: js_abi::JsArray<crate::models::page_context::PageContext> =
         js_abi::JsArray::from_dense(vec![]);
-    let empty_html: crate::utils::html::HtmlString =
+    let emptyHtml: crate::utils::html::HtmlString =
         crate::utils::html::HtmlString::new(String::from(""))?;
-    let taxonomy_parameters: js_abi::JsMap<String, crate::params::ParamValue> =
-        js_abi::JsMap::new();
+    let taxonomyParameters: js_abi::JsMap<String, crate::params::ParamValue> = js_abi::JsMap::new();
     {
-        let operation_input_0 = taxonomy_parameters.clone();
+        let operation_input_0 = taxonomyParameters.clone();
         operation_input_0.set_discard(
             String::from("taxonomy"),
             crate::params::ParamValue::string(taxonomy.clone())?,
@@ -167,7 +187,7 @@ pub fn create_taxonomy_page(
     };
     let root: crate::models::page_context::PageContext =
         crate::models::page_context::PageContext::new(
-            crate::utils::text::humanize_slug(&taxonomy)?,
+            crate::utils::text::humanizeSlug(&taxonomy)?,
             String::from(""),
             String::from(""),
             false,
@@ -175,17 +195,17 @@ pub fn create_taxonomy_page(
             taxonomy.clone(),
             taxonomy.clone(),
             taxonomy.clone(),
-            crate::utils::url_path::combine_url_path(js_abi::JsArray::from_dense(vec![
+            crate::utils::url_path::combineUrlPath(js_abi::JsArray::from_dense(vec![
                 taxonomy.clone(),
             ]))?,
             String::from(""),
-            empty_html.clone(),
-            empty_html.clone(),
-            empty_html.clone(),
+            emptyHtml.clone(),
+            emptyHtml.clone(),
+            emptyHtml.clone(),
             String::from(""),
-            empty_strings.clone(),
-            empty_strings.clone(),
-            taxonomy_parameters.clone(),
+            emptyStrings.clone(),
+            emptyStrings.clone(),
+            taxonomyParameters.clone(),
             Option::<crate::models::page_file::PageFile>::None,
             {
                 let dispatch_receiver_2 = &{
@@ -194,13 +214,13 @@ pub fn create_taxonomy_page(
                 };
                 dispatch_receiver_2.dispatch.read_site_context_language()
             },
-            empty_pages.clone(),
+            emptyPages.clone(),
             Option::<crate::template::values::scratch::ScratchStore>::None,
             {
                 let dispatch_receiver_3 = &graph;
                 dispatch_receiver_3.dispatch.read_standard_page_graph_site()
             },
-            empty_pages.clone(),
+            emptyPages.clone(),
             Some({
                 let dispatch_receiver_4 = &graph;
                 dispatch_receiver_4.dispatch.read_standard_page_graph_home()
@@ -211,23 +231,23 @@ pub fn create_taxonomy_page(
             }]),
             Option::<String>::None,
         )?;
-    let term_slugs: js_abi::JsArray<String> = js_abi::array_from_vec(&pages_by_term.keys());
-    term_slugs.sort(|left, right| {
-        rt::conversions::i32_to_f64(crate::utils::strings::compare_text(left, right))
+    let termSlugs: js_abi::JsArray<String> = js_abi::array_from_vec(&pagesByTerm.keys());
+    termSlugs.sort(|left, right| {
+        rt::conversions::i32_to_f64(crate::utils::strings::compareText(left, right))
     });
     let terms: js_abi::JsArray<crate::models::page_context::PageContext> =
         js_abi::JsArray::from_dense(vec![]);
     {
-        let mut index: f64 = 0.0;
-        'loop_value: while index < (rt::conversions::usize_to_i32(term_slugs.len())? as f64) {
-            let term_slug: String = match term_slugs.get_number(index) {
+        let mut index: usize = 0;
+        'loop_value: while index < termSlugs.len() {
+            let termSlug: String = match termSlugs.get_number(index) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let term_pages: Option<js_abi::JsArray<crate::models::page_context::PageContext>> =
-                pages_by_term.get(&term_slug);
-            if term_pages.is_none() {
-                index += 1.0;
+            let termPages: Option<js_abi::JsArray<crate::models::page_context::PageContext>> =
+                pagesByTerm.get(&termSlug);
+            if termPages.is_none() {
+                index += 1;
                 continue 'loop_value;
             }
             let parameters: js_abi::JsMap<String, crate::params::ParamValue> = js_abi::JsMap::new();
@@ -235,7 +255,7 @@ pub fn create_taxonomy_page(
                 let operation_input_0_2 = parameters.clone();
                 operation_input_0_2.set_discard(
                     String::from("term"),
-                    crate::params::ParamValue::string(term_slug.clone())?,
+                    crate::params::ParamValue::string(termSlug.clone())?,
                 )
             };
             {
@@ -247,25 +267,25 @@ pub fn create_taxonomy_page(
             };
             let term: crate::models::page_context::PageContext =
                 crate::models::page_context::PageContext::new(
-                    crate::utils::text::humanize_slug(&term_slug)?,
+                    crate::utils::text::humanizeSlug(&termSlug)?,
                     String::from(""),
                     String::from(""),
                     false,
                     String::from("term"),
                     taxonomy.clone(),
                     taxonomy.clone(),
-                    term_slug.clone(),
-                    crate::utils::url_path::combine_url_path(js_abi::JsArray::from_dense(vec![
+                    termSlug.clone(),
+                    crate::utils::url_path::combineUrlPath(js_abi::JsArray::from_dense(vec![
                         taxonomy.clone(),
-                        term_slug.clone(),
+                        termSlug.clone(),
                     ]))?,
                     String::from(""),
                     crate::utils::html::HtmlString::new(String::from(""))?,
                     crate::utils::html::HtmlString::new(String::from(""))?,
                     crate::utils::html::HtmlString::new(String::from(""))?,
                     String::from(""),
-                    empty_strings.clone(),
-                    empty_strings.clone(),
+                    emptyStrings.clone(),
+                    emptyStrings.clone(),
                     parameters.clone(),
                     Option::<crate::models::page_file::PageFile>::None,
                     {
@@ -275,13 +295,13 @@ pub fn create_taxonomy_page(
                         };
                         dispatch_receiver_7.dispatch.read_site_context_language()
                     },
-                    empty_pages.clone(),
+                    emptyPages.clone(),
                     Option::<crate::template::values::scratch::ScratchStore>::None,
                     {
                         let dispatch_receiver_8 = &graph;
                         dispatch_receiver_8.dispatch.read_standard_page_graph_site()
                     },
-                    match term_pages.as_ref() {
+                    match termPages.as_ref() {
                         Some(flow_value_2) => flow_value_2.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
@@ -295,8 +315,8 @@ pub fn create_taxonomy_page(
                     ]),
                     Option::<String>::None,
                 )?;
-            terms.push_many_discard([term.clone()]);
-            index += 1.0;
+            terms.push_many_discard([term]);
+            index += 1;
         }
     }
     {
@@ -309,17 +329,17 @@ pub fn create_taxonomy_page(
                 .write_page_context_pages(value)?
         }
     };
-    let term_pages: js_abi::JsMap<String, crate::models::page_context::PageContext> =
+    let termPages: js_abi::JsMap<String, crate::models::page_context::PageContext> =
         js_abi::JsMap::new();
     {
-        let mut index: f64 = 0.0;
-        while index < (rt::conversions::usize_to_i32(terms.len())? as f64) {
+        let mut index: usize = 0;
+        while index < terms.len() {
             let term: crate::models::page_context::PageContext = match terms.get_number(index) {
                 Some(flow_value_3) => flow_value_3,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             {
-                let operation_input_0_4 = term_pages.clone();
+                let operation_input_0_4 = termPages.clone();
                 operation_input_0_4.set_discard(
                     {
                         let dispatch_receiver_11 = &term;
@@ -328,7 +348,7 @@ pub fn create_taxonomy_page(
                     term.clone(),
                 )
             };
-            index += 1.0;
+            index += 1;
         }
     }
     {
@@ -342,13 +362,14 @@ pub fn create_taxonomy_page(
             .dispatch
             .read_site_context_taxonomy_term_pages()
     }
-    .set_discard(taxonomy.clone(), term_pages.clone());
+    .set_discard(taxonomy.clone(), termPages.clone());
     StandardTaxonomy::new(taxonomy, root.clone(), terms.clone())
 }
 
-pub fn collect_terms(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn collectTerms(
     pages: js_abi::JsArray<crate::models::page_context::PageContext>,
-    select_terms: rt::Callable<
+    selectTerms: rt::Callable<
         (crate::models::page_context::PageContext,),
         rt::TsonicResult<js_abi::JsArray<String>>,
     >,
@@ -356,61 +377,59 @@ pub fn collect_terms(
     js_abi::JsMap<String, js_abi::JsArray<crate::models::page_context::PageContext>>,
     rt::TsonicError,
 > {
-    let pages_by_term: js_abi::JsMap<
+    let pagesByTerm: js_abi::JsMap<
         String,
         js_abi::JsArray<crate::models::page_context::PageContext>,
     > = js_abi::JsMap::new();
     {
-        let mut page_index: f64 = 0.0;
-        while page_index < (rt::conversions::usize_to_i32(pages.len())? as f64) {
-            let page: crate::models::page_context::PageContext = match pages.get_number(page_index)
-            {
+        let mut pageIndex: usize = 0;
+        while pageIndex < pages.len() {
+            let page: crate::models::page_context::PageContext = match pages.get_number(pageIndex) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let terms: js_abi::JsArray<String> = select_terms.call((page.clone(),))?;
+            let terms: js_abi::JsArray<String> = selectTerms.call((page.clone(),))?;
             {
-                let mut term_index: f64 = 0.0;
-                'loop_value_2: while term_index
-                    < (rt::conversions::usize_to_i32(terms.len())? as f64)
-                {
-                    let term_text: String = js_string::trim(&match terms.get_number(term_index) {
+                let mut termIndex: usize = 0;
+                'loop_value_2: while termIndex < terms.len() {
+                    let termText: String = js_string::trim(&match terms.get_number(termIndex) {
                         Some(flow_value_2) => flow_value_2,
                         None => unreachable!("checked flow selected a missing optional value"),
                     });
-                    if term_text.is_empty() {
-                        term_index += 1.0;
+                    if termText.is_empty() {
+                        termIndex += 1;
                         continue 'loop_value_2;
                     }
-                    let term_slug: String = crate::utils::text::slugify(&term_text)?;
-                    if term_slug.is_empty() {
-                        term_index += 1.0;
+                    let termSlug: String = crate::utils::text::slugify(&termText)?;
+                    if termSlug.is_empty() {
+                        termIndex += 1;
                         continue 'loop_value_2;
                     }
-                    let term_pages: js_abi::JsArray<crate::models::page_context::PageContext> =
+                    let termPages: js_abi::JsArray<crate::models::page_context::PageContext> =
                         rt::option_coalesce(
-                            pages_by_term.get(&term_slug),
+                            pagesByTerm.get(&termSlug),
                             core::convert::identity,
                             || js_abi::JsArray::from_dense(vec![]),
                         );
-                    term_pages.push_many_discard([page.clone()]);
-                    pages_by_term.set_discard(term_slug.clone(), term_pages.clone());
-                    term_index += 1.0;
+                    termPages.push_many_discard([page.clone()]);
+                    pagesByTerm.set_discard(termSlug, termPages.clone());
+                    termIndex += 1;
                 }
             }
-            page_index += 1.0;
+            pageIndex += 1;
         }
     }
-    Ok(pages_by_term)
+    Ok(pagesByTerm)
 }
 
-pub fn create_standard_taxonomies(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn createStandardTaxonomies(
     graph: crate::build::standard_page_graph::StandardPageGraph,
 ) -> Result<StandardTaxonomyGraph, rt::TsonicError> {
-    let tags_by_term: js_abi::JsMap<
+    let tagsByTerm: js_abi::JsMap<
         String,
         js_abi::JsArray<crate::models::page_context::PageContext>,
-    > = collect_terms(
+    > = collectTerms(
         {
             let dispatch_receiver = &graph;
             dispatch_receiver
@@ -428,10 +447,10 @@ pub fn create_standard_taxonomies(
             })
         }),
     )?;
-    let categories_by_term: js_abi::JsMap<
+    let categoriesByTerm: js_abi::JsMap<
         String,
         js_abi::JsArray<crate::models::page_context::PageContext>,
-    > = collect_terms(
+    > = collectTerms(
         {
             let dispatch_receiver_3 = &graph;
             dispatch_receiver_3
@@ -456,7 +475,7 @@ pub fn create_standard_taxonomies(
         };
         dispatch_receiver_6.dispatch.read_site_context_taxonomies()
     }
-    .set_discard(String::from("tags"), tags_by_term.clone());
+    .set_discard(String::from("tags"), tagsByTerm.clone());
     {
         let dispatch_receiver_8 = &{
             let dispatch_receiver_7 = &graph;
@@ -464,91 +483,72 @@ pub fn create_standard_taxonomies(
         };
         dispatch_receiver_8.dispatch.read_site_context_taxonomies()
     }
-    .set_discard(String::from("categories"), categories_by_term.clone());
+    .set_discard(String::from("categories"), categoriesByTerm.clone());
     let taxonomies: js_abi::JsArray<StandardTaxonomy> = js_abi::JsArray::from_dense(vec![
-        create_taxonomy_page(graph.clone(), String::from("tags"), tags_by_term.clone())?,
-        create_taxonomy_page(
+        createTaxonomyPage(graph.clone(), String::from("tags"), tagsByTerm.clone())?,
+        createTaxonomyPage(
             graph.clone(),
             String::from("categories"),
-            categories_by_term.clone(),
+            categoriesByTerm.clone(),
         )?,
     ]);
-    let all_pages: js_abi::JsArray<crate::models::page_context::PageContext> =
+    let allPages: js_abi::JsArray<crate::models::page_context::PageContext> =
         js_abi::JsArray::from_dense(vec![]);
     {
-        let mut index: f64 = 0.0;
-        while index
-            < (rt::conversions::usize_to_i32(
-                {
-                    let dispatch_receiver_10 = &{
-                        let dispatch_receiver_9 = &graph;
-                        dispatch_receiver_9.dispatch.read_standard_page_graph_site()
-                    };
-                    dispatch_receiver_10.dispatch.read_site_context_all_pages()
-                }
-                .len(),
-            )? as f64)
-        {
-            {
-                let operation_input_0 = all_pages.clone();
-                operation_input_0.push_many_discard([
-                    match {
-                        let dispatch_receiver_12 = &{
-                            let dispatch_receiver_11 = &graph;
-                            dispatch_receiver_11
-                                .dispatch
-                                .read_standard_page_graph_site()
-                        };
-                        dispatch_receiver_12.dispatch.read_site_context_all_pages()
-                    }
-                    .get_number(index)
-                    {
-                        Some(flow_value) => flow_value,
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                ])
+        let mut index: usize = 0;
+        while index < {
+            let dispatch_receiver_10 = &{
+                let dispatch_receiver_9 = &graph;
+                dispatch_receiver_9.dispatch.read_standard_page_graph_site()
             };
-            index += 1.0;
+            dispatch_receiver_10.dispatch.read_site_context_all_pages()
+        }
+        .len()
+        {
+            allPages.push_many_discard([
+                match {
+                    let dispatch_receiver_12 = &{
+                        let dispatch_receiver_11 = &graph;
+                        dispatch_receiver_11
+                            .dispatch
+                            .read_standard_page_graph_site()
+                    };
+                    dispatch_receiver_12.dispatch.read_site_context_all_pages()
+                }
+                .get_number(index)
+                {
+                    Some(flow_value) => flow_value,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                },
+            ]);
+            index += 1;
         }
     }
     {
-        let mut taxonomy_index: f64 = 0.0;
-        while taxonomy_index < (rt::conversions::usize_to_i32(taxonomies.len())? as f64) {
-            let taxonomy: StandardTaxonomy = match taxonomies.get_number(taxonomy_index) {
+        let mut taxonomyIndex: usize = 0;
+        while taxonomyIndex < taxonomies.len() {
+            let taxonomy: StandardTaxonomy = match taxonomies.get_number(taxonomyIndex) {
                 Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
+            allPages.push_many_discard([taxonomy.state.with(|state| state.root.clone())]);
             {
-                let operation_input_0_2 = all_pages.clone();
-                operation_input_0_2
-                    .push_many_discard([taxonomy.state.with(|state| state.root.clone())])
-            };
-            {
-                let mut term_index: f64 = 0.0;
-                while term_index
-                    < (rt::conversions::usize_to_i32(
-                        taxonomy.state.with(|state| state.terms.clone()).len(),
-                    )? as f64)
-                {
-                    {
-                        let operation_input_0_3 = all_pages.clone();
-                        operation_input_0_3.push_many_discard([
-                            match taxonomy
-                                .state
-                                .with(|state| state.terms.clone())
-                                .get_number(term_index)
-                            {
-                                Some(flow_value_3) => flow_value_3,
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                        ])
-                    };
-                    term_index += 1.0;
+                let mut termIndex: usize = 0;
+                while termIndex < taxonomy.state.with(|state| state.terms.clone()).len() {
+                    allPages.push_many_discard([
+                        match taxonomy
+                            .state
+                            .with(|state| state.terms.clone())
+                            .get_number(termIndex)
+                        {
+                            Some(flow_value_3) => flow_value_3,
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        },
+                    ]);
+                    termIndex += 1;
                 }
             }
-            taxonomy_index += 1.0;
+            taxonomyIndex += 1;
         }
     }
     {
@@ -558,7 +558,7 @@ pub fn create_standard_taxonomies(
                 .dispatch
                 .read_standard_page_graph_site()
         };
-        let value = all_pages.clone();
+        let value = allPages.clone();
         {
             let dispatch_receiver_14 = receiver;
             dispatch_receiver_14

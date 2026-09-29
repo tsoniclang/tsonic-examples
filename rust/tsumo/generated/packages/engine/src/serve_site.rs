@@ -7,13 +7,15 @@ use tsonic_rust_js::string as js_string;
 pub type LogLineCallable = rt::Callable<(String,), rt::TsonicResult<()>>;
 
 std::thread_local! {
-    pub static LOG_LINE: rt::ModuleCell<LogLineCallable> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub static logLine: rt::ModuleCell<LogLineCallable> = const { rt::ModuleCell::new() };
 }
 
 pub type LogErrorLineCallable = rt::Callable<(String,), rt::TsonicResult<()>>;
 
 std::thread_local! {
-    pub static LOG_ERROR_LINE: rt::ModuleCell<LogErrorLineCallable> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub static logErrorLine: rt::ModuleCell<LogErrorLineCallable> = const { rt::ModuleCell::new() };
 }
 
 pub type SendTextCallable = rt::Callable<
@@ -27,7 +29,8 @@ pub type SendTextCallable = rt::Callable<
 >;
 
 std::thread_local! {
-    pub static SEND_TEXT: rt::ModuleCell<SendTextCallable> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub static sendText: rt::ModuleCell<SendTextCallable> = const { rt::ModuleCell::new() };
 }
 
 pub type SendBytesCallable = rt::Callable<
@@ -41,34 +44,39 @@ pub type SendBytesCallable = rt::Callable<
 >;
 
 std::thread_local! {
-    pub static SEND_BYTES: rt::ModuleCell<SendBytesCallable> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub static sendBytes: rt::ModuleCell<SendBytesCallable> = const { rt::ModuleCell::new() };
 }
 
 pub type IsTextLikeContentTypeCallable = rt::Callable<(String,), rt::TsonicResult<bool>>;
 
 std::thread_local! {
-    pub static IS_TEXT_LIKE_CONTENT_TYPE: rt::ModuleCell<IsTextLikeContentTypeCallable> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub static isTextLikeContentType: rt::ModuleCell<IsTextLikeContentTypeCallable> = const { rt::ModuleCell::new() };
 }
 
 pub type GetRequestPathCallable =
     rt::Callable<(tsonic_rust_node::http::IncomingMessage,), rt::TsonicResult<String>>;
 
 std::thread_local! {
-    pub static GET_REQUEST_PATH: rt::ModuleCell<GetRequestPathCallable> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub static getRequestPath: rt::ModuleCell<GetRequestPathCallable> = const { rt::ModuleCell::new() };
 }
 
 pub type SafeResolveUnderRootCallable =
     rt::Callable<(String, String, Option<String>), rt::TsonicResult<Option<String>>>;
 
 std::thread_local! {
-    pub static SAFE_RESOLVE_UNDER_ROOT: rt::ModuleCell<SafeResolveUnderRootCallable> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub static safeResolveUnderRoot: rt::ModuleCell<SafeResolveUnderRootCallable> = const { rt::ModuleCell::new() };
 }
 
 pub type ResolveRequestPathCallable =
     rt::Callable<(String, String), rt::TsonicResult<Option<String>>>;
 
 std::thread_local! {
-    pub static RESOLVE_REQUEST_PATH: rt::ModuleCell<ResolveRequestPathCallable> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub static resolveRequestPath: rt::ModuleCell<ResolveRequestPathCallable> = const { rt::ModuleCell::new() };
 }
 
 pub type HandleRequestCallable = rt::Callable<
@@ -81,38 +89,34 @@ pub type HandleRequestCallable = rt::Callable<
 >;
 
 std::thread_local! {
-    pub static HANDLE_REQUEST: rt::ModuleCell<HandleRequestCallable> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub static handleRequest: rt::ModuleCell<HandleRequestCallable> = const { rt::ModuleCell::new() };
 }
 
-pub fn collect_watch_targets(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn collectWatchTargets(
     req: crate::build::ServeRequest,
 ) -> Result<js_abi::JsArray<String>, rt::TsonicError> {
-    let site_dir: String = tsonic_rust_node::path::resolve(&[{
+    let siteDir: String = tsonic_rust_node::path::resolve(&[{
         let dispatch_receiver = &req;
         dispatch_receiver.dispatch.read_build_request_site_dir()
     }
     .as_str()])?;
     let targets: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-    let docs_config: Option<crate::docs::config::LoadedDocsConfig> =
-        crate::docs::config::load_docs_config(site_dir.clone())?;
-    if docs_config.is_none() {
-        {
-            let operation_input_0 = targets.clone();
-            operation_input_0.push_many_discard([tsonic_rust_node::path::resolve(&[
-                site_dir.as_str(),
-                "content",
-            ])?])
-        };
-        {
-            let operation_input_0_2 = targets.clone();
-            operation_input_0_2.push_many_discard([tsonic_rust_node::path::resolve(&[
-                site_dir.as_str(),
-                "archetypes",
-            ])?])
-        };
+    let docsConfig: Option<crate::docs::config::LoadedDocsConfig> =
+        crate::docs::config::loadDocsConfig(siteDir.clone())?;
+    if docsConfig.is_none() {
+        targets.push_many_discard([tsonic_rust_node::path::resolve(&[
+            siteDir.as_str(),
+            "content",
+        ])?]);
+        targets.push_many_discard([tsonic_rust_node::path::resolve(&[
+            siteDir.as_str(),
+            "archetypes",
+        ])?]);
     } else {
         let mounts: js_abi::JsArray<crate::docs::models::DocsMountConfig> =
-            match docs_config.as_ref() {
+            match docsConfig.as_ref() {
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             }
@@ -121,84 +125,73 @@ pub fn collect_watch_targets(
             .state
             .with(|state| state.mounts.clone());
         {
-            let mut i: f64 = 0.0;
-            while i < (rt::conversions::usize_to_i32(mounts.len())? as f64) {
-                {
-                    let operation_input_0_3 = targets.clone();
-                    operation_input_0_3.push_many_discard([tsonic_rust_node::path::resolve(&[{
-                        let dispatch_receiver_2 = &match mounts.get_number(i) {
-                            Some(flow_value_2) => flow_value_2,
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        };
-                        dispatch_receiver_2
-                            .dispatch
-                            .read_docs_mount_config_source_dir()
-                    }
-                    .as_str()])?])
-                };
-                i += 1.0;
+            let mut i: usize = 0;
+            while i < mounts.len() {
+                targets.push_many_discard([tsonic_rust_node::path::resolve(&[{
+                    let dispatch_receiver_2 = &match mounts.get_number(i) {
+                        Some(flow_value_2) => flow_value_2,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    };
+                    dispatch_receiver_2
+                        .dispatch
+                        .read_docs_mount_config_source_dir()
+                }
+                .as_str()])?]);
+                i += 1;
             }
         }
-        {
-            let operation_input_0_4 = targets.clone();
-            operation_input_0_4.push_many_discard([tsonic_rust_node::path::resolve(&[
-                site_dir.as_str(),
-                "tsumo.docs.json",
-            ])?])
-        };
+        targets.push_many_discard([tsonic_rust_node::path::resolve(&[
+            siteDir.as_str(),
+            "tsumo.docs.json",
+        ])?]);
     }
-    {
-        let operation_input_0_5 = targets.clone();
-        operation_input_0_5.push_many_discard([tsonic_rust_node::path::resolve(&[
-            site_dir.as_str(),
-            "layouts",
-        ])?])
-    };
-    {
-        let operation_input_0_6 = targets.clone();
-        operation_input_0_6.push_many_discard([tsonic_rust_node::path::resolve(&[
-            site_dir.as_str(),
-            "static",
-        ])?])
-    };
+    targets.push_many_discard([tsonic_rust_node::path::resolve(&[
+        siteDir.as_str(),
+        "layouts",
+    ])?]);
+    targets.push_many_discard([tsonic_rust_node::path::resolve(&[
+        siteDir.as_str(),
+        "static",
+    ])?]);
     Ok(targets)
 }
 
-pub fn start_watch_loop(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn startWatchLoop(
     req: crate::build::ServeRequest,
-    on_rebuild: rt::Callable<(String,), rt::TsonicResult<()>>,
+    onRebuild: rt::Callable<(String,), rt::TsonicResult<()>>,
 ) -> Result<(), rt::TsonicError> {
-    let targets: js_abi::JsArray<String> = collect_watch_targets(req.clone())?;
-    let snapshot: rt::Location<
+    let targets: js_abi::JsArray<String> = collectWatchTargets(req.clone())?;
+    let snapshot: core::cell::RefCell<
         js_abi::JsMap<String, crate::watch_snapshot::WatchEntryState>,
-        core::convert::Infallible,
-    > = rt::Location::allocate(crate::watch_snapshot::create_watch_snapshot(
-        targets.clone(),
-    )?);
-    let rebuilding: rt::Location<bool, core::convert::Infallible> = rt::Location::allocate(false);
+    > = core::cell::RefCell::new(crate::watch_snapshot::createWatchSnapshot(targets.clone())?);
+    let rebuilding: core::cell::Cell<bool> = core::cell::Cell::new(false);
     tsonic_rust_node::timers::set_interval_callable(
         {
-            let capture_rebuilding = rebuilding.clone();
+            let capture_rebuilding = rebuilding;
             let capture_targets = targets.clone();
-            let capture_snapshot = snapshot.clone();
+            let capture_snapshot = snapshot;
             let capture_req = req.clone();
-            let capture_on_rebuild = on_rebuild.clone();
+            let capture_on_rebuild = onRebuild;
             rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                if capture_rebuilding.load() {
+                if capture_rebuilding.get() {
                     return Ok::<_, rt::TsonicError>(());
                 }
                 let next: js_abi::JsMap<String, crate::watch_snapshot::WatchEntryState> =
-                    crate::watch_snapshot::create_watch_snapshot(capture_targets.clone())?;
-                if crate::watch_snapshot::watch_snapshots_equal(
-                    capture_snapshot.load(),
+                    crate::watch_snapshot::createWatchSnapshot(capture_targets.clone())?;
+                if crate::watch_snapshot::watchSnapshotsEqual(
+                    {
+                        let borrowed = capture_snapshot.borrow();
+                        borrowed.clone()
+                    },
                     next.clone(),
-                )? {
+                ) {
                     return Ok::<_, rt::TsonicError>(());
                 }
-                capture_snapshot.store(next.clone());
-                capture_rebuilding.store(true);
+                *capture_snapshot.borrow_mut() = next.clone();
+                capture_rebuilding.set(true);
                 let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-                    let result: crate::build::BuildResult = crate::build_site::build_site({
+                    let result: crate::build::BuildResult = crate::build_site::buildSite({
                         let upcast_value = capture_req.clone();
                         crate::build::BuildRequest {
                             identity: upcast_value.identity.clone(),
@@ -209,7 +202,7 @@ pub fn start_watch_loop(
                         let dispatch_receiver = &result;
                         dispatch_receiver.dispatch.read_build_result_output_dir()
                     },))?;
-                    LOG_LINE
+                    logLine
                         .with(|module_binding| module_binding.load())
                         .call((format!("{}{}", String::from("[tsumo] rebuilt → "), {
                             let dispatch_receiver_2 = &result;
@@ -242,7 +235,7 @@ pub fn start_watch_loop(
                         } else {
                             rt::source_string(&error)
                         };
-                        LOG_ERROR_LINE
+                        logErrorLine
                             .with(|module_binding| module_binding.load())
                             .call((format!(
                                 "{}{}",
@@ -254,7 +247,7 @@ pub fn start_watch_loop(
                 };
                 let finally_flow: rt::TsonicResult<rt::Completion<()>> =
                     rt::completion_region(|| {
-                        capture_rebuilding.store(false);
+                        capture_rebuilding.set(false);
                         Ok(rt::Completion::Normal)
                     });
                 let try_flow: rt::TsonicResult<rt::Completion<()>> =
@@ -271,12 +264,13 @@ pub fn start_watch_loop(
                 Ok::<_, rt::TsonicError>(())
             })
         },
-        rt::conversions::f64_to_i32(250.0)?,
+        250,
     );
     Ok(())
 }
 
-pub fn serve_site(req: crate::build::ServeRequest) -> Result<(), rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn serveSite(req: crate::build::ServeRequest) -> Result<(), rt::TsonicError> {
     let host: String = {
         let conditional_test = js_string::trim(&{
             let dispatch_receiver = &req;
@@ -304,12 +298,12 @@ pub fn serve_site(req: crate::build::ServeRequest) -> Result<(), rt::TsonicError
         rt::source_string(&port),
         String::from("/")
     );
-    let base_url: Option<String> = {
+    let baseURL: Option<String> = {
         let dispatch_receiver_4 = &req;
         dispatch_receiver_4.dispatch.read_build_request_base_url()
     };
-    if base_url.is_none()
-        || js_string::trim(&match base_url.as_ref() {
+    if baseURL.is_none()
+        || js_string::trim(&match baseURL.as_ref() {
             Some(flow_value) => flow_value.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         })
@@ -317,7 +311,7 @@ pub fn serve_site(req: crate::build::ServeRequest) -> Result<(), rt::TsonicError
     {
         {
             let receiver = &req;
-            let value = Some(crate::utils::text::ensure_trailing_slash(prefix.clone()));
+            let value = Some(crate::utils::text::ensureTrailingSlash(prefix.clone()));
             {
                 let dispatch_receiver_5 = receiver;
                 dispatch_receiver_5
@@ -326,8 +320,8 @@ pub fn serve_site(req: crate::build::ServeRequest) -> Result<(), rt::TsonicError
             }
         };
     }
-    let output_dir: rt::Location<String, core::convert::Infallible> = rt::Location::allocate({
-        let dispatch_receiver_6 = &crate::build_site::build_site({
+    let outputDir: rt::Location<String, core::convert::Infallible> = rt::Location::allocate({
+        let dispatch_receiver_6 = &crate::build_site::buildSite({
             let upcast_value = req.clone();
             crate::build::BuildRequest {
                 identity: upcast_value.identity.clone(),
@@ -338,7 +332,7 @@ pub fn serve_site(req: crate::build::ServeRequest) -> Result<(), rt::TsonicError
     });
     let server: tsonic_rust_node::http::ServerHandle =
         tsonic_rust_node::http::create_server_callable({
-            let capture_output_dir = output_dir.clone();
+            let capture_output_dir = outputDir.clone();
             rt::Callable::<
                 (
                     tsonic_rust_node::http::IncomingMessage,
@@ -348,42 +342,42 @@ pub fn serve_site(req: crate::build::ServeRequest) -> Result<(), rt::TsonicError
             >::new(move |callable_arguments| {
                 let request = callable_arguments.0;
                 let response = callable_arguments.1;
-                HANDLE_REQUEST
+                handleRequest
                     .with(|module_binding| module_binding.load())
                     .call((capture_output_dir.load(), request, response))?;
                 Ok::<_, rt::TsonicError>(())
             })
         });
     server.listen(port, &host, {
-        let capture_output_dir_2 = output_dir.clone();
+        let capture_output_dir_2 = outputDir.clone();
         let capture_prefix = prefix.clone();
         rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
-            LOG_LINE
+            logLine
                 .with(|module_binding| module_binding.load())
                 .call((String::from(""),))?;
-            LOG_LINE
+            logLine
                 .with(|module_binding| module_binding.load())
                 .call((String::from("================================="),))?;
-            LOG_LINE
+            logLine
                 .with(|module_binding| module_binding.load())
                 .call((String::from("  tsumo server"),))?;
-            LOG_LINE
+            logLine
                 .with(|module_binding| module_binding.load())
                 .call((format!(
                     "{}{}",
                     String::from("  Serving: "),
                     capture_output_dir_2.load()
                 ),))?;
-            LOG_LINE
+            logLine
                 .with(|module_binding| module_binding.load())
                 .call((format!("{}{}", String::from("  URL: "), capture_prefix),))?;
-            LOG_LINE
+            logLine
                 .with(|module_binding| module_binding.load())
                 .call((String::from("================================="),))?;
-            LOG_LINE
+            logLine
                 .with(|module_binding| module_binding.load())
                 .call((String::from(""),))?;
-            LOG_LINE
+            logLine
                 .with(|module_binding| module_binding.load())
                 .call((String::from("Press Ctrl+C to stop"),))?;
             Ok::<_, rt::TsonicError>(())
@@ -394,11 +388,11 @@ pub fn serve_site(req: crate::build::ServeRequest) -> Result<(), rt::TsonicError
         let dispatch_receiver_7 = &req;
         dispatch_receiver_7.dispatch.read_serve_request_watch()
     } {
-        start_watch_loop(req.clone(), {
-            let capture_output_dir_3 = output_dir.clone();
+        startWatchLoop(req.clone(), {
+            let capture_output_dir_3 = outputDir.clone();
             rt::Callable::<(String,), rt::TsonicResult<()>>::new(move |callable_arguments_3| {
-                let rebuilt_output_dir = callable_arguments_3.0;
-                capture_output_dir_3.store(rebuilt_output_dir);
+                let rebuiltOutputDir = callable_arguments_3.0;
+                capture_output_dir_3.store(rebuiltOutputDir);
                 Ok::<_, rt::TsonicError>(())
             })
         })?;
@@ -407,6 +401,7 @@ pub fn serve_site(req: crate::build::ServeRequest) -> Result<(), rt::TsonicError
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub fn module_init() {
     {
         let module_value =
@@ -415,7 +410,7 @@ pub fn module_init() {
                 js_abi::console_log(&[js_abi::js_value_from_string(&message)]);
                 Ok::<_, rt::TsonicError>(())
             });
-        LOG_LINE.with(|module_binding| module_binding.initialize(module_value))
+        logLine.with(|module_binding| module_binding.initialize(module_value))
     };
     {
         let module_value_2 =
@@ -424,7 +419,7 @@ pub fn module_init() {
                 js_abi::console_error(&[js_abi::js_value_from_string(&message)]);
                 Ok::<_, rt::TsonicError>(())
             });
-        LOG_ERROR_LINE.with(|module_binding_2| module_binding_2.initialize(module_value_2))
+        logErrorLine.with(|module_binding_2| module_binding_2.initialize(module_value_2))
     };
     {
         let module_value_3 = rt::Callable::<
@@ -437,15 +432,15 @@ pub fn module_init() {
             rt::TsonicResult<()>,
         >::new(move |callable_arguments_3| {
             let response = callable_arguments_3.0;
-            let status_code = callable_arguments_3.1;
-            let content_type = callable_arguments_3.2;
+            let statusCode = callable_arguments_3.1;
+            let contentType = callable_arguments_3.2;
             let body = callable_arguments_3.3;
-            response.set_status_code(status_code);
-            response.set_header("Content-Type", &content_type)?;
+            response.set_status_code(statusCode);
+            response.set_header("Content-Type", &contentType)?;
             response.end_string(&body)?;
             Ok::<_, rt::TsonicError>(())
         });
-        SEND_TEXT.with(|module_binding_3| module_binding_3.initialize(module_value_3))
+        sendText.with(|module_binding_3| module_binding_3.initialize(module_value_3))
     };
     {
         let module_value_4 = rt::Callable::<
@@ -458,29 +453,28 @@ pub fn module_init() {
             rt::TsonicResult<()>,
         >::new(move |callable_arguments_4| {
             let response = callable_arguments_4.0;
-            let status_code = callable_arguments_4.1;
-            let content_type = callable_arguments_4.2;
+            let statusCode = callable_arguments_4.1;
+            let contentType = callable_arguments_4.2;
             let bytes = callable_arguments_4.3;
-            response.set_status_code(status_code);
-            response.set_header("Content-Type", &content_type)?;
+            response.set_status_code(statusCode);
+            response.set_header("Content-Type", &contentType)?;
             response.end_buffer(bytes)?;
             Ok::<_, rt::TsonicError>(())
         });
-        SEND_BYTES.with(|module_binding_4| module_binding_4.initialize(module_value_4))
+        sendBytes.with(|module_binding_4| module_binding_4.initialize(module_value_4))
     };
     {
         let module_value_5 =
             rt::Callable::<(String,), rt::TsonicResult<bool>>::new(move |callable_arguments_5| {
-                let content_type = callable_arguments_5.0;
+                let contentType = callable_arguments_5.0;
                 Ok::<_, rt::TsonicError>(
-                    js_string::starts_with_from_start(&content_type, "text/")
-                        || js_string::starts_with_from_start(&content_type, "application/json")
-                        || js_string::starts_with_from_start(&content_type, "application/xml")
-                        || js_string::ends_with_at_end(&content_type, "+xml"),
+                    js_string::starts_with_from_start(&contentType, "text/")
+                        || js_string::starts_with_from_start(&contentType, "application/json")
+                        || js_string::starts_with_from_start(&contentType, "application/xml")
+                        || js_string::ends_with_at_end(&contentType, "+xml"),
                 )
             });
-        IS_TEXT_LIKE_CONTENT_TYPE
-            .with(|module_binding_5| module_binding_5.initialize(module_value_5))
+        isTextLikeContentType.with(|module_binding_5| module_binding_5.initialize(module_value_5))
     };
     {
         let module_value_6 = rt::Callable::<
@@ -489,51 +483,49 @@ pub fn module_init() {
         >::new(move |callable_arguments_6| {
             let request = callable_arguments_6.0;
             let raw: String = request.url();
-            let query_index: i32 =
-                rt::conversions::isize_to_i32(js_string::index_of_from_start(&raw, "?"))?;
-            let hash_index: i32 =
-                rt::conversions::isize_to_i32(js_string::index_of_from_start(&raw, "#"))?;
-            let mut end: i32 = rt::conversions::usize_to_i32(js_string::js_len(&raw))?;
-            if query_index >= 0 && query_index < end {
-                end = query_index;
+            let queryIndex: isize = js_string::index_of_from_start(&raw, "?");
+            let hashIndex: isize = js_string::index_of_from_start(&raw, "#");
+            let mut end: usize = js_string::js_len(&raw);
+            if queryIndex >= 0 && rt::conversions::checked_integer::<usize>(queryIndex)? < end {
+                end = rt::conversions::checked_integer::<usize>(queryIndex)?;
             }
-            if hash_index >= 0 && hash_index < end {
-                end = hash_index;
+            if hashIndex >= 0 && rt::conversions::checked_integer::<usize>(hashIndex)? < end {
+                end = rt::conversions::checked_integer::<usize>(hashIndex)?;
             }
-            let path: String = js_string::substring(&raw, 0.0, rt::conversions::i32_to_f64(end))?;
+            let path: String = js_string::substring(&raw, 0.0, end)?;
             Ok::<_, rt::TsonicError>(if path.is_empty() {
                 String::from("/")
             } else {
                 path
             })
         });
-        GET_REQUEST_PATH.with(|module_binding_6| module_binding_6.initialize(module_value_6))
+        getRequestPath.with(|module_binding_6| module_binding_6.initialize(module_value_6))
     };
     {
         let module_value_7 = rt::Callable::<
             (String, String, Option<String>),
             rt::TsonicResult<Option<String>>,
         >::new(move |callable_arguments_7| {
-            let root_dir = callable_arguments_7.0;
-            let request_path = callable_arguments_7.1;
-            let suffix_raw = callable_arguments_7.2;
-            let suffix: Option<String> = suffix_raw;
-            let root_full: String = tsonic_rust_node::path::resolve(&[root_dir.as_str()])?;
+            let rootDir = callable_arguments_7.0;
+            let requestPath = callable_arguments_7.1;
+            let suffixRaw = callable_arguments_7.2;
+            let suffix: Option<String> = suffixRaw;
+            let rootFull: String = tsonic_rust_node::path::resolve(&[rootDir.as_str()])?;
             let prefix: String =
-                if js_string::ends_with_at_end(&root_full, tsonic_rust_node::path::sep()) {
-                    root_full.clone()
+                if js_string::ends_with_at_end(&rootFull, tsonic_rust_node::path::sep()) {
+                    rootFull.clone()
                 } else {
-                    format!("{}{}", root_full, tsonic_rust_node::path::sep())
+                    format!("{}{}", rootFull, tsonic_rust_node::path::sep())
                 };
             let candidate: String = if suffix.is_none() {
                 tsonic_rust_node::path::resolve(&[
-                    root_full.as_str(),
-                    format!("{}{}", String::from("."), request_path).as_str(),
+                    rootFull.as_str(),
+                    format!("{}{}", String::from("."), requestPath).as_str(),
                 ])?
             } else {
                 tsonic_rust_node::path::resolve(&[
-                    root_full.as_str(),
-                    format!("{}{}", String::from("."), request_path).as_str(),
+                    rootFull.as_str(),
+                    format!("{}{}", String::from("."), requestPath).as_str(),
                     match suffix.as_ref() {
                         Some(flow_value) => flow_value.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
@@ -541,37 +533,33 @@ pub fn module_init() {
                     .as_str(),
                 ])?
             };
-            if candidate != root_full && !js_string::starts_with_from_start(&candidate, &prefix) {
+            if candidate != rootFull && !js_string::starts_with_from_start(&candidate, &prefix) {
                 return Ok::<_, rt::TsonicError>(Option::<String>::None);
             }
             Ok::<_, rt::TsonicError>(Some(candidate))
         });
-        SAFE_RESOLVE_UNDER_ROOT.with(|module_binding_7| module_binding_7.initialize(module_value_7))
+        safeResolveUnderRoot.with(|module_binding_7| module_binding_7.initialize(module_value_7))
     };
     {
         let module_value_8 =
             rt::Callable::<(String, String), rt::TsonicResult<Option<String>>>::new(
                 move |callable_arguments_8| {
-                    let out_dir = callable_arguments_8.0;
-                    let request_path = callable_arguments_8.1;
-                    if request_path == "/" || js_string::ends_with_at_end(&request_path, "/") {
-                        let index_path: Option<String> = SAFE_RESOLVE_UNDER_ROOT
+                    let outDir = callable_arguments_8.0;
+                    let requestPath = callable_arguments_8.1;
+                    if requestPath == "/" || js_string::ends_with_at_end(&requestPath, "/") {
+                        let indexPath: Option<String> = safeResolveUnderRoot
                             .with(|module_binding| module_binding.load())
-                            .call((
-                                out_dir.clone(),
-                                request_path.clone(),
-                                Some(String::from("index.html")),
-                            ))?;
+                            .call((outDir, requestPath, Some(String::from("index.html"))))?;
                         return Ok::<_, rt::TsonicError>({
-                            let conditional_test = index_path.is_some()
-                                && crate::fs::file_exists(match index_path.as_ref() {
+                            let conditional_test = indexPath.is_some()
+                                && crate::fs::fileExists(&match indexPath.as_ref() {
                                     Some(flow_value_2) => flow_value_2.clone(),
                                     None => unreachable!(
                                         "checked flow selected a missing optional value"
                                     ),
                                 })?;
                             if conditional_test {
-                                Some(match index_path {
+                                Some(match indexPath {
                                     Some(flow_value_3) => flow_value_3,
                                     None => unreachable!(
                                         "checked flow selected a missing optional value"
@@ -582,37 +570,33 @@ pub fn module_init() {
                             }
                         });
                     }
-                    let direct_path: Option<String> = SAFE_RESOLVE_UNDER_ROOT
+                    let directPath: Option<String> = safeResolveUnderRoot
                         .with(|module_binding| module_binding.load())
-                        .call((out_dir.clone(), request_path.clone(), None))?;
-                    if direct_path.is_some()
-                        && crate::fs::file_exists(match direct_path.as_ref() {
+                        .call((outDir.clone(), requestPath.clone(), None))?;
+                    if directPath.is_some()
+                        && crate::fs::fileExists(&match directPath.as_ref() {
                             Some(flow_value_4) => flow_value_4.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         })?
                     {
-                        return Ok::<_, rt::TsonicError>(Some(match direct_path {
+                        return Ok::<_, rt::TsonicError>(Some(match directPath {
                             Some(flow_value_5) => flow_value_5,
                             None => unreachable!("checked flow selected a missing optional value"),
                         }));
                     }
-                    if tsonic_rust_node::path::extname(&request_path).is_empty() {
-                        let index_path: Option<String> = SAFE_RESOLVE_UNDER_ROOT
+                    if tsonic_rust_node::path::extname(&requestPath).is_empty() {
+                        let indexPath: Option<String> = safeResolveUnderRoot
                             .with(|module_binding| module_binding.load())
-                            .call((
-                                out_dir.clone(),
-                                request_path.clone(),
-                                Some(String::from("index.html")),
-                            ))?;
-                        if index_path.is_some()
-                            && crate::fs::file_exists(match index_path.as_ref() {
+                            .call((outDir, requestPath, Some(String::from("index.html"))))?;
+                        if indexPath.is_some()
+                            && crate::fs::fileExists(&match indexPath.as_ref() {
                                 Some(flow_value_6) => flow_value_6.clone(),
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
                                 }
                             })?
                         {
-                            return Ok::<_, rt::TsonicError>(Some(match index_path {
+                            return Ok::<_, rt::TsonicError>(Some(match indexPath {
                                 Some(flow_value_7) => flow_value_7,
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
@@ -623,7 +607,7 @@ pub fn module_init() {
                     Ok::<_, rt::TsonicError>(Option::<String>::None)
                 },
             );
-        RESOLVE_REQUEST_PATH.with(|module_binding_8| module_binding_8.initialize(module_value_8))
+        resolveRequestPath.with(|module_binding_8| module_binding_8.initialize(module_value_8))
     };
     {
         let module_value_9 = rt::Callable::<
@@ -634,17 +618,17 @@ pub fn module_init() {
             ),
             rt::TsonicResult<()>,
         >::new(move |callable_arguments_9| {
-            let out_dir = callable_arguments_9.0;
+            let outDir = callable_arguments_9.0;
             let request = callable_arguments_9.1;
             let response = callable_arguments_9.2;
-            let request_path: String = GET_REQUEST_PATH
+            let requestPath: String = getRequestPath
                 .with(|module_binding| module_binding.load())
                 .call((request,))?;
-            let file_path: Option<String> = RESOLVE_REQUEST_PATH
+            let filePath: Option<String> = resolveRequestPath
                 .with(|module_binding| module_binding.load())
-                .call((out_dir, request_path))?;
-            if file_path.is_none() {
-                SEND_TEXT
+                .call((outDir, requestPath))?;
+            if filePath.is_none() {
+                sendText
                     .with(|module_binding| module_binding.load())
                     .call((
                         response.clone(),
@@ -654,41 +638,41 @@ pub fn module_init() {
                     ))?;
                 return Ok::<_, rt::TsonicError>(());
             }
-            let content_type: String =
-                crate::utils::mime::content_type_for_path(&match file_path.as_ref() {
+            let contentType: String =
+                crate::utils::mime::contentTypeForPath(&match filePath.as_ref() {
                     Some(flow_value_8) => flow_value_8.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 });
-            if IS_TEXT_LIKE_CONTENT_TYPE
+            if isTextLikeContentType
                 .with(|module_binding| module_binding.load())
-                .call((content_type.clone(),))?
+                .call((contentType.clone(),))?
             {
-                SEND_TEXT
+                sendText
                     .with(|module_binding| module_binding.load())
                     .call((
                         response.clone(),
                         200,
-                        content_type.clone(),
-                        crate::fs::read_text_file(match file_path.as_ref() {
+                        contentType,
+                        crate::fs::readTextFile(match filePath.as_ref() {
                             Some(flow_value_9) => flow_value_9.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         })?,
                     ))?;
                 return Ok::<_, rt::TsonicError>(());
             }
-            SEND_BYTES
+            sendBytes
                 .with(|module_binding| module_binding.load())
                 .call((
                     response.clone(),
                     200,
-                    content_type,
-                    crate::fs::read_binary_file(match file_path.as_ref() {
+                    contentType,
+                    crate::fs::readBinaryFile(match filePath.as_ref() {
                         Some(flow_value_10) => flow_value_10.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     })?,
                 ))?;
             Ok::<_, rt::TsonicError>(())
         });
-        HANDLE_REQUEST.with(|module_binding_9| module_binding_9.initialize(module_value_9))
+        handleRequest.with(|module_binding_9| module_binding_9.initialize(module_value_9))
     };
 }

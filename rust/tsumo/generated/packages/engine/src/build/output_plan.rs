@@ -13,10 +13,11 @@ pub enum AssetLayer {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct OutputClaimState {
-    pub relative_path: String,
+    pub relativePath: String,
     pub owner: String,
-    pub asset_layer: Option<AssetLayer>,
+    pub assetLayer: Option<AssetLayer>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -32,27 +33,29 @@ impl rt::ObjectIdentityCarrier for OutputClaim {
 }
 
 impl OutputClaim {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
-        relative_path: String,
+        relativePath: String,
         owner: String,
-        asset_layer: Option<AssetLayer>,
+        assetLayer: Option<AssetLayer>,
     ) -> Result<OutputClaim, rt::TsonicError> {
-        let field_relative_path: String = relative_path;
+        let field_relative_path: String = relativePath;
         let field_owner: String = owner;
-        let field_asset_layer: Option<AssetLayer> = asset_layer;
+        let field_asset_layer: Option<AssetLayer> = assetLayer;
         Ok(OutputClaim {
             state: rt::ObjectRef::new(OutputClaimState {
-                relative_path: field_relative_path,
+                relativePath: field_relative_path,
                 owner: field_owner,
-                asset_layer: field_asset_layer,
+                assetLayer: field_asset_layer,
             }),
         })
     }
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct FileSiteOutputState {
-    pub source_path: String,
+    pub sourcePath: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -68,30 +71,32 @@ impl rt::ObjectIdentityCarrier for FileSiteOutput {
 }
 
 impl FileSiteOutput {
-    pub fn new(source_path: String) -> Result<FileSiteOutput, rt::TsonicError> {
-        let field_source_path: String = source_path;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn new(sourcePath: String) -> Result<FileSiteOutput, rt::TsonicError> {
+        let field_source_path: String = sourcePath;
         Ok(FileSiteOutput {
             state: rt::ObjectRef::new(FileSiteOutputState {
-                source_path: field_source_path,
+                sourcePath: field_source_path,
             }),
         })
     }
 }
 
-pub fn normalize_output_path(relative_path: String) -> Result<String, rt::TsonicError> {
-    let normalized: String = crate::build::site_routes::normalize_site_path(&relative_path)?;
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn normalizeOutputPath(relativePath: String) -> Result<String, rt::TsonicError> {
+    let normalized: String = crate::build::site_routes::normalizeSitePath(&relativePath)?;
     if normalized.is_empty()
         || js_string::starts_with_from_start(&normalized, "/")
         || tsonic_rust_node::path::is_absolute(&normalized)
-        || js_string::code_point_at(&normalized, 1.0) == Some(58.0)
+        || js_string::code_point_at(&normalized, 1.0) == Some(58)
     {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_OUTPUT_PATH_ABSOLUTE"),
                 format!(
                     "{}{}",
                     String::from("Site output path must be relative: "),
-                    relative_path
+                    relativePath
                 ),
                 None,
                 None,
@@ -99,23 +104,22 @@ pub fn normalize_output_path(relative_path: String) -> Result<String, rt::Tsonic
             )?,
         ));
     }
-    let segments: js_abi::JsArray<String> =
-        crate::build::site_routes::split_site_path(&normalized)?;
+    let segments: js_abi::JsArray<String> = crate::build::site_routes::splitSitePath(&normalized)?;
     {
-        let mut index: f64 = 0.0;
-        while index < (rt::conversions::usize_to_i32(segments.len())? as f64) {
+        let mut index: usize = 0;
+        while index < segments.len() {
             let segment: String = match segments.get_number(index) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if segment.is_empty() || segment == "." || segment == ".." {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_OUTPUT_PATH_ESCAPES_ROOT"),
                         format!(
                             "{}{}",
                             String::from("Site output path is not canonical: "),
-                            relative_path
+                            relativePath
                         ),
                         None,
                         None,
@@ -123,45 +127,44 @@ pub fn normalize_output_path(relative_path: String) -> Result<String, rt::Tsonic
                     )?,
                 ));
             }
-            index += 1.0;
+            index += 1;
         }
     }
-    Ok(crate::build::site_routes::join_site_path(segments.clone()))
+    Ok(crate::build::site_routes::joinSitePath(segments.clone()))
 }
 
-pub fn combine_output_path(prefix: &str, relative_path: String) -> Result<String, rt::TsonicError> {
-    let normalized_relative_path: String = normalize_output_path(relative_path)?;
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn combineOutputPath(prefix: &str, relativePath: String) -> Result<String, rt::TsonicError> {
+    let normalizedRelativePath: String = normalizeOutputPath(relativePath)?;
     if js_string::trim(prefix).is_empty() {
-        return Ok(normalized_relative_path);
+        return Ok(normalizedRelativePath);
     }
-    normalize_output_path(format!(
+    normalizeOutputPath(format!(
         "{}{}{}",
-        crate::build::site_routes::normalize_site_path(prefix)?,
+        crate::build::site_routes::normalizeSitePath(prefix)?,
         String::from("/"),
-        normalized_relative_path
+        normalizedRelativePath
     ))
 }
 
-pub fn resolve_output_path(
-    output_root: String,
-    relative_path: String,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn resolveOutputPath(
+    outputRoot: String,
+    relativePath: String,
 ) -> Result<String, rt::TsonicError> {
-    let root: String = tsonic_rust_node::path::resolve(&[output_root.as_str()])?;
-    let candidate: String = {
-        let operation_input_0 = root.clone();
-        tsonic_rust_node::path::resolve(&[
-            operation_input_0.as_str(),
-            normalize_output_path(relative_path.clone())?.as_str(),
-        ])
-    }?;
-    if !crate::utils::paths::path_contains_or_equals(root.clone(), candidate.clone()) {
+    let root: String = tsonic_rust_node::path::resolve(&[outputRoot.as_str()])?;
+    let candidate: String = tsonic_rust_node::path::resolve(&[
+        root.as_str(),
+        normalizeOutputPath(relativePath.clone())?.as_str(),
+    ])?;
+    if !crate::utils::paths::pathContainsOrEquals(&root, &candidate) {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_OUTPUT_PATH_ESCAPES_ROOT"),
                 format!(
                     "{}{}",
                     String::from("Site output path escapes its root: "),
-                    relative_path
+                    relativePath
                 ),
                 None,
                 None,
@@ -174,6 +177,9 @@ pub fn resolve_output_path(
 
 #[doc(hidden)]
 pub trait SiteOutputPlanDispatch {
+    fn project_site_output_plan(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_site_output_plan_to_site_output_plan(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn SiteOutputPlanDispatch + 'static>> {
@@ -194,55 +200,63 @@ pub trait SiteOutputPlanDispatch {
         &self,
         value: js_abi::JsMap<String, FileSiteOutput>,
     ) -> Result<(), rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_site_output_plan_add_text(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
         content: String,
         owner: String,
     ) -> Result<(), rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_site_output_plan_add_text(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
         content: String,
         owner: String,
     ) -> Result<(), rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_site_output_plan_add_default_text(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
         content: String,
         owner: String,
     ) -> Result<(), rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_site_output_plan_add_default_text(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
         content: String,
         owner: String,
     ) -> Result<(), rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_site_output_plan_add_asset(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
-        source_path: String,
+        relativePath: String,
+        sourcePath: String,
         owner: String,
         layer: AssetLayer,
     ) -> Result<(), rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_site_output_plan_add_asset(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
-        source_path: String,
+        relativePath: String,
+        sourcePath: String,
         owner: String,
         layer: AssetLayer,
     ) -> Result<(), rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_site_output_plan_add_directory(
         self: alloc::rc::Rc<Self>,
-        source_root: String,
-        output_prefix: &str,
+        sourceRoot: String,
+        outputPrefix: &str,
         owner: String,
         layer: AssetLayer,
     ) -> Result<(), rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_site_output_plan_add_directory(
         self: alloc::rc::Rc<Self>,
-        source_root: String,
-        output_prefix: &str,
+        sourceRoot: String,
+        outputPrefix: &str,
         owner: String,
         layer: AssetLayer,
     ) -> Result<(), rt::TsonicError>;
@@ -256,33 +270,38 @@ pub trait SiteOutputPlanDispatch {
         self: alloc::rc::Rc<Self>,
         results: js_abi::JsMap<String, String>,
     ) -> Result<(), rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_site_output_plan_render(
         self: alloc::rc::Rc<Self>,
-        output_root: String,
+        outputRoot: String,
     ) -> Result<(), rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_site_output_plan_render(
         self: alloc::rc::Rc<Self>,
-        output_root: String,
+        outputRoot: String,
     ) -> Result<(), rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_site_output_plan_throw_conflict(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
         owner: String,
         previous: OutputClaim,
     ) -> Result<(), rt::TsonicError>;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_site_output_plan_throw_conflict(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
         owner: String,
         previous: OutputClaim,
     ) -> Result<(), rt::TsonicError>;
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct SiteOutputPlanState {
-    pub claims_by_path: js_abi::JsMap<String, OutputClaim>,
-    pub text_by_path: js_abi::JsMap<String, String>,
-    pub files_by_path: js_abi::JsMap<String, FileSiteOutput>,
+    pub claimsByPath: js_abi::JsMap<String, OutputClaim>,
+    pub textByPath: js_abi::JsMap<String, String>,
+    pub filesByPath: js_abi::JsMap<String, FileSiteOutput>,
 }
 
 #[derive(Clone)]
@@ -325,9 +344,9 @@ impl SiteOutputPlan {
         let field_text_by_path: js_abi::JsMap<String, String> = js_abi::JsMap::new();
         let field_files_by_path: js_abi::JsMap<String, FileSiteOutput> = js_abi::JsMap::new();
         Ok(SiteOutputPlanState {
-            claims_by_path: field_claims_by_path,
-            text_by_path: field_text_by_path,
-            files_by_path: field_files_by_path,
+            claimsByPath: field_claims_by_path,
+            textByPath: field_text_by_path,
+            filesByPath: field_files_by_path,
         })
     }
 
@@ -346,10 +365,11 @@ impl SiteOutputPlan {
 }
 
 impl SiteOutputPlanRoot {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_site_output_plan_add_asset(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
-        source_path: String,
+        relativePath: String,
+        sourcePath: String,
         owner: String,
         layer: AssetLayer,
     ) -> Result<(), rt::TsonicError> {
@@ -357,8 +377,8 @@ impl SiteOutputPlanRoot {
             identity: self.identity.clone(),
             dispatch: self.clone(),
         };
-        let output_path: String = normalize_output_path(relative_path)?;
-        let key: String = js_string::to_lower_case(&output_path);
+        let outputPath: String = normalizeOutputPath(relativePath)?;
+        let key: String = js_string::to_lower_case(&outputPath);
         let previous: Option<OutputClaim> = {
             let dispatch_receiver = &project_this;
             dispatch_receiver
@@ -376,7 +396,7 @@ impl SiteOutputPlanRoot {
                 };
                 operation_input_0.set_discard(
                     key.clone(),
-                    OutputClaim::new(output_path.clone(), owner.clone(), Some(layer))?,
+                    OutputClaim::new(outputPath, owner, Some(layer))?,
                 )
             };
             {
@@ -386,8 +406,7 @@ impl SiteOutputPlanRoot {
                         .dispatch
                         .read_site_output_plan_files_by_path()
                 };
-                operation_input_0_2
-                    .set_discard(key.clone(), FileSiteOutput::new(source_path.clone())?)
+                operation_input_0_2.set_discard(key, FileSiteOutput::new(sourcePath)?)
             };
             return Ok(());
         }
@@ -396,7 +415,7 @@ impl SiteOutputPlanRoot {
             None => unreachable!("checked flow selected a missing optional value"),
         }
         .state
-        .with(|state| state.asset_layer)
+        .with(|state| state.assetLayer)
             == Some(AssetLayer::ThemeStatic)
             && layer == AssetLayer::SiteStatic
         {
@@ -409,7 +428,7 @@ impl SiteOutputPlanRoot {
                 };
                 operation_input_0_3.set_discard(
                     key.clone(),
-                    OutputClaim::new(output_path.clone(), owner.clone(), Some(layer))?,
+                    OutputClaim::new(outputPath, owner, Some(layer))?,
                 )
             };
             {
@@ -419,8 +438,7 @@ impl SiteOutputPlanRoot {
                         .dispatch
                         .read_site_output_plan_files_by_path()
                 };
-                operation_input_0_4
-                    .set_discard(key.clone(), FileSiteOutput::new(source_path.clone())?)
+                operation_input_0_4.set_discard(key, FileSiteOutput::new(sourcePath)?)
             };
             return Ok(());
         }
@@ -431,7 +449,7 @@ impl SiteOutputPlanRoot {
                     .dispatch
                     .clone()
                     .dispatch_site_output_plan_throw_conflict(
-                        output_path,
+                        outputPath,
                         owner,
                         match previous.as_ref() {
                             Some(flow_value_2) => flow_value_2.clone(),
@@ -443,9 +461,10 @@ impl SiteOutputPlanRoot {
         };
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_site_output_plan_add_default_text(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
         content: String,
         owner: String,
     ) -> Result<(), rt::TsonicError> {
@@ -453,7 +472,7 @@ impl SiteOutputPlanRoot {
             identity: self.identity.clone(),
             dispatch: self.clone(),
         };
-        let output_path: String = normalize_output_path(relative_path)?;
+        let outputPath: String = normalizeOutputPath(relativePath)?;
         let previous: Option<OutputClaim> = {
             let operation_input_0 = {
                 let dispatch_receiver = &project_this;
@@ -461,7 +480,7 @@ impl SiteOutputPlanRoot {
                     .dispatch
                     .read_site_output_plan_claims_by_path()
             };
-            operation_input_0.get(&js_string::to_lower_case(&output_path))
+            operation_input_0.get(&js_string::to_lower_case(&outputPath))
         };
         if previous.is_none() {
             {
@@ -469,7 +488,7 @@ impl SiteOutputPlanRoot {
                 dispatch_receiver_2
                     .dispatch
                     .clone()
-                    .dispatch_site_output_plan_add_text(output_path.clone(), content, owner.clone())
+                    .dispatch_site_output_plan_add_text(outputPath, content, owner)
             }?;
             return Ok(());
         }
@@ -478,14 +497,14 @@ impl SiteOutputPlanRoot {
             None => unreachable!("checked flow selected a missing optional value"),
         }
         .state
-        .with(|state| state.asset_layer)
+        .with(|state| state.assetLayer)
             == Some(AssetLayer::ThemeStatic)
             || match previous.as_ref() {
                 Some(flow_value_2) => flow_value_2.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             }
             .state
-            .with(|state| state.asset_layer)
+            .with(|state| state.assetLayer)
                 == Some(AssetLayer::SiteStatic)
         {
             return Ok(());
@@ -497,7 +516,7 @@ impl SiteOutputPlanRoot {
                     .dispatch
                     .clone()
                     .dispatch_site_output_plan_throw_conflict(
-                        output_path,
+                        outputPath,
                         owner,
                         match previous.as_ref() {
                             Some(flow_value_3) => flow_value_3.clone(),
@@ -509,10 +528,11 @@ impl SiteOutputPlanRoot {
         };
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_site_output_plan_add_directory(
         self: alloc::rc::Rc<Self>,
-        source_root: String,
-        output_prefix: &str,
+        sourceRoot: String,
+        outputPrefix: &str,
         owner: String,
         layer: AssetLayer,
     ) -> Result<(), rt::TsonicError> {
@@ -521,17 +541,17 @@ impl SiteOutputPlanRoot {
             dispatch: self.clone(),
         };
         let files: js_abi::JsArray<String> =
-            crate::fs::list_files_recursive(source_root.clone(), String::from("*"))?;
-        files.try_sort_borrowed(crate::build::site_routes::compare_site_paths)?;
+            crate::fs::listFilesRecursive(sourceRoot.clone(), String::from("*"))?;
+        files.try_sort_borrowed(crate::build::site_routes::compareSitePaths)?;
         {
-            let mut index: f64 = 0.0;
-            while index < (rt::conversions::usize_to_i32(files.len())? as f64) {
-                let source_path: String = match files.get_number(index) {
+            let mut index: usize = 0;
+            while index < files.len() {
+                let sourcePath: String = match files.get_number(index) {
                     Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-                let relative_path: String = crate::build::site_routes::normalize_site_path(
-                    &tsonic_rust_node::path::relative(&source_root, &source_path),
+                let relativePath: String = crate::build::site_routes::normalizeSitePath(
+                    &tsonic_rust_node::path::relative(&sourceRoot, &sourcePath),
                 )?;
                 {
                     let dispatch_receiver = project_this.clone();
@@ -539,21 +559,22 @@ impl SiteOutputPlanRoot {
                         .dispatch
                         .clone()
                         .dispatch_site_output_plan_add_asset(
-                            combine_output_path(output_prefix, relative_path.clone())?,
-                            source_path.clone(),
+                            combineOutputPath(outputPrefix, relativePath)?,
+                            sourcePath,
                             owner.clone(),
                             layer,
                         )
                 }?;
-                index += 1.0;
+                index += 1;
             }
         }
         Ok(())
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_site_output_plan_add_text(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
         content: String,
         owner: String,
     ) -> Result<(), rt::TsonicError> {
@@ -561,8 +582,8 @@ impl SiteOutputPlanRoot {
             identity: self.identity.clone(),
             dispatch: self.clone(),
         };
-        let output_path: String = normalize_output_path(relative_path)?;
-        let key: String = js_string::to_lower_case(&output_path);
+        let outputPath: String = normalizeOutputPath(relativePath)?;
+        let key: String = js_string::to_lower_case(&outputPath);
         let previous: Option<OutputClaim> = {
             let dispatch_receiver = &project_this;
             dispatch_receiver
@@ -578,7 +599,7 @@ impl SiteOutputPlanRoot {
                         .dispatch
                         .clone()
                         .dispatch_site_output_plan_throw_conflict(
-                            output_path.clone(),
+                            outputPath.clone(),
                             owner.clone(),
                             match previous.as_ref() {
                                 Some(flow_value) => flow_value.clone(),
@@ -600,7 +621,7 @@ impl SiteOutputPlanRoot {
             };
             operation_input_0.set_discard(
                 key.clone(),
-                OutputClaim::new(output_path, owner, Option::<AssetLayer>::None)?,
+                OutputClaim::new(outputPath, owner, Option::<AssetLayer>::None)?,
             )
         };
         {
@@ -613,6 +634,7 @@ impl SiteOutputPlanRoot {
         Ok(())
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_site_output_plan_apply_deferred_template_results(
         self: alloc::rc::Rc<Self>,
         results: js_abi::JsMap<String, String>,
@@ -621,11 +643,11 @@ impl SiteOutputPlanRoot {
             identity: self.identity.clone(),
             dispatch: self.clone(),
         };
-        if rt::conversions::usize_to_i32(results.len())? == 0 {
+        if results.is_empty() {
             return Ok(());
         }
-        let resolved_placements: js_abi::JsSet<String> = js_abi::JsSet::new();
-        let output_paths: js_abi::JsArray<String> = js_abi::array_from_vec(
+        let resolvedPlacements: js_abi::JsSet<String> = js_abi::JsSet::new();
+        let outputPaths: js_abi::JsArray<String> = js_abi::array_from_vec(
             &{
                 let dispatch_receiver = &project_this;
                 dispatch_receiver
@@ -635,11 +657,9 @@ impl SiteOutputPlanRoot {
             .keys(),
         );
         {
-            let mut output_index: f64 = 0.0;
-            'loop_value: while output_index
-                < (rt::conversions::usize_to_i32(output_paths.len())? as f64)
-            {
-                let key: String = match output_paths.get_number(output_index) {
+            let mut outputIndex: usize = 0;
+            'loop_value: while outputIndex < outputPaths.len() {
+                let key: String = match outputPaths.get_number(outputIndex) {
                     Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
@@ -651,14 +671,14 @@ impl SiteOutputPlanRoot {
                 }
                 .get(&key);
                 if content.is_none() {
-                    output_index += 1.0;
+                    outputIndex += 1;
                     continue 'loop_value;
                 }
                 for token in results.keys() {
                     let replacement: Option<String> = results.get(&token);
                     if replacement.is_none() {
                         return Err(rt::TsonicError::TsumoError(
-                            crate::diagnostics::create_tsumo_error(
+                            crate::diagnostics::createTsumoError(
                                 String::from("TSUMO_TEMPLATE_DEFER_RESULT_INVALID"),
                                 String::from("A deferred-template replacement disappeared"),
                                 None,
@@ -667,19 +687,16 @@ impl SiteOutputPlanRoot {
                             )?,
                         ));
                     }
-                    let first: i32 =
-                        rt::conversions::isize_to_i32(js_string::index_of_from_start(
-                            &match content.as_ref() {
-                                Some(flow_value_2) => flow_value_2.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                            &token,
-                        ))?;
+                    let first: isize = js_string::index_of_from_start(
+                        &match content.as_ref() {
+                            Some(flow_value_2) => flow_value_2.clone(),
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        },
+                        &token,
+                    );
                     if first >= 0 {
-                        if resolved_placements.has(&token)
-                            || rt::conversions::isize_to_i32({
+                        if resolvedPlacements.has(&token)
+                            || ({
                                 let operation_input_0 = match content.as_ref() {
                                     Some(flow_value_3) => flow_value_3.clone(),
                                     None => unreachable!(
@@ -690,17 +707,13 @@ impl SiteOutputPlanRoot {
                                 js_string::index_of(
                                     &operation_input_0,
                                     &operation_input_1,
-                                    rt::conversions::i32_to_f64(
-                                        first
-                                            + rt::conversions::usize_to_i32(js_string::js_len(
-                                                &token,
-                                            ))?,
-                                    ),
+                                    rt::conversions::checked_integer::<usize>(first)?
+                                        + js_string::js_len(&token),
                                 )
-                            })? >= 0
+                            }) >= 0
                         {
                             return Err(rt::TsonicError::TsumoError(
-                                crate::diagnostics::create_tsumo_error(
+                                crate::diagnostics::createTsumoError(
                                     String::from("TSUMO_TEMPLATE_DEFER_PLACEMENT_INVALID"),
                                     String::from(
                                         "Each deferred-template placement must occur exactly once in planned output",
@@ -711,7 +724,7 @@ impl SiteOutputPlanRoot {
                                 )?,
                             ));
                         }
-                        resolved_placements.add_discard(token.clone());
+                        resolvedPlacements.add_discard(token.clone());
                         content = Some(js_string::replace_all(
                             &match content.as_ref() {
                                 Some(flow_value_4) => flow_value_4.clone(),
@@ -736,19 +749,19 @@ impl SiteOutputPlanRoot {
                         .read_site_output_plan_text_by_path()
                 }
                 .set_discard(
-                    key.clone(),
+                    key,
                     match content.as_ref() {
                         Some(flow_value_6) => flow_value_6.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                 );
-                output_index += 1.0;
+                outputIndex += 1;
             }
         }
         for token in results.keys() {
-            if !resolved_placements.has(&token) {
+            if !resolvedPlacements.has(&token) {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_TEMPLATE_DEFER_PLACEMENT_INVALID"),
                         String::from(
                             "Each deferred-template placement must occur exactly once in planned output",
@@ -783,9 +796,10 @@ impl SiteOutputPlanRoot {
         count
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_site_output_plan_render(
         self: alloc::rc::Rc<Self>,
-        output_root: String,
+        outputRoot: String,
     ) -> Result<(), rt::TsonicError> {
         let project_this = SiteOutputPlan {
             identity: self.identity.clone(),
@@ -800,10 +814,10 @@ impl SiteOutputPlanRoot {
             }
             .keys(),
         );
-        keys.try_sort_borrowed(crate::build::site_routes::compare_site_paths)?;
+        keys.try_sort_borrowed(crate::build::site_routes::compareSitePaths)?;
         {
-            let mut index: f64 = 0.0;
-            'loop_value: while index < (rt::conversions::usize_to_i32(keys.len())? as f64) {
+            let mut index: usize = 0;
+            'loop_value: while index < keys.len() {
                 let key: String = match keys.get_number(index) {
                     Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
@@ -817,7 +831,7 @@ impl SiteOutputPlanRoot {
                 .get(&key);
                 if claim.is_none() {
                     return Err(rt::TsonicError::TsumoError(
-                        crate::diagnostics::create_tsumo_error(
+                        crate::diagnostics::createTsumoError(
                             String::from("TSUMO_OUTPUT_PLAN_INCONSISTENT"),
                             format!(
                                 "{}{}{}",
@@ -831,14 +845,14 @@ impl SiteOutputPlanRoot {
                         )?,
                     ));
                 }
-                let destination: String = resolve_output_path(
-                    output_root.clone(),
+                let destination: String = resolveOutputPath(
+                    outputRoot.clone(),
                     match claim.as_ref() {
                         Some(flow_value_2) => flow_value_2.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                     .state
-                    .with(|state| state.relative_path.clone()),
+                    .with(|state| state.relativePath.clone()),
                 )?;
                 let text: Option<String> = {
                     let dispatch_receiver_3 = &project_this;
@@ -848,14 +862,14 @@ impl SiteOutputPlanRoot {
                 }
                 .get(&key);
                 if text.is_some() {
-                    crate::fs::write_text_file(
-                        destination.clone(),
-                        match text.as_ref() {
+                    crate::fs::writeTextFile(
+                        &destination,
+                        &match text.as_ref() {
                             Some(flow_value_3) => flow_value_3.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
                     )?;
-                    index += 1.0;
+                    index += 1;
                     continue 'loop_value;
                 }
                 let file: Option<FileSiteOutput> = {
@@ -867,7 +881,7 @@ impl SiteOutputPlanRoot {
                 .get(&key);
                 if file.is_none() {
                     return Err(rt::TsonicError::TsumoError(
-                        crate::diagnostics::create_tsumo_error(
+                        crate::diagnostics::createTsumoError(
                             String::from("TSUMO_OUTPUT_PLAN_INCONSISTENT"),
                             format!(
                                 "{}{}{}",
@@ -881,36 +895,37 @@ impl SiteOutputPlanRoot {
                         )?,
                     ));
                 }
-                crate::fs::ensure_dir(tsonic_rust_node::path::dirname(&destination))?;
+                crate::fs::ensureDir(&tsonic_rust_node::path::dirname(&destination))?;
                 tsonic_rust_node::fs::copy_file_sync(
                     match file.as_ref() {
                         Some(flow_value_4) => flow_value_4.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                     .state
-                    .with(|state| state.source_path.clone())
+                    .with(|state| state.sourcePath.clone())
                     .as_str(),
                     destination.as_str(),
                 )?;
-                index += 1.0;
+                index += 1;
             }
         }
         Ok(())
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_site_output_plan_throw_conflict(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
         owner: String,
         previous: OutputClaim,
     ) -> Result<(), rt::TsonicError> {
         Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_OUTPUT_PATH_CONFLICT"),
                 format!(
                     "{}{}{}{}{}{}{}",
                     String::from("Output '"),
-                    relative_path,
+                    relativePath,
                     String::from("' is claimed by both '"),
                     previous.state.with(|state| state.owner.clone()),
                     String::from("' and '"),
@@ -925,7 +940,24 @@ impl SiteOutputPlanRoot {
     }
 }
 
+impl rt::ObjectIdentityCarrier for SiteOutputPlanRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl SiteOutputPlanDispatch for SiteOutputPlanRoot {
+    fn project_site_output_plan(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn SiteOutputPlanDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_site_output_plan_to_site_output_plan(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn SiteOutputPlanDispatch + 'static>> {
@@ -933,7 +965,7 @@ impl SiteOutputPlanDispatch for SiteOutputPlanRoot {
     }
 
     fn read_site_output_plan_claims_by_path(&self) -> js_abi::JsMap<String, OutputClaim> {
-        self.state.with(|state| state.claims_by_path.clone())
+        self.state.with(|state| state.claimsByPath.clone())
     }
 
     fn write_site_output_plan_claims_by_path(
@@ -943,14 +975,14 @@ impl SiteOutputPlanDispatch for SiteOutputPlanRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.claims_by_path = value)
+                self.state.with_mut(|state| state.claimsByPath = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_site_output_plan_text_by_path(&self) -> js_abi::JsMap<String, String> {
-        self.state.with(|state| state.text_by_path.clone())
+        self.state.with(|state| state.textByPath.clone())
     }
 
     fn write_site_output_plan_text_by_path(
@@ -960,14 +992,14 @@ impl SiteOutputPlanDispatch for SiteOutputPlanRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.text_by_path = value)
+                self.state.with_mut(|state| state.textByPath = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_site_output_plan_files_by_path(&self) -> js_abi::JsMap<String, FileSiteOutput> {
-        self.state.with(|state| state.files_by_path.clone())
+        self.state.with(|state| state.filesByPath.clone())
     }
 
     fn write_site_output_plan_files_by_path(
@@ -977,117 +1009,125 @@ impl SiteOutputPlanDispatch for SiteOutputPlanRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.files_by_path = value)
+                self.state.with_mut(|state| state.filesByPath = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_site_output_plan_add_text(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
         content: String,
         owner: String,
     ) -> Result<(), rt::TsonicError> {
-        SiteOutputPlanRoot::exact_site_output_plan_add_text(self, relative_path, content, owner)
+        SiteOutputPlanRoot::exact_site_output_plan_add_text(self, relativePath, content, owner)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_site_output_plan_add_text(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
         content: String,
         owner: String,
     ) -> Result<(), rt::TsonicError> {
-        SiteOutputPlanRoot::exact_site_output_plan_add_text(self, relative_path, content, owner)
+        SiteOutputPlanRoot::exact_site_output_plan_add_text(self, relativePath, content, owner)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_site_output_plan_add_default_text(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
         content: String,
         owner: String,
     ) -> Result<(), rt::TsonicError> {
         SiteOutputPlanRoot::exact_site_output_plan_add_default_text(
             self,
-            relative_path,
+            relativePath,
             content,
             owner,
         )
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_site_output_plan_add_default_text(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
         content: String,
         owner: String,
     ) -> Result<(), rt::TsonicError> {
         SiteOutputPlanRoot::exact_site_output_plan_add_default_text(
             self,
-            relative_path,
+            relativePath,
             content,
             owner,
         )
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_site_output_plan_add_asset(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
-        source_path: String,
+        relativePath: String,
+        sourcePath: String,
         owner: String,
         layer: AssetLayer,
     ) -> Result<(), rt::TsonicError> {
         SiteOutputPlanRoot::exact_site_output_plan_add_asset(
             self,
-            relative_path,
-            source_path,
+            relativePath,
+            sourcePath,
             owner,
             layer,
         )
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_site_output_plan_add_asset(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
-        source_path: String,
+        relativePath: String,
+        sourcePath: String,
         owner: String,
         layer: AssetLayer,
     ) -> Result<(), rt::TsonicError> {
         SiteOutputPlanRoot::exact_site_output_plan_add_asset(
             self,
-            relative_path,
-            source_path,
+            relativePath,
+            sourcePath,
             owner,
             layer,
         )
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_site_output_plan_add_directory(
         self: alloc::rc::Rc<Self>,
-        source_root: String,
-        output_prefix: &str,
+        sourceRoot: String,
+        outputPrefix: &str,
         owner: String,
         layer: AssetLayer,
     ) -> Result<(), rt::TsonicError> {
         SiteOutputPlanRoot::exact_site_output_plan_add_directory(
             self,
-            source_root,
-            output_prefix,
+            sourceRoot,
+            outputPrefix,
             owner,
             layer,
         )
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_site_output_plan_add_directory(
         self: alloc::rc::Rc<Self>,
-        source_root: String,
-        output_prefix: &str,
+        sourceRoot: String,
+        outputPrefix: &str,
         owner: String,
         layer: AssetLayer,
     ) -> Result<(), rt::TsonicError> {
         SiteOutputPlanRoot::exact_site_output_plan_add_directory(
             self,
-            source_root,
-            output_prefix,
+            sourceRoot,
+            outputPrefix,
             owner,
             layer,
         )
@@ -1115,43 +1155,47 @@ impl SiteOutputPlanDispatch for SiteOutputPlanRoot {
         SiteOutputPlanRoot::exact_site_output_plan_apply_deferred_template_results(self, results)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_site_output_plan_render(
         self: alloc::rc::Rc<Self>,
-        output_root: String,
+        outputRoot: String,
     ) -> Result<(), rt::TsonicError> {
-        SiteOutputPlanRoot::exact_site_output_plan_render(self, output_root)
+        SiteOutputPlanRoot::exact_site_output_plan_render(self, outputRoot)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_site_output_plan_render(
         self: alloc::rc::Rc<Self>,
-        output_root: String,
+        outputRoot: String,
     ) -> Result<(), rt::TsonicError> {
-        SiteOutputPlanRoot::exact_site_output_plan_render(self, output_root)
+        SiteOutputPlanRoot::exact_site_output_plan_render(self, outputRoot)
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn dispatch_site_output_plan_throw_conflict(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
         owner: String,
         previous: OutputClaim,
     ) -> Result<(), rt::TsonicError> {
         SiteOutputPlanRoot::exact_site_output_plan_throw_conflict(
             self,
-            relative_path,
+            relativePath,
             owner,
             previous,
         )
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_site_output_plan_throw_conflict(
         self: alloc::rc::Rc<Self>,
-        relative_path: String,
+        relativePath: String,
         owner: String,
         previous: OutputClaim,
     ) -> Result<(), rt::TsonicError> {
         SiteOutputPlanRoot::exact_site_output_plan_throw_conflict(
             self,
-            relative_path,
+            relativePath,
             owner,
             previous,
         )

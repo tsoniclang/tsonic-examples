@@ -4,11 +4,13 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn normalize_slashes(path: &str) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn normalizeSlashes(path: &str) -> Result<String, rt::TsonicError> {
     js_string::replace_all(path, "\\", "/").map_err(rt::TsonicError::from)
 }
 
-pub fn is_external_url(url: &str) -> bool {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isExternalUrl(url: &str) -> bool {
     let lower: String = js_string::to_lower_case(&js_string::trim(url));
     js_string::starts_with_from_start(&lower, "http://")
         || js_string::starts_with_from_start(&lower, "https://")
@@ -17,95 +19,101 @@ pub fn is_external_url(url: &str) -> bool {
         || js_string::starts_with_from_start(&lower, "//")
 }
 
-pub fn is_markdown_path(path: &str) -> bool {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isMarkdownPath(path: &str) -> bool {
     let lower: String = js_string::to_lower_case(&js_string::trim(path));
     js_string::ends_with_at_end(&lower, ".md") || js_string::ends_with_at_end(&lower, ".markdown")
 }
 
-pub fn normalize_relative_path(
-    base_dir_key: &str,
-    target_path: &str,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn normalizeRelativePath(
+    baseDirKey: &str,
+    targetPath: &str,
 ) -> Result<Option<String>, rt::TsonicError> {
-    let base: String = js_string::trim(base_dir_key);
+    let base: String = js_string::trim(baseDirKey);
     let start: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     if !base.is_empty() {
-        let base_parts: js_abi::JsArray<String> = js_string::split_all(&base, "/")?;
+        let baseParts: js_abi::JsArray<String> = js_string::split_all(&base, "/")?;
         {
-            let mut i: f64 = 0.0;
-            while i < (rt::conversions::usize_to_i32(base_parts.len())? as f64) {
-                let seg: String = js_string::trim(&match base_parts.get_number(i) {
+            let mut i: usize = 0;
+            while i < baseParts.len() {
+                let seg: String = js_string::trim(&match baseParts.get_number(i) {
                     Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 });
                 if !seg.is_empty() {
-                    start.push_many_discard([seg.clone()]);
+                    start.push_many_discard([seg]);
                 }
-                i += 1.0;
+                i += 1;
             }
         }
     }
-    let target: String = normalize_slashes(&js_string::trim(target_path))?;
+    let target: String = normalizeSlashes(&js_string::trim(targetPath))?;
     let parts: js_abi::JsArray<String> = js_string::split_all(&target, "/")?;
     {
-        let mut i: f64 = 0.0;
-        'loop_value_2: while i < (rt::conversions::usize_to_i32(parts.len())? as f64) {
+        let mut i: usize = 0;
+        'loop_value_2: while i < parts.len() {
             let raw: String = match parts.get_number(i) {
                 Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let seg: String = js_string::trim(&raw);
             if seg.is_empty() || seg == "." {
-                i += 1.0;
+                i += 1;
                 continue 'loop_value_2;
             }
             if seg == ".." {
-                if rt::conversions::usize_to_i32(start.len())? == 0 {
+                if start.is_empty() {
                     return Ok(Option::<String>::None);
                 }
                 start.pop();
-                i += 1.0;
+                i += 1;
                 continue 'loop_value_2;
             }
-            start.push_many_discard([seg.clone()]);
-            i += 1.0;
+            start.push_many_discard([seg]);
+            i += 1;
         }
     }
     let arr: js_abi::JsArray<String> = start.clone();
-    if rt::conversions::usize_to_i32(arr.len())? == 0 {
+    if arr.is_empty() {
         return Ok(Some(String::from("")));
     }
     let mut out: String = match arr.get_number(0.0) {
         Some(flow_value_3) => flow_value_3,
         None => unreachable!("checked flow selected a missing optional value"),
     };
-    for i_range in 1..rt::conversions::usize_to_i32(arr.len())? {
-        let i = i_range as f64;
-        out.push_str(&format!(
-            "{}{}",
-            String::from("/"),
-            match arr.get_number(i) {
-                Some(flow_value_4) => flow_value_4,
-                None => unreachable!("checked flow selected a missing optional value"),
-            }
-        ));
+    {
+        let mut i: f64 = 1.0;
+        while i < (arr.len() as f64) {
+            out.push_str(&format!(
+                "{}{}",
+                String::from("/"),
+                match arr.get_number(i) {
+                    Some(flow_value_4) => flow_value_4,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }
+            ));
+            i += 1.0;
+        }
     }
     Ok(Some(out))
 }
 
-pub fn compute_git_hub_blob_url(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn computeGitHubBlobUrl(
     mount: crate::docs::models::DocsMountConfig,
-    repo_rel_path: &str,
+    repoRelPath: &str,
 ) -> Result<Option<String>, rt::TsonicError> {
-    let repo_url: Option<String> = {
+    let repoUrl: Option<String> = {
         let dispatch_receiver = &mount;
         dispatch_receiver.dispatch.read_docs_mount_config_repo_url()
     };
-    if repo_url.is_none() {
+    if repoUrl.is_none() {
         return Ok(Option::<String>::None);
     }
     let slash: String = String::from("/");
-    let repo: String = crate::utils::strings::trim_end_char(
-        js_string::trim(&match repo_url.as_ref() {
+    let repo: String = crate::utils::strings::trimEndChar(
+        js_string::trim(&match repoUrl.as_ref() {
             Some(flow_value) => flow_value.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         }),
@@ -133,8 +141,7 @@ pub fn compute_git_hub_blob_url(
             })
         }
     };
-    let rel: String =
-        crate::utils::strings::trim_start_char(js_string::trim(repo_rel_path), slash)?;
+    let rel: String = crate::utils::strings::trimStartChar(js_string::trim(repoRelPath), slash)?;
     if rel.is_empty() {
         return Ok(Option::<String>::None);
     }
@@ -148,54 +155,56 @@ pub fn compute_git_hub_blob_url(
     )))
 }
 
-pub fn try_get_route_url(
-    routes_by_rel_path_lower: js_abi::JsMap<String, String>,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn tryGetRouteUrl(
+    routesByRelPathLower: js_abi::JsMap<String, String>,
     key: String,
 ) -> Option<String> {
-    routes_by_rel_path_lower.get(&key)
+    routesByRelPathLower.get(&key)
 }
 
-pub fn resolve_markdown_nav_link(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn resolveMarkdownNavLink(
     mount: crate::docs::models::DocsMountConfig,
-    nav_dir_key: String,
-    link_target: &str,
-    routes_by_rel_path_lower: js_abi::JsMap<String, String>,
+    navDirKey: String,
+    linkTarget: &str,
+    routesByRelPathLower: js_abi::JsMap<String, String>,
 ) -> Result<Option<String>, rt::TsonicError> {
-    let target_raw: String = js_string::trim(link_target);
-    if target_raw.is_empty() {
+    let targetRaw: String = js_string::trim(linkTarget);
+    if targetRaw.is_empty() {
         return Ok(Option::<String>::None);
     }
-    if is_external_url(&target_raw) {
-        return Ok(Some(target_raw));
+    if isExternalUrl(&targetRaw) {
+        return Ok(Some(targetRaw));
     }
-    if js_string::starts_with_from_start(&target_raw, "#") {
-        return Ok(Some(target_raw));
+    if js_string::starts_with_from_start(&targetRaw, "#") {
+        return Ok(Some(targetRaw));
     }
     let split: crate::docs::url::UrlSuffixSplit =
-        crate::docs::url::split_url_suffix(target_raw.clone())?;
-    let path_part: String = js_string::trim(&split.state.with(|state| state.path.clone()));
+        crate::docs::url::splitUrlSuffix(targetRaw.clone())?;
+    let pathPart: String = js_string::trim(&split.state.with(|state| state.path.clone()));
     let suffix: String = split.state.with(|state| state.suffix.clone());
-    if path_part.is_empty() {
+    if pathPart.is_empty() {
         return Ok(Option::<String>::None);
     }
     let slash: String = String::from("/");
-    let repo_path_raw: Option<String> = {
+    let repoPathRaw: Option<String> = {
         let dispatch_receiver = &mount;
         dispatch_receiver
             .dispatch
             .read_docs_mount_config_repo_path()
     };
-    let mut repo_path: String = String::from("");
-    if repo_path_raw.is_some()
-        && !js_string::trim(&match repo_path_raw.as_ref() {
+    let mut repoPath: String = String::from("");
+    if repoPathRaw.is_some()
+        && !js_string::trim(&match repoPathRaw.as_ref() {
             Some(flow_value) => flow_value.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         })
         .is_empty()
     {
-        repo_path = crate::utils::strings::trim_end_char(
-            crate::utils::strings::trim_start_char(
-                js_string::trim(&match repo_path_raw.as_ref() {
+        repoPath = crate::utils::strings::trimEndChar(
+            crate::utils::strings::trimStartChar(
+                js_string::trim(&match repoPathRaw.as_ref() {
                     Some(flow_value_2) => flow_value_2.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 }),
@@ -204,41 +213,41 @@ pub fn resolve_markdown_nav_link(
             slash.clone(),
         )?;
     }
-    let has_repo_path: bool = !repo_path.is_empty();
+    let hasRepoPath: bool = !repoPath.is_empty();
     #[expect(unused_assignments, reason = "checked source evaluation order")]
-    let mut resolved_rel: Option<String> = Option::<String>::None;
-    if js_string::starts_with_from_start(&path_part, "/") {
-        resolved_rel = Some(crate::utils::strings::trim_start_char(
-            path_part.clone(),
+    let mut resolvedRel: Option<String> = Option::<String>::None;
+    if js_string::starts_with_from_start(&pathPart, "/") {
+        resolvedRel = Some(crate::utils::strings::trimStartChar(
+            pathPart.clone(),
             slash.clone(),
         )?);
     } else {
-        resolved_rel = normalize_relative_path(&nav_dir_key, &path_part)?;
+        resolvedRel = normalizeRelativePath(&navDirKey, &pathPart)?;
     }
-    if resolved_rel.is_none() {
-        if !has_repo_path {
+    if resolvedRel.is_none() {
+        if !hasRepoPath {
             return Ok(Option::<String>::None);
         }
-        let base_dir: String = if js_string::trim(&nav_dir_key).is_empty() {
-            repo_path.clone()
+        let baseDir: String = if js_string::trim(&navDirKey).is_empty() {
+            repoPath.clone()
         } else {
-            format!("{}{}{}", repo_path, String::from("/"), nav_dir_key)
+            format!("{}{}{}", repoPath, String::from("/"), navDirKey)
         };
-        let repo_resolved_escape: Option<String> = normalize_relative_path(&base_dir, &path_part)?;
-        if repo_resolved_escape.is_none() {
+        let repoResolvedEscape: Option<String> = normalizeRelativePath(&baseDir, &pathPart)?;
+        if repoResolvedEscape.is_none() {
             return Ok(Option::<String>::None);
         }
-        let gh_url_escape: Option<String> = compute_git_hub_blob_url(
+        let ghUrlEscape: Option<String> = computeGitHubBlobUrl(
             mount.clone(),
-            &match repo_resolved_escape.as_ref() {
+            &match repoResolvedEscape.as_ref() {
                 Some(flow_value_3) => flow_value_3.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             },
         )?;
-        return Ok(if gh_url_escape.is_some() {
+        return Ok(if ghUrlEscape.is_some() {
             Some(format!(
                 "{}{}",
-                match gh_url_escape.as_ref() {
+                match ghUrlEscape.as_ref() {
                     Some(flow_value_4) => flow_value_4.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
@@ -248,17 +257,17 @@ pub fn resolve_markdown_nav_link(
             Option::<String>::None
         });
     }
-    if !is_markdown_path(&match resolved_rel.as_ref() {
+    if !isMarkdownPath(&match resolvedRel.as_ref() {
         Some(flow_value_5) => flow_value_5.clone(),
         None => unreachable!("checked flow selected a missing optional value"),
     }) {
-        return Ok(Some(target_raw));
+        return Ok(Some(targetRaw));
     }
-    let key: String = js_string::to_lower_case(&match resolved_rel.as_ref() {
+    let key: String = js_string::to_lower_case(&match resolvedRel.as_ref() {
         Some(flow_value_6) => flow_value_6.clone(),
         None => unreachable!("checked flow selected a missing optional value"),
     });
-    let mapped: Option<String> = try_get_route_url(routes_by_rel_path_lower, key);
+    let mapped: Option<String> = tryGetRouteUrl(routesByRelPathLower, key);
     if mapped.is_some() {
         return Ok(Some(format!(
             "{}{}",
@@ -269,30 +278,30 @@ pub fn resolve_markdown_nav_link(
             suffix
         )));
     }
-    if !has_repo_path {
+    if !hasRepoPath {
         return Ok(Option::<String>::None);
     }
-    let repo_resolved_fallback: Option<String> = normalize_relative_path(
-        &repo_path,
-        &match resolved_rel.as_ref() {
+    let repoResolvedFallback: Option<String> = normalizeRelativePath(
+        &repoPath,
+        &match resolvedRel.as_ref() {
             Some(flow_value_8) => flow_value_8.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         },
     )?;
-    if repo_resolved_fallback.is_none() {
+    if repoResolvedFallback.is_none() {
         return Ok(Option::<String>::None);
     }
-    let gh_url_fallback: Option<String> = compute_git_hub_blob_url(
+    let ghUrlFallback: Option<String> = computeGitHubBlobUrl(
         mount.clone(),
-        &match repo_resolved_fallback.as_ref() {
+        &match repoResolvedFallback.as_ref() {
             Some(flow_value_9) => flow_value_9.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         },
     )?;
-    Ok(if gh_url_fallback.is_some() {
+    Ok(if ghUrlFallback.is_some() {
         Some(format!(
             "{}{}",
-            match gh_url_fallback.as_ref() {
+            match ghUrlFallback.as_ref() {
                 Some(flow_value_10) => flow_value_10.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             },
@@ -334,29 +343,26 @@ impl InlineLink {
     }
 }
 
-pub fn parse_inline_markdown_link(line: &str) -> Result<Option<InlineLink>, rt::TsonicError> {
-    let open: i32 = rt::conversions::isize_to_i32(js_string::index_of_from_start(line, "["))?;
-    let mid: i32 = rt::conversions::isize_to_i32(js_string::index_of_from_start(line, "]("))?;
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseInlineMarkdownLink(line: &str) -> Result<Option<InlineLink>, rt::TsonicError> {
+    let open: isize = js_string::index_of_from_start(line, "[");
+    let mid: isize = js_string::index_of_from_start(line, "](");
     if open < 0 || mid < 0 || mid <= open {
         return Ok(Option::<InlineLink>::None);
     }
-    let close: i32 = rt::conversions::isize_to_i32(js_string::index_of(
-        line,
-        ")",
-        rt::conversions::i32_to_f64(mid + 2),
-    ))?;
+    let close: isize = js_string::index_of(line, ")", mid + 2);
     if close < 0 {
         return Ok(Option::<InlineLink>::None);
     }
-    let title: String = js_string::trim(&crate::utils::strings::substring_count(
+    let title: String = js_string::trim(&crate::utils::strings::substringCount(
         line,
-        open + 1,
-        mid - (open + 1),
+        rt::conversions::isize_to_i32(open + 1)?,
+        rt::conversions::isize_to_i32(mid - (open + 1))?,
     )?);
-    let target: String = js_string::trim(&crate::utils::strings::substring_count(
+    let target: String = js_string::trim(&crate::utils::strings::substringCount(
         line,
-        mid + 2,
-        close - (mid + 2),
+        rt::conversions::isize_to_i32(mid + 2)?,
+        rt::conversions::isize_to_i32(close - (mid + 2))?,
     )?);
     if title.is_empty() || target.is_empty() {
         return Ok(Option::<InlineLink>::None);
@@ -400,40 +406,41 @@ impl NavGroupBuild {
     }
 }
 
-pub fn parse_toc_markdown(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseTocMarkdown(
     mount: crate::docs::models::DocsMountConfig,
     markdown: &str,
-    nav_dir_key: String,
-    routes_by_rel_path_lower: js_abi::JsMap<String, String>,
+    navDirKey: String,
+    routesByRelPathLower: js_abi::JsMap<String, String>,
 ) -> Result<js_abi::JsArray<crate::docs::models::NavItem>, rt::TsonicError> {
     let lines: js_abi::JsArray<String> = js_string::split_all(
-        &crate::utils::strings::replace_line_endings(markdown, String::from("\n"))?,
+        &crate::utils::strings::replaceLineEndings(markdown, String::from("\n"))?,
         "\n",
     )?;
-    let mut in_toc: bool = false;
+    let mut inToc: bool = false;
     let groups: js_abi::JsArray<NavGroupBuild> = js_abi::JsArray::from_dense(vec![]);
-    let root_items: js_abi::JsArray<crate::docs::models::NavItem> =
+    let rootItems: js_abi::JsArray<crate::docs::models::NavItem> =
         js_abi::JsArray::from_dense(vec![]);
-    let mut current_group: Option<NavGroupBuild> = Option::<NavGroupBuild>::None;
+    let mut currentGroup: Option<NavGroupBuild> = Option::<NavGroupBuild>::None;
     let mut order: i32 = 1;
     {
-        let mut i: f64 = 0.0;
-        'loop_value: while i < (rt::conversions::usize_to_i32(lines.len())? as f64) {
+        let mut i: usize = 0;
+        'loop_value: while i < lines.len() {
             let raw: String = match lines.get_number(i) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             let line: String = js_string::trim(&raw);
             if line.is_empty() {
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             let lower: String = js_string::to_lower_case(&line);
-            if !in_toc {
+            if !inToc {
                 if lower == "## table of contents" {
-                    in_toc = true;
+                    inToc = true;
                 }
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if js_string::starts_with_from_start(&line, "## ") && lower != "## table of contents" {
@@ -441,36 +448,36 @@ pub fn parse_toc_markdown(
             }
             if js_string::starts_with_from_start(&line, "### ") {
                 let title: String =
-                    js_string::trim(&crate::utils::strings::substring_from(&line, 4)?);
+                    js_string::trim(&crate::utils::strings::substringFrom(&line, 4)?);
                 if !title.is_empty() {
-                    current_group = Some(NavGroupBuild::new(title.clone(), order)?);
-                    groups.push_many_discard([match current_group.as_ref() {
+                    currentGroup = Some(NavGroupBuild::new(title.clone(), order)?);
+                    groups.push_many_discard([match currentGroup.as_ref() {
                         Some(flow_value_2) => flow_value_2.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     }]);
                     order += 1;
                 }
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
-            let parsed: Option<InlineLink> = parse_inline_markdown_link(&line)?;
+            let parsed: Option<InlineLink> = parseInlineMarkdownLink(&line)?;
             if parsed.is_none() {
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
-            let resolved: Option<String> = resolve_markdown_nav_link(
+            let resolved: Option<String> = resolveMarkdownNavLink(
                 mount.clone(),
-                nav_dir_key.clone(),
+                navDirKey.clone(),
                 &match parsed.as_ref() {
                     Some(flow_value_3) => flow_value_3.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
                 .state
                 .with(|state| state.target.clone()),
-                routes_by_rel_path_lower.clone(),
+                routesByRelPathLower.clone(),
             )?;
             if resolved.is_none() {
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             let empty: js_abi::JsArray<crate::docs::models::NavItem> =
@@ -486,14 +493,14 @@ pub fn parse_toc_markdown(
                     Some(flow_value_5) => flow_value_5.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
-                empty.clone(),
+                empty,
                 false,
                 false,
                 order,
             )?;
             order += 1;
-            if current_group.is_some() {
-                match current_group.as_ref() {
+            if currentGroup.is_some() {
+                match currentGroup.as_ref() {
                     Some(flow_value_6) => flow_value_6.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
@@ -501,21 +508,21 @@ pub fn parse_toc_markdown(
                 .with(|state| state.children.clone())
                 .push_many_discard([item.clone()]);
             } else {
-                root_items.push_many_discard([item.clone()]);
+                rootItems.push_many_discard([item.clone()]);
             }
-            i += 1.0;
+            i += 1;
         }
     }
     let out: js_abi::JsArray<crate::docs::models::NavItem> = js_abi::JsArray::from_dense(vec![]);
-    let group_arr: js_abi::JsArray<NavGroupBuild> = groups.clone();
+    let groupArr: js_abi::JsArray<NavGroupBuild> = groups.clone();
     {
-        let mut i: f64 = 0.0;
-        while i < (rt::conversions::usize_to_i32(group_arr.len())? as f64) {
-            let g: NavGroupBuild = match group_arr.get_number(i) {
+        let mut i: usize = 0;
+        while i < groupArr.len() {
+            let g: NavGroupBuild = match groupArr.get_number(i) {
                 Some(flow_value_7) => flow_value_7,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let group_item: crate::docs::models::NavItem = crate::docs::models::NavItem::new(
+            let groupItem: crate::docs::models::NavItem = crate::docs::models::NavItem::new(
                 g.state.with(|state| state.title.clone()),
                 String::from(""),
                 g.state.with(|state| state.children.clone()),
@@ -523,44 +530,42 @@ pub fn parse_toc_markdown(
                 false,
                 g.state.with(|state| state.order),
             )?;
-            out.push_many_discard([group_item.clone()]);
-            i += 1.0;
+            out.push_many_discard([groupItem]);
+            i += 1;
         }
     }
-    let root_arr: js_abi::JsArray<crate::docs::models::NavItem> = root_items.clone();
+    let rootArr: js_abi::JsArray<crate::docs::models::NavItem> = rootItems.clone();
     {
-        let mut i: f64 = 0.0;
-        while i < (rt::conversions::usize_to_i32(root_arr.len())? as f64) {
-            {
-                let operation_input_0 = out.clone();
-                operation_input_0.push_many_discard([match root_arr.get_number(i) {
-                    Some(flow_value_8) => flow_value_8,
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }])
-            };
-            i += 1.0;
+        let mut i: usize = 0;
+        while i < rootArr.len() {
+            out.push_many_discard([match rootArr.get_number(i) {
+                Some(flow_value_8) => flow_value_8,
+                None => unreachable!("checked flow selected a missing optional value"),
+            }]);
+            i += 1;
         }
     }
     Ok(out)
 }
 
-pub fn parse_nav_json(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseNavJson(
     mount: crate::docs::models::DocsMountConfig,
-    nav_dir_key: String,
-    json_text: String,
-    routes_by_rel_path_lower: js_abi::JsMap<String, String>,
+    navDirKey: String,
+    jsonText: String,
+    routesByRelPathLower: js_abi::JsMap<String, String>,
 ) -> Result<js_abi::JsArray<crate::docs::models::NavItem>, rt::TsonicError> {
-    let root: crate::utils::json::JsonValue = crate::utils::json::parse_json(json_text, None)?;
+    let root: crate::utils::json::JsonValue = crate::utils::json::parseJson(jsonText, None)?;
     if root
         .dispatch
         .clone()
         .downcast_json_value_to_json_array()
         .is_some()
     {
-        return parse_nav_json_items(
+        return parseNavJsonItems(
             mount.clone(),
-            nav_dir_key.clone(),
-            routes_by_rel_path_lower.clone(),
+            navDirKey,
+            routesByRelPathLower.clone(),
             root.clone(),
         );
     }
@@ -575,12 +580,12 @@ pub fn parse_nav_json(
                 .dispatch
                 .clone()
                 .dispatch_json_object_get_case_insensitive("items")
-        }?;
+        };
         if items.is_some() {
-            return parse_nav_json_items(
+            return parseNavJsonItems(
                 mount.clone(),
-                nav_dir_key.clone(),
-                routes_by_rel_path_lower.clone(),
+                navDirKey,
+                routesByRelPathLower.clone(),
                 match items.as_ref() {
                     Some(flow_value) => flow_value.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
@@ -592,10 +597,11 @@ pub fn parse_nav_json(
     Ok(empty)
 }
 
-pub fn parse_nav_json_items(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseNavJsonItems(
     mount: crate::docs::models::DocsMountConfig,
-    nav_dir_key: String,
-    routes_by_rel_path_lower: js_abi::JsMap<String, String>,
+    navDirKey: String,
+    routesByRelPathLower: js_abi::JsMap<String, String>,
     value: crate::utils::json::JsonValue,
 ) -> Result<js_abi::JsArray<crate::docs::models::NavItem>, rt::TsonicError> {
     if value
@@ -611,25 +617,22 @@ pub fn parse_nav_json_items(
     let items: js_abi::JsArray<crate::docs::models::NavItem> = js_abi::JsArray::from_dense(vec![]);
     let mut order: i32 = 1;
     {
-        let mut item_index: f64 = 0.0;
-        'loop_value: while item_index
-            < (rt::conversions::usize_to_i32(
-                {
-                    let dispatch_receiver = &{
-                        let downcast_value = &value;
-                        crate::utils::json::JsonArray {
-                            identity: downcast_value.identity.clone(),
-                            dispatch: downcast_value
-                                .dispatch
-                                .clone()
-                                .downcast_json_value_to_json_array()
-                                .unwrap(),
-                        }
-                    };
-                    dispatch_receiver.dispatch.read_json_array_items()
+        let mut itemIndex: usize = 0;
+        'loop_value: while itemIndex < {
+            let dispatch_receiver = &{
+                let downcast_value = &value;
+                crate::utils::json::JsonArray {
+                    identity: downcast_value.identity.clone(),
+                    dispatch: downcast_value
+                        .dispatch
+                        .clone()
+                        .downcast_json_value_to_json_array()
+                        .unwrap(),
                 }
-                .len(),
-            )? as f64)
+            };
+            dispatch_receiver.dispatch.read_json_array_items()
+        }
+        .len()
         {
             let current: crate::utils::json::JsonValue = match {
                 let dispatch_receiver_2 = &{
@@ -645,7 +648,7 @@ pub fn parse_nav_json_items(
                 };
                 dispatch_receiver_2.dispatch.read_json_array_items()
             }
-            .get_number(item_index)
+            .get_number(itemIndex)
             {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
@@ -656,13 +659,13 @@ pub fn parse_nav_json_items(
                 .downcast_json_value_to_json_object()
                 .is_none()
             {
-                item_index += 1.0;
+                itemIndex += 1;
                 continue 'loop_value;
             }
             let mut title: Option<String> = Option::<String>::None;
             let mut url: Option<String> = Option::<String>::None;
             let mut path: Option<String> = Option::<String>::None;
-            let title_value: Option<crate::utils::json::JsonValue> = {
+            let titleValue: Option<crate::utils::json::JsonValue> = {
                 let dispatch_receiver_3 = {
                     let downcast_value_3 = &current;
                     crate::utils::json::JsonObject {
@@ -678,8 +681,8 @@ pub fn parse_nav_json_items(
                     .dispatch
                     .clone()
                     .dispatch_json_object_get_case_insensitive("title")
-            }?;
-            let url_value: Option<crate::utils::json::JsonValue> = {
+            };
+            let urlValue: Option<crate::utils::json::JsonValue> = {
                 let dispatch_receiver_4 = {
                     let downcast_value_4 = &current;
                     crate::utils::json::JsonObject {
@@ -695,8 +698,8 @@ pub fn parse_nav_json_items(
                     .dispatch
                     .clone()
                     .dispatch_json_object_get_case_insensitive("url")
-            }?;
-            let path_value: Option<crate::utils::json::JsonValue> = {
+            };
+            let pathValue: Option<crate::utils::json::JsonValue> = {
                 let dispatch_receiver_5 = {
                     let downcast_value_5 = &current;
                     crate::utils::json::JsonObject {
@@ -712,8 +715,8 @@ pub fn parse_nav_json_items(
                     .dispatch
                     .clone()
                     .dispatch_json_object_get_case_insensitive("path")
-            }?;
-            let children_value: Option<crate::utils::json::JsonValue> = {
+            };
+            let childrenValue: Option<crate::utils::json::JsonValue> = {
                 let dispatch_receiver_6 = {
                     let downcast_value_6 = &current;
                     crate::utils::json::JsonObject {
@@ -729,8 +732,8 @@ pub fn parse_nav_json_items(
                     .dispatch
                     .clone()
                     .dispatch_json_object_get_case_insensitive("children")
-            }?;
-            if title_value.as_ref().is_some_and(|value| {
+            };
+            if titleValue.as_ref().is_some_and(|value| {
                 value
                     .dispatch
                     .clone()
@@ -739,7 +742,7 @@ pub fn parse_nav_json_items(
             }) {
                 title = Some({
                     let dispatch_receiver_7 = &{
-                        let downcast_value_7 = &title_value;
+                        let downcast_value_7 = &titleValue;
                         crate::utils::json::JsonString {
                             identity: downcast_value_7.as_ref().unwrap().identity.clone(),
                             dispatch: downcast_value_7
@@ -754,7 +757,7 @@ pub fn parse_nav_json_items(
                     dispatch_receiver_7.dispatch.read_json_string_value()
                 });
             }
-            if url_value.as_ref().is_some_and(|value| {
+            if urlValue.as_ref().is_some_and(|value| {
                 value
                     .dispatch
                     .clone()
@@ -763,7 +766,7 @@ pub fn parse_nav_json_items(
             }) {
                 url = Some({
                     let dispatch_receiver_8 = &{
-                        let downcast_value_8 = &url_value;
+                        let downcast_value_8 = &urlValue;
                         crate::utils::json::JsonString {
                             identity: downcast_value_8.as_ref().unwrap().identity.clone(),
                             dispatch: downcast_value_8
@@ -778,7 +781,7 @@ pub fn parse_nav_json_items(
                     dispatch_receiver_8.dispatch.read_json_string_value()
                 });
             }
-            if path_value.as_ref().is_some_and(|value| {
+            if pathValue.as_ref().is_some_and(|value| {
                 value
                     .dispatch
                     .clone()
@@ -787,7 +790,7 @@ pub fn parse_nav_json_items(
             }) {
                 path = Some({
                     let dispatch_receiver_9 = &{
-                        let downcast_value_9 = &path_value;
+                        let downcast_value_9 = &pathValue;
                         crate::utils::json::JsonString {
                             identity: downcast_value_9.as_ref().unwrap().identity.clone(),
                             dispatch: downcast_value_9
@@ -802,106 +805,108 @@ pub fn parse_nav_json_items(
                     dispatch_receiver_9.dispatch.read_json_string_value()
                 });
             }
-            let empty_children: js_abi::JsArray<crate::docs::models::NavItem> =
+            let emptyChildren: js_abi::JsArray<crate::docs::models::NavItem> =
                 js_abi::JsArray::from_dense(vec![]);
-            let children: js_abi::JsArray<crate::docs::models::NavItem> =
-                if children_value.is_some() {
-                    parse_nav_json_items(
-                        mount.clone(),
-                        nav_dir_key.clone(),
-                        routes_by_rel_path_lower.clone(),
-                        match children_value.as_ref() {
-                            Some(flow_value_2) => flow_value_2.clone(),
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        },
-                    )?
-                } else {
-                    empty_children.clone()
-                };
-            let mut final_url: Option<String> = Option::<String>::None;
+            let children: js_abi::JsArray<crate::docs::models::NavItem> = if childrenValue.is_some()
+            {
+                parseNavJsonItems(
+                    mount.clone(),
+                    navDirKey.clone(),
+                    routesByRelPathLower.clone(),
+                    match childrenValue.as_ref() {
+                        Some(flow_value_2) => flow_value_2.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    },
+                )?
+            } else {
+                emptyChildren
+            };
+            let mut finalUrl: Option<String> = Option::<String>::None;
             if url.is_some() {
-                final_url = Some(match url.as_ref() {
+                finalUrl = Some(match url.as_ref() {
                     Some(flow_value_3) => flow_value_3.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 });
             } else if path.is_some() {
-                final_url = resolve_markdown_nav_link(
+                finalUrl = resolveMarkdownNavLink(
                     mount.clone(),
-                    nav_dir_key.clone(),
+                    navDirKey.clone(),
                     &match path.as_ref() {
                         Some(flow_value_4) => flow_value_4.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
-                    routes_by_rel_path_lower.clone(),
+                    routesByRelPathLower.clone(),
                 )?;
             }
-            if title.is_none() || final_url.is_none() {
-                item_index += 1.0;
+            if title.is_none() || finalUrl.is_none() {
+                itemIndex += 1;
                 continue 'loop_value;
             }
-            {
-                let operation_input_0 = items.clone();
-                operation_input_0.push_many_discard([crate::docs::models::NavItem::new(
-                    match title.as_ref() {
-                        Some(flow_value_5) => flow_value_5.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                    match final_url.as_ref() {
-                        Some(flow_value_6) => flow_value_6.clone(),
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                    children.clone(),
-                    rt::conversions::usize_to_i32(children.len())? > 0,
-                    false,
-                    order,
-                )?])
-            };
+            items.push_many_discard([crate::docs::models::NavItem::new(
+                match title.as_ref() {
+                    Some(flow_value_5) => flow_value_5.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                },
+                match finalUrl.as_ref() {
+                    Some(flow_value_6) => flow_value_6.clone(),
+                    None => unreachable!("checked flow selected a missing optional value"),
+                },
+                children.clone(),
+                !children.is_empty(),
+                false,
+                order,
+            )?]);
             order += 1;
-            item_index += 1.0;
+            itemIndex += 1;
         }
     }
     Ok(items)
 }
 
-pub fn join_url_path(parts: js_abi::JsArray<String>) -> Result<String, rt::TsonicError> {
-    if rt::conversions::usize_to_i32(parts.len())? == 0 {
-        return Ok(String::from(""));
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn joinUrlPath(parts: js_abi::JsArray<String>) -> String {
+    if parts.is_empty() {
+        return String::from("");
     }
     let mut out: String = match parts.get_number(0.0) {
         Some(flow_value) => flow_value,
         None => unreachable!("checked flow selected a missing optional value"),
     };
-    for i_range in 1..rt::conversions::usize_to_i32(parts.len())? {
-        let i = i_range as f64;
-        out.push_str(&format!(
-            "{}{}",
-            String::from("/"),
-            match parts.get_number(i) {
-                Some(flow_value_2) => flow_value_2,
-                None => unreachable!("checked flow selected a missing optional value"),
-            }
-        ));
+    {
+        let mut i: f64 = 1.0;
+        while i < (parts.len() as f64) {
+            out.push_str(&format!(
+                "{}{}",
+                String::from("/"),
+                match parts.get_number(i) {
+                    Some(flow_value_2) => flow_value_2,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }
+            ));
+            i += 1.0;
+        }
     }
-    Ok(out)
+    out
 }
 
-pub fn load_mount_nav(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn loadMountNav(
     mount: crate::docs::models::DocsMountConfig,
-    routes_by_rel_path_lower: js_abi::JsMap<String, String>,
+    routesByRelPathLower: js_abi::JsMap<String, String>,
 ) -> Result<js_abi::JsArray<crate::docs::models::NavItem>, rt::TsonicError> {
-    let nav_path: Option<String> = {
+    let navPath: Option<String> = {
         let dispatch_receiver = &mount;
         dispatch_receiver.dispatch.read_docs_mount_config_nav_path()
     };
-    let nav_raw: String = {
-        let conditional_test = nav_path.is_some()
-            && !js_string::trim(&match nav_path.as_ref() {
+    let navRaw: String = {
+        let conditional_test = navPath.is_some()
+            && !js_string::trim(&match navPath.as_ref() {
                 Some(flow_value) => flow_value.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             })
             .is_empty();
         if conditional_test {
-            js_string::trim(&match nav_path.as_ref() {
+            js_string::trim(&match navPath.as_ref() {
                 Some(flow_value_2) => flow_value_2.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             })
@@ -909,8 +914,8 @@ pub fn load_mount_nav(
             String::from("README.md")
         }
     };
-    let nav_file: String = if tsonic_rust_node::path::is_absolute(&nav_raw) {
-        nav_raw.clone()
+    let navFile: String = if tsonic_rust_node::path::is_absolute(&navRaw) {
+        navRaw.clone()
     } else {
         tsonic_rust_node::path::join(&[
             {
@@ -920,67 +925,59 @@ pub fn load_mount_nav(
                     .read_docs_mount_config_source_dir()
             }
             .as_str(),
-            nav_raw.as_str(),
+            navRaw.as_str(),
         ])
     };
-    if !crate::fs::file_exists(nav_file.clone())? {
+    if !crate::fs::fileExists(&navFile)? {
         let empty: js_abi::JsArray<crate::docs::models::NavItem> =
             js_abi::JsArray::from_dense(vec![]);
         return Ok(empty);
     }
-    let rel: String = normalize_slashes(&tsonic_rust_node::path::relative(
+    let rel: String = normalizeSlashes(&tsonic_rust_node::path::relative(
         &{
             let dispatch_receiver_3 = &mount;
             dispatch_receiver_3
                 .dispatch
                 .read_docs_mount_config_source_dir()
         },
-        &nav_file,
+        &navFile,
     ))?;
     if rel.is_empty() || js_string::starts_with_from_start(&rel, "..") {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_DOCS_NAV_OUTSIDE_MOUNT"),
                 format!(
                     "{}{}",
                     String::from("Mount nav must be inside sourceDir: "),
-                    nav_file
+                    navFile
                 ),
-                Some(nav_file.clone()),
+                Some(navFile.clone()),
                 None,
                 None,
             )?,
         ));
     }
     let parts: js_abi::JsArray<String> = js_string::split_all(&rel, "/")?;
-    let dir_parts: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+    let dirParts: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
     {
-        let mut i: f64 = 0.0;
-        while i < ((rt::conversions::usize_to_i32(parts.len())? - 1) as f64) {
-            {
-                let operation_input_0 = dir_parts.clone();
-                operation_input_0.push_many_discard([match parts.get_number(i) {
-                    Some(flow_value_3) => flow_value_3,
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }])
-            };
-            i += 1.0;
+        let mut i: usize = 0;
+        while i < parts.len() - 1 {
+            dirParts.push_many_discard([match parts.get_number(i) {
+                Some(flow_value_3) => flow_value_3,
+                None => unreachable!("checked flow selected a missing optional value"),
+            }]);
+            i += 1;
         }
     }
-    let nav_dir_key: String = join_url_path(dir_parts.clone())?;
-    let text: String = crate::fs::read_text_file(nav_file.clone())?;
-    if js_string::ends_with_at_end(&js_string::to_lower_case(&nav_file), ".json") {
-        return parse_nav_json(
-            mount.clone(),
-            nav_dir_key.clone(),
-            text.clone(),
-            routes_by_rel_path_lower.clone(),
-        );
+    let navDirKey: String = joinUrlPath(dirParts.clone());
+    let text: String = crate::fs::readTextFile(navFile.clone())?;
+    if js_string::ends_with_at_end(&js_string::to_lower_case(&navFile), ".json") {
+        return parseNavJson(mount.clone(), navDirKey, text, routesByRelPathLower.clone());
     }
-    parse_toc_markdown(
+    parseTocMarkdown(
         mount.clone(),
         &text,
-        nav_dir_key,
-        routes_by_rel_path_lower.clone(),
+        navDirKey,
+        routesByRelPathLower.clone(),
     )
 }

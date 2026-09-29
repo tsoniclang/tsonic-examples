@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Frontmatter_parse
@@ -79,11 +77,30 @@ namespace Tsumo.Engine
             }
             throw Diagnostics.createTsumoError("TSUMO_FRONTMATTER_DELIMITER_UNCLOSED", $"{(format == "yaml" ? "YAML" : "TOML")} front matter is missing its closing {delimiter} delimiter", sourcePath, 1, 1);
         }
-        public static Func<string, string?, ParsedContent> parseContent
+        public static ParsedContent parseContent(string text, string? sourcePath)
         {
-            get;
-            private set;
-        } = default(Func<string, string?, ParsedContent>)!;
+            ParsedContent? json = tryParseJsonFrontMatter(text, sourcePath);
+            if (json is not null)
+            {
+                return json;
+            }
+            string normalized = Utils_strings.replaceLineEndings(text, "\n");
+            Tsonic.CSharp.Js.JSArray<string> lines = Tsonic.CSharp.Js.String.split(normalized, "\n");
+            if (lines.length == 0)
+            {
+                return new ParsedContent(new FrontMatter(), "");
+            }
+            string firstLine = Tsonic.CSharp.Js.String.trim(lines[0]);
+            if (firstLine == "---")
+            {
+                return parseDelimitedFrontMatter(lines, "---", "yaml", sourcePath);
+            }
+            if (firstLine == "+++")
+            {
+                return parseDelimitedFrontMatter(lines, "+++", "toml", sourcePath);
+            }
+            return new ParsedContent(new FrontMatter(), text);
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
@@ -93,30 +110,6 @@ namespace Tsumo.Engine
             Frontmatter_parsedContent.__tsonic_module_init();
             Frontmatter_toml.__tsonic_module_init();
             Frontmatter_yaml.__tsonic_module_init();
-            parseContent = (string text, string? sourcePath) =>
-            {
-                ParsedContent? json = tryParseJsonFrontMatter(text, sourcePath);
-                if (json is not null)
-                {
-                    return json;
-                }
-                string normalized = Utils_strings.replaceLineEndings(text, "\n");
-                Tsonic.CSharp.Js.JSArray<string> lines = Tsonic.CSharp.Js.String.split(normalized, "\n");
-                if (lines.length == 0)
-                {
-                    return new ParsedContent(new FrontMatter(), "");
-                }
-                string firstLine = Tsonic.CSharp.Js.String.trim(lines[0]);
-                if (firstLine == "---")
-                {
-                    return parseDelimitedFrontMatter(lines, "---", "yaml", sourcePath);
-                }
-                if (firstLine == "+++")
-                {
-                    return parseDelimitedFrontMatter(lines, "+++", "toml", sourcePath);
-                }
-                return new ParsedContent(new FrontMatter(), text);
-            };
             return null;
         }
         public static void __tsonic_module_init()

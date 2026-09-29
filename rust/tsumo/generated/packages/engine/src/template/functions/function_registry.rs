@@ -4,16 +4,19 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
 std::thread_local! {
-    pub static KNOWN_TEMPLATE_FUNCTIONS: rt::ModuleCell<js_abi::JsSet<String>> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub static knownTemplateFunctions: rt::ModuleCell<js_abi::JsSet<String>> = const { rt::ModuleCell::new() };
 }
 
-pub fn is_known_template_function(name: String) -> bool {
-    KNOWN_TEMPLATE_FUNCTIONS
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isKnownTemplateFunction(name: String) -> bool {
+    knownTemplateFunctions
         .with(|module_binding| module_binding.load())
         .has(&name)
 }
 
-pub fn canonical_template_function_name(name: String) -> String {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn canonicalTemplateFunctionName(name: String) -> String {
     if name == "collections.where" {
         return String::from("where");
     }
@@ -384,6 +387,6 @@ pub fn module_init() {
             String::from("reflect.isslice"),
             String::from("union"),
         ]));
-        KNOWN_TEMPLATE_FUNCTIONS.with(|module_binding| module_binding.initialize(module_value))
+        knownTemplateFunctions.with(|module_binding| module_binding.initialize(module_value))
     };
 }

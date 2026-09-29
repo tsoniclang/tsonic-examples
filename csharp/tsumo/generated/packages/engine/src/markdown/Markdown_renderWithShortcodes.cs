@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Markdown_renderWithShortcodes
@@ -7,7 +5,7 @@ namespace Tsumo.Engine
         internal static ProtectedShortcodeSource protectStandardShortcodes(string text, Tsonic.CSharp.Js.JSArray<ShortcodeCall> calls, PageContext page, SiteContext site, TemplateEnvironment env, ShortcodeOrdinalTracker ordinalTracker, Tsonic.CSharp.Js.Map<string, bool> recursionGuard)
         {
             Tsonic.CSharp.Js.JSArray<string> outputs = Tsonic.CSharp.Js.JSArray<string>.of([]);
-            for (double i = 0; i < calls.length; i++)
+            for (int i = 0; i < calls.length; i++)
             {
                 outputs.push(Markdown_shortcodes.renderShortcode(calls[i], page, site, env, ordinalTracker, null, recursionGuard));
             }
@@ -31,8 +29,9 @@ namespace Tsumo.Engine
                 replacements.push(new ProtectedShortcode($"<!--{markerPrefix}-{i_2}-->", outputs[i_2]));
             }
             string source = text;
-            for (int i_3 = calls.length - 1; i_3 >= 0; i_3--)
+            for (int i_3 = calls.length; i_3 > 0; )
             {
+                i_3--;
                 ShortcodeCall call = calls[i_3];
                 source = Utils_strings.substringCount(source, 0, call.startIndex) + replacements[i_3].marker + Utils_strings.substringFrom(source, call.endIndex);
             }
@@ -41,18 +40,100 @@ namespace Tsumo.Engine
         internal static string restoreStandardShortcodes(string html, Tsonic.CSharp.Js.JSArray<ProtectedShortcode> replacements)
         {
             string result = html;
-            for (double i = 0; i < replacements.length; i++)
+            for (int i = 0; i < replacements.length; i++)
             {
                 ProtectedShortcode replacement = replacements[i];
                 result = Tsonic.CSharp.Js.String.replace(result, replacement.marker, replacement.output);
             }
             return result;
         }
-        public static Func<string, PageContext, SiteContext, TemplateEnvironment, MarkdownResult> renderMarkdownWithShortcodes
+        public static MarkdownResult renderMarkdownWithShortcodes(string markdownRaw, PageContext page, SiteContext site, TemplateEnvironment env)
         {
-            get;
-            private set;
-        } = default(Func<string, PageContext, SiteContext, TemplateEnvironment, MarkdownResult>)!;
+            string markdown = Markdown_renderBasic.normalizeNewlines(markdownRaw);
+            ShortcodeOrdinalTracker ordinalTracker = Markdown_shortcodes.createOrdinalTracker();
+            Tsonic.CSharp.Js.Map<string, bool> recursionGuard = new Tsonic.CSharp.Js.Map<string, bool>();
+            Tsonic.CSharp.Js.JSArray<ShortcodeCall> calls = Shortcode.parseShortcodes(markdown, page.File?.Filename);
+            string textAfterMarkdownShortcodes = markdown;
+            Tsonic.CSharp.Js.JSArray<ShortcodeCall> mdCalls = Tsonic.CSharp.Js.JSArray<ShortcodeCall>.of([]);
+            for (int i = 0; i < calls.length; i++)
+            {
+                ShortcodeCall call = calls[i];
+                if (call.isMarkdown)
+                {
+                    mdCalls.push(call);
+                }
+            }
+            if (mdCalls.length > 0)
+            {
+                textAfterMarkdownShortcodes = Markdown_shortcodes.processShortcodeCalls(markdown, mdCalls, page, site, env, ordinalTracker, null, recursionGuard);
+            }
+            Tsonic.CSharp.Js.JSArray<ShortcodeCall> parsedStandardCalls = Shortcode.parseShortcodes(textAfterMarkdownShortcodes, page.File?.Filename);
+            Tsonic.CSharp.Js.JSArray<ShortcodeCall> standardCalls = Tsonic.CSharp.Js.JSArray<ShortcodeCall>.of([]);
+            for (int i_1 = 0; i_1 < parsedStandardCalls.length; i_1++)
+            {
+                ShortcodeCall call_1 = parsedStandardCalls[i_1];
+                if (!call_1.isMarkdown)
+                {
+                    standardCalls.push(call_1);
+                }
+            }
+            ProtectedShortcodeSource protectedStandard = protectStandardShortcodes(textAfterMarkdownShortcodes, standardCalls, page, site, env, ordinalTracker, recursionGuard);
+            string markdownSource = protectedStandard.source;
+            string toc = Markdown_toc.generateTableOfContents(markdownSource);
+            RenderHookContext hookCtx = new RenderHookContext(page, site, env);
+            int moreIndex = Markdown_renderBasic.findSummaryDividerIndex(markdownSource);
+            string html = default(string)!;
+            string summaryHtml = default(string)!;
+            string plainText = default(string)!;
+            if (moreIndex >= 0)
+            {
+                string before = Utils_strings.substringCount(markdownSource, 0, moreIndex);
+                string after = Utils_strings.substringFrom(markdownSource, moreIndex + Markdown_renderBasic.summaryMarkerLength);
+                string full = before + after;
+                if (hookCtx.hasAnyHooks())
+                {
+                    html = Markdown_renderHooks.renderMarkdownWithHooks(full, hookCtx);
+                    summaryHtml = Tsonic.CSharp.Js.String.trim(Markdown_renderHooks.renderMarkdownWithHooks(before, hookCtx));
+                }
+                else
+                {
+                    html = Markdig.Markdown.ToHtml(full, Markdown_pipeline.markdownPipeline);
+                    summaryHtml = Tsonic.CSharp.Js.String.trim(Markdig.Markdown.ToHtml(before, Markdown_pipeline.markdownPipeline));
+                }
+                plainText = Markdig.Markdown.ToPlainText(full, Markdown_pipeline.markdownPipeline);
+            }
+            else
+            {
+                if (hookCtx.hasAnyHooks())
+                {
+                    html = Markdown_renderHooks.renderMarkdownWithHooks(markdownSource, hookCtx);
+                }
+                else
+                {
+                    html = Markdig.Markdown.ToHtml(markdownSource, Markdown_pipeline.markdownPipeline);
+                }
+                plainText = Markdig.Markdown.ToPlainText(markdownSource, Markdown_pipeline.markdownPipeline);
+                string summarySource = Markdown_renderBasic.firstBlock(markdownSource);
+                if (summarySource == "")
+                {
+                    summaryHtml = "";
+                }
+                else
+                {
+                    if (hookCtx.hasAnyHooks())
+                    {
+                        summaryHtml = Tsonic.CSharp.Js.String.trim(Markdown_renderHooks.renderMarkdownWithHooks(summarySource, hookCtx));
+                    }
+                    else
+                    {
+                        summaryHtml = Tsonic.CSharp.Js.String.trim(Markdig.Markdown.ToHtml(summarySource, Markdown_pipeline.markdownPipeline));
+                    }
+                }
+            }
+            html = restoreStandardShortcodes(html, protectedStandard.replacements);
+            summaryHtml = restoreStandardShortcodes(summaryHtml, protectedStandard.replacements);
+            return new MarkdownResult(html, summaryHtml, plainText, toc);
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
@@ -65,93 +146,6 @@ namespace Tsumo.Engine
             Markdown_shortcodes.__tsonic_module_init();
             Markdown_renderBasic.__tsonic_module_init();
             Utils_strings.__tsonic_module_init();
-            renderMarkdownWithShortcodes = (string markdownRaw, PageContext page, SiteContext site, TemplateEnvironment env) =>
-            {
-                string markdown = Markdown_renderBasic.normalizeNewlines(markdownRaw);
-                ShortcodeOrdinalTracker ordinalTracker = Markdown_shortcodes.createOrdinalTracker();
-                Tsonic.CSharp.Js.Map<string, bool> recursionGuard = new Tsonic.CSharp.Js.Map<string, bool>();
-                Tsonic.CSharp.Js.JSArray<ShortcodeCall> calls = Shortcode.parseShortcodes(markdown, page.File?.Filename);
-                string textAfterMarkdownShortcodes = markdown;
-                Tsonic.CSharp.Js.JSArray<ShortcodeCall> mdCalls = Tsonic.CSharp.Js.JSArray<ShortcodeCall>.of([]);
-                for (double i = 0; i < calls.length; i++)
-                {
-                    ShortcodeCall call = calls[i];
-                    if (call.isMarkdown)
-                    {
-                        mdCalls.push(call);
-                    }
-                }
-                if (mdCalls.length > 0)
-                {
-                    textAfterMarkdownShortcodes = Markdown_shortcodes.processShortcodeCalls(markdown, mdCalls, page, site, env, ordinalTracker, null, recursionGuard);
-                }
-                Tsonic.CSharp.Js.JSArray<ShortcodeCall> parsedStandardCalls = Shortcode.parseShortcodes(textAfterMarkdownShortcodes, page.File?.Filename);
-                Tsonic.CSharp.Js.JSArray<ShortcodeCall> standardCalls = Tsonic.CSharp.Js.JSArray<ShortcodeCall>.of([]);
-                for (double i_1 = 0; i_1 < parsedStandardCalls.length; i_1++)
-                {
-                    ShortcodeCall call_1 = parsedStandardCalls[i_1];
-                    if (!call_1.isMarkdown)
-                    {
-                        standardCalls.push(call_1);
-                    }
-                }
-                ProtectedShortcodeSource protectedStandard = protectStandardShortcodes(textAfterMarkdownShortcodes, standardCalls, page, site, env, ordinalTracker, recursionGuard);
-                string markdownSource = protectedStandard.source;
-                string toc = Markdown_toc.generateTableOfContents(markdownSource);
-                RenderHookContext hookCtx = new RenderHookContext(page, site, env);
-                int moreIndex = Markdown_renderBasic.findSummaryDividerIndex(markdownSource);
-                string html = default(string)!;
-                string summaryHtml = default(string)!;
-                string plainText = default(string)!;
-                if (moreIndex >= 0)
-                {
-                    string before = Utils_strings.substringCount(markdownSource, 0, moreIndex);
-                    string after = Utils_strings.substringFrom(markdownSource, moreIndex + Markdown_renderBasic.summaryMarkerLength);
-                    string full = before + after;
-                    if (hookCtx.hasAnyHooks())
-                    {
-                        html = Markdown_renderHooks.renderMarkdownWithHooks(full, hookCtx);
-                        summaryHtml = Tsonic.CSharp.Js.String.trim(Markdown_renderHooks.renderMarkdownWithHooks(before, hookCtx));
-                    }
-                    else
-                    {
-                        html = Markdig.Markdown.ToHtml(full, Markdown_pipeline.markdownPipeline);
-                        summaryHtml = Tsonic.CSharp.Js.String.trim(Markdig.Markdown.ToHtml(before, Markdown_pipeline.markdownPipeline));
-                    }
-                    plainText = Markdig.Markdown.ToPlainText(full, Markdown_pipeline.markdownPipeline);
-                }
-                else
-                {
-                    if (hookCtx.hasAnyHooks())
-                    {
-                        html = Markdown_renderHooks.renderMarkdownWithHooks(markdownSource, hookCtx);
-                    }
-                    else
-                    {
-                        html = Markdig.Markdown.ToHtml(markdownSource, Markdown_pipeline.markdownPipeline);
-                    }
-                    plainText = Markdig.Markdown.ToPlainText(markdownSource, Markdown_pipeline.markdownPipeline);
-                    string summarySource = Markdown_renderBasic.firstBlock(markdownSource);
-                    if (summarySource == "")
-                    {
-                        summaryHtml = "";
-                    }
-                    else
-                    {
-                        if (hookCtx.hasAnyHooks())
-                        {
-                            summaryHtml = Tsonic.CSharp.Js.String.trim(Markdown_renderHooks.renderMarkdownWithHooks(summarySource, hookCtx));
-                        }
-                        else
-                        {
-                            summaryHtml = Tsonic.CSharp.Js.String.trim(Markdig.Markdown.ToHtml(summarySource, Markdown_pipeline.markdownPipeline));
-                        }
-                    }
-                }
-                html = restoreStandardShortcodes(html, protectedStandard.replacements);
-                summaryHtml = restoreStandardShortcodes(summaryHtml, protectedStandard.replacements);
-                return new MarkdownResult(html, summaryHtml, plainText, toc);
-            };
             return null;
         }
         public static void __tsonic_module_init()

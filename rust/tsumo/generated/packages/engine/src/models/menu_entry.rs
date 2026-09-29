@@ -5,6 +5,9 @@ use tsonic_rust_js::abi as js_abi;
 
 #[doc(hidden)]
 pub trait MenuEntryDispatch {
+    fn project_menu_entry(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_menu_entry_to_menu_entry(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn MenuEntryDispatch + 'static>> {
@@ -48,10 +51,11 @@ pub trait MenuEntryDispatch {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct MenuEntryState {
     pub name: String,
     pub url: String,
-    pub page_ref: String,
+    pub pageRef: String,
     pub title: String,
     pub weight: i32,
     pub parent: String,
@@ -59,7 +63,7 @@ pub struct MenuEntryState {
     pub pre: String,
     pub post: String,
     pub menu: String,
-    pub params: js_abi::JsMap<String, crate::params::ParamValue>,
+    pub Params: js_abi::JsMap<String, crate::params::ParamValue>,
     pub page: Option<crate::models::page_context::PageContext>,
     pub children: js_abi::JsArray<MenuEntry>,
 }
@@ -99,11 +103,12 @@ pub(crate) struct MenuEntryRoot {
 
 impl MenuEntry {
     #[doc(hidden)]
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     pub fn initialize_state(
         name: String,
         url: String,
-        page_ref: String,
+        pageRef: String,
         title: String,
         weight: i32,
         parent: String,
@@ -115,7 +120,7 @@ impl MenuEntry {
     ) -> Result<MenuEntryState, rt::TsonicError> {
         let field_name: String = name;
         let field_url: String = url;
-        let field_page_ref: String = page_ref;
+        let field_page_ref: String = pageRef;
         let field_title: String = title;
         let field_weight: i32 = weight;
         let field_parent: String = parent;
@@ -132,7 +137,7 @@ impl MenuEntry {
         Ok(MenuEntryState {
             name: field_name,
             url: field_url,
-            page_ref: field_page_ref,
+            pageRef: field_page_ref,
             title: field_title,
             weight: field_weight,
             parent: field_parent,
@@ -140,17 +145,18 @@ impl MenuEntry {
             pre: field_pre,
             post: field_post,
             menu: field_menu,
-            params: field_params,
+            Params: field_params,
             page: field_page,
             children: field_children,
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     pub fn new(
         name: String,
         url: String,
-        page_ref: String,
+        pageRef: String,
         title: String,
         weight: i32,
         parent: String,
@@ -161,7 +167,7 @@ impl MenuEntry {
         params: Option<js_abi::JsMap<String, crate::params::ParamValue>>,
     ) -> Result<MenuEntry, rt::TsonicError> {
         let state = MenuEntry::initialize_state(
-            name, url, page_ref, title, weight, parent, identifier, pre, post, menu, params,
+            name, url, pageRef, title, weight, parent, identifier, pre, post, menu, params,
         )?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(MenuEntryRoot {
@@ -175,7 +181,24 @@ impl MenuEntry {
     }
 }
 
+impl rt::ObjectIdentityCarrier for MenuEntryRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl MenuEntryDispatch for MenuEntryRoot {
+    fn project_menu_entry(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn MenuEntryDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_menu_entry_to_menu_entry(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn MenuEntryDispatch + 'static>> {
@@ -211,14 +234,14 @@ impl MenuEntryDispatch for MenuEntryRoot {
     }
 
     fn read_menu_entry_page_ref(&self) -> String {
-        self.state.with(|state| state.page_ref.clone())
+        self.state.with(|state| state.pageRef.clone())
     }
 
     fn write_menu_entry_page_ref(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.page_ref = value)
+                self.state.with_mut(|state| state.pageRef = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -323,7 +346,7 @@ impl MenuEntryDispatch for MenuEntryRoot {
     }
 
     fn read_menu_entry_params(&self) -> js_abi::JsMap<String, crate::params::ParamValue> {
-        self.state.with(|state| state.params.clone())
+        self.state.with(|state| state.Params.clone())
     }
 
     fn write_menu_entry_params(
@@ -333,7 +356,7 @@ impl MenuEntryDispatch for MenuEntryRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.params = value)
+                self.state.with_mut(|state| state.Params = value)
             };
             Ok::<_, rt::TsonicError>(())
         }

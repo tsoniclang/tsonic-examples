@@ -22,22 +22,40 @@ impl TemplateControlFlowTests {
         }
     }
 
+    pub fn range_bindings_preserve_values_keys_order_and_early_exit(
+        &self,
+    ) -> Result<(), rt::TsonicError> {
+        crate::test_root::Assert::StringEqual(
+            String::from("ab|ab|0:a;1:b;"),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ range slice \"a\" \"b\" }}{{ . }}{{ end }}|{{ range $value := slice \"a\" \"b\" }}{{ $value }}{{ end }}|{{ range $key, $value := slice \"a\" \"b\" }}{{ $key }}:{{ $value }};{{ end }}",
+            ))?),
+        )?;
+        crate::test_root::Assert::StringEqual(
+            String::from("12|12|a:1;b:2;|0:a|empty"),
+            Some(crate::template_test_harness::render(String::from(
+                "{{ range dict \"b\" 2 \"a\" 1 }}{{ . }}{{ end }}|{{ range $value := dict \"b\" 2 \"a\" 1 }}{{ $value }}{{ end }}|{{ range $key, $value := dict \"b\" 2 \"a\" 1 }}{{ $key }}:{{ $value }};{{ end }}|{{ range $key, $value := slice \"a\" \"b\" }}{{ $key }}:{{ $value }}{{ break }}{{ end }}|{{ range $key, $value := slice }}unused{{ else }}empty{{ end }}",
+            ))?),
+        )?;
+        Ok(())
+    }
+
     pub fn range_break_and_continue_target_the_innermost_active_range(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("134"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ range seq 6 }}{{ if eq . 2 }}{{ continue }}{{ end }}{{ if eq . 5 }}{{ break }}{{ end }}{{ . }}{{ end }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("1:1;2:1;"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ range $outer := seq 2 }}{{$outer}}:{{ range seq 3 }}{{ if eq . 2 }}{{ break }}{{ end }}{{ . }}{{ end }};{{ end }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("1"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ range seq 3 }}{{ . }}{{ range (slice) }}x{{ else }}{{ break }}{{ end }}X{{ end }}",
@@ -49,29 +67,29 @@ impl TemplateControlFlowTests {
     pub fn parser_rejects_loop_control_without_an_active_range(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_TEMPLATE_BREAK_OUTSIDE_RANGE"),
-            Some(crate::template_test_harness::capture_diagnostic_code(
+            Some(crate::template_test_harness::captureDiagnosticCode(
                 rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                    tsumo_engine::testing::parse_template(String::from("{{ break }}"), None)?;
+                    tsumo_engine::testing::parseTemplate(String::from("{{ break }}"), None)?;
                     Ok::<_, rt::TsonicError>(())
                 }),
             )?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_TEMPLATE_CONTINUE_OUTSIDE_RANGE"),
-            Some(crate::template_test_harness::capture_diagnostic_code(
+            Some(crate::template_test_harness::captureDiagnosticCode(
                 rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
-                    tsumo_engine::testing::parse_template(String::from("{{ continue }}"), None)?;
+                    tsumo_engine::testing::parseTemplate(String::from("{{ continue }}"), None)?;
                     Ok::<_, rt::TsonicError>(())
                 }),
             )?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_TEMPLATE_LOOP_CONTROL_INVALID"),
-            Some(crate::template_test_harness::capture_diagnostic_code(
+            Some(crate::template_test_harness::captureDiagnosticCode(
                 rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_3| {
-                    tsumo_engine::testing::parse_template(
+                    tsumo_engine::testing::parseTemplate(
                         String::from("{{ range seq 1 }}{{ break 1 }}{{ end }}"),
                         None,
                     )?;
@@ -79,11 +97,11 @@ impl TemplateControlFlowTests {
                 }),
             )?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_TEMPLATE_BREAK_OUTSIDE_RANGE"),
-            Some(crate::template_test_harness::capture_diagnostic_code(
+            Some(crate::template_test_harness::captureDiagnosticCode(
                 rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_4| {
-                    tsumo_engine::testing::parse_template(
+                    tsumo_engine::testing::parseTemplate(
                         String::from(
                             "{{ range seq 1 }}{{ define \"independent\" }}{{ break }}{{ end }}{{ end }}",
                         ),
@@ -103,24 +121,35 @@ impl Default for TemplateControlFlowTests {
     }
 }
 
-pub fn run_template_control_flow_tests() -> Result<(), rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn runTemplateControlFlowTests() -> Result<(), rt::TsonicError> {
     let tests: TemplateControlFlowTests = TemplateControlFlowTests::new();
-    crate::test_root::run_test(
-        String::from("range break and continue target the innermost active range"),
+    crate::test_root::runTest(
+        String::from("range bindings preserve values keys order and early exit"),
         {
             let capture_tests = tests.clone();
             rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                capture_tests.range_break_and_continue_target_the_innermost_active_range()?;
+                capture_tests.range_bindings_preserve_values_keys_order_and_early_exit()?;
                 Ok::<_, rt::TsonicError>(())
             })
         },
     )?;
-    crate::test_root::run_test(
-        String::from("parser rejects loop control without an active range"),
+    crate::test_root::runTest(
+        String::from("range break and continue target the innermost active range"),
         {
             let capture_tests_2 = tests.clone();
             rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
-                capture_tests_2.parser_rejects_loop_control_without_an_active_range()?;
+                capture_tests_2.range_break_and_continue_target_the_innermost_active_range()?;
+                Ok::<_, rt::TsonicError>(())
+            })
+        },
+    )?;
+    crate::test_root::runTest(
+        String::from("parser rejects loop control without an active range"),
+        {
+            let capture_tests_3 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_3| {
+                capture_tests_3.parser_rejects_loop_control_without_an_active_range()?;
                 Ok::<_, rt::TsonicError>(())
             })
         },

@@ -45,30 +45,31 @@ impl StandardTemplates {
     }
 }
 
-pub fn select_standard_templates(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn selectStandardTemplates(
     environment: crate::env::BuildEnvironment,
 ) -> Result<StandardTemplates, rt::TsonicError> {
-    let base_candidates: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
+    let baseCandidates: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
         String::from("_default/baseof.html"),
         String::from("baseof.html"),
     ]);
-    let home_candidates: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
+    let homeCandidates: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
         String::from("index.html"),
         String::from("home.html"),
         String::from("_default/home.html"),
         String::from("_default/list.html"),
         String::from("list.html"),
     ]);
-    let list_candidates: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
+    let listCandidates: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
         String::from("list.html"),
         String::from("_default/list.html"),
     ]);
-    let single_candidates: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
+    let singleCandidates: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
         String::from("single.html"),
         String::from("_default/single.html"),
     ]);
     let list: String = rt::option_coalesce(
-        crate::build::layout::select_template(
+        crate::build::layout::selectTemplate(
             {
                 let upcast_value = environment.clone();
                 crate::layouts::LayoutEnvironment {
@@ -76,16 +77,16 @@ pub fn select_standard_templates(
                     dispatch: upcast_value.dispatch.clone(),
                 }
             },
-            list_candidates.clone(),
+            listCandidates.clone(),
         )?,
         core::convert::identity,
-        || match list_candidates.get_number(0.0) {
+        || match listCandidates.get_number(0.0) {
             Some(flow_value) => flow_value,
             None => unreachable!("checked flow selected a missing optional value"),
         },
     );
     StandardTemplates::new(
-        crate::build::layout::select_template(
+        crate::build::layout::selectTemplate(
             {
                 let upcast_value_2 = environment.clone();
                 crate::layouts::LayoutEnvironment {
@@ -93,10 +94,10 @@ pub fn select_standard_templates(
                     dispatch: upcast_value_2.dispatch.clone(),
                 }
             },
-            base_candidates,
+            baseCandidates,
         )?,
         rt::option_coalesce(
-            crate::build::layout::select_template(
+            crate::build::layout::selectTemplate(
                 {
                     let upcast_value_3 = environment.clone();
                     crate::layouts::LayoutEnvironment {
@@ -104,14 +105,14 @@ pub fn select_standard_templates(
                         dispatch: upcast_value_3.dispatch.clone(),
                     }
                 },
-                home_candidates,
+                homeCandidates,
             )?,
             core::convert::identity,
             || list.clone(),
         ),
         list,
         rt::option_coalesce(
-            crate::build::layout::select_template(
+            crate::build::layout::selectTemplate(
                 {
                     let upcast_value_4 = environment.clone();
                     crate::layouts::LayoutEnvironment {
@@ -119,10 +120,10 @@ pub fn select_standard_templates(
                         dispatch: upcast_value_4.dispatch.clone(),
                     }
                 },
-                single_candidates.clone(),
+                singleCandidates.clone(),
             )?,
             core::convert::identity,
-            || match single_candidates.get_number(0.0) {
+            || match singleCandidates.get_number(0.0) {
                 Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             },

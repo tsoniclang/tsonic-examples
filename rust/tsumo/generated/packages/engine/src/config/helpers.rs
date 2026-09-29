@@ -3,53 +3,51 @@
 use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
-pub fn try_get_first_existing(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn tryGetFirstExisting(
     paths: js_abi::JsArray<String>,
 ) -> Result<Option<String>, rt::TsonicError> {
     {
-        let mut i: f64 = 0.0;
-        while i < (rt::conversions::usize_to_i32(paths.len())? as f64) {
+        let mut i: usize = 0;
+        while i < paths.len() {
             let p: String = match paths.get_number(i) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            if crate::fs::file_exists(p.clone())? {
-                return Ok(Some(p.clone()));
+            if crate::fs::fileExists(&p)? {
+                return Ok(Some(p));
             }
-            i += 1.0;
+            i += 1;
         }
     }
     Ok(Option::<String>::None)
 }
 
-pub fn sort_languages(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn sortLanguages(
     langs: js_abi::JsArray<crate::models::language::LanguageConfig>,
-) -> Result<js_abi::JsArray<crate::models::language::LanguageConfig>, rt::TsonicError> {
+) -> js_abi::JsArray<crate::models::language::LanguageConfig> {
     let copy: js_abi::JsArray<crate::models::language::LanguageConfig> =
         js_abi::JsArray::from_dense(vec![]);
     {
-        let mut i: f64 = 0.0;
-        while i < (rt::conversions::usize_to_i32(langs.len())? as f64) {
-            {
-                let operation_input_0 = copy.clone();
-                operation_input_0.push_many_discard([match langs.get_number(i) {
-                    Some(flow_value) => flow_value,
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }])
-            };
-            i += 1.0;
+        let mut i: usize = 0;
+        while i < langs.len() {
+            copy.push_many_discard([match langs.get_number(i) {
+                Some(flow_value) => flow_value,
+                None => unreachable!("checked flow selected a missing optional value"),
+            }]);
+            i += 1;
         }
     }
-    Ok(copy.sort(|a, b| {
-        let by_weight: i32 =
-            a.state.with(|state| state.weight) - b.state.with(|state| state.weight);
-        if by_weight != 0 {
-            rt::conversions::i32_to_f64(by_weight)
+    copy.sort(|a, b| {
+        let byWeight: i32 = a.state.with(|state| state.weight) - b.state.with(|state| state.weight);
+        if byWeight != 0 {
+            rt::conversions::i32_to_f64(byWeight)
         } else {
-            rt::conversions::i32_to_f64(crate::utils::strings::compare_text(
+            rt::conversions::i32_to_f64(crate::utils::strings::compareText(
                 a.state.with(|state| state.lang.clone()),
                 b.state.with(|state| state.lang.clone()),
             ))
         }
-    }))
+    })
 }

@@ -5,40 +5,42 @@ Tsonic from TypeScript to Rust.
 
 ## Browse the translation
 
-| Program area | Authored TypeScript | Generated Rust |
-|---|---|---|
-| Site entry point | [`source/packages/engine/src/build-site.ts`](source/packages/engine/src/build-site.ts) | [`generated/packages/engine/src/build_site.rs`](generated/packages/engine/src/build_site.rs) |
-| Page model | [`source/packages/engine/src/models/page-context.ts`](source/packages/engine/src/models/page-context.ts) | [`generated/packages/engine/src/models/page_context.rs`](generated/packages/engine/src/models/page_context.rs) |
-| CLI entry point | [`source/packages/cli/src/cli-main.ts`](source/packages/cli/src/cli-main.ts) | [`generated/packages/cli/src/cli_main.rs`](generated/packages/cli/src/cli_main.rs) |
-| Tests | [`source/packages/tests/src`](source/packages/tests/src) | [`generated/packages/tests/src`](generated/packages/tests/src) |
+- [Site entry point: TypeScript](source/packages/engine/src/build-site.ts)
+- [Site entry point: Rust](generated/packages/engine/src/build_site.rs)
+- [Page model: TypeScript](source/packages/engine/src/models/page-context.ts)
+- [Page model: Rust](generated/packages/engine/src/models/page_context.rs)
+- [CLI entry point: TypeScript](source/packages/cli/src/cli-main.ts)
+- [CLI entry point: Rust](generated/packages/cli/src/cli_main.rs)
+- [Tests: TypeScript](source/packages/tests/src)
+- [Tests: Rust](generated/packages/tests/src)
 
 `source` contains all authored TypeScript for the engine, CLI, and compiled test
-program, together with each package's `tsonic.json` and `package.json`.
-`generated` contains all 224 `.rs` files emitted for those three packages.
+program, together with project configuration and package metadata.
+`generated` contains all 225 `.rs` files emitted for those three packages.
 Generated package boundaries are retained directly, so consumers no longer
 duplicate dependency source inside their own output trees.
 
 ## Provenance
 
-Generated on 2026-09-21 with the certified compiler sources now merged to `main`:
+Generated and verified on 2026-09-29 from these exact source revisions:
 
-| Component | Commit |
-|---|---|
-| [`tsoniclang/tsumo-rust`](https://github.com/tsoniclang/tsumo-rust) | `59d988e8857f523d77c1d20a90fe498038512257` |
-| [`tsoniclang/tsonic`](https://github.com/tsoniclang/tsonic) | `59e96dc9a57440d7c26971719f98c1e00f69c6aa` |
-| [`tsoniclang/tsonic-rust`](https://github.com/tsoniclang/tsonic-rust) | `7095b343878a4f7413d0f07621bbecb313bd4ffe` |
-| [`tsoniclang/rust-nodejs`](https://github.com/tsoniclang/rust-nodejs) | `e9ff840d4731ba6381bf715ed22757603b48deaf` |
-| [`tsoniclang/rust-js`](https://github.com/tsoniclang/rust-js) | `3160d8d3361ed84e28b7f66951814a11d108fc8f` |
-| [`tsoniclang/rust-runtime`](https://github.com/tsoniclang/rust-runtime) | `b31a26553f662ac7fc99ccf4cf267af6a73d3c63` |
+- [Tsumo Rust: `27a281f843f362bd3f216d449bf88b5fdf12af7f`](https://github.com/tsoniclang/tsumo-rust/commit/27a281f843f362bd3f216d449bf88b5fdf12af7f)
+- [Tsonic: `fec51270a9b96f38cb83791b3043853962e83728`](https://github.com/tsoniclang/tsonic/commit/fec51270a9b96f38cb83791b3043853962e83728)
+- [Rust target: `898548d9d7339389d86c28efb3002e5d158373c6`](https://github.com/tsoniclang/tsonic-rust/commit/898548d9d7339389d86c28efb3002e5d158373c6)
+- [Rust Node: `0d29cb009ed734ca4adb9cd6da4acf201bdf99c0`](https://github.com/tsoniclang/rust-nodejs/commit/0d29cb009ed734ca4adb9cd6da4acf201bdf99c0)
+- [Rust JS: `dd60d9795f07758c71d1f467045e7b08ae50dfb6`](https://github.com/tsoniclang/rust-js/commit/dd60d9795f07758c71d1f467045e7b08ae50dfb6)
+- [Rust runtime: `fcb679ffbc343151a5ef23b52d61ec3cc3fe1021`](https://github.com/tsoniclang/rust-runtime/commit/fcb679ffbc343151a5ef23b52d61ec3cc3fe1021)
 
-All three projects passed the September 21 certification: deterministic double
-generation, Cargo/Clippy, 83 compiled tests, 28 application tests, 11 native tests
-and release/debug generated-site equivalence.
+All three projects pass deterministic double generation, native formatting,
+Cargo builds and Clippy with warnings denied. Verification passes 87 compiled
+tests, 29 application/architecture checks, 13 native tests, and exact
+release/debug generated-site equivalence across 21 files. The native workspace
+lockfile remains unchanged.
 
 | Tree | Files | Bytes | Sorted relative-path/content manifest SHA-256 |
 |---|---:|---:|---|
-| Authored source | 210 | 832,161 | `868307d801861977acab6d76759b080fc207ca8c92ad6639b1e80c70ee126b02` |
-| Generated Rust | 224 | 3,943,320 | `7f6fdfe89d30909d385f9d7ffc4cbb2bb22b56fcf3d835e6d480b70028ba7f0f` |
+| Authored source | 211 | 842,838 | `067097281e023209685a8330b44b7bee5dadfa5fcdbb5a4b5de3f27ed7246fa0` |
+| Generated Rust | 225 | 4,083,300 | `cd58a5ff5a09e83507736e485650048e62b6676f989a07036f13d6fe0f45d3b1` |
 
 The manifest hashes sorted lines of `<file SHA-256>  <relative path>\n`.
 

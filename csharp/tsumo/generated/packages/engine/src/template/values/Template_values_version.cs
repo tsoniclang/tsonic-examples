@@ -28,7 +28,7 @@ namespace Tsumo.Engine
             int aLen = aParts.length;
             int bLen = bParts.length;
             int maxLen = aLen > bLen ? aLen : bLen;
-            for (double i = 0; i < maxLen; i++)
+            for (int i = 0; i < maxLen; i++)
             {
                 int av = i < aLen ? aParts[i] : 0;
                 int bv = i < bLen ? bParts[i] : 0;
@@ -52,7 +52,7 @@ namespace Tsumo.Engine
             }
             Tsonic.CSharp.Js.JSArray<string> parts = Tsonic.CSharp.Js.String.split(cleaned, ".");
             Tsonic.CSharp.Js.JSArray<int> result = Tsonic.CSharp.Js.JSArray<int>.of([]);
-            for (double i = 0; i < parts.length; i++)
+            for (int i = 0; i < parts.length; i++)
             {
                 string part = parts[i];
                 int num = VersionStringValue.extractLeadingNumber(part);

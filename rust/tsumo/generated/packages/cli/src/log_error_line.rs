@@ -2,6 +2,7 @@
 
 use tsonic_rust_js::abi as js_abi;
 
-pub fn log_error_line(message: String) {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn logErrorLine(message: String) {
     js_abi::console_error(&[js_abi::js_value_from_string(&message)]);
 }

@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Markdown_toc
@@ -7,7 +5,7 @@ namespace Tsumo.Engine
         internal static string indent(int depth)
         {
             string @out = "";
-            for (double i = 0; i < depth; i++)
+            for (int i = 0; i < depth; i++)
             {
                 @out += "  ";
             }
@@ -93,105 +91,95 @@ namespace Tsumo.Engine
             }
             it.Dispose();
         }
-        public static Func<string, string> escapeHtmlText
+        public static string escapeHtmlText(string text)
         {
-            get;
-            private set;
-        } = default(Func<string, string>)!;
-        public static Func<string, string> generateTableOfContents
+            string result = text;
+            result = Tsonic.CSharp.Js.String.replaceAll(result, "&", "&amp;");
+            result = Tsonic.CSharp.Js.String.replaceAll(result, "<", "&lt;");
+            result = Tsonic.CSharp.Js.String.replaceAll(result, ">", "&gt;");
+            result = Tsonic.CSharp.Js.String.replaceAll(result, "\"", "&quot;");
+            return result;
+        }
+        public static string generateTableOfContents(string markdown)
         {
-            get;
-            private set;
-        } = default(Func<string, string>)!;
+            Markdig.Syntax.MarkdownDocument document = Markdig.Markdown.Parse(markdown, Markdown_pipeline.markdownPipeline);
+            Tsonic.CSharp.Js.JSArray<TocHeading> headings = collectHeadingsFromAst(document);
+            if (headings.length == 0)
+            {
+                return "<nav id=\"TableOfContents\"></nav>";
+            }
+            TextBuilder output = new TextBuilder();
+            output.append("<nav id=\"TableOfContents\">\n");
+            Tsonic.CSharp.Js.JSArray<TocListFrame> listStack = Tsonic.CSharp.Js.JSArray<TocListFrame>.of([]);
+            int currentLevel = 0;
+            for (int i = 0; i < headings.length; i++)
+            {
+                TocHeading h = headings[i];
+                int targetLevel = h.level;
+                if (currentLevel != 0 && targetLevel > currentLevel + 1)
+                {
+                    targetLevel = currentLevel + 1;
+                }
+                if (listStack.length == 0)
+                {
+                    output.append($"{indent(1)}<ul>\n");
+                    listStack.push(new TocListFrame(targetLevel));
+                    currentLevel = targetLevel;
+                }
+                while (listStack.length > 0 && targetLevel < currentLevel)
+                {
+                    TocListFrame top = listStack[listStack.length - 1];
+                    if (top.liOpen)
+                    {
+                        output.append($"{indent(listStack.length + 1)}</li>\n");
+                        top.liOpen = false;
+                    }
+                    output.append($"{indent(listStack.length)}</ul>\n");
+                    Tsonic.CSharp.Js.Array.popReference(listStack);
+                    currentLevel = listStack.length > 0 ? listStack[listStack.length - 1].level : 0;
+                }
+                if (listStack.length == 0)
+                {
+                    output.append($"{indent(1)}<ul>\n");
+                    listStack.push(new TocListFrame(targetLevel));
+                    currentLevel = targetLevel;
+                }
+                if (targetLevel == currentLevel)
+                {
+                    TocListFrame top_1 = listStack[listStack.length - 1];
+                    if (top_1.liOpen)
+                    {
+                        output.append($"{indent(listStack.length + 1)}</li>\n");
+                        top_1.liOpen = false;
+                    }
+                }
+                if (targetLevel > currentLevel)
+                {
+                    output.append($"{indent(listStack.length + 1)}<ul>\n");
+                    listStack.push(new TocListFrame(targetLevel));
+                    currentLevel = targetLevel;
+                }
+                output.append($"{indent(listStack.length + 1)}<li><a href=\"#{h.id}\">{escapeHtmlText(h.text)}</a>\n");
+                listStack[listStack.length - 1].liOpen = true;
+            }
+            while (listStack.length > 0)
+            {
+                TocListFrame top_2 = listStack[listStack.length - 1];
+                if (top_2.liOpen)
+                {
+                    output.append($"{indent(listStack.length + 1)}</li>\n");
+                    top_2.liOpen = false;
+                }
+                output.append($"{indent(listStack.length)}</ul>\n");
+                Tsonic.CSharp.Js.Array.popReference(listStack);
+            }
+            output.append("</nav>");
+            return output.toString();
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
             Markdown_pipeline.__tsonic_module_init();
-            escapeHtmlText = (string text) =>
-            {
-                string result = text;
-                result = Tsonic.CSharp.Js.String.replaceAll(result, "&", "&amp;");
-                result = Tsonic.CSharp.Js.String.replaceAll(result, "<", "&lt;");
-                result = Tsonic.CSharp.Js.String.replaceAll(result, ">", "&gt;");
-                result = Tsonic.CSharp.Js.String.replaceAll(result, "\"", "&quot;");
-                return result;
-            };
-            generateTableOfContents = (string markdown) =>
-            {
-                Markdig.Syntax.MarkdownDocument document = Markdig.Markdown.Parse(markdown, Markdown_pipeline.markdownPipeline);
-                Tsonic.CSharp.Js.JSArray<TocHeading> headings = collectHeadingsFromAst(document);
-                if (headings.length == 0)
-                {
-                    return "<nav id=\"TableOfContents\"></nav>";
-                }
-                TextBuilder output = new TextBuilder();
-                output.append("<nav id=\"TableOfContents\">\n");
-                Tsonic.CSharp.Js.JSArray<TocListFrame> listStack = Tsonic.CSharp.Js.JSArray<TocListFrame>.of([]);
-                int currentLevel = 0;
-                for (double i = 0; i < headings.length; i++)
-                {
-                    TocHeading h = headings[i];
-                    int targetLevel = h.level;
-                    if (currentLevel != 0 && targetLevel > currentLevel + 1)
-                    {
-                        targetLevel = currentLevel + 1;
-                    }
-                    if (listStack.length == 0)
-                    {
-                        output.append($"{indent(1)}<ul>\n");
-                        listStack.push(new TocListFrame(targetLevel));
-                        currentLevel = targetLevel;
-                    }
-                    while (listStack.length > 0 && targetLevel < currentLevel)
-                    {
-                        TocListFrame top = listStack[listStack.length - 1];
-                        if (top.liOpen)
-                        {
-                            output.append($"{indent(listStack.length + 1)}</li>\n");
-                            top.liOpen = false;
-                        }
-                        output.append($"{indent(listStack.length)}</ul>\n");
-                        Tsonic.CSharp.Js.Array.popReference(listStack);
-                        currentLevel = listStack.length > 0 ? listStack[listStack.length - 1].level : 0;
-                    }
-                    if (listStack.length == 0)
-                    {
-                        output.append($"{indent(1)}<ul>\n");
-                        listStack.push(new TocListFrame(targetLevel));
-                        currentLevel = targetLevel;
-                    }
-                    if (targetLevel == currentLevel)
-                    {
-                        TocListFrame top_1 = listStack[listStack.length - 1];
-                        if (top_1.liOpen)
-                        {
-                            output.append($"{indent(listStack.length + 1)}</li>\n");
-                            top_1.liOpen = false;
-                        }
-                    }
-                    if (targetLevel > currentLevel)
-                    {
-                        output.append($"{indent(listStack.length + 1)}<ul>\n");
-                        listStack.push(new TocListFrame(targetLevel));
-                        currentLevel = targetLevel;
-                    }
-                    output.append($"{indent(listStack.length + 1)}<li><a href=\"#{h.id}\">{escapeHtmlText(h.text)}</a>\n");
-                    listStack[listStack.length - 1].liOpen = true;
-                }
-                while (listStack.length > 0)
-                {
-                    TocListFrame top_2 = listStack[listStack.length - 1];
-                    if (top_2.liOpen)
-                    {
-                        output.append($"{indent(listStack.length + 1)}</li>\n");
-                        top_2.liOpen = false;
-                    }
-                    output.append($"{indent(listStack.length)}</ul>\n");
-                    Tsonic.CSharp.Js.Array.popReference(listStack);
-                }
-                output.append("</nav>");
-                return output.toString();
-            };
             return null;
         }
         public static void __tsonic_module_init()

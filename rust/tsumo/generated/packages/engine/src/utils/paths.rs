@@ -2,8 +2,9 @@
 
 use tsonic_rust_js::string as js_string;
 
-pub fn path_contains_or_equals(root: String, candidate: String) -> bool {
-    let rel: String = tsonic_rust_node::path::relative(&root, &candidate);
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn pathContainsOrEquals(root: &str, candidate: &str) -> bool {
+    let rel: String = tsonic_rust_node::path::relative(root, candidate);
     rel.is_empty()
         || !tsonic_rust_node::path::is_absolute(&rel)
             && rel != ".."

@@ -3,25 +3,23 @@
 use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
-pub fn plan_taxonomy_outputs(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn planTaxonomyOutputs(
     taxonomies: crate::build::standard_taxonomies::StandardTaxonomyGraph,
     environment: crate::env::BuildEnvironment,
     templates: crate::build::standard_templates::StandardTemplates,
-    output_plan: crate::build::output_plan::SiteOutputPlan,
-    sitemap_urls: js_abi::JsMap<String, bool>,
+    outputPlan: crate::build::output_plan::SiteOutputPlan,
+    sitemapUrls: js_abi::JsMap<String, bool>,
 ) -> Result<(), rt::TsonicError> {
     {
-        let mut taxonomy_index: f64 = 0.0;
-        while taxonomy_index
-            < (rt::conversions::usize_to_i32(
-                {
-                    let dispatch_receiver = &taxonomies;
-                    dispatch_receiver
-                        .dispatch
-                        .read_standard_taxonomy_graph_taxonomies()
-                }
-                .len(),
-            )? as f64)
+        let mut taxonomyIndex: usize = 0;
+        while taxonomyIndex < {
+            let dispatch_receiver = &taxonomies;
+            dispatch_receiver
+                .dispatch
+                .read_standard_taxonomy_graph_taxonomies()
+        }
+        .len()
         {
             let taxonomy: crate::build::standard_taxonomies::StandardTaxonomy = match {
                 let dispatch_receiver_2 = &taxonomies;
@@ -29,28 +27,24 @@ pub fn plan_taxonomy_outputs(
                     .dispatch
                     .read_standard_taxonomy_graph_taxonomies()
             }
-            .get_number(taxonomy_index)
+            .get_number(taxonomyIndex)
             {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             {
-                let mut term_index: f64 = 0.0;
-                while term_index
-                    < (rt::conversions::usize_to_i32(
-                        taxonomy.state.with(|state| state.terms.clone()).len(),
-                    )? as f64)
-                {
+                let mut termIndex: usize = 0;
+                while termIndex < taxonomy.state.with(|state| state.terms.clone()).len() {
                     let term: crate::models::page_context::PageContext = match taxonomy
                         .state
                         .with(|state| state.terms.clone())
-                        .get_number(term_index)
+                        .get_number(termIndex)
                     {
                         Some(flow_value_2) => flow_value_2,
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
                     let main: String = rt::option_coalesce(
-                        crate::build::layout::select_template(
+                        crate::build::layout::selectTemplate(
                             {
                                 let upcast_value = environment.clone();
                                 crate::layouts::LayoutEnvironment {
@@ -73,7 +67,7 @@ pub fn plan_taxonomy_outputs(
                         || templates.state.with(|state| state.list.clone()),
                     );
                     let base: Option<String> = rt::option_coalesce(
-                        crate::build::layout::select_template(
+                        crate::build::layout::selectTemplate(
                             {
                                 let upcast_value_2 = environment.clone();
                                 crate::layouts::LayoutEnvironment {
@@ -95,12 +89,12 @@ pub fn plan_taxonomy_outputs(
                         || templates.state.with(|state| state.base.clone()),
                     );
                     {
-                        let dispatch_receiver_5 = output_plan.clone();
+                        let dispatch_receiver_5 = outputPlan.clone();
                         dispatch_receiver_5
                             .dispatch
                             .clone()
                             .dispatch_site_output_plan_add_text(
-                                crate::build::site_routes::site_output_path(
+                                crate::build::site_routes::siteOutputPath(
                                     js_abi::JsArray::from_dense(vec![
                                         taxonomy.state.with(|state| state.name.clone()),
                                         {
@@ -108,8 +102,8 @@ pub fn plan_taxonomy_outputs(
                                             dispatch_receiver_3.dispatch.read_page_context_slug()
                                         },
                                     ]),
-                                )?,
-                                crate::build::layout::render_with_base(
+                                ),
+                                crate::build::layout::renderWithBase(
                                     {
                                         let upcast_value_3 = environment.clone();
                                         crate::layouts::LayoutEnvironment {
@@ -117,8 +111,8 @@ pub fn plan_taxonomy_outputs(
                                             dispatch: upcast_value_3.dispatch.clone(),
                                         }
                                     },
-                                    base.clone(),
-                                    main.clone(),
+                                    base,
+                                    main,
                                     term.clone(),
                                 )?,
                                 format!(
@@ -135,7 +129,7 @@ pub fn plan_taxonomy_outputs(
                             )
                     }?;
                     {
-                        let operation_input_0 = sitemap_urls.clone();
+                        let operation_input_0 = sitemapUrls.clone();
                         operation_input_0.set_discard(
                             {
                                 let dispatch_receiver_6 = &term;
@@ -146,13 +140,13 @@ pub fn plan_taxonomy_outputs(
                             true,
                         )
                     };
-                    term_index += 1.0;
+                    termIndex += 1;
                 }
             }
             let root: crate::models::page_context::PageContext =
                 taxonomy.state.with(|state| state.root.clone());
             let main: String = rt::option_coalesce(
-                crate::build::layout::select_template(
+                crate::build::layout::selectTemplate(
                     {
                         let upcast_value_4 = environment.clone();
                         crate::layouts::LayoutEnvironment {
@@ -175,7 +169,7 @@ pub fn plan_taxonomy_outputs(
                 || templates.state.with(|state| state.list.clone()),
             );
             let base: Option<String> = rt::option_coalesce(
-                crate::build::layout::select_template(
+                crate::build::layout::selectTemplate(
                     {
                         let upcast_value_5 = environment.clone();
                         crate::layouts::LayoutEnvironment {
@@ -197,15 +191,15 @@ pub fn plan_taxonomy_outputs(
                 || templates.state.with(|state| state.base.clone()),
             );
             {
-                let dispatch_receiver_7 = output_plan.clone();
+                let dispatch_receiver_7 = outputPlan.clone();
                 dispatch_receiver_7
                     .dispatch
                     .clone()
                     .dispatch_site_output_plan_add_text(
-                        crate::build::site_routes::site_output_path(js_abi::JsArray::from_dense(
+                        crate::build::site_routes::siteOutputPath(js_abi::JsArray::from_dense(
                             vec![taxonomy.state.with(|state| state.name.clone())],
-                        ))?,
-                        crate::build::layout::render_with_base(
+                        )),
+                        crate::build::layout::renderWithBase(
                             {
                                 let upcast_value_6 = environment.clone();
                                 crate::layouts::LayoutEnvironment {
@@ -213,8 +207,8 @@ pub fn plan_taxonomy_outputs(
                                     dispatch: upcast_value_6.dispatch.clone(),
                                 }
                             },
-                            base.clone(),
-                            main.clone(),
+                            base,
+                            main,
                             root.clone(),
                         )?,
                         format!(
@@ -226,7 +220,7 @@ pub fn plan_taxonomy_outputs(
                     )
             }?;
             {
-                let operation_input_0_2 = sitemap_urls.clone();
+                let operation_input_0_2 = sitemapUrls.clone();
                 operation_input_0_2.set_discard(
                     {
                         let dispatch_receiver_8 = &root;
@@ -237,7 +231,7 @@ pub fn plan_taxonomy_outputs(
                     true,
                 )
             };
-            taxonomy_index += 1.0;
+            taxonomyIndex += 1;
         }
     }
     Ok(())

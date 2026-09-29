@@ -18,6 +18,43 @@ namespace Tsumo.Tests
     public class TemplatePageContextTests
     {
         [Xunit.FactAttribute]
+        public void page_sorts_preserve_ties_and_do_not_mutate_the_source()
+        {
+            SiteContext site = TemplateTestHarness.createSite();
+            PageContext root = TemplateTestHarness.createPage(site, "Home", "", "home");
+            PageContext first = TemplateTestHarness.createPage(site, "B", "2024-01-01T00:00:00Z", "page");
+            PageContext second = TemplateTestHarness.createPage(site, "A", "2024-01-01T00:00:00Z", "page");
+            PageContext last = TemplateTestHarness.createPage(site, "C", "2025-01-01T00:00:00Z", "page");
+            first.Params.set("weight", ParamValue.number(-2147483648));
+            second.Params.set("weight", ParamValue.number(-2147483648));
+            last.Params.set("weight", ParamValue.number(2147483647));
+            root.pages = Tsonic.CSharp.Js.JSArray<PageContext>.of([last, first, second]);
+            Xunit.Assert.Equal("BAC|ABC|BAC|CBA", TemplateTestHarness.renderWithRoot("{{ range .Pages.ByDate }}{{ .Title }}{{ end }}|" + "{{ range .Pages.ByTitle }}{{ .Title }}{{ end }}|" + "{{ range .Pages.ByWeight }}{{ .Title }}{{ end }}|" + "{{ range .Pages }}{{ .Title }}{{ end }}", new PageValue(root)));
+            Xunit.Assert.Equal("2024:BA;2025:C;|2025:C;2024:BA;", TemplateTestHarness.renderWithRoot("{{ range .Pages.GroupByDate \"2006\" \"asc\" }}{{ .Key }}:{{ range .Pages }}{{ .Title }}{{ end }};{{ end }}|" + "{{ range .Pages.GroupByDate \"2006\" \"desc\" }}{{ .Key }}:{{ range .Pages }}{{ .Title }}{{ end }};{{ end }}", new PageValue(root)));
+            root.pages = Tsonic.CSharp.Js.JSArray<PageContext>.of([]);
+            Xunit.Assert.Equal("empty", TemplateTestHarness.renderWithRoot("{{ range .Pages.ByWeight }}unexpected{{ else }}empty{{ end }}", new PageValue(root)));
+        }
+        [Xunit.FactAttribute]
+        public void pagination_uses_exact_integer_ceiling_and_bounded_page_offsets()
+        {
+            SiteContext site = TemplateTestHarness.createSite();
+            PageContext first = TemplateTestHarness.createPage(site, "First", "", "page");
+            PageContext second = TemplateTestHarness.createPage(site, "Second", "", "page");
+            PageContext third = TemplateTestHarness.createPage(site, "Third", "", "page");
+            PaginatorValue paginator = new PaginatorValue(Tsonic.CSharp.Js.JSArray<PageContext>.of([first, second, third]), 2, 1, "/posts/");
+            Xunit.Assert.True(paginator.totalPages() == 2);
+            Xunit.Assert.True(paginator.pages().length == 2 && object.ReferenceEquals(paginator.pages()[0], first));
+            PaginatorValue last = paginator.withPageNumber(2);
+            Xunit.Assert.True(last.pages().length == 1 && object.ReferenceEquals(last.pages()[0], third));
+            Xunit.Assert.True(paginator.withPageNumber(2147483647).pages().length == 0);
+            PaginatorValue empty = new PaginatorValue(Tsonic.CSharp.Js.JSArray<PageContext>.of([]), 0, 0, "/");
+            Xunit.Assert.True(empty.totalPages() == 1 && empty.pages().length == 0);
+            PaginatorValue exact = new PaginatorValue(Tsonic.CSharp.Js.JSArray<PageContext>.of([first, second]), 2, 1, "/");
+            Xunit.Assert.True(exact.totalPages() == 1 && exact.pages().length == 2);
+            PaginatorValue wide = new PaginatorValue(Tsonic.CSharp.Js.JSArray<PageContext>.of([first, second, third]), 2147483647, 1, "/");
+            Xunit.Assert.True(wide.totalPages() == 1 && wide.pages().length == 3);
+        }
+        [Xunit.FactAttribute]
         public void date_page_data_and_render_methods_use_typed_context()
         {
             Xunit.Assert.Equal("2024-01-02", TemplateTestHarness.renderWithRoot("{{ .Format \"2006-01-02\" }}", new DateValue("2024-01-02T03:04:05Z")));
@@ -27,7 +64,11 @@ namespace Tsumo.Tests
             older.Params.set("weight", ParamValue.number(20));
             newer.Params.set("weight", ParamValue.number(10));
             PageContext root = TemplateTestHarness.createPage(site, "Home", "", "home");
+            Xunit.Assert.Equal("0|0", TemplateTestHarness.renderWithRoot("{{ len .Pages.Reverse }}|{{ len (collections.Reverse .Pages) }}", new PageValue(root)));
+            root.pages = Tsonic.CSharp.Js.JSArray<PageContext>.of([older]);
+            Xunit.Assert.Equal("Older|Older", TemplateTestHarness.renderWithRoot("{{ range .Pages.Reverse }}{{ .Title }}{{ end }}|{{ range (collections.Reverse .Pages) }}{{ .Title }}{{ end }}", new PageValue(root)));
             root.pages = Tsonic.CSharp.Js.JSArray<PageContext>.of([older, newer]);
+            Xunit.Assert.Equal("NewerOlder|NewerOlder|OlderNewer", TemplateTestHarness.renderWithRoot("{{ range .Pages.Reverse }}{{ .Title }}{{ end }}|{{ range (collections.Reverse .Pages) }}{{ .Title }}{{ end }}|" + "{{ range .Pages }}{{ .Title }}{{ end }}", new PageValue(root)));
             PageContext section = TemplateTestHarness.createPage(site, "Section", "", "section");
             root.pages.push(section);
             site.pages = root.pages;

@@ -2,48 +2,51 @@
 
 use crate::program as rt;
 
-pub fn parse_scalar_text(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseScalarText(
     value: &str,
     format: crate::utils::structured_scalars::StructuredScalarFormat,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
     line: i32,
 ) -> Result<crate::params::ParamValue, rt::TsonicError> {
-    crate::utils::structured_scalars::parse_structured_scalar(value, format, {
-        let capture_source_path = source_path.clone();
+    crate::utils::structured_scalars::parseStructuredScalar(value, format, {
+        let capture_source_path = sourcePath;
         let capture_line = line;
         rt::Callable::<(String,), rt::TsonicResult<crate::diagnostics::TsumoError>>::new(
             move |callable_arguments| {
                 let message = callable_arguments.0;
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_CONFIG_SYNTAX_INVALID"),
                     message,
                     capture_source_path.clone(),
-                    Some(rt::conversions::i32_to_f64(capture_line)),
-                    Some(1.0),
+                    Some(capture_line),
+                    Some(1),
                 )
             },
         )
     })
 }
 
-pub fn parse_config_param(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseConfigParam(
     value: &str,
     format: crate::utils::structured_scalars::StructuredScalarFormat,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
     line: i32,
 ) -> Result<crate::params::ParamValue, rt::TsonicError> {
-    parse_scalar_text(value, format, source_path, line)
+    parseScalarText(value, format, sourcePath, line)
 }
 
-pub fn parse_config_string(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseConfigString(
     field: String,
     value: &str,
     format: crate::utils::structured_scalars::StructuredScalarFormat,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
     line: i32,
 ) -> Result<String, rt::TsonicError> {
     let parsed: crate::params::ParamValue =
-        parse_scalar_text(value, format, source_path.clone(), line)?;
+        parseScalarText(value, format, sourcePath.clone(), line)?;
     if ({
         let dispatch_receiver = &parsed;
         dispatch_receiver.dispatch.read_param_value_kind()
@@ -55,7 +58,7 @@ pub fn parse_config_string(
         });
     }
     Err(rt::TsonicError::TsumoError(
-        crate::diagnostics::create_tsumo_error(
+        crate::diagnostics::createTsumoError(
             String::from("TSUMO_CONFIG_INVALID_FIELD"),
             format!(
                 "{}{}{}",
@@ -63,22 +66,23 @@ pub fn parse_config_string(
                 field,
                 String::from("' requires a string")
             ),
-            source_path.clone(),
-            Some(rt::conversions::i32_to_f64(line)),
-            Some(1.0),
+            sourcePath.clone(),
+            Some(line),
+            Some(1),
         )?,
     ))
 }
 
-pub fn parse_config_int(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseConfigInt(
     field: String,
     value: &str,
     format: crate::utils::structured_scalars::StructuredScalarFormat,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
     line: i32,
 ) -> Result<i32, rt::TsonicError> {
     let parsed: crate::params::ParamValue =
-        parse_scalar_text(value, format, source_path.clone(), line)?;
+        parseScalarText(value, format, sourcePath.clone(), line)?;
     if ({
         let dispatch_receiver = &parsed;
         dispatch_receiver.dispatch.read_param_value_kind()
@@ -90,7 +94,7 @@ pub fn parse_config_int(
         });
     }
     Err(rt::TsonicError::TsumoError(
-        crate::diagnostics::create_tsumo_error(
+        crate::diagnostics::createTsumoError(
             String::from("TSUMO_CONFIG_INVALID_FIELD"),
             format!(
                 "{}{}{}",
@@ -98,9 +102,9 @@ pub fn parse_config_int(
                 field,
                 String::from("' requires a 32-bit integer")
             ),
-            source_path.clone(),
-            Some(rt::conversions::i32_to_f64(line)),
-            Some(1.0),
+            sourcePath.clone(),
+            Some(line),
+            Some(1),
         )?,
     ))
 }

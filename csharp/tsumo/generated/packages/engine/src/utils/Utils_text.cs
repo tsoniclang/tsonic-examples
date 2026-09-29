@@ -1,5 +1,3 @@
-using System;
-
 namespace Tsumo.Engine
 {
     public static class Utils_text
@@ -33,26 +31,72 @@ namespace Tsumo.Engine
         {
             return (ch == wordSeparatorSpace || ch == wordSeparatorDash || ch == wordSeparatorUnderscore || ch == wordSeparatorDot || ch == wordSeparatorSlash);
         }
-        public static Func<string, string> slugify
+        public static string slugify(string input)
         {
-            get;
-            private set;
-        } = default(Func<string, string>)!;
-        public static Func<string, string> humanizeSlug
+            string lower = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Js.String.trim(input));
+            Tsonic.CSharp.Js.JSArray<string> chars = Tsonic.CSharp.Js.String.split(lower, "");
+            Tsonic.CSharp.Js.JSArray<string> output = Tsonic.CSharp.Js.JSArray<string>.of([]);
+            bool wroteDash = false;
+            for (int i = 0; i < chars.length; i++)
+            {
+                string ch = chars[i];
+                bool isAlphaNumeric = new Tsonic.CSharp.Js.RegExp("^[a-z0-9]$", "i").testNative(ch);
+                if (isAlphaNumeric)
+                {
+                    output.push(ch);
+                    wroteDash = false;
+                    continue;
+                }
+                if (isWordSeparator(ch) && output.length > 0 && !wroteDash)
+                {
+                    output.push(wordSeparatorDash);
+                    wroteDash = true;
+                }
+            }
+            string @out = Tsonic.CSharp.Js.Array.join(output, "");
+            while (Tsonic.CSharp.Js.String.startsWith(@out, "-"))
+            {
+                @out = Tsonic.CSharp.Js.String.substring(@out, 1);
+            }
+            return Utils_strings.trimEndChar(@out, "-");
+        }
+        public static string humanizeSlug(string slug)
         {
-            get;
-            private set;
-        } = default(Func<string, string>)!;
-        public static Func<string, string> ensureTrailingSlash
+            Tsonic.CSharp.Js.JSArray<string> parts = Tsonic.CSharp.Js.String.split(Utils_strings.replaceText(Utils_strings.replaceText(slug, "_", "-"), ".", "-"), "-");
+            Tsonic.CSharp.Js.JSArray<string> words = Tsonic.CSharp.Js.JSArray<string>.of([]);
+            for (int i = 0; i < parts.length; i++)
+            {
+                string partRaw = parts[i];
+                if (partRaw == null)
+                {
+                    continue;
+                }
+                string part = Tsonic.CSharp.Js.String.trim(partRaw);
+                if (part == "")
+                {
+                    continue;
+                }
+                words.push(Tsonic.CSharp.Js.String.toUpperCase(Utils_strings.substringCount(part, 0, 1)) + Tsonic.CSharp.Js.String.substring(part, 1));
+            }
+            return Tsonic.CSharp.Js.Array.join(words, " ");
+        }
+        public static string ensureTrailingSlash(string url)
         {
-            get;
-            private set;
-        } = default(Func<string, string>)!;
-        public static Func<string, string> ensureLeadingSlash
+            if (url == "")
+            {
+                return url;
+            }
+            return Tsonic.CSharp.Js.String.endsWith(url, "/") ? url : url + "/";
+        }
+        public static string ensureLeadingSlash(string url)
         {
-            get;
-            private set;
-        } = default(Func<string, string>)!;
+            string trimmed = Tsonic.CSharp.Js.String.trim(url);
+            if (trimmed == "")
+            {
+                return "/";
+            }
+            return Tsonic.CSharp.Js.String.startsWith(trimmed, "/") ? trimmed : "/" + trimmed;
+        }
         private static readonly System.Lazy<object?> __tsonic_module_initialization = new System.Lazy<object?>(() => __tsonic_module_init_core());
         private static object? __tsonic_module_init_core()
         {
@@ -62,72 +106,6 @@ namespace Tsumo.Engine
             wordSeparatorUnderscore = "_";
             wordSeparatorDot = ".";
             wordSeparatorSlash = "/";
-            slugify = (string input) =>
-            {
-                string lower = Tsonic.CSharp.Js.String.toLowerCase(Tsonic.CSharp.Js.String.trim(input));
-                Tsonic.CSharp.Js.JSArray<string> chars = Tsonic.CSharp.Js.String.split(lower, "");
-                Tsonic.CSharp.Js.JSArray<string> output = Tsonic.CSharp.Js.JSArray<string>.of([]);
-                bool wroteDash = false;
-                for (double i = 0; i < chars.length; i++)
-                {
-                    string ch = chars[i];
-                    bool isAlphaNumeric = new Tsonic.CSharp.Js.RegExp("^[a-z0-9]$", "i").testNative(ch);
-                    if (isAlphaNumeric)
-                    {
-                        output.push(ch);
-                        wroteDash = false;
-                        continue;
-                    }
-                    if (isWordSeparator(ch) && output.length > 0 && !wroteDash)
-                    {
-                        output.push(wordSeparatorDash);
-                        wroteDash = true;
-                    }
-                }
-                string @out = Tsonic.CSharp.Js.Array.join(output, "");
-                while (Tsonic.CSharp.Js.String.startsWith(@out, "-"))
-                {
-                    @out = Tsonic.CSharp.Js.String.substring(@out, 1);
-                }
-                return Utils_strings.trimEndChar(@out, "-");
-            };
-            humanizeSlug = (string slug) =>
-            {
-                Tsonic.CSharp.Js.JSArray<string> parts = Tsonic.CSharp.Js.String.split(Utils_strings.replaceText(Utils_strings.replaceText(slug, "_", "-"), ".", "-"), "-");
-                Tsonic.CSharp.Js.JSArray<string> words = Tsonic.CSharp.Js.JSArray<string>.of([]);
-                for (double i = 0; i < parts.length; i++)
-                {
-                    string partRaw = parts[i];
-                    if (partRaw == null)
-                    {
-                        continue;
-                    }
-                    string part = Tsonic.CSharp.Js.String.trim(partRaw);
-                    if (part == "")
-                    {
-                        continue;
-                    }
-                    words.push(Tsonic.CSharp.Js.String.toUpperCase(Utils_strings.substringCount(part, 0, 1)) + Tsonic.CSharp.Js.String.substring(part, 1));
-                }
-                return Tsonic.CSharp.Js.Array.join(words, " ");
-            };
-            ensureTrailingSlash = (string url) =>
-            {
-                if (url == "")
-                {
-                    return url;
-                }
-                return Tsonic.CSharp.Js.String.endsWith(url, "/") ? url : url + "/";
-            };
-            ensureLeadingSlash = (string url) =>
-            {
-                string trimmed = Tsonic.CSharp.Js.String.trim(url);
-                if (trimmed == "")
-                {
-                    return "/";
-                }
-                return Tsonic.CSharp.Js.String.startsWith(trimmed, "/") ? trimmed : "/" + trimmed;
-            };
             return null;
         }
         public static void __tsonic_module_init()

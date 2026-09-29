@@ -4,15 +4,16 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn resolve_path(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn resolvePath(
     value: crate::template::values::base::TemplateValue,
     segments: js_abi::JsArray<String>,
     scope: crate::template::scope::RenderScope,
 ) -> Result<crate::template::values::base::TemplateValue, rt::TsonicError> {
     let mut cur: crate::template::values::base::TemplateValue = value;
     {
-        let mut i: f64 = 0.0;
-        'loop_value: while i < (rt::conversions::usize_to_i32(segments.len())? as f64) {
+        let mut i: usize = 0;
+        'loop_value: while i < segments.len() {
             let seg: String = match segments.get_number(i) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
@@ -23,7 +24,7 @@ pub fn resolve_path(
                 .downcast_template_value_to_nil_value()
                 .is_some()
             {
-                return Ok(crate::template::runtime_helpers::NIL
+                return Ok(crate::template::runtime_helpers::nil
                     .with(|module_binding| module_binding.load()));
             }
             if cur
@@ -146,7 +147,9 @@ pub fn resolve_path(
                 } else if k == "weight" {
                     cur = {
                         let upcast_value_9 = crate::template::values::primitives::NumberValue::new(
-                            crate::template::evaluation::page_semantics::page_weight(page.clone())?,
+                            crate::template::evaluation::page_semantics::pageWeight
+                                .with(|module_binding| module_binding.load())
+                                .call((page.clone(),))?,
                         )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_9.identity.clone(),
@@ -216,13 +219,13 @@ pub fn resolve_path(
                         }
                     };
                 } else if k == "layout" {
-                    let page_layout: Option<String> = {
+                    let pageLayout: Option<String> = {
                         let dispatch_receiver_15 = &page;
                         dispatch_receiver_15.dispatch.read_page_context_layout()
                     };
                     cur = {
-                        let conditional_test = page_layout.is_some()
-                            && !js_string::trim(&match page_layout.as_ref() {
+                        let conditional_test = pageLayout.is_some()
+                            && !js_string::trim(&match pageLayout.as_ref() {
                                 Some(flow_value_2) => flow_value_2.clone(),
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
@@ -232,7 +235,7 @@ pub fn resolve_path(
                         if conditional_test {
                             let upcast_value_15 =
                                 crate::template::values::primitives::StringValue::new(
-                                    match page_layout.as_ref() {
+                                    match pageLayout.as_ref() {
                                         Some(flow_value_3) => flow_value_3.clone(),
                                         None => unreachable!(
                                             "checked flow selected a missing optional value"
@@ -244,18 +247,18 @@ pub fn resolve_path(
                                 dispatch: upcast_value_15.dispatch.clone(),
                             }
                         } else {
-                            crate::template::runtime_helpers::NIL
+                            crate::template::runtime_helpers::nil
                                 .with(|module_binding| module_binding.load())
                         }
                     };
                 } else if k == "file" {
-                    let page_file: Option<crate::models::page_file::PageFile> = {
+                    let pageFile: Option<crate::models::page_file::PageFile> = {
                         let dispatch_receiver_16 = &page;
                         dispatch_receiver_16.dispatch.read_page_context_file()
                     };
-                    cur = if page_file.is_some() {
+                    cur = if pageFile.is_some() {
                         let upcast_value_16 = crate::template::values::page::FileValue::new(
-                            match page_file.as_ref() {
+                            match pageFile.as_ref() {
                                 Some(flow_value_4) => flow_value_4.clone(),
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
@@ -267,7 +270,7 @@ pub fn resolve_path(
                             dispatch: upcast_value_16.dispatch.clone(),
                         }
                     } else {
-                        crate::template::runtime_helpers::NIL
+                        crate::template::runtime_helpers::nil
                             .with(|module_binding| module_binding.load())
                     };
                 } else if k == "language" {
@@ -298,7 +301,7 @@ pub fn resolve_path(
                 } else if k == "store" || k == "scratch" {
                     cur = {
                         let upcast_value_19 = crate::template::values::scratch::ScratchValue::new(
-                            crate::template::evaluation::property_support::get_page_store(
+                            crate::template::evaluation::property_support::getPageStore(
                                 page.clone(),
                             )?,
                         )?;
@@ -321,13 +324,13 @@ pub fn resolve_path(
                 } else if k == "page" {
                     cur = cur.clone();
                 } else if k == "parent" {
-                    let page_parent: Option<crate::models::page_context::PageContext> = {
+                    let pageParent: Option<crate::models::page_context::PageContext> = {
                         let dispatch_receiver_20 = &page;
                         dispatch_receiver_20.dispatch.read_page_context_parent()
                     };
-                    cur = if page_parent.is_some() {
+                    cur = if pageParent.is_some() {
                         let upcast_value_21 = crate::template::values::page::PageValue::new(
-                            match page_parent.as_ref() {
+                            match pageParent.as_ref() {
                                 Some(flow_value_5) => flow_value_5.clone(),
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
@@ -339,7 +342,7 @@ pub fn resolve_path(
                             dispatch: upcast_value_21.dispatch.clone(),
                         }
                     } else {
-                        crate::template::runtime_helpers::NIL
+                        crate::template::runtime_helpers::nil
                             .with(|module_binding| module_binding.load())
                     };
                 } else if k == "ancestors" {
@@ -366,7 +369,7 @@ pub fn resolve_path(
                             "/",
                         );
                         if conditional_test_2 {
-                            crate::utils::strings::substring_from(
+                            crate::utils::strings::substringFrom(
                                 &{
                                     let dispatch_receiver_23 = &page;
                                     dispatch_receiver_23
@@ -386,7 +389,7 @@ pub fn resolve_path(
                         let upcast_value_23 =
                             crate::template::values::primitives::StringValue::new(format!(
                                 "{}{}",
-                                crate::utils::text::ensure_trailing_slash({
+                                crate::utils::text::ensureTrailingSlash({
                                     let dispatch_receiver_26 = &{
                                         let dispatch_receiver_25 = &scope;
                                         dispatch_receiver_25.dispatch.read_render_scope_site()
@@ -438,7 +441,7 @@ pub fn resolve_path(
                             dispatch: upcast_value_25.dispatch.clone(),
                         }
                     } else {
-                        crate::template::runtime_helpers::NIL
+                        crate::template::runtime_helpers::nil
                             .with(|module_binding| module_binding.load())
                     };
                 } else if k == "pages" {
@@ -456,13 +459,13 @@ pub fn resolve_path(
                 } else if k == "regularpages" {
                     cur = {
                         let upcast_value_27 = crate::template::values::page::PageArrayValue::new(
-                            crate::template::evaluation::page_semantics::pages_with_kind(
+                            crate::template::evaluation::page_semantics::pagesWithKind(
                                 {
                                     let dispatch_receiver_31 = &page;
                                     dispatch_receiver_31.dispatch.read_page_context_pages()
                                 },
                                 "page",
-                            )?,
+                            ),
                         )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_27.identity.clone(),
@@ -472,13 +475,13 @@ pub fn resolve_path(
                 } else if k == "sections" {
                     cur = {
                         let upcast_value_28 = crate::template::values::page::PageArrayValue::new(
-                            crate::template::evaluation::page_semantics::pages_with_kind(
+                            crate::template::evaluation::page_semantics::pagesWithKind(
                                 {
                                     let dispatch_receiver_32 = &page;
                                     dispatch_receiver_32.dispatch.read_page_context_pages()
                                 },
                                 "section",
-                            )?,
+                            ),
                         )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_28.identity.clone(),
@@ -535,7 +538,7 @@ pub fn resolve_path(
                 } else if k == "params" {
                     cur = {
                         let upcast_value_33 =
-                            crate::template::evaluation::property_support::wrap_param_dict({
+                            crate::template::evaluation::property_support::wrapParamDict({
                                 let dispatch_receiver_36 = &page;
                                 dispatch_receiver_36.dispatch.read_page_context_params()
                             })?;
@@ -685,84 +688,79 @@ pub fn resolve_path(
                             .dispatch_render_scope_get_paginator()
                     };
                     cur = {
-                        let upcast_value_43 =
-                            rt::option_coalesce::<
-                                _,
-                                core::result::Result<
-                                    crate::template::values::pagination::PaginatorValue,
-                                    rt::TsonicError,
-                                >,
-                            >(selected.clone(), Ok, || {
-                                let dispatch_receiver_58 = scope.clone();
-                                dispatch_receiver_58
-                                    .dispatch
-                                    .clone()
-                                    .dispatch_render_scope_select_paginator(
-                                        crate::template::values::pagination::PaginatorValue::new(
-                                            {
-                                                let dispatch_receiver_52 = &page;
-                                                dispatch_receiver_52
+                        let upcast_value_43 = rt::option_coalesce::<
+                            _,
+                            core::result::Result<
+                                crate::template::values::pagination::PaginatorValue,
+                                rt::TsonicError,
+                            >,
+                        >(selected, Ok, || {
+                            let dispatch_receiver_58 = scope.clone();
+                            dispatch_receiver_58
+                                .dispatch
+                                .clone()
+                                .dispatch_render_scope_select_paginator(
+                                    crate::template::values::pagination::PaginatorValue::new(
+                                        {
+                                            let dispatch_receiver_52 = &page;
+                                            dispatch_receiver_52.dispatch.read_page_context_pages()
+                                        },
+                                        {
+                                            let dispatch_receiver_54 = &{
+                                                let dispatch_receiver_53 = &scope;
+                                                dispatch_receiver_53
                                                     .dispatch
-                                                    .read_page_context_pages()
-                                            },
-                                            {
-                                                let dispatch_receiver_54 = &{
-                                                    let dispatch_receiver_53 = &scope;
-                                                    dispatch_receiver_53
-                                                        .dispatch
-                                                        .read_render_scope_site()
-                                                };
-                                                dispatch_receiver_54
+                                                    .read_render_scope_site()
+                                            };
+                                            dispatch_receiver_54
+                                                .dispatch
+                                                .read_site_context_pagination_size()
+                                        },
+                                        {
+                                            let dispatch_receiver_56 = &{
+                                                let dispatch_receiver_55 = &scope;
+                                                dispatch_receiver_55
                                                     .dispatch
-                                                    .read_site_context_pagination_size()
-                                            },
-                                            {
-                                                let dispatch_receiver_56 = &{
-                                                    let dispatch_receiver_55 = &scope;
-                                                    dispatch_receiver_55
-                                                        .dispatch
-                                                        .read_render_scope_state()
-                                                };
-                                                dispatch_receiver_56
-                                                    .dispatch
-                                                    .read_render_state_pagination_page_number()
-                                            },
-                                            {
-                                                let dispatch_receiver_57 = &page;
-                                                dispatch_receiver_57
-                                                    .dispatch
-                                                    .read_page_context_rel_permalink()
-                                            },
-                                        )?,
-                                    )
-                            })?;
+                                                    .read_render_scope_state()
+                                            };
+                                            dispatch_receiver_56
+                                                .dispatch
+                                                .read_render_state_pagination_page_number()
+                                        },
+                                        {
+                                            let dispatch_receiver_57 = &page;
+                                            dispatch_receiver_57
+                                                .dispatch
+                                                .read_page_context_rel_permalink()
+                                        },
+                                    )?,
+                                )
+                        })?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_43.identity.clone(),
                             dispatch: upcast_value_43.dispatch.clone(),
                         }
                     };
                 } else if k == "previnsection" {
-                    let parent_page: Option<crate::models::page_context::PageContext> = {
+                    let parentPage: Option<crate::models::page_context::PageContext> = {
                         let dispatch_receiver_59 = &page;
                         dispatch_receiver_59.dispatch.read_page_context_parent()
                     };
-                    if parent_page.is_some() {
+                    if parentPage.is_some() {
                         let siblings: js_abi::JsArray<crate::models::page_context::PageContext> =
-                            crate::template::evaluation::page_semantics::copy_page_array({
-                                let dispatch_receiver_60 = &match parent_page.as_ref() {
+                            crate::template::evaluation::page_semantics::copyPageArray({
+                                let dispatch_receiver_60 = &match parentPage.as_ref() {
                                     Some(flow_value_7) => flow_value_7.clone(),
                                     None => unreachable!(
                                         "checked flow selected a missing optional value"
                                     ),
                                 };
                                 dispatch_receiver_60.dispatch.read_page_context_pages()
-                            })?;
-                        let mut found_idx: i32 = -1;
+                            });
+                        let mut foundIdx: i32 = -1;
                         {
                             let mut pi: f64 = 0.0;
-                            'loop_value_2: while pi
-                                < (rt::conversions::usize_to_i32(siblings.len())? as f64)
-                            {
+                            'loop_value_2: while pi < (siblings.len() as f64) {
                                 let sibling: crate::models::page_context::PageContext =
                                     match siblings.get_number(pi) {
                                         Some(flow_value_8) => flow_value_8,
@@ -781,18 +779,18 @@ pub fn resolve_path(
                                         .dispatch
                                         .read_page_context_rel_permalink()
                                 } {
-                                    found_idx = rt::conversions::f64_to_i32(pi)?;
+                                    foundIdx = rt::conversions::f64_to_i32(pi)?;
                                     break 'loop_value_2;
                                 }
                                 pi += 1.0;
                             }
                         }
-                        if found_idx > 0 {
-                            let prev_idx: i32 = found_idx - 1;
+                        if foundIdx > 0 {
+                            let prevIdx: i32 = foundIdx - 1;
                             cur = {
                                 let upcast_value_44 =
                                     crate::template::values::page::PageValue::new(match siblings
-                                        .get_number(rt::conversions::i32_to_f64(prev_idx))
+                                        .get_number(prevIdx)
                                     {
                                         Some(flow_value_9) => flow_value_9,
                                         None => unreachable!(
@@ -805,35 +803,33 @@ pub fn resolve_path(
                                 }
                             };
                         } else {
-                            cur = crate::template::runtime_helpers::NIL
+                            cur = crate::template::runtime_helpers::nil
                                 .with(|module_binding| module_binding.load());
                         }
                     } else {
-                        cur = crate::template::runtime_helpers::NIL
+                        cur = crate::template::runtime_helpers::nil
                             .with(|module_binding| module_binding.load());
                     }
                 } else if k == "nextinsection" {
-                    let parent_page: Option<crate::models::page_context::PageContext> = {
+                    let parentPage: Option<crate::models::page_context::PageContext> = {
                         let dispatch_receiver_63 = &page;
                         dispatch_receiver_63.dispatch.read_page_context_parent()
                     };
-                    if parent_page.is_some() {
+                    if parentPage.is_some() {
                         let siblings: js_abi::JsArray<crate::models::page_context::PageContext> =
-                            crate::template::evaluation::page_semantics::copy_page_array({
-                                let dispatch_receiver_64 = &match parent_page.as_ref() {
+                            crate::template::evaluation::page_semantics::copyPageArray({
+                                let dispatch_receiver_64 = &match parentPage.as_ref() {
                                     Some(flow_value_10) => flow_value_10.clone(),
                                     None => unreachable!(
                                         "checked flow selected a missing optional value"
                                     ),
                                 };
                                 dispatch_receiver_64.dispatch.read_page_context_pages()
-                            })?;
-                        let mut found_idx: i32 = -1;
+                            });
+                        let mut foundIdx: i32 = -1;
                         {
                             let mut ni: f64 = 0.0;
-                            'loop_value_3: while ni
-                                < (rt::conversions::usize_to_i32(siblings.len())? as f64)
-                            {
+                            'loop_value_3: while ni < (siblings.len() as f64) {
                                 let sibling: crate::models::page_context::PageContext =
                                     match siblings.get_number(ni) {
                                         Some(flow_value_11) => flow_value_11,
@@ -852,20 +848,20 @@ pub fn resolve_path(
                                         .dispatch
                                         .read_page_context_rel_permalink()
                                 } {
-                                    found_idx = rt::conversions::f64_to_i32(ni)?;
+                                    foundIdx = rt::conversions::f64_to_i32(ni)?;
                                     break 'loop_value_3;
                                 }
                                 ni += 1.0;
                             }
                         }
-                        if found_idx >= 0
-                            && found_idx < rt::conversions::usize_to_i32(siblings.len())? - 1
+                        if foundIdx >= 0
+                            && foundIdx < rt::conversions::usize_to_i32(siblings.len())? - 1
                         {
-                            let next_idx: i32 = found_idx + 1;
+                            let nextIdx: i32 = foundIdx + 1;
                             cur = {
                                 let upcast_value_45 =
                                     crate::template::values::page::PageValue::new(match siblings
-                                        .get_number(rt::conversions::i32_to_f64(next_idx))
+                                        .get_number(nextIdx)
                                     {
                                         Some(flow_value_12) => flow_value_12,
                                         None => unreachable!(
@@ -878,18 +874,18 @@ pub fn resolve_path(
                                 }
                             };
                         } else {
-                            cur = crate::template::runtime_helpers::NIL
+                            cur = crate::template::runtime_helpers::nil
                                 .with(|module_binding| module_binding.load());
                         }
                     } else {
-                        cur = crate::template::runtime_helpers::NIL
+                        cur = crate::template::runtime_helpers::nil
                             .with(|module_binding| module_binding.load());
                     }
                 } else {
-                    cur = crate::template::runtime_helpers::NIL
+                    cur = crate::template::runtime_helpers::nil
                         .with(|module_binding| module_binding.load());
                 }
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -952,12 +948,12 @@ pub fn resolve_path(
                         };
                         dispatch_receiver_69.dispatch.read_date_value_value()
                     });
-                    let year: f64 = if js_abi::number_is_nan(milliseconds) {
-                        0.0
+                    let year: i32 = if js_abi::number_is_nan(milliseconds) {
+                        0
                     } else {
-                        rt::conversions::i32_to_f64(rt::option_coalesce(
-                            crate::utils::int32::parse_int32(
-                                &crate::utils::strings::substring_count(
+                        rt::option_coalesce(
+                            crate::utils::int32::parseInt32(
+                                &crate::utils::strings::substringCount(
                                     &js_abi::JsDate::from_millis(milliseconds).to_iso_string()?,
                                     0,
                                     4,
@@ -965,23 +961,21 @@ pub fn resolve_path(
                             )?,
                             core::convert::identity,
                             || 0,
-                        ))
+                        )
                     };
                     cur = {
                         let upcast_value_47 =
-                            crate::template::values::primitives::NumberValue::new(
-                                rt::conversions::f64_to_i32(year)?,
-                            )?;
+                            crate::template::values::primitives::NumberValue::new(year)?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_47.identity.clone(),
                             dispatch: upcast_value_47.dispatch.clone(),
                         }
                     };
                 } else {
-                    cur = crate::template::runtime_helpers::NIL
+                    cur = crate::template::runtime_helpers::nil
                         .with(|module_binding| module_binding.load());
                 }
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -1071,14 +1065,14 @@ pub fn resolve_path(
                             dispatch: upcast_value_49.dispatch.clone(),
                         }
                     } else {
-                        crate::template::runtime_helpers::NIL
+                        crate::template::runtime_helpers::nil
                             .with(|module_binding| module_binding.load())
                     };
                 } else {
-                    cur = crate::template::runtime_helpers::NIL
+                    cur = crate::template::runtime_helpers::nil
                         .with(|module_binding| module_binding.load());
                 }
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -1166,7 +1160,7 @@ pub fn resolve_path(
                 } else if k == "languages" {
                     cur = {
                         let upcast_value_55 =
-                            crate::template::evaluation::property_support::wrap_languages({
+                            crate::template::evaluation::property_support::wrapLanguages({
                                 let dispatch_receiver_85 = &site;
                                 dispatch_receiver_85.dispatch.read_site_context_languages()
                             })?;
@@ -1204,13 +1198,13 @@ pub fn resolve_path(
                         }
                     };
                 } else if k == "home" {
-                    let site_home: Option<crate::models::page_context::PageContext> = {
+                    let siteHome: Option<crate::models::page_context::PageContext> = {
                         let dispatch_receiver_88 = &site;
                         dispatch_receiver_88.dispatch.read_site_context_home()
                     };
-                    cur = if site_home.is_some() {
+                    cur = if siteHome.is_some() {
                         let upcast_value_58 = crate::template::values::page::PageValue::new(
-                            match site_home.as_ref() {
+                            match siteHome.as_ref() {
                                 Some(flow_value_14) => flow_value_14.clone(),
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
@@ -1222,7 +1216,7 @@ pub fn resolve_path(
                             dispatch: upcast_value_58.dispatch.clone(),
                         }
                     } else {
-                        crate::template::runtime_helpers::NIL
+                        crate::template::runtime_helpers::nil
                             .with(|module_binding| module_binding.load())
                     };
                 } else if k == "allpages" {
@@ -1240,7 +1234,7 @@ pub fn resolve_path(
                 } else if k == "store" || k == "scratch" {
                     cur = {
                         let upcast_value_60 = crate::template::values::scratch::ScratchValue::new(
-                            crate::template::evaluation::property_support::get_site_store(
+                            crate::template::evaluation::property_support::getSiteStore(
                                 site.clone(),
                             )?,
                         )?;
@@ -1252,7 +1246,7 @@ pub fn resolve_path(
                 } else if k == "params" {
                     cur = {
                         let upcast_value_61 =
-                            crate::template::evaluation::property_support::wrap_param_dict({
+                            crate::template::evaluation::property_support::wrapParamDict({
                                 let dispatch_receiver_90 = &site;
                                 dispatch_receiver_90.dispatch.read_site_context_params()
                             })?;
@@ -1275,13 +1269,11 @@ pub fn resolve_path(
                     };
                 } else if k == "regularpages" {
                     let pages: js_abi::JsArray<crate::models::page_context::PageContext> = {
-                        let conditional_test_3 = rt::conversions::usize_to_i32(
-                            {
-                                let dispatch_receiver_92 = &site;
-                                dispatch_receiver_92.dispatch.read_site_context_all_pages()
-                            }
-                            .len(),
-                        )? > 0;
+                        let conditional_test_3 = !{
+                            let dispatch_receiver_92 = &site;
+                            dispatch_receiver_92.dispatch.read_site_context_all_pages()
+                        }
+                        .is_empty();
                         if conditional_test_3 {
                             let dispatch_receiver_93 = &site;
                             dispatch_receiver_93.dispatch.read_site_context_all_pages()
@@ -1292,10 +1284,9 @@ pub fn resolve_path(
                     };
                     cur = {
                         let upcast_value_63 = crate::template::values::page::PageArrayValue::new(
-                            crate::template::evaluation::page_semantics::pages_with_kind(
-                                pages.clone(),
-                                "page",
-                            )?,
+                            crate::template::evaluation::page_semantics::pagesWithKind(
+                                pages, "page",
+                            ),
                         )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_63.identity.clone(),
@@ -1305,9 +1296,9 @@ pub fn resolve_path(
                 } else if k == "lastmod" {
                     cur = {
                         let upcast_value_64 = crate::template::values::date::DateValue::new(
-                            crate::template::evaluation::page_semantics::site_last_modification(
+                            crate::template::evaluation::page_semantics::siteLastModification(
                                 site.clone(),
-                            )?,
+                            ),
                         )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_64.identity.clone(),
@@ -1387,10 +1378,10 @@ pub fn resolve_path(
                         }
                     };
                 } else {
-                    cur = crate::template::runtime_helpers::NIL
+                    cur = crate::template::runtime_helpers::nil
                         .with(|module_binding| module_binding.load());
                 }
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -1455,10 +1446,10 @@ pub fn resolve_path(
                         }
                     };
                 } else {
-                    cur = crate::template::runtime_helpers::NIL
+                    cur = crate::template::runtime_helpers::nil
                         .with(|module_binding| module_binding.load());
                 }
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -1521,10 +1512,10 @@ pub fn resolve_path(
                         }
                     };
                 } else {
-                    cur = crate::template::runtime_helpers::NIL
+                    cur = crate::template::runtime_helpers::nil
                         .with(|module_binding| module_binding.load());
                 }
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -1556,10 +1547,10 @@ pub fn resolve_path(
                         }
                     };
                 } else {
-                    cur = crate::template::runtime_helpers::NIL
+                    cur = crate::template::runtime_helpers::nil
                         .with(|module_binding| module_binding.load());
                 }
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -1611,10 +1602,10 @@ pub fn resolve_path(
                         dispatch: upcast_value_78.dispatch.clone(),
                     }
                 } else {
-                    crate::template::runtime_helpers::NIL
+                    crate::template::runtime_helpers::nil
                         .with(|module_binding| module_binding.load())
                 };
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -1665,7 +1656,7 @@ pub fn resolve_path(
                         }
                     };
                 } else if k == "url" {
-                    let entry_page_for_url: Option<crate::models::page_context::PageContext> = {
+                    let entryPageForUrl: Option<crate::models::page_context::PageContext> = {
                         let dispatch_receiver_114 = &entry;
                         dispatch_receiver_114.dispatch.read_menu_entry_page()
                     };
@@ -1680,8 +1671,8 @@ pub fn resolve_path(
                                 if conditional_test_4 {
                                     let dispatch_receiver_116 = &entry;
                                     dispatch_receiver_116.dispatch.read_menu_entry_url()
-                                } else if entry_page_for_url.is_some() {
-                                    let dispatch_receiver_117 = &match entry_page_for_url.as_ref() {
+                                } else if entryPageForUrl.is_some() {
+                                    let dispatch_receiver_117 = &match entryPageForUrl.as_ref() {
                                         Some(flow_value_16) => flow_value_16.clone(),
                                         None => unreachable!(
                                             "checked flow selected a missing optional value"
@@ -1784,13 +1775,13 @@ pub fn resolve_path(
                         }
                     };
                 } else if k == "page" {
-                    let entry_page: Option<crate::models::page_context::PageContext> = {
+                    let entryPage: Option<crate::models::page_context::PageContext> = {
                         let dispatch_receiver_125 = &entry;
                         dispatch_receiver_125.dispatch.read_menu_entry_page()
                     };
-                    cur = if entry_page.is_some() {
+                    cur = if entryPage.is_some() {
                         let upcast_value_88 = crate::template::values::page::PageValue::new(
-                            match entry_page.as_ref() {
+                            match entryPage.as_ref() {
                                 Some(flow_value_17) => flow_value_17.clone(),
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
@@ -1802,7 +1793,7 @@ pub fn resolve_path(
                             dispatch: upcast_value_88.dispatch.clone(),
                         }
                     } else {
-                        crate::template::runtime_helpers::NIL
+                        crate::template::runtime_helpers::nil
                             .with(|module_binding| module_binding.load())
                     };
                 } else if k == "children" {
@@ -1812,7 +1803,7 @@ pub fn resolve_path(
                                 let dispatch_receiver_126 = &entry;
                                 dispatch_receiver_126.dispatch.read_menu_entry_children()
                             },
-                            site.clone(),
+                            site,
                         )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_89.identity.clone(),
@@ -1822,7 +1813,7 @@ pub fn resolve_path(
                 } else if k == "params" {
                     cur = {
                         let upcast_value_90 =
-                            crate::template::evaluation::property_support::wrap_param_dict({
+                            crate::template::evaluation::property_support::wrapParamDict({
                                 let dispatch_receiver_127 = &entry;
                                 dispatch_receiver_127.dispatch.read_menu_entry_params()
                             })?;
@@ -1832,10 +1823,10 @@ pub fn resolve_path(
                         }
                     };
                 } else {
-                    cur = crate::template::runtime_helpers::NIL
+                    cur = crate::template::runtime_helpers::nil
                         .with(|module_binding| module_binding.load());
                 }
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -1864,19 +1855,17 @@ pub fn resolve_path(
                 if k == "get" {
                     cur = {
                         let upcast_value_91 =
-                            crate::template::values::output::OutputFormatsGetValue::new(
-                                site.clone(),
-                            )?;
+                            crate::template::values::output::OutputFormatsGetValue::new(site)?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_91.identity.clone(),
                             dispatch: upcast_value_91.dispatch.clone(),
                         }
                     };
                 } else {
-                    cur = crate::template::runtime_helpers::NIL
+                    cur = crate::template::runtime_helpers::nil
                         .with(|module_binding| module_binding.load());
                 }
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -1906,7 +1895,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_92 =
                             crate::template::values::primitives::StringValue::new(
-                                fmt.state.with(|state| state.rel.clone()),
+                                fmt.state.with(|state| state.Rel.clone()),
                             )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_92.identity.clone(),
@@ -1916,8 +1905,8 @@ pub fn resolve_path(
                 } else if k == "mediatype" {
                     cur = {
                         let upcast_value_93 =
-                            crate::template::evaluation::property_support::wrap_media_type(
-                                fmt.state.with(|state| state.media_type.clone()),
+                            crate::template::evaluation::property_support::wrapMediaType(
+                                fmt.state.with(|state| state.MediaType.clone()),
                             )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_93.identity.clone(),
@@ -1928,7 +1917,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_94 =
                             crate::template::values::primitives::StringValue::new(
-                                fmt.state.with(|state| state.permalink.clone()),
+                                fmt.state.with(|state| state.Permalink.clone()),
                             )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_94.identity.clone(),
@@ -1936,10 +1925,10 @@ pub fn resolve_path(
                         }
                     };
                 } else {
-                    cur = crate::template::runtime_helpers::NIL
+                    cur = crate::template::runtime_helpers::nil
                         .with(|module_binding| module_binding.load());
                 }
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -1967,7 +1956,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_95 =
                             crate::template::values::primitives::StringValue::new(
-                                mt.state.with(|state| state.r#type.clone()),
+                                mt.state.with(|state| state.Type.clone()),
                             )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_95.identity.clone(),
@@ -1975,10 +1964,10 @@ pub fn resolve_path(
                         }
                     };
                 } else {
-                    cur = crate::template::runtime_helpers::NIL
+                    cur = crate::template::runtime_helpers::nil
                         .with(|module_binding| module_binding.load());
                 }
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -2016,7 +2005,7 @@ pub fn resolve_path(
                 } else if k == "page" {
                     cur = {
                         let upcast_value_97 = crate::template::values::page::PageValue::new(
-                            sc.state.with(|state| state.page.clone()),
+                            sc.state.with(|state| state.Page.clone()),
                         )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_97.identity.clone(),
@@ -2026,7 +2015,7 @@ pub fn resolve_path(
                 } else if k == "site" {
                     cur = {
                         let upcast_value_98 = crate::template::values::site::SiteValue::new(
-                            sc.state.with(|state| state.site.clone()),
+                            sc.state.with(|state| state.Site.clone()),
                         )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_98.identity.clone(),
@@ -2036,8 +2025,8 @@ pub fn resolve_path(
                 } else if k == "params" {
                     cur = {
                         let upcast_value_99 =
-                            crate::template::evaluation::property_support::wrap_param_dict(
-                                sc.state.with(|state| state.params.clone()),
+                            crate::template::evaluation::property_support::wrapParamDict(
+                                sc.state.with(|state| state.Params.clone()),
                             )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_99.identity.clone(),
@@ -2047,7 +2036,7 @@ pub fn resolve_path(
                 } else if k == "isnamedparams" {
                     cur = {
                         let upcast_value_100 = crate::template::values::primitives::BoolValue::new(
-                            sc.state.with(|state| state.is_named_params),
+                            sc.state.with(|state| state.IsNamedParams),
                         )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_100.identity.clone(),
@@ -2058,7 +2047,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_101 = crate::template::values::primitives::HtmlValue::new(
                             crate::utils::html::HtmlString::new(
-                                sc.state.with(|state| state.inner.clone()),
+                                sc.state.with(|state| state.Inner.clone()),
                             )?,
                         )?;
                         crate::template::values::base::TemplateValue {
@@ -2070,7 +2059,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_102 = crate::template::values::primitives::HtmlValue::new(
                             crate::utils::html::HtmlString::new(
-                                sc.state.with(|state| state.inner_deindent.clone()),
+                                sc.state.with(|state| state.InnerDeindent.clone()),
                             )?,
                         )?;
                         crate::template::values::base::TemplateValue {
@@ -2082,7 +2071,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_103 =
                             crate::template::values::primitives::NumberValue::new(
-                                sc.state.with(|state| state.ordinal),
+                                sc.state.with(|state| state.Ordinal),
                             )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_103.identity.clone(),
@@ -2090,11 +2079,11 @@ pub fn resolve_path(
                         }
                     };
                 } else if k == "parent" {
-                    let sc_parent: Option<crate::template::contexts::ShortcodeContext> =
-                        sc.state.with(|state| state.parent.clone());
-                    cur = if sc_parent.is_some() {
+                    let scParent: Option<crate::template::contexts::ShortcodeContext> =
+                        sc.state.with(|state| state.Parent.clone());
+                    cur = if scParent.is_some() {
                         let upcast_value_104 = crate::template::contexts::ShortcodeValue::new(
-                            match sc_parent.as_ref() {
+                            match scParent.as_ref() {
                                 Some(flow_value_18) => flow_value_18.clone(),
                                 None => {
                                     unreachable!("checked flow selected a missing optional value")
@@ -2106,14 +2095,14 @@ pub fn resolve_path(
                             dispatch: upcast_value_104.dispatch.clone(),
                         }
                     } else {
-                        crate::template::runtime_helpers::NIL
+                        crate::template::runtime_helpers::nil
                             .with(|module_binding| module_binding.load())
                     };
                 } else {
-                    cur = crate::template::runtime_helpers::NIL
+                    cur = crate::template::runtime_helpers::nil
                         .with(|module_binding| module_binding.load());
                 }
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -2141,7 +2130,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_105 =
                             crate::template::values::primitives::StringValue::new(
-                                hook.state.with(|state| state.destination.clone()),
+                                hook.state.with(|state| state.Destination.clone()),
                             )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_105.identity.clone(),
@@ -2152,7 +2141,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_106 = crate::template::values::primitives::HtmlValue::new(
                             crate::utils::html::HtmlString::new(
-                                hook.state.with(|state| state.text.clone()),
+                                hook.state.with(|state| state.Text.clone()),
                             )?,
                         )?;
                         crate::template::values::base::TemplateValue {
@@ -2164,7 +2153,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_107 =
                             crate::template::values::primitives::StringValue::new(
-                                hook.state.with(|state| state.title.clone()),
+                                hook.state.with(|state| state.Title.clone()),
                             )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_107.identity.clone(),
@@ -2175,7 +2164,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_108 =
                             crate::template::values::primitives::StringValue::new(
-                                hook.state.with(|state| state.plain_text.clone()),
+                                hook.state.with(|state| state.PlainText.clone()),
                             )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_108.identity.clone(),
@@ -2185,7 +2174,7 @@ pub fn resolve_path(
                 } else if k == "page" {
                     cur = {
                         let upcast_value_109 = crate::template::values::page::PageValue::new(
-                            hook.state.with(|state| state.page.clone()),
+                            hook.state.with(|state| state.Page.clone()),
                         )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_109.identity.clone(),
@@ -2195,7 +2184,7 @@ pub fn resolve_path(
                 } else if k == "pageinner" {
                     cur = {
                         let upcast_value_110 = crate::template::values::page::PageValue::new(
-                            hook.state.with(|state| state.page_inner.clone()),
+                            hook.state.with(|state| state.PageInner.clone()),
                         )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_110.identity.clone(),
@@ -2205,7 +2194,7 @@ pub fn resolve_path(
                 } else if k == "pageouter" {
                     cur = {
                         let upcast_value_111 = crate::template::values::page::PageValue::new(
-                            hook.state.with(|state| state.page_outer.clone()),
+                            hook.state.with(|state| state.PageOuter.clone()),
                         )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_111.identity.clone(),
@@ -2213,10 +2202,10 @@ pub fn resolve_path(
                         }
                     };
                 } else {
-                    cur = crate::template::runtime_helpers::NIL
+                    cur = crate::template::runtime_helpers::nil
                         .with(|module_binding| module_binding.load());
                 }
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -2244,7 +2233,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_112 =
                             crate::template::values::primitives::StringValue::new(
-                                hook.state.with(|state| state.destination.clone()),
+                                hook.state.with(|state| state.Destination.clone()),
                             )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_112.identity.clone(),
@@ -2255,7 +2244,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_113 =
                             crate::template::values::primitives::StringValue::new(
-                                hook.state.with(|state| state.text.clone()),
+                                hook.state.with(|state| state.Text.clone()),
                             )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_113.identity.clone(),
@@ -2266,7 +2255,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_114 =
                             crate::template::values::primitives::StringValue::new(
-                                hook.state.with(|state| state.title.clone()),
+                                hook.state.with(|state| state.Title.clone()),
                             )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_114.identity.clone(),
@@ -2277,7 +2266,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_115 =
                             crate::template::values::primitives::StringValue::new(
-                                hook.state.with(|state| state.plain_text.clone()),
+                                hook.state.with(|state| state.PlainText.clone()),
                             )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_115.identity.clone(),
@@ -2287,7 +2276,7 @@ pub fn resolve_path(
                 } else if k == "page" {
                     cur = {
                         let upcast_value_116 = crate::template::values::page::PageValue::new(
-                            hook.state.with(|state| state.page.clone()),
+                            hook.state.with(|state| state.Page.clone()),
                         )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_116.identity.clone(),
@@ -2297,7 +2286,7 @@ pub fn resolve_path(
                 } else if k == "pageinner" {
                     cur = {
                         let upcast_value_117 = crate::template::values::page::PageValue::new(
-                            hook.state.with(|state| state.page_inner.clone()),
+                            hook.state.with(|state| state.PageInner.clone()),
                         )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_117.identity.clone(),
@@ -2307,7 +2296,7 @@ pub fn resolve_path(
                 } else if k == "pageouter" {
                     cur = {
                         let upcast_value_118 = crate::template::values::page::PageValue::new(
-                            hook.state.with(|state| state.page_outer.clone()),
+                            hook.state.with(|state| state.PageOuter.clone()),
                         )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_118.identity.clone(),
@@ -2315,10 +2304,10 @@ pub fn resolve_path(
                         }
                     };
                 } else {
-                    cur = crate::template::runtime_helpers::NIL
+                    cur = crate::template::runtime_helpers::nil
                         .with(|module_binding| module_binding.load());
                 }
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -2348,7 +2337,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_119 =
                             crate::template::values::primitives::NumberValue::new(
-                                hook.state.with(|state| state.level),
+                                hook.state.with(|state| state.Level),
                             )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_119.identity.clone(),
@@ -2359,7 +2348,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_120 = crate::template::values::primitives::HtmlValue::new(
                             crate::utils::html::HtmlString::new(
-                                hook.state.with(|state| state.text.clone()),
+                                hook.state.with(|state| state.Text.clone()),
                             )?,
                         )?;
                         crate::template::values::base::TemplateValue {
@@ -2371,7 +2360,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_121 =
                             crate::template::values::primitives::StringValue::new(
-                                hook.state.with(|state| state.plain_text.clone()),
+                                hook.state.with(|state| state.PlainText.clone()),
                             )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_121.identity.clone(),
@@ -2382,7 +2371,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_122 =
                             crate::template::values::primitives::StringValue::new(
-                                hook.state.with(|state| state.anchor.clone()),
+                                hook.state.with(|state| state.Anchor.clone()),
                             )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_122.identity.clone(),
@@ -2392,7 +2381,7 @@ pub fn resolve_path(
                 } else if k == "page" {
                     cur = {
                         let upcast_value_123 = crate::template::values::page::PageValue::new(
-                            hook.state.with(|state| state.page.clone()),
+                            hook.state.with(|state| state.Page.clone()),
                         )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_123.identity.clone(),
@@ -2402,7 +2391,7 @@ pub fn resolve_path(
                 } else if k == "pageinner" {
                     cur = {
                         let upcast_value_124 = crate::template::values::page::PageValue::new(
-                            hook.state.with(|state| state.page_inner.clone()),
+                            hook.state.with(|state| state.PageInner.clone()),
                         )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_124.identity.clone(),
@@ -2412,7 +2401,7 @@ pub fn resolve_path(
                 } else if k == "pageouter" {
                     cur = {
                         let upcast_value_125 = crate::template::values::page::PageValue::new(
-                            hook.state.with(|state| state.page_outer.clone()),
+                            hook.state.with(|state| state.PageOuter.clone()),
                         )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_125.identity.clone(),
@@ -2420,10 +2409,10 @@ pub fn resolve_path(
                         }
                     };
                 } else {
-                    cur = crate::template::runtime_helpers::NIL
+                    cur = crate::template::runtime_helpers::nil
                         .with(|module_binding| module_binding.load());
                 }
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -2486,10 +2475,10 @@ pub fn resolve_path(
                         dispatch: upcast_value_126.dispatch.clone(),
                     }
                 } else {
-                    crate::template::runtime_helpers::NIL
+                    crate::template::runtime_helpers::nil
                         .with(|module_binding| module_binding.load())
                 };
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -2498,7 +2487,7 @@ pub fn resolve_path(
                 .downcast_template_value_to_taxonomy_terms_value()
                 .is_some()
             {
-                let terms_dict: js_abi::JsMap<
+                let termsDict: js_abi::JsMap<
                     String,
                     js_abi::JsArray<crate::models::page_context::PageContext>,
                 > = {
@@ -2537,20 +2526,20 @@ pub fn resolve_path(
                 if js_string::to_lower_case(&seg) == "bycount" {
                     cur = {
                         let upcast_value_127 =
-                            crate::template::evaluation::property_support::taxonomy_terms_by_count(
-                                terms_dict.clone(),
+                            crate::template::evaluation::property_support::taxonomyTermsByCount(
+                                termsDict.clone(),
                             )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_127.identity.clone(),
                             dispatch: upcast_value_127.dispatch.clone(),
                         }
                     };
-                    i += 1.0;
+                    i += 1;
                     continue 'loop_value;
                 }
                 let pages: Option<js_abi::JsArray<crate::models::page_context::PageContext>> =
-                    rt::option_coalesce(terms_dict.get(&seg), Some, || {
-                        let operation_input_0_5 = terms_dict.clone();
+                    rt::option_coalesce(termsDict.get(&seg), Some, || {
+                        let operation_input_0_5 = termsDict.clone();
                         operation_input_0_5.get(&js_string::to_lower_case(&seg))
                     });
                 cur = if pages.is_some() {
@@ -2564,10 +2553,10 @@ pub fn resolve_path(
                         dispatch: upcast_value_128.dispatch.clone(),
                     }
                 } else {
-                    crate::template::runtime_helpers::NIL
+                    crate::template::runtime_helpers::nil
                         .with(|module_binding| module_binding.load())
                 };
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -2601,7 +2590,7 @@ pub fn resolve_path(
                             dispatch: upcast_value_129.dispatch.clone(),
                         }
                     };
-                    i += 1.0;
+                    i += 1;
                     continue 'loop_value;
                 }
                 if k == "host" {
@@ -2619,7 +2608,7 @@ pub fn resolve_path(
                             dispatch: upcast_value_130.dispatch.clone(),
                         }
                     };
-                    i += 1.0;
+                    i += 1;
                     continue 'loop_value;
                 }
                 if k == "scheme" {
@@ -2637,26 +2626,26 @@ pub fn resolve_path(
                             dispatch: upcast_value_131.dispatch.clone(),
                         }
                     };
-                    i += 1.0;
+                    i += 1;
                     continue 'loop_value;
                 }
                 if k == "string" {
                     cur = {
                         let upcast_value_132 =
                             crate::template::values::primitives::StringValue::new(
-                                uri.state.with(|state| state.original_string.clone()),
+                                uri.state.with(|state| state.originalString.clone()),
                             )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_132.identity.clone(),
                             dispatch: upcast_value_132.dispatch.clone(),
                         }
                     };
-                    i += 1.0;
+                    i += 1;
                     continue 'loop_value;
                 }
                 if k == "path" || k == "rawquery" || k == "fragment" || k == "query" {
                     let parts: crate::template::values::url::UrlParts =
-                        crate::template::evaluation::url_property_semantics::split_url_parts(
+                        crate::template::evaluation::url_property_semantics::splitUrlParts(
                             uri.clone(),
                         )?;
                     if k == "path" {
@@ -2674,7 +2663,7 @@ pub fn resolve_path(
                         cur = {
                             let upcast_value_134 =
                                 crate::template::values::primitives::StringValue::new(
-                                    parts.state.with(|state| state.raw_query.clone()),
+                                    parts.state.with(|state| state.rawQuery.clone()),
                                 )?;
                             crate::template::values::base::TemplateValue {
                                 identity: upcast_value_134.identity.clone(),
@@ -2695,8 +2684,8 @@ pub fn resolve_path(
                     } else {
                         cur = {
                             let upcast_value_136 =
-                                crate::template::evaluation::url_query_semantics::parse_url_query(
-                                    &parts.state.with(|state| state.raw_query.clone()),
+                                crate::template::evaluation::url_query_semantics::parseUrlQuery(
+                                    &parts.state.with(|state| state.rawQuery.clone()),
                                 )?;
                             crate::template::values::base::TemplateValue {
                                 identity: upcast_value_136.identity.clone(),
@@ -2704,12 +2693,12 @@ pub fn resolve_path(
                             }
                         };
                     }
-                    i += 1.0;
+                    i += 1;
                     continue 'loop_value;
                 }
-                cur = crate::template::runtime_helpers::NIL
+                cur = crate::template::runtime_helpers::nil
                     .with(|module_binding| module_binding.load());
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -2719,7 +2708,7 @@ pub fn resolve_path(
                 .is_some()
             {
                 let selected: Option<String> =
-                    crate::template::evaluation::url_query_semantics::get_url_query_value(
+                    crate::template::evaluation::url_query_semantics::getUrlQueryValue(
                         {
                             let dispatch_receiver_141 = &{
                                 let downcast_value_24 = &cur;
@@ -2734,10 +2723,10 @@ pub fn resolve_path(
                             };
                             dispatch_receiver_141.dispatch.read_url_query_value_value()
                         },
-                        seg.clone(),
-                    )?;
+                        seg,
+                    );
                 cur = if selected.is_none() {
-                    crate::template::runtime_helpers::NIL
+                    crate::template::runtime_helpers::nil
                         .with(|module_binding| module_binding.load())
                 } else {
                     let upcast_value_137 = crate::template::values::primitives::StringValue::new(
@@ -2751,7 +2740,7 @@ pub fn resolve_path(
                         dispatch: upcast_value_137.dispatch.clone(),
                     }
                 };
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -2780,7 +2769,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_138 =
                             crate::template::values::primitives::StringValue::new(
-                                crate::resources::text::read_resource_text(
+                                crate::resources::text::readResourceText(
                                     res.clone(),
                                     String::from("Resource.Content"),
                                 )?,
@@ -2790,7 +2779,7 @@ pub fn resolve_path(
                             dispatch: upcast_value_138.dispatch.clone(),
                         }
                     };
-                    i += 1.0;
+                    i += 1;
                     continue 'loop_value;
                 }
                 if k == "data" {
@@ -2805,26 +2794,26 @@ pub fn resolve_path(
                             dispatch: upcast_value_139.dispatch.clone(),
                         }
                     };
-                    i += 1.0;
+                    i += 1;
                     continue 'loop_value;
                 }
                 if k == "relpermalink" {
-                    let output_rel_path: Option<String> = {
+                    let outputRelPath: Option<String> = {
                         let dispatch_receiver_144 = &res;
                         dispatch_receiver_144
                             .dispatch
                             .read_resource_output_rel_path()
                     };
-                    if output_rel_path.is_none()
-                        || js_string::trim(&match output_rel_path.as_ref() {
+                    if outputRelPath.is_none()
+                        || js_string::trim(&match outputRelPath.as_ref() {
                             Some(flow_value_22) => flow_value_22.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         })
                         .is_empty()
                     {
-                        cur = crate::template::runtime_helpers::NIL
+                        cur = crate::template::runtime_helpers::nil
                             .with(|module_binding| module_binding.load());
-                        i += 1.0;
+                        i += 1;
                         continue 'loop_value;
                     }
                     {
@@ -2838,12 +2827,12 @@ pub fn resolve_path(
                             .dispatch_resource_manager_ensure_published(res.clone())
                     }?;
                     let slash: String = String::from("/");
-                    let rel: String = crate::utils::strings::trim_start_char(
-                        match output_rel_path.as_ref() {
+                    let rel: String = crate::utils::strings::trimStartChar(
+                        match outputRelPath.as_ref() {
                             Some(flow_value_23) => flow_value_23.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
-                        slash.clone(),
+                        slash,
                     )?;
                     cur = {
                         let upcast_value_140 =
@@ -2857,26 +2846,26 @@ pub fn resolve_path(
                             dispatch: upcast_value_140.dispatch.clone(),
                         }
                     };
-                    i += 1.0;
+                    i += 1;
                     continue 'loop_value;
                 }
                 if k == "permalink" {
-                    let output_rel_path: Option<String> = {
+                    let outputRelPath: Option<String> = {
                         let dispatch_receiver_147 = &res;
                         dispatch_receiver_147
                             .dispatch
                             .read_resource_output_rel_path()
                     };
-                    if output_rel_path.is_none()
-                        || js_string::trim(&match output_rel_path.as_ref() {
+                    if outputRelPath.is_none()
+                        || js_string::trim(&match outputRelPath.as_ref() {
                             Some(flow_value_24) => flow_value_24.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         })
                         .is_empty()
                     {
-                        cur = crate::template::runtime_helpers::NIL
+                        cur = crate::template::runtime_helpers::nil
                             .with(|module_binding| module_binding.load());
-                        i += 1.0;
+                        i += 1;
                         continue 'loop_value;
                     }
                     {
@@ -2890,18 +2879,18 @@ pub fn resolve_path(
                             .dispatch_resource_manager_ensure_published(res.clone())
                     }?;
                     let slash: String = String::from("/");
-                    let rel: String = crate::utils::strings::trim_start_char(
-                        match output_rel_path.as_ref() {
+                    let rel: String = crate::utils::strings::trimStartChar(
+                        match outputRelPath.as_ref() {
                             Some(flow_value_25) => flow_value_25.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
-                        slash.clone(),
+                        slash,
                     )?;
                     cur = {
                         let upcast_value_141 =
                             crate::template::values::primitives::StringValue::new(format!(
                                 "{}{}",
-                                crate::utils::text::ensure_trailing_slash({
+                                crate::utils::text::ensureTrailingSlash({
                                     let dispatch_receiver_151 = &{
                                         let dispatch_receiver_150 = &scope;
                                         dispatch_receiver_150.dispatch.read_render_scope_site()
@@ -2915,7 +2904,7 @@ pub fn resolve_path(
                             dispatch: upcast_value_141.dispatch.clone(),
                         }
                     };
-                    i += 1.0;
+                    i += 1;
                     continue 'loop_value;
                 }
                 if k == "width" {
@@ -2930,7 +2919,7 @@ pub fn resolve_path(
                             dispatch: upcast_value_142.dispatch.clone(),
                         }
                     };
-                    i += 1.0;
+                    i += 1;
                     continue 'loop_value;
                 }
                 if k == "height" {
@@ -2945,7 +2934,7 @@ pub fn resolve_path(
                             dispatch: upcast_value_143.dispatch.clone(),
                         }
                     };
-                    i += 1.0;
+                    i += 1;
                     continue 'loop_value;
                 }
                 if k == "mediatype" {
@@ -2960,12 +2949,12 @@ pub fn resolve_path(
                             dispatch: upcast_value_144.dispatch.clone(),
                         }
                     };
-                    i += 1.0;
+                    i += 1;
                     continue 'loop_value;
                 }
-                cur = crate::template::runtime_helpers::NIL
+                cur = crate::template::runtime_helpers::nil
                     .with(|module_binding| module_binding.load());
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -3005,12 +2994,12 @@ pub fn resolve_path(
                             dispatch: upcast_value_145.dispatch.clone(),
                         }
                     };
-                    i += 1.0;
+                    i += 1;
                     continue 'loop_value;
                 }
-                cur = crate::template::runtime_helpers::NIL
+                cur = crate::template::runtime_helpers::nil
                     .with(|module_binding| module_binding.load());
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -3049,7 +3038,7 @@ pub fn resolve_path(
                     cur = {
                         let upcast_value_147 =
                             crate::template::values::primitives::StringValue::new(
-                                mount.state.with(|state| state.url_prefix.clone()),
+                                mount.state.with(|state| state.urlPrefix.clone()),
                             )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_147.identity.clone(),
@@ -3067,10 +3056,10 @@ pub fn resolve_path(
                         }
                     };
                 } else {
-                    cur = crate::template::runtime_helpers::NIL
+                    cur = crate::template::runtime_helpers::nil
                         .with(|module_binding| module_binding.load());
                 }
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -3129,7 +3118,7 @@ pub fn resolve_path(
                 } else if k == "issection" {
                     cur = {
                         let upcast_value_152 = crate::template::values::primitives::BoolValue::new(
-                            item.state.with(|state| state.is_section),
+                            item.state.with(|state| state.isSection),
                         )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_152.identity.clone(),
@@ -3139,7 +3128,7 @@ pub fn resolve_path(
                 } else if k == "iscurrent" {
                     cur = {
                         let upcast_value_153 = crate::template::values::primitives::BoolValue::new(
-                            item.state.with(|state| state.is_current),
+                            item.state.with(|state| state.isCurrent),
                         )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_153.identity.clone(),
@@ -3158,10 +3147,10 @@ pub fn resolve_path(
                         }
                     };
                 } else {
-                    cur = crate::template::runtime_helpers::NIL
+                    cur = crate::template::runtime_helpers::nil
                         .with(|module_binding| module_binding.load());
                 }
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -3190,23 +3179,23 @@ pub fn resolve_path(
                         Some(flow_value_26) => flow_value_26.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
-                    i += 1.0;
+                    i += 1;
                     continue 'loop_value;
                 }
-                let lower_key: String = js_string::to_lower_case(&seg);
+                let lowerKey: String = js_string::to_lower_case(&seg);
                 let lower: Option<crate::template::values::base::TemplateValue> =
-                    dict.get(&lower_key);
+                    dict.get(&lowerKey);
                 if lower.is_some() {
                     cur = match lower.as_ref() {
                         Some(flow_value_27) => flow_value_27.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
-                    i += 1.0;
+                    i += 1;
                     continue 'loop_value;
                 }
-                cur = crate::template::runtime_helpers::NIL
+                cur = crate::template::runtime_helpers::nil
                     .with(|module_binding| module_binding.load());
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -3216,7 +3205,7 @@ pub fn resolve_path(
                 .is_some()
             {
                 let key: String = js_string::to_lower_case(&seg);
-                let total_pages: i32 = {
+                let totalPages: i32 = {
                     let dispatch_receiver_160 = {
                         let downcast_value_30 = &cur;
                         crate::template::values::pagination::PaginatorValue {
@@ -3301,7 +3290,7 @@ pub fn resolve_path(
                                 dispatch_receiver_163
                                     .dispatch
                                     .read_paginator_value_page_number()
-                            }) < total_pages,
+                            }) < totalPages,
                         )?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_157.identity.clone(),
@@ -3335,7 +3324,7 @@ pub fn resolve_path(
                 } else if key == "totalpages" {
                     cur = {
                         let upcast_value_159 =
-                            crate::template::values::primitives::NumberValue::new(total_pages)?;
+                            crate::template::values::primitives::NumberValue::new(totalPages)?;
                         crate::template::values::base::TemplateValue {
                             identity: upcast_value_159.identity.clone(),
                             dispatch: upcast_value_159.dispatch.clone(),
@@ -3379,7 +3368,7 @@ pub fn resolve_path(
                                 dispatch: upcast_value_160.dispatch.clone(),
                             }
                         } else {
-                            crate::template::runtime_helpers::NIL
+                            crate::template::runtime_helpers::nil
                                 .with(|module_binding| module_binding.load())
                         }
                     };
@@ -3400,7 +3389,7 @@ pub fn resolve_path(
                             dispatch_receiver_168
                                 .dispatch
                                 .read_paginator_value_page_number()
-                        }) < total_pages;
+                        }) < totalPages;
                         if conditional_test_6 {
                             let upcast_value_161 = {
                                 let dispatch_receiver_170 = {
@@ -3421,7 +3410,7 @@ pub fn resolve_path(
                                 dispatch: upcast_value_161.dispatch.clone(),
                             }
                         } else {
-                            crate::template::runtime_helpers::NIL
+                            crate::template::runtime_helpers::nil
                                 .with(|module_binding| module_binding.load())
                         }
                     };
@@ -3451,10 +3440,10 @@ pub fn resolve_path(
                         }
                     };
                 } else {
-                    cur = crate::template::runtime_helpers::NIL
+                    cur = crate::template::runtime_helpers::nil
                         .with(|module_binding| module_binding.load());
                 }
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -3493,9 +3482,22 @@ pub fn resolve_path(
                         }
                     };
                 } else {
-                    cur = rt::option_coalesce(crate::template::evaluation::page_semantics::resolve_page_collection_property(crate::template::values::page::PageArrayValue::new({ let dispatch_receiver_174 = &group; dispatch_receiver_174.dispatch.read_page_group_value_pages() })?, &seg)?, core::convert::identity, || crate::template::runtime_helpers::NIL.with(|module_binding| module_binding.load()));
+                    cur = rt::option_coalesce(
+                        crate::template::evaluation::page_semantics::resolvePageCollectionProperty(
+                            crate::template::values::page::PageArrayValue::new({
+                                let dispatch_receiver_174 = &group;
+                                dispatch_receiver_174.dispatch.read_page_group_value_pages()
+                            })?,
+                            &seg,
+                        )?,
+                        core::convert::identity,
+                        || {
+                            crate::template::runtime_helpers::nil
+                                .with(|module_binding| module_binding.load())
+                        },
+                    );
                 }
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             if cur
@@ -3505,7 +3507,7 @@ pub fn resolve_path(
                 .is_some()
             {
                 cur = rt::option_coalesce(
-                    crate::template::evaluation::page_semantics::resolve_page_collection_property(
+                    crate::template::evaluation::page_semantics::resolvePageCollectionProperty(
                         {
                             let downcast_value_43 = &cur;
                             crate::template::values::page::PageArrayValue {
@@ -3521,15 +3523,15 @@ pub fn resolve_path(
                     )?,
                     core::convert::identity,
                     || {
-                        crate::template::runtime_helpers::NIL
+                        crate::template::runtime_helpers::nil
                             .with(|module_binding| module_binding.load())
                     },
                 );
-                i += 1.0;
+                i += 1;
                 continue 'loop_value;
             }
             return Ok(
-                crate::template::runtime_helpers::NIL.with(|module_binding| module_binding.load())
+                crate::template::runtime_helpers::nil.with(|module_binding| module_binding.load())
             );
         }
     }

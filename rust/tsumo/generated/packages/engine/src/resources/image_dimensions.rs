@@ -2,234 +2,158 @@
 
 use crate::program as rt;
 
-pub const SHIFT2: i32 = 2;
+#[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+pub const shift2: i32 = 2;
 
-pub const SHIFT6: i32 = 6;
+#[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+pub const shift6: i32 = 6;
 
-pub const SHIFT8: i32 = 8;
+#[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+pub const shift8: i32 = 8;
 
-pub const SHIFT10: i32 = 10;
+#[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+pub const shift10: i32 = 10;
 
-pub const SHIFT16: i32 = 16;
-
-pub const SHIFT24: i32 = 24;
-
-pub fn parse_png_dimensions(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parsePngDimensions(
     bytes: tsonic_rust_node::buffer::Buffer,
 ) -> Result<Option<crate::resources::models::ImageDimensions>, rt::TsonicError> {
-    if rt::conversions::usize_to_i32(bytes.len())? < 24 {
+    if bytes.len() < 24 {
         return Ok(Option::<crate::resources::models::ImageDimensions>::None);
     }
-    if tsonic_rust_node::buffer::read_uint8_number(&bytes, 0.0)? != 137.0
-        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 1.0)? != 80.0
-        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 2.0)? != 78.0
-        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 3.0)? != 71.0
+    if tsonic_rust_node::buffer::read_uint8_number(&bytes, 0.0)? != 137
+        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 1.0)? != 80
+        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 2.0)? != 78
+        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 3.0)? != 71
     {
         return Ok(Option::<crate::resources::models::ImageDimensions>::None);
     }
-    let width: i32 = rt::conversions::f64_to_i32(rt::source_number_bitwise_or(
-        rt::source_number_bitwise_or(
-            rt::source_number_bitwise_or(
-                rt::source_number_shift_left(
-                    tsonic_rust_node::buffer::read_uint8_number(&bytes, 16.0)?,
-                    SHIFT24 as f64,
-                ),
-                rt::source_number_shift_left(
-                    tsonic_rust_node::buffer::read_uint8_number(&bytes, 17.0)?,
-                    SHIFT16 as f64,
-                ),
-            ),
-            rt::source_number_shift_left(
-                tsonic_rust_node::buffer::read_uint8_number(&bytes, 18.0)?,
-                SHIFT8 as f64,
-            ),
-        ),
-        tsonic_rust_node::buffer::read_uint8_number(&bytes, 19.0)?,
-    ))?;
-    let height: i32 = rt::conversions::f64_to_i32(rt::source_number_bitwise_or(
-        rt::source_number_bitwise_or(
-            rt::source_number_bitwise_or(
-                rt::source_number_shift_left(
-                    tsonic_rust_node::buffer::read_uint8_number(&bytes, 20.0)?,
-                    SHIFT24 as f64,
-                ),
-                rt::source_number_shift_left(
-                    tsonic_rust_node::buffer::read_uint8_number(&bytes, 21.0)?,
-                    SHIFT16 as f64,
-                ),
-            ),
-            rt::source_number_shift_left(
-                tsonic_rust_node::buffer::read_uint8_number(&bytes, 22.0)?,
-                SHIFT8 as f64,
-            ),
-        ),
-        tsonic_rust_node::buffer::read_uint8_number(&bytes, 23.0)?,
-    ))?;
+    let width: u32 = tsonic_rust_node::buffer::read_uint32_be_number(&bytes, 16.0)?;
+    let height: u32 = tsonic_rust_node::buffer::read_uint32_be_number(&bytes, 20.0)?;
+    if width > 2147483647 || height > 2147483647 {
+        return Ok(Option::<crate::resources::models::ImageDimensions>::None);
+    }
     Ok(Some(crate::resources::models::ImageDimensions::new(
-        width, height,
+        rt::conversions::u32_to_i32(width)?,
+        rt::conversions::u32_to_i32(height)?,
     )?))
 }
 
-pub fn parse_jpeg_dimensions(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseJpegDimensions(
     bytes: tsonic_rust_node::buffer::Buffer,
 ) -> Result<Option<crate::resources::models::ImageDimensions>, rt::TsonicError> {
-    if rt::conversions::usize_to_i32(bytes.len())? < 2
-        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 0.0)? != 255.0
-        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 1.0)? != 216.0
+    if bytes.len() < 2
+        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 0.0)? != 255
+        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 1.0)? != 216
     {
         return Ok(Option::<crate::resources::models::ImageDimensions>::None);
     }
-    let mut index: f64 = 2.0;
-    'loop_value: while index < ((rt::conversions::usize_to_i32(bytes.len())? - 1) as f64) {
-        if tsonic_rust_node::buffer::read_uint8_number(&bytes, index)? != 255.0 {
-            index += 1.0;
+    let mut index: usize = 2;
+    'loop_value: while index < bytes.len() - 1 {
+        if tsonic_rust_node::buffer::read_uint8_number(&bytes, index)? != 255 {
+            index += 1;
             continue 'loop_value;
         }
-        let marker: f64 = tsonic_rust_node::buffer::read_uint8_number(&bytes, index + 1.0)?;
-        if marker == 192.0 || marker == 194.0 {
-            if index + 9.0 >= (rt::conversions::usize_to_i32(bytes.len())? as f64) {
+        let marker: u8 = tsonic_rust_node::buffer::read_uint8_number(&bytes, index + 1)?;
+        if marker == 192 || marker == 194 {
+            if index + 9 >= bytes.len() {
                 return Ok(Option::<crate::resources::models::ImageDimensions>::None);
             }
-            let height: i32 = rt::conversions::f64_to_i32(rt::source_number_bitwise_or(
-                rt::source_number_shift_left(
-                    tsonic_rust_node::buffer::read_uint8_number(&bytes, index + 5.0)?,
-                    SHIFT8 as f64,
-                ),
-                tsonic_rust_node::buffer::read_uint8_number(&bytes, index + 6.0)?,
-            ))?;
-            let width: i32 = rt::conversions::f64_to_i32(rt::source_number_bitwise_or(
-                rt::source_number_shift_left(
-                    tsonic_rust_node::buffer::read_uint8_number(&bytes, index + 7.0)?,
-                    SHIFT8 as f64,
-                ),
-                tsonic_rust_node::buffer::read_uint8_number(&bytes, index + 8.0)?,
-            ))?;
+            let height: i32 =
+                tsonic_rust_node::buffer::read_uint16_be_number(&bytes, index + 5)? as i32;
+            let width: i32 =
+                tsonic_rust_node::buffer::read_uint16_be_number(&bytes, index + 7)? as i32;
             return Ok(Some(crate::resources::models::ImageDimensions::new(
                 width, height,
             )?));
         }
-        if marker == 216.0 || marker == 217.0 || marker == 1.0 || (208.0..=215.0).contains(&marker)
-        {
-            index += 2.0;
+        if marker == 216 || marker == 217 || marker == 1 || (208..=215).contains(&marker) {
+            index += 2;
             continue 'loop_value;
         }
-        if index + 4.0 >= (rt::conversions::usize_to_i32(bytes.len())? as f64) {
+        if index + 4 >= bytes.len() {
             return Ok(Option::<crate::resources::models::ImageDimensions>::None);
         }
-        let length: i32 = rt::conversions::f64_to_i32(rt::source_number_bitwise_or(
-            rt::source_number_shift_left(
-                tsonic_rust_node::buffer::read_uint8_number(&bytes, index + 2.0)?,
-                SHIFT8 as f64,
-            ),
-            tsonic_rust_node::buffer::read_uint8_number(&bytes, index + 3.0)?,
-        ))?;
+        let length: usize =
+            tsonic_rust_node::buffer::read_uint16_be_number(&bytes, index + 2)? as usize;
         if length < 2 {
             return Ok(Option::<crate::resources::models::ImageDimensions>::None);
         }
-        index += rt::conversions::i32_to_f64(2 + length);
+        index += 2 + length;
     }
     Ok(Option::<crate::resources::models::ImageDimensions>::None)
 }
 
-pub fn parse_gif_dimensions(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseGifDimensions(
     bytes: tsonic_rust_node::buffer::Buffer,
 ) -> Result<Option<crate::resources::models::ImageDimensions>, rt::TsonicError> {
-    if rt::conversions::usize_to_i32(bytes.len())? < 10 {
+    if bytes.len() < 10 {
         return Ok(Option::<crate::resources::models::ImageDimensions>::None);
     }
-    if tsonic_rust_node::buffer::read_uint8_number(&bytes, 0.0)? != 71.0
-        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 1.0)? != 73.0
-        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 2.0)? != 70.0
+    if tsonic_rust_node::buffer::read_uint8_number(&bytes, 0.0)? != 71
+        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 1.0)? != 73
+        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 2.0)? != 70
     {
         return Ok(Option::<crate::resources::models::ImageDimensions>::None);
     }
-    let width: i32 = rt::conversions::f64_to_i32(rt::source_number_bitwise_or(
-        tsonic_rust_node::buffer::read_uint8_number(&bytes, 6.0)?,
-        rt::source_number_shift_left(
-            tsonic_rust_node::buffer::read_uint8_number(&bytes, 7.0)?,
-            SHIFT8 as f64,
-        ),
-    ))?;
-    let height: i32 = rt::conversions::f64_to_i32(rt::source_number_bitwise_or(
-        tsonic_rust_node::buffer::read_uint8_number(&bytes, 8.0)?,
-        rt::source_number_shift_left(
-            tsonic_rust_node::buffer::read_uint8_number(&bytes, 9.0)?,
-            SHIFT8 as f64,
-        ),
-    ))?;
+    let width: i32 = tsonic_rust_node::buffer::read_uint16_le_number(&bytes, 6.0)? as i32;
+    let height: i32 = tsonic_rust_node::buffer::read_uint16_le_number(&bytes, 8.0)? as i32;
     Ok(Some(crate::resources::models::ImageDimensions::new(
         width, height,
     )?))
 }
 
-pub fn parse_webp_dimensions(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseWebpDimensions(
     bytes: tsonic_rust_node::buffer::Buffer,
 ) -> Result<Option<crate::resources::models::ImageDimensions>, rt::TsonicError> {
-    if rt::conversions::usize_to_i32(bytes.len())? < 25 {
+    if bytes.len() < 25 {
         return Ok(Option::<crate::resources::models::ImageDimensions>::None);
     }
-    if tsonic_rust_node::buffer::read_uint8_number(&bytes, 0.0)? != 82.0
-        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 1.0)? != 73.0
-        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 2.0)? != 70.0
-        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 3.0)? != 70.0
-        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 8.0)? != 87.0
-        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 9.0)? != 69.0
-        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 10.0)? != 66.0
-        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 11.0)? != 80.0
+    if tsonic_rust_node::buffer::read_uint8_number(&bytes, 0.0)? != 82
+        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 1.0)? != 73
+        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 2.0)? != 70
+        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 3.0)? != 70
+        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 8.0)? != 87
+        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 9.0)? != 69
+        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 10.0)? != 66
+        || tsonic_rust_node::buffer::read_uint8_number(&bytes, 11.0)? != 80
     {
         return Ok(Option::<crate::resources::models::ImageDimensions>::None);
     }
-    if rt::conversions::usize_to_i32(bytes.len())? >= 30
-        && tsonic_rust_node::buffer::read_uint8_number(&bytes, 12.0)? == 86.0
-        && tsonic_rust_node::buffer::read_uint8_number(&bytes, 13.0)? == 80.0
-        && tsonic_rust_node::buffer::read_uint8_number(&bytes, 14.0)? == 56.0
-        && tsonic_rust_node::buffer::read_uint8_number(&bytes, 15.0)? == 32.0
+    if bytes.len() >= 30
+        && tsonic_rust_node::buffer::read_uint8_number(&bytes, 12.0)? == 86
+        && tsonic_rust_node::buffer::read_uint8_number(&bytes, 13.0)? == 80
+        && tsonic_rust_node::buffer::read_uint8_number(&bytes, 14.0)? == 56
+        && tsonic_rust_node::buffer::read_uint8_number(&bytes, 15.0)? == 32
     {
-        let width: i32 = rt::conversions::f64_to_i32(rt::source_number_bitwise_and(
-            rt::source_number_bitwise_or(
-                tsonic_rust_node::buffer::read_uint8_number(&bytes, 26.0)?,
-                rt::source_number_shift_left(
-                    tsonic_rust_node::buffer::read_uint8_number(&bytes, 27.0)?,
-                    SHIFT8 as f64,
-                ),
-            ),
-            16383.0,
-        ))?;
-        let height: i32 = rt::conversions::f64_to_i32(rt::source_number_bitwise_and(
-            rt::source_number_bitwise_or(
-                tsonic_rust_node::buffer::read_uint8_number(&bytes, 28.0)?,
-                rt::source_number_shift_left(
-                    tsonic_rust_node::buffer::read_uint8_number(&bytes, 29.0)?,
-                    SHIFT8 as f64,
-                ),
-            ),
-            16383.0,
-        ))?;
+        let width: i32 =
+            (tsonic_rust_node::buffer::read_uint16_le_number(&bytes, 26.0)? & 16383) as i32;
+        let height: i32 =
+            (tsonic_rust_node::buffer::read_uint16_le_number(&bytes, 28.0)? & 16383) as i32;
         return Ok(Some(crate::resources::models::ImageDimensions::new(
             width, height,
         )?));
     }
-    if tsonic_rust_node::buffer::read_uint8_number(&bytes, 12.0)? == 86.0
-        && tsonic_rust_node::buffer::read_uint8_number(&bytes, 13.0)? == 80.0
-        && tsonic_rust_node::buffer::read_uint8_number(&bytes, 14.0)? == 56.0
-        && tsonic_rust_node::buffer::read_uint8_number(&bytes, 15.0)? == 76.0
+    if tsonic_rust_node::buffer::read_uint8_number(&bytes, 12.0)? == 86
+        && tsonic_rust_node::buffer::read_uint8_number(&bytes, 13.0)? == 80
+        && tsonic_rust_node::buffer::read_uint8_number(&bytes, 14.0)? == 56
+        && tsonic_rust_node::buffer::read_uint8_number(&bytes, 15.0)? == 76
     {
-        let byte0: i32 = rt::conversions::f64_to_i32(tsonic_rust_node::buffer::read_uint8_number(
-            &bytes, 21.0,
-        )?)?;
-        let byte1: i32 = rt::conversions::f64_to_i32(tsonic_rust_node::buffer::read_uint8_number(
-            &bytes, 22.0,
-        )?)?;
-        let byte2: i32 = rt::conversions::f64_to_i32(tsonic_rust_node::buffer::read_uint8_number(
-            &bytes, 23.0,
-        )?)?;
-        let byte3: i32 = rt::conversions::f64_to_i32(tsonic_rust_node::buffer::read_uint8_number(
-            &bytes, 24.0,
-        )?)?;
-        let width: i32 = ((byte0 | rt::native_shift_left(byte1, SHIFT8)) & 16383) + 1;
-        let height: i32 = ((rt::native_shift_right(byte1, SHIFT6)
-            | rt::native_shift_left(byte2, SHIFT2)
-            | rt::native_shift_left(byte3, SHIFT10))
+        let byte0: i32 =
+            rt::conversions::u8_to_i32(tsonic_rust_node::buffer::read_uint8_number(&bytes, 21.0)?);
+        let byte1: i32 =
+            rt::conversions::u8_to_i32(tsonic_rust_node::buffer::read_uint8_number(&bytes, 22.0)?);
+        let byte2: i32 =
+            rt::conversions::u8_to_i32(tsonic_rust_node::buffer::read_uint8_number(&bytes, 23.0)?);
+        let byte3: i32 =
+            rt::conversions::u8_to_i32(tsonic_rust_node::buffer::read_uint8_number(&bytes, 24.0)?);
+        let width: i32 = ((byte0 | rt::native_shift_left(byte1, shift8)) & 16383) + 1;
+        let height: i32 = ((rt::native_shift_right(byte1, shift6)
+            | rt::native_shift_left(byte2, shift2)
+            | rt::native_shift_left(byte3, shift10))
             & 16383)
             + 1;
         return Ok(Some(crate::resources::models::ImageDimensions::new(
@@ -239,7 +163,8 @@ pub fn parse_webp_dimensions(
     Ok(Option::<crate::resources::models::ImageDimensions>::None)
 }
 
-pub fn parse_image_dimensions(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseImageDimensions(
     bytes: tsonic_rust_node::buffer::Buffer,
 ) -> Result<Option<crate::resources::models::ImageDimensions>, rt::TsonicError> {
     rt::option_coalesce::<
@@ -260,14 +185,14 @@ pub fn parse_image_dimensions(
                     rt::TsonicError,
                 >,
             >(
-                parse_png_dimensions(bytes.clone())?,
+                parsePngDimensions(bytes.clone())?,
                 |present_value| Ok(Some(present_value)),
-                || parse_jpeg_dimensions(bytes.clone()),
+                || parseJpegDimensions(bytes.clone()),
             )?,
             |present_value_2| Ok(Some(present_value_2)),
-            || parse_gif_dimensions(bytes.clone()),
+            || parseGifDimensions(bytes.clone()),
         )?,
         |present_value_3| Ok(Some(present_value_3)),
-        || parse_webp_dimensions(bytes.clone()),
+        || parseWebpDimensions(bytes.clone()),
     )
 }

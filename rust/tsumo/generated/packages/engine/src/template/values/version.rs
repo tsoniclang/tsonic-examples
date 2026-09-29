@@ -4,6 +4,10 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
+std::thread_local! {
+    pub static VERSION_STRING_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<VersionStringValueClass>> = const { rt::ModuleCell::new() };
+}
+
 #[doc(hidden)]
 pub trait VersionStringValueDispatch: crate::template::values::base::TemplateValueDispatch {
     fn downcast_version_string_value_to_template_value(
@@ -85,94 +89,89 @@ impl VersionStringValue {
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn compare(a: String, b: String) -> Result<i32, rt::TsonicError> {
-        let a_parts: js_abi::JsArray<i32> = VersionStringValue::parse_version(a)?;
-        let b_parts: js_abi::JsArray<i32> = VersionStringValue::parse_version(b)?;
-        let a_len: i32 = rt::conversions::usize_to_i32(a_parts.len())?;
-        let b_len: i32 = rt::conversions::usize_to_i32(b_parts.len())?;
-        let max_len: f64 = if a_len > b_len {
-            rt::conversions::i32_to_f64(a_len)
-        } else {
-            rt::conversions::i32_to_f64(b_len)
-        };
-        {
-            let mut i: f64 = 0.0;
-            while i < max_len {
-                let av: i32 = if i < (a_len as f64) {
-                    match a_parts.get_number(i) {
-                        Some(flow_value) => flow_value,
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }
-                } else {
-                    0
-                };
-                let bv: i32 = if i < (b_len as f64) {
-                    match b_parts.get_number(i) {
-                        Some(flow_value_2) => flow_value_2,
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    }
-                } else {
-                    0
-                };
-                if av < bv {
-                    return Ok(-1);
+        let aParts: js_abi::JsArray<i32> = VersionStringValue::parseVersion(a)?;
+        let bParts: js_abi::JsArray<i32> = VersionStringValue::parseVersion(b)?;
+        let aLen: usize = aParts.len();
+        let bLen: usize = bParts.len();
+        let maxLen: usize = if aLen > bLen { aLen } else { bLen };
+        for i in 0..maxLen {
+            let av: i32 = if i < aLen {
+                match aParts.get_number(i) {
+                    Some(flow_value) => flow_value,
+                    None => unreachable!("checked flow selected a missing optional value"),
                 }
-                if av > bv {
-                    return Ok(1);
+            } else {
+                0
+            };
+            let bv: i32 = if i < bLen {
+                match bParts.get_number(i) {
+                    Some(flow_value_2) => flow_value_2,
+                    None => unreachable!("checked flow selected a missing optional value"),
                 }
-                i += 1.0;
+            } else {
+                0
+            };
+            if av < bv {
+                return Ok(-1);
+            }
+            if av > bv {
+                return Ok(1);
             }
         }
         Ok(0)
     }
 
-    pub fn parse_version(v: String) -> Result<js_abi::JsArray<i32>, rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn parseVersion(v: String) -> Result<js_abi::JsArray<i32>, rt::TsonicError> {
         let mut cleaned: String = v;
         if js_string::starts_with_from_start(&cleaned, "v")
             || js_string::starts_with_from_start(&cleaned, "V")
         {
-            cleaned = crate::utils::strings::substring_from(&cleaned, 1)?;
+            cleaned = crate::utils::strings::substringFrom(&cleaned, 1)?;
         }
         let parts: js_abi::JsArray<String> = js_string::split_all(&cleaned, ".")?;
         let result: js_abi::JsArray<i32> = js_abi::JsArray::from_dense(vec![]);
         {
-            let mut i: f64 = 0.0;
-            while i < (rt::conversions::usize_to_i32(parts.len())? as f64) {
+            let mut i: usize = 0;
+            while i < parts.len() {
                 let part: String = match parts.get_number(i) {
                     Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-                let num: i32 = VersionStringValue::extract_leading_number(part.clone())?;
+                let num: i32 = VersionStringValue::extractLeadingNumber(part)?;
                 result.push_many_discard([num]);
-                i += 1.0;
+                i += 1;
             }
         }
         Ok(result)
     }
 
-    pub fn extract_leading_number(s: String) -> Result<i32, rt::TsonicError> {
-        let mut num_str: String = String::from("");
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn extractLeadingNumber(s: String) -> Result<i32, rt::TsonicError> {
+        let mut numStr: String = String::from("");
         'loop_value: for ch in js_abi::NativeStringIterator::new(s.clone()) {
-            if crate::utils::strings::compare_text(ch.clone(), String::from("0")) >= 0
-                && crate::utils::strings::compare_text(ch.clone(), String::from("9")) <= 0
+            if crate::utils::strings::compareText(ch.clone(), String::from("0")) >= 0
+                && crate::utils::strings::compareText(ch.clone(), String::from("9")) <= 0
             {
-                num_str = format!("{}{}", num_str, ch);
+                numStr = format!("{}{}", numStr, ch);
             } else {
                 break 'loop_value;
             }
         }
-        if num_str.is_empty() {
+        if numStr.is_empty() {
             return Ok(0);
         }
-        let value: Option<i32> = crate::utils::int32::parse_int32(&num_str)?;
+        let value: Option<i32> = crate::utils::int32::parseInt32(&numStr)?;
         if value.is_none() {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_TEMPLATE_VERSION_COMPONENT_OUT_OF_RANGE"),
                     format!(
                         "{}{}{}",
                         String::from("Version component '"),
-                        num_str,
+                        numStr,
                         String::from("' is outside the supported int32 range")
                     ),
                     None,
@@ -188,7 +187,30 @@ impl VersionStringValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for VersionStringValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for VersionStringValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn VersionStringValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -230,4 +252,39 @@ impl VersionStringValueDispatch for VersionStringValueRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+pub struct VersionStringValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for VersionStringValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for VersionStringValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for VersionStringValueClass {}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = {
+            alloc::rc::Rc::new(VersionStringValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        VERSION_STRING_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding| module_binding.initialize(module_value))
+    };
 }

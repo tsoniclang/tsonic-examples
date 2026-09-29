@@ -5,6 +5,9 @@ use tsonic_rust_js::abi as js_abi;
 
 #[doc(hidden)]
 pub trait RenderScopeDispatch {
+    fn project_render_scope(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_render_scope_to_render_scope(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn RenderScopeDispatch + 'static>> {
@@ -91,6 +94,7 @@ pub trait RenderScopeDispatch {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct RenderScopeState {
     pub root: crate::template::values::base::TemplateValue,
     pub dot: crate::template::values::base::TemplateValue,
@@ -99,7 +103,7 @@ pub struct RenderScopeState {
     pub parent: Option<RenderScope>,
     pub vars: js_abi::JsMap<String, crate::template::values::base::TemplateValue>,
     pub state: RenderState,
-    pub template_source_path: Option<String>,
+    pub templateSourcePath: Option<String>,
 }
 
 #[derive(Clone)]
@@ -137,6 +141,7 @@ pub(crate) struct RenderScopeRoot {
 
 impl RenderScope {
     #[doc(hidden)]
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn initialize_state(
         root: crate::template::values::base::TemplateValue,
         dot: crate::template::values::base::TemplateValue,
@@ -144,7 +149,7 @@ impl RenderScope {
         env: crate::template::environment::TemplateEnvironment,
         parent: Option<RenderScope>,
         state: Option<RenderState>,
-        template_source_path: Option<String>,
+        templateSourcePath: Option<String>,
     ) -> Result<RenderScopeState, rt::TsonicError> {
         let field_root: crate::template::values::base::TemplateValue = root.clone();
         let field_dot: crate::template::values::base::TemplateValue = dot;
@@ -204,7 +209,7 @@ impl RenderScope {
             };
         }
         let field_template_source_path: Option<String> =
-            rt::option_coalesce(template_source_path, Some, || {
+            rt::option_coalesce(templateSourcePath, Some, || {
                 parent.as_ref().and_then(|optional_receiver_2| {
                     let dispatch_receiver_5 = optional_receiver_2;
                     dispatch_receiver_5
@@ -220,10 +225,11 @@ impl RenderScope {
             parent: field_parent,
             vars: field_vars,
             state: field_state,
-            template_source_path: field_template_source_path,
+            templateSourcePath: field_template_source_path,
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         root: crate::template::values::base::TemplateValue,
         dot: crate::template::values::base::TemplateValue,
@@ -231,17 +237,10 @@ impl RenderScope {
         env: crate::template::environment::TemplateEnvironment,
         parent: Option<RenderScope>,
         state: Option<RenderState>,
-        template_source_path: Option<String>,
+        templateSourcePath: Option<String>,
     ) -> Result<RenderScope, rt::TsonicError> {
-        let state_2 = RenderScope::initialize_state(
-            root,
-            dot,
-            site,
-            env,
-            parent,
-            state,
-            template_source_path,
-        )?;
+        let state_2 =
+            RenderScope::initialize_state(root, dot, site, env, parent, state, templateSourcePath)?;
         let identity = rt::ObjectIdentity::new();
         let root_2 = alloc::rc::Rc::new(RenderScopeRoot {
             identity: identity.clone(),
@@ -398,9 +397,9 @@ impl RenderScopeRoot {
                     .dispatch
                     .clone()
                     .dispatch_paginator_value_has_same_source(paginator.clone())
-            }? {
+            } {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_TEMPLATE_PAGINATION_CONFLICT"),
                         String::from(
                             "A rendered page cannot select more than one pagination source",
@@ -433,7 +432,24 @@ impl RenderScopeRoot {
     }
 }
 
+impl rt::ObjectIdentityCarrier for RenderScopeRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl RenderScopeDispatch for RenderScopeRoot {
+    fn project_render_scope(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn RenderScopeDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_render_scope_to_render_scope(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn RenderScopeDispatch + 'static>> {
@@ -556,7 +572,7 @@ impl RenderScopeDispatch for RenderScopeRoot {
     }
 
     fn read_render_scope_template_source_path(&self) -> Option<String> {
-        self.state.with(|state| state.template_source_path.clone())
+        self.state.with(|state| state.templateSourcePath.clone())
     }
 
     fn write_render_scope_template_source_path(
@@ -567,7 +583,7 @@ impl RenderScopeDispatch for RenderScopeRoot {
             {
                 self.identity.validate_data_write()?;
                 self.state
-                    .with_mut(|state| state.template_source_path = value)
+                    .with_mut(|state| state.templateSourcePath = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -648,6 +664,9 @@ impl RenderScopeDispatch for RenderScopeRoot {
 
 #[doc(hidden)]
 pub trait RenderStateDispatch {
+    fn project_render_state(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_render_state_to_render_state(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn RenderStateDispatch + 'static>> {
@@ -670,10 +689,11 @@ pub trait RenderStateDispatch {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct RenderStateState {
-    pub pagination_page_number: i32,
-    pub selected_paginator: Option<crate::template::values::pagination::PaginatorValue>,
-    pub current_page: Option<crate::models::page_context::PageContext>,
+    pub paginationPageNumber: i32,
+    pub selectedPaginator: Option<crate::template::values::pagination::PaginatorValue>,
+    pub currentPage: Option<crate::models::page_context::PageContext>,
 }
 
 #[derive(Clone)]
@@ -711,11 +731,12 @@ pub(crate) struct RenderStateRoot {
 
 impl RenderState {
     #[doc(hidden)]
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn initialize_state(
-        pagination_page_number: i32,
+        paginationPageNumber: i32,
     ) -> Result<RenderStateState, rt::TsonicError> {
-        let field_pagination_page_number: i32 = if pagination_page_number > 0 {
-            pagination_page_number
+        let field_pagination_page_number: i32 = if paginationPageNumber > 0 {
+            paginationPageNumber
         } else {
             1
         };
@@ -724,14 +745,15 @@ impl RenderState {
         let field_current_page: Option<crate::models::page_context::PageContext> =
             Option::<crate::models::page_context::PageContext>::None;
         Ok(RenderStateState {
-            pagination_page_number: field_pagination_page_number,
-            selected_paginator: field_selected_paginator,
-            current_page: field_current_page,
+            paginationPageNumber: field_pagination_page_number,
+            selectedPaginator: field_selected_paginator,
+            currentPage: field_current_page,
         })
     }
 
-    pub fn new(pagination_page_number: i32) -> Result<RenderState, rt::TsonicError> {
-        let state = RenderState::initialize_state(pagination_page_number)?;
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn new(paginationPageNumber: i32) -> Result<RenderState, rt::TsonicError> {
+        let state = RenderState::initialize_state(paginationPageNumber)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(RenderStateRoot {
             identity: identity.clone(),
@@ -744,7 +766,24 @@ impl RenderState {
     }
 }
 
+impl rt::ObjectIdentityCarrier for RenderStateRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl RenderStateDispatch for RenderStateRoot {
+    fn project_render_state(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn RenderStateDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_render_state_to_render_state(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn RenderStateDispatch + 'static>> {
@@ -752,7 +791,7 @@ impl RenderStateDispatch for RenderStateRoot {
     }
 
     fn read_render_state_pagination_page_number(&self) -> i32 {
-        self.state.with(|state| state.pagination_page_number)
+        self.state.with(|state| state.paginationPageNumber)
     }
 
     fn write_render_state_pagination_page_number(&self, value: i32) -> Result<(), rt::TsonicError> {
@@ -760,7 +799,7 @@ impl RenderStateDispatch for RenderStateRoot {
             {
                 self.identity.validate_data_write()?;
                 self.state
-                    .with_mut(|state| state.pagination_page_number = value)
+                    .with_mut(|state| state.paginationPageNumber = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -769,7 +808,7 @@ impl RenderStateDispatch for RenderStateRoot {
     fn read_render_state_selected_paginator(
         &self,
     ) -> Option<crate::template::values::pagination::PaginatorValue> {
-        self.state.with(|state| state.selected_paginator.clone())
+        self.state.with(|state| state.selectedPaginator.clone())
     }
 
     fn write_render_state_selected_paginator(
@@ -779,15 +818,14 @@ impl RenderStateDispatch for RenderStateRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state
-                    .with_mut(|state| state.selected_paginator = value)
+                self.state.with_mut(|state| state.selectedPaginator = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_render_state_current_page(&self) -> Option<crate::models::page_context::PageContext> {
-        self.state.with(|state| state.current_page.clone())
+        self.state.with(|state| state.currentPage.clone())
     }
 
     fn write_render_state_current_page(
@@ -797,7 +835,7 @@ impl RenderStateDispatch for RenderStateRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.current_page = value)
+                self.state.with_mut(|state| state.currentPage = value)
             };
             Ok::<_, rt::TsonicError>(())
         }

@@ -7,7 +7,8 @@ type CaptureOutputDiagnosticCallable =
     rt::Callable<(rt::Callable<(), rt::TsonicResult<()>>,), rt::TsonicResult<String>>;
 
 std::thread_local! {
-    pub(crate) static CAPTURE_OUTPUT_DIAGNOSTIC: rt::ModuleCell<CaptureOutputDiagnosticCallable> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub(crate) static captureOutputDiagnostic: rt::ModuleCell<CaptureOutputDiagnosticCallable> = const { rt::ModuleCell::new() };
 }
 
 pub(crate) struct OutputPlanTestsState {}
@@ -33,10 +34,10 @@ impl OutputPlanTests {
     pub fn paths_and_collisions_fail_before_rendering(&self) -> Result<(), rt::TsonicError> {
         let plan: tsumo_engine::testing::SiteOutputPlan =
             tsumo_engine::testing::SiteOutputPlan::new()?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_OUTPUT_PATH_ESCAPES_ROOT"),
             Some(
-                CAPTURE_OUTPUT_DIAGNOSTIC
+                captureOutputDiagnostic
                     .with(|module_binding| module_binding.load())
                     .call(({
                         let capture_plan = plan.clone();
@@ -68,10 +69,10 @@ impl OutputPlanTests {
                     String::from("first page"),
                 )
         }?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_OUTPUT_PATH_CONFLICT"),
             Some(
-                CAPTURE_OUTPUT_DIAGNOSTIC
+                captureOutputDiagnostic
                     .with(|module_binding| module_binding.load())
                     .call(({
                         let capture_plan_2 = plan.clone();
@@ -99,28 +100,28 @@ impl OutputPlanTests {
 
     pub fn static_layers_have_one_explicit_precedence_policy(&self) -> Result<(), rt::TsonicError> {
         let root: String =
-            crate::test_root::create_test_directory(String::from("output-plan-static"))?;
+            crate::test_root::createTestDirectory(String::from("output-plan-static"))?;
         let theme: String = tsonic_rust_node::path::join(&[root.as_str(), "theme"]);
         let site: String = tsonic_rust_node::path::join(&[root.as_str(), "site"]);
         let output: String = tsonic_rust_node::path::join(&[root.as_str(), "output"]);
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::create_directory(theme.clone())?;
-            crate::test_root::create_directory(site.clone())?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[theme.as_str(), "style.css"]),
-                String::from("theme"),
+            crate::test_root::createDirectory(&theme)?;
+            crate::test_root::createDirectory(&site)?;
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[theme.as_str(), "style.css"]),
+                "theme",
             )?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[theme.as_str(), "robots.txt"]),
-                String::from("theme robots"),
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[theme.as_str(), "robots.txt"]),
+                "theme robots",
             )?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[site.as_str(), "style.css"]),
-                String::from("site"),
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[site.as_str(), "style.css"]),
+                "site",
             )?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[site.as_str(), "robots.txt"]),
-                String::from("site robots"),
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[site.as_str(), "robots.txt"]),
+                "site robots",
             )?;
             let plan: tsumo_engine::testing::SiteOutputPlan =
                 tsumo_engine::testing::SiteOutputPlan::new()?;
@@ -170,7 +171,7 @@ impl OutputPlanTests {
                         String::from("home"),
                     )
             }?;
-            crate::test_root::Assert::number_equal(
+            crate::test_root::Assert::NumberEqual(
                 1.0,
                 Some(rt::conversions::i32_to_f64({
                     let dispatch_receiver_5 = plan.clone();
@@ -187,29 +188,29 @@ impl OutputPlanTests {
                     .clone()
                     .dispatch_site_output_plan_render(output.clone())
             }?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("site"),
-                Some(crate::test_root::read_text_file(
-                    tsonic_rust_node::path::join(&[output.as_str(), "style.css"]),
+                Some(crate::test_root::readTextFile(
+                    &tsonic_rust_node::path::join(&[output.as_str(), "style.css"]),
                 )?),
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("site robots"),
-                Some(crate::test_root::read_text_file(
-                    tsonic_rust_node::path::join(&[output.as_str(), "robots.txt"]),
+                Some(crate::test_root::readTextFile(
+                    &tsonic_rust_node::path::join(&[output.as_str(), "robots.txt"]),
                 )?),
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("home"),
-                Some(crate::test_root::read_text_file(
-                    tsonic_rust_node::path::join(&[output.as_str(), "index.html"]),
+                Some(crate::test_root::readTextFile(
+                    &tsonic_rust_node::path::join(&[output.as_str(), "index.html"]),
                 )?),
             )?;
             Ok(rt::Completion::Normal)
         });
         let try_flow = try_body;
         let finally_flow: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::delete_test_directory(root.clone())?;
+            crate::test_root::deleteTestDirectory(&root)?;
             Ok(rt::Completion::Normal)
         });
         let try_flow: rt::TsonicResult<rt::Completion<()>> =
@@ -226,10 +227,10 @@ impl OutputPlanTests {
 
     pub fn bundle_assets_cannot_overwrite_generated_routes(&self) -> Result<(), rt::TsonicError> {
         let root: String =
-            crate::test_root::create_test_directory(String::from("output-plan-bundle"))?;
+            crate::test_root::createTestDirectory(String::from("output-plan-bundle"))?;
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
             let asset: String = tsonic_rust_node::path::join(&[root.as_str(), "index.html"]);
-            crate::test_root::write_text_file(asset.clone(), String::from("asset"))?;
+            crate::test_root::writeTextFile(&asset, "asset")?;
             let plan: tsumo_engine::testing::SiteOutputPlan =
                 tsumo_engine::testing::SiteOutputPlan::new()?;
             {
@@ -243,10 +244,10 @@ impl OutputPlanTests {
                         String::from("home"),
                     )
             }?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("TSUMO_OUTPUT_PATH_CONFLICT"),
                 Some(
-                    CAPTURE_OUTPUT_DIAGNOSTIC
+                    captureOutputDiagnostic
                         .with(|module_binding| module_binding.load())
                         .call(({
                             let capture_plan = plan.clone();
@@ -275,7 +276,7 @@ impl OutputPlanTests {
         });
         let try_flow = try_body;
         let finally_flow: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::delete_test_directory(root.clone())?;
+            crate::test_root::deleteTestDirectory(&root)?;
             Ok(rt::Completion::Normal)
         });
         let try_flow: rt::TsonicResult<rt::Completion<()>> =
@@ -294,7 +295,7 @@ impl OutputPlanTests {
         &self,
     ) -> Result<(), rt::TsonicError> {
         let root: String =
-            crate::test_root::create_test_directory(String::from("output-plan-deferred"))?;
+            crate::test_root::createTestDirectory(String::from("output-plan-deferred"))?;
         let output: String = tsonic_rust_node::path::join(&[root.as_str(), "output"]);
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
             let plan: tsumo_engine::testing::SiteOutputPlan =
@@ -337,23 +338,23 @@ impl OutputPlanTests {
                     .clone()
                     .dispatch_site_output_plan_render(output.clone())
             }?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("before:ready:after"),
-                Some(crate::test_root::read_text_file(
-                    tsonic_rust_node::path::join(&[output.as_str(), "first.html"]),
+                Some(crate::test_root::readTextFile(
+                    &tsonic_rust_node::path::join(&[output.as_str(), "first.html"]),
                 )?),
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("unchanged"),
-                Some(crate::test_root::read_text_file(
-                    tsonic_rust_node::path::join(&[output.as_str(), "second.html"]),
+                Some(crate::test_root::readTextFile(
+                    &tsonic_rust_node::path::join(&[output.as_str(), "second.html"]),
                 )?),
             )?;
             Ok(rt::Completion::Normal)
         });
         let try_flow = try_body;
         let finally_flow: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::delete_test_directory(root.clone())?;
+            crate::test_root::deleteTestDirectory(&root)?;
             Ok(rt::Completion::Normal)
         });
         let try_flow: rt::TsonicResult<rt::Completion<()>> =
@@ -375,9 +376,10 @@ impl Default for OutputPlanTests {
     }
 }
 
-pub fn run_output_plan_tests() -> Result<(), rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn runOutputPlanTests() -> Result<(), rt::TsonicError> {
     let tests: OutputPlanTests = OutputPlanTests::new();
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("paths and collisions fail before rendering"),
         {
             let capture_tests = tests.clone();
@@ -387,7 +389,7 @@ pub fn run_output_plan_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("static layers have one explicit precedence policy"),
         {
             let capture_tests_2 = tests.clone();
@@ -397,7 +399,7 @@ pub fn run_output_plan_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("bundle assets cannot overwrite generated routes"),
         {
             let capture_tests_3 = tests.clone();
@@ -407,7 +409,7 @@ pub fn run_output_plan_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("deferred replacements snapshot outputs before mutation"),
         {
             let capture_tests_4 = tests.clone();
@@ -466,6 +468,6 @@ pub fn module_init() {
                 "Expected an output-plan diagnostic",
             )))
         });
-        CAPTURE_OUTPUT_DIAGNOSTIC.with(|module_binding| module_binding.initialize(module_value))
+        captureOutputDiagnostic.with(|module_binding| module_binding.initialize(module_value))
     };
 }

@@ -4,37 +4,27 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn trim_leading_character(value: String, character: String) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn trimLeadingCharacter(value: String, character: String) -> Result<String, rt::TsonicError> {
     Ok(if js_string::starts_with_from_start(&value, &character) {
         {
             let operation_input_0 = value.clone();
-            js_string::slice(
-                &operation_input_0,
-                rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(js_string::js_len(
-                    &character,
-                ))?),
-                None,
-            )
+            js_string::slice_from(&operation_input_0, js_string::js_len(&character))
         }?
     } else {
         value
     })
 }
 
-pub fn trim_trailing_character(
-    value: String,
-    character: String,
-) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn trimTrailingCharacter(value: String, character: String) -> Result<String, rt::TsonicError> {
     Ok(if js_string::ends_with_at_end(&value, &character) {
         {
             let operation_input_0 = value.clone();
             js_string::slice_to(
                 &operation_input_0,
                 0.0,
-                rt::conversions::i32_to_f64(
-                    rt::conversions::usize_to_i32(js_string::js_len(&value))?
-                        - rt::conversions::usize_to_i32(js_string::js_len(&character))?,
-                ),
+                js_string::js_len(&value) - js_string::js_len(&character),
             )
         }?
     } else {
@@ -43,13 +33,14 @@ pub fn trim_trailing_character(
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct ParsedUrlState {
-    pub original_string: String,
+    pub originalString: String,
     pub absolute: bool,
     pub scheme: String,
     pub host: String,
     pub path: String,
-    pub raw_query: String,
+    pub rawQuery: String,
     pub fragment: String,
 }
 
@@ -66,8 +57,9 @@ impl rt::ObjectIdentityCarrier for ParsedUrl {
 }
 
 impl ParsedUrl {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
-        original_string: String,
+        originalString: String,
         value: tsonic_rust_node::url::LegacyUrlObject,
     ) -> Result<ParsedUrl, rt::TsonicError> {
         let protocol: String =
@@ -84,21 +76,21 @@ impl ParsedUrl {
             rt::option_coalesce(value.search(), core::convert::identity, || String::from(""));
         let hash: String =
             rt::option_coalesce(value.hash(), core::convert::identity, || String::from(""));
-        let field_original_string: String = original_string;
+        let field_original_string: String = originalString;
         let field_absolute: bool = !protocol.is_empty();
-        let field_scheme: String = trim_trailing_character(protocol.clone(), String::from(":"))?;
+        let field_scheme: String = trimTrailingCharacter(protocol.clone(), String::from(":"))?;
         let field_host: String = host;
         let field_path: String = pathname;
-        let field_raw_query: String = trim_leading_character(search, String::from("?"))?;
-        let field_fragment: String = trim_leading_character(hash, String::from("#"))?;
+        let field_raw_query: String = trimLeadingCharacter(search, String::from("?"))?;
+        let field_fragment: String = trimLeadingCharacter(hash, String::from("#"))?;
         Ok(ParsedUrl {
             state: rt::ObjectRef::new(ParsedUrlState {
-                original_string: field_original_string,
+                originalString: field_original_string,
                 absolute: field_absolute,
                 scheme: field_scheme,
                 host: field_host,
                 path: field_path,
-                raw_query: field_raw_query,
+                rawQuery: field_raw_query,
                 fragment: field_fragment,
             }),
         })
@@ -106,9 +98,10 @@ impl ParsedUrl {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct UrlPartsState {
     pub path: String,
-    pub raw_query: String,
+    pub rawQuery: String,
     pub fragment: String,
 }
 
@@ -125,22 +118,27 @@ impl rt::ObjectIdentityCarrier for UrlParts {
 }
 
 impl UrlParts {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         path: String,
-        raw_query: String,
+        rawQuery: String,
         fragment: String,
     ) -> Result<UrlParts, rt::TsonicError> {
         let field_path: String = path;
-        let field_raw_query: String = raw_query;
+        let field_raw_query: String = rawQuery;
         let field_fragment: String = fragment;
         Ok(UrlParts {
             state: rt::ObjectRef::new(UrlPartsState {
                 path: field_path,
-                raw_query: field_raw_query,
+                rawQuery: field_raw_query,
                 fragment: field_fragment,
             }),
         })
     }
+}
+
+std::thread_local! {
+    pub static URL_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<UrlValueClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -225,7 +223,30 @@ impl UrlValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for UrlValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for UrlValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn UrlValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -267,6 +288,10 @@ impl UrlValueDispatch for UrlValueRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+std::thread_local! {
+    pub static URL_QUERY_VALUE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<UrlQueryValueClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -358,7 +383,30 @@ impl UrlQueryValue {
     }
 }
 
+impl rt::ObjectIdentityCarrier for UrlQueryValueRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl crate::template::values::base::TemplateValueDispatch for UrlQueryValueRoot {
+    fn project_template_value(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) = output.downcast_mut::<Option<
+            alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>,
+        >>() {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn UrlQueryValueDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_value_to_template_value(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn crate::template::values::base::TemplateValueDispatch + 'static>>
@@ -403,4 +451,69 @@ impl UrlQueryValueDispatch for UrlQueryValueRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+pub struct UrlValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for UrlValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for UrlValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for UrlValueClass {}
+
+pub struct UrlQueryValueClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for UrlQueryValueClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for UrlQueryValueClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for UrlQueryValueClass {}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = {
+            alloc::rc::Rc::new(UrlValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        URL_VALUE_CLASS_ENVIRONMENT.with(|module_binding| module_binding.initialize(module_value))
+    };
+    {
+        let module_value_2 = {
+            alloc::rc::Rc::new(UrlQueryValueClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        URL_QUERY_VALUE_CLASS_ENVIRONMENT
+            .with(|module_binding_2| module_binding_2.initialize(module_value_2))
+    };
 }

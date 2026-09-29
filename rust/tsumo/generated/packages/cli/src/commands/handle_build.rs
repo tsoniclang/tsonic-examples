@@ -3,88 +3,89 @@
 use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
-pub fn handle_build(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn handleBuild(
     args: js_abi::JsArray<String>,
-    build_arg_start: i32,
+    buildArgStart: i32,
 ) -> Result<(), rt::TsonicError> {
-    let mut build_source_dir: String = tsonic_rust_node::process::cwd()?;
-    let mut build_destination_dir: String = String::from("public");
-    let mut build_base_url: Option<String> = Option::<String>::None;
-    let mut build_themes_dir: Option<String> = Option::<String>::None;
-    let mut include_drafts: bool = false;
-    let mut clean_destination_dir: bool = true;
+    let mut buildSourceDir: String = tsonic_rust_node::process::cwd()?;
+    let mut buildDestinationDir: String = String::from("public");
+    let mut buildBaseURL: Option<String> = Option::<String>::None;
+    let mut buildThemesDir: Option<String> = Option::<String>::None;
+    let mut includeDrafts: bool = false;
+    let mut cleanDestinationDir: bool = true;
+    let argumentCount: i32 = rt::conversions::usize_to_i32(args.len())?;
     {
-        let mut i: i32 = build_arg_start;
-        while i < rt::conversions::usize_to_i32(args.len())? {
-            let a: String = match args.get_number(rt::conversions::i32_to_f64(i)) {
+        let mut i: i32 = buildArgStart;
+        while i < argumentCount {
+            let a: String = match args.get_number(i) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if a == "--source" || a == "-s" {
-                if i + 1 >= rt::conversions::usize_to_i32(args.len())? {
-                    crate::report_usage_error::report_usage_error(format!(
+                if i + 1 >= argumentCount {
+                    crate::report_usage_error::reportUsageError(format!(
                         "{}{}",
                         String::from("Missing value for "),
                         a
                     ));
                     return Ok(());
                 }
-                build_source_dir = match args.get_number(rt::conversions::i32_to_f64(i + 1)) {
+                buildSourceDir = match args.get_number(i + 1) {
                     Some(flow_value_2) => flow_value_2,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 i += 1;
             } else if a == "--destination" || a == "-d" {
-                if i + 1 >= rt::conversions::usize_to_i32(args.len())? {
-                    crate::report_usage_error::report_usage_error(format!(
+                if i + 1 >= argumentCount {
+                    crate::report_usage_error::reportUsageError(format!(
                         "{}{}",
                         String::from("Missing value for "),
                         a
                     ));
                     return Ok(());
                 }
-                build_destination_dir = match args.get_number(rt::conversions::i32_to_f64(i + 1)) {
+                buildDestinationDir = match args.get_number(i + 1) {
                     Some(flow_value_3) => flow_value_3,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 i += 1;
             } else if a == "--baseURL" || a == "--baseurl" {
-                if i + 1 >= rt::conversions::usize_to_i32(args.len())? {
-                    crate::report_usage_error::report_usage_error(format!(
+                if i + 1 >= argumentCount {
+                    crate::report_usage_error::reportUsageError(format!(
                         "{}{}",
                         String::from("Missing value for "),
                         a
                     ));
                     return Ok(());
                 }
-                build_base_url = Some(match args.get_number(rt::conversions::i32_to_f64(i + 1)) {
+                buildBaseURL = Some(match args.get_number(i + 1) {
                     Some(flow_value_4) => flow_value_4,
                     None => unreachable!("checked flow selected a missing optional value"),
                 });
                 i += 1;
             } else if a == "--themesDir" || a == "--themesdir" {
-                if i + 1 >= rt::conversions::usize_to_i32(args.len())? {
-                    crate::report_usage_error::report_usage_error(format!(
+                if i + 1 >= argumentCount {
+                    crate::report_usage_error::reportUsageError(format!(
                         "{}{}",
                         String::from("Missing value for "),
                         a
                     ));
                     return Ok(());
                 }
-                build_themes_dir =
-                    Some(match args.get_number(rt::conversions::i32_to_f64(i + 1)) {
-                        Some(flow_value_5) => flow_value_5,
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    });
+                buildThemesDir = Some(match args.get_number(i + 1) {
+                    Some(flow_value_5) => flow_value_5,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                });
                 i += 1;
             } else if a == "-D" || a == "--buildDrafts" {
-                include_drafts = true;
+                includeDrafts = true;
             } else if a == "--no-clean" {
-                clean_destination_dir = false;
+                cleanDestinationDir = false;
             } else if a == "--clean" {
-                clean_destination_dir = true;
+                cleanDestinationDir = true;
             } else {
-                crate::report_usage_error::report_usage_error(format!(
+                crate::report_usage_error::reportUsageError(format!(
                     "{}{}",
                     String::from("Unknown build option: "),
                     a
@@ -94,10 +95,10 @@ pub fn handle_build(
             i += 1;
         }
     }
-    let build_req: tsumo_engine::BuildRequest = tsumo_engine::BuildRequest::new(build_source_dir)?;
+    let buildReq: tsumo_engine::BuildRequest = tsumo_engine::BuildRequest::new(buildSourceDir)?;
     {
-        let receiver = &build_req;
-        let value = build_destination_dir.clone();
+        let receiver = &buildReq;
+        let value = buildDestinationDir.clone();
         {
             let dispatch_receiver = receiver;
             dispatch_receiver
@@ -106,8 +107,8 @@ pub fn handle_build(
         }
     };
     {
-        let receiver_2 = &build_req;
-        let value_2 = build_base_url.clone();
+        let receiver_2 = &buildReq;
+        let value_2 = buildBaseURL.clone();
         {
             let dispatch_receiver_2 = receiver_2;
             dispatch_receiver_2
@@ -116,8 +117,8 @@ pub fn handle_build(
         }
     };
     {
-        let receiver_3 = &build_req;
-        let value_3 = build_themes_dir.clone();
+        let receiver_3 = &buildReq;
+        let value_3 = buildThemesDir.clone();
         {
             let dispatch_receiver_3 = receiver_3;
             dispatch_receiver_3
@@ -126,8 +127,8 @@ pub fn handle_build(
         }
     };
     {
-        let receiver_4 = &build_req;
-        let value_4 = include_drafts;
+        let receiver_4 = &buildReq;
+        let value_4 = includeDrafts;
         {
             let dispatch_receiver_4 = receiver_4;
             dispatch_receiver_4
@@ -136,8 +137,8 @@ pub fn handle_build(
         }
     };
     {
-        let receiver_5 = &build_req;
-        let value_5 = clean_destination_dir;
+        let receiver_5 = &buildReq;
+        let value_5 = cleanDestinationDir;
         {
             let dispatch_receiver_5 = receiver_5;
             dispatch_receiver_5
@@ -146,12 +147,12 @@ pub fn handle_build(
         }
     };
     {
-        let receiver_6 = &build_req;
+        let receiver_6 = &buildReq;
         let value_6 = rt::option_coalesce(
-            crate::source_date_epoch::read_source_date_epoch()?,
+            crate::source_date_epoch::readSourceDateEpoch()?,
             core::convert::identity,
             || {
-                let dispatch_receiver_6 = &build_req;
+                let dispatch_receiver_6 = &buildReq;
                 dispatch_receiver_6.dispatch.read_build_request_build_time()
             },
         );
@@ -162,8 +163,8 @@ pub fn handle_build(
                 .write_build_request_build_time(value_6)?
         }
     };
-    let result: tsumo_engine::BuildResult = tsumo_engine::build_site(build_req.clone())?;
-    crate::log_line::log_line(format!(
+    let result: tsumo_engine::BuildResult = tsumo_engine::buildSite(buildReq.clone())?;
+    crate::log_line::logLine(format!(
         "{}{}{}{}{}",
         String::from("Built → "),
         {

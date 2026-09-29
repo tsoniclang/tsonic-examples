@@ -2,19 +2,20 @@
 
 use crate::program as rt;
 
-pub fn build_site(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn buildSite(
     request: crate::build::BuildRequest,
 ) -> Result<crate::build::BuildResult, rt::TsonicError> {
-    let site_dir: String = tsonic_rust_node::path::resolve(&[{
+    let siteDir: String = tsonic_rust_node::path::resolve(&[{
         let dispatch_receiver = &request;
         dispatch_receiver.dispatch.read_build_request_site_dir()
     }
     .as_str()])?;
     let docs: Option<crate::docs::config::LoadedDocsConfig> =
-        crate::docs::config::load_docs_config(site_dir.clone())?;
+        crate::docs::config::loadDocsConfig(siteDir.clone())?;
     let publication: crate::output_publication::OutputPublication =
-        crate::output_publication::begin_output_publication(
-            site_dir.clone(),
+        crate::output_publication::beginOutputPublication(
+            siteDir.clone(),
             {
                 let dispatch_receiver_2 = &request;
                 dispatch_receiver_2
@@ -30,28 +31,26 @@ pub fn build_site(
         )?;
     let try_body: rt::TsonicResult<rt::Completion<crate::build::BuildResult>> =
         rt::completion_region(|| {
-            let pages_built: f64 = if docs.is_none() {
-                rt::conversions::i32_to_f64(crate::build::standard_site::build_standard_site(
+            let pagesBuilt: i32 = if docs.is_none() {
+                crate::build::standard_site::buildStandardSite(
                     request.clone(),
-                    site_dir.clone(),
-                    publication.state.with(|state| state.staging_dir.clone()),
-                )?)
+                    siteDir.clone(),
+                    publication.state.with(|state| state.stagingDir.clone()),
+                )?
             } else {
-                rt::conversions::i32_to_f64(crate::docs::builder::build_docs_site(
+                crate::docs::builder::buildDocsSite(
                     request.clone(),
                     match docs.as_ref() {
                         Some(flow_value) => flow_value.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
-                    publication.state.with(|state| state.staging_dir.clone()),
-                )?)
+                    publication.state.with(|state| state.stagingDir.clone()),
+                )?
             };
             publication.publish()?;
             Ok(rt::Completion::Return(crate::build::BuildResult::new(
-                publication
-                    .state
-                    .with(|state| state.destination_dir.clone()),
-                rt::conversions::f64_to_i32(pages_built)?,
+                publication.state.with(|state| state.destinationDir.clone()),
+                pagesBuilt,
             )?))
         });
     let try_flow: rt::TsonicResult<rt::Completion<crate::build::BuildResult>> = match try_body {

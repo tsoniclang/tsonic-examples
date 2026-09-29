@@ -4,7 +4,8 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn add_docs_directory_with_parents(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn addDocsDirectoryWithParents(
     directory: &str,
     directories: js_abi::JsMap<String, bool>,
 ) -> Result<(), rt::TsonicError> {
@@ -14,54 +15,65 @@ pub fn add_docs_directory_with_parents(
         if current.is_empty() {
             return Ok(());
         }
-        let separator: i32 =
-            rt::conversions::isize_to_i32(js_string::last_index_of_from_end(&current, "/"))?;
+        let separator: isize = js_string::last_index_of_from_end(&current, "/");
         current = if separator < 0 {
             String::from("")
         } else {
-            crate::utils::strings::substring_count(&current, 0, separator)?
+            crate::utils::strings::substringCount(
+                &current,
+                0,
+                rt::conversions::isize_to_i32(separator)?,
+            )?
         };
     }
 }
 
-pub fn docs_directory_depth(directory: &str) -> Result<i32, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn docsDirectoryDepth(directory: &str) -> i32 {
     if directory.is_empty() {
-        return Ok(0);
+        return 0;
     }
     let mut depth: i32 = 1;
     let mut position: f64 = 0.0;
     loop {
-        let separator: i32 =
-            rt::conversions::isize_to_i32(js_string::index_of(directory, "/", position))?;
+        let separator: isize = js_string::index_of(directory, "/", position);
         if separator < 0 {
-            return Ok(depth);
+            return depth;
         }
         depth += 1;
-        position = rt::conversions::i32_to_f64(separator + 1);
+        position = (separator + 1) as f64;
     }
 }
 
-pub fn docs_parent_directory(directory: &str) -> Result<String, rt::TsonicError> {
-    let separator: i32 =
-        rt::conversions::isize_to_i32(js_string::last_index_of_from_end(directory, "/"))?;
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn docsParentDirectory(directory: &str) -> Result<String, rt::TsonicError> {
+    let separator: isize = js_string::last_index_of_from_end(directory, "/");
     Ok(if separator < 0 {
         String::from("")
     } else {
-        crate::utils::strings::substring_count(directory, 0, separator)?
+        crate::utils::strings::substringCount(
+            directory,
+            0,
+            rt::conversions::isize_to_i32(separator)?,
+        )?
     })
 }
 
-pub fn docs_directory_name(directory: String) -> Result<String, rt::TsonicError> {
-    let separator: i32 =
-        rt::conversions::isize_to_i32(js_string::last_index_of_from_end(&directory, "/"))?;
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn docsDirectoryName(directory: String) -> Result<String, rt::TsonicError> {
+    let separator: isize = js_string::last_index_of_from_end(&directory, "/");
     Ok(if separator < 0 {
         directory
     } else {
-        crate::utils::strings::substring_from(&directory, separator + 1)?
+        crate::utils::strings::substringFrom(
+            &directory,
+            rt::conversions::isize_to_i32(separator + 1)?,
+        )?
     })
 }
 
-pub fn assign_docs_page_ancestry(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn assignDocsPageAncestry(
     page: crate::models::page_context::PageContext,
     parent: Option<crate::models::page_context::PageContext>,
     ancestors: js_abi::JsArray<crate::models::page_context::PageContext>,
@@ -94,15 +106,12 @@ pub fn assign_docs_page_ancestry(
         return Ok(());
     }
     {
-        let mut index: f64 = 0.0;
-        while index
-            < (rt::conversions::usize_to_i32(
-                {
-                    let dispatch_receiver_4 = &page;
-                    dispatch_receiver_4.dispatch.read_page_context_pages()
-                }
-                .len(),
-            )? as f64)
+        let mut index: usize = 0;
+        while index < {
+            let dispatch_receiver_4 = &page;
+            dispatch_receiver_4.dispatch.read_page_context_pages()
+        }
+        .len()
         {
             let child: crate::models::page_context::PageContext = match {
                 let dispatch_receiver_5 = &page;
@@ -113,28 +122,21 @@ pub fn assign_docs_page_ancestry(
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let child_ancestors: js_abi::JsArray<crate::models::page_context::PageContext> =
+            let childAncestors: js_abi::JsArray<crate::models::page_context::PageContext> =
                 js_abi::JsArray::from_dense(vec![]);
             {
-                let mut ancestor_index: f64 = 0.0;
-                while ancestor_index < (rt::conversions::usize_to_i32(ancestors.len())? as f64) {
-                    {
-                        let operation_input_0 = child_ancestors.clone();
-                        operation_input_0.push_many_discard([
-                            match ancestors.get_number(ancestor_index) {
-                                Some(flow_value_2) => flow_value_2,
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                        ])
-                    };
-                    ancestor_index += 1.0;
+                let mut ancestorIndex: usize = 0;
+                while ancestorIndex < ancestors.len() {
+                    childAncestors.push_many_discard([match ancestors.get_number(ancestorIndex) {
+                        Some(flow_value_2) => flow_value_2,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }]);
+                    ancestorIndex += 1;
                 }
             }
-            child_ancestors.push_many_discard([page.clone()]);
-            assign_docs_page_ancestry(child.clone(), Some(page.clone()), child_ancestors.clone())?;
-            index += 1.0;
+            childAncestors.push_many_discard([page.clone()]);
+            assignDocsPageAncestry(child, Some(page.clone()), childAncestors.clone())?;
+            index += 1;
         }
     }
     Ok(())

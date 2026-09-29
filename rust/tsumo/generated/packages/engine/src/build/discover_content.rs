@@ -4,27 +4,30 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn is_branch_index_file(name: &str) -> bool {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isBranchIndexFile(name: &str) -> bool {
     js_string::to_lower_case(name) == "_index.md"
 }
 
-pub fn is_leaf_bundle_index_file(name: &str) -> bool {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn isLeafBundleIndexFile(name: &str) -> bool {
     js_string::to_lower_case(name) == "index.md"
 }
 
-pub fn create_page_file(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn createPageFile(
     directory: String,
-    file_name: String,
-    file_path: String,
+    fileName: String,
+    filePath: String,
 ) -> Result<crate::models::page_file::PageFile, rt::TsonicError> {
     crate::models::page_file::PageFile::new(
-        tsonic_rust_node::path::resolve(&[file_path.as_str()])?,
+        tsonic_rust_node::path::resolve(&[filePath.as_str()])?,
         if directory.is_empty() {
             String::from("")
         } else {
             format!("{}{}", directory, String::from("/"))
         },
-        crate::build::site_routes::without_markdown_extension(file_name)?,
+        crate::build::site_routes::withoutMarkdownExtension(fileName)?,
     )
 }
 
@@ -37,19 +40,21 @@ pub type CompareContentPagesCallable = rt::Callable<
 >;
 
 std::thread_local! {
-    pub static COMPARE_CONTENT_PAGES: rt::ModuleCell<CompareContentPagesCallable> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub static compareContentPages: rt::ModuleCell<CompareContentPagesCallable> = const { rt::ModuleCell::new() };
 }
 
-pub fn assert_unique_output(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn assertUniqueOutput(
     outputs: js_abi::JsMap<String, String>,
-    output_path: String,
-    source_path: String,
+    outputPath: String,
+    sourcePath: String,
 ) -> Result<(), rt::TsonicError> {
-    let key: String = js_string::to_lower_case(&output_path);
+    let key: String = js_string::to_lower_case(&outputPath);
     let previous: Option<String> = outputs.get(&key);
     if previous.is_some() {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_CONTENT_ROUTE_CONFLICT"),
                 format!(
                     "{}{}{}{}{}{}{}",
@@ -59,124 +64,110 @@ pub fn assert_unique_output(
                         None => unreachable!("checked flow selected a missing optional value"),
                     },
                     String::from("' and '"),
-                    source_path,
+                    sourcePath,
                     String::from("' both map to '"),
-                    output_path,
+                    outputPath,
                     String::from("'")
                 ),
-                Some(source_path.clone()),
+                Some(sourcePath.clone()),
                 None,
                 None,
             )?,
         ));
     }
-    outputs.set_discard(key, source_path);
+    outputs.set_discard(key, sourcePath);
     Ok(())
 }
 
-pub fn discover_content(
-    content_dir: String,
-    build_drafts: bool,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn discoverContent(
+    contentDir: String,
+    buildDrafts: bool,
 ) -> Result<crate::build::content_model::ContentInventory, rt::TsonicError> {
     let files: js_abi::JsArray<String> =
-        crate::fs::list_files_recursive(content_dir.clone(), String::from("*.md"))?;
-    files.try_sort_borrowed(crate::build::site_routes::compare_site_paths)?;
+        crate::fs::listFilesRecursive(contentDir.clone(), String::from("*.md"))?;
+    files.try_sort_borrowed(crate::build::site_routes::compareSitePaths)?;
     let pages: js_abi::JsArray<crate::build::content_model::ContentPageSource> =
         js_abi::JsArray::from_dense(vec![]);
-    let list_pages_by_route: js_abi::JsMap<String, crate::build::content_model::ListPageSource> =
+    let listPagesByRoute: js_abi::JsMap<String, crate::build::content_model::ListPageSource> =
         js_abi::JsMap::new();
     let outputs: js_abi::JsMap<String, String> = js_abi::JsMap::new();
     {
-        let mut file_index: f64 = 0.0;
-        'loop_value: while file_index < (rt::conversions::usize_to_i32(files.len())? as f64) {
-            let file_path: String = match files.get_number(file_index) {
+        let mut fileIndex: usize = 0;
+        'loop_value: while fileIndex < files.len() {
+            let filePath: String = match files.get_number(fileIndex) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let relative_path: String = crate::build::site_routes::normalize_site_path(
-                &tsonic_rust_node::path::relative(&content_dir, &file_path),
+            let relativePath: String = crate::build::site_routes::normalizeSitePath(
+                &tsonic_rust_node::path::relative(&contentDir, &filePath),
             )?;
-            if relative_path.is_empty()
-                || relative_path == ".."
-                || js_string::starts_with_from_start(&relative_path, "../")
+            if relativePath.is_empty()
+                || relativePath == ".."
+                || js_string::starts_with_from_start(&relativePath, "../")
             {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_CONTENT_SOURCE_PATH_INVALID"),
                         format!(
                             "{}{}",
                             String::from("Content source is outside its content root: "),
-                            file_path
+                            filePath
                         ),
-                        Some(file_path.clone()),
+                        Some(filePath.clone()),
                         None,
                         None,
                     )?,
                 ));
             }
-            let path_segments: js_abi::JsArray<String> =
-                crate::build::site_routes::split_site_path(&relative_path)?;
+            let pathSegments: js_abi::JsArray<String> =
+                crate::build::site_routes::splitSitePath(&relativePath)?;
             {
-                let mut index: f64 = 0.0;
-                while index < (rt::conversions::usize_to_i32(path_segments.len())? as f64) {
-                    crate::build::site_routes::assert_site_route_segment(
-                        match path_segments.get_number(index) {
+                let mut index: usize = 0;
+                while index < pathSegments.len() {
+                    crate::build::site_routes::assertSiteRouteSegment(
+                        match pathSegments.get_number(index) {
                             Some(flow_value_2) => flow_value_2,
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
-                        file_path.clone(),
+                        filePath.clone(),
                     )?;
-                    index += 1.0;
+                    index += 1;
                 }
             }
-            let file_name: String = {
-                let flow_input = {
-                    let operation_input_0 = path_segments.clone();
-                    operation_input_0.get_number(rt::conversions::i32_to_f64(
-                        rt::conversions::usize_to_i32(path_segments.len())? - 1,
-                    ))
-                };
-                match flow_input {
-                    Some(flow_value_3) => flow_value_3,
-                    None => unreachable!("checked flow selected a missing optional value"),
-                }
+            let fileName: String = match pathSegments.get_number(pathSegments.len() - 1) {
+                Some(flow_value_3) => flow_value_3,
+                None => unreachable!("checked flow selected a missing optional value"),
             };
-            let directory_segments: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+            let directorySegments: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
             {
-                let mut index: f64 = 0.0;
-                while index < ((rt::conversions::usize_to_i32(path_segments.len())? - 1) as f64) {
-                    {
-                        let operation_input_0_2 = directory_segments.clone();
-                        operation_input_0_2.push_many_discard([
-                            match path_segments.get_number(index) {
-                                Some(flow_value_4) => flow_value_4,
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                        ])
-                    };
-                    index += 1.0;
+                let mut index: usize = 0;
+                while index < pathSegments.len() - 1 {
+                    directorySegments.push_many_discard([match pathSegments.get_number(index) {
+                        Some(flow_value_4) => flow_value_4,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }]);
+                    index += 1;
                 }
             }
             let directory: String =
-                crate::build::site_routes::join_site_path(directory_segments.clone());
+                crate::build::site_routes::joinSitePath(directorySegments.clone());
             let parsed: crate::frontmatter::parsed_content::ParsedContent =
-                crate::frontmatter::parse::parse_content(
-                    crate::fs::read_text_file(file_path.clone())?,
-                    Some(file_path.clone()),
+                crate::frontmatter::parse::parseContent(
+                    crate::fs::readTextFile(filePath.clone())?,
+                    Some(filePath.clone()),
                 )?;
-            let front_matter: crate::frontmatter::data::FrontMatter =
-                parsed.state.with(|state| state.front_matter.clone());
-            let modified_at: js_abi::JsDate = js_abi::JsDate::from_millis(
-                tsonic_rust_node::fs::stat_sync(file_path.as_str())?.mtime_ms(),
+            let frontMatter: crate::frontmatter::data::FrontMatter =
+                parsed.state.with(|state| state.frontMatter.clone());
+            let modifiedAt: js_abi::JsDate = js_abi::JsDate::from_millis(
+                tsonic_rust_node::fs::stat_sync(filePath.as_str())?.mtime_ms(),
             );
             let file: crate::models::page_file::PageFile =
-                create_page_file(directory.clone(), file_name.clone(), file_path.clone())?;
-            if is_branch_index_file(&file_name) {
-                if list_pages_by_route.has(&directory) {
+                createPageFile(directory.clone(), fileName.clone(), filePath.clone())?;
+            if isBranchIndexFile(&fileName) {
+                if listPagesByRoute.has(&directory) {
                     return Err(rt::TsonicError::TsumoError(
-                        crate::diagnostics::create_tsumo_error(
+                        crate::diagnostics::createTsumoError(
                             String::from("TSUMO_CONTENT_ROUTE_CONFLICT"),
                             format!(
                                 "{}{}{}",
@@ -184,53 +175,53 @@ pub fn discover_content(
                                 directory,
                                 String::from("'")
                             ),
-                            Some(file_path.clone()),
+                            Some(filePath.clone()),
                             None,
                             None,
                         )?,
                     ));
                 }
-                assert_unique_output(
+                assertUniqueOutput(
                     outputs.clone(),
-                    crate::build::site_routes::site_output_path(directory_segments.clone())?,
-                    file_path.clone(),
+                    crate::build::site_routes::siteOutputPath(directorySegments.clone()),
+                    filePath.clone(),
                 )?;
                 {
-                    let operation_input_0_3 = list_pages_by_route.clone();
-                    operation_input_0_3.set_discard(
-                        directory.clone(),
+                    let operation_input_0 = listPagesByRoute.clone();
+                    operation_input_0.set_discard(
+                        directory,
                         crate::build::content_model::ListPageSource::new(
-                            front_matter.state.with(|state| state.title.clone()),
+                            frontMatter.state.with(|state| state.title.clone()),
                             parsed.state.with(|state| state.body.clone()),
                             rt::option_coalesce(
-                                front_matter.state.with(|state| state.description.clone()),
+                                frontMatter.state.with(|state| state.description.clone()),
                                 core::convert::identity,
                                 || String::from(""),
                             ),
-                            front_matter.state.with(|state| state.r#type.clone()),
-                            front_matter.state.with(|state| state.layout.clone()),
-                            front_matter.state.with(|state| state.params.clone()),
-                            tsonic_rust_node::path::dirname(&file_path),
+                            frontMatter.state.with(|state| state.r#type.clone()),
+                            frontMatter.state.with(|state| state.layout.clone()),
+                            frontMatter.state.with(|state| state.Params.clone()),
+                            tsonic_rust_node::path::dirname(&filePath),
                             file.clone(),
                         )?,
                     )
                 };
-                file_index += 1.0;
+                fileIndex += 1;
                 continue 'loop_value;
             }
-            let section: String = if rt::conversions::usize_to_i32(directory_segments.len())? > 0 {
-                match directory_segments.get_number(0.0) {
+            let section: String = if !directorySegments.is_empty() {
+                match directorySegments.get_number(0.0) {
                     Some(flow_value_5) => flow_value_5,
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
             } else {
                 String::from("")
             };
-            let configured_type: Option<String> =
-                front_matter.state.with(|state| state.r#type.clone());
-            let page_type: String = {
-                let conditional_test = configured_type.is_none()
-                    || js_string::trim(&match configured_type.as_ref() {
+            let configuredType: Option<String> =
+                frontMatter.state.with(|state| state.r#type.clone());
+            let pageType: String = {
+                let conditional_test = configuredType.is_none()
+                    || js_string::trim(&match configuredType.as_ref() {
                         Some(flow_value_6) => flow_value_6.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     })
@@ -242,128 +233,108 @@ pub fn discover_content(
                         String::from("page")
                     }
                 } else {
-                    match configured_type.as_ref() {
+                    match configuredType.as_ref() {
                         Some(flow_value_7) => flow_value_7.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     }
                 }
             };
-            if front_matter.state.with(|state| state.draft) && !build_drafts {
-                file_index += 1.0;
+            if frontMatter.state.with(|state| state.draft) && !buildDrafts {
+                fileIndex += 1;
                 continue 'loop_value;
             }
-            let is_leaf_bundle: bool = is_leaf_bundle_index_file(&file_name)
-                && rt::conversions::usize_to_i32(directory_segments.len())? > 0;
-            let default_leaf_name: String = if is_leaf_bundle {
-                let flow_input_2 = {
-                    let operation_input_0_4 = directory_segments.clone();
-                    operation_input_0_4.get_number(rt::conversions::i32_to_f64(
-                        rt::conversions::usize_to_i32(directory_segments.len())? - 1,
-                    ))
-                };
-                match flow_input_2 {
+            let isLeafBundle: bool =
+                isLeafBundleIndexFile(&fileName) && !directorySegments.is_empty();
+            let defaultLeafName: String = if isLeafBundle {
+                match directorySegments.get_number(directorySegments.len() - 1) {
                     Some(flow_value_8) => flow_value_8,
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
             } else {
-                crate::build::site_routes::without_markdown_extension(file_name.clone())?
+                crate::build::site_routes::withoutMarkdownExtension(fileName.clone())?
             };
             let slug: String =
                 rt::option_coalesce::<_, core::result::Result<String, rt::TsonicError>>(
-                    front_matter.state.with(|state| state.slug.clone()),
+                    frontMatter.state.with(|state| state.slug.clone()),
                     Ok,
-                    || crate::utils::text::slugify(&default_leaf_name),
+                    || crate::utils::text::slugify(&defaultLeafName),
                 )?;
-            crate::build::site_routes::assert_site_route_segment(slug.clone(), file_path.clone())?;
-            let route_segments: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-            let directory_count: f64 = if is_leaf_bundle {
-                rt::conversions::i32_to_f64(
-                    rt::conversions::usize_to_i32(directory_segments.len())? - 1,
-                )
+            crate::build::site_routes::assertSiteRouteSegment(slug.clone(), filePath.clone())?;
+            let routeSegments: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+            let directoryCount: usize = if isLeafBundle {
+                directorySegments.len() - 1
             } else {
-                rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
-                    directory_segments.len(),
-                )?)
+                directorySegments.len()
             };
-            {
-                let mut index: f64 = 0.0;
-                while index < directory_count {
-                    {
-                        let operation_input_0_5 = route_segments.clone();
-                        operation_input_0_5.push_many_discard([
-                            match directory_segments.get_number(index) {
-                                Some(flow_value_9) => flow_value_9,
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                        ])
-                    };
-                    index += 1.0;
-                }
+            for index in 0..directoryCount {
+                routeSegments.push_many_discard([match directorySegments.get_number(index) {
+                    Some(flow_value_9) => flow_value_9,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                }]);
             }
-            route_segments.push_many_discard([slug.clone()]);
-            let output_rel_path: String =
-                crate::build::site_routes::site_output_path(route_segments.clone())?;
-            assert_unique_output(outputs.clone(), output_rel_path.clone(), file_path.clone())?;
+            routeSegments.push_many_discard([slug.clone()]);
+            let outputRelPath: String =
+                crate::build::site_routes::siteOutputPath(routeSegments.clone());
+            assertUniqueOutput(outputs.clone(), outputRelPath.clone(), filePath.clone())?;
             let page: crate::build::content_model::ContentPageSource =
                 crate::build::content_model::ContentPageSource::new(
-                    file_path.clone(),
-                    section.clone(),
-                    page_type.clone(),
-                    slug.clone(),
+                    filePath,
+                    section,
+                    pageType,
+                    slug,
                     rt::option_coalesce::<_, core::result::Result<String, rt::TsonicError>>(
-                        front_matter.state.with(|state| state.title.clone()),
+                        frontMatter.state.with(|state| state.title.clone()),
                         Ok,
-                        || crate::utils::text::humanize_slug(&default_leaf_name),
+                        || crate::utils::text::humanizeSlug(&defaultLeafName),
                     )?,
                     rt::option_coalesce(
-                        front_matter.state.with(|state| state.date.clone()),
+                        frontMatter.state.with(|state| state.date.clone()),
                         core::convert::identity,
-                        || modified_at.clone(),
+                        || modifiedAt.clone(),
                     ),
                     rt::option_coalesce(
-                        front_matter.state.with(|state| state.date.clone()),
+                        frontMatter.state.with(|state| state.date.clone()),
                         core::convert::identity,
-                        || modified_at.clone(),
+                        || modifiedAt.clone(),
                     )
                     .to_iso_string()?,
-                    modified_at.to_iso_string()?,
-                    front_matter.state.with(|state| state.draft),
-                    is_leaf_bundle,
+                    modifiedAt.to_iso_string()?,
+                    frontMatter.state.with(|state| state.draft),
+                    isLeafBundle,
                     rt::option_coalesce(
-                        front_matter.state.with(|state| state.description.clone()),
+                        frontMatter.state.with(|state| state.description.clone()),
                         core::convert::identity,
                         || String::from(""),
                     ),
-                    front_matter.state.with(|state| state.tags.clone()),
-                    front_matter.state.with(|state| state.categories.clone()),
-                    front_matter.state.with(|state| state.params.clone()),
+                    frontMatter.state.with(|state| state.tags.clone()),
+                    frontMatter.state.with(|state| state.categories.clone()),
+                    frontMatter.state.with(|state| state.Params.clone()),
                     parsed.state.with(|state| state.body.clone()),
                     format!(
                         "{}{}{}",
                         String::from("/"),
-                        crate::build::site_routes::join_site_path(route_segments.clone()),
+                        crate::build::site_routes::joinSitePath(routeSegments.clone()),
                         String::from("/")
                     ),
-                    output_rel_path.clone(),
-                    front_matter.state.with(|state| state.layout.clone()),
+                    outputRelPath,
+                    frontMatter.state.with(|state| state.layout.clone()),
                     file.clone(),
-                    front_matter.state.with(|state| state.menus.clone()),
+                    frontMatter.state.with(|state| state.menus.clone()),
                 )?;
-            pages.push_many_discard([page.clone()]);
-            file_index += 1.0;
+            pages.push_many_discard([page]);
+            fileIndex += 1;
         }
     }
     pages.try_sort(|left, right| {
-        COMPARE_CONTENT_PAGES
+        compareContentPages
             .with(|module_binding| module_binding.load())
             .call((left, right))
     })?;
-    crate::build::content_model::ContentInventory::new(pages.clone(), list_pages_by_route.clone())
+    crate::build::content_model::ContentInventory::new(pages.clone(), listPagesByRoute.clone())
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub fn module_init() {
     {
         let module_value = rt::Callable::<
@@ -375,27 +346,27 @@ pub fn module_init() {
         >::new(move |callable_arguments| {
             let left = callable_arguments.0;
             let right = callable_arguments.1;
-            let left_time: f64 = {
+            let leftTime: f64 = {
                 let dispatch_receiver = &left;
                 dispatch_receiver
                     .dispatch
                     .read_content_page_source_date_utc()
             }
             .get_time();
-            let right_time: f64 = {
+            let rightTime: f64 = {
                 let dispatch_receiver_2 = &right;
                 dispatch_receiver_2
                     .dispatch
                     .read_content_page_source_date_utc()
             }
             .get_time();
-            if right_time > left_time {
+            if rightTime > leftTime {
                 return Ok::<_, rt::TsonicError>(1.0);
             }
-            if right_time < left_time {
+            if rightTime < leftTime {
                 return Ok::<_, rt::TsonicError>(-1.0);
             }
-            let route: i32 = crate::utils::strings::compare_text(
+            let route: i32 = crate::utils::strings::compareText(
                 {
                     let dispatch_receiver_3 = &left;
                     dispatch_receiver_3
@@ -412,7 +383,7 @@ pub fn module_init() {
             Ok::<_, rt::TsonicError>(if route != 0 {
                 rt::conversions::i32_to_f64(route)
             } else {
-                crate::build::site_routes::compare_site_paths(
+                crate::build::site_routes::compareSitePaths(
                     &{
                         let dispatch_receiver_5 = &left;
                         dispatch_receiver_5
@@ -428,6 +399,6 @@ pub fn module_init() {
                 )?
             })
         });
-        COMPARE_CONTENT_PAGES.with(|module_binding| module_binding.initialize(module_value))
+        compareContentPages.with(|module_binding| module_binding.initialize(module_value))
     };
 }

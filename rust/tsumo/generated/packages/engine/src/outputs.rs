@@ -4,31 +4,34 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn to_absolute_url(base_url: String, rel_permalink: String) -> Result<String, rt::TsonicError> {
-    let base: String = crate::utils::text::ensure_trailing_slash(base_url);
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn toAbsoluteUrl(baseURL: String, relPermalink: String) -> Result<String, rt::TsonicError> {
+    let base: String = crate::utils::text::ensureTrailingSlash(baseURL);
     if base.is_empty() {
-        return Ok(rel_permalink);
+        return Ok(relPermalink);
     }
-    if rel_permalink == "/" {
+    if relPermalink == "/" {
         return Ok(base);
     }
-    let rel: String = if js_string::starts_with_from_start(&rel_permalink, "/") {
-        crate::utils::strings::substring_from(&rel_permalink, 1)?
+    let rel: String = if js_string::starts_with_from_start(&relPermalink, "/") {
+        crate::utils::strings::substringFrom(&relPermalink, 1)?
     } else {
-        rel_permalink.clone()
+        relPermalink.clone()
     };
     Ok(format!("{}{}", base, rel))
 }
 
-pub fn escape_xml(value: String) -> Result<String, rt::TsonicError> {
-    crate::utils::html::escape_html(value)
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn escapeXml(value: String) -> Result<String, rt::TsonicError> {
+    crate::utils::html::escapeHtml(value)
 }
 
-pub fn wrap_cdata(raw: &str) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn wrapCdata(raw: &str) -> Result<String, rt::TsonicError> {
     Ok(format!(
         "{}{}{}",
         String::from("<![CDATA["),
-        crate::utils::strings::replace_text(
+        crate::utils::strings::replaceText(
             raw,
             String::from("]]>"),
             String::from("]]]]><![CDATA[>")
@@ -37,8 +40,9 @@ pub fn wrap_cdata(raw: &str) -> Result<String, rt::TsonicError> {
     ))
 }
 
-pub fn parse_page_date(value: String, fallback: js_abi::JsDate) -> js_abi::JsDate {
-    let milliseconds: f64 = js_abi::JsDate::parse(&value);
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parsePageDate(value: &str, fallback: js_abi::JsDate) -> js_abi::JsDate {
+    let milliseconds: f64 = js_abi::JsDate::parse(value);
     if js_abi::number_is_nan(milliseconds) {
         fallback
     } else {
@@ -46,10 +50,11 @@ pub fn parse_page_date(value: String, fallback: js_abi::JsDate) -> js_abi::JsDat
     }
 }
 
-pub fn render_rss(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn renderRss(
     config: crate::models::site_config::SiteConfig,
     pages: js_abi::JsArray<crate::models::page_context::PageContext>,
-    build_time: js_abi::JsDate,
+    buildTime: js_abi::JsDate,
 ) -> Result<String, rt::TsonicError> {
     let out: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
         String::from("<?xml version=\"1.0\" encoding=\"utf-8\"?>"),
@@ -60,7 +65,7 @@ pub fn render_rss(
         format!(
             "{}{}{}",
             String::from("<title>"),
-            escape_xml({
+            escapeXml({
                 let dispatch_receiver = &config;
                 dispatch_receiver.dispatch.read_site_config_title()
             })?,
@@ -69,7 +74,7 @@ pub fn render_rss(
         format!(
             "{}{}{}",
             String::from("<link>"),
-            escape_xml(to_absolute_url(
+            escapeXml(toAbsoluteUrl(
                 {
                     let dispatch_receiver_2 = &config;
                     dispatch_receiver_2.dispatch.read_site_config_base_url()
@@ -81,7 +86,7 @@ pub fn render_rss(
         format!(
             "{}{}{}",
             String::from("<description>"),
-            escape_xml({
+            escapeXml({
                 let dispatch_receiver_3 = &config;
                 dispatch_receiver_3.dispatch.read_site_config_title()
             })?,
@@ -90,7 +95,7 @@ pub fn render_rss(
         format!(
             "{}{}{}",
             String::from("<language>"),
-            escape_xml({
+            escapeXml({
                 let dispatch_receiver_4 = &config;
                 dispatch_receiver_4
                     .dispatch
@@ -101,19 +106,19 @@ pub fn render_rss(
         format!(
             "{}{}{}",
             String::from("<lastBuildDate>"),
-            build_time.to_iso_string()?,
+            buildTime.to_iso_string()?,
             String::from("</lastBuildDate>")
         ),
         String::from("<generator>tsumo</generator>"),
     ]);
     {
-        let mut i: f64 = 0.0;
-        while i < (rt::conversions::usize_to_i32(pages.len())? as f64) {
+        let mut i: usize = 0;
+        while i < pages.len() {
             let page: crate::models::page_context::PageContext = match pages.get_number(i) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let link: String = to_absolute_url(
+            let link: String = toAbsoluteUrl(
                 {
                     let dispatch_receiver_5 = &config;
                     dispatch_receiver_5.dispatch.read_site_config_base_url()
@@ -125,86 +130,68 @@ pub fn render_rss(
                         .read_page_context_rel_permalink()
                 },
             )?;
-            let pub_date: String = parse_page_date(
-                {
+            let pubDate: String = parsePageDate(
+                &{
                     let dispatch_receiver_7 = &page;
                     dispatch_receiver_7.dispatch.read_page_context_date()
                 },
-                build_time.clone(),
+                buildTime.clone(),
             )
             .to_iso_string()?;
             out.push_many_discard([String::from("<item>")]);
-            {
-                let operation_input_0 = out.clone();
-                operation_input_0.push_many_discard([format!(
-                    "{}{}{}",
-                    String::from("<title>"),
-                    escape_xml({
-                        let dispatch_receiver_8 = &page;
-                        dispatch_receiver_8.dispatch.read_page_context_title()
-                    })?,
-                    String::from("</title>")
-                )])
-            };
-            {
-                let operation_input_0_2 = out.clone();
-                operation_input_0_2.push_many_discard([format!(
-                    "{}{}{}",
-                    String::from("<link>"),
-                    escape_xml(link.clone())?,
-                    String::from("</link>")
-                )])
-            };
-            {
-                let operation_input_0_3 = out.clone();
-                operation_input_0_3.push_many_discard([format!(
-                    "{}{}{}",
-                    String::from("<guid isPermaLink=\"true\">"),
-                    escape_xml(link.clone())?,
-                    String::from("</guid>")
-                )])
-            };
-            {
-                let operation_input_0_4 = out.clone();
-                operation_input_0_4.push_many_discard([format!(
-                    "{}{}{}",
-                    String::from("<pubDate>"),
-                    pub_date,
-                    String::from("</pubDate>")
-                )])
-            };
-            {
-                let operation_input_0_5 = out.clone();
-                operation_input_0_5.push_many_discard([format!(
-                    "{}{}{}",
-                    String::from("<description>"),
-                    wrap_cdata(&{
-                        let dispatch_receiver_10 = &{
-                            let dispatch_receiver_9 = &page;
-                            dispatch_receiver_9.dispatch.read_page_context_summary()
-                        };
-                        dispatch_receiver_10.dispatch.read_html_string_value()
-                    })?,
-                    String::from("</description>")
-                )])
-            };
-            {
-                let operation_input_0_6 = out.clone();
-                operation_input_0_6.push_many_discard([format!(
-                    "{}{}{}",
-                    String::from("<content:encoded>"),
-                    wrap_cdata(&{
-                        let dispatch_receiver_12 = &{
-                            let dispatch_receiver_11 = &page;
-                            dispatch_receiver_11.dispatch.read_page_context_content()
-                        };
-                        dispatch_receiver_12.dispatch.read_html_string_value()
-                    })?,
-                    String::from("</content:encoded>")
-                )])
-            };
+            out.push_many_discard([format!(
+                "{}{}{}",
+                String::from("<title>"),
+                escapeXml({
+                    let dispatch_receiver_8 = &page;
+                    dispatch_receiver_8.dispatch.read_page_context_title()
+                })?,
+                String::from("</title>")
+            )]);
+            out.push_many_discard([format!(
+                "{}{}{}",
+                String::from("<link>"),
+                escapeXml(link.clone())?,
+                String::from("</link>")
+            )]);
+            out.push_many_discard([format!(
+                "{}{}{}",
+                String::from("<guid isPermaLink=\"true\">"),
+                escapeXml(link.clone())?,
+                String::from("</guid>")
+            )]);
+            out.push_many_discard([format!(
+                "{}{}{}",
+                String::from("<pubDate>"),
+                pubDate,
+                String::from("</pubDate>")
+            )]);
+            out.push_many_discard([format!(
+                "{}{}{}",
+                String::from("<description>"),
+                wrapCdata(&{
+                    let dispatch_receiver_10 = &{
+                        let dispatch_receiver_9 = &page;
+                        dispatch_receiver_9.dispatch.read_page_context_summary()
+                    };
+                    dispatch_receiver_10.dispatch.read_html_string_value()
+                })?,
+                String::from("</description>")
+            )]);
+            out.push_many_discard([format!(
+                "{}{}{}",
+                String::from("<content:encoded>"),
+                wrapCdata(&{
+                    let dispatch_receiver_12 = &{
+                        let dispatch_receiver_11 = &page;
+                        dispatch_receiver_11.dispatch.read_page_context_content()
+                    };
+                    dispatch_receiver_12.dispatch.read_html_string_value()
+                })?,
+                String::from("</content:encoded>")
+            )]);
             out.push_many_discard([String::from("</item>")]);
-            i += 1.0;
+            i += 1;
         }
     }
     out.push_many_discard([String::from("</channel>")]);
@@ -212,54 +199,53 @@ pub fn render_rss(
     Ok(format!("{}{}", out.join("\n"), String::from("\n")))
 }
 
-pub fn render_sitemap(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn renderSitemap(
     config: crate::models::site_config::SiteConfig,
-    rel_permalinks: js_abi::JsArray<String>,
-    build_time: js_abi::JsDate,
+    relPermalinks: js_abi::JsArray<String>,
+    buildTime: js_abi::JsDate,
 ) -> Result<String, rt::TsonicError> {
-    let build_timestamp: String = build_time.to_iso_string()?;
+    let buildTimestamp: String = buildTime.to_iso_string()?;
     let out: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![
         String::from("<?xml version=\"1.0\" encoding=\"utf-8\"?>"),
         String::from("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">"),
     ]);
     {
-        let mut i: f64 = 0.0;
-        while i < (rt::conversions::usize_to_i32(rel_permalinks.len())? as f64) {
-            let rel: String = match rel_permalinks.get_number(i) {
+        let mut i: usize = 0;
+        while i < relPermalinks.len() {
+            let rel: String = match relPermalinks.get_number(i) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let loc: String = to_absolute_url(
+            let loc: String = toAbsoluteUrl(
                 {
                     let dispatch_receiver = &config;
                     dispatch_receiver.dispatch.read_site_config_base_url()
                 },
-                rel.clone(),
+                rel,
             )?;
-            {
-                let operation_input_0 = out.clone();
-                operation_input_0.push_many_discard([format!(
-                    "{}{}{}{}{}",
-                    String::from("<url><loc>"),
-                    escape_xml(loc.clone())?,
-                    String::from("</loc><lastmod>"),
-                    build_timestamp,
-                    String::from("</lastmod></url>")
-                )])
-            };
-            i += 1.0;
+            out.push_many_discard([format!(
+                "{}{}{}{}{}",
+                String::from("<url><loc>"),
+                escapeXml(loc)?,
+                String::from("</loc><lastmod>"),
+                buildTimestamp,
+                String::from("</lastmod></url>")
+            )]);
+            i += 1;
         }
     }
     out.push_many_discard([String::from("</urlset>")]);
     Ok(format!("{}{}", out.join("\n"), String::from("\n")))
 }
 
-pub fn render_robots_txt(config: crate::models::site_config::SiteConfig) -> String {
-    let base: String = crate::utils::text::ensure_trailing_slash({
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn renderRobotsTxt(config: crate::models::site_config::SiteConfig) -> String {
+    let base: String = crate::utils::text::ensureTrailingSlash({
         let dispatch_receiver = &config;
         dispatch_receiver.dispatch.read_site_config_base_url()
     });
-    let sitemap_url: String = if base.is_empty() {
+    let sitemapUrl: String = if base.is_empty() {
         String::from("/sitemap.xml")
     } else {
         format!("{}{}", base, String::from("sitemap.xml"))
@@ -267,7 +253,7 @@ pub fn render_robots_txt(config: crate::models::site_config::SiteConfig) -> Stri
     format!(
         "{}{}{}",
         String::from("User-agent: *\nAllow: /\nSitemap: "),
-        sitemap_url,
+        sitemapUrl,
         String::from("\n")
     )
 }

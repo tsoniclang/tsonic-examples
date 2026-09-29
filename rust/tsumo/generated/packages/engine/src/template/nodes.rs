@@ -5,6 +5,9 @@ use tsonic_rust_js::abi as js_abi;
 
 #[doc(hidden)]
 pub trait TemplateNodeDispatch {
+    fn project_template_node(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_template_node_to_assignment_node(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
@@ -73,6 +76,128 @@ pub struct TemplateNode {
     pub dispatch: alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>,
 }
 
+impl core::convert::TryFrom<TemplateNode> for TextNode {
+    type Error = ();
+
+    fn try_from(source: TemplateNode) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_node_to_text_node();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateNode> for OutputNode {
+    type Error = ();
+
+    fn try_from(source: TemplateNode) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_node_to_output_node();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateNode> for AssignmentNode {
+    type Error = ();
+
+    fn try_from(source: TemplateNode) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_node_to_assignment_node();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateNode> for TemplateInvokeNode {
+    type Error = ();
+
+    fn try_from(source: TemplateNode) -> Result<Self, ()> {
+        let selected_dispatch = source
+            .dispatch
+            .downcast_template_node_to_template_invoke_node();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateNode> for IfNode {
+    type Error = ();
+
+    fn try_from(source: TemplateNode) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_node_to_if_node();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateNode> for RangeNode {
+    type Error = ();
+
+    fn try_from(source: TemplateNode) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_node_to_range_node();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateNode> for WithNode {
+    type Error = ();
+
+    fn try_from(source: TemplateNode) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_node_to_with_node();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
+impl core::convert::TryFrom<TemplateNode> for BlockNode {
+    type Error = ();
+
+    fn try_from(source: TemplateNode) -> Result<Self, ()> {
+        let selected_dispatch = source.dispatch.downcast_template_node_to_block_node();
+        match selected_dispatch {
+            Some(dispatch) => Ok(Self {
+                identity: source.identity,
+                dispatch,
+            }),
+            None => Err(()),
+        }
+    }
+}
+
 impl core::fmt::Debug for TemplateNode {
     fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("TemplateNode")
@@ -94,7 +219,6 @@ impl rt::ObjectIdentityCarrier for TemplateNode {
 }
 
 pub(crate) struct TemplateNodeRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     #[expect(dead_code, reason = "retains unused generated storage")]
     state: rt::ObjectState<TemplateNodeState>,
@@ -126,12 +250,33 @@ impl Default for TemplateNode {
     }
 }
 
+impl rt::ObjectIdentityCarrier for TemplateNodeRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl TemplateNodeDispatch for TemplateNodeRoot {
+    fn project_template_node(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_node_to_template_node(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
+}
+
+std::thread_local! {
+    pub static BREAK_NODE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<BreakNodeClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -183,7 +328,6 @@ impl rt::ObjectIdentityCarrier for BreakNode {
 }
 
 pub(crate) struct BreakNodeRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     #[expect(dead_code, reason = "retains unused generated storage")]
     state: rt::ObjectState<BreakNodeState>,
@@ -216,7 +360,30 @@ impl Default for BreakNode {
     }
 }
 
+impl rt::ObjectIdentityCarrier for BreakNodeRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl TemplateNodeDispatch for BreakNodeRoot {
+    fn project_template_node(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn BreakNodeDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_node_to_break_node(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn BreakNodeDispatch + 'static>> {
@@ -242,6 +409,10 @@ impl BreakNodeDispatch for BreakNodeRoot {
     ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
+}
+
+std::thread_local! {
+    pub static CONTINUE_NODE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<ContinueNodeClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -293,7 +464,6 @@ impl rt::ObjectIdentityCarrier for ContinueNode {
 }
 
 pub(crate) struct ContinueNodeRoot {
-    #[expect(dead_code, reason = "retains unused generated storage")]
     identity: rt::ObjectIdentity,
     #[expect(dead_code, reason = "retains unused generated storage")]
     state: rt::ObjectState<ContinueNodeState>,
@@ -326,7 +496,30 @@ impl Default for ContinueNode {
     }
 }
 
+impl rt::ObjectIdentityCarrier for ContinueNodeRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl TemplateNodeDispatch for ContinueNodeRoot {
+    fn project_template_node(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn ContinueNodeDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_node_to_continue_node(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn ContinueNodeDispatch + 'static>> {
@@ -352,6 +545,10 @@ impl ContinueNodeDispatch for ContinueNodeRoot {
     ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
         Some(self)
     }
+}
+
+std::thread_local! {
+    pub static TEXT_NODE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<TextNodeClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -435,7 +632,30 @@ impl TextNode {
     }
 }
 
+impl rt::ObjectIdentityCarrier for TextNodeRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl TemplateNodeDispatch for TextNodeRoot {
+    fn project_template_node(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn TextNodeDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_node_to_template_node(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
@@ -475,6 +695,10 @@ impl TextNodeDispatch for TextNodeRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+std::thread_local! {
+    pub static OUTPUT_NODE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<OutputNodeClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -572,7 +796,30 @@ impl OutputNode {
     }
 }
 
+impl rt::ObjectIdentityCarrier for OutputNodeRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl TemplateNodeDispatch for OutputNodeRoot {
+    fn project_template_node(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn OutputNodeDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_node_to_output_node(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn OutputNodeDispatch + 'static>> {
@@ -629,6 +876,10 @@ impl OutputNodeDispatch for OutputNodeRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+std::thread_local! {
+    pub static ASSIGNMENT_NODE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<AssignmentNodeClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -733,7 +984,30 @@ impl AssignmentNode {
     }
 }
 
+impl rt::ObjectIdentityCarrier for AssignmentNodeRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl TemplateNodeDispatch for AssignmentNodeRoot {
+    fn project_template_node(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn AssignmentNodeDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_node_to_assignment_node(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn AssignmentNodeDispatch + 'static>> {
@@ -804,6 +1078,10 @@ impl AssignmentNodeDispatch for AssignmentNodeRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+std::thread_local! {
+    pub static TEMPLATE_INVOKE_NODE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<TemplateInvokeNodeClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -901,7 +1179,30 @@ impl TemplateInvokeNode {
     }
 }
 
+impl rt::ObjectIdentityCarrier for TemplateInvokeNodeRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl TemplateNodeDispatch for TemplateInvokeNodeRoot {
+    fn project_template_node(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_node_to_template_invoke_node(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn TemplateInvokeNodeDispatch + 'static>> {
@@ -991,6 +1292,10 @@ impl TemplateVariableBinding {
     }
 }
 
+std::thread_local! {
+    pub static IF_NODE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<IfNodeClass>> = const { rt::ModuleCell::new() };
+}
+
 #[doc(hidden)]
 pub trait IfNodeDispatch: TemplateNodeDispatch {
     fn downcast_if_node_to_if_node(
@@ -1026,13 +1331,14 @@ pub trait IfNodeDispatch: TemplateNodeDispatch {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct IfNodeState {
     #[doc(hidden)]
     pub base: TemplateNodeState,
     pub condition: crate::template::syntax::expressions::Pipeline,
     pub binding: Option<TemplateVariableBinding>,
-    pub then_nodes: js_abi::JsArray<TemplateNode>,
-    pub else_nodes: js_abi::JsArray<TemplateNode>,
+    pub thenNodes: js_abi::JsArray<TemplateNode>,
+    pub elseNodes: js_abi::JsArray<TemplateNode>,
 }
 
 #[derive(Clone)]
@@ -1070,33 +1376,35 @@ pub(crate) struct IfNodeRoot {
 
 impl IfNode {
     #[doc(hidden)]
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn initialize_state(
         condition: crate::template::syntax::expressions::Pipeline,
         binding: Option<TemplateVariableBinding>,
-        then_nodes: js_abi::JsArray<TemplateNode>,
-        else_nodes: js_abi::JsArray<TemplateNode>,
+        thenNodes: js_abi::JsArray<TemplateNode>,
+        elseNodes: js_abi::JsArray<TemplateNode>,
     ) -> Result<IfNodeState, rt::TsonicError> {
         let base_state = TemplateNode::initialize_state();
         let field_condition: crate::template::syntax::expressions::Pipeline = condition;
         let field_binding: Option<TemplateVariableBinding> = binding;
-        let field_then_nodes: js_abi::JsArray<TemplateNode> = then_nodes;
-        let field_else_nodes: js_abi::JsArray<TemplateNode> = else_nodes;
+        let field_then_nodes: js_abi::JsArray<TemplateNode> = thenNodes;
+        let field_else_nodes: js_abi::JsArray<TemplateNode> = elseNodes;
         Ok(IfNodeState {
             base: base_state,
             condition: field_condition,
             binding: field_binding,
-            then_nodes: field_then_nodes,
-            else_nodes: field_else_nodes,
+            thenNodes: field_then_nodes,
+            elseNodes: field_else_nodes,
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         condition: crate::template::syntax::expressions::Pipeline,
         binding: Option<TemplateVariableBinding>,
-        then_nodes: js_abi::JsArray<TemplateNode>,
-        else_nodes: js_abi::JsArray<TemplateNode>,
+        thenNodes: js_abi::JsArray<TemplateNode>,
+        elseNodes: js_abi::JsArray<TemplateNode>,
     ) -> Result<IfNode, rt::TsonicError> {
-        let state = IfNode::initialize_state(condition, binding, then_nodes, else_nodes)?;
+        let state = IfNode::initialize_state(condition, binding, thenNodes, elseNodes)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(IfNodeRoot {
             identity: identity.clone(),
@@ -1109,7 +1417,30 @@ impl IfNode {
     }
 }
 
+impl rt::ObjectIdentityCarrier for IfNodeRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl TemplateNodeDispatch for IfNodeRoot {
+    fn project_template_node(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn IfNodeDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_node_to_if_node(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn IfNodeDispatch + 'static>> {
@@ -1171,7 +1502,7 @@ impl IfNodeDispatch for IfNodeRoot {
     }
 
     fn read_if_node_then_nodes(&self) -> js_abi::JsArray<TemplateNode> {
-        self.state.with(|state| state.then_nodes.clone())
+        self.state.with(|state| state.thenNodes.clone())
     }
 
     fn write_if_node_then_nodes(
@@ -1181,14 +1512,14 @@ impl IfNodeDispatch for IfNodeRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.then_nodes = value)
+                self.state.with_mut(|state| state.thenNodes = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_if_node_else_nodes(&self) -> js_abi::JsArray<TemplateNode> {
-        self.state.with(|state| state.else_nodes.clone())
+        self.state.with(|state| state.elseNodes.clone())
     }
 
     fn write_if_node_else_nodes(
@@ -1198,11 +1529,15 @@ impl IfNodeDispatch for IfNodeRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.else_nodes = value)
+                self.state.with_mut(|state| state.elseNodes = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+std::thread_local! {
+    pub static RANGE_NODE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<RangeNodeClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -1239,14 +1574,15 @@ pub trait RangeNodeDispatch: TemplateNodeDispatch {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct RangeNodeState {
     #[doc(hidden)]
     pub base: TemplateNodeState,
     pub expr: crate::template::syntax::expressions::Pipeline,
-    pub key_var: Option<String>,
-    pub value_var: Option<String>,
+    pub keyVar: Option<String>,
+    pub valueVar: Option<String>,
     pub body: js_abi::JsArray<TemplateNode>,
-    pub else_body: js_abi::JsArray<TemplateNode>,
+    pub elseBody: js_abi::JsArray<TemplateNode>,
 }
 
 #[derive(Clone)]
@@ -1284,37 +1620,39 @@ pub(crate) struct RangeNodeRoot {
 
 impl RangeNode {
     #[doc(hidden)]
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn initialize_state(
         expr: crate::template::syntax::expressions::Pipeline,
-        key_var: Option<String>,
-        value_var: Option<String>,
+        keyVar: Option<String>,
+        valueVar: Option<String>,
         body: js_abi::JsArray<TemplateNode>,
-        else_body: js_abi::JsArray<TemplateNode>,
+        elseBody: js_abi::JsArray<TemplateNode>,
     ) -> Result<RangeNodeState, rt::TsonicError> {
         let base_state = TemplateNode::initialize_state();
         let field_expr: crate::template::syntax::expressions::Pipeline = expr;
-        let field_key_var: Option<String> = key_var;
-        let field_value_var: Option<String> = value_var;
+        let field_key_var: Option<String> = keyVar;
+        let field_value_var: Option<String> = valueVar;
         let field_body: js_abi::JsArray<TemplateNode> = body;
-        let field_else_body: js_abi::JsArray<TemplateNode> = else_body;
+        let field_else_body: js_abi::JsArray<TemplateNode> = elseBody;
         Ok(RangeNodeState {
             base: base_state,
             expr: field_expr,
-            key_var: field_key_var,
-            value_var: field_value_var,
+            keyVar: field_key_var,
+            valueVar: field_value_var,
             body: field_body,
-            else_body: field_else_body,
+            elseBody: field_else_body,
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         expr: crate::template::syntax::expressions::Pipeline,
-        key_var: Option<String>,
-        value_var: Option<String>,
+        keyVar: Option<String>,
+        valueVar: Option<String>,
         body: js_abi::JsArray<TemplateNode>,
-        else_body: js_abi::JsArray<TemplateNode>,
+        elseBody: js_abi::JsArray<TemplateNode>,
     ) -> Result<RangeNode, rt::TsonicError> {
-        let state = RangeNode::initialize_state(expr, key_var, value_var, body, else_body)?;
+        let state = RangeNode::initialize_state(expr, keyVar, valueVar, body, elseBody)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(RangeNodeRoot {
             identity: identity.clone(),
@@ -1327,7 +1665,30 @@ impl RangeNode {
     }
 }
 
+impl rt::ObjectIdentityCarrier for RangeNodeRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl TemplateNodeDispatch for RangeNodeRoot {
+    fn project_template_node(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn RangeNodeDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_node_to_range_node(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn RangeNodeDispatch + 'static>> {
@@ -1372,28 +1733,28 @@ impl RangeNodeDispatch for RangeNodeRoot {
     }
 
     fn read_range_node_key_var(&self) -> Option<String> {
-        self.state.with(|state| state.key_var.clone())
+        self.state.with(|state| state.keyVar.clone())
     }
 
     fn write_range_node_key_var(&self, value: Option<String>) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.key_var = value)
+                self.state.with_mut(|state| state.keyVar = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_range_node_value_var(&self) -> Option<String> {
-        self.state.with(|state| state.value_var.clone())
+        self.state.with(|state| state.valueVar.clone())
     }
 
     fn write_range_node_value_var(&self, value: Option<String>) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.value_var = value)
+                self.state.with_mut(|state| state.valueVar = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
@@ -1417,7 +1778,7 @@ impl RangeNodeDispatch for RangeNodeRoot {
     }
 
     fn read_range_node_else_body(&self) -> js_abi::JsArray<TemplateNode> {
-        self.state.with(|state| state.else_body.clone())
+        self.state.with(|state| state.elseBody.clone())
     }
 
     fn write_range_node_else_body(
@@ -1427,11 +1788,15 @@ impl RangeNodeDispatch for RangeNodeRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.else_body = value)
+                self.state.with_mut(|state| state.elseBody = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+std::thread_local! {
+    pub static WITH_NODE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<WithNodeClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -1473,15 +1838,16 @@ pub trait WithNodeDispatch: TemplateNodeDispatch {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct WithNodeState {
     #[doc(hidden)]
     pub base: TemplateNodeState,
     pub expr: crate::template::syntax::expressions::Pipeline,
     pub binding: Option<TemplateVariableBinding>,
     pub body: js_abi::JsArray<TemplateNode>,
-    pub else_body: js_abi::JsArray<TemplateNode>,
-    pub source_text: String,
-    pub source_segment_index: i32,
+    pub elseBody: js_abi::JsArray<TemplateNode>,
+    pub sourceText: String,
+    pub sourceSegmentIndex: i32,
 }
 
 #[derive(Clone)]
@@ -1519,47 +1885,49 @@ pub(crate) struct WithNodeRoot {
 
 impl WithNode {
     #[doc(hidden)]
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn initialize_state(
         expr: crate::template::syntax::expressions::Pipeline,
         binding: Option<TemplateVariableBinding>,
         body: js_abi::JsArray<TemplateNode>,
-        else_body: js_abi::JsArray<TemplateNode>,
-        source_text: String,
-        source_segment_index: i32,
+        elseBody: js_abi::JsArray<TemplateNode>,
+        sourceText: String,
+        sourceSegmentIndex: i32,
     ) -> Result<WithNodeState, rt::TsonicError> {
         let base_state = TemplateNode::initialize_state();
         let field_expr: crate::template::syntax::expressions::Pipeline = expr;
         let field_binding: Option<TemplateVariableBinding> = binding;
         let field_body: js_abi::JsArray<TemplateNode> = body;
-        let field_else_body: js_abi::JsArray<TemplateNode> = else_body;
-        let field_source_text: String = source_text;
-        let field_source_segment_index: i32 = source_segment_index;
+        let field_else_body: js_abi::JsArray<TemplateNode> = elseBody;
+        let field_source_text: String = sourceText;
+        let field_source_segment_index: i32 = sourceSegmentIndex;
         Ok(WithNodeState {
             base: base_state,
             expr: field_expr,
             binding: field_binding,
             body: field_body,
-            else_body: field_else_body,
-            source_text: field_source_text,
-            source_segment_index: field_source_segment_index,
+            elseBody: field_else_body,
+            sourceText: field_source_text,
+            sourceSegmentIndex: field_source_segment_index,
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         expr: crate::template::syntax::expressions::Pipeline,
         binding: Option<TemplateVariableBinding>,
         body: js_abi::JsArray<TemplateNode>,
-        else_body: js_abi::JsArray<TemplateNode>,
-        source_text: String,
-        source_segment_index: i32,
+        elseBody: js_abi::JsArray<TemplateNode>,
+        sourceText: String,
+        sourceSegmentIndex: i32,
     ) -> Result<WithNode, rt::TsonicError> {
         let state = WithNode::initialize_state(
             expr,
             binding,
             body,
-            else_body,
-            source_text,
-            source_segment_index,
+            elseBody,
+            sourceText,
+            sourceSegmentIndex,
         )?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(WithNodeRoot {
@@ -1573,7 +1941,30 @@ impl WithNode {
     }
 }
 
+impl rt::ObjectIdentityCarrier for WithNodeRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl TemplateNodeDispatch for WithNodeRoot {
+    fn project_template_node(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn WithNodeDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_node_to_template_node(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>> {
@@ -1652,7 +2043,7 @@ impl WithNodeDispatch for WithNodeRoot {
     }
 
     fn read_with_node_else_body(&self) -> js_abi::JsArray<TemplateNode> {
-        self.state.with(|state| state.else_body.clone())
+        self.state.with(|state| state.elseBody.clone())
     }
 
     fn write_with_node_else_body(
@@ -1662,28 +2053,28 @@ impl WithNodeDispatch for WithNodeRoot {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.else_body = value)
+                self.state.with_mut(|state| state.elseBody = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_with_node_source_text(&self) -> String {
-        self.state.with(|state| state.source_text.clone())
+        self.state.with(|state| state.sourceText.clone())
     }
 
     fn write_with_node_source_text(&self, value: String) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.source_text = value)
+                self.state.with_mut(|state| state.sourceText = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
 
     fn read_with_node_source_segment_index(&self) -> i32 {
-        self.state.with(|state| state.source_segment_index)
+        self.state.with(|state| state.sourceSegmentIndex)
     }
 
     fn write_with_node_source_segment_index(&self, value: i32) -> Result<(), rt::TsonicError> {
@@ -1691,11 +2082,15 @@ impl WithNodeDispatch for WithNodeRoot {
             {
                 self.identity.validate_data_write()?;
                 self.state
-                    .with_mut(|state| state.source_segment_index = value)
+                    .with_mut(|state| state.sourceSegmentIndex = value)
             };
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+std::thread_local! {
+    pub static BLOCK_NODE_CLASS_ENVIRONMENT: rt::ModuleCell<alloc::rc::Rc<BlockNodeClass>> = const { rt::ModuleCell::new() };
 }
 
 #[doc(hidden)]
@@ -1803,7 +2198,30 @@ impl BlockNode {
     }
 }
 
+impl rt::ObjectIdentityCarrier for BlockNodeRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl TemplateNodeDispatch for BlockNodeRoot {
+    fn project_template_node(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn TemplateNodeDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+            return;
+        }
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn BlockNodeDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_node_to_block_node(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn BlockNodeDispatch + 'static>> {
@@ -1877,4 +2295,317 @@ impl BlockNodeDispatch for BlockNodeRoot {
             Ok::<_, rt::TsonicError>(())
         }
     }
+}
+
+pub struct BreakNodeClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for BreakNodeClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for BreakNodeClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for BreakNodeClass {}
+
+pub struct ContinueNodeClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for ContinueNodeClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for ContinueNodeClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for ContinueNodeClass {}
+
+pub struct TextNodeClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for TextNodeClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for TextNodeClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for TextNodeClass {}
+
+pub struct OutputNodeClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for OutputNodeClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for OutputNodeClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for OutputNodeClass {}
+
+pub struct AssignmentNodeClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for AssignmentNodeClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for AssignmentNodeClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for AssignmentNodeClass {}
+
+pub struct TemplateInvokeNodeClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for TemplateInvokeNodeClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for TemplateInvokeNodeClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for TemplateInvokeNodeClass {}
+
+pub struct IfNodeClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for IfNodeClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for IfNodeClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for IfNodeClass {}
+
+pub struct RangeNodeClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for RangeNodeClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for RangeNodeClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for RangeNodeClass {}
+
+pub struct WithNodeClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for WithNodeClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for WithNodeClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for WithNodeClass {}
+
+pub struct BlockNodeClass {
+    pub(crate) class_identity: core::cell::OnceCell<rt::ObjectIdentity>,
+}
+
+impl rt::ObjectIdentityCarrier for BlockNodeClass {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        self.class_identity.get_or_init(rt::ObjectIdentity::new)
+    }
+
+    fn object_identity_key(&self) -> usize {
+        core::ptr::from_ref(self).addr()
+    }
+}
+
+impl PartialEq for BlockNodeClass {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self, other)
+    }
+}
+
+impl Eq for BlockNodeClass {}
+
+#[doc(hidden)]
+pub fn module_init() {
+    {
+        let module_value = {
+            alloc::rc::Rc::new(BreakNodeClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        BREAK_NODE_CLASS_ENVIRONMENT.with(|module_binding| module_binding.initialize(module_value))
+    };
+    {
+        let module_value_2 = {
+            alloc::rc::Rc::new(ContinueNodeClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        CONTINUE_NODE_CLASS_ENVIRONMENT
+            .with(|module_binding_2| module_binding_2.initialize(module_value_2))
+    };
+    {
+        let module_value_3 = {
+            alloc::rc::Rc::new(TextNodeClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        TEXT_NODE_CLASS_ENVIRONMENT
+            .with(|module_binding_3| module_binding_3.initialize(module_value_3))
+    };
+    {
+        let module_value_4 = {
+            alloc::rc::Rc::new(OutputNodeClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        OUTPUT_NODE_CLASS_ENVIRONMENT
+            .with(|module_binding_4| module_binding_4.initialize(module_value_4))
+    };
+    {
+        let module_value_5 = {
+            alloc::rc::Rc::new(AssignmentNodeClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        ASSIGNMENT_NODE_CLASS_ENVIRONMENT
+            .with(|module_binding_5| module_binding_5.initialize(module_value_5))
+    };
+    {
+        let module_value_6 = {
+            alloc::rc::Rc::new(TemplateInvokeNodeClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        TEMPLATE_INVOKE_NODE_CLASS_ENVIRONMENT
+            .with(|module_binding_6| module_binding_6.initialize(module_value_6))
+    };
+    {
+        let module_value_7 = {
+            alloc::rc::Rc::new(IfNodeClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        IF_NODE_CLASS_ENVIRONMENT
+            .with(|module_binding_7| module_binding_7.initialize(module_value_7))
+    };
+    {
+        let module_value_8 = {
+            alloc::rc::Rc::new(RangeNodeClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        RANGE_NODE_CLASS_ENVIRONMENT
+            .with(|module_binding_8| module_binding_8.initialize(module_value_8))
+    };
+    {
+        let module_value_9 = {
+            alloc::rc::Rc::new(WithNodeClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        WITH_NODE_CLASS_ENVIRONMENT
+            .with(|module_binding_9| module_binding_9.initialize(module_value_9))
+    };
+    {
+        let module_value_10 = {
+            alloc::rc::Rc::new(BlockNodeClass {
+                class_identity: core::cell::OnceCell::new(),
+            })
+        };
+        BLOCK_NODE_CLASS_ENVIRONMENT
+            .with(|module_binding_10| module_binding_10.initialize(module_value_10))
+    };
 }

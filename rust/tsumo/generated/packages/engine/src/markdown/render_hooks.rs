@@ -4,13 +4,14 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct RenderHookContextState {
     pub page: crate::models::page_context::PageContext,
     pub site: crate::models::site_context::SiteContext,
     pub env: crate::template::environment::TemplateEnvironment,
-    pub link_hook: Option<crate::template::template_2::Template>,
-    pub image_hook: Option<crate::template::template_2::Template>,
-    pub heading_hook: Option<crate::template::template_2::Template>,
+    pub linkHook: Option<crate::template::template_2::Template>,
+    pub imageHook: Option<crate::template::template_2::Template>,
+    pub headingHook: Option<crate::template::template_2::Template>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -60,24 +61,23 @@ impl RenderHookContext {
                 page: field_page,
                 site: field_site,
                 env: field_env,
-                link_hook: field_link_hook,
-                image_hook: field_image_hook,
-                heading_hook: field_heading_hook,
+                linkHook: field_link_hook,
+                imageHook: field_image_hook,
+                headingHook: field_heading_hook,
             }),
         })
     }
 
-    pub fn has_any_hooks(&self) -> bool {
-        self.state.with(|state| state.link_hook.clone()).is_some()
-            || self.state.with(|state| state.image_hook.clone()).is_some()
-            || self
-                .state
-                .with(|state| state.heading_hook.clone())
-                .is_some()
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn hasAnyHooks(&self) -> bool {
+        self.state.with(|state| state.linkHook.clone()).is_some()
+            || self.state.with(|state| state.imageHook.clone()).is_some()
+            || self.state.with(|state| state.headingHook.clone()).is_some()
     }
 }
 
-pub fn render_hook_template(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn renderHookTemplate(
     template: crate::template::template_2::Template,
     value: crate::shapes::Union3<
         crate::template::contexts::LinkHookValue,
@@ -86,7 +86,7 @@ pub fn render_hook_template(
     >,
     context: RenderHookContext,
 ) -> Result<String, rt::TsonicError> {
-    let empty_overrides: js_abi::JsMap<
+    let emptyOverrides: js_abi::JsMap<
         String,
         js_abi::JsArray<crate::template::nodes::TemplateNode>,
     > = js_abi::JsMap::new();
@@ -121,22 +121,23 @@ pub fn render_hook_template(
                     }
                 },
                 context.state.with(|state| state.site.clone()),
-                empty_overrides,
+                emptyOverrides,
                 None,
             )
     }
 }
 
-pub fn render_markdown_with_hooks(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn renderMarkdownWithHooks(
     markdown: String,
     context: RenderHookContext,
 ) -> Result<String, rt::TsonicError> {
     let document: crate::markdown::platform::TsumoMarkdownDocument =
-        crate::markdown::platform::create_markdown_document(markdown);
-    if !context.has_any_hooks() {
+        crate::markdown::platform::createMarkdownDocument(markdown);
+    if !context.hasAnyHooks() {
         return Ok(document.render());
     }
-    let count: i32 = document.occurrence_count();
+    let count: i32 = document.occurrenceCount()?;
     {
         let mut index: i32 = count - 1;
         'loop_value: while index >= 0 {
@@ -144,7 +145,7 @@ pub fn render_markdown_with_hooks(
                 document.occurrence(index)?;
             if occurrence.state.with(|state| state.kind.clone()) == "image" {
                 let template: Option<crate::template::template_2::Template> =
-                    context.state.with(|state| state.image_hook.clone());
+                    context.state.with(|state| state.imageHook.clone());
                 if template.is_none() {
                     index -= 1;
                     continue 'loop_value;
@@ -153,21 +154,21 @@ pub fn render_markdown_with_hooks(
                     crate::template::contexts::ImageHookValue::new(
                         crate::template::contexts::ImageHookContext::new(
                             occurrence.state.with(|state| state.destination.clone()),
-                            occurrence.state.with(|state| state.plain_text.clone()),
+                            occurrence.state.with(|state| state.plainText.clone()),
                             occurrence.state.with(|state| state.title.clone()),
-                            occurrence.state.with(|state| state.plain_text.clone()),
+                            occurrence.state.with(|state| state.plainText.clone()),
                             context.state.with(|state| state.page.clone()),
                             context.state.with(|state| state.page.clone()),
                         )?,
                     )?;
-                document.replace_html(
+                document.replaceHtml(
                     index,
-                    render_hook_template(
+                    renderHookTemplate(
                         match template.as_ref() {
                             Some(flow_value) => flow_value.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
-                        crate::shapes::Union3::Variant1(value.clone()),
+                        crate::shapes::Union3::Variant1(value),
                         context.clone(),
                     )?,
                 )?;
@@ -176,7 +177,7 @@ pub fn render_markdown_with_hooks(
             }
             if occurrence.state.with(|state| state.kind.clone()) == "link" {
                 let template: Option<crate::template::template_2::Template> =
-                    context.state.with(|state| state.link_hook.clone());
+                    context.state.with(|state| state.linkHook.clone());
                 if template.is_none() {
                     index -= 1;
                     continue 'loop_value;
@@ -185,21 +186,21 @@ pub fn render_markdown_with_hooks(
                     crate::template::contexts::LinkHookValue::new(
                         crate::template::contexts::LinkHookContext::new(
                             occurrence.state.with(|state| state.destination.clone()),
-                            document.occurrence_html(index)?,
+                            document.occurrenceHtml(index)?,
                             occurrence.state.with(|state| state.title.clone()),
-                            occurrence.state.with(|state| state.plain_text.clone()),
+                            occurrence.state.with(|state| state.plainText.clone()),
                             context.state.with(|state| state.page.clone()),
                             context.state.with(|state| state.page.clone()),
                         )?,
                     )?;
-                document.replace_html(
+                document.replaceHtml(
                     index,
-                    render_hook_template(
+                    renderHookTemplate(
                         match template.as_ref() {
                             Some(flow_value_2) => flow_value_2.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
-                        crate::shapes::Union3::Variant0(value.clone()),
+                        crate::shapes::Union3::Variant0(value),
                         context.clone(),
                     )?,
                 )?;
@@ -208,7 +209,7 @@ pub fn render_markdown_with_hooks(
             }
             if occurrence.state.with(|state| state.kind.clone()) == "heading" {
                 let template: Option<crate::template::template_2::Template> =
-                    context.state.with(|state| state.heading_hook.clone());
+                    context.state.with(|state| state.headingHook.clone());
                 if template.is_none() {
                     index -= 1;
                     continue 'loop_value;
@@ -217,21 +218,21 @@ pub fn render_markdown_with_hooks(
                     crate::template::contexts::HeadingHookValue::new(
                         crate::template::contexts::HeadingHookContext::new(
                             occurrence.state.with(|state| state.level),
-                            document.occurrence_html(index)?,
-                            occurrence.state.with(|state| state.plain_text.clone()),
+                            document.occurrenceHtml(index)?,
+                            occurrence.state.with(|state| state.plainText.clone()),
                             occurrence.state.with(|state| state.anchor.clone()),
                             context.state.with(|state| state.page.clone()),
                             context.state.with(|state| state.page.clone()),
                         )?,
                     )?;
-                document.replace_html(
+                document.replaceHtml(
                     index,
-                    render_hook_template(
+                    renderHookTemplate(
                         match template.as_ref() {
                             Some(flow_value_3) => flow_value_3.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         },
-                        crate::shapes::Union3::Variant2(value.clone()),
+                        crate::shapes::Union3::Variant2(value),
                         context.clone(),
                     )?,
                 )?;

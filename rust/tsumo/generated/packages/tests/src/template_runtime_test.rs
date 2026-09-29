@@ -29,20 +29,20 @@ impl TemplateRuntimeTests {
     ) -> Result<(), rt::TsonicError> {
         let source: String =
             String::from("{{ if true }}yes{{ else }}no{{ end }}|{{ \"ab\" | upper }}");
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("yes|AB"),
             Some(crate::template_test_harness::render(source)?),
         )?;
-        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
-        let page: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::createSite()?;
+        let page: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
             site,
             String::from("Home"),
             String::from(""),
             String::from("home"),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("false|exact"),
-            Some(crate::template_test_harness::render_with_root(
+            Some(crate::template_test_harness::renderWithRoot(
                 String::from(
                     "{{ in (slice \"posts\" \"tags\") .Section }}|{{ (dict \"value\" \"exact\").value }}",
                 ),
@@ -55,7 +55,7 @@ impl TemplateRuntimeTests {
                 },
             )?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("inner|outer|empty|chosen:chosen|changed|changed"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ $value := \"outer\" }}{{ if $value := \"inner\" }}{{ $value }}{{ end }}|{{ $value }}|{{ with $selected := \"\" }}invalid{{ else }}{{ if eq $selected \"\" }}empty{{ end }}{{ end }}|{{ with $selected := \"chosen\" }}{{ $selected }}:{{ . }}{{ end }}|{{ if $value = \"changed\" }}{{ $value }}{{ end }}|{{ $value }}",
@@ -67,13 +67,13 @@ impl TemplateRuntimeTests {
     pub fn collection_functions_preserve_exact_split_segments(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("a|b|"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ delimit (split \"a--b--\" \"--\") \"|\" }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("a|b"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ delimit (split \"ab\" \"\") \"|\" }}",
@@ -85,13 +85,13 @@ impl TemplateRuntimeTests {
     pub fn collection_union_accepts_slices_and_nil_without_collapsing_distinct_values(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("a,b,c|a,b|a,b|"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ delimit (union (slice \"a\" \"b\") (slice \"b\" \"c\")) \",\" }}|{{ delimit (union (slice \"a\" \"b\") nil) \",\" }}|{{ delimit (union nil (slice \"a\" \"b\")) \",\" }}|{{ delimit (union nil nil) \",\" }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("one,three"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ delimit (collections.Complement (slice \"two\") (slice \"one\" \"two\" \"three\")) \",\" }}",
@@ -103,8 +103,8 @@ impl TemplateRuntimeTests {
     pub fn page_has_shortcode_uses_the_exact_parsed_page_inventory(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
-        let page: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::createSite()?;
+        let page: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
             site,
             String::from("Home"),
             String::from(""),
@@ -112,7 +112,7 @@ impl TemplateRuntimeTests {
         )?;
         {
             let receiver = &page;
-            let value = tsumo_engine::testing::collect_shortcode_names(
+            let value = tsumo_engine::testing::collectShortcodeNames(
                 String::from(
                     "{{< outer >}}{{< inner / >}}{{< /outer >}}\n```text\n{{< ignored >}}\n```",
                 ),
@@ -125,9 +125,9 @@ impl TemplateRuntimeTests {
                     .write_page_context_shortcode_names(value)?
             }
         };
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("true|true|false|false"),
-            Some(crate::template_test_harness::render_with_root(
+            Some(crate::template_test_harness::renderWithRoot(
                 String::from(
                     "{{ .HasShortcode \"outer\" }}|{{ .HasShortcode \"inner\" }}|{{ .HasShortcode \"ignored\" }}|{{ .HasShortcode \"Outer\" }}",
                 ),
@@ -146,8 +146,8 @@ impl TemplateRuntimeTests {
     pub fn hugo_sites_exposes_the_checked_site_graph(&self) -> Result<(), rt::TsonicError> {
         let environment: crate::template_test_harness::TestTemplateEnvironment =
             crate::template_test_harness::TestTemplateEnvironment::new(None)?;
-        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
-        let root: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::createSite()?;
+        let root: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
             site.clone(),
             String::from("Home"),
             String::from(""),
@@ -171,13 +171,13 @@ impl TemplateRuntimeTests {
                     .write_site_context_sites(value_2)?
             }
         };
-        let template: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
+        let template: tsumo_engine::testing::Template = tsumo_engine::testing::parseTemplate(
             String::from(
                 "{{ range hugo.Sites }}{{ .Title }};{{ end }}|{{ hugo.Sites.Default.Home.RelPermalink }}",
             ),
             None,
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("Test Site;|/home/"),
             Some({
                 let dispatch_receiver_3 = environment;
@@ -207,28 +207,27 @@ impl TemplateRuntimeTests {
     ) -> Result<(), rt::TsonicError> {
         let environment: crate::template_test_harness::TestTemplateEnvironment =
             crate::template_test_harness::TestTemplateEnvironment::new(None)?;
-        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
-        let current: tsumo_engine::testing::PageContext =
-            crate::template_test_harness::create_page(
-                site.clone(),
-                String::from("Current"),
-                String::from("2026-08-15T00:00:00Z"),
-                String::from("page"),
-            )?;
-        let older: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::createSite()?;
+        let current: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
+            site.clone(),
+            String::from("Current"),
+            String::from("2026-08-15T00:00:00Z"),
+            String::from("page"),
+        )?;
+        let older: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
             site.clone(),
             String::from("Older"),
             String::from("2025-08-15T00:00:00Z"),
             String::from("page"),
         )?;
-        let newer: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
+        let newer: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
             site.clone(),
             String::from("Newer"),
             String::from("2027-08-15T00:00:00Z"),
             String::from("page"),
         )?;
         let unrelated: tsumo_engine::testing::PageContext =
-            crate::template_test_harness::create_page(
+            crate::template_test_harness::createPage(
                 site.clone(),
                 String::from("Unrelated"),
                 String::from("2024-08-15T00:00:00Z"),
@@ -287,11 +286,11 @@ impl TemplateRuntimeTests {
                     .write_site_context_all_pages(value_5)?
             }
         };
-        let template: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
+        let template: tsumo_engine::testing::Template = tsumo_engine::testing::parseTemplate(
             String::from("{{ range site.RegularPages.Related page }}{{ .Title }}{{ end }}"),
             None,
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("Older"),
             Some({
                 let dispatch_receiver_6 = environment;
@@ -317,37 +316,38 @@ impl TemplateRuntimeTests {
         Ok(())
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn css_build_applies_its_closed_resource_options(&self) -> Result<(), rt::TsonicError> {
         let root: String =
-            crate::test_root::create_test_directory(String::from("template-css-build"))?;
-        let site_directory: String = tsonic_rust_node::path::join(&[root.as_str(), "site"]);
-        let output_directory: String = tsonic_rust_node::path::join(&[root.as_str(), "output"]);
+            crate::test_root::createTestDirectory(String::from("template-css-build"))?;
+        let siteDirectory: String = tsonic_rust_node::path::join(&[root.as_str(), "site"]);
+        let outputDirectory: String = tsonic_rust_node::path::join(&[root.as_str(), "output"]);
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::create_directory(site_directory.clone())?;
+            crate::test_root::createDirectory(&siteDirectory)?;
             let manager: tsumo_engine::testing::ResourceManager =
                 tsumo_engine::testing::ResourceManager::new(
-                    site_directory.clone(),
+                    siteDirectory.clone(),
                     Option::<String>::None,
-                    output_directory,
+                    outputDirectory,
                 )?;
             let environment: crate::template_test_harness::TestTemplateEnvironment =
                 crate::template_test_harness::TestTemplateEnvironment::new(Some(manager))?;
             let site: tsumo_engine::testing::SiteContext =
-                crate::template_test_harness::create_site()?;
+                crate::template_test_harness::createSite()?;
             let page: tsumo_engine::testing::PageContext =
-                crate::template_test_harness::create_page(
+                crate::template_test_harness::createPage(
                     site.clone(),
                     String::from("Home"),
                     String::from(""),
                     String::from("home"),
                 )?;
-            let template: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
+            let template: tsumo_engine::testing::Template = tsumo_engine::testing::parseTemplate(
                 String::from(
                     "{{ $style := resources.FromString \"theme.css\" \"body { color: red; }\\n\" }}{{ $style = $style | css.Build (dict \"targetPath\" \"css/main.css\" \"minify\" true \"sourceMap\" \"none\") }}{{ $style.RelPermalink }}|{{ $style.Content }}",
                 ),
                 None,
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("/css/main.css|body { color: red; }"),
                 Some({
                     let dispatch_receiver = environment.clone();
@@ -370,14 +370,14 @@ impl TemplateRuntimeTests {
                         )
                 }?),
             )?;
-            let namespace_template: tsumo_engine::testing::Template =
-                tsumo_engine::testing::parse_template(
+            let namespaceTemplate: tsumo_engine::testing::Template =
+                tsumo_engine::testing::parseTemplate(
                     String::from(
                         "{{ $namespace := resources }}{{ $copy := $namespace.FromString \"css/copy.css\" \"p { color: blue; }\" }}{{ $copy.RelPermalink }}|{{ $copy.Content }}",
                     ),
                     None,
                 )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("/css/copy.css|p { color: blue; }"),
                 Some({
                     let dispatch_receiver_2 = environment.clone();
@@ -385,7 +385,7 @@ impl TemplateRuntimeTests {
                         .dispatch
                         .clone()
                         .dispatch_test_template_environment_render_template(
-                            namespace_template,
+                            namespaceTemplate,
                             {
                                 let upcast_value_2 =
                                     tsumo_engine::testing::PageValue::new(page.clone())?;
@@ -404,7 +404,7 @@ impl TemplateRuntimeTests {
         });
         let try_flow = try_body;
         let finally_flow: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::delete_test_directory(root.clone())?;
+            crate::test_root::deleteTestDirectory(&root)?;
             Ok(rt::Completion::Normal)
         });
         let try_flow: rt::TsonicResult<rt::Completion<()>> =
@@ -419,141 +419,225 @@ impl TemplateRuntimeTests {
         Ok(())
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn i18n_layers_parse_structured_formats_and_render_plural_context(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        let root: String = crate::test_root::create_test_directory(String::from("template-i18n"))?;
-        let theme_directory: String = tsonic_rust_node::path::join(&[root.as_str(), "theme"]);
-        let site_directory: String = tsonic_rust_node::path::join(&[root.as_str(), "site"]);
+        let root: String = crate::test_root::createTestDirectory(String::from("template-i18n"))?;
+        let themeDirectory: String = tsonic_rust_node::path::join(&[root.as_str(), "theme"]);
+        let siteDirectory: String = tsonic_rust_node::path::join(&[root.as_str(), "site"]);
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::create_directory(theme_directory.clone())?;
-            crate::test_root::create_directory(site_directory.clone())?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[theme_directory.as_str(), "en.toml"]),
-                String::from(
-                    "toggleMenu = \"Theme Menu\"\n[footer]\nbuiltWith = \"Built with {{ .Generator }}\"\n[list.page]\none = \"{{ .Count }} page\"\nother = \"{{ .Count }} pages\"\n",
-                ),
+            crate::test_root::createDirectory(&themeDirectory)?;
+            crate::test_root::createDirectory(&siteDirectory)?;
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[themeDirectory.as_str(), "en.toml"]),
+                "toggleMenu = \"Theme Menu\"\n[footer]\nbuiltWith = \"Built with {{ .Generator }}\"\n[list.page]\none = \"{{ .Count }} page\"\nother = \"{{ .Count }} pages\"\n",
             )?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[theme_directory.as_str(), "fr.json"]),
-                String::from("{\"local\":\"Locale française\"}"),
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[themeDirectory.as_str(), "fr.json"]),
+                "{\"local\":\"Locale française\"}",
             )?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[site_directory.as_str(), "en.yaml"]),
-                String::from(
-                    "- id: toggleMenu # site override\n  translation: Site Menu\n- id: legacy\n  translation: Legacy {{ .Name }}\n- id: continued\n  translation:\n    \"Continued scalar\"\n- id: folded\n  translation: >-\n    Folded\n    scalar\n- id: literal\n  translation: |\n    Literal\n    scalar\n- id: escapedQuoted\n  translation:\n    \"Generated with \\\n    exact continuity.\"\n- id: foldedQuoted\n  translation: \"Folded\n  quoted scalar\"\n- id: singleQuoted\n  translation:\n    'Single\n    quoted ''value'''\n- id: plainWithQuotes\n  translation: Tagged '{{ . }}'\n",
-                ),
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[siteDirectory.as_str(), "en.yaml"]),
+                "- id: toggleMenu # site override\n  translation: Site Menu\n- id: legacy\n  translation: Legacy {{ .Name }}\n- id: continued\n  translation:\n    \"Continued scalar\"\n- id: folded\n  translation: >-\n    Folded\n    scalar\n- id: literal\n  translation: |\n    Literal\n    scalar\n- id: escapedQuoted\n  translation:\n    \"Generated with \\\n    exact continuity.\"\n- id: foldedQuoted\n  translation: \"Folded\n  quoted scalar\"\n- id: singleQuoted\n  translation:\n    'Single\n    quoted ''value'''\n- id: plainWithQuotes\n  translation: Tagged '{{ . }}'\n",
             )?;
             let store: tsumo_engine::testing::I18nStore = tsumo_engine::testing::I18nStore::new()?;
-            {
-                let dispatch_receiver = store.clone();
-                dispatch_receiver
-                    .dispatch
-                    .clone()
-                    .dispatch_i18n_store_load_from_dir(theme_directory.clone())
-            }?;
-            {
-                let dispatch_receiver_2 = store.clone();
-                dispatch_receiver_2
-                    .dispatch
-                    .clone()
-                    .dispatch_i18n_store_load_from_dir(site_directory.clone())
-            }?;
-            crate::test_root::Assert::string_equal(
-                String::from("Site Menu"),
+            let noMounts: tsumo_engine::testing::LayoutEnvironment =
+                tsumo_engine::testing::LayoutEnvironment::new(
+                    root.clone(),
+                    Option::<String>::None,
+                    Some(js_abi::JsArray::from_dense(vec![])),
+                    None,
+                    None,
+                )?;
+            crate::test_root::Assert::StringEqual(
+                String::from("toggleMenu"),
                 Some({
-                    let dispatch_receiver_3 = store.clone();
-                    dispatch_receiver_3
+                    let dispatch_receiver_2 = {
+                        let dispatch_receiver = &noMounts;
+                        dispatch_receiver
+                            .dispatch
+                            .read_layout_environment_i18n_store()
+                    };
+                    dispatch_receiver_2
                         .dispatch
                         .clone()
-                        .dispatch_i18n_store_translate("en-US", String::from("toggleMenu"), None)
+                        .dispatch_i18n_store_translate("en", String::from("toggleMenu"), None)
                 }?),
             )?;
-            crate::test_root::Assert::string_equal(
-                String::from("{{ .Count }} page"),
+            let oneMount: tsumo_engine::testing::LayoutEnvironment =
+                tsumo_engine::testing::LayoutEnvironment::new(
+                    root.clone(),
+                    Option::<String>::None,
+                    Some(js_abi::JsArray::from_dense(vec![
+                        tsumo_engine::testing::ModuleMount::new(
+                            siteDirectory.clone(),
+                            String::from("i18n"),
+                        )?,
+                    ])),
+                    None,
+                    None,
+                )?;
+            crate::test_root::Assert::StringEqual(
+                String::from("Site Menu"),
                 Some({
-                    let dispatch_receiver_4 = store.clone();
+                    let dispatch_receiver_4 = {
+                        let dispatch_receiver_3 = &oneMount;
+                        dispatch_receiver_3
+                            .dispatch
+                            .read_layout_environment_i18n_store()
+                    };
                     dispatch_receiver_4
                         .dispatch
                         .clone()
-                        .dispatch_i18n_store_translate("en", String::from("list.page"), Some(1))
+                        .dispatch_i18n_store_translate("en", String::from("toggleMenu"), None)
                 }?),
             )?;
-            crate::test_root::Assert::string_equal(
-                String::from("{{ .Count }} pages"),
+            let layeredMounts: tsumo_engine::testing::LayoutEnvironment =
+                tsumo_engine::testing::LayoutEnvironment::new(
+                    root.clone(),
+                    Option::<String>::None,
+                    Some(js_abi::JsArray::from_dense(vec![
+                        tsumo_engine::testing::ModuleMount::new(
+                            themeDirectory.clone(),
+                            String::from("i18n"),
+                        )?,
+                        tsumo_engine::testing::ModuleMount::new(
+                            siteDirectory.clone(),
+                            String::from("i18n"),
+                        )?,
+                        tsumo_engine::testing::ModuleMount::new(
+                            siteDirectory.clone(),
+                            String::from("unrelated"),
+                        )?,
+                    ])),
+                    None,
+                    None,
+                )?;
+            crate::test_root::Assert::StringEqual(
+                String::from("Theme Menu"),
                 Some({
-                    let dispatch_receiver_5 = store.clone();
-                    dispatch_receiver_5
-                        .dispatch
-                        .clone()
-                        .dispatch_i18n_store_translate("en", String::from("list.page"), Some(2))
-                }?),
-            )?;
-            crate::test_root::Assert::string_equal(
-                String::from("Locale française"),
-                Some({
-                    let dispatch_receiver_6 = store.clone();
+                    let dispatch_receiver_6 = {
+                        let dispatch_receiver_5 = &layeredMounts;
+                        dispatch_receiver_5
+                            .dispatch
+                            .read_layout_environment_i18n_store()
+                    };
                     dispatch_receiver_6
                         .dispatch
                         .clone()
-                        .dispatch_i18n_store_translate("fr-FR", String::from("local"), None)
+                        .dispatch_i18n_store_translate("en", String::from("toggleMenu"), None)
                 }?),
             )?;
-            crate::test_root::Assert::string_equal(
-                String::from("Folded scalar"),
-                Some({
-                    let dispatch_receiver_7 = store.clone();
-                    dispatch_receiver_7
-                        .dispatch
-                        .clone()
-                        .dispatch_i18n_store_translate("en", String::from("folded"), None)
-                }?),
-            )?;
-            crate::test_root::Assert::string_equal(
-                String::from("Literal\nscalar\n"),
-                Some({
-                    let dispatch_receiver_8 = store.clone();
-                    dispatch_receiver_8
-                        .dispatch
-                        .clone()
-                        .dispatch_i18n_store_translate("en", String::from("literal"), None)
-                }?),
-            )?;
-            crate::test_root::Assert::string_equal(
-                String::from("Generated with exact continuity."),
+            {
+                let dispatch_receiver_7 = store.clone();
+                dispatch_receiver_7
+                    .dispatch
+                    .clone()
+                    .dispatch_i18n_store_load_from_dir(themeDirectory.clone())
+            }?;
+            {
+                let dispatch_receiver_8 = store.clone();
+                dispatch_receiver_8
+                    .dispatch
+                    .clone()
+                    .dispatch_i18n_store_load_from_dir(siteDirectory.clone())
+            }?;
+            crate::test_root::Assert::StringEqual(
+                String::from("Site Menu"),
                 Some({
                     let dispatch_receiver_9 = store.clone();
                     dispatch_receiver_9
                         .dispatch
                         .clone()
-                        .dispatch_i18n_store_translate("en", String::from("escapedQuoted"), None)
+                        .dispatch_i18n_store_translate("en-US", String::from("toggleMenu"), None)
                 }?),
             )?;
-            crate::test_root::Assert::string_equal(
-                String::from("Folded quoted scalar"),
+            crate::test_root::Assert::StringEqual(
+                String::from("{{ .Count }} page"),
                 Some({
                     let dispatch_receiver_10 = store.clone();
                     dispatch_receiver_10
                         .dispatch
                         .clone()
-                        .dispatch_i18n_store_translate("en", String::from("foldedQuoted"), None)
+                        .dispatch_i18n_store_translate("en", String::from("list.page"), Some(1))
                 }?),
             )?;
-            crate::test_root::Assert::string_equal(
-                String::from("Single quoted 'value'"),
+            crate::test_root::Assert::StringEqual(
+                String::from("{{ .Count }} pages"),
                 Some({
                     let dispatch_receiver_11 = store.clone();
                     dispatch_receiver_11
                         .dispatch
                         .clone()
-                        .dispatch_i18n_store_translate("en", String::from("singleQuoted"), None)
+                        .dispatch_i18n_store_translate("en", String::from("list.page"), Some(2))
                 }?),
             )?;
-            crate::test_root::Assert::string_equal(
-                String::from("Tagged '{{ . }}'"),
+            crate::test_root::Assert::StringEqual(
+                String::from("Locale française"),
                 Some({
                     let dispatch_receiver_12 = store.clone();
                     dispatch_receiver_12
+                        .dispatch
+                        .clone()
+                        .dispatch_i18n_store_translate("fr-FR", String::from("local"), None)
+                }?),
+            )?;
+            crate::test_root::Assert::StringEqual(
+                String::from("Folded scalar"),
+                Some({
+                    let dispatch_receiver_13 = store.clone();
+                    dispatch_receiver_13
+                        .dispatch
+                        .clone()
+                        .dispatch_i18n_store_translate("en", String::from("folded"), None)
+                }?),
+            )?;
+            crate::test_root::Assert::StringEqual(
+                String::from("Literal\nscalar\n"),
+                Some({
+                    let dispatch_receiver_14 = store.clone();
+                    dispatch_receiver_14
+                        .dispatch
+                        .clone()
+                        .dispatch_i18n_store_translate("en", String::from("literal"), None)
+                }?),
+            )?;
+            crate::test_root::Assert::StringEqual(
+                String::from("Generated with exact continuity."),
+                Some({
+                    let dispatch_receiver_15 = store.clone();
+                    dispatch_receiver_15
+                        .dispatch
+                        .clone()
+                        .dispatch_i18n_store_translate("en", String::from("escapedQuoted"), None)
+                }?),
+            )?;
+            crate::test_root::Assert::StringEqual(
+                String::from("Folded quoted scalar"),
+                Some({
+                    let dispatch_receiver_16 = store.clone();
+                    dispatch_receiver_16
+                        .dispatch
+                        .clone()
+                        .dispatch_i18n_store_translate("en", String::from("foldedQuoted"), None)
+                }?),
+            )?;
+            crate::test_root::Assert::StringEqual(
+                String::from("Single quoted 'value'"),
+                Some({
+                    let dispatch_receiver_17 = store.clone();
+                    dispatch_receiver_17
+                        .dispatch
+                        .clone()
+                        .dispatch_i18n_store_translate("en", String::from("singleQuoted"), None)
+                }?),
+            )?;
+            crate::test_root::Assert::StringEqual(
+                String::from("Tagged '{{ . }}'"),
+                Some({
+                    let dispatch_receiver_18 = store.clone();
+                    dispatch_receiver_18
                         .dispatch
                         .clone()
                         .dispatch_i18n_store_translate("en", String::from("plainWithQuotes"), None)
@@ -565,34 +649,34 @@ impl TemplateRuntimeTests {
                 let receiver = &environment;
                 let value = Some(store.clone());
                 {
-                    let dispatch_receiver_13 = receiver;
-                    dispatch_receiver_13
+                    let dispatch_receiver_19 = receiver;
+                    dispatch_receiver_19
                         .dispatch
                         .write_test_template_environment_i18n_store(value)?
                 }
             };
             let site: tsumo_engine::testing::SiteContext =
-                crate::template_test_harness::create_site()?;
+                crate::template_test_harness::createSite()?;
             let page: tsumo_engine::testing::PageContext =
-                crate::template_test_harness::create_page(
+                crate::template_test_harness::createPage(
                     site.clone(),
                     String::from("Home"),
                     String::from(""),
                     String::from("home"),
                 )?;
-            let template: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
+            let template: tsumo_engine::testing::Template = tsumo_engine::testing::parseTemplate(
                 String::from(
                     "{{ T \"toggleMenu\" }}|{{ T \"footer.builtWith\" (dict \"Generator\" \"<strong>Tsumo</strong>\") | safeHTML }}|{{ T \"list.page\" 1 }}|{{ T \"list.page\" 2 }}|{{ T \"legacy\" (dict \"Name\" \"Ada\") }}|{{ T \"continued\" }}",
                 ),
                 None,
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from(
                     "Site Menu|Built with <strong>Tsumo</strong>|1 page|2 pages|Legacy Ada|Continued scalar",
                 ),
                 Some({
-                    let dispatch_receiver_14 = environment.clone();
-                    dispatch_receiver_14
+                    let dispatch_receiver_20 = environment.clone();
+                    dispatch_receiver_20
                         .dispatch
                         .clone()
                         .dispatch_test_template_environment_render_template(
@@ -614,7 +698,7 @@ impl TemplateRuntimeTests {
         });
         let try_flow = try_body;
         let finally_flow: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::delete_test_directory(root.clone())?;
+            crate::test_root::deleteTestDirectory(&root)?;
             Ok(rt::Completion::Normal)
         });
         let try_flow: rt::TsonicResult<rt::Completion<()>> =
@@ -634,14 +718,14 @@ impl TemplateRuntimeTests {
     ) -> Result<(), rt::TsonicError> {
         let environment: crate::template_test_harness::TestTemplateEnvironment =
             crate::template_test_harness::TestTemplateEnvironment::new(None)?;
-        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
-        let page: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::createSite()?;
+        let page: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
             site.clone(),
             String::from("Home"),
             String::from(""),
             String::from("home"),
         )?;
-        let template: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
+        let template: tsumo_engine::testing::Template = tsumo_engine::testing::parseTemplate(
             String::from(
                 "{{ with (templates.Defer (dict \"key\" \"shared\")) }}{{ site.Store.Add \"runs\" 1 }}{{ site.Store.Get \"late\" }}{{ end }}{{ site.Store.Set \"late\" \"ready\" }}",
             ),
@@ -716,9 +800,9 @@ impl TemplateRuntimeTests {
                 },
             )?;
         }
-        crate::test_root::Assert::string_equal(String::from("ready"), Some(first))?;
-        crate::test_root::Assert::string_equal(String::from("ready"), Some(second))?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(String::from("ready"), Some(first))?;
+        crate::test_root::Assert::StringEqual(String::from("ready"), Some(second))?;
+        crate::test_root::Assert::StringEqual(
             String::from("1"),
             Some({
                 let dispatch_receiver_4 = environment.clone();
@@ -726,7 +810,7 @@ impl TemplateRuntimeTests {
                     .dispatch
                     .clone()
                     .dispatch_test_template_environment_render_template(
-                        tsumo_engine::testing::parse_template(
+                        tsumo_engine::testing::parseTemplate(
                             String::from("{{ site.Store.Get \"runs\" }}"),
                             None,
                         )?,
@@ -752,14 +836,14 @@ impl TemplateRuntimeTests {
     ) -> Result<(), rt::TsonicError> {
         let environment: crate::template_test_harness::TestTemplateEnvironment =
             crate::template_test_harness::TestTemplateEnvironment::new(None)?;
-        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
-        let page: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::createSite()?;
+        let page: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
             site.clone(),
             String::from("Home"),
             String::from(""),
             String::from("home"),
         )?;
-        let template: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
+        let template: tsumo_engine::testing::Template = tsumo_engine::testing::parseTemplate(
             String::from(
                 "{{ with (templates.Defer (dict \"key\" \"shared\")) }}first{{ end }}|{{ with (templates.Defer (dict \"key\" \"shared\")) }}second{{ end }}",
             ),
@@ -791,12 +875,7 @@ impl TemplateRuntimeTests {
                 .clone()
                 .dispatch_template_environment_finalize_deferred_templates()
         }?;
-        crate::test_root::Assert::number_equal(
-            2.0,
-            Some(rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
-                results.len(),
-            )?)),
-        )?;
+        crate::test_root::Assert::NumberEqual(2.0, Some(results.len() as f64))?;
         for token in results.keys() {
             let result: Option<String> = results.get(&token);
             if result.is_none() {
@@ -813,7 +892,7 @@ impl TemplateRuntimeTests {
                 },
             )?;
         }
-        crate::test_root::Assert::string_equal(String::from("first|second"), Some(output))?;
+        crate::test_root::Assert::StringEqual(String::from("first|second"), Some(output))?;
         Ok(())
     }
 
@@ -829,24 +908,24 @@ impl TemplateRuntimeTests {
             };
             operation_input_0.set_discard(
                 String::from("partials/selection"),
-                tsumo_engine::testing::parse_template(
+                tsumo_engine::testing::parseTemplate(
                     String::from("{{ return cond true \"selected\" \"rejected\" }}"),
                     Some(String::from("partials/selection")),
                 )?,
             )
         };
-        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
-        let root: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::createSite()?;
+        let root: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
             site.clone(),
             String::from("Home"),
             String::from(""),
             String::from("home"),
         )?;
-        let parent: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
+        let parent: tsumo_engine::testing::Template = tsumo_engine::testing::parseTemplate(
             String::from("{{ partial \"selection\" . }}"),
             Some(String::from("partials/parent")),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("selected"),
             Some({
                 let dispatch_receiver_2 = environment.clone();
@@ -874,33 +953,33 @@ impl TemplateRuntimeTests {
     pub fn template_string_literals_decode_exact_interpreted_and_raw_forms(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("line\nnext"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ print \"line\\nnext\" }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("line\\nnext"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ print `line\\nnext` }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from(""),
             Some(crate::template_test_harness::render(String::from(
                 "{{ print \"\\033\" }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("🔗"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ print \"\\U0001F517\" }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_TEMPLATE_STRING_ESCAPE_INVALID"),
-            Some(crate::template_test_harness::capture_diagnostic_code(
+            Some(crate::template_test_harness::captureDiagnosticCode(
                 rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
                     crate::template_test_harness::render(String::from("{{ print \"\\q\" }}"))?;
                     Ok::<_, rt::TsonicError>(())
@@ -913,25 +992,25 @@ impl TemplateRuntimeTests {
     pub fn template_text_compatibility_functions_are_deterministic(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("a-b---c"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ anchorize \"a b   c\" }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("-a-b--c-"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ anchorize \"< a, b, & c >\" }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("maingo|hugö"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ anchorize \"main.go\" }}|{{ anchorize \"Hugö\" }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("I ❤️ Tsumo :unknown:"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ emojify \"I :heart: Tsumo :unknown:\" }}",
@@ -943,81 +1022,81 @@ impl TemplateRuntimeTests {
     pub fn template_regular_expression_functions_preserve_matches_groups_and_limits(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("ab,ac"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ delimit (findRE `a.` `ab ac ad` 2) `,` }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("ab,ac,ad"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ delimit (findRE `a.` `ab ac ad`) `,` }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from(""),
             Some(crate::template_test_harness::render(String::from(
                 "{{ delimit (findRE `a.` `ab ac ad` 0) `,` }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from(",,"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ delimit (findRE `(?:)` `ab`) `,` }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("item42|item|42|item|42"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ range findRESubmatch `([a-z]+)([0-9]+)` `item42` }}{{ delimit . `|` }}|{{ index . 1 }}|{{ index . 2 }}{{ end }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("b|"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ range findRESubmatch `(a)?b` `b` }}{{ delimit . `|` }}{{ end }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("x2 item3"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ replaceRE `item` `x` `item2 item3` 1 }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("x2 x3"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ replaceRE `item` `x` `item2 item3` }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("item2 item3"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ replaceRE `item` `x` `item2 item3` 0 }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("&lt;&gt;a2"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ replaceRE `(a)?b` `<$1>` `b` 1 }}{{ replaceRE `(a)` `$12` `a` 1 }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("a|$00"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ replaceRE `(a)` `$01` `a` 1 }}|{{ replaceRE `(a)` `$00` `a` 1 }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("item-42-$-item42"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ replaceRE `(?<word>[a-z]+)([0-9]+)` `$<word>-$2-$$-$&` `item42` 1 }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_TEMPLATE_REGEXP_INVALID"),
-            Some(crate::template_test_harness::capture_diagnostic_code(
+            Some(crate::template_test_harness::captureDiagnosticCode(
                 rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
                     crate::template_test_harness::render(String::from("{{ findRE `(` `value` }}"))?;
                     Ok::<_, rt::TsonicError>(())
@@ -1027,82 +1106,85 @@ impl TemplateRuntimeTests {
         Ok(())
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn template_scanning_preserves_unicode_scalars_and_utf16_locations(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("before 🔗 after"),
             Some(crate::template_test_harness::render(String::from(
                 "before 🔗 after",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("🔗"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ print \"🔗\" }}",
             ))?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("🔗"),
             Some(crate::template_test_harness::render(String::from(
                 "{{ \"<span>🔗</span>\" | plainify }}",
             ))?),
         )?;
         let located: tsumo_engine::TsumoDiagnostic =
-            crate::template_test_harness::capture_diagnostic(rt::Callable::<
+            crate::template_test_harness::captureDiagnostic(rt::Callable::<
                 (),
                 rt::TsonicResult<()>,
             >::new(
                 move |_callable_arguments| {
-                    tsumo_engine::testing::parse_template(
+                    tsumo_engine::testing::parseTemplate(
                         String::from("🔗{{ if true"),
                         Some(String::from("layouts/unicode.html")),
                     )?;
                     Ok::<_, rt::TsonicError>(())
                 },
             ))?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_TEMPLATE_ACTION_UNCLOSED"),
             Some({
                 let dispatch_receiver = &located;
                 dispatch_receiver.dispatch.read_tsumo_diagnostic_code()
             }),
         )?;
-        crate::test_root::Assert::number_equal(1.0, {
-            let dispatch_receiver_2 = &located;
-            dispatch_receiver_2.dispatch.read_tsumo_diagnostic_line()
-        })?;
-        crate::test_root::Assert::number_equal(3.0, {
-            let dispatch_receiver_3 = &located;
-            dispatch_receiver_3.dispatch.read_tsumo_diagnostic_column()
-        })?;
-        let large_template_lines: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
+        crate::test_root::Assert::NumberEqual(
+            1.0,
+            {
+                let dispatch_receiver_2 = &located;
+                dispatch_receiver_2.dispatch.read_tsumo_diagnostic_line()
+            }
+            .map(rt::conversions::i32_to_f64),
+        )?;
+        crate::test_root::Assert::NumberEqual(
+            3.0,
+            {
+                let dispatch_receiver_3 = &located;
+                dispatch_receiver_3.dispatch.read_tsumo_diagnostic_column()
+            }
+            .map(rt::conversions::i32_to_f64),
+        )?;
+        let largeTemplateLines: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
         {
             let mut index: f64 = 0.0;
             while index < 2000.0 {
-                {
-                    let operation_input_0 = large_template_lines.clone();
-                    operation_input_0.push_many_discard([format!(
-                        "{}{}{}{}{}",
-                        String::from("line "),
-                        rt::source_string(&index),
-                        String::from(": {{ print \""),
-                        rt::source_string(&index),
-                        String::from("\" }}")
-                    )])
-                };
+                largeTemplateLines.push_many_discard([format!(
+                    "{}{}{}{}{}",
+                    String::from("line "),
+                    rt::source_string(&index),
+                    String::from(": {{ print \""),
+                    rt::source_string(&index),
+                    String::from("\" }}")
+                )]);
                 index += 1.0;
             }
         }
-        crate::test_root::Assert::r#true({
-            let _ = tsumo_engine::testing::parse_template(
-                large_template_lines.join("\n"),
+        crate::test_root::Assert::True({
+            let _ = tsumo_engine::testing::parseTemplate(
+                largeTemplateLines.join("\n"),
                 Some(String::from("layouts/large.html")),
             )?;
-            {
-                let _ = rt::Undefined;
-                true
-            }
+            true
         })?;
         Ok(())
     }
@@ -1111,11 +1193,11 @@ impl TemplateRuntimeTests {
         let source: String = String::from(
             "{{ range $key, $value := dict \"z\" \"last\" \"a\" \"first\" }}{{$key}}={{$value}};{{end}}",
         );
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("a=first;z=last;"),
             Some(crate::template_test_harness::render(source.clone())?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("a=first;z=last;"),
             Some(crate::template_test_harness::render(source)?),
         )?;
@@ -1123,20 +1205,20 @@ impl TemplateRuntimeTests {
     }
 
     pub fn parser_reports_exact_malformed_input_diagnostics(&self) -> Result<(), rt::TsonicError> {
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_TEMPLATE_ACTION_UNCLOSED"),
-            Some(crate::template_test_harness::capture_diagnostic_code(
+            Some(crate::template_test_harness::captureDiagnosticCode(
                 rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                    tsumo_engine::testing::parse_template(String::from("before {{ if true"), None)?;
+                    tsumo_engine::testing::parseTemplate(String::from("before {{ if true"), None)?;
                     Ok::<_, rt::TsonicError>(())
                 }),
             )?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_TEMPLATE_STRING_UNCLOSED"),
-            Some(crate::template_test_harness::capture_diagnostic_code(
+            Some(crate::template_test_harness::captureDiagnosticCode(
                 rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
-                    tsumo_engine::testing::parse_template(
+                    tsumo_engine::testing::parseTemplate(
                         String::from("{{ print \"unterminated }}"),
                         None,
                     )?;
@@ -1144,20 +1226,20 @@ impl TemplateRuntimeTests {
                 }),
             )?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_TEMPLATE_BLOCK_UNCLOSED"),
-            Some(crate::template_test_harness::capture_diagnostic_code(
+            Some(crate::template_test_harness::captureDiagnosticCode(
                 rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_3| {
-                    tsumo_engine::testing::parse_template(String::from("{{ if true }}body"), None)?;
+                    tsumo_engine::testing::parseTemplate(String::from("{{ if true }}body"), None)?;
                     Ok::<_, rt::TsonicError>(())
                 }),
             )?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_TEMPLATE_DEFINE_DUPLICATE"),
-            Some(crate::template_test_harness::capture_diagnostic_code(
+            Some(crate::template_test_harness::captureDiagnosticCode(
                 rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_4| {
-                    tsumo_engine::testing::parse_template(
+                    tsumo_engine::testing::parseTemplate(
                         String::from("{{ define \"x\" }}a{{ end }}{{ define \"x\" }}b{{ end }}"),
                         None,
                     )?;
@@ -1166,37 +1248,45 @@ impl TemplateRuntimeTests {
             )?),
         )?;
         let located: tsumo_engine::TsumoDiagnostic =
-            crate::template_test_harness::capture_diagnostic(rt::Callable::<
+            crate::template_test_harness::captureDiagnostic(rt::Callable::<
                 (),
                 rt::TsonicResult<()>,
             >::new(
                 move |_callable_arguments_5| {
-                    tsumo_engine::testing::parse_template(
+                    tsumo_engine::testing::parseTemplate(
                         String::from("first\n{{ if true"),
                         Some(String::from("layouts/single.html")),
                     )?;
                     Ok::<_, rt::TsonicError>(())
                 },
             ))?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_TEMPLATE_ACTION_UNCLOSED"),
             Some({
                 let dispatch_receiver = &located;
                 dispatch_receiver.dispatch.read_tsumo_diagnostic_code()
             }),
         )?;
-        crate::test_root::Assert::string_equal(String::from("layouts/single.html"), {
+        crate::test_root::Assert::StringEqual(String::from("layouts/single.html"), {
             let dispatch_receiver_2 = &located;
             dispatch_receiver_2.dispatch.read_tsumo_diagnostic_file()
         })?;
-        crate::test_root::Assert::number_equal(2.0, {
-            let dispatch_receiver_3 = &located;
-            dispatch_receiver_3.dispatch.read_tsumo_diagnostic_line()
-        })?;
-        crate::test_root::Assert::number_equal(1.0, {
-            let dispatch_receiver_4 = &located;
-            dispatch_receiver_4.dispatch.read_tsumo_diagnostic_column()
-        })?;
+        crate::test_root::Assert::NumberEqual(
+            2.0,
+            {
+                let dispatch_receiver_3 = &located;
+                dispatch_receiver_3.dispatch.read_tsumo_diagnostic_line()
+            }
+            .map(rt::conversions::i32_to_f64),
+        )?;
+        crate::test_root::Assert::NumberEqual(
+            1.0,
+            {
+                let dispatch_receiver_4 = &located;
+                dispatch_receiver_4.dispatch.read_tsumo_diagnostic_column()
+            }
+            .map(rt::conversions::i32_to_f64),
+        )?;
         Ok(())
     }
 
@@ -1204,42 +1294,50 @@ impl TemplateRuntimeTests {
         &self,
     ) -> Result<(), rt::TsonicError> {
         let unclosed: tsumo_engine::TsumoDiagnostic =
-            crate::template_test_harness::capture_diagnostic(rt::Callable::<
+            crate::template_test_harness::captureDiagnostic(rt::Callable::<
                 (),
                 rt::TsonicResult<()>,
             >::new(
                 move |_callable_arguments| {
-                    tsumo_engine::testing::parse_shortcodes(
+                    tsumo_engine::testing::parseShortcodes(
                         String::from("first\n{{< figure"),
                         Some(String::from("content/post.md")),
                     )?;
                     Ok::<_, rt::TsonicError>(())
                 },
             ))?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_SHORTCODE_ACTION_UNCLOSED"),
             Some({
                 let dispatch_receiver = &unclosed;
                 dispatch_receiver.dispatch.read_tsumo_diagnostic_code()
             }),
         )?;
-        crate::test_root::Assert::string_equal(String::from("content/post.md"), {
+        crate::test_root::Assert::StringEqual(String::from("content/post.md"), {
             let dispatch_receiver_2 = &unclosed;
             dispatch_receiver_2.dispatch.read_tsumo_diagnostic_file()
         })?;
-        crate::test_root::Assert::number_equal(2.0, {
-            let dispatch_receiver_3 = &unclosed;
-            dispatch_receiver_3.dispatch.read_tsumo_diagnostic_line()
-        })?;
-        crate::test_root::Assert::number_equal(1.0, {
-            let dispatch_receiver_4 = &unclosed;
-            dispatch_receiver_4.dispatch.read_tsumo_diagnostic_column()
-        })?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::NumberEqual(
+            2.0,
+            {
+                let dispatch_receiver_3 = &unclosed;
+                dispatch_receiver_3.dispatch.read_tsumo_diagnostic_line()
+            }
+            .map(rt::conversions::i32_to_f64),
+        )?;
+        crate::test_root::Assert::NumberEqual(
+            1.0,
+            {
+                let dispatch_receiver_4 = &unclosed;
+                dispatch_receiver_4.dispatch.read_tsumo_diagnostic_column()
+            }
+            .map(rt::conversions::i32_to_f64),
+        )?;
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_SHORTCODE_PARAMETER_DUPLICATE"),
-            Some(crate::template_test_harness::capture_diagnostic_code(
+            Some(crate::template_test_harness::captureDiagnosticCode(
                 rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
-                    tsumo_engine::testing::parse_shortcodes(
+                    tsumo_engine::testing::parseShortcodes(
                         String::from("{{< figure src='one' src='two' >}}"),
                         Some(String::from("content/post.md")),
                     )?;
@@ -1247,11 +1345,11 @@ impl TemplateRuntimeTests {
                 }),
             )?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_SHORTCODE_PARAMETER_STYLE_MIXED"),
-            Some(crate::template_test_harness::capture_diagnostic_code(
+            Some(crate::template_test_harness::captureDiagnosticCode(
                 rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_3| {
-                    tsumo_engine::testing::parse_shortcodes(
+                    tsumo_engine::testing::parseShortcodes(
                         String::from("{{< figure 'one' src='two' >}}"),
                         Some(String::from("content/post.md")),
                     )?;
@@ -1260,17 +1358,12 @@ impl TemplateRuntimeTests {
             )?),
         )?;
         let quoted: js_abi::JsArray<tsumo_engine::shortcode::ShortcodeCall> =
-            tsumo_engine::testing::parse_shortcodes(
+            tsumo_engine::testing::parseShortcodes(
                 String::from("{{< figure caption=\"\" published=\"true\" count=2 >}}"),
                 Some(String::from("content/post.md")),
             )?;
-        crate::test_root::Assert::number_equal(
-            1.0,
-            Some(rt::conversions::i32_to_f64(rt::conversions::usize_to_i32(
-                quoted.len(),
-            )?)),
-        )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::NumberEqual(1.0, Some(quoted.len() as f64))?;
+        crate::test_root::Assert::StringEqual(
             String::from(""),
             match quoted.get_number(0.0) {
                 Some(flow_value) => flow_value,
@@ -1285,7 +1378,7 @@ impl TemplateRuntimeTests {
                 dispatch_receiver_5.dispatch.read_param_value_string_value()
             }),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("true"),
             match quoted.get_number(0.0) {
                 Some(flow_value_2) => flow_value_2,
@@ -1300,7 +1393,7 @@ impl TemplateRuntimeTests {
                 dispatch_receiver_6.dispatch.read_param_value_string_value()
             }),
         )?;
-        crate::test_root::Assert::number_equal(
+        crate::test_root::Assert::NumberEqual(
             2.0,
             match quoted.get_number(0.0) {
                 Some(flow_value_3) => flow_value_3,
@@ -1322,45 +1415,45 @@ impl TemplateRuntimeTests {
     pub fn evaluator_reports_exact_unknown_and_invalid_operations(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_TEMPLATE_UNKNOWN_FUNCTION"),
-            Some(crate::template_test_harness::capture_diagnostic_code(
+            Some(crate::template_test_harness::captureDiagnosticCode(
                 rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
                     crate::template_test_harness::render(String::from("{{ imaginary \"x\" }}"))?;
                     Ok::<_, rt::TsonicError>(())
                 }),
             )?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_TEMPLATE_FUNCTION_ARGUMENTS_INVALID"),
-            Some(crate::template_test_harness::capture_diagnostic_code(
+            Some(crate::template_test_harness::captureDiagnosticCode(
                 rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
                     crate::template_test_harness::render(String::from("{{ div 1 }}"))?;
                     Ok::<_, rt::TsonicError>(())
                 }),
             )?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_TEMPLATE_DIVIDE_BY_ZERO"),
-            Some(crate::template_test_harness::capture_diagnostic_code(
+            Some(crate::template_test_harness::captureDiagnosticCode(
                 rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_3| {
                     crate::template_test_harness::render(String::from("{{ div 4 0 }}"))?;
                     Ok::<_, rt::TsonicError>(())
                 }),
             )?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_TEMPLATE_MODULO_BY_ZERO"),
-            Some(crate::template_test_harness::capture_diagnostic_code(
+            Some(crate::template_test_harness::captureDiagnosticCode(
                 rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_4| {
                     crate::template_test_harness::render(String::from("{{ mod 4 0 }}"))?;
                     Ok::<_, rt::TsonicError>(())
                 }),
             )?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_TEMPLATE_PARTIAL_MISSING"),
-            Some(crate::template_test_harness::capture_diagnostic_code(
+            Some(crate::template_test_harness::captureDiagnosticCode(
                 rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_5| {
                     crate::template_test_harness::render(String::from(
                         "{{ partial \"absent\" . }}",
@@ -1369,9 +1462,9 @@ impl TemplateRuntimeTests {
                 }),
             )?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_TEMPLATE_METHOD_UNKNOWN"),
-            Some(crate::template_test_harness::capture_diagnostic_code(
+            Some(crate::template_test_harness::captureDiagnosticCode(
                 rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_6| {
                     crate::template_test_harness::render(String::from(
                         "{{ (\"value\").Missing \"argument\" }}",
@@ -1380,9 +1473,9 @@ impl TemplateRuntimeTests {
                 }),
             )?),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("TSUMO_TEMPLATE_METHOD_UNKNOWN"),
-            Some(crate::template_test_harness::capture_diagnostic_code(
+            Some(crate::template_test_harness::captureDiagnosticCode(
                 rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_7| {
                     crate::template_test_harness::render(String::from(
                         "{{ $value := slice \"item\" }}{{ $value.Missing \"argument\" }}",
@@ -1409,9 +1502,9 @@ impl TemplateRuntimeTests {
                 }
             })
         };
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("exact"),
-            Some(crate::template_test_harness::render_with_root(
+            Some(crate::template_test_harness::renderWithRoot(
                 String::from("{{ .message }}"),
                 {
                     let upcast_value_2 = tsumo_engine::testing::DictValue::new(values.clone())?;
@@ -1432,9 +1525,10 @@ impl Default for TemplateRuntimeTests {
     }
 }
 
-pub fn run_template_runtime_tests() -> Result<(), rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn runTemplateRuntimeTests() -> Result<(), rt::TsonicError> {
     let tests: TemplateRuntimeTests = TemplateRuntimeTests::new();
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("parser and evaluator render control flow and pipeline"),
         {
             let capture_tests = tests.clone();
@@ -1444,7 +1538,7 @@ pub fn run_template_runtime_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("collection functions preserve exact split segments"),
         {
             let capture_tests_2 = tests.clone();
@@ -1454,7 +1548,7 @@ pub fn run_template_runtime_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("collection union accepts slices and nil without collapsing distinct values"),
         {
             let capture_tests_3 = tests.clone();
@@ -1465,7 +1559,7 @@ pub fn run_template_runtime_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("page HasShortcode uses the exact parsed page inventory"),
         {
             let capture_tests_4 = tests.clone();
@@ -1475,7 +1569,7 @@ pub fn run_template_runtime_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("return evaluates its complete value expression"),
         {
             let capture_tests_5 = tests.clone();
@@ -1485,14 +1579,14 @@ pub fn run_template_runtime_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(String::from("hugo Sites exposes the checked site graph"), {
+    crate::test_root::runTest(String::from("hugo Sites exposes the checked site graph"), {
         let capture_tests_6 = tests.clone();
         rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_6| {
             capture_tests_6.hugo_sites_exposes_the_checked_site_graph()?;
             Ok::<_, rt::TsonicError>(())
         })
     })?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("related pages use exact default keyword and tag evidence"),
         {
             let capture_tests_7 = tests.clone();
@@ -1502,7 +1596,7 @@ pub fn run_template_runtime_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("css Build applies its closed resource options"),
         {
             let capture_tests_8 = tests.clone();
@@ -1512,7 +1606,7 @@ pub fn run_template_runtime_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("i18n layers parse structured formats and render plural context"),
         {
             let capture_tests_9 = tests.clone();
@@ -1522,7 +1616,7 @@ pub fn run_template_runtime_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("deferred templates finalize after normal render and share keyed results"),
         {
             let capture_tests_10 = tests.clone();
@@ -1533,7 +1627,7 @@ pub fn run_template_runtime_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("deferred templates distinguish authored occurrences with the same key"),
         {
             let capture_tests_11 = tests.clone();
@@ -1544,7 +1638,7 @@ pub fn run_template_runtime_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("template string literals decode exact interpreted and raw forms"),
         {
             let capture_tests_12 = tests.clone();
@@ -1555,7 +1649,7 @@ pub fn run_template_runtime_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("template text compatibility functions are deterministic"),
         {
             let capture_tests_13 = tests.clone();
@@ -1565,7 +1659,7 @@ pub fn run_template_runtime_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("template regular expression functions preserve matches, groups, and limits"),
         {
             let capture_tests_14 = tests.clone();
@@ -1576,7 +1670,7 @@ pub fn run_template_runtime_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("template scanning preserves Unicode scalars and UTF-16 locations"),
         {
             let capture_tests_15 = tests.clone();
@@ -1587,14 +1681,14 @@ pub fn run_template_runtime_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(String::from("dictionary range order is deterministic"), {
+    crate::test_root::runTest(String::from("dictionary range order is deterministic"), {
         let capture_tests_16 = tests.clone();
         rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_16| {
             capture_tests_16.dictionary_range_order_is_deterministic()?;
             Ok::<_, rt::TsonicError>(())
         })
     })?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("parser reports exact malformed input diagnostics"),
         {
             let capture_tests_17 = tests.clone();
@@ -1604,7 +1698,7 @@ pub fn run_template_runtime_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("shortcode parser rejects ambiguous input with exact locations"),
         {
             let capture_tests_18 = tests.clone();
@@ -1614,7 +1708,7 @@ pub fn run_template_runtime_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("evaluator reports exact unknown and invalid operations"),
         {
             let capture_tests_19 = tests.clone();
@@ -1624,7 +1718,7 @@ pub fn run_template_runtime_tests() -> Result<(), rt::TsonicError> {
             })
         },
     )?;
-    crate::test_root::run_test(
+    crate::test_root::runTest(
         String::from("dictionary values are resolved without name fallbacks"),
         {
             let capture_tests_20 = tests.clone();

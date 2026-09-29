@@ -46,7 +46,7 @@ namespace Tsumo.Engine
         {
             if (this.IsNamedParams)
             {
-                return Tsonic.CSharp.Js.Map.getReference<string, ParamValue>(this.Params, keyOrIndex);
+                return Tsonic.CSharp.Js.Map.getOptional<string, ParamValue>(this.Params, keyOrIndex);
             }
             int? idx = Utils_int32.parseInt32(keyOrIndex);
             if (idx is not null && idx.Value >= 0 && idx.Value < this.positionalParams.length)

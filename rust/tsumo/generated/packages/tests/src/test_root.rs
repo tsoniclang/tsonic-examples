@@ -5,7 +5,8 @@ use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
 std::thread_local! {
-    pub(crate) static COMPLETED_TESTS: rt::ModuleCell<f64> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub(crate) static completedTests: rt::ModuleCell<f64> = const { rt::ModuleCell::new() };
 }
 
 pub(crate) struct AssertState {}
@@ -29,7 +30,8 @@ impl Assert {
         }
     }
 
-    pub fn string_equal(expected: String, actual: Option<String>) -> Result<(), rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn StringEqual(expected: String, actual: Option<String>) -> Result<(), rt::TsonicError> {
         if actual.is_none() {
             return Err(rt::TsonicError::from(rt::JsError::error(&format!(
                 "{}{}{}",
@@ -54,7 +56,8 @@ impl Assert {
         Ok(())
     }
 
-    pub fn number_equal(expected: f64, actual: Option<f64>) -> Result<(), rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn NumberEqual(expected: f64, actual: Option<f64>) -> Result<(), rt::TsonicError> {
         if actual.is_none() {
             return Err(rt::TsonicError::from(rt::JsError::error(&format!(
                 "{}{}{}",
@@ -78,7 +81,8 @@ impl Assert {
         Ok(())
     }
 
-    pub fn r#true(value: bool) -> Result<(), rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn True(value: bool) -> Result<(), rt::TsonicError> {
         if !value {
             return Err(rt::TsonicError::from(rt::JsError::error(
                 "Expected value to be true",
@@ -87,7 +91,8 @@ impl Assert {
         Ok(())
     }
 
-    pub fn r#false(value: bool) -> Result<(), rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn False(value: bool) -> Result<(), rt::TsonicError> {
         if value {
             return Err(rt::TsonicError::from(rt::JsError::error(
                 "Expected value to be false",
@@ -96,26 +101,25 @@ impl Assert {
         Ok(())
     }
 
-    pub fn string_array_equal(
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn StringArrayEqual(
         expected: js_abi::JsArray<String>,
         actual: js_abi::JsArray<String>,
     ) -> Result<(), rt::TsonicError> {
-        if rt::conversions::usize_to_i32(actual.len())?
-            != rt::conversions::usize_to_i32(expected.len())?
-        {
+        if actual.len() != expected.len() {
             return Err(rt::TsonicError::from(rt::JsError::error(
                 "Expected arrays to have equal length",
             )));
         }
         {
-            let mut index: f64 = 0.0;
-            while index < (rt::conversions::usize_to_i32(expected.len())? as f64) {
+            let mut index: usize = 0;
+            while index < expected.len() {
                 if actual.get_number(index) != expected.get_number(index) {
                     return Err(rt::TsonicError::from(rt::JsError::error(
                         "Expected arrays to contain equal values",
                     )));
                 }
-                index += 1.0;
+                index += 1;
             }
         }
         Ok(())
@@ -128,11 +132,12 @@ impl Default for Assert {
     }
 }
 
-pub fn create_test_directory(name: String) -> Result<String, rt::TsonicError> {
-    let configured_root: Option<String> =
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn createTestDirectory(name: String) -> Result<String, rt::TsonicError> {
+    let configuredRoot: Option<String> =
         tsonic_rust_node::process::environment().get("TSUMO_TEST_ROOT");
-    if configured_root.is_none()
-        || js_string::trim(&match configured_root.as_ref() {
+    if configuredRoot.is_none()
+        || js_string::trim(&match configuredRoot.as_ref() {
             Some(flow_value) => flow_value.clone(),
             None => unreachable!("checked flow selected a missing optional value"),
         })
@@ -142,7 +147,7 @@ pub fn create_test_directory(name: String) -> Result<String, rt::TsonicError> {
             "TSUMO_TEST_ROOT must name the test-owned scratch directory",
         )));
     }
-    let root: String = tsonic_rust_node::path::resolve(&[match configured_root.as_ref() {
+    let root: String = tsonic_rust_node::path::resolve(&[match configuredRoot.as_ref() {
         Some(flow_value_2) => flow_value_2.clone(),
         None => unreachable!("checked flow selected a missing optional value"),
     }
@@ -167,9 +172,10 @@ pub fn create_test_directory(name: String) -> Result<String, rt::TsonicError> {
     .map_err(rt::TsonicError::from)
 }
 
-pub fn create_directory(path: String) -> Result<(), rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn createDirectory(path: &str) -> Result<(), rt::TsonicError> {
     tsonic_rust_node::fs::mkdir_sync_with_options(
-        path.as_str(),
+        path,
         tsonic_rust_node::fs::MakeDirectoryOptions {
             recursive: Some(true),
             ..Default::default()
@@ -178,39 +184,44 @@ pub fn create_directory(path: String) -> Result<(), rt::TsonicError> {
     Ok(())
 }
 
-pub fn write_text_file(path: String, content: String) -> Result<(), rt::TsonicError> {
-    tsonic_rust_node::fs::write_file_sync_string(path.as_str(), content.as_str(), "utf-8")?;
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn writeTextFile(path: &str, content: &str) -> Result<(), rt::TsonicError> {
+    tsonic_rust_node::fs::write_file_sync_string(path, content, "utf-8")?;
     Ok(())
 }
 
-pub fn read_text_file(path: String) -> Result<String, rt::TsonicError> {
-    tsonic_rust_node::fs::read_file_sync_string(path.as_str(), "utf-8")
-        .map_err(rt::TsonicError::from)
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn readTextFile(path: &str) -> Result<String, rt::TsonicError> {
+    tsonic_rust_node::fs::read_file_sync_string(path, "utf-8").map_err(rt::TsonicError::from)
 }
 
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 #[allow(dead_code, reason = "retains an unused authored declaration")]
-pub fn path_exists(path: String) -> bool {
-    tsonic_rust_node::fs::exists_sync(path.as_str())
+pub fn pathExists(path: &str) -> bool {
+    tsonic_rust_node::fs::exists_sync(path)
 }
 
-pub fn directory_exists(path: String) -> Result<bool, rt::TsonicError> {
-    Ok(tsonic_rust_node::fs::exists_sync(path.as_str())
-        && tsonic_rust_node::fs::stat_sync(path.as_str())?.is_directory())
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn directoryExists(path: &str) -> Result<bool, rt::TsonicError> {
+    Ok(tsonic_rust_node::fs::exists_sync(path)
+        && tsonic_rust_node::fs::stat_sync(path)?.is_directory())
 }
 
-pub fn file_exists(path: String) -> Result<bool, rt::TsonicError> {
-    Ok(tsonic_rust_node::fs::exists_sync(path.as_str())
-        && tsonic_rust_node::fs::stat_sync(path.as_str())?.is_file())
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn fileExists(path: &str) -> Result<bool, rt::TsonicError> {
+    Ok(tsonic_rust_node::fs::exists_sync(path) && tsonic_rust_node::fs::stat_sync(path)?.is_file())
 }
 
-pub fn create_symbolic_link(target: String, path: String) -> Result<(), rt::TsonicError> {
-    tsonic_rust_node::fs::symlink_sync(target.as_str(), path.as_str())?;
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn createSymbolicLink(target: &str, path: &str) -> Result<(), rt::TsonicError> {
+    tsonic_rust_node::fs::symlink_sync(target, path)?;
     Ok(())
 }
 
-pub fn delete_test_directory(path: String) -> Result<(), rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn deleteTestDirectory(path: &str) -> Result<(), rt::TsonicError> {
     tsonic_rust_node::fs::rm_sync_with_options(
-        path.as_str(),
+        path,
         tsonic_rust_node::fs::RmOptions {
             recursive: Some(true),
             force: Some(true),
@@ -220,7 +231,8 @@ pub fn delete_test_directory(path: String) -> Result<(), rt::TsonicError> {
     Ok(())
 }
 
-pub fn run_test(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn runTest(
     name: String,
     operation: rt::Callable<(), rt::TsonicResult<()>>,
 ) -> Result<(), rt::TsonicError> {
@@ -247,7 +259,7 @@ pub fn run_test(
         }
     }
     {
-        let update_location = COMPLETED_TESTS
+        let update_location = completedTests
             .with(|module_binding| module_binding.location())
             .clone();
         let update_previous = update_location.load();
@@ -265,17 +277,18 @@ pub fn run_test(
     Ok(())
 }
 
-pub fn complete_tests(expected_tests: f64) -> Result<(), rt::TsonicError> {
-    if COMPLETED_TESTS.with(|module_binding| module_binding.load()) != expected_tests {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn completeTests(expectedTests: f64) -> Result<(), rt::TsonicError> {
+    if completedTests.with(|module_binding| module_binding.load()) != expectedTests {
         return Err(rt::TsonicError::from(rt::JsError::error(
             "Test inventory did not execute completely",
         )));
     }
     js_abi::console_log(&[js_abi::js_value_from_string(&format!(
         "{}{}{}{}",
-        rt::source_string(&COMPLETED_TESTS.with(|module_binding| module_binding.load())),
+        rt::source_string(&completedTests.with(|module_binding| module_binding.load())),
         String::from("/"),
-        rt::source_string(&expected_tests),
+        rt::source_string(&expectedTests),
         String::from(" tests passed")
     ))]);
     Ok(())
@@ -285,6 +298,6 @@ pub fn complete_tests(expected_tests: f64) -> Result<(), rt::TsonicError> {
 pub fn module_init() {
     {
         let module_value = 0.0;
-        COMPLETED_TESTS.with(|module_binding| module_binding.initialize(module_value))
+        completedTests.with(|module_binding| module_binding.initialize(module_value))
     };
 }

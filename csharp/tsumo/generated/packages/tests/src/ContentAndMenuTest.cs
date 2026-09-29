@@ -239,6 +239,7 @@ namespace Tsumo.Tests
                 """);
                 SiteConfig config = new SiteConfig("Test", "https://example.invalid/", "en", null, null);
                 StandardPageGraph graph = Node_modules_Tsumo_engine_src_build_standardPageGraph.createStandardPageGraph(config, Node_modules_Tsumo_engine_src_build_discoverContent.discoverContent(root, false));
+                Xunit.Assert.Equal("|posts|posts/series", Tsonic.CSharp.Js.Array.join(graph.listRoutes, "|"));
                 StandardTaxonomyGraph taxonomies = Node_modules_Tsumo_engine_src_build_standardTaxonomies.createStandardTaxonomies(graph);
                 PageContext page = graph.contentPages[0];
                 PageContext? parent = page.parent;
@@ -261,13 +262,13 @@ namespace Tsumo.Tests
                 Xunit.Assert.Equal("/", home.relPermalink);
                 Xunit.Assert.Equal<double>(1, home.pages.length);
                 Xunit.Assert.Equal<double>(2, taxonomies.taxonomies.length);
-                Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<PageContext>>? tags = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<PageContext>>>(graph.site.Taxonomies, "tags");
+                Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<PageContext>>? tags = Tsonic.CSharp.Js.Map.getOptional<string, Tsonic.CSharp.Js.Map<string, Tsonic.CSharp.Js.JSArray<PageContext>>>(graph.site.Taxonomies, "tags");
                 Xunit.Assert.True(tags is not null);
                 if (tags is null)
                 {
                     throw new Tsonic.CSharp.Runtime.Error("Expected tags taxonomy");
                 }
-                Tsonic.CSharp.Js.JSArray<PageContext>? tagPages = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<PageContext>>(tags, "alpha");
+                Tsonic.CSharp.Js.JSArray<PageContext>? tagPages = Tsonic.CSharp.Js.Map.getOptional<string, Tsonic.CSharp.Js.JSArray<PageContext>>(tags, "alpha");
                 Xunit.Assert.True(tagPages is not null);
                 Xunit.Assert.Equal<double>(8, graph.site.allPages.length);
             }

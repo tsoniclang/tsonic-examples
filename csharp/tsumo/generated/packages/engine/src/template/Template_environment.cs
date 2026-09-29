@@ -93,7 +93,7 @@ namespace Tsumo.Engine
             DeferredTemplateRequest? request = null;
             if (value.key is not null)
             {
-                for (double index = 0; index < this.deferredRequests.length; index++)
+                for (int index = 0; index < this.deferredRequests.length; index++)
                 {
                     DeferredTemplateRequest candidate = this.deferredRequests[index];
                     if (candidate.key == value.key && candidate.sourcePath == sourcePath && candidate.sourceText == sourceText && candidate.sourceSegmentIndex == sourceSegmentIndex)
@@ -122,7 +122,7 @@ namespace Tsumo.Engine
             if (this.deferredPhase == "collecting")
             {
                 this.deferredPhase = "finalizing";
-                for (double index = 0; index < this.deferredRequests.length; index++)
+                for (int index = 0; index < this.deferredRequests.length; index++)
                 {
                     DeferredTemplateRequest request = this.deferredRequests[index];
                     request.result = this.renderTemplateDefinition(request.body, request.definitions, request.sourcePath, request.data, request.site, request.overrides, request.state);
@@ -130,7 +130,7 @@ namespace Tsumo.Engine
                 this.deferredPhase = "finalized";
             }
             Tsonic.CSharp.Js.Map<string, string> results = new Tsonic.CSharp.Js.Map<string, string>();
-            for (double index_1 = 0; index_1 < this.deferredPlacements.length; index_1++)
+            for (int index_1 = 0; index_1 < this.deferredPlacements.length; index_1++)
             {
                 DeferredTemplatePlacement placement = this.deferredPlacements[index_1];
                 string? result = placement.request.result;
@@ -179,10 +179,10 @@ namespace Tsumo.Engine
                 callerRelativePath = this.getTemplateSourceRelativePath(selectedSourcePath);
             }
             Tsonic.CSharp.Js.JSArray<string> candidates = Template_paths.partialTemplateCandidates(name, callerRelativePath);
-            for (double index = 0; index < candidates.length; index++)
+            for (int index = 0; index < candidates.length; index++)
             {
                 string candidate = candidates[index];
-                Tsonic.CSharp.Js.JSArray<TemplateNode>? definition = Tsonic.CSharp.Js.Map.getReference<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>(definitions, candidate);
+                Tsonic.CSharp.Js.JSArray<TemplateNode>? definition = Tsonic.CSharp.Js.Map.getOptional<string, Tsonic.CSharp.Js.JSArray<TemplateNode>>(definitions, candidate);
                 if (definition is not null)
                 {
                     return new PartialTemplateResolution("definition", definition, null, callerSourcePath);

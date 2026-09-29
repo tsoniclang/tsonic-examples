@@ -3,107 +3,108 @@
 use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 
-pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError> {
-    let mut serve_source_dir: String = tsonic_rust_node::process::cwd()?;
-    let mut serve_destination_dir: String = String::from("public");
-    let mut serve_base_url: Option<String> = Option::<String>::None;
-    let mut serve_themes_dir: Option<String> = Option::<String>::None;
-    let mut serve_host: String = String::from("localhost");
-    let mut serve_port: i32 = 1313;
-    let mut serve_watch: bool = true;
-    let mut serve_build_drafts: bool = false;
-    let mut serve_clean: bool = true;
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn handleServe(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError> {
+    let mut serveSourceDir: String = tsonic_rust_node::process::cwd()?;
+    let mut serveDestinationDir: String = String::from("public");
+    let mut serveBaseURL: Option<String> = Option::<String>::None;
+    let mut serveThemesDir: Option<String> = Option::<String>::None;
+    let mut serveHost: String = String::from("localhost");
+    let mut servePort: i32 = 1313;
+    let mut serveWatch: bool = true;
+    let mut serveBuildDrafts: bool = false;
+    let mut serveClean: bool = true;
     {
         let mut i: f64 = 1.0;
-        while i < (rt::conversions::usize_to_i32(args.len())? as f64) {
+        while i < (args.len() as f64) {
             let a: String = match args.get_number(i) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             if a == "--source" || a == "-s" {
-                if i + 1.0 >= (rt::conversions::usize_to_i32(args.len())? as f64) {
-                    crate::report_usage_error::report_usage_error(format!(
+                if i + 1.0 >= (args.len() as f64) {
+                    crate::report_usage_error::reportUsageError(format!(
                         "{}{}",
                         String::from("Missing value for "),
                         a
                     ));
                     return Ok(());
                 }
-                serve_source_dir = match args.get_number(i + 1.0) {
+                serveSourceDir = match args.get_number(i + 1.0) {
                     Some(flow_value_2) => flow_value_2,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 i += 1.0;
             } else if a == "--destination" || a == "-d" {
-                if i + 1.0 >= (rt::conversions::usize_to_i32(args.len())? as f64) {
-                    crate::report_usage_error::report_usage_error(format!(
+                if i + 1.0 >= (args.len() as f64) {
+                    crate::report_usage_error::reportUsageError(format!(
                         "{}{}",
                         String::from("Missing value for "),
                         a
                     ));
                     return Ok(());
                 }
-                serve_destination_dir = match args.get_number(i + 1.0) {
+                serveDestinationDir = match args.get_number(i + 1.0) {
                     Some(flow_value_3) => flow_value_3,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 i += 1.0;
             } else if a == "--baseURL" || a == "--baseurl" {
-                if i + 1.0 >= (rt::conversions::usize_to_i32(args.len())? as f64) {
-                    crate::report_usage_error::report_usage_error(format!(
+                if i + 1.0 >= (args.len() as f64) {
+                    crate::report_usage_error::reportUsageError(format!(
                         "{}{}",
                         String::from("Missing value for "),
                         a
                     ));
                     return Ok(());
                 }
-                serve_base_url = Some(match args.get_number(i + 1.0) {
+                serveBaseURL = Some(match args.get_number(i + 1.0) {
                     Some(flow_value_4) => flow_value_4,
                     None => unreachable!("checked flow selected a missing optional value"),
                 });
                 i += 1.0;
             } else if a == "--themesDir" || a == "--themesdir" {
-                if i + 1.0 >= (rt::conversions::usize_to_i32(args.len())? as f64) {
-                    crate::report_usage_error::report_usage_error(format!(
+                if i + 1.0 >= (args.len() as f64) {
+                    crate::report_usage_error::reportUsageError(format!(
                         "{}{}",
                         String::from("Missing value for "),
                         a
                     ));
                     return Ok(());
                 }
-                serve_themes_dir = Some(match args.get_number(i + 1.0) {
+                serveThemesDir = Some(match args.get_number(i + 1.0) {
                     Some(flow_value_5) => flow_value_5,
                     None => unreachable!("checked flow selected a missing optional value"),
                 });
                 i += 1.0;
             } else if a == "--host" || a == "--bind" {
-                if i + 1.0 >= (rt::conversions::usize_to_i32(args.len())? as f64) {
-                    crate::report_usage_error::report_usage_error(format!(
+                if i + 1.0 >= (args.len() as f64) {
+                    crate::report_usage_error::reportUsageError(format!(
                         "{}{}",
                         String::from("Missing value for "),
                         a
                     ));
                     return Ok(());
                 }
-                serve_host = match args.get_number(i + 1.0) {
+                serveHost = match args.get_number(i + 1.0) {
                     Some(flow_value_6) => flow_value_6,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 i += 1.0;
             } else if a == "--port" || a == "-p" {
-                if i + 1.0 >= (rt::conversions::usize_to_i32(args.len())? as f64) {
-                    crate::report_usage_error::report_usage_error(format!(
+                if i + 1.0 >= (args.len() as f64) {
+                    crate::report_usage_error::reportUsageError(format!(
                         "{}{}",
                         String::from("Missing value for "),
                         a
                     ));
                     return Ok(());
                 }
-                let port_text: String = match args.get_number(i + 1.0) {
+                let portText: String = match args.get_number(i + 1.0) {
                     Some(flow_value_7) => flow_value_7,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-                let p: Option<i32> = crate::parse_int::parse_int_arg(&port_text)?;
+                let p: Option<i32> = crate::parse_int::parseIntArg(&portText)?;
                 if p.is_none()
                     || (match p.as_ref() {
                         Some(flow_value_8) => *flow_value_8,
@@ -114,30 +115,30 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
                         None => unreachable!("checked flow selected a missing optional value"),
                     }) > 65535
                 {
-                    crate::report_usage_error::report_usage_error(format!(
+                    crate::report_usage_error::reportUsageError(format!(
                         "{}{}",
                         String::from("Invalid port: "),
-                        port_text
+                        portText
                     ));
                     return Ok(());
                 }
-                serve_port = match p.as_ref() {
+                servePort = match p.as_ref() {
                     Some(flow_value_10) => *flow_value_10,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
                 i += 1.0;
             } else if a == "--watch" {
-                serve_watch = true;
+                serveWatch = true;
             } else if a == "--no-watch" {
-                serve_watch = false;
+                serveWatch = false;
             } else if a == "-D" || a == "--buildDrafts" {
-                serve_build_drafts = true;
+                serveBuildDrafts = true;
             } else if a == "--no-clean" {
-                serve_clean = false;
+                serveClean = false;
             } else if a == "--clean" {
-                serve_clean = true;
+                serveClean = true;
             } else {
-                crate::report_usage_error::report_usage_error(format!(
+                crate::report_usage_error::reportUsageError(format!(
                     "{}{}",
                     String::from("Unknown server option: "),
                     a
@@ -147,10 +148,10 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
             i += 1.0;
         }
     }
-    let serve_req: tsumo_engine::ServeRequest = tsumo_engine::ServeRequest::new(serve_source_dir)?;
+    let serveReq: tsumo_engine::ServeRequest = tsumo_engine::ServeRequest::new(serveSourceDir)?;
     {
-        let receiver = &serve_req;
-        let value = serve_destination_dir.clone();
+        let receiver = &serveReq;
+        let value = serveDestinationDir.clone();
         {
             let dispatch_receiver = receiver;
             dispatch_receiver
@@ -159,8 +160,8 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
         }
     };
     {
-        let receiver_2 = &serve_req;
-        let value_2 = serve_base_url.clone();
+        let receiver_2 = &serveReq;
+        let value_2 = serveBaseURL.clone();
         {
             let dispatch_receiver_2 = receiver_2;
             dispatch_receiver_2
@@ -169,8 +170,8 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
         }
     };
     {
-        let receiver_3 = &serve_req;
-        let value_3 = serve_themes_dir.clone();
+        let receiver_3 = &serveReq;
+        let value_3 = serveThemesDir.clone();
         {
             let dispatch_receiver_3 = receiver_3;
             dispatch_receiver_3
@@ -179,8 +180,8 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
         }
     };
     {
-        let receiver_4 = &serve_req;
-        let value_4 = serve_host.clone();
+        let receiver_4 = &serveReq;
+        let value_4 = serveHost.clone();
         {
             let dispatch_receiver_4 = receiver_4;
             dispatch_receiver_4
@@ -189,8 +190,8 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
         }
     };
     {
-        let receiver_5 = &serve_req;
-        let value_5 = serve_port;
+        let receiver_5 = &serveReq;
+        let value_5 = servePort;
         {
             let dispatch_receiver_5 = receiver_5;
             dispatch_receiver_5
@@ -199,8 +200,8 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
         }
     };
     {
-        let receiver_6 = &serve_req;
-        let value_6 = serve_watch;
+        let receiver_6 = &serveReq;
+        let value_6 = serveWatch;
         {
             let dispatch_receiver_6 = receiver_6;
             dispatch_receiver_6
@@ -209,8 +210,8 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
         }
     };
     {
-        let receiver_7 = &serve_req;
-        let value_7 = serve_build_drafts;
+        let receiver_7 = &serveReq;
+        let value_7 = serveBuildDrafts;
         {
             let dispatch_receiver_7 = receiver_7;
             dispatch_receiver_7
@@ -219,8 +220,8 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
         }
     };
     {
-        let receiver_8 = &serve_req;
-        let value_8 = serve_clean;
+        let receiver_8 = &serveReq;
+        let value_8 = serveClean;
         {
             let dispatch_receiver_8 = receiver_8;
             dispatch_receiver_8
@@ -229,12 +230,12 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
         }
     };
     {
-        let receiver_9 = &serve_req;
+        let receiver_9 = &serveReq;
         let value_9 = rt::option_coalesce(
-            crate::source_date_epoch::read_source_date_epoch()?,
+            crate::source_date_epoch::readSourceDateEpoch()?,
             core::convert::identity,
             || {
-                let dispatch_receiver_9 = &serve_req;
+                let dispatch_receiver_9 = &serveReq;
                 dispatch_receiver_9.dispatch.read_build_request_build_time()
             },
         );
@@ -245,6 +246,6 @@ pub fn handle_serve(args: js_abi::JsArray<String>) -> Result<(), rt::TsonicError
                 .write_build_request_build_time(value_9)?
         }
     };
-    tsumo_engine::serve_site(serve_req.clone())?;
+    tsumo_engine::serveSite(serveReq.clone())?;
     Ok(())
 }

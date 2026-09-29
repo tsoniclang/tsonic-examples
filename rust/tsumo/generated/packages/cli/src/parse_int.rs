@@ -4,7 +4,8 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn parse_int_arg(value: &str) -> Result<Option<i32>, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseIntArg(value: &str) -> Result<Option<i32>, rt::TsonicError> {
     let trimmed: String = js_string::trim(value);
     if !js_abi::regexp_test_native(&js_abi::regexp_new_native("^-?\\d+$", "")?, &trimmed)? {
         return Ok(Option::<i32>::None);

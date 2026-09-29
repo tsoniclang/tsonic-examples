@@ -4,35 +4,36 @@ use crate::program as rt;
 use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
-pub fn normalize_page_reference(value: &str) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn normalizePageReference(value: &str) -> Result<String, rt::TsonicError> {
     Ok(js_string::to_lower_case(
-        &crate::utils::strings::trim_end_char(
-            crate::utils::strings::trim_start_char(js_string::trim(value), String::from("/"))?,
+        &crate::utils::strings::trimEndChar(
+            crate::utils::strings::trimStartChar(js_string::trim(value), String::from("/"))?,
             String::from("/"),
         )?,
     ))
 }
 
-pub fn create_page_index(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn createPageIndex(
     pages: js_abi::JsArray<crate::models::page_context::PageContext>,
 ) -> Result<js_abi::JsMap<String, crate::models::page_context::PageContext>, rt::TsonicError> {
     let index: js_abi::JsMap<String, crate::models::page_context::PageContext> =
         js_abi::JsMap::new();
     {
-        let mut page_index: f64 = 0.0;
-        while page_index < (rt::conversions::usize_to_i32(pages.len())? as f64) {
-            let page: crate::models::page_context::PageContext = match pages.get_number(page_index)
-            {
+        let mut pageIndex: usize = 0;
+        while pageIndex < pages.len() {
+            let page: crate::models::page_context::PageContext = match pages.get_number(pageIndex) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
-            let key: String = normalize_page_reference(&{
+            let key: String = normalizePageReference(&{
                 let dispatch_receiver = &page;
                 dispatch_receiver.dispatch.read_page_context_rel_permalink()
             })?;
             if index.has(&key) {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_MENU_PAGE_IDENTITY_CONFLICT"),
                         format!(
                             "{}{}{}",
@@ -51,20 +52,21 @@ pub fn create_page_index(
                     )?,
                 ));
             }
-            index.set_discard(key.clone(), page.clone());
-            page_index += 1.0;
+            index.set_discard(key, page.clone());
+            pageIndex += 1;
         }
     }
     Ok(index)
 }
 
-pub fn resolve_menu_page_references(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn resolveMenuPageReferences(
     entries: js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
-    pages_by_route: js_abi::JsMap<String, crate::models::page_context::PageContext>,
+    pagesByRoute: js_abi::JsMap<String, crate::models::page_context::PageContext>,
 ) -> Result<(), rt::TsonicError> {
     {
-        let mut index: f64 = 0.0;
-        while index < (rt::conversions::usize_to_i32(entries.len())? as f64) {
+        let mut index: usize = 0;
+        while index < entries.len() {
             let entry: crate::models::menu_entry::MenuEntry = match entries.get_number(index) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
@@ -76,14 +78,14 @@ pub fn resolve_menu_page_references(
             .is_empty()
             {
                 let page: Option<crate::models::page_context::PageContext> = {
-                    let operation_input_0 = pages_by_route.clone();
-                    operation_input_0.get(&normalize_page_reference(&{
+                    let operation_input_0 = pagesByRoute.clone();
+                    operation_input_0.get(&normalizePageReference(&{
                         let dispatch_receiver_2 = &entry;
                         dispatch_receiver_2.dispatch.read_menu_entry_page_ref()
                     })?)
                 };
                 if page.is_none() {
-                    let entry_identity: String = {
+                    let entryIdentity: String = {
                         let conditional_test = !js_string::trim(&{
                             let dispatch_receiver_3 = &entry;
                             dispatch_receiver_3.dispatch.read_menu_entry_identifier()
@@ -98,12 +100,12 @@ pub fn resolve_menu_page_references(
                         }
                     };
                     return Err(rt::TsonicError::TsumoError(
-                        crate::diagnostics::create_tsumo_error(
+                        crate::diagnostics::createTsumoError(
                             String::from("TSUMO_MENU_PAGE_REF_NOT_FOUND"),
                             format!(
                                 "{}{}{}{}{}",
                                 String::from("Menu entry '"),
-                                entry_identity,
+                                entryIdentity,
                                 String::from("' names missing page '"),
                                 {
                                     let dispatch_receiver_6 = &entry;
@@ -129,29 +131,28 @@ pub fn resolve_menu_page_references(
                     }
                 };
             }
-            resolve_menu_page_references(
+            resolveMenuPageReferences(
                 {
                     let dispatch_receiver_8 = &entry;
                     dispatch_receiver_8.dispatch.read_menu_entry_children()
                 },
-                pages_by_route.clone(),
+                pagesByRoute.clone(),
             )?;
-            index += 1.0;
+            index += 1;
         }
     }
     Ok(())
 }
 
-pub fn configure_site_menus(
-    page_sources: js_abi::JsArray<crate::build::content_model::ContentPageSource>,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn configureSiteMenus(
+    pageSources: js_abi::JsArray<crate::build::content_model::ContentPageSource>,
     pages: js_abi::JsArray<crate::models::page_context::PageContext>,
     site: crate::models::site_context::SiteContext,
 ) -> Result<(), rt::TsonicError> {
-    if rt::conversions::usize_to_i32(page_sources.len())?
-        != rt::conversions::usize_to_i32(pages.len())?
-    {
+    if pageSources.len() != pages.len() {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_MENU_PAGE_ALIGNMENT_INVALID"),
                 String::from("Content sources and page contexts must remain exactly aligned"),
                 None,
@@ -160,33 +161,29 @@ pub fn configure_site_menus(
             )?,
         ));
     }
-    let front_matter_by_menu: js_abi::JsMap<
+    let frontMatterByMenu: js_abi::JsMap<
         String,
         js_abi::JsArray<crate::models::menu_entry::MenuEntry>,
     > = js_abi::JsMap::new();
     {
-        let mut page_index: f64 = 0.0;
-        while page_index < (rt::conversions::usize_to_i32(page_sources.len())? as f64) {
+        let mut pageIndex: usize = 0;
+        while pageIndex < pageSources.len() {
             let source: crate::build::content_model::ContentPageSource =
-                match page_sources.get_number(page_index) {
+                match pageSources.get_number(pageIndex) {
                     Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 };
-            let page: crate::models::page_context::PageContext = match pages.get_number(page_index)
-            {
+            let page: crate::models::page_context::PageContext = match pages.get_number(pageIndex) {
                 Some(flow_value_2) => flow_value_2,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
             {
-                let mut menu_index: f64 = 0.0;
-                while menu_index
-                    < (rt::conversions::usize_to_i32(
-                        {
-                            let dispatch_receiver = &source;
-                            dispatch_receiver.dispatch.read_content_page_source_menus()
-                        }
-                        .len(),
-                    )? as f64)
+                let mut menuIndex: usize = 0;
+                while menuIndex < {
+                    let dispatch_receiver = &source;
+                    dispatch_receiver.dispatch.read_content_page_source_menus()
+                }
+                .len()
                 {
                     let menu: crate::frontmatter::menu::FrontMatterMenu = match {
                         let dispatch_receiver_2 = &source;
@@ -194,18 +191,18 @@ pub fn configure_site_menus(
                             .dispatch
                             .read_content_page_source_menus()
                     }
-                    .get_number(menu_index)
+                    .get_number(menuIndex)
                     {
                         Some(flow_value_3) => flow_value_3,
                         None => unreachable!("checked flow selected a missing optional value"),
                     };
-                    let menu_name: String = js_string::trim(&{
+                    let menuName: String = js_string::trim(&{
                         let dispatch_receiver_3 = &menu;
                         dispatch_receiver_3.dispatch.read_front_matter_menu_menu()
                     });
-                    if menu_name.is_empty() {
+                    if menuName.is_empty() {
                         return Err(rt::TsonicError::TsumoError(
-                            crate::diagnostics::create_tsumo_error(
+                            crate::diagnostics::createTsumoError(
                                 String::from("TSUMO_MENU_NAME_REQUIRED"),
                                 String::from("Front matter menu entries require a menu name"),
                                 Some({
@@ -279,7 +276,7 @@ pub fn configure_site_menus(
                                 let dispatch_receiver_15 = &menu;
                                 dispatch_receiver_15.dispatch.read_front_matter_menu_post()
                             },
-                            menu_name.clone(),
+                            menuName.clone(),
                             None,
                         )?;
                     {
@@ -292,26 +289,26 @@ pub fn configure_site_menus(
                     };
                     let entries: js_abi::JsArray<crate::models::menu_entry::MenuEntry> =
                         rt::option_coalesce(
-                            front_matter_by_menu.get(&menu_name),
+                            frontMatterByMenu.get(&menuName),
                             core::convert::identity,
                             || js_abi::JsArray::from_dense(vec![]),
                         );
                     entries.push_many_discard([entry.clone()]);
-                    front_matter_by_menu.set_discard(menu_name.clone(), entries.clone());
-                    menu_index += 1.0;
+                    frontMatterByMenu.set_discard(menuName, entries.clone());
+                    menuIndex += 1;
                 }
             }
-            page_index += 1.0;
+            pageIndex += 1;
         }
     }
-    let menu_names: js_abi::JsArray<String> = js_abi::array_from_vec(&front_matter_by_menu.keys());
-    menu_names.sort(|left, right| {
-        rt::conversions::i32_to_f64(crate::utils::strings::compare_text(left, right))
+    let menuNames: js_abi::JsArray<String> = js_abi::array_from_vec(&frontMatterByMenu.keys());
+    menuNames.sort(|left, right| {
+        rt::conversions::i32_to_f64(crate::utils::strings::compareText(left, right))
     });
     {
-        let mut index: f64 = 0.0;
-        while index < (rt::conversions::usize_to_i32(menu_names.len())? as f64) {
-            let menu_name: String = match menu_names.get_number(index) {
+        let mut index: usize = 0;
+        while index < menuNames.len() {
+            let menuName: String = match menuNames.get_number(index) {
                 Some(flow_value_4) => flow_value_4,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
@@ -319,26 +316,26 @@ pub fn configure_site_menus(
                 let dispatch_receiver_17 = &site;
                 dispatch_receiver_17.dispatch.read_site_context_menus()
             }
-            .get(&menu_name);
+            .get(&menuName);
             let combined: js_abi::JsArray<crate::models::menu_entry::MenuEntry> =
                 if existing.is_none() {
                     js_abi::JsArray::from_dense(vec![])
                 } else {
-                    crate::menus::flatten_menu_entries(match existing.as_ref() {
+                    crate::menus::flattenMenuEntries(match existing.as_ref() {
                         Some(flow_value_5) => flow_value_5.clone(),
                         None => unreachable!("checked flow selected a missing optional value"),
                     })?
                 };
             let additions: Option<js_abi::JsArray<crate::models::menu_entry::MenuEntry>> =
-                front_matter_by_menu.get(&menu_name);
+                frontMatterByMenu.get(&menuName);
             if additions.is_none() {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_MENU_CONFIGURATION_INCONSISTENT"),
                         format!(
                             "{}{}{}",
                             String::from("Menu '"),
-                            menu_name,
+                            menuName,
                             String::from(
                                 "' disappeared while its immutable configuration was being resolved"
                             )
@@ -350,59 +347,50 @@ pub fn configure_site_menus(
                 ));
             }
             {
-                let mut entry_index: f64 = 0.0;
-                while entry_index
-                    < (rt::conversions::usize_to_i32(
-                        match additions.as_ref() {
-                            Some(flow_value_6) => flow_value_6.clone(),
+                let mut entryIndex: usize = 0;
+                while entryIndex
+                    < match additions.as_ref() {
+                        Some(flow_value_6) => flow_value_6.clone(),
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    }
+                    .len()
+                {
+                    combined.push_many_discard([
+                        match match additions.as_ref() {
+                            Some(flow_value_7) => flow_value_7.clone(),
                             None => unreachable!("checked flow selected a missing optional value"),
                         }
-                        .len(),
-                    )? as f64)
-                {
-                    {
-                        let operation_input_0 = combined.clone();
-                        operation_input_0.push_many_discard([
-                            match match additions.as_ref() {
-                                Some(flow_value_7) => flow_value_7.clone(),
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            }
-                            .get_number(entry_index)
-                            {
-                                Some(flow_value_8) => flow_value_8,
-                                None => {
-                                    unreachable!("checked flow selected a missing optional value")
-                                }
-                            },
-                        ])
-                    };
-                    entry_index += 1.0;
+                        .get_number(entryIndex)
+                        {
+                            Some(flow_value_8) => flow_value_8,
+                            None => unreachable!("checked flow selected a missing optional value"),
+                        },
+                    ]);
+                    entryIndex += 1;
                 }
             }
             {
-                let operation_input_0_2 = {
+                let operation_input_0 = {
                     let dispatch_receiver_18 = &site;
                     dispatch_receiver_18.dispatch.read_site_context_menus()
                 };
-                operation_input_0_2.set_discard(
-                    menu_name.clone(),
-                    crate::menus::build_menu_hierarchy(combined.clone())?,
+                operation_input_0.set_discard(
+                    menuName,
+                    crate::menus::buildMenuHierarchy(combined.clone())?,
                 )
             };
-            index += 1.0;
+            index += 1;
         }
     }
-    let pages_by_route: js_abi::JsMap<String, crate::models::page_context::PageContext> =
-        create_page_index(pages.clone())?;
+    let pagesByRoute: js_abi::JsMap<String, crate::models::page_context::PageContext> =
+        createPageIndex(pages.clone())?;
     for entries in {
         let dispatch_receiver_19 = &site;
         dispatch_receiver_19.dispatch.read_site_context_menus()
     }
     .values()
     {
-        resolve_menu_page_references(entries.clone(), pages_by_route.clone())?;
+        resolveMenuPageReferences(entries.clone(), pagesByRoute.clone())?;
     }
     Ok(())
 }

@@ -2,7 +2,8 @@
 
 use tsonic_rust_js::string as js_string;
 
-pub fn content_type_for_path(path: &str) -> String {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn contentTypeForPath(path: &str) -> String {
     let lower: String = js_string::to_lower_case(path);
     if js_string::ends_with_at_end(&lower, ".html") || js_string::ends_with_at_end(&lower, ".htm") {
         return String::from("text/html; charset=utf-8");

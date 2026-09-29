@@ -2,12 +2,13 @@
 
 use crate::program as rt;
 
-pub fn render_markdown(
-    markdown_raw: String,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn renderMarkdown(
+    markdownRaw: String,
 ) -> Result<crate::markdown::result::MarkdownResult, rt::TsonicError> {
     let batch: crate::markdown::platform::TsumoMarkdownBatch =
-        crate::markdown::platform::create_markdown_batch();
-    let index: i32 = batch.add_source(markdown_raw)?;
+        crate::markdown::platform::createMarkdownBatch();
+    let index: i32 = batch.addSource(markdownRaw)?;
     batch.render()?;
-    batch.take_result(index)
+    batch.takeResult(index)
 }

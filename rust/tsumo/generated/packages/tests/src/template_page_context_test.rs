@@ -23,12 +23,316 @@ impl TemplatePageContextTests {
         }
     }
 
+    pub fn page_sorts_preserve_ties_and_do_not_mutate_the_source(
+        &self,
+    ) -> Result<(), rt::TsonicError> {
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::createSite()?;
+        let root: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
+            site.clone(),
+            String::from("Home"),
+            String::from(""),
+            String::from("home"),
+        )?;
+        let first: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
+            site.clone(),
+            String::from("B"),
+            String::from("2024-01-01T00:00:00Z"),
+            String::from("page"),
+        )?;
+        let second: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
+            site.clone(),
+            String::from("A"),
+            String::from("2024-01-01T00:00:00Z"),
+            String::from("page"),
+        )?;
+        let last: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
+            site.clone(),
+            String::from("C"),
+            String::from("2025-01-01T00:00:00Z"),
+            String::from("page"),
+        )?;
+        {
+            let operation_input_0 = {
+                let dispatch_receiver = &first;
+                dispatch_receiver.dispatch.read_page_context_params()
+            };
+            operation_input_0.set_discard(
+                String::from("weight"),
+                tsumo_engine::testing::ParamValue::number(-2147483648)?,
+            )
+        };
+        {
+            let operation_input_0_2 = {
+                let dispatch_receiver_2 = &second;
+                dispatch_receiver_2.dispatch.read_page_context_params()
+            };
+            operation_input_0_2.set_discard(
+                String::from("weight"),
+                tsumo_engine::testing::ParamValue::number(-2147483648)?,
+            )
+        };
+        {
+            let operation_input_0_3 = {
+                let dispatch_receiver_3 = &last;
+                dispatch_receiver_3.dispatch.read_page_context_params()
+            };
+            operation_input_0_3.set_discard(
+                String::from("weight"),
+                tsumo_engine::testing::ParamValue::number(2147483647)?,
+            )
+        };
+        {
+            let receiver = &root;
+            let value =
+                js_abi::JsArray::from_dense(vec![last.clone(), first.clone(), second.clone()]);
+            {
+                let dispatch_receiver_4 = receiver;
+                dispatch_receiver_4
+                    .dispatch
+                    .write_page_context_pages(value)?
+            }
+        };
+        crate::test_root::Assert::StringEqual(
+            String::from("BAC|ABC|BAC|CBA"),
+            Some(crate::template_test_harness::renderWithRoot(
+                String::from(
+                    "{{ range .Pages.ByDate }}{{ .Title }}{{ end }}|{{ range .Pages.ByTitle }}{{ .Title }}{{ end }}|{{ range .Pages.ByWeight }}{{ .Title }}{{ end }}|{{ range .Pages }}{{ .Title }}{{ end }}",
+                ),
+                {
+                    let upcast_value = tsumo_engine::testing::PageValue::new(root.clone())?;
+                    tsumo_engine::testing::TemplateValue {
+                        identity: upcast_value.identity.clone(),
+                        dispatch: upcast_value.dispatch.clone(),
+                    }
+                },
+            )?),
+        )?;
+        crate::test_root::Assert::StringEqual(
+            String::from("2024:BA;2025:C;|2025:C;2024:BA;"),
+            Some(crate::template_test_harness::renderWithRoot(
+                String::from(
+                    "{{ range .Pages.GroupByDate \"2006\" \"asc\" }}{{ .Key }}:{{ range .Pages }}{{ .Title }}{{ end }};{{ end }}|{{ range .Pages.GroupByDate \"2006\" \"desc\" }}{{ .Key }}:{{ range .Pages }}{{ .Title }}{{ end }};{{ end }}",
+                ),
+                {
+                    let upcast_value_2 = tsumo_engine::testing::PageValue::new(root.clone())?;
+                    tsumo_engine::testing::TemplateValue {
+                        identity: upcast_value_2.identity.clone(),
+                        dispatch: upcast_value_2.dispatch.clone(),
+                    }
+                },
+            )?),
+        )?;
+        {
+            let receiver_2 = &root;
+            let value_2 = js_abi::JsArray::from_dense(vec![]);
+            {
+                let dispatch_receiver_5 = receiver_2;
+                dispatch_receiver_5
+                    .dispatch
+                    .write_page_context_pages(value_2)?
+            }
+        };
+        crate::test_root::Assert::StringEqual(
+            String::from("empty"),
+            Some(crate::template_test_harness::renderWithRoot(
+                String::from("{{ range .Pages.ByWeight }}unexpected{{ else }}empty{{ end }}"),
+                {
+                    let upcast_value_3 = tsumo_engine::testing::PageValue::new(root.clone())?;
+                    tsumo_engine::testing::TemplateValue {
+                        identity: upcast_value_3.identity.clone(),
+                        dispatch: upcast_value_3.dispatch.clone(),
+                    }
+                },
+            )?),
+        )?;
+        Ok(())
+    }
+
+    pub fn pagination_uses_exact_integer_ceiling_and_bounded_page_offsets(
+        &self,
+    ) -> Result<(), rt::TsonicError> {
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::createSite()?;
+        let first: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
+            site.clone(),
+            String::from("First"),
+            String::from(""),
+            String::from("page"),
+        )?;
+        let second: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
+            site.clone(),
+            String::from("Second"),
+            String::from(""),
+            String::from("page"),
+        )?;
+        let third: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
+            site.clone(),
+            String::from("Third"),
+            String::from(""),
+            String::from("page"),
+        )?;
+        let paginator: tsumo_engine::testing::PaginatorValue =
+            tsumo_engine::testing::PaginatorValue::new(
+                js_abi::JsArray::from_dense(vec![first.clone(), second.clone(), third.clone()]),
+                2,
+                1,
+                String::from("/posts/"),
+            )?;
+        crate::test_root::Assert::True(
+            {
+                let dispatch_receiver = paginator.clone();
+                dispatch_receiver
+                    .dispatch
+                    .clone()
+                    .dispatch_paginator_value_total_pages()
+            }? == 2,
+        )?;
+        crate::test_root::Assert::True(
+            {
+                let dispatch_receiver_2 = paginator.clone();
+                dispatch_receiver_2
+                    .dispatch
+                    .clone()
+                    .dispatch_paginator_value_pages()
+            }?
+            .len()
+                == 2
+                && {
+                    let dispatch_receiver_3 = paginator.clone();
+                    dispatch_receiver_3
+                        .dispatch
+                        .clone()
+                        .dispatch_paginator_value_pages()
+                }?
+                .get_number(0.0)
+                    == Some(first.clone()),
+        )?;
+        let last: tsumo_engine::testing::PaginatorValue = {
+            let dispatch_receiver_4 = paginator.clone();
+            dispatch_receiver_4
+                .dispatch
+                .clone()
+                .dispatch_paginator_value_with_page_number(2)
+        }?;
+        crate::test_root::Assert::True(
+            {
+                let dispatch_receiver_5 = last.clone();
+                dispatch_receiver_5
+                    .dispatch
+                    .clone()
+                    .dispatch_paginator_value_pages()
+            }?
+            .len()
+                == 1
+                && {
+                    let dispatch_receiver_6 = last.clone();
+                    dispatch_receiver_6
+                        .dispatch
+                        .clone()
+                        .dispatch_paginator_value_pages()
+                }?
+                .get_number(0.0)
+                    == Some(third.clone()),
+        )?;
+        crate::test_root::Assert::True(
+            {
+                let dispatch_receiver_8 = {
+                    let dispatch_receiver_7 = paginator.clone();
+                    dispatch_receiver_7
+                        .dispatch
+                        .clone()
+                        .dispatch_paginator_value_with_page_number(2147483647)
+                }?;
+                dispatch_receiver_8
+                    .dispatch
+                    .clone()
+                    .dispatch_paginator_value_pages()
+            }?
+            .is_empty(),
+        )?;
+        let empty: tsumo_engine::testing::PaginatorValue =
+            tsumo_engine::testing::PaginatorValue::new(
+                js_abi::JsArray::from_dense(vec![]),
+                0,
+                0,
+                String::from("/"),
+            )?;
+        crate::test_root::Assert::True(
+            {
+                let dispatch_receiver_9 = empty.clone();
+                dispatch_receiver_9
+                    .dispatch
+                    .clone()
+                    .dispatch_paginator_value_total_pages()
+            }? == 1
+                && {
+                    let dispatch_receiver_10 = empty.clone();
+                    dispatch_receiver_10
+                        .dispatch
+                        .clone()
+                        .dispatch_paginator_value_pages()
+                }?
+                .is_empty(),
+        )?;
+        let exact: tsumo_engine::testing::PaginatorValue =
+            tsumo_engine::testing::PaginatorValue::new(
+                js_abi::JsArray::from_dense(vec![first.clone(), second.clone()]),
+                2,
+                1,
+                String::from("/"),
+            )?;
+        crate::test_root::Assert::True(
+            {
+                let dispatch_receiver_11 = exact.clone();
+                dispatch_receiver_11
+                    .dispatch
+                    .clone()
+                    .dispatch_paginator_value_total_pages()
+            }? == 1
+                && {
+                    let dispatch_receiver_12 = exact.clone();
+                    dispatch_receiver_12
+                        .dispatch
+                        .clone()
+                        .dispatch_paginator_value_pages()
+                }?
+                .len()
+                    == 2,
+        )?;
+        let wide: tsumo_engine::testing::PaginatorValue =
+            tsumo_engine::testing::PaginatorValue::new(
+                js_abi::JsArray::from_dense(vec![first.clone(), second, third.clone()]),
+                2147483647,
+                1,
+                String::from("/"),
+            )?;
+        crate::test_root::Assert::True(
+            {
+                let dispatch_receiver_13 = wide.clone();
+                dispatch_receiver_13
+                    .dispatch
+                    .clone()
+                    .dispatch_paginator_value_total_pages()
+            }? == 1
+                && {
+                    let dispatch_receiver_14 = wide.clone();
+                    dispatch_receiver_14
+                        .dispatch
+                        .clone()
+                        .dispatch_paginator_value_pages()
+                }?
+                .len()
+                    == 3,
+        )?;
+        Ok(())
+    }
+
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn date_page_data_and_render_methods_use_typed_context(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("2024-01-02"),
-            Some(crate::template_test_harness::render_with_root(
+            Some(crate::template_test_harness::renderWithRoot(
                 String::from("{{ .Format \"2006-01-02\" }}"),
                 {
                     let upcast_value = tsumo_engine::testing::DateValue::new(String::from(
@@ -41,14 +345,14 @@ impl TemplatePageContextTests {
                 },
             )?),
         )?;
-        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
-        let older: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::createSite()?;
+        let older: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
             site.clone(),
             String::from("Older"),
             String::from("2022-04-01T00:00:00Z"),
             String::from("page"),
         )?;
-        let newer: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
+        let newer: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
             site.clone(),
             String::from("Newer"),
             String::from("2024-06-01T00:00:00Z"),
@@ -74,64 +378,16 @@ impl TemplatePageContextTests {
                 tsumo_engine::testing::ParamValue::number(10)?,
             )
         };
-        let root: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
+        let root: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
             site.clone(),
             String::from("Home"),
             String::from(""),
             String::from("home"),
         )?;
-        {
-            let receiver = &root;
-            let value = js_abi::JsArray::from_dense(vec![older.clone(), newer.clone()]);
-            {
-                let dispatch_receiver_3 = receiver;
-                dispatch_receiver_3
-                    .dispatch
-                    .write_page_context_pages(value)?
-            }
-        };
-        let section: tsumo_engine::testing::PageContext =
-            crate::template_test_harness::create_page(
-                site.clone(),
-                String::from("Section"),
-                String::from(""),
-                String::from("section"),
-            )?;
-        {
-            let dispatch_receiver_4 = &root;
-            dispatch_receiver_4.dispatch.read_page_context_pages()
-        }
-        .push_many_discard([section]);
-        {
-            let receiver_2 = &site;
-            let value_2 = {
-                let dispatch_receiver_5 = &root;
-                dispatch_receiver_5.dispatch.read_page_context_pages()
-            };
-            {
-                let dispatch_receiver_6 = receiver_2;
-                dispatch_receiver_6
-                    .dispatch
-                    .write_site_context_pages(value_2)?
-            }
-        };
-        {
-            let receiver_3 = &site;
-            let value_3 = {
-                let dispatch_receiver_7 = &root;
-                dispatch_receiver_7.dispatch.read_page_context_pages()
-            };
-            {
-                let dispatch_receiver_8 = receiver_3;
-                dispatch_receiver_8
-                    .dispatch
-                    .write_site_context_all_pages(value_3)?
-            }
-        };
-        crate::test_root::Assert::string_equal(
-            String::from("value"),
-            Some(crate::template_test_harness::render_with_root(
-                String::from("{{ .Scratch.Set \"key\" \"value\" }}{{ .Scratch.Get \"key\" }}"),
+        crate::test_root::Assert::StringEqual(
+            String::from("0|0"),
+            Some(crate::template_test_harness::renderWithRoot(
+                String::from("{{ len .Pages.Reverse }}|{{ len (collections.Reverse .Pages) }}"),
                 {
                     let upcast_value_2 = tsumo_engine::testing::PageValue::new(root.clone())?;
                     tsumo_engine::testing::TemplateValue {
@@ -141,11 +397,21 @@ impl TemplatePageContextTests {
                 },
             )?),
         )?;
-        crate::test_root::Assert::string_equal(
-            String::from("2024:Newer;2022:Older;"),
-            Some(crate::template_test_harness::render_with_root(
+        {
+            let receiver = &root;
+            let value = js_abi::JsArray::from_dense(vec![older.clone()]);
+            {
+                let dispatch_receiver_3 = receiver;
+                dispatch_receiver_3
+                    .dispatch
+                    .write_page_context_pages(value)?
+            }
+        };
+        crate::test_root::Assert::StringEqual(
+            String::from("Older|Older"),
+            Some(crate::template_test_harness::renderWithRoot(
                 String::from(
-                    "{{ range .Data.Pages.GroupByDate \"2006\" }}{{ .Key }}:{{ range .Pages }}{{ .Title }}{{ end }};{{ end }}",
+                    "{{ range .Pages.Reverse }}{{ .Title }}{{ end }}|{{ range (collections.Reverse .Pages) }}{{ .Title }}{{ end }}",
                 ),
                 {
                     let upcast_value_3 = tsumo_engine::testing::PageValue::new(root.clone())?;
@@ -156,13 +422,21 @@ impl TemplatePageContextTests {
                 },
             )?),
         )?;
-        crate::test_root::Assert::string_equal(
-            String::from(
-                "0:Section;10:Newer;20:Older;|20:Older;10:Newer;0:Section;|SectionNewerOlder",
-            ),
-            Some(crate::template_test_harness::render_with_root(
+        {
+            let receiver_2 = &root;
+            let value_2 = js_abi::JsArray::from_dense(vec![older.clone(), newer.clone()]);
+            {
+                let dispatch_receiver_4 = receiver_2;
+                dispatch_receiver_4
+                    .dispatch
+                    .write_page_context_pages(value_2)?
+            }
+        };
+        crate::test_root::Assert::StringEqual(
+            String::from("NewerOlder|NewerOlder|OlderNewer"),
+            Some(crate::template_test_harness::renderWithRoot(
                 String::from(
-                    "{{ range .Data.Pages.GroupBy \"Weight\" }}{{ .Key }}:{{ range .ByTitle }}{{ .Title }}{{ end }};{{ end }}|{{ range .Data.Pages.GroupBy \"Weight\" \"desc\" }}{{ .Key }}:{{ range .Pages }}{{ .Title }}{{ end }};{{ end }}|{{ range .Data.Pages.ByWeight }}{{ .Title }}{{ end }}",
+                    "{{ range .Pages.Reverse }}{{ .Title }}{{ end }}|{{ range (collections.Reverse .Pages) }}{{ .Title }}{{ end }}|{{ range .Pages }}{{ .Title }}{{ end }}",
                 ),
                 {
                     let upcast_value_4 = tsumo_engine::testing::PageValue::new(root.clone())?;
@@ -173,10 +447,47 @@ impl TemplatePageContextTests {
                 },
             )?),
         )?;
-        crate::test_root::Assert::string_equal(
-            String::from("3"),
-            Some(crate::template_test_harness::render_with_root(
-                String::from("{{ len (union .RegularPages .Sections) }}"),
+        let section: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
+            site.clone(),
+            String::from("Section"),
+            String::from(""),
+            String::from("section"),
+        )?;
+        {
+            let dispatch_receiver_5 = &root;
+            dispatch_receiver_5.dispatch.read_page_context_pages()
+        }
+        .push_many_discard([section]);
+        {
+            let receiver_3 = &site;
+            let value_3 = {
+                let dispatch_receiver_6 = &root;
+                dispatch_receiver_6.dispatch.read_page_context_pages()
+            };
+            {
+                let dispatch_receiver_7 = receiver_3;
+                dispatch_receiver_7
+                    .dispatch
+                    .write_site_context_pages(value_3)?
+            }
+        };
+        {
+            let receiver_4 = &site;
+            let value_4 = {
+                let dispatch_receiver_8 = &root;
+                dispatch_receiver_8.dispatch.read_page_context_pages()
+            };
+            {
+                let dispatch_receiver_9 = receiver_4;
+                dispatch_receiver_9
+                    .dispatch
+                    .write_site_context_all_pages(value_4)?
+            }
+        };
+        crate::test_root::Assert::StringEqual(
+            String::from("value"),
+            Some(crate::template_test_harness::renderWithRoot(
+                String::from("{{ .Scratch.Set \"key\" \"value\" }}{{ .Scratch.Get \"key\" }}"),
                 {
                     let upcast_value_5 = tsumo_engine::testing::PageValue::new(root.clone())?;
                     tsumo_engine::testing::TemplateValue {
@@ -186,26 +497,71 @@ impl TemplatePageContextTests {
                 },
             )?),
         )?;
+        crate::test_root::Assert::StringEqual(
+            String::from("2024:Newer;2022:Older;"),
+            Some(crate::template_test_harness::renderWithRoot(
+                String::from(
+                    "{{ range .Data.Pages.GroupByDate \"2006\" }}{{ .Key }}:{{ range .Pages }}{{ .Title }}{{ end }};{{ end }}",
+                ),
+                {
+                    let upcast_value_6 = tsumo_engine::testing::PageValue::new(root.clone())?;
+                    tsumo_engine::testing::TemplateValue {
+                        identity: upcast_value_6.identity.clone(),
+                        dispatch: upcast_value_6.dispatch.clone(),
+                    }
+                },
+            )?),
+        )?;
+        crate::test_root::Assert::StringEqual(
+            String::from(
+                "0:Section;10:Newer;20:Older;|20:Older;10:Newer;0:Section;|SectionNewerOlder",
+            ),
+            Some(crate::template_test_harness::renderWithRoot(
+                String::from(
+                    "{{ range .Data.Pages.GroupBy \"Weight\" }}{{ .Key }}:{{ range .ByTitle }}{{ .Title }}{{ end }};{{ end }}|{{ range .Data.Pages.GroupBy \"Weight\" \"desc\" }}{{ .Key }}:{{ range .Pages }}{{ .Title }}{{ end }};{{ end }}|{{ range .Data.Pages.ByWeight }}{{ .Title }}{{ end }}",
+                ),
+                {
+                    let upcast_value_7 = tsumo_engine::testing::PageValue::new(root.clone())?;
+                    tsumo_engine::testing::TemplateValue {
+                        identity: upcast_value_7.identity.clone(),
+                        dispatch: upcast_value_7.dispatch.clone(),
+                    }
+                },
+            )?),
+        )?;
+        crate::test_root::Assert::StringEqual(
+            String::from("3"),
+            Some(crate::template_test_harness::renderWithRoot(
+                String::from("{{ len (union .RegularPages .Sections) }}"),
+                {
+                    let upcast_value_8 = tsumo_engine::testing::PageValue::new(root.clone())?;
+                    tsumo_engine::testing::TemplateValue {
+                        identity: upcast_value_8.identity.clone(),
+                        dispatch: upcast_value_8.dispatch.clone(),
+                    }
+                },
+            )?),
+        )?;
         let environment: crate::template_test_harness::TestTemplateEnvironment =
             crate::template_test_harness::TestTemplateEnvironment::new(None)?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("2024"),
             Some({
-                let dispatch_receiver_9 = environment.clone();
-                dispatch_receiver_9
+                let dispatch_receiver_10 = environment.clone();
+                dispatch_receiver_10
                     .dispatch
                     .clone()
                     .dispatch_test_template_environment_render_template(
-                        tsumo_engine::testing::parse_template(
+                        tsumo_engine::testing::parseTemplate(
                             String::from("{{ .Site.Lastmod.Format \"2006\" }}"),
                             None,
                         )?,
                         {
-                            let upcast_value_6 =
+                            let upcast_value_9 =
                                 tsumo_engine::testing::PageValue::new(root.clone())?;
                             tsumo_engine::testing::TemplateValue {
-                                identity: upcast_value_6.identity.clone(),
-                                dispatch: upcast_value_6.dispatch.clone(),
+                                identity: upcast_value_9.identity.clone(),
+                                dispatch: upcast_value_9.dispatch.clone(),
                             }
                         },
                         site.clone(),
@@ -216,109 +572,109 @@ impl TemplatePageContextTests {
         )?;
         {
             let operation_input_0_3 = {
-                let dispatch_receiver_10 = &environment;
-                dispatch_receiver_10
+                let dispatch_receiver_11 = &environment;
+                dispatch_receiver_11
                     .dispatch
                     .read_test_template_environment_templates()
             };
             operation_input_0_3.set_discard(
                 String::from("_partials/templates/_funcs/child"),
-                tsumo_engine::testing::parse_template(
+                tsumo_engine::testing::parseTemplate(
                     String::from("child={{ . }}"),
                     Some(String::from("_partials/templates/_funcs/child.html")),
                 )?,
             )
         };
-        let parent: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
+        let parent: tsumo_engine::testing::Template = tsumo_engine::testing::parseTemplate(
             String::from("{{ partial \"_funcs/child\" \"exact\" }}"),
             Some(String::from("_partials/templates/parent.html")),
         )?;
-        let parent_scope: tsumo_engine::testing::RenderScope =
+        let parentScope: tsumo_engine::testing::RenderScope =
             tsumo_engine::testing::RenderScope::new(
                 {
-                    let upcast_value_7 = tsumo_engine::testing::PageValue::new(root.clone())?;
+                    let upcast_value_10 = tsumo_engine::testing::PageValue::new(root.clone())?;
                     tsumo_engine::testing::TemplateValue {
-                        identity: upcast_value_7.identity.clone(),
-                        dispatch: upcast_value_7.dispatch.clone(),
+                        identity: upcast_value_10.identity.clone(),
+                        dispatch: upcast_value_10.dispatch.clone(),
                     }
                 },
                 {
-                    let upcast_value_8 = tsumo_engine::testing::PageValue::new(root.clone())?;
-                    tsumo_engine::testing::TemplateValue {
-                        identity: upcast_value_8.identity.clone(),
-                        dispatch: upcast_value_8.dispatch.clone(),
-                    }
-                },
-                site.clone(),
-                {
-                    let upcast_value_9 = environment.clone();
-                    tsumo_engine::testing::TemplateEnvironment {
-                        identity: upcast_value_9.identity.clone(),
-                        dispatch: upcast_value_9.dispatch.clone(),
-                    }
-                },
-                Option::<tsumo_engine::testing::RenderScope>::None,
-                Option::<tsumo_engine::testing::RenderState>::None,
-                {
-                    let dispatch_receiver_11 = &parent;
-                    dispatch_receiver_11.dispatch.read_template_source_path()
-                },
-            )?;
-        let output: tsumo_engine::testing::TextBuilder = tsumo_engine::testing::TextBuilder::new();
-        {
-            let dispatch_receiver_12 = parent.clone();
-            dispatch_receiver_12
-                .dispatch
-                .clone()
-                .dispatch_template_render_into(
-                    output.clone(),
-                    parent_scope,
-                    {
-                        let upcast_value_10 = environment.clone();
-                        tsumo_engine::testing::TemplateEnvironment {
-                            identity: upcast_value_10.identity.clone(),
-                            dispatch: upcast_value_10.dispatch.clone(),
-                        }
-                    },
-                    js_abi::JsMap::new(),
-                )
-        }?;
-        crate::test_root::Assert::string_equal(
-            String::from("child=exact"),
-            Some({
-                let dispatch_receiver_13 = output.clone();
-                dispatch_receiver_13
-                    .dispatch
-                    .clone()
-                    .dispatch_text_builder_to_string()
-            }),
-        )?;
-        let page_template: tsumo_engine::testing::Template =
-            tsumo_engine::testing::parse_template(String::from("{{ .Render \"summary\" }}"), None)?;
-        let page_output: tsumo_engine::testing::TextBuilder =
-            tsumo_engine::testing::TextBuilder::new();
-        let page_scope: tsumo_engine::testing::RenderScope =
-            tsumo_engine::testing::RenderScope::new(
-                {
-                    let upcast_value_11 = tsumo_engine::testing::PageValue::new(newer.clone())?;
+                    let upcast_value_11 = tsumo_engine::testing::PageValue::new(root.clone())?;
                     tsumo_engine::testing::TemplateValue {
                         identity: upcast_value_11.identity.clone(),
                         dispatch: upcast_value_11.dispatch.clone(),
                     }
                 },
+                site.clone(),
                 {
-                    let upcast_value_12 = tsumo_engine::testing::PageValue::new(newer.clone())?;
-                    tsumo_engine::testing::TemplateValue {
+                    let upcast_value_12 = environment.clone();
+                    tsumo_engine::testing::TemplateEnvironment {
                         identity: upcast_value_12.identity.clone(),
                         dispatch: upcast_value_12.dispatch.clone(),
                     }
                 },
+                Option::<tsumo_engine::testing::RenderScope>::None,
+                Option::<tsumo_engine::testing::RenderState>::None,
+                {
+                    let dispatch_receiver_12 = &parent;
+                    dispatch_receiver_12.dispatch.read_template_source_path()
+                },
+            )?;
+        let output: tsumo_engine::testing::TextBuilder = tsumo_engine::testing::TextBuilder::new();
+        {
+            let dispatch_receiver_13 = parent.clone();
+            dispatch_receiver_13
+                .dispatch
+                .clone()
+                .dispatch_template_render_into(
+                    output.clone(),
+                    parentScope,
+                    {
+                        let upcast_value_13 = environment.clone();
+                        tsumo_engine::testing::TemplateEnvironment {
+                            identity: upcast_value_13.identity.clone(),
+                            dispatch: upcast_value_13.dispatch.clone(),
+                        }
+                    },
+                    js_abi::JsMap::new(),
+                )
+        }?;
+        crate::test_root::Assert::StringEqual(
+            String::from("child=exact"),
+            Some({
+                let dispatch_receiver_14 = output.clone();
+                dispatch_receiver_14
+                    .dispatch
+                    .clone()
+                    .dispatch_text_builder_to_string()
+            }),
+        )?;
+        let pageTemplate: tsumo_engine::testing::Template =
+            tsumo_engine::testing::parseTemplate(String::from("{{ .Render \"summary\" }}"), None)?;
+        let pageOutput: tsumo_engine::testing::TextBuilder =
+            tsumo_engine::testing::TextBuilder::new();
+        let pageScope: tsumo_engine::testing::RenderScope =
+            tsumo_engine::testing::RenderScope::new(
+                {
+                    let upcast_value_14 = tsumo_engine::testing::PageValue::new(newer.clone())?;
+                    tsumo_engine::testing::TemplateValue {
+                        identity: upcast_value_14.identity.clone(),
+                        dispatch: upcast_value_14.dispatch.clone(),
+                    }
+                },
+                {
+                    let upcast_value_15 = tsumo_engine::testing::PageValue::new(newer.clone())?;
+                    tsumo_engine::testing::TemplateValue {
+                        identity: upcast_value_15.identity.clone(),
+                        dispatch: upcast_value_15.dispatch.clone(),
+                    }
+                },
                 site.clone(),
                 {
-                    let upcast_value_13 = environment.clone();
+                    let upcast_value_16 = environment.clone();
                     tsumo_engine::testing::TemplateEnvironment {
-                        identity: upcast_value_13.identity.clone(),
-                        dispatch: upcast_value_13.dispatch.clone(),
+                        identity: upcast_value_16.identity.clone(),
+                        dispatch: upcast_value_16.dispatch.clone(),
                     }
                 },
                 Option::<tsumo_engine::testing::RenderScope>::None,
@@ -326,28 +682,28 @@ impl TemplatePageContextTests {
                 None,
             )?;
         {
-            let dispatch_receiver_14 = page_template;
-            dispatch_receiver_14
+            let dispatch_receiver_15 = pageTemplate;
+            dispatch_receiver_15
                 .dispatch
                 .clone()
                 .dispatch_template_render_into(
-                    page_output.clone(),
-                    page_scope,
+                    pageOutput.clone(),
+                    pageScope,
                     {
-                        let upcast_value_14 = environment.clone();
+                        let upcast_value_17 = environment.clone();
                         tsumo_engine::testing::TemplateEnvironment {
-                            identity: upcast_value_14.identity.clone(),
-                            dispatch: upcast_value_14.dispatch.clone(),
+                            identity: upcast_value_17.identity.clone(),
+                            dispatch: upcast_value_17.dispatch.clone(),
                         }
                     },
                     js_abi::JsMap::new(),
                 )
         }?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("<summary>Newer</summary>"),
             Some({
-                let dispatch_receiver_15 = page_output.clone();
-                dispatch_receiver_15
+                let dispatch_receiver_16 = pageOutput.clone();
+                dispatch_receiver_16
                     .dispatch
                     .clone()
                     .dispatch_text_builder_to_string()
@@ -356,17 +712,18 @@ impl TemplatePageContextTests {
         Ok(())
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn page_taxonomy_terms_follow_explicit_graph_relations(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
-        let page: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::createSite()?;
+        let page: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
             site.clone(),
             String::from("Article"),
             String::from("2024-01-01T00:00:00Z"),
             String::from("page"),
         )?;
-        let term: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
+        let term: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
             site.clone(),
             String::from("TypeScript"),
             String::from(""),
@@ -385,19 +742,19 @@ impl TemplatePageContextTests {
             dispatch_receiver.dispatch.read_site_context_taxonomies()
         }
         .set_discard(String::from("tags"), memberships.clone());
-        let term_pages: js_abi::JsMap<String, tsumo_engine::testing::PageContext> =
+        let termPages: js_abi::JsMap<String, tsumo_engine::testing::PageContext> =
             js_abi::JsMap::new();
-        term_pages.set_discard(String::from("typescript"), term);
+        termPages.set_discard(String::from("typescript"), term);
         {
             let dispatch_receiver_2 = &site;
             dispatch_receiver_2
                 .dispatch
                 .read_site_context_taxonomy_term_pages()
         }
-        .set_discard(String::from("tags"), term_pages.clone());
-        crate::test_root::Assert::string_equal(
+        .set_discard(String::from("tags"), termPages.clone());
+        crate::test_root::Assert::StringEqual(
             String::from("TypeScript;"),
-            Some(crate::template_test_harness::render_with_root(
+            Some(crate::template_test_harness::renderWithRoot(
                 String::from("{{ range .GetTerms \"tags\" }}{{ .Title }};{{ end }}"),
                 {
                     let upcast_value = tsumo_engine::testing::PageValue::new(page.clone())?;
@@ -412,21 +769,19 @@ impl TemplatePageContextTests {
     }
 
     pub fn page_menu_methods_use_the_exact_menu_hierarchy(&self) -> Result<(), rt::TsonicError> {
-        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
-        let section: tsumo_engine::testing::PageContext =
-            crate::template_test_harness::create_page(
-                site.clone(),
-                String::from("Section"),
-                String::from(""),
-                String::from("section"),
-            )?;
-        let article: tsumo_engine::testing::PageContext =
-            crate::template_test_harness::create_page(
-                site.clone(),
-                String::from("Article"),
-                String::from(""),
-                String::from("page"),
-            )?;
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::createSite()?;
+        let section: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
+            site.clone(),
+            String::from("Section"),
+            String::from(""),
+            String::from("section"),
+        )?;
+        let article: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
+            site.clone(),
+            String::from("Article"),
+            String::from(""),
+            String::from("page"),
+        )?;
         let parent: tsumo_engine::testing::MenuEntry = tsumo_engine::testing::MenuEntry::new(
             String::from("Section"),
             String::from(""),
@@ -489,9 +844,9 @@ impl TemplatePageContextTests {
             String::from("main"),
             js_abi::JsArray::from_dense(vec![parent.clone()]),
         );
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("true|false|false|true|false"),
-            Some(crate::template_test_harness::render_with_root(
+            Some(crate::template_test_harness::renderWithRoot(
                 String::from(
                     "{{ range .Site.Menus.main }}{{ $.HasMenuCurrent \"main\" . }}|{{ $.IsMenuCurrent \"main\" . }}|{{ range .Children }}{{ $.HasMenuCurrent \"main\" . }}|{{ $.IsMenuCurrent \"main\" . }}|{{ $.IsMenuCurrent \"other\" . }}{{ end }}{{ end }}",
                 ),
@@ -510,8 +865,8 @@ impl TemplatePageContextTests {
     pub fn template_definitions_propagate_across_partial_boundaries(
         &self,
     ) -> Result<(), rt::TsonicError> {
-        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::create_site()?;
-        let root: tsumo_engine::testing::PageContext = crate::template_test_harness::create_page(
+        let site: tsumo_engine::testing::SiteContext = crate::template_test_harness::createSite()?;
+        let root: tsumo_engine::testing::PageContext = crate::template_test_harness::createPage(
             site.clone(),
             String::from("Home"),
             String::from(""),
@@ -528,19 +883,19 @@ impl TemplatePageContextTests {
             };
             operation_input_0.set_discard(
                 String::from("partials/child"),
-                tsumo_engine::testing::parse_template(
+                tsumo_engine::testing::parseTemplate(
                     String::from("{{ template \"integrity\" . }}"),
                     Some(String::from("partials/child")),
                 )?,
             )
         };
-        let parent: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
+        let parent: tsumo_engine::testing::Template = tsumo_engine::testing::parseTemplate(
             String::from(
                 "{{ define \"integrity\" }}integrity={{ . }}{{ end }}{{ partial \"child\" \"external\" }}",
             ),
             Some(String::from("partials/parent")),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("integrity=external"),
             Some({
                 let dispatch_receiver_2 = environment.clone();
@@ -562,13 +917,13 @@ impl TemplatePageContextTests {
                     )
             }?),
         )?;
-        let inline: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
+        let inline: tsumo_engine::testing::Template = tsumo_engine::testing::parseTemplate(
             String::from(
                 "{{ define \"_partials/inline\" }}inline={{ . }}{{ end }}{{ partials.IncludeCached \"inline\" \"local\" }}",
             ),
             Some(String::from("partials/inline-owner")),
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("inline=local"),
             Some({
                 let dispatch_receiver_3 = environment.clone();
@@ -598,13 +953,13 @@ impl TemplatePageContextTests {
                     .dispatch
                     .read_test_template_environment_templates()
             };
-            operation_input_0_2.set_discard(String::from("partials/page-global"), tsumo_engine::testing::parse_template(String::from("{{ page.Title }}|{{ page.Store.Add \"visits\" 1 }}{{ page.Store.Get \"visits\" }}"), Some(String::from("partials/page-global")))?)
+            operation_input_0_2.set_discard(String::from("partials/page-global"), tsumo_engine::testing::parseTemplate(String::from("{{ page.Title }}|{{ page.Store.Add \"visits\" 1 }}{{ page.Store.Get \"visits\" }}"), Some(String::from("partials/page-global")))?)
         };
-        let contextual: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
+        let contextual: tsumo_engine::testing::Template = tsumo_engine::testing::parseTemplate(
             String::from("{{ partial \"page-global\" (dict \"context\" \"changed\") }}"),
             None,
         )?;
-        crate::test_root::Assert::string_equal(
+        crate::test_root::Assert::StringEqual(
             String::from("Home|1"),
             Some({
                 let dispatch_receiver_5 = environment.clone();
@@ -630,35 +985,36 @@ impl TemplatePageContextTests {
         Ok(())
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn page_resources_use_the_published_bundle_inventory(&self) -> Result<(), rt::TsonicError> {
         let root: String =
-            crate::test_root::create_test_directory(String::from("template-page-resources"))?;
-        let site_directory: String = tsonic_rust_node::path::join(&[root.as_str(), "site"]);
-        let bundle_directory: String =
-            tsonic_rust_node::path::join(&[site_directory.as_str(), "content", "article"]);
-        let output_directory: String = tsonic_rust_node::path::join(&[root.as_str(), "output"]);
+            crate::test_root::createTestDirectory(String::from("template-page-resources"))?;
+        let siteDirectory: String = tsonic_rust_node::path::join(&[root.as_str(), "site"]);
+        let bundleDirectory: String =
+            tsonic_rust_node::path::join(&[siteDirectory.as_str(), "content", "article"]);
+        let outputDirectory: String = tsonic_rust_node::path::join(&[root.as_str(), "output"]);
         let try_body: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::create_directory(bundle_directory.clone())?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[bundle_directory.as_str(), "cover.svg"]),
-                String::from("<svg></svg>"),
+            crate::test_root::createDirectory(&bundleDirectory)?;
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[bundleDirectory.as_str(), "cover.svg"]),
+                "<svg></svg>",
             )?;
-            crate::test_root::write_text_file(
-                tsonic_rust_node::path::join(&[bundle_directory.as_str(), "notes.txt"]),
-                String::from("notes"),
+            crate::test_root::writeTextFile(
+                &tsonic_rust_node::path::join(&[bundleDirectory.as_str(), "notes.txt"]),
+                "notes",
             )?;
             let manager: tsumo_engine::testing::ResourceManager =
                 tsumo_engine::testing::ResourceManager::new(
-                    site_directory.clone(),
+                    siteDirectory.clone(),
                     Option::<String>::None,
-                    output_directory,
+                    outputDirectory,
                 )?;
             let environment: crate::template_test_harness::TestTemplateEnvironment =
                 crate::template_test_harness::TestTemplateEnvironment::new(Some(manager))?;
             let site: tsumo_engine::testing::SiteContext =
-                crate::template_test_harness::create_site()?;
+                crate::template_test_harness::createSite()?;
             let page: tsumo_engine::testing::PageContext =
-                crate::template_test_harness::create_page(
+                crate::template_test_harness::createPage(
                     site.clone(),
                     String::from("Article"),
                     String::from(""),
@@ -676,7 +1032,7 @@ impl TemplatePageContextTests {
             };
             {
                 let receiver_2 = &page;
-                let value_2 = Some(bundle_directory.clone());
+                let value_2 = Some(bundleDirectory.clone());
                 {
                     let dispatch_receiver_2 = receiver_2;
                     dispatch_receiver_2
@@ -684,13 +1040,13 @@ impl TemplatePageContextTests {
                         .write_page_context_resource_source_dir(value_2)?
                 }
             };
-            let template: tsumo_engine::testing::Template = tsumo_engine::testing::parse_template(
+            let template: tsumo_engine::testing::Template = tsumo_engine::testing::parseTemplate(
                 String::from(
                     "{{ $images := .Resources.ByType \"image\" }}{{ with $images.GetMatch \"*.svg\" }}{{ .RelPermalink }}{{ end }}|{{ with ($images.GetMatch \"{*cover*,*thumbnail*}\") }}{{ .RelPermalink }}{{ end }}|{{ with .Resources.Get \"notes.txt\" }}{{ .RelPermalink }}{{ end }}",
                 ),
                 None,
             )?;
-            crate::test_root::Assert::string_equal(
+            crate::test_root::Assert::StringEqual(
                 String::from("/article/cover.svg|/article/cover.svg|/article/notes.txt"),
                 Some({
                     let dispatch_receiver_3 = environment;
@@ -717,7 +1073,7 @@ impl TemplatePageContextTests {
         });
         let try_flow = try_body;
         let finally_flow: rt::TsonicResult<rt::Completion<()>> = rt::completion_region(|| {
-            crate::test_root::delete_test_directory(root.clone())?;
+            crate::test_root::deleteTestDirectory(&root)?;
             Ok(rt::Completion::Normal)
         });
         let try_flow: rt::TsonicResult<rt::Completion<()>> =
@@ -739,54 +1095,75 @@ impl Default for TemplatePageContextTests {
     }
 }
 
-pub fn run_template_page_context_tests() -> Result<(), rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn runTemplatePageContextTests() -> Result<(), rt::TsonicError> {
     let tests: TemplatePageContextTests = TemplatePageContextTests::new();
-    crate::test_root::run_test(
-        String::from("date, page data, and render methods use typed context"),
+    crate::test_root::runTest(
+        String::from("page sorts preserve ties and do not mutate the source"),
         {
             let capture_tests = tests.clone();
             rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments| {
-                capture_tests.date_page_data_and_render_methods_use_typed_context()?;
+                capture_tests.page_sorts_preserve_ties_and_do_not_mutate_the_source()?;
                 Ok::<_, rt::TsonicError>(())
             })
         },
     )?;
-    crate::test_root::run_test(
-        String::from("page taxonomy terms follow explicit graph relations"),
+    crate::test_root::runTest(
+        String::from("pagination uses exact integer ceiling and bounded page offsets"),
         {
             let capture_tests_2 = tests.clone();
             rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_2| {
-                capture_tests_2.page_taxonomy_terms_follow_explicit_graph_relations()?;
+                capture_tests_2.pagination_uses_exact_integer_ceiling_and_bounded_page_offsets()?;
                 Ok::<_, rt::TsonicError>(())
             })
         },
     )?;
-    crate::test_root::run_test(
-        String::from("page menu methods use the exact menu hierarchy"),
+    crate::test_root::runTest(
+        String::from("date, page data, and render methods use typed context"),
         {
             let capture_tests_3 = tests.clone();
             rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_3| {
-                capture_tests_3.page_menu_methods_use_the_exact_menu_hierarchy()?;
+                capture_tests_3.date_page_data_and_render_methods_use_typed_context()?;
                 Ok::<_, rt::TsonicError>(())
             })
         },
     )?;
-    crate::test_root::run_test(
-        String::from("template definitions propagate across partial boundaries"),
+    crate::test_root::runTest(
+        String::from("page taxonomy terms follow explicit graph relations"),
         {
             let capture_tests_4 = tests.clone();
             rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_4| {
-                capture_tests_4.template_definitions_propagate_across_partial_boundaries()?;
+                capture_tests_4.page_taxonomy_terms_follow_explicit_graph_relations()?;
                 Ok::<_, rt::TsonicError>(())
             })
         },
     )?;
-    crate::test_root::run_test(
-        String::from("page resources use the published bundle inventory"),
+    crate::test_root::runTest(
+        String::from("page menu methods use the exact menu hierarchy"),
         {
             let capture_tests_5 = tests.clone();
             rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_5| {
-                capture_tests_5.page_resources_use_the_published_bundle_inventory()?;
+                capture_tests_5.page_menu_methods_use_the_exact_menu_hierarchy()?;
+                Ok::<_, rt::TsonicError>(())
+            })
+        },
+    )?;
+    crate::test_root::runTest(
+        String::from("template definitions propagate across partial boundaries"),
+        {
+            let capture_tests_6 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_6| {
+                capture_tests_6.template_definitions_propagate_across_partial_boundaries()?;
+                Ok::<_, rt::TsonicError>(())
+            })
+        },
+    )?;
+    crate::test_root::runTest(
+        String::from("page resources use the published bundle inventory"),
+        {
+            let capture_tests_7 = tests.clone();
+            rt::Callable::<(), rt::TsonicResult<()>>::new(move |_callable_arguments_7| {
+                capture_tests_7.page_resources_use_the_published_bundle_inventory()?;
                 Ok::<_, rt::TsonicError>(())
             })
         },

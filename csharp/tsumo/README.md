@@ -5,39 +5,43 @@ Tsonic from TypeScript to C#.
 
 ## Browse the translation
 
-| Program area | Authored TypeScript | Generated C# |
-|---|---|---|
-| Site entry point | [`source/packages/engine/src/build-site.ts`](source/packages/engine/src/build-site.ts) | [`generated/packages/engine/src/BuildSite.cs`](generated/packages/engine/src/BuildSite.cs) |
-| Page model | [`source/packages/engine/src/models/page-context.ts`](source/packages/engine/src/models/page-context.ts) | [`generated/packages/engine/src/models/Models_pageContext.cs`](generated/packages/engine/src/models/Models_pageContext.cs) |
-| CLI entry point | [`source/packages/cli/src/cli-main.ts`](source/packages/cli/src/cli-main.ts) | [`generated/packages/cli/src/CliMain.cs`](generated/packages/cli/src/CliMain.cs) |
-| Tests | [`source/packages/tests/src`](source/packages/tests/src) | [`generated/packages/tests/src`](generated/packages/tests/src) |
+- [Site entry point: TypeScript](source/packages/engine/src/build-site.ts)
+- [Site entry point: C#](generated/packages/engine/src/BuildSite.cs)
+- [Page model: TypeScript](source/packages/engine/src/models/page-context.ts)
+- [Page model: C#](generated/packages/engine/src/models/Models_pageContext.cs)
+- [CLI entry point: TypeScript](source/packages/cli/src/cli-main.ts)
+- [CLI entry point: C#](generated/packages/cli/src/CliMain.cs)
+- [Tests: TypeScript](source/packages/tests/src)
+- [Tests: C#](generated/packages/tests/src)
 
 `source` contains all authored TypeScript for the engine, CLI, and compiled test
-program, together with each package's `tsonic.json` and `package.json`.
-`generated` contains all 556 `.cs` files emitted for those three packages,
+program, together with project configuration and package metadata.
+`generated` contains all 559 `.cs` files emitted for those three packages,
 including each package's complete generated dependency closure and generated
 entry-point/object-shape files.
 
 ## Provenance
 
-Generated on 2026-09-21 with the certified compiler sources now merged to `main`:
+Generated and verified on 2026-09-29 from these exact source revisions:
 
-| Component | Commit |
-|---|---|
-| [`tsoniclang/tsumo-csharp`](https://github.com/tsoniclang/tsumo-csharp) | `6478a1f2f76ee78e9ce750e71e01308875696716` |
-| [`tsoniclang/tsonic`](https://github.com/tsoniclang/tsonic) | `59e96dc9a57440d7c26971719f98c1e00f69c6aa` |
-| [`tsoniclang/tsonic-csharp`](https://github.com/tsoniclang/tsonic-csharp) | `687b0f7116243a31d657720e02ef031c93cfc3df` |
-| [`tsoniclang/csharp-nodejs`](https://github.com/tsoniclang/csharp-nodejs) | `4c61b86b067472b4824a5b6ac6691736a7ea0977` |
-| [`tsoniclang/csharp-js`](https://github.com/tsoniclang/csharp-js) | `e09d29ca6e8e0620426db543d0bee8067cea362d` |
-| [`tsoniclang/csharp-runtime`](https://github.com/tsoniclang/csharp-runtime) | `e8443be75fc0d35ec945c3f80e8f8402f5d73885` |
+- [Tsumo C#: `71ecd99519dbfa48f29dff0466e515b3a2974e91`](https://github.com/tsoniclang/tsumo-csharp/commit/71ecd99519dbfa48f29dff0466e515b3a2974e91)
+- [Tsonic: `fec51270a9b96f38cb83791b3043853962e83728`](https://github.com/tsoniclang/tsonic/commit/fec51270a9b96f38cb83791b3043853962e83728)
+- [C# target: `83f59ad36a279f6753ac18209670c540f607b57b`](https://github.com/tsoniclang/tsonic-csharp/commit/83f59ad36a279f6753ac18209670c540f607b57b)
+- [C# Node: `47f6fd92ee9c6b251d9f0fb93c5bc21f6ed5c35a`](https://github.com/tsoniclang/csharp-nodejs/commit/47f6fd92ee9c6b251d9f0fb93c5bc21f6ed5c35a)
+- [C# JS: `7ef1963680b3b39cc7c0599f1a91a6e74f24c313`](https://github.com/tsoniclang/csharp-js/commit/7ef1963680b3b39cc7c0599f1a91a6e74f24c313)
+- [C# runtime: `8cca2c508d65dcc126d40b658817e9f99c77a88d`](https://github.com/tsoniclang/csharp-runtime/commit/8cca2c508d65dcc126d40b658817e9f99c77a88d)
 
-All three projects passed the September 21 certification: 71 compiled tests,
-25 application tests, NativeAOT publication and generated-site equivalence.
+All three projects generated and built successfully. Verification passes
+74 compiled tests, 26 application/architecture checks, NativeAOT publication,
+and exact generated-site equivalence across 21 files. CLI verification uses
+the installed .NET runtime through `DOTNET_ROOT`; the NativeAOT executable
+runs independently. The vendored Markdig build reports its existing CA2265
+warning; no test assertion or warning policy was weakened.
 
 | Tree | Files | Bytes | Sorted relative-path/content manifest SHA-256 |
 |---|---:|---:|---|
-| Authored source | 209 | 829,881 | `2b576a8ccec7f7e088d9443b1fe41a82fb8a54ced3f1ccbd6c2b9de5f8c9c8df` |
-| Generated C# | 556 | 4,234,826 | `c0ac83c3ea09abcab4d3d6ceba6f501938d078be0c90a598fd06766bab275d00` |
+| Authored source | 210 | 836,566 | `82e7a81f9780a08db550db7594fbb4520e474a24b60ec4ed230adbc9670bd7d2` |
+| Generated C# | 559 | 3,948,899 | `6b59421624793e2b0f00e0fc5fd8faa933c96cfc500df3f54edd5134386cfe8a` |
 
 The manifest hashes sorted lines of `<file SHA-256>  <relative path>\n`.
 

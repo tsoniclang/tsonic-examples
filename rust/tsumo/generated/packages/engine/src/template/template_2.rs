@@ -5,6 +5,9 @@ use tsonic_rust_js::abi as js_abi;
 
 #[doc(hidden)]
 pub trait TemplateDispatch {
+    fn project_template(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static;
     fn downcast_template_to_template(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn TemplateDispatch + 'static>> {
@@ -81,10 +84,11 @@ pub trait TemplateDispatch {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct TemplateState {
     pub nodes: js_abi::JsArray<crate::template::nodes::TemplateNode>,
     pub defines: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-    pub source_path: Option<String>,
+    pub sourcePath: Option<String>,
 }
 
 #[derive(Clone)]
@@ -122,30 +126,32 @@ pub(crate) struct TemplateRoot {
 
 impl Template {
     #[doc(hidden)]
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn initialize_state(
         nodes: js_abi::JsArray<crate::template::nodes::TemplateNode>,
         defines: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-        source_path: Option<String>,
+        sourcePath: Option<String>,
     ) -> Result<TemplateState, rt::TsonicError> {
         let field_nodes: js_abi::JsArray<crate::template::nodes::TemplateNode> = nodes;
         let field_defines: js_abi::JsMap<
             String,
             js_abi::JsArray<crate::template::nodes::TemplateNode>,
         > = defines;
-        let field_source_path: Option<String> = source_path;
+        let field_source_path: Option<String> = sourcePath;
         Ok(TemplateState {
             nodes: field_nodes,
             defines: field_defines,
-            source_path: field_source_path,
+            sourcePath: field_source_path,
         })
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(
         nodes: js_abi::JsArray<crate::template::nodes::TemplateNode>,
         defines: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
-        source_path: Option<String>,
+        sourcePath: Option<String>,
     ) -> Result<Template, rt::TsonicError> {
-        let state = Template::initialize_state(nodes, defines, source_path)?;
+        let state = Template::initialize_state(nodes, defines, sourcePath)?;
         let identity = rt::ObjectIdentity::new();
         let root = alloc::rc::Rc::new(TemplateRoot {
             identity: identity.clone(),
@@ -159,6 +165,7 @@ impl Template {
 }
 
 impl TemplateRoot {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_template_render(
         self: alloc::rc::Rc<Self>,
         root: crate::models::page_context::PageContext,
@@ -174,18 +181,18 @@ impl TemplateRoot {
         };
         let sb: crate::utils::text_builder::TextBuilder =
             crate::utils::text_builder::TextBuilder::new();
-        let page_value: crate::template::values::page::PageValue =
+        let pageValue: crate::template::values::page::PageValue =
             crate::template::values::page::PageValue::new(root.clone())?;
         let scope: crate::template::scope::RenderScope = crate::template::scope::RenderScope::new(
             {
-                let upcast_value = page_value.clone();
+                let upcast_value = pageValue.clone();
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value.identity.clone(),
                     dispatch: upcast_value.dispatch.clone(),
                 }
             },
             {
-                let upcast_value_2 = page_value.clone();
+                let upcast_value_2 = pageValue.clone();
                 crate::template::values::base::TemplateValue {
                     identity: upcast_value_2.identity.clone(),
                     dispatch: upcast_value_2.dispatch.clone(),
@@ -233,7 +240,7 @@ impl TemplateRoot {
             dispatch: self.clone(),
         };
         let control: crate::template::evaluation::render::TemplateControlFlow =
-            crate::template::evaluation::render::render_template_nodes(
+            crate::template::evaluation::render::renderTemplateNodes(
                 {
                     let dispatch_receiver = &project_this;
                     dispatch_receiver.dispatch.read_template_nodes()
@@ -250,7 +257,7 @@ impl TemplateRoot {
             )?;
         if control != crate::template::evaluation::render::TemplateControlFlow::Normal {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_TEMPLATE_CONTROL_FLOW_INVALID"),
                     String::from("Template loop control escaped the checked template root"),
                     None,
@@ -274,7 +281,7 @@ impl TemplateRoot {
             dispatch: self.clone(),
         };
         let control: crate::template::evaluation::render::TemplateControlFlow =
-            crate::template::evaluation::render::render_template_nodes(
+            crate::template::evaluation::render::renderTemplateNodes(
                 {
                     let dispatch_receiver = &project_this;
                     dispatch_receiver.dispatch.read_template_nodes()
@@ -291,7 +298,7 @@ impl TemplateRoot {
             )?;
         if control != crate::template::evaluation::render::TemplateControlFlow::Normal {
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_TEMPLATE_CONTROL_FLOW_INVALID"),
                     String::from("Template loop control escaped the checked template root"),
                     None,
@@ -303,6 +310,7 @@ impl TemplateRoot {
         Ok(())
     }
 
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     fn exact_template_with_inherited_definitions(
         self: alloc::rc::Rc<Self>,
         inherited: js_abi::JsMap<String, js_abi::JsArray<crate::template::nodes::TemplateNode>>,
@@ -311,7 +319,7 @@ impl TemplateRoot {
             identity: self.identity.clone(),
             dispatch: self.clone(),
         };
-        if rt::conversions::usize_to_i32(inherited.len())? == 0 {
+        if inherited.is_empty() {
             return Ok(project_this.clone());
         }
         let definitions: js_abi::JsMap<
@@ -319,11 +327,11 @@ impl TemplateRoot {
             js_abi::JsArray<crate::template::nodes::TemplateNode>,
         > = js_abi::JsMap::new();
         for name in inherited.keys() {
-            let inherited_body: Option<js_abi::JsArray<crate::template::nodes::TemplateNode>> =
+            let inheritedBody: Option<js_abi::JsArray<crate::template::nodes::TemplateNode>> =
                 inherited.get(&name);
-            if inherited_body.is_none() {
+            if inheritedBody.is_none() {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_TEMPLATE_DEFINE_INVENTORY_INVALID"),
                         format!(
                             "{}{}{}",
@@ -342,7 +350,7 @@ impl TemplateRoot {
             }
             definitions.set_discard(
                 name.clone(),
-                match inherited_body.as_ref() {
+                match inheritedBody.as_ref() {
                     Some(flow_value) => flow_value.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
@@ -361,7 +369,7 @@ impl TemplateRoot {
             .get(&name);
             if body.is_none() {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_TEMPLATE_DEFINE_INVENTORY_INVALID"),
                         format!(
                             "{}{}{}",
@@ -382,7 +390,7 @@ impl TemplateRoot {
                 definitions.get(&name);
             if existing.is_some() {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_TEMPLATE_DEFINE_CONFLICT"),
                         format!(
                             "{}{}{}",
@@ -421,7 +429,24 @@ impl TemplateRoot {
     }
 }
 
+impl rt::ObjectIdentityCarrier for TemplateRoot {
+    fn object_identity(&self) -> &rt::ObjectIdentity {
+        &self.identity
+    }
+}
+
 impl TemplateDispatch for TemplateRoot {
+    fn project_template(self: alloc::rc::Rc<Self>, output: &mut dyn core::any::Any)
+    where
+        Self: 'static,
+    {
+        if let Some(selected) =
+            output.downcast_mut::<Option<alloc::rc::Rc<dyn TemplateDispatch + 'static>>>()
+        {
+            *selected = Some(self);
+        }
+    }
+
     fn downcast_template_to_template(
         self: alloc::rc::Rc<Self>,
     ) -> Option<alloc::rc::Rc<dyn TemplateDispatch + 'static>> {
@@ -465,14 +490,14 @@ impl TemplateDispatch for TemplateRoot {
     }
 
     fn read_template_source_path(&self) -> Option<String> {
-        self.state.with(|state| state.source_path.clone())
+        self.state.with(|state| state.sourcePath.clone())
     }
 
     fn write_template_source_path(&self, value: Option<String>) -> Result<(), rt::TsonicError> {
         {
             {
                 self.identity.validate_data_write()?;
-                self.state.with_mut(|state| state.source_path = value)
+                self.state.with_mut(|state| state.sourcePath = value)
             };
             Ok::<_, rt::TsonicError>(())
         }

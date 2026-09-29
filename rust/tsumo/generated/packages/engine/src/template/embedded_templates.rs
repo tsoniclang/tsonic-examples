@@ -3,31 +3,37 @@
 use crate::program as rt;
 use tsonic_rust_js::string as js_string;
 
-pub const OPEN_GRAPH_SOURCE: &str = "{{ with .Title }}<meta property=\"og:title\" content=\"{{ . }}\">{{ end }}{{ with .Description }}<meta property=\"og:description\" content=\"{{ . }}\">{{ end }}{{ with .Permalink }}<meta property=\"og:url\" content=\"{{ . }}\">{{ end }}{{ with .Site.Title }}<meta property=\"og:site_name\" content=\"{{ . }}\">{{ end }}";
+#[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+pub const openGraphSource: &str = "{{ with .Title }}<meta property=\"og:title\" content=\"{{ . }}\">{{ end }}{{ with .Description }}<meta property=\"og:description\" content=\"{{ . }}\">{{ end }}{{ with .Permalink }}<meta property=\"og:url\" content=\"{{ . }}\">{{ end }}{{ with .Site.Title }}<meta property=\"og:site_name\" content=\"{{ . }}\">{{ end }}";
 
-pub const TWITTER_CARDS_SOURCE: &str = "<meta name=\"twitter:card\" content=\"summary\">{{ with .Title }}<meta name=\"twitter:title\" content=\"{{ . }}\">{{ end }}{{ with .Description }}<meta name=\"twitter:description\" content=\"{{ . }}\">{{ end }}";
+#[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+pub const twitterCardsSource: &str = "<meta name=\"twitter:card\" content=\"summary\">{{ with .Title }}<meta name=\"twitter:title\" content=\"{{ . }}\">{{ end }}{{ with .Description }}<meta name=\"twitter:description\" content=\"{{ . }}\">{{ end }}";
 
-pub const SCHEMA_SOURCE: &str = "<script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"name\":{{ .Title | jsonify | safeJS }},\"url\":{{ .Permalink | jsonify | safeJS }}}</script>";
+#[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+pub const schemaSource: &str = "<script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"name\":{{ .Title | jsonify | safeJS }},\"url\":{{ .Permalink | jsonify | safeJS }}}</script>";
 
-pub const PAGINATION_SOURCE: &str = "{{ $page := . }}{{ if reflect.IsMap . }}{{ $page = .page }}{{ end }}{{ with $page.Paginator }}{{ if gt .TotalPages 1 }}<nav class=\"pagination\" role=\"navigation\">{{ with .Prev }}<a class=\"pagination__previous\" href=\"{{ .URL }}\">Previous</a>{{ end }}{{ with .Next }}<a class=\"pagination__next\" href=\"{{ .URL }}\">Next</a>{{ end }}</nav>{{ end }}{{ end }}";
+#[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+pub const paginationSource: &str = "{{ $page := . }}{{ if reflect.IsMap . }}{{ $page = .page }}{{ end }}{{ with $page.Paginator }}{{ if gt .TotalPages 1 }}<nav class=\"pagination\" role=\"navigation\">{{ with .Prev }}<a class=\"pagination__previous\" href=\"{{ .URL }}\">Previous</a>{{ end }}{{ with .Next }}<a class=\"pagination__next\" href=\"{{ .URL }}\">Next</a>{{ end }}</nav>{{ end }}{{ end }}";
 
 std::thread_local! {
-    pub static PAGE_IMAGES_SOURCE: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
+    #[allow(non_upper_case_globals, reason = "preserves the authored source name")]
+    pub static pageImagesSource: rt::ModuleCell<String> = const { rt::ModuleCell::new() };
 }
 
-pub fn get_embedded_template_source(path: &str) -> Option<String> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn getEmbeddedTemplateSource(path: &str) -> Option<String> {
     let normalized: String = js_string::to_lower_case(path);
     if normalized == "_internal/opengraph.html" {
-        return Some(String::from(OPEN_GRAPH_SOURCE));
+        return Some(String::from(openGraphSource));
     }
     if normalized == "_internal/twitter_cards.html" {
-        return Some(String::from(TWITTER_CARDS_SOURCE));
+        return Some(String::from(twitterCardsSource));
     }
     if normalized == "_internal/schema.html" {
-        return Some(String::from(SCHEMA_SOURCE));
+        return Some(String::from(schemaSource));
     }
     if normalized == "_internal/pagination.html" {
-        return Some(String::from(PAGINATION_SOURCE));
+        return Some(String::from(paginationSource));
     }
     if normalized == "_internal/disqus.html" {
         return Some(String::from(""));
@@ -36,21 +42,21 @@ pub fn get_embedded_template_source(path: &str) -> Option<String> {
         return Some(String::from(""));
     }
     if normalized == "partials/opengraph.html" || normalized == "_partials/opengraph.html" {
-        return Some(String::from(OPEN_GRAPH_SOURCE));
+        return Some(String::from(openGraphSource));
     }
     if normalized == "partials/twitter_cards.html" || normalized == "_partials/twitter_cards.html" {
-        return Some(String::from(TWITTER_CARDS_SOURCE));
+        return Some(String::from(twitterCardsSource));
     }
     if normalized == "partials/schema.html" || normalized == "_partials/schema.html" {
-        return Some(String::from(SCHEMA_SOURCE));
+        return Some(String::from(schemaSource));
     }
     if normalized == "partials/pagination.html" || normalized == "_partials/pagination.html" {
-        return Some(String::from(PAGINATION_SOURCE));
+        return Some(String::from(paginationSource));
     }
     if normalized == "partials/_funcs/get-page-images.html"
         || normalized == "_partials/_funcs/get-page-images.html"
     {
-        return Some(PAGE_IMAGES_SOURCE.with(|module_binding| module_binding.load()));
+        return Some(pageImagesSource.with(|module_binding| module_binding.load()));
     }
     if normalized == "partials/disqus.html" || normalized == "_partials/disqus.html" {
         return Some(String::from(""));
@@ -69,6 +75,6 @@ pub fn module_init() {
         let module_value = String::from(
             "{{ $imgs := slice }}{{ $imgParams := .Params.images }}{{ $resources := .Resources.ByType \"image\" }}{{ if not $imgParams }}{{ $featured := $resources.GetMatch \"*feature*\" }}{{ if not $featured }}{{ $featured = $resources.GetMatch \"{*cover*,*thumbnail*}\" }}{{ end }}{{ with $featured }}{{ $imgs = $imgs | append (dict \"Image\" . \"RelPermalink\" .RelPermalink \"Permalink\" .Permalink) }}{{ end }}{{ end }}{{ if and (not $imgParams) (not $imgs) }}{{ with site.Params.images }}{{ $imgParams = first 1 . }}{{ end }}{{ end }}{{ range $imgParams }}{{ $img := . }}{{ $url := urls.Parse $img }}{{ if eq $url.Scheme \"\" }}{{ with or ($resources.GetMatch $img) (resources.GetMatch $img) }}{{ $imgs = $imgs | append (dict \"Image\" . \"RelPermalink\" .RelPermalink \"Permalink\" .Permalink) }}{{ else }}{{ $imgs = $imgs | append (dict \"RelPermalink\" (relURL $img) \"Permalink\" (absURL $img)) }}{{ end }}{{ else }}{{ $imgs = $imgs | append (dict \"RelPermalink\" $img \"Permalink\" $img) }}{{ end }}{{ end }}{{ return $imgs }}",
         );
-        PAGE_IMAGES_SOURCE.with(|module_binding| module_binding.initialize(module_value))
+        pageImagesSource.with(|module_binding| module_binding.initialize(module_value))
     };
 }

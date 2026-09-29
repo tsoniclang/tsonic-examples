@@ -5,17 +5,18 @@ use tsonic_rust_js::abi as js_abi;
 use tsonic_rust_js::string as js_string;
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct ShortcodeCallState {
     pub name: String,
     pub params: js_abi::JsMap<String, crate::params::ParamValue>,
-    pub positional_params: js_abi::JsArray<String>,
-    pub is_named_params: bool,
+    pub positionalParams: js_abi::JsArray<String>,
+    pub isNamedParams: bool,
     pub inner: String,
-    pub is_markdown: bool,
-    pub is_self_closing: bool,
-    pub start_index: i32,
-    pub end_index: i32,
-    pub source_path: Option<String>,
+    pub isMarkdown: bool,
+    pub isSelfClosing: bool,
+    pub startIndex: i32,
+    pub endIndex: i32,
+    pub sourcePath: Option<String>,
     pub line: i32,
     pub column: i32,
 }
@@ -33,45 +34,46 @@ impl rt::ObjectIdentityCarrier for ShortcodeCall {
 }
 
 impl ShortcodeCall {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     #[expect(clippy::too_many_arguments, reason = "checked source signature")]
     pub fn new(
         name: String,
         params: js_abi::JsMap<String, crate::params::ParamValue>,
-        positional_params: js_abi::JsArray<String>,
-        is_named_params: bool,
+        positionalParams: js_abi::JsArray<String>,
+        isNamedParams: bool,
         inner: String,
-        is_markdown: bool,
-        is_self_closing: bool,
-        start_index: i32,
-        end_index: i32,
-        source_path: Option<String>,
+        isMarkdown: bool,
+        isSelfClosing: bool,
+        startIndex: i32,
+        endIndex: i32,
+        sourcePath: Option<String>,
         line: i32,
         column: i32,
     ) -> Result<ShortcodeCall, rt::TsonicError> {
         let field_name: String = name;
         let field_params: js_abi::JsMap<String, crate::params::ParamValue> = params;
-        let field_positional_params: js_abi::JsArray<String> = positional_params;
-        let field_is_named_params: bool = is_named_params;
+        let field_positional_params: js_abi::JsArray<String> = positionalParams;
+        let field_is_named_params: bool = isNamedParams;
         let field_inner: String = inner;
-        let field_is_markdown: bool = is_markdown;
-        let field_is_self_closing: bool = is_self_closing;
-        let field_start_index: i32 = start_index;
-        let field_end_index: i32 = end_index;
-        let field_source_path: Option<String> = source_path;
+        let field_is_markdown: bool = isMarkdown;
+        let field_is_self_closing: bool = isSelfClosing;
+        let field_start_index: i32 = startIndex;
+        let field_end_index: i32 = endIndex;
+        let field_source_path: Option<String> = sourcePath;
         let field_line: i32 = line;
         let field_column: i32 = column;
         Ok(ShortcodeCall {
             state: rt::ObjectRef::new(ShortcodeCallState {
                 name: field_name,
                 params: field_params,
-                positional_params: field_positional_params,
-                is_named_params: field_is_named_params,
+                positionalParams: field_positional_params,
+                isNamedParams: field_is_named_params,
                 inner: field_inner,
-                is_markdown: field_is_markdown,
-                is_self_closing: field_is_self_closing,
-                start_index: field_start_index,
-                end_index: field_end_index,
-                source_path: field_source_path,
+                isMarkdown: field_is_markdown,
+                isSelfClosing: field_is_self_closing,
+                startIndex: field_start_index,
+                endIndex: field_end_index,
+                sourcePath: field_source_path,
                 line: field_line,
                 column: field_column,
             }),
@@ -80,8 +82,10 @@ impl ShortcodeCall {
 }
 
 #[doc(hidden)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct ParseStateState {
     pub text: String,
+    pub textLength: i32,
     pub pos: i32,
 }
 
@@ -99,11 +103,13 @@ impl rt::ObjectIdentityCarrier for ParseState {
 
 impl ParseState {
     pub fn new(text: String) -> Result<ParseState, rt::TsonicError> {
-        let field_text: String = text;
+        let field_text: String = text.clone();
+        let field_text_length: i32 = rt::conversions::usize_to_i32(js_string::js_len(&text))?;
         let field_pos: i32 = 0;
         Ok(ParseState {
             state: rt::ObjectHandle::new(ParseStateState {
                 text: field_text,
+                textLength: field_text_length,
                 pos: field_pos,
             }),
         })
@@ -113,35 +119,28 @@ impl ParseState {
         let mut index: i32 = self.state.with(|state| state.pos);
         #[expect(unused_variables, reason = "authored binding drop scope")]
         for step in 0..offset {
-            index = crate::utils::strings::next_code_point_index(
+            index = crate::utils::strings::nextCodePointIndex(
                 &self.state.with(|state| state.text.clone()),
                 index,
             )?;
         }
-        crate::utils::strings::code_point_at_text(
-            &self.state.with(|state| state.text.clone()),
-            index,
-        )
+        crate::utils::strings::codePointAtText(&self.state.with(|state| state.text.clone()), index)
     }
 
-    pub fn peek_string(&self, length: i32) -> Result<String, rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn peekString(&self, length: i32) -> Result<String, rt::TsonicError> {
         let mut end: i32 = self.state.with(|state| state.pos);
         {
             let mut step: i32 = 0;
-            while step < length
-                && end
-                    < rt::conversions::usize_to_i32(js_string::js_len(
-                        &self.state.with(|state| state.text.clone()),
-                    ))?
-            {
-                end = crate::utils::strings::next_code_point_index(
+            while step < length && end < self.state.with(|state| state.textLength) {
+                end = crate::utils::strings::nextCodePointIndex(
                     &self.state.with(|state| state.text.clone()),
                     end,
                 )?;
                 step += 1;
             }
         }
-        crate::utils::strings::substring_count(
+        crate::utils::strings::substringCount(
             &self.state.with(|state| state.text.clone()),
             self.state.with(|state| state.pos),
             end - self.state.with(|state| state.pos),
@@ -153,12 +152,12 @@ impl ParseState {
         for step in 0..count {
             {
                 let receiver = self;
-                let value = crate::utils::strings::next_code_point_index(
+                let value = crate::utils::strings::nextCodePointIndex(
                     &self.state.with(|state| state.text.clone()),
                     self.state.with(|state| state.pos),
                 )?;
                 {
-                    let field_owner = receiver.clone();
+                    let field_owner = receiver;
                     let field_value = value;
                     {
                         field_owner.state.validate_data_write()?;
@@ -170,15 +169,14 @@ impl ParseState {
         Ok(())
     }
 
-    pub fn at_end(&self) -> Result<bool, rt::TsonicError> {
-        Ok(self.state.with(|state| state.pos)
-            >= rt::conversions::usize_to_i32(js_string::js_len(
-                &self.state.with(|state| state.text.clone()),
-            ))?)
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn atEnd(&self) -> bool {
+        self.state.with(|state| state.pos) >= self.state.with(|state| state.textLength)
     }
 
-    pub fn skip_whitespace(&self) -> Result<(), rt::TsonicError> {
-        'loop_value: while !self.at_end()? {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn skipWhitespace(&self) -> Result<(), rt::TsonicError> {
+        'loop_value: while !self.atEnd() {
             let c: String = self.peek(0)?;
             if c != " " && c != "\t" && c != "\n" && c != "\r" {
                 break 'loop_value;
@@ -252,130 +250,116 @@ impl ShortcodeRange {
 }
 
 #[derive(Clone)]
+#[allow(non_snake_case, reason = "preserves the authored source name")]
 pub struct ShortcodeSourceMap {
-    pub line_starts: js_abi::JsArray<i32>,
-    pub code_fences: js_abi::JsArray<ShortcodeRange>,
-    pub wide_character_ends: js_abi::JsArray<i32>,
-    pub utf16_adjustments: js_abi::JsArray<i32>,
+    pub lineStarts: js_abi::JsArray<i32>,
+    pub codeFences: js_abi::JsArray<ShortcodeRange>,
+    pub wideCharacterEnds: js_abi::JsArray<i32>,
+    pub utf16Adjustments: js_abi::JsArray<i32>,
 }
 
 impl ShortcodeSourceMap {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
     pub fn new(text: &str) -> Result<ShortcodeSourceMap, rt::TsonicError> {
+        let textLength: i32 = rt::conversions::usize_to_i32(js_string::js_len(text))?;
         let field_line_starts: js_abi::JsArray<i32> = js_abi::JsArray::from_dense(vec![0]);
         let field_wide_character_ends: js_abi::JsArray<i32> = js_abi::JsArray::from_dense(vec![]);
         let field_utf16_adjustments: js_abi::JsArray<i32> = js_abi::JsArray::from_dense(vec![]);
         let mut adjustment: i32 = 0;
         {
             let mut index: i32 = 0;
-            while index < rt::conversions::usize_to_i32(js_string::js_len(text))? {
-                let current: f64 =
-                    js_string::code_point_at(text, rt::conversions::i32_to_f64(index)).unwrap();
-                let next: i32 = crate::utils::strings::next_code_point_index(text, index)?;
+            while index < textLength {
+                let current: u32 = js_string::code_point_at(text, index).unwrap();
+                let next: i32 = crate::utils::strings::nextCodePointIndex(text, index)?;
                 if next - index > 1 {
                     adjustment += rt::conversions::f64_to_i32(
-                        (next - index) as f64 - if current > 65535.0 { 2.0 } else { 1.0 },
+                        (next - index) as f64 - if current > 65535 { 2.0 } else { 1.0 },
                     )?;
                     field_wide_character_ends.push_many_discard([next]);
                     field_utf16_adjustments.push_many_discard([adjustment]);
                 }
-                if current == 13.0 {
-                    if index + 1 < rt::conversions::usize_to_i32(js_string::js_len(text))?
-                        && js_string::char_at(text, rt::conversions::i32_to_f64(index + 1))? == "\n"
-                    {
+                if current == 13 {
+                    if index + 1 < textLength && js_string::char_at(text, index + 1)? == "\n" {
                         index += 1;
                     }
-                    field_line_starts.push_many_discard([rt::conversions::f64_to_i32(
-                        rt::conversions::i32_to_f64(index + 1),
-                    )?]);
-                } else if current == 10.0 {
-                    field_line_starts.push_many_discard([rt::conversions::f64_to_i32(
-                        rt::conversions::i32_to_f64(index + 1),
-                    )?]);
+                    field_line_starts.push_many_discard([index + 1]);
+                } else if current == 10 {
+                    field_line_starts.push_many_discard([index + 1]);
                 }
-                index = crate::utils::strings::next_code_point_index(text, index)?;
+                index = crate::utils::strings::nextCodePointIndex(text, index)?;
             }
         }
         let field_code_fences: js_abi::JsArray<ShortcodeRange> =
             js_abi::JsArray::from_dense(vec![]);
-        let mut fence_start: i32 = -1;
-        let mut fence_character: String = String::from("");
-        let mut fence_length: i32 = 0;
+        let mut fenceStart: i32 = -1;
+        let mut fenceCharacter: String = String::from("");
+        let mut fenceLength: i32 = 0;
         let mut position: i32 = 0;
-        'loop_value_2: while position < rt::conversions::usize_to_i32(js_string::js_len(text))? {
-            let current: String = js_string::char_at(text, rt::conversions::i32_to_f64(position))?;
-            if fence_start < 0 && (current == "`" || current == "~") {
+        'loop_value_2: while position < textLength {
+            let current: String = js_string::char_at(text, position)?;
+            if fenceStart < 0 && (current == "`" || current == "~") {
                 let mut length: i32 = 1;
-                while position + length < rt::conversions::usize_to_i32(js_string::js_len(text))?
-                    && js_string::char_at(text, rt::conversions::i32_to_f64(position + length))?
-                        == current
+                while position + length < textLength
+                    && js_string::char_at(text, position + length)? == current
                 {
                     length += 1;
                 }
                 if length >= 3 {
-                    fence_start = position;
-                    fence_character = current.clone();
-                    fence_length = length;
+                    fenceStart = position;
+                    fenceCharacter = current.clone();
+                    fenceLength = length;
                     position += length;
-                    while position < rt::conversions::usize_to_i32(js_string::js_len(text))?
-                        && js_string::char_at(text, rt::conversions::i32_to_f64(position))? != "\n"
-                    {
-                        position = crate::utils::strings::next_code_point_index(text, position)?;
+                    while position < textLength && js_string::char_at(text, position)? != "\n" {
+                        position = crate::utils::strings::nextCodePointIndex(text, position)?;
                     }
                     continue 'loop_value_2;
                 }
-            } else if fence_start >= 0 && current == fence_character {
+            } else if fenceStart >= 0 && current == fenceCharacter {
                 let mut length: i32 = 1;
-                while position + length < rt::conversions::usize_to_i32(js_string::js_len(text))?
-                    && js_string::char_at(text, rt::conversions::i32_to_f64(position + length))?
-                        == current
+                while position + length < textLength
+                    && js_string::char_at(text, position + length)? == current
                 {
                     length += 1;
                 }
-                if length >= fence_length {
+                if length >= fenceLength {
                     {
                         let operation_input_0 = field_code_fences.clone();
                         operation_input_0.push_many_discard([ShortcodeRange::new(
-                            fence_start,
+                            fenceStart,
                             position + length,
                         )?])
                     };
-                    fence_start = -1;
-                    fence_character = String::from("");
-                    fence_length = 0;
+                    fenceStart = -1;
+                    fenceCharacter = String::from("");
+                    fenceLength = 0;
                     position += length;
                     continue 'loop_value_2;
                 }
             }
-            position = crate::utils::strings::next_code_point_index(text, position)?;
+            position = crate::utils::strings::nextCodePointIndex(text, position)?;
         }
-        if fence_start >= 0 {
+        if fenceStart >= 0 {
             {
                 let operation_input_0_2 = field_code_fences.clone();
-                operation_input_0_2.push_many_discard([ShortcodeRange::new(
-                    fence_start,
-                    rt::conversions::usize_to_i32(js_string::js_len(text))?,
-                )?])
+                operation_input_0_2
+                    .push_many_discard([ShortcodeRange::new(fenceStart, textLength)?])
             };
         }
         Ok(ShortcodeSourceMap {
-            line_starts: field_line_starts,
-            code_fences: field_code_fences,
-            wide_character_ends: field_wide_character_ends,
-            utf16_adjustments: field_utf16_adjustments,
+            lineStarts: field_line_starts,
+            codeFences: field_code_fences,
+            wideCharacterEnds: field_wide_character_ends,
+            utf16Adjustments: field_utf16_adjustments,
         })
     }
 
-    pub fn position_at(&self, offset: i32) -> Result<ShortcodePosition, rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn positionAt(&self, offset: i32) -> Result<ShortcodePosition, rt::TsonicError> {
         let mut low: i32 = 0;
-        let mut high: i32 = rt::conversions::usize_to_i32(self.line_starts.len())? - 1;
+        let mut high: i32 = rt::conversions::usize_to_i32(self.lineStarts.len())? - 1;
         while low <= high {
-            let middle: i32 = rt::conversions::f64_to_i32(
-                low as f64 + rt::conversions::i32_to_f64((high - low) / 2).floor(),
-            )?;
-            if (match self
-                .line_starts
-                .get_number(rt::conversions::i32_to_f64(middle))
-            {
+            let middle: i32 = low + (high - low) / 2;
+            if (match self.lineStarts.get_number(middle) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             }) <= offset
@@ -385,34 +369,25 @@ impl ShortcodeSourceMap {
                 high = middle - 1;
             }
         }
-        let line_index: i32 = if high < 0 { 0 } else { high };
+        let lineIndex: i32 = if high < 0 { 0 } else { high };
         ShortcodePosition::new(
-            line_index + 1,
-            self.utf16_offset_at(offset)?
-                - self.utf16_offset_at(
-                    match self
-                        .line_starts
-                        .get_number(rt::conversions::i32_to_f64(line_index))
-                    {
-                        Some(flow_value_2) => flow_value_2,
-                        None => unreachable!("checked flow selected a missing optional value"),
-                    },
-                )?
+            lineIndex + 1,
+            self.utf16OffsetAt(offset)?
+                - self.utf16OffsetAt(match self.lineStarts.get_number(lineIndex) {
+                    Some(flow_value_2) => flow_value_2,
+                    None => unreachable!("checked flow selected a missing optional value"),
+                })?
                 + 1,
         )
     }
 
-    pub fn utf16_offset_at(&self, offset: i32) -> Result<i32, rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn utf16OffsetAt(&self, offset: i32) -> Result<i32, rt::TsonicError> {
         let mut low: i32 = 0;
-        let mut high: i32 = rt::conversions::usize_to_i32(self.wide_character_ends.len())?;
+        let mut high: i32 = rt::conversions::usize_to_i32(self.wideCharacterEnds.len())?;
         while low < high {
-            let middle: i32 = rt::conversions::f64_to_i32(
-                low as f64 + rt::conversions::i32_to_f64((high - low) / 2).floor(),
-            )?;
-            if (match self
-                .wide_character_ends
-                .get_number(rt::conversions::i32_to_f64(middle))
-            {
+            let middle: i32 = low + (high - low) / 2;
+            if (match self.wideCharacterEnds.get_number(middle) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             }) <= offset
@@ -426,27 +401,20 @@ impl ShortcodeSourceMap {
             offset
         } else {
             offset
-                - match self
-                    .utf16_adjustments
-                    .get_number(rt::conversions::i32_to_f64(low - 1))
-                {
+                - match self.utf16Adjustments.get_number(low - 1) {
                     Some(flow_value_2) => flow_value_2,
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
         })
     }
 
-    pub fn is_in_code_block(&self, offset: i32) -> Result<bool, rt::TsonicError> {
+    #[allow(non_snake_case, reason = "preserves the authored source name")]
+    pub fn isInCodeBlock(&self, offset: i32) -> Result<bool, rt::TsonicError> {
         let mut low: i32 = 0;
-        let mut high: i32 = rt::conversions::usize_to_i32(self.code_fences.len())? - 1;
+        let mut high: i32 = rt::conversions::usize_to_i32(self.codeFences.len())? - 1;
         while low <= high {
-            let middle: i32 = rt::conversions::f64_to_i32(
-                low as f64 + rt::conversions::i32_to_f64((high - low) / 2).floor(),
-            )?;
-            let range: ShortcodeRange = match self
-                .code_fences
-                .get_number(rt::conversions::i32_to_f64(middle))
-            {
+            let middle: i32 = low + (high - low) / 2;
+            let range: ShortcodeRange = match self.codeFences.get_number(middle) {
                 Some(flow_value) => flow_value,
                 None => unreachable!("checked flow selected a missing optional value"),
             };
@@ -462,9 +430,10 @@ impl ShortcodeSourceMap {
     }
 }
 
-pub fn parse_quoted_string(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseQuotedString(
     state: ParseState,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
     line: i32,
     column: i32,
 ) -> Result<String, rt::TsonicError> {
@@ -475,14 +444,14 @@ pub fn parse_quoted_string(
     state.advance(1)?;
     let mut result: String = String::from("");
     let mut closed: bool = false;
-    'loop_value: while !state.at_end()? {
+    'loop_value: while !state.atEnd() {
         let c: String = state.peek(0)?;
         if c == quote {
             state.advance(1)?;
             closed = true;
             break 'loop_value;
         }
-        if c == "\\" && !state.at_end()? {
+        if c == "\\" && !state.atEnd() {
             state.advance(1)?;
             result.push_str(&state.peek(0)?);
             state.advance(1)?;
@@ -493,7 +462,7 @@ pub fn parse_quoted_string(
     }
     if !closed {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_SHORTCODE_STRING_UNCLOSED"),
                 format!(
                     "{}{}{}",
@@ -501,18 +470,19 @@ pub fn parse_quoted_string(
                     quote,
                     String::from(" but is not closed")
                 ),
-                source_path,
-                Some(rt::conversions::i32_to_f64(line)),
-                Some(rt::conversions::i32_to_f64(column)),
+                sourcePath,
+                Some(line),
+                Some(column),
             )?,
         ));
     }
     Ok(result)
 }
 
-pub fn parse_unquoted_value(state: ParseState) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseUnquotedValue(state: ParseState) -> Result<String, rt::TsonicError> {
     let mut result: String = String::from("");
-    'loop_value: while !state.at_end()? {
+    'loop_value: while !state.atEnd() {
         let c: String = state.peek(0)?;
         if c == " " || c == "\t" || c == "\n" || c == "\r" || c == ">" || c == "%" || c == "/" {
             break 'loop_value;
@@ -523,33 +493,34 @@ pub fn parse_unquoted_value(state: ParseState) -> Result<String, rt::TsonicError
     Ok(result)
 }
 
-pub fn parse_params(
-    args_text: &str,
-    source_path: Option<String>,
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseParams(
+    argsText: &str,
+    sourcePath: Option<String>,
     line: i32,
     column: i32,
 ) -> Result<rt::ObjectHandle<crate::shapes::IsNamedParamsPositionalShape>, rt::TsonicError> {
     let params: js_abi::JsMap<String, crate::params::ParamValue> = js_abi::JsMap::new();
     let positional: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-    let mut is_named: bool = false;
-    let state: ParseState = ParseState::new(js_string::trim(args_text))?;
-    'loop_value: while !state.at_end()? {
-        state.skip_whitespace()?;
-        if state.at_end()? {
+    let mut isNamed: bool = false;
+    let state: ParseState = ParseState::new(js_string::trim(argsText))?;
+    'loop_value: while !state.atEnd() {
+        state.skipWhitespace()?;
+        if state.atEnd() {
             break 'loop_value;
         }
-        let peek2: String = state.peek_string(2)?;
+        let peek2: String = state.peekString(2)?;
         if peek2 == ">}" || peek2 == "%}" || peek2 == "/>" || peek2 == "/%" {
             break 'loop_value;
         }
         let mut key: String = String::from("");
         #[expect(unused_assignments, reason = "checked source evaluation order")]
         let mut value: String = String::from("");
-        let mut found_equals: bool = false;
-        'loop_value_2: while !state.at_end()? {
+        let mut foundEquals: bool = false;
+        'loop_value_2: while !state.atEnd() {
             let c: String = state.peek(0)?;
             if c == "=" && state.peek(1)? != "=" {
-                found_equals = true;
+                foundEquals = true;
                 state.advance(1)?;
                 break 'loop_value_2;
             }
@@ -562,21 +533,21 @@ pub fn parse_params(
             key.push_str(&c);
             state.advance(1)?;
         }
-        if found_equals {
+        if foundEquals {
             if key.is_empty() {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_SHORTCODE_PARAMETER_INVALID"),
                         String::from("Shortcode named parameters require a name"),
-                        source_path.clone(),
-                        Some(rt::conversions::i32_to_f64(line)),
-                        Some(rt::conversions::i32_to_f64(column)),
+                        sourcePath.clone(),
+                        Some(line),
+                        Some(column),
                     )?,
                 ));
             }
             if params.has(&key) {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_SHORTCODE_PARAMETER_DUPLICATE"),
                         format!(
                             "{}{}{}",
@@ -584,17 +555,17 @@ pub fn parse_params(
                             key,
                             String::from("' is declared more than once")
                         ),
-                        source_path.clone(),
-                        Some(rt::conversions::i32_to_f64(line)),
-                        Some(rt::conversions::i32_to_f64(column)),
+                        sourcePath.clone(),
+                        Some(line),
+                        Some(column),
                     )?,
                 ));
             }
-            is_named = true;
-            state.skip_whitespace()?;
-            if state.at_end()? {
+            isNamed = true;
+            state.skipWhitespace()?;
+            if state.atEnd() {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_SHORTCODE_PARAMETER_INVALID"),
                         format!(
                             "{}{}{}",
@@ -602,22 +573,22 @@ pub fn parse_params(
                             key,
                             String::from("' requires a value")
                         ),
-                        source_path.clone(),
-                        Some(rt::conversions::i32_to_f64(line)),
-                        Some(rt::conversions::i32_to_f64(column)),
+                        sourcePath.clone(),
+                        Some(line),
+                        Some(column),
                     )?,
                 ));
             }
             let q: String = state.peek(0)?;
             let quoted: bool = q == "\"" || q == "'";
             if quoted {
-                value = parse_quoted_string(state.clone(), source_path.clone(), line, column)?;
+                value = parseQuotedString(state.clone(), sourcePath.clone(), line, column)?;
             } else {
-                value = parse_unquoted_value(state.clone())?;
+                value = parseUnquotedValue(state.clone())?;
             }
             if !quoted && value.is_empty() {
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_SHORTCODE_PARAMETER_INVALID"),
                         format!(
                             "{}{}{}",
@@ -625,9 +596,9 @@ pub fn parse_params(
                             key,
                             String::from("' requires a value")
                         ),
-                        source_path.clone(),
-                        Some(rt::conversions::i32_to_f64(line)),
-                        Some(rt::conversions::i32_to_f64(column)),
+                        sourcePath.clone(),
+                        Some(line),
+                        Some(column),
                     )?,
                 ));
             }
@@ -638,7 +609,7 @@ pub fn parse_params(
                     if quoted {
                         crate::params::ParamValue::string(value.clone())?
                     } else {
-                        crate::params::ParamValue::parse_scalar(&value)?
+                        crate::params::ParamValue::parseScalar(&value)?
                     },
                 )
             };
@@ -646,117 +617,120 @@ pub fn parse_params(
             if key.is_empty() {
                 let q: String = state.peek(0)?;
                 if q == "\"" || q == "'" {
-                    key = parse_quoted_string(state.clone(), source_path.clone(), line, column)?;
+                    key = parseQuotedString(state.clone(), sourcePath.clone(), line, column)?;
                 }
             }
             if !key.is_empty() {
-                positional.push_many_discard([key.clone()]);
+                positional.push_many_discard([key]);
             }
         }
     }
-    if is_named && rt::conversions::usize_to_i32(positional.len())? > 0 {
+    if isNamed && !positional.is_empty() {
         return Err(rt::TsonicError::TsumoError(
-            crate::diagnostics::create_tsumo_error(
+            crate::diagnostics::createTsumoError(
                 String::from("TSUMO_SHORTCODE_PARAMETER_STYLE_MIXED"),
                 String::from("Shortcode parameters cannot mix named and positional forms"),
-                source_path.clone(),
-                Some(rt::conversions::i32_to_f64(line)),
-                Some(rt::conversions::i32_to_f64(column)),
+                sourcePath.clone(),
+                Some(line),
+                Some(column),
             )?,
         ));
     }
     Ok({
         let record_params = params.clone();
         let record_positional = positional.clone();
-        let record_is_named = is_named;
+        let record_is_named = isNamed;
         rt::ObjectHandle::new(crate::shapes::IsNamedParamsPositionalShape {
-            is_named: record_is_named,
+            isNamed: record_is_named,
             params: record_params,
             positional: record_positional,
         })
     })
 }
 
-pub fn find_closing_tag(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn findClosingTag(
     text: &str,
     name: String,
-    start_pos: i32,
-    is_markdown: bool,
+    startPos: i32,
+    isMarkdown: bool,
 ) -> Result<Option<rt::ObjectHandle<crate::shapes::EndPosInnerShape>>, rt::TsonicError> {
-    let open_tag: String = if is_markdown {
+    let openTag: String = if isMarkdown {
         String::from("{{%")
     } else {
         String::from("{{<")
     };
-    let close_tag_prefix: String = if is_markdown {
+    let closeTagPrefix: String = if isMarkdown {
         format!("{}{}", String::from("{{% /"), name)
     } else {
         format!("{}{}", String::from("{{< /"), name)
     };
-    let close_tag_prefix2: String = if is_markdown {
+    let closeTagPrefix2: String = if isMarkdown {
         format!("{}{}", String::from("{{% / "), name)
     } else {
         format!("{}{}", String::from("{{< / "), name)
     };
+    let textLength: i32 = rt::conversions::usize_to_i32(js_string::js_len(text))?;
     let mut depth: i32 = 1;
-    let mut pos: i32 = start_pos;
-    let inner_start: i32 = start_pos;
-    while pos < rt::conversions::usize_to_i32(js_string::js_len(text))? {
-        let remaining: String = crate::utils::strings::substring_from(text, pos)?;
-        if js_string::starts_with_from_start(&remaining, &open_tag) {
-            let after_open: String = js_string::trim_start(&crate::utils::strings::substring_from(
+    let mut pos: i32 = startPos;
+    let innerStart: i32 = startPos;
+    while pos < textLength {
+        let remaining: String = crate::utils::strings::substringFrom(text, pos)?;
+        if js_string::starts_with_from_start(&remaining, &openTag) {
+            let afterOpen: String = js_string::trim_start(&crate::utils::strings::substringFrom(
                 text,
-                pos + rt::conversions::usize_to_i32(js_string::js_len(&open_tag))?,
+                pos + rt::conversions::usize_to_i32(js_string::js_len(&openTag))?,
             )?);
             if js_string::starts_with_from_start(
-                &after_open,
+                &afterOpen,
                 &format!("{}{}", name, String::from(" ")),
             ) || js_string::starts_with_from_start(
-                &after_open,
+                &afterOpen,
                 &format!("{}{}", name, String::from(">")),
             ) || js_string::starts_with_from_start(
-                &after_open,
+                &afterOpen,
                 &format!("{}{}", name, String::from("%")),
             ) {
                 depth += 1;
             }
         }
-        if js_string::starts_with_from_start(&remaining, &close_tag_prefix)
-            || js_string::starts_with_from_start(&remaining, &close_tag_prefix2)
+        if js_string::starts_with_from_start(&remaining, &closeTagPrefix)
+            || js_string::starts_with_from_start(&remaining, &closeTagPrefix2)
         {
             depth -= 1;
             if depth == 0 {
                 let inner: String =
-                    crate::utils::strings::substring_count(text, inner_start, pos - inner_start)?;
-                let end_suffix: String = if is_markdown {
+                    crate::utils::strings::substringCount(text, innerStart, pos - innerStart)?;
+                let endSuffix: String = if isMarkdown {
                     String::from("%}}")
                 } else {
                     String::from(">}}")
                 };
-                let close_end: i32 =
-                    crate::utils::strings::index_of_text_from(text, end_suffix.clone(), pos)?;
-                if close_end < 0 {
+                let closeEnd: i32 =
+                    crate::utils::strings::indexOfTextFrom(text, endSuffix.clone(), pos)?;
+                if closeEnd < 0 {
                     return Ok(Option::<rt::ObjectHandle<crate::shapes::EndPosInnerShape>>::None);
                 }
                 return Ok(Some({
-                    let record_inner = inner.clone();
+                    let record_inner = inner;
                     let record_end_pos =
-                        close_end + rt::conversions::usize_to_i32(js_string::js_len(&end_suffix))?;
+                        closeEnd + rt::conversions::usize_to_i32(js_string::js_len(&endSuffix))?;
                     rt::ObjectHandle::new(crate::shapes::EndPosInnerShape {
-                        end_pos: record_end_pos,
+                        endPos: record_end_pos,
                         inner: record_inner,
                     })
                 }));
             }
         }
-        pos = crate::utils::strings::next_code_point_index(text, pos)?;
+        pos = crate::utils::strings::nextCodePointIndex(text, pos)?;
     }
     Ok(Option::<rt::ObjectHandle<crate::shapes::EndPosInnerShape>>::None)
 }
 
-pub fn parse_shortcodes(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn parseShortcodes(
     text: String,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
 ) -> Result<js_abi::JsArray<ShortcodeCall>, rt::TsonicError> {
     let results: js_abi::JsArray<ShortcodeCall> = js_abi::JsArray::from_dense(vec![]);
     if !js_string::includes_from_start(&text, "{{<")
@@ -764,105 +738,104 @@ pub fn parse_shortcodes(
     {
         return Ok(results);
     }
-    let source_map: ShortcodeSourceMap = ShortcodeSourceMap::new(&text)?;
+    let textLength: i32 = rt::conversions::usize_to_i32(js_string::js_len(&text))?;
+    let sourceMap: ShortcodeSourceMap = ShortcodeSourceMap::new(&text)?;
     let mut pos: i32 = 0;
-    'loop_value: while pos < rt::conversions::usize_to_i32(js_string::js_len(&text))? {
-        let open_angle: i32 =
-            crate::utils::strings::index_of_text_from(&text, String::from("{{<"), pos)?;
-        let open_percent: i32 =
-            crate::utils::strings::index_of_text_from(&text, String::from("{{%"), pos)?;
-        let mut open_pos: i32 = -1;
-        let mut is_markdown: bool = false;
+    'loop_value: while pos < textLength {
+        let openAngle: i32 =
+            crate::utils::strings::indexOfTextFrom(&text, String::from("{{<"), pos)?;
+        let openPercent: i32 =
+            crate::utils::strings::indexOfTextFrom(&text, String::from("{{%"), pos)?;
+        let mut openPos: i32 = -1;
+        let mut isMarkdown: bool = false;
         #[expect(clippy::collapsible_if, reason = "checked lexical regions")]
-        if open_angle >= 0 {
-            if open_percent < 0 || open_angle <= open_percent {
-                open_pos = open_angle;
-                is_markdown = false;
+        if openAngle >= 0 {
+            if openPercent < 0 || openAngle <= openPercent {
+                openPos = openAngle;
+                isMarkdown = false;
             }
         }
-        if open_pos < 0 && open_percent >= 0 {
-            open_pos = open_percent;
-            is_markdown = true;
+        if openPos < 0 && openPercent >= 0 {
+            openPos = openPercent;
+            isMarkdown = true;
         }
-        if open_pos < 0 {
+        if openPos < 0 {
             break 'loop_value;
         }
-        if source_map.is_in_code_block(open_pos)? {
-            pos = open_pos + 3;
+        if sourceMap.isInCodeBlock(openPos)? {
+            pos = openPos + 3;
             continue 'loop_value;
         }
-        let close_suffix: String = if is_markdown {
+        let closeSuffix: String = if isMarkdown {
             String::from("%}}")
         } else {
             String::from(">}}")
         };
-        let close_pos: i32 =
-            crate::utils::strings::index_of_text_from(&text, close_suffix.clone(), open_pos + 3)?;
-        if close_pos < 0 {
-            let position: ShortcodePosition = source_map.position_at(open_pos)?;
+        let closePos: i32 =
+            crate::utils::strings::indexOfTextFrom(&text, closeSuffix.clone(), openPos + 3)?;
+        if closePos < 0 {
+            let position: ShortcodePosition = sourceMap.positionAt(openPos)?;
             return Err(rt::TsonicError::TsumoError(
-                crate::diagnostics::create_tsumo_error(
+                crate::diagnostics::createTsumoError(
                     String::from("TSUMO_SHORTCODE_ACTION_UNCLOSED"),
                     format!(
                         "{}{}{}",
                         String::from("Shortcode action opened with '"),
-                        if is_markdown {
+                        if isMarkdown {
                             String::from("{{%")
                         } else {
                             String::from("{{<")
                         },
                         String::from("' but is not closed")
                     ),
-                    source_path.clone(),
-                    Some(rt::conversions::i32_to_f64(
-                        position.state.with(|state| state.line),
-                    )),
-                    Some(rt::conversions::i32_to_f64(
-                        position.state.with(|state| state.column),
-                    )),
+                    sourcePath.clone(),
+                    Some(position.state.with(|state| state.line)),
+                    Some(position.state.with(|state| state.column)),
                 )?,
             ));
         }
-        let content: String = js_string::trim(&crate::utils::strings::substring_count(
+        let content: String = js_string::trim(&crate::utils::strings::substringCount(
             &text,
-            open_pos + 3,
-            close_pos - (open_pos + 3),
+            openPos + 3,
+            closePos - (openPos + 3),
         )?);
-        let is_self_closing: bool = js_string::ends_with_at_end(&content, "/");
-        let tag_content: String = if is_self_closing {
-            js_string::trim(&crate::utils::strings::substring_count(
+        let isSelfClosing: bool = js_string::ends_with_at_end(&content, "/");
+        let tagContent: String = if isSelfClosing {
+            js_string::trim(&crate::utils::strings::substringCount(
                 &content,
                 0,
-                rt::conversions::usize_to_i32(js_string::js_len(&content))? - 1,
+                rt::conversions::usize_to_i32(js_string::js_len(&content) - 1)?,
             )?)
         } else {
             content.clone()
         };
-        if js_string::starts_with_from_start(&tag_content, "/*") {
-            pos = close_pos + rt::conversions::usize_to_i32(js_string::js_len(&close_suffix))?;
+        if js_string::starts_with_from_start(&tagContent, "/*") {
+            pos = closePos + rt::conversions::usize_to_i32(js_string::js_len(&closeSuffix))?;
             continue 'loop_value;
         }
-        let first_space: i32 =
-            rt::conversions::isize_to_i32(js_string::index_of_from_start(&tag_content, " "))?;
-        let name: String = if first_space >= 0 {
-            js_string::trim(&crate::utils::strings::substring_count(
-                &tag_content,
+        let firstSpace: isize = js_string::index_of_from_start(&tagContent, " ");
+        let name: String = if firstSpace >= 0 {
+            js_string::trim(&crate::utils::strings::substringCount(
+                &tagContent,
                 0,
-                first_space,
+                rt::conversions::isize_to_i32(firstSpace)?,
             )?)
         } else {
-            js_string::trim(&tag_content)
+            js_string::trim(&tagContent)
         };
-        let args_text: String = if first_space >= 0 {
-            crate::utils::strings::substring_from(&tag_content, first_space + 1)?
+        let argsText: String = if firstSpace >= 0 {
+            crate::utils::strings::substringFrom(
+                &tagContent,
+                rt::conversions::isize_to_i32(firstSpace + 1)?,
+            )?
         } else {
             String::from("")
         };
         if name.is_empty() || js_string::starts_with_from_start(&name, "/") {
             if js_string::starts_with_from_start(&name, "/") {
-                let position: ShortcodePosition = source_map.position_at(open_pos)?;
+                let position: ShortcodePosition = sourceMap.positionAt(openPos)?;
                 return Err(rt::TsonicError::TsumoError(
-                    crate::diagnostics::create_tsumo_error(
+                    crate::diagnostics::createTsumoError(
                         String::from("TSUMO_SHORTCODE_CLOSE_UNEXPECTED"),
                         format!(
                             "{}{}{}",
@@ -870,237 +843,217 @@ pub fn parse_shortcodes(
                             name,
                             String::from("'")
                         ),
-                        source_path.clone(),
-                        Some(rt::conversions::i32_to_f64(
-                            position.state.with(|state| state.line),
-                        )),
-                        Some(rt::conversions::i32_to_f64(
-                            position.state.with(|state| state.column),
-                        )),
+                        sourcePath.clone(),
+                        Some(position.state.with(|state| state.line)),
+                        Some(position.state.with(|state| state.column)),
                     )?,
                 ));
             }
-            pos = close_pos + rt::conversions::usize_to_i32(js_string::js_len(&close_suffix))?;
+            pos = closePos + rt::conversions::usize_to_i32(js_string::js_len(&closeSuffix))?;
             continue 'loop_value;
         }
-        let position: ShortcodePosition = source_map.position_at(open_pos)?;
-        let parsed: rt::ObjectHandle<crate::shapes::IsNamedParamsPositionalShape> = parse_params(
-            &args_text,
-            source_path.clone(),
+        let position: ShortcodePosition = sourceMap.positionAt(openPos)?;
+        let parsed: rt::ObjectHandle<crate::shapes::IsNamedParamsPositionalShape> = parseParams(
+            &argsText,
+            sourcePath.clone(),
             position.state.with(|state| state.line),
             position.state.with(|state| state.column),
         )?;
-        if is_self_closing {
+        if isSelfClosing {
             let call: ShortcodeCall = ShortcodeCall::new(
-                name.clone(),
+                name,
                 parsed.with(|state| state.params.clone()),
                 parsed.with(|state| state.positional.clone()),
-                parsed.with(|state| state.is_named),
+                parsed.with(|state| state.isNamed),
                 String::from(""),
-                is_markdown,
+                isMarkdown,
                 true,
-                open_pos,
-                close_pos + rt::conversions::usize_to_i32(js_string::js_len(&close_suffix))?,
-                source_path.clone(),
+                openPos,
+                closePos + rt::conversions::usize_to_i32(js_string::js_len(&closeSuffix))?,
+                sourcePath.clone(),
                 position.state.with(|state| state.line),
                 position.state.with(|state| state.column),
             )?;
-            results.push_many_discard([call.clone()]);
-            pos = close_pos + rt::conversions::usize_to_i32(js_string::js_len(&close_suffix))?;
+            results.push_many_discard([call]);
+            pos = closePos + rt::conversions::usize_to_i32(js_string::js_len(&closeSuffix))?;
             continue 'loop_value;
         }
-        let tag_end_pos: i32 =
-            close_pos + rt::conversions::usize_to_i32(js_string::js_len(&close_suffix))?;
-        let close_result: Option<rt::ObjectHandle<crate::shapes::EndPosInnerShape>> =
-            find_closing_tag(&text, name.clone(), tag_end_pos, is_markdown)?;
-        if close_result.is_some() {
+        let tagEndPos: i32 =
+            closePos + rt::conversions::usize_to_i32(js_string::js_len(&closeSuffix))?;
+        let closeResult: Option<rt::ObjectHandle<crate::shapes::EndPosInnerShape>> =
+            findClosingTag(&text, name.clone(), tagEndPos, isMarkdown)?;
+        if closeResult.is_some() {
             let call: ShortcodeCall = ShortcodeCall::new(
                 name.clone(),
                 parsed.with(|state| state.params.clone()),
                 parsed.with(|state| state.positional.clone()),
-                parsed.with(|state| state.is_named),
-                match close_result.as_ref() {
+                parsed.with(|state| state.isNamed),
+                match closeResult.as_ref() {
                     Some(flow_value) => flow_value.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
                 .with(|state| state.inner.clone()),
-                is_markdown,
+                isMarkdown,
                 false,
-                open_pos,
-                match close_result.as_ref() {
+                openPos,
+                match closeResult.as_ref() {
                     Some(flow_value_2) => flow_value_2.clone(),
                     None => unreachable!("checked flow selected a missing optional value"),
                 }
-                .with(|state| state.end_pos),
-                source_path.clone(),
+                .with(|state| state.endPos),
+                sourcePath.clone(),
                 position.state.with(|state| state.line),
                 position.state.with(|state| state.column),
             )?;
-            results.push_many_discard([call.clone()]);
-            pos = match close_result.as_ref() {
+            results.push_many_discard([call]);
+            pos = match closeResult.as_ref() {
                 Some(flow_value_3) => flow_value_3.clone(),
                 None => unreachable!("checked flow selected a missing optional value"),
             }
-            .with(|state| state.end_pos);
+            .with(|state| state.endPos);
         } else {
             let call: ShortcodeCall = ShortcodeCall::new(
-                name.clone(),
+                name,
                 parsed.with(|state| state.params.clone()),
                 parsed.with(|state| state.positional.clone()),
-                parsed.with(|state| state.is_named),
+                parsed.with(|state| state.isNamed),
                 String::from(""),
-                is_markdown,
+                isMarkdown,
                 true,
-                open_pos,
-                tag_end_pos,
-                source_path.clone(),
+                openPos,
+                tagEndPos,
+                sourcePath.clone(),
                 position.state.with(|state| state.line),
                 position.state.with(|state| state.column),
             )?;
-            results.push_many_discard([call.clone()]);
-            pos = tag_end_pos;
+            results.push_many_discard([call]);
+            pos = tagEndPos;
         }
     }
     Ok(results)
 }
 
-pub fn collect_shortcode_names(
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn collectShortcodeNames(
     text: String,
-    source_path: Option<String>,
+    sourcePath: Option<String>,
 ) -> Result<js_abi::JsMap<String, bool>, rt::TsonicError> {
     let names: js_abi::JsMap<String, bool> = js_abi::JsMap::new();
     let pending: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![text]);
     {
-        let mut pending_index: i32 = 0;
-        while pending_index < rt::conversions::usize_to_i32(pending.len())? {
-            let calls: js_abi::JsArray<ShortcodeCall> = parse_shortcodes(
-                match pending.get_number(rt::conversions::i32_to_f64(pending_index)) {
+        let mut pendingIndex: usize = 0;
+        while pendingIndex < pending.len() {
+            let calls: js_abi::JsArray<ShortcodeCall> = parseShortcodes(
+                match pending.get_number(pendingIndex) {
                     Some(flow_value) => flow_value,
                     None => unreachable!("checked flow selected a missing optional value"),
                 },
-                source_path.clone(),
+                sourcePath.clone(),
             )?;
             {
-                let mut call_index: i32 = 0;
-                while call_index < rt::conversions::usize_to_i32(calls.len())? {
-                    let call: ShortcodeCall =
-                        match calls.get_number(rt::conversions::i32_to_f64(call_index)) {
-                            Some(flow_value_2) => flow_value_2,
-                            None => unreachable!("checked flow selected a missing optional value"),
-                        };
+                let mut callIndex: usize = 0;
+                while callIndex < calls.len() {
+                    let call: ShortcodeCall = match calls.get_number(callIndex) {
+                        Some(flow_value_2) => flow_value_2,
+                        None => unreachable!("checked flow selected a missing optional value"),
+                    };
                     {
                         let operation_input_0 = names.clone();
                         operation_input_0
                             .set_discard(call.state.with(|state| state.name.clone()), true)
                     };
                     if !call.state.with(|state| state.inner.clone()).is_empty() {
-                        {
-                            let operation_input_0_2 = pending.clone();
-                            operation_input_0_2
-                                .push_many_discard([call.state.with(|state| state.inner.clone())])
-                        };
+                        pending.push_many_discard([call.state.with(|state| state.inner.clone())]);
                     }
-                    call_index += 1;
+                    callIndex += 1;
                 }
             }
-            pending_index += 1;
+            pendingIndex += 1;
         }
     }
     Ok(names)
 }
 
-pub fn inner_deindent(inner: String) -> Result<String, rt::TsonicError> {
+#[allow(non_snake_case, reason = "preserves the authored source name")]
+pub fn innerDeindent(inner: String) -> Result<String, rt::TsonicError> {
     let lines: js_abi::JsArray<String> = js_string::split_all(&inner, "\n")?;
-    if rt::conversions::usize_to_i32(lines.len())? == 0 {
+    if lines.is_empty() {
         return Ok(inner);
     }
-    let mut min_indent: i32 = -1;
-    {
-        let mut i: i32 = 0;
-        'loop_value: while i < rt::conversions::usize_to_i32(lines.len())? {
-            let line: String = match lines.get_number(rt::conversions::i32_to_f64(i)) {
-                Some(flow_value) => flow_value,
-                None => unreachable!("checked flow selected a missing optional value"),
-            };
-            if js_string::trim(&line).is_empty() {
-                i += 1;
-                continue 'loop_value;
+    let lineCount: i32 = rt::conversions::usize_to_i32(lines.len())?;
+    let mut minIndent: i32 = -1;
+    'loop_value: for i in 0..lineCount {
+        let line: String = match lines.get_number(i) {
+            Some(flow_value) => flow_value,
+            None => unreachable!("checked flow selected a missing optional value"),
+        };
+        let lineLength: i32 = rt::conversions::usize_to_i32(js_string::js_len(&line))?;
+        if js_string::trim(&line).is_empty() {
+            continue 'loop_value;
+        }
+        let mut indent: i32 = 0;
+        'loop_value_2: for j in 0..lineLength {
+            let c: String = crate::utils::strings::codePointAtText(&line, j)?;
+            if c == " " {
+                indent += 1;
+            } else if c == "\t" {
+                indent += 4;
+            } else {
+                break 'loop_value_2;
             }
-            let mut indent: i32 = 0;
-            {
-                let mut j: i32 = 0;
-                'loop_value_2: while j < rt::conversions::usize_to_i32(js_string::js_len(&line))? {
-                    let c: String = crate::utils::strings::code_point_at_text(&line, j)?;
-                    if c == " " {
-                        indent += 1;
-                    } else if c == "\t" {
-                        indent += 4;
-                    } else {
-                        break 'loop_value_2;
-                    }
-                    j += 1;
-                }
-            }
-            if min_indent < 0 || indent < min_indent {
-                min_indent = indent;
-            }
-            i += 1;
+        }
+        if minIndent < 0 || indent < minIndent {
+            minIndent = indent;
         }
     }
-    if min_indent <= 0 {
+    if minIndent <= 0 {
         return Ok(inner);
     }
     let result: js_abi::JsArray<String> = js_abi::JsArray::from_dense(vec![]);
-    {
-        let mut i: i32 = 0;
-        'loop_value_3: while i < rt::conversions::usize_to_i32(lines.len())? {
-            let line: String = match lines.get_number(rt::conversions::i32_to_f64(i)) {
-                Some(flow_value_2) => flow_value_2,
-                None => unreachable!("checked flow selected a missing optional value"),
-            };
-            if js_string::trim(&line).is_empty() {
-                result.push_many_discard([line.clone()]);
-                i += 1;
-                continue 'loop_value_3;
-            }
-            let mut removed: i32 = 0;
-            let mut start_idx: i32 = 0;
-            {
-                let mut j: i32 = 0;
-                'loop_value_4: while j < rt::conversions::usize_to_i32(js_string::js_len(&line))?
-                    && removed < min_indent
-                {
-                    let c: String = crate::utils::strings::code_point_at_text(&line, j)?;
-                    if c == " " {
-                        removed += 1;
-                        start_idx += 1;
-                    } else if c == "\t" {
-                        removed += 4;
-                        start_idx += 1;
-                    } else {
-                        break 'loop_value_4;
-                    }
-                    j += 1;
-                }
-            }
-            {
-                let operation_input_0 = result.clone();
-                operation_input_0
-                    .push_many_discard([crate::utils::strings::substring_from(&line, start_idx)?])
-            };
-            i += 1;
+    'loop_value_3: for i in 0..lineCount {
+        let line: String = match lines.get_number(i) {
+            Some(flow_value_2) => flow_value_2,
+            None => unreachable!("checked flow selected a missing optional value"),
+        };
+        let lineLength: i32 = rt::conversions::usize_to_i32(js_string::js_len(&line))?;
+        if js_string::trim(&line).is_empty() {
+            result.push_many_discard([line]);
+            continue 'loop_value_3;
         }
+        let mut removed: i32 = 0;
+        let mut startIdx: i32 = 0;
+        {
+            let mut j: i32 = 0;
+            'loop_value_4: while j < lineLength && removed < minIndent {
+                let c: String = crate::utils::strings::codePointAtText(&line, j)?;
+                if c == " " {
+                    removed += 1;
+                    startIdx += 1;
+                } else if c == "\t" {
+                    removed += 4;
+                    startIdx += 1;
+                } else {
+                    break 'loop_value_4;
+                }
+                j += 1;
+            }
+        }
+        result.push_many_discard([crate::utils::strings::substringFrom(&line, startIdx)?]);
     }
     let arr: js_abi::JsArray<String> = result.clone();
     let mut out: String = String::from("");
-    for i in 0..rt::conversions::usize_to_i32(arr.len())? {
-        if i > 0 {
-            out.push('\n');
+    {
+        let mut i: i32 = 0;
+        while i < rt::conversions::usize_to_i32(arr.len())? {
+            if i > 0 {
+                out.push('\n');
+            }
+            out.push_str(&match arr.get_number(i) {
+                Some(flow_value_3) => flow_value_3,
+                None => unreachable!("checked flow selected a missing optional value"),
+            });
+            i += 1;
         }
-        out.push_str(&match arr.get_number(rt::conversions::i32_to_f64(i)) {
-            Some(flow_value_3) => flow_value_3,
-            None => unreachable!("checked flow selected a missing optional value"),
-        });
     }
     Ok(out)
 }
